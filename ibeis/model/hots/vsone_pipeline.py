@@ -44,10 +44,14 @@ def show_annot_weights(ibs, aid, mode='dstncvs'):
     CommandLine:
         alias show_annot_weights='python -m ibeis.model.hots.vsone_pipeline --test-show_annot_weights --show'
         show_annot_weights
-        show_annot_weights --db PZ_MTEST --aid 1 --mode 'dstncvs'&
+        show_annot_weights --db PZ_MTEST --aid 1 --mode 'dstncvs'
         show_annot_weights --db PZ_MTEST --aid 1 --mode 'fgweight'&
-        show_annot_weights --db GZ_ALL --aid 1 --mode 'dstncvs'&
+        show_annot_weights --db GZ_ALL --aid 1 --mode 'dstncvs'
         show_annot_weights --db GZ_ALL --aid 1 --mode 'fgweight'&
+
+
+        python -m ibeis.model.hots.vsone_pipeline --test-show_annot_weights --show --db GZ_ALL --aid 1 --mode 'dstncvs'
+        python -m ibeis.model.hots.vsone_pipeline --test-show_annot_weights --show --db PZ_MTEST --aid 1 --mode 'dstncvs'
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -68,13 +72,16 @@ def show_annot_weights(ibs, aid, mode='dstncvs'):
     chipsize = ibs.get_annot_chipsizes(aid)[::-1]
     chip = ibs.get_annot_chips(aid)
     kpts = ibs.get_annot_kpts(aid)
+    mode = mode.strip('\'')  # win32 hack
     get_weight = {
         'dstncvs': functools.partial(get_kpts_distinctiveness, ibs),
         'fgweight': ibs.get_annot_fgweights,
     }[mode]
     fx2_score = get_weight([aid])[0]
+    ut.print_resource_usage()
     mask, patch = coverage_image.make_coverage_mask(
         kpts, chipsize, fx2_score=fx2_score, mode='max')
+    ut.print_resource_usage()
     coverage_image.show_coverage_map(chip, mask, patch, kpts, fnum, ell_alpha=.2, show_mask_kpts=False)
     pt.set_figtitle(mode)
 

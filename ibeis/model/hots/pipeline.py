@@ -317,6 +317,7 @@ def nearest_neighbors(qreq_, verbose=VERB_PIPELINE):
 #============================
 
 
+@profile
 def baseline_neighbor_filter(qreq_, qaid2_nns, verbose=VERB_PIPELINE):
     """
 
@@ -376,6 +377,7 @@ def baseline_neighbor_filter(qreq_, qaid2_nns, verbose=VERB_PIPELINE):
     return qaid2_nnvalid0
 
 
+@profile
 def flag_impossible_votes(qreq_, qaid, qfx2_nnidx, cant_match_self,
                             cant_match_sameimg, cant_match_samename,
                             verbose=VERB_PIPELINE):
@@ -417,6 +419,7 @@ def flag_impossible_votes(qreq_, qaid, qfx2_nnidx, cant_match_self,
 
 
 #@ut.indent_func('[wn]')
+@profile
 def weight_neighbors(qreq_, qaid2_nns, qaid2_nnvalid0, verbose=VERB_PIPELINE):
     """
     PIPELINE NODE 3 - assigns weights to feature matches based on the active
@@ -1290,6 +1293,7 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
     return topx2_dlen_sqrd
 
 
+@profile
 def hack_fix_dupvote_weights(qreq_, qaid2_chipmatchSV):
     """
     If the one feature allowed to match to a name was removed by spatial
@@ -1643,6 +1647,7 @@ def try_load_resdict(qreq_, force_miss=False, verbose=VERB_PIPELINE):
     return qaid2_qres_hit  # , cachemiss_qaids
 
 
+@profile
 def save_resdict(qreq_, qaid2_qres, verbose=VERB_PIPELINE):
     """
     Saves a dictionary of query results to disk

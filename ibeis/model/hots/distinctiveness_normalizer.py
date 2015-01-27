@@ -331,6 +331,9 @@ def request_ibeis_distinctiveness_normalizer(qreq_, verbose=True):
 
 
 def request_species_distinctiveness_normalizer(species, cachedir=None, verbose=False):
+    """
+    helper function to get distinctivness model independent of IBEIS.
+    """
     if species in DISTINCTIVENESS_NORMALIZER_CACHE:
         dstcnvs_normer = DISTINCTIVENESS_NORMALIZER_CACHE[species]
     else:
@@ -341,6 +344,8 @@ def request_species_distinctiveness_normalizer(species, cachedir=None, verbose=F
             # download normalizer if it doesn't exist
             download_baseline_distinctiveness_normalizer(cachedir, species)
         dstcnvs_normer.load(cachedir)
+        print(ut.get_object_size_str(dstcnvs_normer, 'dstcnvs_normer = '))
+        print('Loaded distinctivness normalizer')
         #dstcnvs_normer.ensure_flann(cachedir)
         assert dstcnvs_normer.exists(cachedir, need_flann=True), 'normalizer should have been downloaded, but it doesnt exist'
         DISTINCTIVENESS_NORMALIZER_CACHE[species] = dstcnvs_normer
