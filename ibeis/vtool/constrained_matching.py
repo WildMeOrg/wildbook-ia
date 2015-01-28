@@ -239,14 +239,15 @@ def spatially_constrain_matches(dlen_sqrd2, kpts1, kpts2, H_RAT, fx2_to_fx1, fx2
     assert fx2_to_fx1_kmatch != fx2_to_fx1_knorm
     fx2_to_hasmatch = [pos is not None for pos in fx2_to_fx1_knorm]
     fx2_list = np.where(fx2_to_hasmatch)[0]
-    k_match_list = np.array(ut.list_take(fx2_to_fx1_kmatch, fx2_list))
-    k_norm_list = np.array(ut.list_take(fx2_to_fx1_knorm, fx2_list))
+    k_match_list = np.array(ut.list_take(fx2_to_fx1_kmatch, fx2_list), dtype=fx2_list.dtype)
+    k_norm_list = np.array(ut.list_take(fx2_to_fx1_knorm, fx2_list), dtype=fx2_list.dtype)
 
     # We now have 2d coordinates into fx2_to_fx1
     # Covnert into 1d coordinates for flat indexing into fx2_to_fx1
     _shape2d = fx2_to_fx1.shape
     _match_index_2d = np.vstack((fx2_list, k_match_list))
     _norm_index_2d  = np.vstack((fx2_list, k_norm_list))
+    #with ut.EmbedOnException():
     match_index_1d = np.ravel_multi_index(_match_index_2d, _shape2d)
     norm_index_1d  = np.ravel_multi_index(_norm_index_2d, _shape2d)
 
