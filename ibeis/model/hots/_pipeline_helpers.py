@@ -29,7 +29,7 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
     from ibeis.model.hots.pipeline import (
         nearest_neighbors, baseline_neighbor_filter, weight_neighbors,
         filter_neighbors, build_chipmatches, spatial_verification,
-        chipmatch_to_resdict)
+        chipmatch_to_resdict, vsone_reranking)
 
     qreq_.lazy_load(verbose=verbose)
     #---
@@ -56,6 +56,15 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
     if stop_node == 'spatial_verification':
         return locals()
     qaid2_chipmatch_SVER = spatial_verification(qreq_, qaid2_chipmatch_FILT, verbose=verbose)
+    #---
+    if stop_node == 'vsone_reranking':
+        return locals()
+    if qreq_.qparams.vsone_reranking:
+        # VSONE RERANKING
+        qaid2_chipmatch_VSONERR = vsone_reranking(qreq_, qaid2_chipmatch_SVER, verbose=verbose)
+        qaid2_chipmatch = qaid2_chipmatch_VSONERR
+    else:
+        qaid2_chipmatch = qaid2_chipmatch_SVER
     #---
     if stop_node == 'chipmatch_to_resdict':
         return locals()
@@ -167,7 +176,7 @@ def assert_qaid2_chipmatch(qreq_, qaid2_chipmatch):
     assert external_qaids == list(qaid2_chipmatch.keys()), 'bad external qaids'
     # Loop over internal qaids
     for qaid, chipmatch in qaid2_chipmatch.iteritems():
-        (daid2_fm, daid2_fsv, daid2_fk, daid2_H) = chipmatch
+        (daid2_fm, daid2_fsv, daid2_fk, daid2_score, daid2_H) = chipmatch
         assert len(daid2_fm) == len(daid2_fsv), 'bad chipmatch'
         assert len(daid2_fm) == len(daid2_fk), 'bad chipmatch'
         assert daid2_H is None or len(daid2_fm) == len(daid2_H), 'bad chipmatch'

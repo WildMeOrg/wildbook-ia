@@ -47,17 +47,16 @@ def default_decorator(input_):
 #    def __delitem__(self, index):
 #        del self._cache[index]
 
-
-API_CACHE = ut.get_argflag('--api-cache')
-#API_CACHE = not ut.get_argflag('--no-api-cache')
-
 DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
 
 RELEASE_MODE = True
 if RELEASE_MODE:
+    API_CACHE = not ut.get_argflag('--no-api-cache')
     ASSERT_API_CACHE = ut.get_argflag(('--assert-api-cache', '--naac'))
 else:
+    API_CACHE = ut.get_argflag('--api-cache')
     ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
+
 if ut.VERBOSE:
     if ut.in_main_process():
         if API_CACHE:

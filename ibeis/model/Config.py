@@ -592,8 +592,9 @@ class QueryConfig(ConfigBase):
         query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk']
         query_cfg.pipeline_root = 'vsmany'
         query_cfg.with_metadata = False
-        query_cfg.return_expanded_nns = False
-        query_cfg.use_external_distinctiveness = False
+        query_cfg.return_expanded_nns = False  # for hacky distinctivness
+        query_cfg.use_external_distinctiveness = False  # for distinctivness model
+        query_cfg.vsone_reranking = False
         query_cfg.codename = 'None'
         query_cfg.species_code = '____'  # TODO: make use of this
         #if ut.is_developer():

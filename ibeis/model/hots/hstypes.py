@@ -26,6 +26,8 @@ currently a weight of zero is hacked in
 """
 from __future__ import absolute_import, division, print_function
 import numpy as np
+from collections import namedtuple
+
 
 #INTEGER_TYPE = np.int32
 INDEX_TYPE = np.int32
@@ -104,3 +106,6 @@ class FiltKeys(object):
 # Denote which scores should be  used as weights
 # the others are used as scores
 WEIGHT_FILTERS = [FiltKeys.FG, FiltKeys.DISTINCTIVENESS, FiltKeys.HOMOGERR]
+
+
+ChipMatch = namedtuple('ChipMatch', ('aid2_fm', 'aid2_fsv', 'aid2_fk', 'aid2_score', 'aid2_H'))

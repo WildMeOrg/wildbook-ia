@@ -281,11 +281,13 @@ def compute_distinctiveness_from_dist(norm_sqared_dist, **kwargs):
     """
     # TODO: paramaterize
     # expondent to augment distinctiveness scores.
-    p = kwargs.get('p', .5)
+    #p = kwargs.get('p', .5)
+    p = kwargs.get('p', .25)
     #1.0)
     # clip the distinctiveness at this fraction
     #clip_fraction = kwargs.get('clip_fraction', .2)
-    clip_fraction = kwargs.get('clip_fraction', .4)
+    #clip_fraction = kwargs.get('clip_fraction', .4)
+    clip_fraction = kwargs.get('clip_fraction', .5)
     wd_cliped = np.divide(norm_sqared_dist, clip_fraction)
     wd_cliped[np.greater(wd_cliped, 1.0)] = 1.0
     dstncvs = np.power(wd_cliped, p)
