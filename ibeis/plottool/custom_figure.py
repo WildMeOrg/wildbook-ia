@@ -72,8 +72,9 @@ def _convert_pnum_int_to_tup(int_pnum):
 def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
            doclf=False, **kwargs):
     """
-    fnum = fignum = figure number
-    pnum = plotnum = plot tuple
+    Args:
+        fnum (int):  fignum = figure number
+        pnum (int, str, or tuple(int, int, int)): plotnum = plot tuple
     """
     #mpl.pyplot.xkcd()
     fig = get_fig(fnum)
@@ -197,13 +198,13 @@ def save_figure(fnum=None, fpath=None, usetitle=False, overwrite=True,
 
     Args:
         fnum (int):  figure number
-        fpath (None):
+        fpath (str): file path string
         usetitle (bool): uses title as the fpath
         overwrite (bool): default=True
-        defaultext (None):
+        defaultext (str): default extension
         verbose (int):  verbosity flag
-        dpi (None): dots per inch
-        figsize (None):
+        dpi (int): dots per inch
+        figsize (tuple(int, int)): figure size
         saveax (bool or Axes): specifies if the axes should be saved instead of the figure
 
     References:
