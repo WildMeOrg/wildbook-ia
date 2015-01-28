@@ -71,7 +71,8 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     x2_mn = xy2_mn[0]
     y2_mn = xy2_mn[1]
     num_pts = x1_mn.shape[0]
-    Mx9 = np.zeros((2 * num_pts, 9), dtype=SV_DTYPE)
+    #Mx9 = np.zeros((2 * num_pts, 9), dtype=SV_DTYPE)
+    Mx9 = np.empty((2 * num_pts, 9), dtype=SV_DTYPE)
     """
     #if CYTH
     for ix in range(num_pts):  # Loop over inliers
@@ -484,10 +485,10 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     # Normalize affine inliers xy locations
     xy1_ma = ktool.get_xys(kpts1_ma)
     xy2_ma = ktool.get_xys(kpts2_ma)
-    xy1_mn, T1 = ltool.whiten_xy_points(xy1_ma)
-    xy2_mn, T2 = ltool.whiten_xy_points(xy2_ma)
+    xy1_man, T1 = ltool.whiten_xy_points(xy1_ma)
+    xy2_man, T2 = ltool.whiten_xy_points(xy2_ma)
     # Compute homgraphy transform from chip1 -> chip2 using affine inliers
-    H_prime = compute_homog(xy1_mn, xy2_mn)
+    H_prime = compute_homog(xy1_man, xy2_man)
 
     # Then compute ax = b  [aka: x = npl.solve(a, b)]
     H = npl.solve(T2, H_prime).dot(T1)  # Unnormalize
@@ -564,6 +565,10 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
     """
     if ut.VERYVERBOSE:
         print('[sver] Starting spatial verification')
+    if len(fm) == 0:
+        if ut.VERYVERBOSE:
+            print('[sver] Cannot verify with no matches')
+        return None
     # Cast keypoints to float64 to avoid numerical issues
     kpts1 = kpts1.astype(np.float64, casting='same_kind', copy=False)
     kpts2 = kpts2.astype(np.float64, casting='same_kind', copy=False)

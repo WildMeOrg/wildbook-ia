@@ -19,6 +19,11 @@ indices into kpts{1,2} indicating a match
 #include <opencv2/core/core.hpp>
 #include <vector>
 
+// References:
+// http://stackoverflow.com/questions/487108/how-to-supress-specific-warnings-in-g
+// suppress unused warnings of specific variables
+#define MARKUSED(X)  ((void)(&(X)))
+
 using cv::Matx;
 using std::vector;
 
@@ -57,7 +62,7 @@ void debug_print_mat3x3(const char* name, const Matx<double, 3, 3>& mat) {
         mat(2, 0), mat(2, 1), mat(2, 2));
 }
 
-template<typename T> T xy_distance(Matx<T, 3, 3> kpt1, Matx<T, 3, 3> kpt2) {
+template<typename T> inline T xy_distance(const Matx<T, 3, 3>& kpt1, const Matx<T, 3, 3>& kpt2) {
     // ktool.get_invVR_mats_xys
     T x1 = kpt1(0, 2), y1 = kpt1(1, 2);
     T x2 = kpt2(0, 2), y2 = kpt2(1, 2);
@@ -66,7 +71,7 @@ template<typename T> T xy_distance(Matx<T, 3, 3> kpt1, Matx<T, 3, 3> kpt2) {
     return dx*dx + dy*dy;
 }
 
-template<typename T> T det_distance(Matx<T, 3, 3> kpt1, Matx<T, 3, 3> kpt2) {
+template<typename T> inline T det_distance(const Matx<T, 3, 3>& kpt1, const Matx<T, 3, 3>& kpt2) {
     // ktool.get_invVR_mats_sqrd_scale
     T a1 = kpt1(0, 0), b1 = kpt1(0, 1), c1 = kpt1(1, 0), d1 = kpt1(1, 1);
     T a2 = kpt2(0, 0), b2 = kpt2(0, 1), c2 = kpt2(1, 0), d2 = kpt2(1, 1);
@@ -77,7 +82,7 @@ template<typename T> T det_distance(Matx<T, 3, 3> kpt1, Matx<T, 3, 3> kpt2) {
     return dist;
 }
 
-template<typename T> T ori_distance(Matx<T, 3, 3> kpt1, Matx<T, 3, 3> kpt2) {
+template<typename T> inline T ori_distance(const Matx<T, 3, 3>& kpt1, const Matx<T, 3, 3>& kpt2) {
     // ktool.get_invVR_mats_oris
     T a1 = kpt1(0, 0), b1 = kpt1(0, 1);
     T a2 = kpt2(0, 0), b2 = kpt2(0, 1);
@@ -97,6 +102,19 @@ extern "C" {
                     // memory is expected to by allocated by the caller (i.e. via numpy.empty)
                     bool* out_inlier_flags, double* out_errors_list, double* out_matrices_list)
     {
+
+        MARKUSED(kpts1_len);
+        MARKUSED(kpts2_len);
+//#define RUNTIME_BOUNDS_CHECKING
+#ifdef RUNTIME_BOUNDS_CHECKING
+        for(size_t fm_ind = 0; fm_ind < fm_len; fm_ind += 2) {
+            if((fm[fm_ind] >= kpts1_len) || (fm[fm_ind + 1] >= kpts2_len)) 
+            {
+                puts("bad fm indexes");
+                return;
+            }
+        }
+#endif
 // remove some redundancy in a possibly-ugly way
 #define SETUP_RELEVANT_VARIABLES \
 double* kpt1 = &kpts1[6*fm[fm_ind+0]]; \

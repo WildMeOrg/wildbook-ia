@@ -131,8 +131,9 @@ def testdata_matcher(fname1='easy1.png', fname2='easy2.png'):
     from vtool import features as feattool
     fpath1 = ut.grab_test_imgpath(fname1)
     fpath2 = ut.grab_test_imgpath(fname2)
-    kpts1, vecs1 = feattool.extract_features(fpath1)
-    kpts2, vecs2 = feattool.extract_features(fpath2)
+    kpts1, vecs1 = feattool.extract_features(fpath1, rotation_invariance=True)
+    #ut.embed()
+    kpts2, vecs2 = feattool.extract_features(fpath2, rotation_invariance=True)
     rchip1 = gtool.imread(fpath1)
     rchip2 = gtool.imread(fpath2)
     #chip1_shape = vt.gtool.open_image_size(fpath1)
@@ -330,7 +331,7 @@ def show_matches(fm, fs, fnum=1, pnum=None, title='', key=None, simp=None,
     #doclf=True, docla=True)
     ax, xywh1, xywh2 = pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm,
                                           fs=fs, fnum=fnum, cmap=cmap,
-                                          draw_lines=draw_lines)
+                                          draw_lines=draw_lines, ori=True)
     ph.set_plotdat(ax, 'viztype', 'matches')
     ph.set_plotdat(ax, 'simp', simp)
     ph.set_plotdat(ax, 'key', key)

@@ -20,13 +20,26 @@ errs_t = np.ctypeslib.ndpointer(dtype=np.float64, ndim=3, flags=FLAGS_RW)
 mats_t = np.ctypeslib.ndpointer(dtype=np.float64, ndim=3, flags=FLAGS_RW)
 
 
-def call_python_version(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
-    out_inliers, out_errors, out_mats = sver.get_affine_inliers(
-        kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
-    return out_inliers, out_errors, out_mats
+#def call_python_version(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
+#    out_inliers, out_errors, out_mats = sver.get_affine_inliers(
+#        kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
+#    return out_inliers, out_errors, out_mats
 
 
-c_sver = C.cdll['./sver.so']
+from os.path import dirname, join
+dpath = dirname(__file__)
+cpp_fname = join(dpath, 'sver.cpp')
+lib_fname = join(dpath, 'sver.so')
+
+
+if ut.get_argflag('--rebuild-sver'):
+    cflags = '-shared -fPIC -O2 -ffast-math'
+    cmd_fmtstr = 'g++ -Wall -Wextra {cpp_fname} -lopencv_core {cflags} -o {lib_fname}'
+    cmd_str = cmd_fmtstr.format(**locals())
+    ut.cmd(cmd_str)
+
+
+c_sver = C.cdll[lib_fname]
 c_getaffineinliers = c_sver['get_affine_inliers']
 c_getaffineinliers.restype = None
 c_getaffineinliers.argtypes = [kpts_t, C.c_size_t,
@@ -36,17 +49,20 @@ c_getaffineinliers.argtypes = [kpts_t, C.c_size_t,
                                 inliers_t, errs_t, mats_t]
 
 
-def call_cpp_version(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
+def get_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
     #np.ascontiguousarray(kpts1)
+    #with ut.Timer('PreC'):
     fm = np.ascontiguousarray(fm)
     out_inlier_flags = np.empty((len(fm), len(fm)), np.bool)
     out_errors = np.empty((len(fm), 3, len(fm)), np.float64)
     out_mats = np.empty((len(fm), 3, 3), np.float64)
+    #with ut.Timer('C'):
     c_getaffineinliers(kpts1, 6 * len(kpts1),
                        kpts2, 6 * len(kpts2),
                        fm, 2 * len(fm),
                        xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh,
                        out_inlier_flags, out_errors, out_mats)
+    #with ut.Timer('C'):
     out_inliers = [np.where(row)[0] for row in out_inlier_flags]
     return out_inliers, out_errors, out_mats
 
@@ -132,6 +148,7 @@ def test_calling():
 
     CommandLine:
         python -m vtool.sver_c_wrapper --test-test_calling
+        python -m vtool.sver_c_wrapper --test-test_calling --rebuild-sver
         python -m vtool.sver_c_wrapper --test-test_calling --show
         python -m vtool.sver_c_wrapper --test-test_calling --show --dummy
         python -m vtool.sver_c_wrapper --test-test_calling --show --fname1=easy1.png --fname2=easy2.png
@@ -145,7 +162,7 @@ def test_calling():
 
     Ignore:
         %timeit call_python_version(*args)
-        %timeit call_cpp_version(*args)
+        %timeit get_affine_inliers_cpp(*args)
     """
     xy_thresh_sqrd = ktool.KPTS_DTYPE(.1)
     scale_thresh_sqrd = ktool.KPTS_DTYPE(2)
@@ -163,9 +180,9 @@ def test_calling():
 
     # test both versions
     with ut.Timer('time aff hyothesis python') as t_py:
-        out_inliers_py, out_errors_py, out_mats_py = call_python_version(*args)
+        out_inliers_py, out_errors_py, out_mats_py = sver.get_affine_inliers(*args)
     with ut.Timer('time aff hyothesis c') as t_c:
-        out_inliers_c, out_errors_c, out_mats_c = call_cpp_version(*args)
+        out_inliers_c, out_errors_c, out_mats_c = get_affine_inliers_cpp(*args)
 
     print('speedup = %r' % (t_py.ellapsed / t_c.ellapsed))
 

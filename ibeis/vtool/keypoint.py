@@ -240,13 +240,23 @@ def get_invVR_mats2x2(kpts):
                 [ 2.,  3.]],
                [[ 0., -1.],
                 [ 3., -2.]]])
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> kpts = np.empty((0, 6))
+        >>> invVR_mats2x2 = get_invVR_mats2x2(kpts)
+        >>> assert invVR_mats2x2.shape == (0, 2, 2)
     """
+    if len(kpts) == 0:
+        return np.empty((0, 2, 2))
     invV_mats2x2 = get_invV_mats2x2(kpts)
     # You must apply rotations before you apply shape
     # This is because we are dealing with \emph{inv}(V).
     # numpy operates with data on the right (operate right-to-left)
     R_mats2x2  = get_ori_mats(kpts)
-    invVR_mats2x2 = matrix_multiply(invV_mats2x2, R_mats2x2)
+    with ut.EmbedOnException():
+        invVR_mats2x2 = matrix_multiply(invV_mats2x2, R_mats2x2)
     return invVR_mats2x2
 
 
@@ -1179,6 +1189,8 @@ def get_kpts_dlen_sqrd(kpts):
         >>> print(result)
         5681.31
     """
+    if len(kpts) == 0:
+        return 0.0
     w, h = get_kpts_image_extent(kpts)
     dlen_sqrd = (w ** 2) + (h ** 2)
     return dlen_sqrd
