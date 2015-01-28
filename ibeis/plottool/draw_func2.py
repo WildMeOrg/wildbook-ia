@@ -1578,13 +1578,13 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
     ell_alpha = kwargs.get('ell_alpha', .4)
     nMatch = len(fm)
     #printDBG('[df2.draw_fnmatch] nMatch=%r' % nMatch)
-    x1, y1, w1, h1 = xywh1
     x2, y2, w2, h2 = xywh2
     offset2 = (x2, y2)
     # THIS IS NOT WHERE THIS CODE BELONGS
     if False:
         # Custom user label for chips 1 and 2
         if lbl1 is not None:
+            x1, y1, w1, h1 = xywh1
             absolute_lbl(x1 + w1, y1, lbl1)
         if lbl2 is not None:
             absolute_lbl(x2 + w2, y2, lbl2)
@@ -1615,9 +1615,10 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
         # Helper functions
         def _drawkpts(**_kwargs):
             _kwargs.update(kwargs)
-            fxs1 = fm[:, 0]
-            fxs2 = fm[:, 1]
-            draw_kpts2(kpts1[fxs1], rect=rect, **_kwargs)
+            fxs1 = fm.T[0]
+            fxs2 = fm.T[1]
+            if kpts1 is not None:
+                draw_kpts2(kpts1[fxs1], rect=rect, **_kwargs)
             draw_kpts2(kpts2[fxs2], offset=offset2, rect=rect, **_kwargs)
 
         def _drawlines(**_kwargs):
@@ -1629,7 +1630,7 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
         if pts:
             _drawkpts(pts_size=8, pts=True, ell=False, pts_color=BLACK)
             _drawkpts(pts_size=6, pts=True, ell=False, color_list=acols)
-        if lines:
+        if lines and kpts1 is not None:
             _drawlines(color_list=colors)
     else:
         # if not matches draw a big red X

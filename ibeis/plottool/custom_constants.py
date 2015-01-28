@@ -1,10 +1,10 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import map
-import utool
 import numpy as np
 import matplotlib as mpl
+import utool as ut
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[custom_constants]', DEBUG=False)
-utool.noinject(__name__, '[custom_constants]')
+ut.noinject(__name__, '[custom_constants]')
 # GENERAL FONTS
 
 SMALLEST = 6
@@ -20,7 +20,7 @@ def FontProp(*args, **kwargs):
     kwargs['family'] = 'monospace'
     return mpl.font_manager.FontProperties(*args, **kwargs)
 
-FONTS = utool.DynStruct()
+FONTS = ut.DynStruct()
 FONTS.smallest  = FontProp(weight='light', size=SMALLEST)
 FONTS.small     = FontProp(weight='light', size=SMALL)
 FONTS.smaller   = FontProp(weight='light', size=SMALLER)
@@ -92,8 +92,11 @@ FIGSIZE_GOLD = golden_wh2(8)
 FIGSIZE_BIGGER = (24, 12)
 FIGSIZE_HUGE = (32, 16)
 
-FIGSIZE = FIGSIZE_MED
+#FIGSIZE = FIGSIZE_MED
 # Quality drawings
 FIGSIZE = FIGSIZE_GOLD
-#DPI = 120
-DPI = 80
+
+if ut.get_argflag('--quality'):
+    DPI = 120
+else:
+    DPI = 80

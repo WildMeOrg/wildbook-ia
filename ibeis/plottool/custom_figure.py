@@ -122,14 +122,18 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
     return fig
 
 
-def prepare_figure_for_save(fnum):
+def prepare_figure_for_save(fnum, dpi=None, figsize=None):
+    if dpi is None:
+        dpi = DPI
+    if figsize is None:
+        figsize = FIGSIZE
     # Resizes the figure for quality saving
     if fnum is None:
         fig = gcf()
     else:
-        fig = plt.figure(fnum, figsize=FIGSIZE, dpi=DPI)
+        fig = plt.figure(fnum, figsize=figsize, dpi=dpi)
     # Enforce inches and DPI
-    fig.set_size_inches(FIGSIZE[0], FIGSIZE[1])
+    fig.set_size_inches(figsize[0], figsize[1])
     fnum = fig.number
     return fig, fnum
 
@@ -186,18 +190,45 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext):
 
 
 def save_figure(fnum=None, fpath=None, usetitle=False, overwrite=True,
-                defaultext=None, verbose=2):
+                defaultext=None, verbose=2, dpi=None, figsize=None, saveax=None):
     """
     Helper to save the figure image to disk. Tries to be smart about filename
     lengths, extensions, overwrites, etc...
+
+    Args:
+        fnum (int):  figure number
+        fpath (None):
+        usetitle (bool): uses title as the fpath
+        overwrite (bool): default=True
+        defaultext (None):
+        verbose (int):  verbosity flag
+        dpi (None): dots per inch
+        figsize (None):
+        saveax (bool or Axes): specifies if the axes should be saved instead of the figure
+
+    References:
+        for saving only a specific Axes
+        http://stackoverflow.com/questions/4325733/save-a-subplot-in-matplotlib
     """
+    if dpi is None:
+        dpi = DPI
+
     if defaultext is None:
         if mpl.get_backend().lower() == 'pdf':
             defaultext = '.pdf'
         else:
             defaultext = '.jpg'
-    fig, fnum = prepare_figure_for_save(fnum)
+    fig, fnum = prepare_figure_for_save(fnum, dpi, figsize)
     fpath_clean = prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext)
+
+    savekw = {'dpi': dpi}
+
+    if saveax is not None:
+        if saveax is True:
+            saveax = plt.gca()
+        extent = saveax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+        savekw['bbox_inches'] = extent.expanded(1.0, 1.0)
+
     #fname_clean = split(fpath_clean)[1]
     #adjust_subplots()
     with warnings.catch_warnings():
@@ -208,7 +239,7 @@ def save_figure(fnum=None, fpath=None, usetitle=False, overwrite=True,
             elif verbose == 1:
                 fpathndir = utool.util_path.path_ndir_split(fpath_clean, 5)
                 print('[df2] save_figure() ndir=%r' % (fpathndir))
-            fig.savefig(fpath_clean, dpi=DPI)
+            fig.savefig(fpath_clean, **savekw)
         else:
             print('[df2] not overwriteing')
     return fpath_clean
