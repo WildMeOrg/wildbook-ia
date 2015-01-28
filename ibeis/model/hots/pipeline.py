@@ -1568,6 +1568,7 @@ def chipmatch_to_resdict(qreq_, qaid2_chipmatch, verbose=VERB_PIPELINE):
         qres.aid2_fsv = aid2_fsv
         # FIXME: This score is not valid. We have different code
         # that aggregates scores from fsv into fs
+        #with ut.EmbedOnException():
         qres.aid2_fs = {daid: fsv.prod(axis=1)
                         for daid, fsv in six.iteritems(aid2_fsv)}
         qres.aid2_fk = aid2_fk

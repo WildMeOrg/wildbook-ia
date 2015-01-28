@@ -301,16 +301,21 @@ def single_vsone_query(ibs, qaid, daid_list, H_list):
         pt.update()
     """
     from ibeis.model.hots import name_scoring
-    fm_list, fsv_list = compute_query_matches(ibs, qaid, daid_list, H_list)  # 35.8
-    cov_score_list = compute_query_coverage(ibs, qaid, daid_list, fm_list, fsv_list)  # 64.2
-    # Keep only the best annotation per name
+    fm_list, fs_list = compute_query_matches(ibs, qaid, daid_list, H_list)  # 35.8
+    cov_score_list = compute_query_coverage(ibs, qaid, daid_list, fm_list, fs_list)  # 64.2
     NAME_SCORING = True
     if NAME_SCORING:
+        # Keep only the best annotation per name
         nscore_tup = name_scoring.group_scores_by_name(ibs, daid_list, cov_score_list)
         score_list = ut.flatten([scores[0:1].tolist() + ([0] * (len(scores) - 1))
                                  for scores in nscore_tup.sorted_scores])
     else:
         score_list = cov_score_list
+    # Convert our one score to a score vector here
+    num_matches_iter = map(len, fm_list)
+    num_filts = 1  # currently only using one vector here.
+    fsv_list = [fs.reshape((num_matches, num_filts))
+                for fs, num_matches in zip(fs_list, num_matches_iter)]
     daid_score_fm_fsv_tup = (daid_list, score_list, fm_list, fsv_list)
     return daid_score_fm_fsv_tup
 
@@ -318,8 +323,8 @@ def single_vsone_query(ibs, qaid, daid_list, H_list):
 @profile
 def compute_query_matches(ibs, qaid, daid_list, H_list):
     r""" calls specified vsone matching routine for single (qaid, daids) pair """
-    fm_list, fsv_list = compute_query_constrained_matches(ibs, qaid, daid_list, H_list)
-    return fm_list, fsv_list
+    fm_list, fs_list = compute_query_constrained_matches(ibs, qaid, daid_list, H_list)
+    return fm_list, fs_list
 
 
 @profile
@@ -424,7 +429,7 @@ def spatially_constrained_match(flann, dvecs, qkpts, dkpts, H, dlen_sqrd,
         normalizer_mode='far')
     (fm_SC, fm_norm_SC, match_dist_list, norm_dist_list) = constraintup
     fs_SC = 1 - np.divide(match_dist_list, norm_dist_list)   # NOQA
-    # Filter by ratio scores
+    # Given matching distance and normalizing distance, filter by ratio scores
     fm_SCR, fs_SCR, fm_norm_SCR = constrained_matching.ratio_test2(
         match_dist_list, norm_dist_list, fm_SC, fm_norm_SC, ratio_thresh2)
     return fm_SCR, fs_SCR

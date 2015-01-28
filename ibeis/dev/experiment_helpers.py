@@ -170,6 +170,9 @@ def get_cfg_list_helper(test_cfg_name_list):
     cfg_set = set([])
     # Add unique configs to the list
     for dict_, lbl in zip(varied_params_list, varied_param_lbls):
+        # TODO: Move this unique finding code to its own function
+        # and then move it up one function level so even the custom
+        # configs can be uniquified
         cfg = Config.QueryConfig(**dict_)
         if cfg not in cfg_set:
             cfgx2_lbl.append(lbl)
@@ -181,25 +184,70 @@ def get_cfg_list_helper(test_cfg_name_list):
 
 
 def get_cfg_list(test_cfg_name_list, ibs=None):
+    r"""
+    Args:
+        test_cfg_name_list (list):
+        ibs (IBEISController):  ibeis controller object
+
+    Returns:
+        tuple: (cfg_list, cfgx2_lbl)
+
+    CommandLine:
+        python -m ibeis.dev.experiment_helpers --test-get_cfg_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.dev.experiment_helpers import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> test_cfg_name_list = ['best', 'custom', 'custom:sv_on=False']
+        >>> # execute function
+        >>> (cfg_list, cfgx2_lbl) = get_cfg_list(test_cfg_name_list, ibs)
+        >>> # verify results
+        >>> query_cfg0 = cfg_list[0]
+        >>> query_cfg1 = cfg_list[1]
+        >>> assert query_cfg0.sv_cfg.sv_on is True
+        >>> assert query_cfg1.sv_cfg.sv_on is False
+    """
     print('[harn] building cfg_list: %s' % test_cfg_name_list)
     if 'custom' == test_cfg_name_list:
         # Use the ibeis config as a custom config
         # this can be modified with the --cfg command line option
         # eg --cfg xy_thresh=.01 score_method=csum
         print('   * custom cfg_list')
-        cfg_list = [ibs.cfg.query_cfg]
-        cfgx2_lbl = ['custom']
-    elif 'custom' in test_cfg_name_list:
-        test_cfg_name_list.remove('custom')
-        if len(test_cfg_name_list) > 0:
-            cfg_list, cfgx2_lbl = get_cfg_list_helper(test_cfg_name_list)
-        else:
-            cfg_list, cfgx2_lbl = [], []
-        cfg_list += [ibs.cfg.query_cfg.deepcopy()]
-        cfgx2_lbl += ['custom()']
-        test_cfg_name_list.append('custom')
+        cfg_list = [ibs.cfg.query_cfg.deepcopy()]
+        cfgx2_lbl = [test_cfg_name_list]
+    #elif 'custom' in test_cfg_name_list:
+    #    test_cfg_name_list.remove('custom')
+    #    if len(test_cfg_name_list) > 0:
+    #        cfg_list, cfgx2_lbl = get_cfg_list_helper(test_cfg_name_list)
+    #    else:
+    #        cfg_list, cfgx2_lbl = [], []
+    #    cfg_list += [ibs.cfg.query_cfg.deepcopy()]
+    #    cfgx2_lbl += ['custom()']
+    #    test_cfg_name_list.append('custom')
     else:
-        cfg_list, cfgx2_lbl = get_cfg_list_helper(test_cfg_name_list)
+        #cfg_list, cfgx2_lbl = get_cfg_list_helper(test_cfg_name_list)
+        cfg_list = []
+        cfgx2_lbl = []
+        test_cfg_name_list2 = []
+        for test_cfg_name in test_cfg_name_list:
+            if test_cfg_name == 'custom':
+                cfg_list.append(ibs.cfg.query_cfg.deepcopy())
+                cfgx2_lbl.append(test_cfg_name)
+            elif test_cfg_name.startswith('custom:'):
+                cfgstr_list = ':'.join(test_cfg_name.split(':')[1:]).split(',')
+                # parse out modifications to custom
+                cfgdict = ut.parse_cfgstr_list(cfgstr_list)
+                query_cfg = ibs.cfg.query_cfg.deepcopy()
+                query_cfg.update_query_cfg(**cfgdict)
+                cfg_list.append(query_cfg)
+                cfgx2_lbl.append(test_cfg_name)
+            else:
+                test_cfg_name_list2.append(test_cfg_name)
+        cfg_list2, cfgx2_lbl2 = get_cfg_list_helper(test_cfg_name_list2)
+        cfg_list.extend(cfg_list2)
+        cfgx2_lbl.extend(cfgx2_lbl2)
     return (cfg_list, cfgx2_lbl)
 
 
@@ -222,11 +270,22 @@ def get_cfg_list_and_lbls(test_cfg_name_list, ibs=None):
         >>> from ibeis.dev import experiment_helpers as eh
         >>> test_cfg_name_list = ['lnbnn2']
         >>> ibs = None
-
-
     """
     cfg_list, cfgx2_lbl = get_cfg_list(test_cfg_name_list, ibs=ibs)
     print(cfgx2_lbl)
     # cfgx2_lbl denotes which parameters are being varied.
     # If there is just one config then nothing is varied
     return (cfg_list, cfgx2_lbl)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.dev.experiment_helpers
+        python -m ibeis.dev.experiment_helpers --allexamples
+        python -m ibeis.dev.experiment_helpers --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

@@ -475,6 +475,9 @@ def run_devcmds(ibs, qaid_list, daid_list):
     valid_test_list = []  # build list for printing in case of failure
     valid_test_helpstr_list = []  # for printing
 
+    def mark_test_handled(testname):
+        input_test_list.remove(testname)
+
     def intest(*args, **kwargs):
         helpstr = kwargs.get('help', '')
         valid_test_helpstr_list.append('   -t ' + ', '.join(args) + helpstr)
@@ -484,7 +487,7 @@ def run_devcmds(ibs, qaid_list, daid_list):
             ret2 = testname in params.unknown  # Let unparsed args count towards tests
             if ret or ret2:
                 if ret:
-                    input_test_list.remove(testname)
+                    mark_test_handled(testname)
                 else:
                     ret = ret2
                 print('+===================')
@@ -542,6 +545,11 @@ def run_devcmds(ibs, qaid_list, daid_list):
     for test_cfg_name in experiment_configs.TEST_NAMES:
         if intest(test_cfg_name):
             test_cfg_name_list.append(test_cfg_name)
+    # Hack to allow for very customized harness tests
+    for testname in input_test_list[:]:
+        if testname.startswith('custom:'):
+            test_cfg_name_list.append(testname)
+            mark_test_handled(testname)
     if len(test_cfg_name_list):
         fnum = df2.next_fnum()
         # Run Experiments

@@ -39,7 +39,7 @@ CURRENT_THREAD = None
 UUID_MAP = ut.ddict(dict)
 
 
-class ContextUUIDMap(object):
+class UUIDMapHyrbridCache(object):
     """
     Class that lets multiple ways of writing to the uuid_map
     be swapped in and out interchangably
@@ -47,36 +47,42 @@ class ContextUUIDMap(object):
     TODO: the global read / write should periodically sync itself to disk and it
     should be loaded from disk initially
     """
-    def __init__(self, uuid_map_fpath, min_reindex_thresh):
-        self.uuid_map_fpath = uuid_map_fpath
-        self.init(uuid_map_fpath, min_reindex_thresh)
+    def __init__(self):
+        self.uuid_maps = ut.ddict()
+        #self.uuid_map_fpath = uuid_map_fpath
+        #self.init(uuid_map_fpath, min_reindex_thresh)
 
     def init(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
         #self.read_func  = self.read_uuid_map_cpkl
         #self.write_func = self.write_uuid_map_cpkl
-        self.read_func  = self.read_uuid_map_global
-        self.write_func = self.write_uuid_map_global
+        self.read_func  = self.read_uuid_map_dict
+        self.write_func = self.write_uuid_map_dict
 
-    def __call__(self):
-        return  self.read_func(*self.args, **self.kwargs)
+    #def __call__(self):
+    #    return  self.read_func(*self.args, **self.kwargs)
 
-    def __enter__(self):
-        return self
+    def dump(self, cachedir):
+        # TODO: DUMP AND LOAD THIS HYBRID CACHE TO DISK
+        #write_uuid_map_cpkl
+        fname = 'uuid_maps_hybrid_cache.cPkl'
+        cpkl_fpath = join(cachedir, fname)
+        ut.lock_and_save_cPkl(cpkl_fpath, self.uuid_maps)
 
-    def __exit__(self, exc_type, exc_value, exc_trace):
-        pass
+    def load(self, cachedir):
+        fname = 'uuid_maps_hybrid_cache.cPkl'
+        cpkl_fpath = join(cachedir, fname)
+        self.uuid_maps = ut.lock_and_load_cPkl(cpkl_fpath)
 
-    def __setitem__(self, daids_hashid, visual_uuid_list):
-        uuid_map_fpath = self.uuid_map_fpath
-        self.write_func(uuid_map_fpath, visual_uuid_list, daids_hashid)
+    #def __setitem__(self, daids_hashid, visual_uuid_list):
+    #    uuid_map_fpath = self.uuid_map_fpath
+    #    self.write_func(uuid_map_fpath, visual_uuid_list, daids_hashid)
 
     @profile
-    def read_uuid_map_global(self, uuid_map_fpath, min_reindex_thresh):
-        """ uses global variable instead of disk """
-        global UUID_MAP
-        uuid_map = UUID_MAP[uuid_map_fpath]
+    def read_uuid_map_dict(self, uuid_map_fpath, min_reindex_thresh):
+        """ uses in memory dictionary instead of disk """
+        uuid_map = self.uuid_maps[uuid_map_fpath]
         candidate_uuids = {
             key: val for key, val in six.iteritems(uuid_map)
             if len(val) >= min_reindex_thresh
@@ -84,60 +90,62 @@ class ContextUUIDMap(object):
         return candidate_uuids
 
     @profile
-    def write_uuid_map_global(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
-        """ uses global variable instead of disk """
-        global UUID_MAP
+    def write_uuid_map_dict(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
+        """ uses in memory dictionary instead of disk """
         #with ut.EmbedOnException():
-        uuid_map = UUID_MAP[uuid_map_fpath]
+        uuid_map = self.uuid_maps[uuid_map_fpath]
         uuid_map[daids_hashid] = visual_uuid_list
 
-    @profile
-    def read_uuid_map_shelf(self, uuid_map_fpath, min_reindex_thresh):
-        #with ut.EmbedOnException():
-        with lockfile.LockFile(uuid_map_fpath + '.lock'):
-            with ut.shelf_open(uuid_map_fpath) as uuid_map:
-                candidate_uuids = {
-                    key: val for key, val in six.iteritems(uuid_map)
-                    if len(val) >= min_reindex_thresh
-                }
-        return candidate_uuids
+    #@profile
+    #def read_uuid_map_shelf(self, uuid_map_fpath, min_reindex_thresh):
+    #    #with ut.EmbedOnException():
+    #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
+    #        with ut.shelf_open(uuid_map_fpath) as uuid_map:
+    #            candidate_uuids = {
+    #                key: val for key, val in six.iteritems(uuid_map)
+    #                if len(val) >= min_reindex_thresh
+    #            }
+    #    return candidate_uuids
 
-    @profile
-    def write_uuid_map_shelf(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
-        print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
-        with lockfile.LockFile(uuid_map_fpath + '.lock'):
-            with ut.shelf_open(uuid_map_fpath) as uuid_map:
-                uuid_map[daids_hashid] = visual_uuid_list
+    #@profile
+    #def write_uuid_map_shelf(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
+    #    print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
+    #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
+    #        with ut.shelf_open(uuid_map_fpath) as uuid_map:
+    #            uuid_map[daids_hashid] = visual_uuid_list
 
-    @profile
-    def read_uuid_map_cpkl(self, uuid_map_fpath, min_reindex_thresh):
-        with lockfile.LockFile(uuid_map_fpath + '.lock'):
-            #with ut.shelf_open(uuid_map_fpath) as uuid_map:
-            try:
-                uuid_map = ut.load_cPkl(uuid_map_fpath)
-                candidate_uuids = {
-                    key: val for key, val in six.iteritems(uuid_map)
-                    if len(val) >= min_reindex_thresh
-                }
-            except IOError:
-                return {}
-        return candidate_uuids
+    #@profile
+    #def read_uuid_map_cpkl(self, uuid_map_fpath, min_reindex_thresh):
+    #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
+    #        #with ut.shelf_open(uuid_map_fpath) as uuid_map:
+    #        try:
+    #            uuid_map = ut.load_cPkl(uuid_map_fpath)
+    #            candidate_uuids = {
+    #                key: val for key, val in six.iteritems(uuid_map)
+    #                if len(val) >= min_reindex_thresh
+    #            }
+    #        except IOError:
+    #            return {}
+    #    return candidate_uuids
 
-    @profile
-    def write_uuid_map_cpkl(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
-        """
-        let the multi-indexer know about any big caches we've made multi-indexer.
-        Also lets nnindexer know about other prebuilt indexers so it can attempt to
-        just add points to them as to avoid a rebuild.
-        """
-        print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
-        with lockfile.LockFile(uuid_map_fpath + '.lock'):
-            try:
-                uuid_map = ut.load_cPkl(uuid_map_fpath)
-            except IOError:
-                uuid_map = {}
-            uuid_map[daids_hashid] = visual_uuid_list
-            ut.save_cPkl(uuid_map_fpath, uuid_map)
+    #@profile
+    #def write_uuid_map_cpkl(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
+    #    """
+    #    let the multi-indexer know about any big caches we've made multi-indexer.
+    #    Also lets nnindexer know about other prebuilt indexers so it can attempt to
+    #    just add points to them as to avoid a rebuild.
+    #    """
+    #    print('Writing %d visual uuids to uuid map' % (len(visual_uuid_list)))
+    #    with lockfile.LockFile(uuid_map_fpath + '.lock'):
+    #        try:
+    #            uuid_map = ut.load_cPkl(uuid_map_fpath)
+    #        except IOError:
+    #            uuid_map = {}
+    #        uuid_map[daids_hashid] = visual_uuid_list
+    #        ut.save_cPkl(uuid_map_fpath, uuid_map)
+
+
+UUID_MAP_CACHE = UUIDMapHyrbridCache()
 
 
 @profile
@@ -147,14 +155,17 @@ def write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid):
     Also lets nnindexer know about other prebuilt indexers so it can attempt to
     just add points to them as to avoid a rebuild.
     """
-    with ContextUUIDMap(uuid_map_fpath, None) as uuid_map:
-        uuid_map[daids_hashid] = visual_uuid_list
+    #UUID_MAP_CACHE[daids_hashid] = visual_uuid_list
+    UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
+    #with ContextUUIDMap(uuid_map_fpath, None) as uuid_map:
+    #    uuid_map[daids_hashid] = visual_uuid_list
 
 
 @profile
 def read_uuid_map(uuid_map_fpath, min_reindex_thresh):
-    with ContextUUIDMap(uuid_map_fpath, min_reindex_thresh) as uuid_map:
-        candidate_uuids = uuid_map()
+
+    #with ContextUUIDMap(uuid_map_fpath, min_reindex_thresh) as uuid_map:
+    candidate_uuids = UUID_MAP_CACHE.read_uuid_map_dict(uuid_map_fpath, min_reindex_thresh)
     return candidate_uuids
 
 
