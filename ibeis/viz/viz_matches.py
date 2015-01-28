@@ -76,6 +76,7 @@ def show_matches(ibs, qres, aid2, sel_fm=[], **kwargs):
         raise
     (x1, y1, w1, h1) = xywh1
     (x2, y2, w2, h2) = xywh2
+    # TODO: MOVE TO ANNOTATE MATCHES
     if len(sel_fm) > 0:
         # Draw any selected matches
         sm_kw = dict(rect=True, colors=df2.BLUE)
@@ -92,7 +93,7 @@ def annotate_matches(ibs, qres, aid2,
                      offset1=(0, 0),
                      offset2=(0, 0),
                      xywh2=None,  # (0, 0, 0, 0),
-                     xywh1=(0, 0, 0, 0),
+                     xywh1=None,  # (0, 0, 0, 0),
                      **kwargs):
     """
     Helper function
@@ -145,6 +146,20 @@ def annotate_matches(ibs, qres, aid2,
         xy, w, h = df2.get_axis_xy_width_height(ax)
         bbox2 = (xy[0], xy[1], w, h)
         theta2 = 0
+
+        if xywh2 is None:
+            #xywh2 = (xy[0], xy[1], w, h)
+            # weird when sidebyside is off y seems to be inverted
+            xywh2 = (0,  0, w, h)
+
+        if not show_query and xywh1 is None:
+            fm = qres.aid2_fm.get(aid2, [])
+            fs = qres.aid2_fs.get(aid2, [])
+            kpts2, = ibs.get_annot_kpts((aid2,))
+            #df2.draw_kpts2(kpts2.take(fm.T[1], axis=0))
+            # Draw any selected matches
+            #sm_kw = dict(rect=True, colors=df2.BLUE)
+            df2.plot_fmatch(None, xywh2, None, kpts2, fm, fs=fs, **kwargs)
         if draw_border:
             df2.draw_border(ax, truth_color, 4, offset=offset2)
         if draw_lbl:
@@ -152,10 +167,6 @@ def annotate_matches(ibs, qres, aid2,
             if show_query:
                 (x1, y1, w1, h1) = xywh1
                 df2.absolute_lbl(x1 + w1, y1, lbl1)
-            if xywh2 is None:
-                #xywh2 = (xy[0], xy[1], w, h)
-                # weird when sidebyside is off y seems to be inverted
-                xywh2 = (xy[0],  0, w, h)
             (x2, y2, w2, h2) = xywh2
             df2.absolute_lbl(x2 + w2, y2, lbl2)
         # No matches draw a red box

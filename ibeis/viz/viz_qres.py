@@ -122,9 +122,11 @@ def show_qres(ibs, qres, **kwargs):
             elif annot_mode == 2, then draw only lines
 
     Returns:
-        ?: fig
+        mpl.Figure: fig
 
     CommandLine:
+        ./main.py --query 1 -y --db PZ_MTEST --noshow-qtres
+
         python -m ibeis.viz.viz_qres --test-show_qres
 
     Example:
@@ -245,35 +247,37 @@ def show_qres(ibs, qres, **kwargs):
 
     def _plot_matches_aids(aid_list, plotx_shift, rowcols):
         """ helper for show_qres to draw many aids """
+        _kwshow  = dict(draw_ell=annot_mode, draw_pts=False, draw_lines=annot_mode,
+                        ell_alpha=.5, all_kpts=all_kpts)
+        _kwshow.update(kwargs)
+        _kwshow['fnum'] = fnum
+        _kwshow['in_image'] = in_image
+        if sidebyside:
+            # Draw each match side by side the query
+            _kwshow['draw_ell'] = annot_mode == 1
+            _kwshow['draw_lines'] = annot_mode >= 1
+        else:
+            #print('annot_mode = %r' % (annot_mode,))
+            _kwshow['draw_ell'] = annot_mode == 1
+            #_kwshow['draw_pts'] = annot_mode >= 1
+            #_kwshow['draw_lines'] = False
+            _kwshow['show_query'] = False
         def _show_matches_fn(aid, orank, pnum):
             """ Helper function for drawing matches to one aid """
             aug = 'rank=%r\n' % orank
+            _kwshow['pnum'] = pnum
+            _kwshow['title_aug'] = aug
             #printDBG('[show_qres()] plotting: %r'  % (pnum,))
             #draw_ell = annot_mode == 1
             #draw_lines = annot_mode >= 1
-            _kwshow  = dict(draw_ell=annot_mode, draw_pts=False, draw_lines=annot_mode,
-                            ell_alpha=.5, all_kpts=all_kpts)
-            _kwshow.update(kwargs)
-            _kwshow['fnum'] = fnum
-            _kwshow['pnum'] = pnum
-            _kwshow['title_aug'] = aug
-            _kwshow['in_image'] = in_image
             # If we already are showing the query dont show it here
             if sidebyside:
                 # Draw each match side by side the query
-                _kwshow['draw_ell'] = annot_mode == 1
-                _kwshow['draw_lines'] = annot_mode >= 1
                 viz_matches.show_matches(ibs, qres, aid, **_kwshow)
             else:
                 # Draw each match by themselves
-                _kwshow['draw_ell'] = annot_mode >= 1
-                if annot_mode == 2:
-                    # TODO Find a better name
-                    _kwshow['color'] = aid2_color[aid]
-                    _kwshow['sel_fx2'] = qres.aid2_fm[aid][:, 1]
-                    _kwshow['draw_ell'] = annot_mode == 1
                 viz_chip.show_chip(ibs, aid, annote=False, **_kwshow)
-                viz_matches.annotate_matches(ibs, qres, aid, show_query=False)
+                viz_matches.annotate_matches(ibs, qres, aid, **_kwshow)
 
         if DEBUG_SHOW_QRES:
             print('[show_qres()] Plotting Chips %s:' % vh.get_aidstrs(aid_list))

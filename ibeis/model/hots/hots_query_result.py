@@ -725,8 +725,61 @@ class QueryResult(__OBJECT_BASE__):
         from ibeis.viz import viz_matches
         return viz_matches.show_matches(ibs, qres, aid, *args, **kwargs)
 
+    def dump_top_match(qres, ibs, *args, **kwargs):
+        """
+        CommandLine:
+            python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --quality
+
+            python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --dpi=160 --no-fmatches
+            python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --dpi=120 --no-fmatches --saveax
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.viz.viz_qres import *  # NOQA
+            >>> import plottool as pt
+            >>> import ibeis
+            >>> # build test data
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> kwargs = {}
+            >>> kwargs['dpi'] = ut.get_argval('--dpi', int, None)
+            >>> kwargs['figsize'] = ut.get_argval('--figsize', list, None)
+            >>> kwargs['fpath'] = ut.get_argval('--fpath', str, None)
+            >>> kwargs['draw_fmatches'] = not ut.get_argflag('--no-fmatches')
+            >>> kwargs['vert'] = ut.get_argflag('--vert')
+            >>> kwargs['draw_border'] = ut.get_argflag('--draw_border')
+            >>> #kwargs['saveax'] = ut.get_argflag('--saveax')
+            >>> kwargs['in_image'] = ut.get_argflag('--in-image')
+            >>> kwargs['draw_lbl'] = ut.get_argflag('--no-draw-lbl')
+            >>> qres = ibs.query_chips(ibs.get_valid_aids()[0:1])[0]
+            >>> qres.dump_top_match(ibs, **kwargs)
+            >>> pt.show_if_requested()
+        """
+        import plottool as pt
+        # Pop save kwargs from kwargs
+        save_keys = ['dpi', 'figsize', 'saveax', 'fpath']
+        save_vals = ut.dict_take_pop(kwargs, save_keys, None)
+        savekw = dict(zip(save_keys, save_vals))
+        fpath = savekw.pop('fpath')
+        if fpath is None:
+            savekw['usetitle'] = True
+        # Draw Matches
+        aid = qres.get_top_aids(ibs)[0]
+        ax, xywh1, xywh2 = qres.show_matches(ibs, aid, **kwargs)
+        pt.set_figtitle(qres.make_smaller_title())
+        # Adjust
+        #pt.adjust_subplots(0, 0, 1, 1, 0, 0)
+        # Save Figure
+        img_fpath = pt.save_figure(fpath=fpath, **savekw)
+        if True:
+            ut.startfile(img_fpath)
+        return img_fpath
+        #pt.figure(fnum=pt.next_fnum())
+        #pt.imshow(img_fpath)
+
     def ishow_matches(qres, ibs, aid, *args, **kwargs):
         from ibeis.viz.interact import interact_matches  # NOQA
+        #if aid == 'top':
+        #    aid = qres.get_top_aids(ibs)
         match_interaction = interact_matches.MatchInteraction(ibs, qres, aid, *args, **kwargs)
         # Keep the interaction alive at least while the qres is alive
         qres._live_interactions.append(match_interaction)

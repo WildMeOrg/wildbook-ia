@@ -191,23 +191,28 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     def show_qres(back, qres, **kwargs):
-        # HACK
         top_aids = kwargs.get('top_aids', 6)
-        from ibeis.gui import inspect_gui
-        qaid2_qres = {qres.qaid: qres}
-        backend_callback = back.front.update_tables
-        back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qaid2_qres,
-                                                        callback=backend_callback,
-                                                        ranks_lt=top_aids,)
-        back.qres_wgt1.show()
-        back.qres_wgt1.raise_()
-        #
+        # SHOW MATPLOTLIB RESULTS (NO DECISION INTERACTIONS)
         kwargs['annot_mode'] = kwargs.get('annot_mode', 2)
         kwargs['top_aids'] = top_aids
-        kwargs['sidebyside'] = False
-        kwargs['show_query'] = True
+        kwargs['sidebyside'] = True
+        kwargs['show_query'] = False
+        #kwargs['sidebyside'] = False
+        #kwargs['show_query'] = True
         kwargs['in_image'] = False
         interact.ishow_qres(back.ibs, qres, **kwargs)
+
+        interact.ishow_matches(back.ibs, qres, **kwargs)
+        # HACK SHOW QT RESULTS
+        if not ut.get_argflag(('--noshow-qtres',)):
+            from ibeis.gui import inspect_gui
+            qaid2_qres = {qres.qaid: qres}
+            backend_callback = back.front.update_tables
+            back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qaid2_qres,
+                                                            callback=backend_callback,
+                                                            ranks_lt=top_aids,)
+            back.qres_wgt1.show()
+            back.qres_wgt1.raise_()
         pass
 
     def show_hough_image(back, gid, **kwargs):
