@@ -170,7 +170,7 @@ def execstr_global():
 
 
 def show_was_requested():
-    return ut.get_argflag('--show') or ut.inIPython()
+    return ut.show_was_requested()
 
 
 def show_if_requested():

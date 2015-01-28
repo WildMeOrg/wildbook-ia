@@ -143,7 +143,7 @@ def draw_svmatch(chip1, chip2, H, kpts1=None, kpts2=None, fm=None, fnum=None,
         kpts1_t = ktool.transform_kpts(kpts1, H)
     else:
         kpts1_t = None
-    fnum = 1
+    #fnum = 1
     #next_pnum = pt.make_pnum_nextgen(1, 2)
 
     pt.show_chipmatch2(chip1_t, chip2, kpts1_t, kpts2, fm=fm, fnum=fnum,
