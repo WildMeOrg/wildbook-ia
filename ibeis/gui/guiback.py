@@ -191,18 +191,23 @@ class MainWindowBackend(QtCore.QObject):
         pass
 
     def show_qres(back, qres, **kwargs):
-        kwargs['annot_mode'] = kwargs.get('annot_mode', 2)
-        kwargs['top_aids'] = kwargs.get('top_aids', 6)
-        interact.ishow_qres(back.ibs, qres, **kwargs)
         # HACK
+        top_aids = kwargs.get('top_aids', 6)
         from ibeis.gui import inspect_gui
         qaid2_qres = {qres.qaid: qres}
         backend_callback = back.front.update_tables
         back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qaid2_qres,
                                                         callback=backend_callback,
-                                                        ranks_lt=kwargs['top_aids'],)
+                                                        ranks_lt=top_aids,)
         back.qres_wgt1.show()
         back.qres_wgt1.raise_()
+        #
+        kwargs['annot_mode'] = kwargs.get('annot_mode', 2)
+        kwargs['top_aids'] = top_aids
+        kwargs['sidebyside'] = False
+        kwargs['show_query'] = True
+        kwargs['in_image'] = False
+        interact.ishow_qres(back.ibs, qres, **kwargs)
         pass
 
     def show_hough_image(back, gid, **kwargs):
@@ -1341,6 +1346,9 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] Asking User if sure')
         print('[back] title = %s' % (title,))
         print('[back] msg =\n%s' % (msg,))
+        if ut.get_argflag('-y') or ut.get_argflag('--yes'):
+            # DONT ASK WHEN SPECIFIED
+            return True
         ans = back.user_option(msg=msg, title=title, options=['No', 'Yes'],
                                use_cache=False)
         return ans == 'Yes'

@@ -1,18 +1,13 @@
 """
-DoctestCMD:
-    python -c "import ibeis; import doctest; from ibeis.dev import experiment_harness; print(doctest.testmod(ibeis.dev.experiment_harness))"
-    python -m ibeis.dev.experiment_harness
+Runs many queries and keeps track of some results
 """
 from __future__ import absolute_import, division, print_function
-# Python
 import sys
 import textwrap
-# Scientific
 import numpy as np
-# Tools
+import six
 import utool
 import utool as ut
-# IBEIS
 from ibeis import params
 from ibeis.dev import experiment_helpers as eh
 from ibeis.dev import experiment_printres
@@ -64,6 +59,14 @@ def get_qx2_bestrank(ibs, qaids, daids):
     """
     # Execute or load query
     qaid2_qres = ibs._query_chips4(qaids, daids)
+    INTERACT_HARNESS = ut.get_argflag('--interact-harness')
+    #ut.embed()
+    if INTERACT_HARNESS:
+        for qaid, qres in six.iteritems(qaid2_qres):
+            break
+        for qaid, qres in six.iteritems(qaid2_qres):
+            qres.ishow_top(ibs)
+        pass
     # Get the groundtruth that could have been matched in this experiment
     qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
     # Get the groundtruth ranks

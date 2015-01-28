@@ -27,13 +27,13 @@ import utool as ut
 print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[vsonepipe]', DEBUG=False)
 
 
-def show_top_chipmatches(qreq_, qaid2_chipmatch):
+def show_top_chipmatches(ibs, qaid2_chipmatch, fnum_offset=0, figtitle=''):
     """ helper """
     from ibeis.viz import viz_sver
     import plottool as pt
     CLIP_TOP = 6
-    ibs = qreq_.ibs
-    for fnum, (qaid, chipmatch) in enumerate(six.iteritems(qaid2_chipmatch)):
+    for fnum_, (qaid, chipmatch) in enumerate(six.iteritems(qaid2_chipmatch)):
+        fnum = fnum_ + fnum_offset
         #pt.figure(fnum=fnum, doclf=True, docla=True)
         daid_list = list(six.iterkeys(chipmatch.aid2_fm))
         score_list = ut.dict_take(chipmatch.aid2_score, daid_list)
@@ -52,6 +52,7 @@ def show_top_chipmatches(qreq_, qaid2_chipmatch):
             #top_fm_list    = ut.dict_take(chipmatch.aid2_fm, top_daid_list)
             #top_fsv_list   = ut.dict_take(chipmatch.aid2_fsv, top_daid_list)
             #top_H_list     = ut.dict_take(chipmatch.aid2_H, top_daid_list)
+        pt.set_figtitle('qaid=%r %s' % (qaid, figtitle))
 
     #vsone_query_pairs = make_vsone_rerank_pairs(qreq_, qaid2_chipmatch)
     #ibs = qreq_.ibs
@@ -133,7 +134,7 @@ def show_annot_weights(ibs, aid, mode='dstncvs'):
 
 
 #@profile
-def vsone_reranking(qreq_, qaid2_chipmatch):
+def vsone_reranking(qreq_, qaid2_chipmatch, verbose=False):
     """
     Driver function for vsone reranking
 
@@ -151,7 +152,7 @@ def vsone_reranking(qreq_, qaid2_chipmatch):
         >>> qaid2_chipmatch_VSONE = vsone_reranking(qreq_, qaid2_chipmatch)
         >>> if ut.show_was_requested():
         >>>     import plottool as pt
-        >>>     show_top_chipmatches(qreq_, qaid2_chipmatch_VSONE)
+        >>>     show_top_chipmatches(qreq_.ibs, qaid2_chipmatch_VSONE)
         >>>     pt.show_if_requested()
 
     Ignore:
@@ -218,7 +219,10 @@ def make_vsone_rerank_pairs(qreq_, qaid2_chipmatch):
         daid2_prescore = pipeline.score_chipmatch(qreq_, qaid, chipmatch, score_method)
         daid_list      = np.array(daid2_prescore.keys())
         prescore_arr   = np.array(daid2_prescore.values())
-        nscore_tup = name_scoring.get_one_score_per_name(qreq_.ibs, daid_list, prescore_arr)
+        # HACK POPULATE AID2_SCORE FIELD IN CHIPMATCH TUPLE
+        ut.dict_assign(chipmatch.aid2_score, daid_list, prescore_arr)
+        #
+        nscore_tup = name_scoring.group_scores_by_name(qreq_.ibs, daid_list, prescore_arr)
         (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscore_tup
         top_aids_list  = ut.listclip(sorted_aids, nNameShortlistVsone)
         top_aids_list_ = [ut.listclip(aids, nAnnotPerName) for aids in top_aids_list]
@@ -296,8 +300,17 @@ def single_vsone_query(ibs, qaid, daid_list, H_list):
             viz_sver.show_constrained_match(ibs, qaid, daid, H, fm, pnum=next_pnum())
         pt.update()
     """
+    from ibeis.model.hots import name_scoring
     fm_list, fsv_list = compute_query_matches(ibs, qaid, daid_list, H_list)  # 35.8
-    score_list = compute_query_coverage(ibs, qaid, daid_list, fm_list, fsv_list)  # 64.2
+    cov_score_list = compute_query_coverage(ibs, qaid, daid_list, fm_list, fsv_list)  # 64.2
+    # Keep only the best annotation per name
+    NAME_SCORING = True
+    if NAME_SCORING:
+        nscore_tup = name_scoring.group_scores_by_name(ibs, daid_list, cov_score_list)
+        score_list = ut.flatten([scores[0:1].tolist() + ([0] * (len(scores) - 1))
+                                 for scores in nscore_tup.sorted_scores])
+    else:
+        score_list = cov_score_list
     daid_score_fm_fsv_tup = (daid_list, score_list, fm_list, fsv_list)
     return daid_score_fm_fsv_tup
 
@@ -321,7 +334,8 @@ def compute_query_constrained_matches(ibs, qaid, daid_list, H_list):
     qvecs = ibs.get_annot_vecs(qaid)
     qkpts = ibs.get_annot_kpts(qaid)
     flann_cachedir = ibs.get_flann_cachedir()
-    flann = vt.flann_cache(qvecs, flann_cachedir, flann_params=flann_params)
+    flann = vt.flann_cache(qvecs, flann_cachedir, flann_params=flann_params,
+                           verbose=False, use_cache=False, save=False)
     fm_SCR_list = []
     fs_SCR_list = []
     dvecs_list = ibs.get_annot_vecs(daid_list)
@@ -361,8 +375,8 @@ def compute_query_coverage(ibs, qaid, daid_list, fm_list, fs_list):
     #     3     14567165 4855721.7     57.8
     ddstncvs_list  = get_kpts_distinctiveness(ibs, daid_list)
     # Foreground weight
-    qfgweight = ibs.get_annot_fgweights([qaid])[0]
-    dfgweight_list = ibs.get_annot_fgweights(daid_list)
+    qfgweight = ibs.get_annot_fgweights([qaid], ensure=True)[0]
+    dfgweight_list = ibs.get_annot_fgweights(daid_list, ensure=True)
     # Make weight mask
     qchipsize = ibs.get_annot_chipsizes(qaid)[::-1]
     qkpts     = ibs.get_annot_kpts(qaid)
@@ -428,10 +442,12 @@ def get_kpts_distinctiveness(ibs, aid_list):
     aids_groups = vt.apply_grouping(aid_list, groupxs)
     species_text_list = ibs.get_species_texts(unique_sids)
     # Map distinctivness computation
-    normer_list = [distinctiveness_normalizer.request_species_distinctiveness_normalizer(species) for species in species_text_list]
+    normer_list = [distinctiveness_normalizer.request_species_distinctiveness_normalizer(species)
+                   for species in species_text_list]
     # Reduce to get results
     dstncvs_groups = [
         # uses ibeis non-persistant cache
+        # code lives in manual_ibeiscontrol_funcs
         ibs.get_annot_kpts_distinctiveness(aids, dstncvs_normer=dstncvs_normer)
         for dstncvs_normer, aids in zip(normer_list, aids_groups)
     ]

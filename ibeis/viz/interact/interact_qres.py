@@ -6,6 +6,7 @@ import plottool.draw_func2 as df2
 # IBEIS
 from ibeis import viz
 #from ibeis.viz import viz_helpers as vh
+import plottool as pt
 from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih
 #from .interact_matches import ishow_matches
@@ -32,7 +33,7 @@ def ishow_qres(ibs, qres, **kwargs):
         fnum_ = df2.next_fnum()
         ishow_sver(ibs, qres.qaid, aid2, fnum=fnum_)
         fig.canvas.draw()
-        df2.bring_to_front(fig)
+        pt.bring_to_front(fig)
 
     def _clicked_aid(aid2):
         printDBG('clicked aid2=%r' % aid2)
@@ -40,7 +41,7 @@ def ishow_qres(ibs, qres, **kwargs):
         qres.ishow_matches(ibs, aid2, fnum=fnum_)
         fig = df2.gcf()
         fig.canvas.draw()
-        df2.bring_to_front(fig)
+        pt.bring_to_front(fig)
 
     def _top_matches_view(toggle=0):
         # Toggle if the click is not in any axis

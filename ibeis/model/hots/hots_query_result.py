@@ -367,7 +367,7 @@ class QueryResult(__OBJECT_BASE__):
         aid_list, score_list = qres.get_aids_and_chip_scores()
         if np.all(np.isnan(score_list)):
             score_list = qres.get_aid_scores(aid_list, rawscore=True)
-        nscoretup = name_scoring.get_one_score_per_name(ibs, aid_list, score_list)
+        nscoretup = name_scoring.group_scores_by_name(ibs, aid_list, score_list)
         # (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
         return nscoretup
 

@@ -168,9 +168,9 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, dstncvs_normer=None):
     return dstncvs_list
 
 
-@accessor_decors.cache_getter(const.FEATURE_TABLE, 'distinctiveness', cfgkeys=['dstncvs_normer'], debug=True)
+@accessor_decors.cache_getter(const.FEATURE_TABLE, 'distinctiveness', cfgkeys=['dstncvs_normer'], debug=None)
 def get_feat_kpts_distinctiveness(ibs, fid_list, dstncvs_normer=None):
-    print('[ibs] get_feat_kpts_distinctiveness fid_list=%r' % (fid_list,))
+    #print('[ibs] get_feat_kpts_distinctiveness fid_list=%r' % (fid_list,))
     vecs_list = ibs.get_feat_vecs(fid_list)
     dstncvs_list = [dstncvs_normer.get_distinctiveness(vecs) for vecs in vecs_list]
     return dstncvs_list

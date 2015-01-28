@@ -91,7 +91,7 @@ def show_matches(ibs, qres, aid2, sel_fm=[], **kwargs):
 def annotate_matches(ibs, qres, aid2,
                      offset1=(0, 0),
                      offset2=(0, 0),
-                     xywh2=(0, 0, 0, 0),
+                     xywh2=None,  # (0, 0, 0, 0),
                      xywh1=(0, 0, 0, 0),
                      **kwargs):
     """
@@ -149,9 +149,14 @@ def annotate_matches(ibs, qres, aid2,
             df2.draw_border(ax, truth_color, 4, offset=offset2)
         if draw_lbl:
             # Custom user lbl for chips 1 and 2
-            (x1, y1, w1, h1) = xywh1
+            if show_query:
+                (x1, y1, w1, h1) = xywh1
+                df2.absolute_lbl(x1 + w1, y1, lbl1)
+            if xywh2 is None:
+                #xywh2 = (xy[0], xy[1], w, h)
+                # weird when sidebyside is off y seems to be inverted
+                xywh2 = (xy[0],  0, w, h)
             (x2, y2, w2, h2) = xywh2
-            df2.absolute_lbl(x1 + w1, y1, lbl1)
             df2.absolute_lbl(x2 + w2, y2, lbl2)
         # No matches draw a red box
     if aid2 not in qres.aid2_fm or len(qres.aid2_fm[aid2]) == 0:

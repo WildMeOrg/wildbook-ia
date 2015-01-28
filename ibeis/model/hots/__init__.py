@@ -29,8 +29,8 @@ print, print_, printDBG, rrr, profile = utool.inject(
 def reload_subs(verbose=True):
     """ Reloads ibeis.model.hots and submodules """
     rrr(verbose=verbose)
-    getattr(automated_helpers, 'rrr', fbrrr)(verbose=verbose)
-    getattr(automated_matcher, 'rrr', fbrrr)(verbose=verbose)
+    getattr(automated_helpers, 'rrr', lambda verbose: None)(verbose=verbose)
+    getattr(automated_matcher, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(exceptions, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(hots_query_result, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(hstypes, 'rrr', lambda verbose: None)(verbose=verbose)

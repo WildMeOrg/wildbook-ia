@@ -260,17 +260,20 @@ def show_qres(ibs, qres, **kwargs):
             _kwshow['in_image'] = in_image
             # If we already are showing the query dont show it here
             if sidebyside:
+                # Draw each match side by side the query
                 _kwshow['draw_ell'] = annot_mode == 1
                 _kwshow['draw_lines'] = annot_mode >= 1
                 viz_matches.show_matches(ibs, qres, aid, **_kwshow)
             else:
+                # Draw each match by themselves
                 _kwshow['draw_ell'] = annot_mode >= 1
                 if annot_mode == 2:
                     # TODO Find a better name
                     _kwshow['color'] = aid2_color[aid]
                     _kwshow['sel_fx2'] = qres.aid2_fm[aid][:, 1]
+                    _kwshow['draw_ell'] = annot_mode == 1
                 viz_chip.show_chip(ibs, aid, annote=False, **_kwshow)
-                viz_matches.annotate_matches(ibs, qres, aid, show_query=not show_query)
+                viz_matches.annotate_matches(ibs, qres, aid, show_query=False)
 
         if DEBUG_SHOW_QRES:
             print('[show_qres()] Plotting Chips %s:' % vh.get_aidstrs(aid_list))

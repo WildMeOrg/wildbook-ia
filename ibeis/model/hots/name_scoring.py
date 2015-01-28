@@ -9,12 +9,12 @@ NameScoreTup = namedtuple('NameScoreTup', ('sorted_nids', 'sorted_nscore',
                                            'sorted_aids', 'sorted_scores'))
 
 
-def get_one_score_per_name(ibs, aid_list, score_list):
+def group_scores_by_name(ibs, aid_list, score_list):
     """
     Converts annotation scores to name scores
 
     CommandLine:
-        python -m ibeis.model.hots.name_scoring --test-get_one_score_per_name
+        python -m ibeis.model.hots.name_scoring --test-group_scores_by_name
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -32,7 +32,7 @@ def get_one_score_per_name(ibs, aid_list, score_list):
         >>> print(qres.get_inspect_str())
         >>> print(qres.get_inspect_str(ibs=ibs, name_scoring=True))
         >>> aid_list, score_list = qres.get_aids_and_scores()
-        >>> nscoretup = get_one_score_per_name(ibs, aid_list, score_list)
+        >>> nscoretup = group_scores_by_name(ibs, aid_list, score_list)
         >>> (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
         >>> ut.assert_eq(sorted_nids[0], 1)
 

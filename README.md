@@ -637,6 +637,7 @@ python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard [
 # EG: dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard 27 28 44 49 50 51 53 54 66 72 89 97 110  # Hard as of 2014-11-4
 # EG: dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard 27 44 49 50 51 53 54 66 69 89 97 110  # Hard as of 2014-11-6
 # EG: dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --set-aids-as-hard 27 43 45 49 51 53 54 66 97  # FGWEIGHT Hard as of 2014-11-6
+# python dev.py --db PZ_MTEST --set-aids-as-hard 27 28 43 44 45 49 50 51 53 54 66 97
 
 
 
@@ -686,6 +687,21 @@ python dev.py --db PZ_MTEST --delete-qres-cache
 python dev.py --db PZ_Master0 --delete-qres-cache
 python dev.py --db GZ_ALL --delete-qres-cache
 python dev.py --db Oxford --delete-qres-cache
+
+
+#RECENT DEBUGGING
+python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase
+python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase
+python dev.py -t best --db PZ_MTEST --allgt --echo-hardcase --verbose --noqcache --print-rowscore --qindex 0:4 --print-all --verb-pipeline --debug-pipeline
+
+python dev.py -t nsum --db PZ_MTEST --allgt --echo-hardcase --verbose --noqcache --print-rowscore --qindex 0 --print-all --verb-pipeline --debug-pipeline
+ --vf --va
+
+# Runs some hard cases and some easy cases
+python dev.py --db PZ_MTEST --allhard --qaid 1:10:2 --noqcache -t best
+
+python dev.py --db PZ_MTEST --allhard --qaid 1:10:2 --noqcache -t custom
+python dev.py --db PZ_MTEST --allhard --qaid 1:10:2 --noqcache -t custom --cfg vsone_reranking=True
 
 ```
 

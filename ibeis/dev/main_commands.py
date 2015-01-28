@@ -73,7 +73,7 @@ def postload_commands(ibs, back):
     if params.args.set_default_dbdir:
         sysres.set_default_dbdir(ibs.get_dbdir())
     if params.args.update_query_cfg is not None:
-        # Set query parameters from command line
+        # Set query parameters from command line using the --cfg flag
         cfgdict = ut.parse_cfgstr_list(params.args.update_query_cfg)
         print('Custom cfgdict specified')
         print(ut.dict_str(cfgdict))

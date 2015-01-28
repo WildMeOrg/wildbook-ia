@@ -69,7 +69,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
         except KeyError:
             pass
         _annotate_kpts(kpts_, **kwargs)
-    df2.upperleft_text(chip_text, color=kwargs.get('text_color', None))
+        df2.upperleft_text(chip_text, color=kwargs.get('text_color', None))
     if not kwargs.get('ntitle', False):
         ax.set_title(chip_title_text)
     if in_image:

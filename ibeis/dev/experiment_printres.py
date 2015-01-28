@@ -209,6 +209,7 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         print('Names: %r' % (name_set,))
         print('--- /Print Hardcase ---')
     print_hardcase()
+    #default=not ut.get_argflag('--allhard'))
 
     @utool.argv_flag_dec_true
     def echo_hardcase():
@@ -221,11 +222,11 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         hardaids_str = ' '.join(map(str, ['    ', '--set-aids-as-hard'] + new_qaids))
         print(hardaids_str)
         print('--- /Echo Hardcase ---')
-    echo_hardcase()
+    echo_hardcase(default=not ut.get_argflag('--allhard'))
 
     #------------
 
-    @utool.argv_flag_dec_true
+    @utool.argv_flag_dec
     def print_colmap():
         print('==================')
         print('[harn] mAP per Config: %s (sorted by mAP)' % testnameid)

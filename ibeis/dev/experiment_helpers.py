@@ -1,3 +1,6 @@
+"""
+Helper module that helps expand parameters for grid search
+"""
 from __future__ import absolute_import, division, print_function
 import utool
 import utool as ut  # NOQA
@@ -180,7 +183,9 @@ def get_cfg_list_helper(test_cfg_name_list):
 def get_cfg_list(test_cfg_name_list, ibs=None):
     print('[harn] building cfg_list: %s' % test_cfg_name_list)
     if 'custom' == test_cfg_name_list:
-        # Usee the ibeis config as a custom config
+        # Use the ibeis config as a custom config
+        # this can be modified with the --cfg command line option
+        # eg --cfg xy_thresh=.01 score_method=csum
         print('   * custom cfg_list')
         cfg_list = [ibs.cfg.query_cfg]
         cfgx2_lbl = ['custom']
