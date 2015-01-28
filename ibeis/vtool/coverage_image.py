@@ -26,8 +26,13 @@ def show_coverage_map(chip, mask, patch, kpts, fnum=None, ell_alpha=.6,
     #pt.draw_kpts2(kpts)
 
 
-def iter_reduce_ufunc(ufunc, arr_iter):
-    """ constant memory iteration and reduction """
+def iter_reduce_ufunc(ufunc, arr_iter, initial=None):
+    """
+    constant memory iteration and reduction
+
+    applys ufunc from left to right over the input arrays
+
+    """
     from six import next
     out = next(arr_iter).copy()
     for arr in arr_iter:
@@ -35,9 +40,48 @@ def iter_reduce_ufunc(ufunc, arr_iter):
     return out
 
 
+def warped_patch_generator(patch, dsize, affmat_list, weight_list):
+    """
+    generator that warps the patches (like gaussian) onto an image with dsize using constant memory.
+
+    output must be used or copied on every iteration otherwise the next output will clobber the previous
+
+    References:
+        http://docs.opencv.org/modules/imgproc/doc/geometric_transformations.html#warpaffine
+    """
+    USE_BIG_KEYPOINT_PENALTY = True
+    shape = dsize[::-1]
+    #warpAffine is weird. If the shape of the dst is the same as src we can
+    #use the dst outvar. I dont know why it needs that.  It seems that this
+    #will not operate in place even if a destination array is passed in when
+    #src.shape != dst.shape.
+    patch_h, patch_w = patch.shape
+    # If we pad the patch we can use dst
+    padded_patch = np.zeros(shape, dtype=np.float32)
+    # Prealloc output,
+    warped = np.zeros(shape, dtype=np.float32)
+    prepad_h, prepad_w = patch.shape[0:2]
+    # each score is spread across its contributing pixels
+    for (M, weight) in zip(affmat_list, weight_list):
+        # inplace weighting of the patch
+        np.multiply(patch, weight, out=padded_patch[:prepad_h, :prepad_w] )
+        # inplace warping of the padded_patch
+        cv2.warpAffine(padded_patch, M, dsize, dst=warped,
+                       flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT,
+                       borderValue=0)
+        if USE_BIG_KEYPOINT_PENALTY:
+            # TODO: paramatarize
+            total_weight = (warped.sum() ** .5) * .1
+            if total_weight > 1:
+                # Whatever the size of the keypoint is it should
+                # contribute a total of 1 score
+                np.divide(warped, total_weight, out=warped)
+        yield warped
+
+
 @profile
 def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
-                         scale_factor=1.0, mode='max', **kwargs):
+                         scale_factor=1.0, mode='max'):
     r"""
     Overlays the source image onto a destination image in each keypoint location
 
@@ -65,9 +109,8 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
         >>> import pyhesaff
         >>> img_fpath    = ut.grab_test_imgpath('carl.jpg')
         >>> (kpts, vecs) = pyhesaff.detect_kpts(img_fpath)
-        >>> kpts = kpts[0:3]
+        >>> kpts = kpts[::15]
         >>> chip = vt.imread(img_fpath)
-        >>> kwargs = {}
         >>> chip_shape = chip.shape
         >>> fx2_score = np.ones(len(kpts))
         >>> scale_factor = 1.0
@@ -91,7 +134,7 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
         >>> #print(patch.sum())
         >>> assert np.all(ut.inbounds(dstimg, 0, 1, eq=True))
         >>> # show results
-        >>> if ut.get_argflag('--show'):
+        >>> if ut.show_was_requested():
         >>>     import plottool as pt
         >>>     mask = dstimg
         >>>     show_coverage_map(chip, mask, patch, kpts)
@@ -104,58 +147,20 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
     chip_scale_h = int(np.ceil(chip_shape[0] * scale_factor))
     chip_scale_w = int(np.ceil(chip_shape[1] * scale_factor))
     dsize = (chip_scale_w, chip_scale_h)
-    shape = dsize[::-1]
     # Allocate destination image
     patch_shape = patch.shape
     # Scale keypoints into destination image
     M_list = ktool.get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor)
     affmat_list = M_list[:, 0:2, :]
-    # cv2 warpAffine flags
-    USE_BIG_KEYPOINT_PENALTY = True
-    def warped_patch_generator():
-        """
-        nested generator that warps the gaussian patches onto an image using
-        constant memory.
-
-        References:
-          http://docs.opencv.org/modules/imgproc/doc/geometric_transformations.html#warpaffine
-        """
-        #warpAffine is weird. If the shape of the dst is the same as src we can
-        #use the dst outvar. I dont know why it needs that.  It seems that this
-        #will not operate in place even if a destination array is passed in when
-        #src.shape != dst.shape.
-        patch_h, patch_w = patch_shape
-        # If we pad the patch we can use dst
-        padded_patch = np.zeros(shape, dtype=np.float32)
-        warped = np.zeros(shape, dtype=np.float32)
-        # each score is spread across its contributing pixels
-        for (M, score) in zip(affmat_list, fx2_score):
-            np.multiply(patch, score, out=padded_patch[:patch.shape[0], :patch.shape[1]] )
-            cv2.warpAffine(padded_patch, M, dsize, dst=warped,
-                           flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT,
-                           borderValue=0)
-            if USE_BIG_KEYPOINT_PENALTY:
-                total_weight = np.sqrt(warped.sum()) * .1
-                if total_weight > 1:
-                    # Whatever the size of the keypoint is it should
-                    # contribute a total of 1 score
-                    np.divide(warped, total_weight, out=warped)
-            yield warped
-    # For each keypoint
-    # warp a gaussian scaled by the feature score into the image
+    weight_list = fx2_score
+    # For each keypoint warp a gaussian scaled by the feature score into the image
+    warped_patch_iter = warped_patch_generator(
+        patch, dsize, affmat_list, weight_list)
     # Either max or sum
     if mode == 'max':
-        dstimg = iter_reduce_ufunc(np.maximum, warped_patch_generator())
-        #for warped in warped_patch_generator():
-        #    print(ut.get_resource_usage_str())
-        #    np.maximum(dstimg, warped, out=dstimg)
-        #    #np.maximum(warped, dstimg, out=dstimg)
-        #    #dstimg = np.dstack((warped.T, dstimg)).max(axis=2)
+        dstimg = iter_reduce_ufunc(np.maximum, warped_patch_iter)
     elif mode == 'sum':
-        dstimg = iter_reduce_ufunc(np.add, warped_patch_generator())
-        #dstimg = np.zeros(shape, dtype=np.float32)
-        #for warped in warped_patch_generator():
-        #    np.add(dstimg, warped, out=dstimg)
+        dstimg = iter_reduce_ufunc(np.add, warped_patch_iter)
         # HACK FOR SUM: DO NOT DO THIS FOR MAX
         dstimg[dstimg > 1.0] = 1.0
     else:
@@ -164,7 +169,7 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
 
 
 @profile
-def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None, **kwargs):
+def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None):
     r"""
     Returns a intensity image denoting which pixels are covered by the input
     keypoints
@@ -177,9 +182,10 @@ def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None, **kwargs):
         tuple (ndarray, ndarray): dstimg, patch
 
     CommandLine:
-        python -m vtool.patch --test-test_show_gaussian_patches2 --show
         python -m vtool.coverage_image --test-make_coverage_mask --show
         python -m vtool.coverage_image --test-make_coverage_mask
+
+        python -m vtool.patch --test-test_show_gaussian_patches2 --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -192,16 +198,11 @@ def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None, **kwargs):
         >>> (kpts, vecs) = pyhesaff.detect_kpts(img_fpath)
         >>> kpts = kpts[::10]
         >>> chip = vt.imread(img_fpath)
-        >>> kwargs = {}
         >>> chip_shape = chip.shape
         >>> # execute function
         >>> dstimg, patch = make_coverage_mask(kpts, chip_shape)
         >>> # show results
-        >>> if ut.get_argflag('--show'):
-        >>>     # FIXME:  params
-        >>>     srcshape = (5, 5)
-        >>>     sigma = 1.6
-        >>>     #srcshape = (75, 75)
+        >>> if ut.show_was_requested():
         >>>     mask = dstimg
         >>>     show_coverage_map(chip, mask, patch, kpts)
         >>>     pt.show_if_requested()
@@ -230,8 +231,7 @@ def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None, **kwargs):
         patch /= patch.max()
     scale_factor = .25
     dstimg = warp_patch_into_kpts(kpts, patch, chip_shape, mode=mode,
-                                  fx2_score=fx2_score, scale_factor=scale_factor,
-                                  **kwargs)
+                                  fx2_score=fx2_score, scale_factor=scale_factor)
     cv2.GaussianBlur(dstimg, ksize=(17, 17,), sigmaX=5.0, sigmaY=5.0,
                      dst=dstimg, borderType=cv2.BORDER_CONSTANT)
     dsize = tuple(chip_shape[0:2][::-1])
