@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range, map  # NOQA
+from six import next
 import cv2
 import numpy as np
 import utool as ut
@@ -33,8 +34,13 @@ def iter_reduce_ufunc(ufunc, arr_iter, initial=None):
     applys ufunc from left to right over the input arrays
 
     """
-    from six import next
-    out = next(arr_iter).copy()
+    if initial is None:
+        try:
+            out = next(arr_iter).copy()
+        except StopIteration:
+            return None
+    else:
+        out = initial
     for arr in arr_iter:
         ufunc(out, arr, out=out)
     return out
@@ -142,10 +148,13 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
     """
     #if len(kpts) == 0:
     #    return None
-    if fx2_score is None:
-        fx2_score = np.ones(len(kpts))
     chip_scale_h = int(np.ceil(chip_shape[0] * scale_factor))
     chip_scale_w = int(np.ceil(chip_shape[1] * scale_factor))
+    if len(kpts) == 0:
+        dstimg =  np.zeros((chip_scale_h, chip_scale_w))
+        return dstimg
+    if fx2_score is None:
+        fx2_score = np.ones(len(kpts))
     dsize = (chip_scale_w, chip_scale_h)
     # Allocate destination image
     patch_shape = patch.shape
