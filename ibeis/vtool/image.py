@@ -498,7 +498,7 @@ def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
                                  checkexists=True,
                                  **kwargs):
     """ Resizes images and yeilds results asynchronously  """
-    from .chip import get_scaled_sizes_with_area
+    from vtool.chip import get_scaled_sizes_with_area
     target_area = sqrt_area ** 2
     # Read image sizes
     gsize_list = get_gpathlist_sizes(gpath_list)
