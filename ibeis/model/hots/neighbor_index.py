@@ -20,7 +20,7 @@ import six
 import numpy as np
 import utool as ut
 import pyflann
-import lockfile
+#import lockfile
 from os.path import join
 from os.path import basename, exists  # NOQA
 from six.moves import range  # NOQA
@@ -48,7 +48,7 @@ class UUIDMapHyrbridCache(object):
     should be loaded from disk initially
     """
     def __init__(self):
-        self.uuid_maps = ut.ddict()
+        self.uuid_maps = ut.ddict(dict)
         #self.uuid_map_fpath = uuid_map_fpath
         #self.init(uuid_map_fpath, min_reindex_thresh)
 
