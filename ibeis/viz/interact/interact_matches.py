@@ -8,22 +8,21 @@ CommandLine:
     python -m ibeis.viz.interact.interact_matches --test-begin
 """
 from __future__ import absolute_import, division, print_function
-import utool
-import guitool
+import utool as ut
 import numpy as np
 import plottool as pt
 import six
-import utool as ut
-from ibeis import viz
-from ibeis.viz import viz_helpers as vh
-from ibeis.viz import viz_hough
-from ibeis.viz import viz_chip
+import guitool
 from plottool import draw_func2 as df2
 from plottool import viz_featrow
 from plottool import interact_helpers as ih
 from plottool import plot_helpers as ph
+from ibeis import viz
+from ibeis.viz import viz_helpers as vh
+from ibeis.viz import viz_hough
+from ibeis.viz import viz_chip
 from ibeis.viz.interact.interact_chip import ishow_chip
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact_matches]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[interact_matches]', DEBUG=False)
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -63,8 +62,8 @@ class MatchInteraction(object):
             >>> sel_fm = []
             >>> # execute function
             >>> self  = MatchInteraction(ibs, qres, aid2, annot_mode=1)
-            >>> #if not utool.get_argflag('--noshow'):
-            >>> if utool.get_argflag('--show'):
+            >>> #if not ut.get_argflag('--noshow'):
+            >>> if ut.get_argflag('--show'):
             >>>    execstr = df2.present()
             >>>    exec(execstr)
         """
@@ -308,8 +307,8 @@ class MatchInteraction(object):
                     kpts1_m = kpts1[fm[:, 0]]
                     kpts2_m = kpts2[fm[:, 1]]
                     x2, y2, w2, h2 = xywh2_ptr[0]
-                    _mx1, _dist1 = utool.nearest_point(x, y, kpts1_m)
-                    _mx2, _dist2 = utool.nearest_point(x - x2, y - y2, kpts2_m)
+                    _mx1, _dist1 = ut.nearest_point(x, y, kpts1_m)
+                    _mx2, _dist2 = ut.nearest_point(x - x2, y - y2, kpts2_m)
                     mx = _mx1 if _dist1 < _dist2 else _mx2
                     print('... clicked mx=%r' % mx)
                     self.select_ith_match(mx)

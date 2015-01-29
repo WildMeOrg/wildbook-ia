@@ -635,6 +635,8 @@ class QueryConfig(ConfigBase):
     def apply_codename(query_cfg, codename=None):
         """
         codenames denote mass changes to configurations
+        it is a hacky solution to setting different parameter
+        values all at once.
         """
         if codename is None:
             codename = query_cfg.codename

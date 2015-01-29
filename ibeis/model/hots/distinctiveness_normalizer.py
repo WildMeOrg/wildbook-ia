@@ -406,6 +406,89 @@ def view_publish_dir():
     ut.vd(PUBLISH_DIR)
 
 
+def test_single_annot_distinctiveness_params(ibs, aid):
+    r"""
+
+    CommandLine:
+        python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show
+        python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db GZ_ALL
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA
+        >>> import plottool as pt
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb(ut.get_argval('--db', type_=str, default='PZ_MTEST'))
+        >>> aid = ut.get_argval('--aid', type_=int, default=1)
+        >>> # execute function
+        >>> test_single_annot_distinctiveness_params(ibs, aid)
+        >>> pt.show_if_requested()
+    """
+    ####
+    # TODO: Also paramatarize the downweighting based on the keypoint size
+    ####
+    # HACK IN ABILITY TO SET CONFIG
+    from ibeis.dev.main_commands import postload_commands
+    postload_commands(ibs, None)
+
+    from vtool import coverage_image
+    import plottool as pt
+    fnum = 1
+
+    # Paramater space to search
+    varied_dict = {
+        'p': [.1, .3, 1.0, 2.0],
+        'clip_fraction': [.1, .2, .5],
+        'K': [3]  # , 4, 5],
+    }
+    cfgdict_list = ut.all_dict_combinations(varied_dict)
+    cfglbl_list = ut.all_dict_combinations_lbls(varied_dict)
+
+    # Get info to find distinctivness of
+    species_text = ibs.get_annot_species(aid)
+    vecs = ibs.get_annot_vecs(aid)
+    kpts = ibs.get_annot_kpts(aid)
+    print(kpts)
+    chip = ibs.get_annot_chips(aid)
+    chipsize = ibs.get_annot_chipsizes(aid)[::-1]
+
+    # Load distinctivness normalizer
+    with ut.Timer('Loading Distinctivness Normalizer for %s' % (species_text)):
+        dstcvnss_normer = request_species_distinctiveness_normalizer(species_text)
+
+    # Get distinctivness over all params
+    dstncvs_list = [dstcvnss_normer.get_distinctiveness(vecs, **cfgdict)
+                    for cfgdict in ut.ProgressIter(cfgdict_list, lbl='get dstcvns')]
+
+    # Then compute the distinctinvess coverage map
+    patch = coverage_image.get_warping_patch()
+    dstncvs_mask_list = [
+        coverage_image.make_coverage_mask(
+            kpts, chipsize, fx2_score=dstncvs, mode='max', return_patch=False, patch=patch)
+        for dstncvs in ut.ProgressIter(dstncvs_list, lbl='Warping Image')
+    ]
+
+    nRows, nCols = pt.get_square_row_cols(len(cfgdict_list), fix=True)
+    next_pnum = pt.make_pnum_nextgen(nRows, nCols)
+    # Show the results
+    for cfglbl, dstncvs_mask in zip(cfglbl_list, dstncvs_mask_list):
+        cfglbl = cfglbl.replace('\'', '').replace('}', '').replace('{', '')
+        pt.imshow(255 * dstncvs_mask, fnum=fnum, pnum=next_pnum(), title=cfglbl)
+
+    # Show the first mask in more depth
+    dstncvs = dstncvs_list[0]
+    dstncvs_mask = dstncvs_mask_list[0]
+    coverage_image.show_coverage_map(chip, dstncvs_mask, patch, kpts, fnum=fnum + 1, ell_alpha=.2, show_mask_kpts=False)
+    pt.present()
+    #ut.embed()
+    #pt.iup()
+
+    #ut.print_resource_usage()
+    #pt.set_figtitle(mode)
+    #pass
+
+
 def dev_train_distinctiveness(species=None):
     r"""
     Args:
