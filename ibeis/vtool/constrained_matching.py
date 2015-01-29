@@ -97,7 +97,7 @@ def baseline_vsone_ratio_matcher_(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdic
     #import vtool as vt
     sver_xy_thresh = cfgdict.get('sver_xy_thresh', .01)
     ratio_thresh =  cfgdict.get('ratio_thresh', .625)
-    ratio_thresh =  .99
+    #ratio_thresh =  .99
     # GET NEAREST NEIGHBORS
     fx2_to_fx1, fx2_to_dist = assign_nearest_neighbors(vecs1, vecs2, K=2)
     fx2_m = np.arange(len(fx2_to_fx1))

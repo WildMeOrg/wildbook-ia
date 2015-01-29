@@ -130,13 +130,17 @@ def testdata_matcher(fname1='easy1.png', fname2='easy2.png'):
 
     """
     import utool as ut
+    #import vtool as vt
     from vtool import image as gtool
     from vtool import features as feattool
     fpath1 = ut.grab_test_imgpath(fname1)
     fpath2 = ut.grab_test_imgpath(fname2)
-    kpts1, vecs1 = feattool.extract_features(fpath1, rotation_invariance=True)
-    #ut.embed()
-    kpts2, vecs2 = feattool.extract_features(fpath2, rotation_invariance=True)
+    featkw = dict(rotation_invariance=True)
+    kpts1, vecs1 = feattool.extract_features(fpath1, **featkw)
+    kpts2, vecs2 = feattool.extract_features(fpath2, **featkw)
+    #if featkw['rotation_invariance']:
+    #    print('ori stats 1 ' + ut.get_stats_str(vt.get_oris(kpts2)))
+    #    print('ori stats 2 ' + ut.get_stats_str(vt.get_oris(kpts1)))
     rchip1 = gtool.imread(fpath1)
     rchip2 = gtool.imread(fpath2)
     #chip1_shape = vt.gtool.open_image_size(fpath1)
