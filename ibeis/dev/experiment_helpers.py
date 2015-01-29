@@ -245,9 +245,10 @@ def get_cfg_list(test_cfg_name_list, ibs=None):
                 cfgx2_lbl.append(test_cfg_name)
             else:
                 test_cfg_name_list2.append(test_cfg_name)
-        cfg_list2, cfgx2_lbl2 = get_cfg_list_helper(test_cfg_name_list2)
-        cfg_list.extend(cfg_list2)
-        cfgx2_lbl.extend(cfgx2_lbl2)
+        if len(test_cfg_name_list2) > 0:
+            cfg_list2, cfgx2_lbl2 = get_cfg_list_helper(test_cfg_name_list2)
+            cfg_list.extend(cfg_list2)
+            cfgx2_lbl.extend(cfgx2_lbl2)
     return (cfg_list, cfgx2_lbl)
 
 

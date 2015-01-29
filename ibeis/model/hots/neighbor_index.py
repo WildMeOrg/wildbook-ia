@@ -1107,11 +1107,8 @@ def test_nnindexer(dbname='testdb1', with_indexer=True):
 # ------------
 # NEW
 
-class BuildBackgroundNNIndexer(object):
-    def __init__(self):
-        pass
 
-
+@profile
 def check_background_process():
     """
     checks to see if the process has finished and then
@@ -1137,6 +1134,7 @@ def can_request_background_nnindexer():
     return CURRENT_THREAD is None or not CURRENT_THREAD.is_alive()
 
 
+@profile
 def request_background_nnindexer(qreq_, daid_list):
     """ FIXME: Duplicate code
 

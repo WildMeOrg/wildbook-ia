@@ -238,10 +238,13 @@ def execute_vsone_reranking(qreq_, qaid_list, daids_list_, Hs_list):
     r""" runs several pairs of (qaid, daids) vsone matches """
     ibs = qreq_.ibs
     # For each qaid, daids pair in the lists, execute a query
+    vsone_iter = zip(qaid_list, daids_list_, Hs_list)
+    progkw = dict(lbl='VSONE RERANKING', freq=1)
+    vsone_prog_iter = ut.ProgressIter(vsone_iter, nTotal=len(qaid_list), **progkw)
     daid_score_fm_fsv_tup_list = [
         single_vsone_query(ibs, qaid, daid_list, H_list)
-        for (qaid, daid_list, H_list) in
-        zip(qaid_list, daids_list_, Hs_list)]
+        for (qaid, daid_list, H_list) in vsone_prog_iter
+    ]
     # Unpack results into their respective types
     daids_list   = ut.get_list_column(daid_score_fm_fsv_tup_list, 0)
     scores_list  = ut.get_list_column(daid_score_fm_fsv_tup_list, 1)

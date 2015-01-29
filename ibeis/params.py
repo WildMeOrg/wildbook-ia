@@ -37,7 +37,7 @@ def parse_args():
         parser2.add_flag(('--all-gt-cases', '--allgt'), help='chooses all groundtruthed annotations to be queried')
         parser2.add_flag(('--all-hard-cases', '--allhard'))  # all_hard_cases
         parser2.add_flag(('--all-singleton-cases', '--allsingle'))
-        parser2.add_ints(('--qindex', '-qx'), None, help='test only these query indicies. Out of bounds errors are clipped')
+        parser2.add_ints(('--qindex', '-qx', '--index'), None, help='test only these query indicies. Out of bounds errors are clipped')
         parser2.add_ints(('--dindex', '-dx'), None, help='test only these database indicies. . Out of bounds errors are clipped')
         parser2.add_ints(('--sel-rows', '-r'), help='view row for experiment harness')
         parser2.add_ints(('--sel-cols', '-c'), help='view col for experiment harness')

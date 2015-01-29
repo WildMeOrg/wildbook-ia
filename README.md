@@ -698,13 +698,19 @@ python dev.py -t nsum --db PZ_MTEST --allgt --echo-hardcase --verbose --noqcache
  --vf --va
 
 # Runs some hard cases and some easy cases
-python dev.py --db PZ_MTEST --allhard --qaid 1:10:2 --noqcache -t best
+python dev.py --setdb --db PZ_MTEST
+python dev.py --setdb --db GZ_ALL
+python dev.py --setdb --db PZ_Master0
+python dev.py --allhard --qaid 1:10:2 --noqcache -t best
 
-python dev.py --db PZ_MTEST --allhard --qaid 1:10:2 -t custom
-python dev.py --db PZ_MTEST --allhard --qaid 1:10:2 -t best --cfg vsone_reranking=True 
+python dev.py --allhard --qaid 1:10:2 -t custom
+python dev.py --allhard --qaid 1:10:2 -t best --cfg vsone_reranking=True 
 
-python dev.py --db PZ_MTEST --allhard --qaid 1:10:2 -t best nsum custom custom:vsone_reranking=True
-python dev.py --db PZ_MTEST --allhard --qaid 1:10:2 -t best nsum custom custom:vsone_resranking=True custom:sv_on=False
+python dev.py --allhard --qaid 1:10:2 -t best nsum custom custom:vsone_reranking=True
+python dev.py --allhard --qaid 1:10:2 -t best nsum custom custom:vsone_reranking=True custom:sv_on=False
+
+
+python dev.py --allgt -t best nsum custom custom:vsone_reranking=True custom:sv_on=False
 
 ```
 
