@@ -970,8 +970,8 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8,
     # Compute new orientation(s) for this keypoint
     submax_ori_offsets = find_patch_dominant_orientations(patch, bins=bins, maxima_thresh=maxima_thresh, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
     old_ori = kp[-1]
-    #new_oris = (old_ori + (submax_ori_offsets - ktool.GRAVITY_THETA)) % TAU
-    new_oris = (old_ori + (submax_ori_offsets - 0)) % TAU
+    new_oris = (old_ori + (submax_ori_offsets + ktool.GRAVITY_THETA)) % TAU
+    #new_oris = (old_ori + (submax_ori_offsets - 0)) % TAU
     #submax_ori = submaxima_x[submaxima_y.argmax()]
     #ori_offsets = [submax_ori]  # normalize w.r.t. gravity
     return new_oris

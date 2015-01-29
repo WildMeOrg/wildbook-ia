@@ -247,6 +247,150 @@ def perterb_kpts(kpts, xy_std=None, invV_std=None, ori_std=None, damping=None,
     return kpts_
 
 
+def testdata_dummy_matches():
+    r"""
+    Returns:
+        tuple: matches_testtup
+
+    CommandLine:
+        python -m vtool.tests.dummy --test-testdata_dummy_matches --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.tests.dummy import *  # NOQA
+        >>> # build test data
+        >>> # execute function
+        >>> matches_testtup = testdata_dummy_matches()
+        >>> # verify results
+        >>> (kpts1, kpts2, fm, fs, rchip1, rchip2) = matches_testtup
+        >>> if ut.show_was_requested():
+        >>>     import plottool as pt
+        >>>     pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm, fs)
+        >>>     pt.set_figtitle('Dummy matches')
+        >>>     pt.show_if_requested()
+    """
+    kpts1, kpts2 = get_dummy_kpts_pair((100, 100))
+    #fm = np.ascontiguousarray(dummy.make_dummy_fm(len(kpts1)).astype(np.uint))
+    fm = np.ascontiguousarray(make_dummy_fm(len(kpts1)).astype(np.int64))
+    #print(repr([kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh]))
+    rchip1 = get_kpts_dummy_img(kpts1)
+    rchip2 = get_kpts_dummy_img(kpts2)
+    fs = np.ones(fm.shape[0])
+    return (kpts1, kpts2, fm, fs, rchip1, rchip2)
+
+
+def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
+    r"""
+    Runs simple ratio-test matching between two images.
+    Technically this is not dummy data.
+
+    Args:
+        fname1 (str):
+        fname2 (str):
+
+    Returns:
+        tuple : matches_testtup
+
+    CommandLine:
+        python -m vtool.tests.dummy --test-testdata_ratio_matches
+        python -m vtool.tests.dummy --test-testdata_ratio_matches --help
+        python -m vtool.tests.dummy --test-testdata_ratio_matches --show
+        python -m vtool.tests.dummy --test-testdata_ratio_matches --show --ratio_thresh=1.1 --rotation_invariance
+
+        python -m vtool.tests.dummy --test-testdata_ratio_matches --show --ratio_thresh=.625 --rotation_invariance --fname1 easy1.png --fname2 easy3.png
+        python -m vtool.tests.dummy --test-testdata_ratio_matches --show --ratio_thresh=.625 --no-rotation_invariance --fname1 easy1.png --fname2 easy3.png
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.tests.dummy import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
+        >>> fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
+        >>> # execute function
+        >>> default_dict = vt.get_extract_features_default_params()
+        >>> default_dict['ratio_thresh'] = .625
+        >>> kwargs = ut.get_dict_vals_from_commandline(default_dict)
+        >>> matches_testtup = testdata_ratio_matches(fname1, fname2, **kwargs)
+        >>> (kpts1, kpts2, fm_RAT, fs_RAT, rchip1, rchip2) = matches_testtup
+        >>> if ut.show_was_requested():
+        >>>     import plottool as pt
+        >>>     pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm_RAT, fs_RAT, ori=True)
+        >>>     num_matches = len(fm_RAT)
+        >>>     score_sum = sum(fs_RAT)
+        >>>     title = 'Simple matches using the Lowe\'s ratio test'
+        >>>     title += '\n num_matches=%r, score_sum=%.2f' % (num_matches, score_sum)
+        >>>     pt.set_figtitle(title)
+        >>>     pt.show_if_requested()
+    """
+    import utool as ut
+    import vtool as vt
+    from vtool import image as gtool
+    from vtool import features as feattool
+    import pyflann
+    # Get params
+    ratio_thresh = kwargs.get('ratio_thresh', .625)
+    print('ratio_thresh=%r' % (ratio_thresh,))
+    featkw = vt.get_extract_features_default_params()
+    ut.updateif_haskey(featkw, kwargs)
+    # Read Images
+    fpath1 = ut.grab_test_imgpath(fname1)
+    fpath2 = ut.grab_test_imgpath(fname2)
+    # Extract Features
+    kpts1, vecs1 = feattool.extract_features(fpath1, **featkw)
+    kpts2, vecs2 = feattool.extract_features(fpath2, **featkw)
+    rchip1 = gtool.imread(fpath1)
+    rchip2 = gtool.imread(fpath2)
+    # Run Algorithm
+    def assign_nearest_neighbors(vecs1, vecs2, K=2):
+        checks = 800
+        flann_params = {
+            'algorithm': 'kdtree',
+            'trees': 8
+        }
+        #pseudo_max_dist_sqrd = (np.sqrt(2) * 512) ** 2
+        pseudo_max_dist_sqrd = 2 * (512 ** 2)
+        flann = vt.flann_cache(vecs1, flann_params=flann_params)
+        try:
+            fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
+        except pyflann.FLANNException:
+            print('vecs1.shape = %r' % (vecs1.shape,))
+            print('vecs2.shape = %r' % (vecs2.shape,))
+            print('vecs1.dtype = %r' % (vecs1.dtype,))
+            print('vecs2.dtype = %r' % (vecs2.dtype,))
+            raise
+        fx2_to_dist = np.divide(_fx2_to_dist, pseudo_max_dist_sqrd)
+        return fx2_to_fx1, fx2_to_dist
+
+    def ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh):
+        fx2_to_ratio = np.divide(fx2_to_dist.T[0], fx2_to_dist.T[1])
+        fx2_to_isvalid = fx2_to_ratio < ratio_thresh
+        fx2_m = np.where(fx2_to_isvalid)[0]
+        fx1_m = fx2_to_fx1.T[0].take(fx2_m)
+        fs_RAT = np.subtract(1.0, fx2_to_ratio.take(fx2_m))
+        fm_RAT = np.vstack((fx1_m, fx2_m)).T
+        # return normalizer info as well
+        fx1_m_normalizer = fx2_to_fx1.T[1].take(fx2_m)
+        fm_norm_RAT = np.vstack((fx1_m_normalizer, fx2_m)).T
+        return fm_RAT, fs_RAT, fm_norm_RAT
+
+    # GET NEAREST NEIGHBORS
+    fx2_to_fx1, fx2_to_dist = assign_nearest_neighbors(vecs1, vecs2, K=2)
+    #fx2_m = np.arange(len(fx2_to_fx1))
+    #fx1_m = fx2_to_fx1.T[0]
+    #fm_ORIG = np.vstack((fx1_m, fx2_m)).T
+    #fs_ORIG = fx2_to_dist.T[0]
+    #fs_ORIG = 1 - np.divide(fx2_to_dist.T[0], fx2_to_dist.T[1])
+    #np.ones(len(fm_ORIG))
+    # APPLY RATIO TEST
+    #ratio_thresh = .625
+    fm_RAT, fs_RAT, fm_norm_RAT = ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
+    kpts1 = kpts1.astype(np.float64)
+    kpts2 = kpts2.astype(np.float64)
+    matches_testtup = (kpts1, kpts2, fm_RAT, fs_RAT, rchip1, rchip2)
+    return matches_testtup
+
+
 if __name__ == '__main__':
     """
     CommandLine:

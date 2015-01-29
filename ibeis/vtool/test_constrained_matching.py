@@ -125,6 +125,9 @@ def testdata_matcher(fname1='easy1.png', fname2='easy2.png'):
     """"
     fname1 = 'easy1.png'
     fname2 = 'hard3.png'
+
+    python -m vtool.test_constrained_matching --test-visualize_matches --show
+
     """
     import utool as ut
     from vtool import image as gtool

@@ -12,7 +12,7 @@ import utool as ut
 TAU = np.pi * 2
 
 
-def show_ori_image_ondisk(ori_img_fpath=None, weights_img_fpath=None, img_fpath=None):
+def show_ori_image_ondisk():
     r"""
     Args:
         img (ndarray[uint8_t, ndim=2]):  image data
@@ -22,15 +22,17 @@ def show_ori_image_ondisk(ori_img_fpath=None, weights_img_fpath=None, img_fpath=
     CommandLine:
         python -m vtool.histogram --test-show_ori_image_ondisk --show
 
+        python -m vtool.histogram --test-show_ori_image_ondisk --show --patch_img_fpath patches/KP_0_PATCH.png --ori_img_fpath patches/KP_0_orientations01.png --weights_img_fpath patches/KP_0_WEIGHTS.png --grady_img_fpath patches/KP_0_ygradient.png --gradx_img_fpath patches/KP_0_xgradient.png --title cpp_show_ori_ondisk
+
+        python -m pyhesaff._pyhesaff --test-test_rot_invar --show --rebuild-hesaff --no-rmbuild
+
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.histogram import *  # NOQA
         >>> import plottool as pt
         >>> import vtool as vt
-        >>> ori_img_fpath     = ut.get_argval('--fpath-ori', type_=str, default='None')
-        >>> weights_img_fpath = ut.get_argval('--fpath-weight', type_=str, default='None')
-        >>> patch_img_fpath = ut.get_argval('--fpath-patch', type_=str, default='None')
-        >>> result = show_ori_image_ondisk(ori_img_fpath, weights_img_fpath, patch_img_fpath)
+        >>> result = show_ori_image_ondisk()
         >>> pt.show_if_requested()
     """
     #if img_fpath is not None:
@@ -42,33 +44,38 @@ def show_ori_image_ondisk(ori_img_fpath=None, weights_img_fpath=None, img_fpath=
     #    vt.imwrite(ori_img_fpath, vt.patch_ori(*vt.patch_gradient(img)))
     #    vt.imwrite(weights_img_fpath, vt.patch_mag(*vt.patch_gradient(img)))
     import vtool as vt
-    if img_fpath is not None and img_fpath != 'None':
-        patch = vt.imread(img_fpath, grayscale=True)
-    else:
-        patch = None
-    if ori_img_fpath is not None and ori_img_fpath != 'None':
-        gori = vt.imread(ori_img_fpath, grayscale=True)
-        gori = TAU * gori / 255.0
-    else:
-        gori = None
-    #print('stats(gori) = ' + ut.get_stats_str(gori.ravel()))
-    if weights_img_fpath is not None and weights_img_fpath != 'None':
-        weights = vt.imread(weights_img_fpath, grayscale=True)
-        weights = weights / 255.0
-    else:
-        weights = None
     print('show_ori_image_ondisk')
-    print(' * ori_img_fpath = %r' % (ori_img_fpath,))
-    print(' * weights_img_fpath = %r' % (weights_img_fpath,))
+
+    def parse_img_from_arg(argstr_):
+        fpath = ut.get_argval(argstr_, type_=str, default='None')
+        if fpath is not None and fpath != 'None':
+            img = vt.imread(fpath, grayscale=True)
+            print('Reading %s with stats %s' % (fpath, ut.get_stats_str(img, axis=None)))
+        else:
+            print('Did not read %s' % (fpath))
+            img = None
+        return img
+
+    patch = parse_img_from_arg('--patch_img_fpath')
+    gori  = parse_img_from_arg('--ori_img_fpath') / 255.0 * TAU
+    weights = parse_img_from_arg('--weights_img_fpath') / 255.0
+    gradx = parse_img_from_arg('--gradx_img_fpath') / 255.0
+    grady = parse_img_from_arg('--grady_img_fpath') / 255.0
+    gauss = parse_img_from_arg('--gauss_weights_img_fpath') / 255.0
+
+    #print(' * ori_img_fpath = %r' % (ori_img_fpath,))
+    #print(' * weights_img_fpath = %r' % (weights_img_fpath,))
+    #print(' * gradx_img_fpath = %r' % (gradx_img_fpath,))
+    #print(' * grady_img_fpath = %r' % (grady_img_fpath,))
     #import cv2
     #cv2.imread(ori_img_fpath, cv2.IMREAD_UNCHANGED)
-    show_ori_image(gori, weights, patch)
+    show_ori_image(gori, weights, patch, gradx, grady, gauss)
     title = ut.get_argval('--title', default='')
     import plottool as pt
     pt.set_figtitle(title)
 
 
-def show_ori_image(gori, weights, patch, gradx=None, grady=None, fnum=None):
+def show_ori_image(gori, weights, patch, gradx=None, grady=None, gauss=None, fnum=None):
     """
         python -m pyhesaff._pyhesaff --test-test_rot_invar --show --nocpp
     """
@@ -78,7 +85,7 @@ def show_ori_image(gori, weights, patch, gradx=None, grady=None, fnum=None):
     print('gori.max = %r' % gori.max())
     assert gori.max() <= TAU
     assert gori.min() >= 0
-    bgr_ori = pt.color_orimag(gori / TAU, weights, False, encoding='bgr')
+    bgr_ori = pt.color_orimag(gori, weights, False, encoding='bgr')
     print('bgr_ori.max = %r' % bgr_ori.max())
 
     #ut.embed()
@@ -91,16 +98,18 @@ def show_ori_image(gori, weights, patch, gradx=None, grady=None, fnum=None):
     if patch is None:
         pt.imshow(gorimag_, fnum=fnum)
     else:
-        pt.imshow(gorimag_, fnum=fnum, pnum=(2, 1, 1))
-        pt.imshow(patch, fnum=fnum, pnum=(2, 2, 3))
+        pt.imshow(gorimag_, fnum=fnum, pnum=(3, 1, 1), title='colored by orientation')
         #pt.imshow(patch, fnum=fnum, pnum=(2, 2, 1))
         #gradx, grady = np.cos(gori + TAU / 4.0), np.sin(gori + TAU / 4.0)
         if gradx is not None and grady is not None:
             if weights is not None:
                 gradx *= weights
                 grady *= weights
+            pt.imshow(np.array(gradx * 255, dtype=np.uint8), fnum=fnum, pnum=(3, 3, 4))
+            pt.imshow(np.array(grady * 255, dtype=np.uint8), fnum=fnum, pnum=(3, 3, 5))
             #pt.imshow(bgr_ori, pnum=(2, 2, 4))
-            pt.draw_vector_field(gradx, grady, pnum=(2, 2, 4), invert=True)
+            pt.draw_vector_field(gradx, grady, pnum=(3, 3, 6), invert=True)
+        pt.imshow(patch, fnum=fnum, pnum=(3, 1, 3))
 
 
 def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8, pnum=(1, 1, 1)):
