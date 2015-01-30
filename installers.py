@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 r"""
+References:
+    https://groups.google.com/forum/#!topic/pyinstaller/178I9ANuk14
 
 This script is often flaky. here are workarounds
 
@@ -32,6 +34,33 @@ import utool as ut
 import sys
 import importlib
 from os.path import join  # NOQA
+
+
+def fix_pyinstaller_sip_api():
+    import PyInstaller
+    from os.path import dirname, join
+    hook_fpath = join(dirname(PyInstaller.__file__), 'loader', 'rthooks', 'pyi_rth_qt4plugins.py')
+    patch_text = ut.codeblock(
+        '''
+        try:
+            import sip
+            # http://stackoverflow.com/questions/21217399/pyqt4-qtcore-qvariant-object-instead-of-a-string
+            sip.setapi('QVariant', 2)
+            sip.setapi('QString', 2)
+            sip.setapi('QTextStream', 2)
+            sip.setapi('QTime', 2)
+            sip.setapi('QUrl', 2)
+            sip.setapi('QDate', 2)
+            sip.setapi('QDateTime', 2)
+            if hasattr(sip, 'setdestroyonexit'):
+                sip.setdestroyonexit(False)  # This prevents a crash on windows
+        except ValueError as ex:
+            print('Warning: Value Error: %s' % str(ex))
+        pass
+        ''')
+
+    ut.editfile(hook_fpath)
+    pass
 
 
 def fix_command_tuple(command_tuple, sudo=False, shell=False, win32=ut.WIN32):
