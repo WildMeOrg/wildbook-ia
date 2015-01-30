@@ -437,11 +437,29 @@ def test_single_annot_distinctiveness_params(ibs, aid):
     fnum = 1
 
     # Paramater space to search
-    varied_dict = {
+    # TODO: use slicing to control the params being varied
+    # Use GridSearch class to modify paramaters as you go.
+
+    gauss_patch_varydict = {
+        'gauss_shape': [(3, 3), (5, 5), (7, 7), (19, 19)],
+        'gauss_sigma_frac': [.2, .95],
+    }
+
+    dstncvs_varydict = {
         'p': [.1, .3, 1.0, 2.0],
         'clip_fraction': [.1, .2, .5],
         'K': [3]  # , 4, 5],
     }
+    cliplevel = {
+        'clip_fraction': 3,
+    }
+
+    keyval_iter = ut.iflatten([dstncvs_varydict.items(), gauss_patch_varydict.items()])
+    varied_dict = {
+        key: ut.listclip(val, cliplevel.get(key, 1))
+        for key, val in keyval_iter
+    }
+
     cfgdict_list = ut.all_dict_combinations(varied_dict)
     cfglbl_list = ut.all_dict_combinations_lbls(varied_dict)
 
@@ -462,7 +480,7 @@ def test_single_annot_distinctiveness_params(ibs, aid):
                     for cfgdict in ut.ProgressIter(cfgdict_list, lbl='get dstcvns')]
 
     # Then compute the distinctinvess coverage map
-    patch = coverage_image.get_warping_patch()
+    patch = coverage_image.get_gaussian_weight_patch()
     dstncvs_mask_list = [
         coverage_image.make_coverage_mask(
             kpts, chipsize, fx2_score=dstncvs, mode='max', return_patch=False, patch=patch)
