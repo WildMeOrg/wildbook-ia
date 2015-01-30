@@ -24,6 +24,19 @@ indices into kpts{1,2} indicating a match
 // suppress unused warnings of specific variables
 #define MARKUSED(X)  ((void)(&(X)))
 
+//#define RUNTIME_BOUNDS_CHECKING
+#ifdef RUNTIME_BOUNDS_CHECKING
+#define CHECK_FM_BOUNDS(fm, fm_len, kpts1_len, kpts2_len) \
+    for(size_t fm_ind = 0; fm_ind < fm_len; fm_ind += 2) { \
+        if((fm[fm_ind] >= kpts1_len) || (fm[fm_ind + 1] >= kpts2_len)) { \
+            puts("CHECK_FM_BOUNDS: bad fm indexes"); \
+            return; \
+        } \
+    }
+#else
+#define CHECK_FM_BOUNDS(fm, fm_len, kpts1_len, kpts2_len)
+#endif
+
 using cv::Matx;
 using std::vector;
 
@@ -94,6 +107,14 @@ template<typename T> inline T ori_distance(const Matx<T, 3, 3>& kpt1, const Matx
     return std::min(delta, M_TAU-delta);
 }
 
+template<typename T> inline Matx<T, 3, 3> get_Aff_mat(const Matx<T, 3, 3>& invVR1_m,
+                                                      const Matx<T, 3, 3>& invVR2_m) {
+    
+    const Matx<double, 3, 3> V1_m = invVR1_m.inv();
+    const Matx<double, 3, 3> Aff_mat = invVR2_m * V1_m;
+    return Aff_mat;
+}
+
 extern "C" {
     void get_affine_inliers(double* kpts1, size_t kpts1_len,
                     double* kpts2, size_t kpts2_len,
@@ -105,16 +126,7 @@ extern "C" {
 
         MARKUSED(kpts1_len);
         MARKUSED(kpts2_len);
-//#define RUNTIME_BOUNDS_CHECKING
-#ifdef RUNTIME_BOUNDS_CHECKING
-        for(size_t fm_ind = 0; fm_ind < fm_len; fm_ind += 2) {
-            if((fm[fm_ind] >= kpts1_len) || (fm[fm_ind + 1] >= kpts2_len)) 
-            {
-                puts("bad fm indexes");
-                return;
-            }
-        }
-#endif
+        CHECK_FM_BOUNDS(fm, fm_len, kpts1_len, kpts2_len);
 // remove some redundancy in a possibly-ugly way
 #define SETUP_RELEVANT_VARIABLES \
 double* kpt1 = &kpts1[6*fm[fm_ind+0]]; \
@@ -133,10 +145,8 @@ Matx<double, 3, 3> invVR2_m = get_invV_mat( \
         //vector<vector<double> > xy_errs, scale_errs, ori_errs;
         for(size_t fm_ind = 0; fm_ind < fm_len; fm_ind += 2) {
             SETUP_RELEVANT_VARIABLES
-            Matx<double, 3, 3> V1_m = invVR1_m.inv();
-            Matx<double, 3, 3> Aff_mat = invVR2_m * V1_m;
-            //Aff_mats.push_back(Aff_mat);
-            MATRIX_REF(fm_ind/2) = Aff_mat;
+            //Aff_mats.push_back(get_Aff_mat(invVR1_m, invVR2_m));
+            MATRIX_REF(fm_ind/2) = get_Aff_mat(invVR1_m, invVR2_m);
         }
         const size_t num_matches = fm_len/2;
         for(size_t i = 0; i < num_matches; i++) {
