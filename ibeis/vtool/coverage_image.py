@@ -177,27 +177,40 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
     return dstimg
 
 
-def get_warping_patch():
-    #srcshape = (7, 7)
-    #srcshape = (3, 3)
-    #srcshape = (5, 5)
+# TODO: decorator that lets utool know about functions that
+# should be configured.
+#def configurable_func(
+
+def get_gaussian_weight_patch(shape=(19, 19), sigma_frac=.3, norm_01=True):
+    r"""
+    2d gaussian image useful for plotting
+
+    Returns:
+        ndarray: patch
+
+    CommandLine:
+        python -m vtool.coverage_image --test-get_gaussian_weight_patch
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.coverage_image import *  # NOQA
+        >>> # build test data
+        >>> # execute function
+        >>> patch = get_gaussian_weight_patch()
+        >>> # verify results
+        >>> result = str(patch)
+        >>> print(result)
+    """
     srcshape = (19, 19)
-    #sigma = 1.6
     # Perdoch uses roughly .95 of the radius
-    USE_PERDOCH_VALS = True
-    if USE_PERDOCH_VALS:
-        radius = srcshape[0] / 2.0
-        sigma = 0.3 * radius
-        #sigma = 0.2 * radius
-        #sigma = 0.95 * radius
-    #srcshape = (75, 75)
+    radius = srcshape[0] / 2.0
+    sigma = sigma_frac * radius
     # Similar to SIFT's computeCircularGaussMask in helpers.cpp
     # uses smmWindowSize=19 in hesaff for patch size. and 1.6 for sigma
     # Create gaussian image to warp
     patch = ptool.gaussian_patch(shape=srcshape, sigma=sigma)
-    norm_01 = True
     if norm_01:
-        patch /= patch.max()
+        np.divide(patch, patch.max(), out=patch)
     return patch
 
 
@@ -242,7 +255,7 @@ def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None,
         >>>     pt.show_if_requested()
     """
     if patch is None:
-        patch = get_warping_patch()
+        patch = get_gaussian_weight_patch()
     if mode is None:
         mode = 'max'
     scale_factor = .25
