@@ -200,9 +200,10 @@ class MainWindowBackend(QtCore.QObject):
         #kwargs['sidebyside'] = False
         #kwargs['show_query'] = True
         kwargs['in_image'] = False
-        interact.ishow_qres(back.ibs, qres, **kwargs)
+        if ut.get_argflag(('--show-mplres',)):
+            interact.ishow_qres(back.ibs, qres, **kwargs)
 
-        interact.ishow_matches(back.ibs, qres, **kwargs)
+        #interact.ishow_matches(back.ibs, qres, **kwargs)
         # HACK SHOW QT RESULTS
         if not ut.get_argflag(('--noshow-qtres',)):
             from ibeis.gui import inspect_gui

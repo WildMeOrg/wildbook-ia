@@ -60,7 +60,9 @@ def fix_pyinstaller_sip_api():
         pass
         ''')
     fpath = hook_fpath
-
+    # Patch the hook file
+    tag = 'SIP_API_2'
+    ut.inject_python_code(fpath, patch_code, tag)
     #ut.editfile(hook_fpath)
     pass
 
