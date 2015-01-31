@@ -434,34 +434,10 @@ def test_single_annot_distinctiveness_params(ibs, aid):
 
     from vtool import coverage_image
     import plottool as pt
-    fnum = 1
+    from plottool import interact_impaint
 
-    # Paramater space to search
-    # TODO: use slicing to control the params being varied
-    # Use GridSearch class to modify paramaters as you go.
-
-    gauss_patch_varydict = {
-        'gauss_shape': [(3, 3), (5, 5), (7, 7), (19, 19)],
-        'gauss_sigma_frac': [.2, .95],
-    }
-
-    dstncvs_varydict = {
-        'p': [.1, .3, 1.0, 2.0],
-        'clip_fraction': [.1, .2, .5],
-        'K': [3]  # , 4, 5],
-    }
-    cliplevel = {
-        'clip_fraction': 3,
-    }
-
-    keyval_iter = ut.iflatten([dstncvs_varydict.items(), gauss_patch_varydict.items()])
-    varied_dict = {
-        key: ut.listclip(val, cliplevel.get(key, 1))
-        for key, val in keyval_iter
-    }
-
-    cfgdict_list = ut.all_dict_combinations(varied_dict)
-    cfglbl_list = ut.all_dict_combinations_lbls(varied_dict)
+    #cfglbl_list = cfgdict_list
+    #ut.all_dict_combinations_lbls(varied_dict)
 
     # Get info to find distinctivness of
     species_text = ibs.get_annot_species(aid)
@@ -470,6 +446,154 @@ def test_single_annot_distinctiveness_params(ibs, aid):
     print(kpts)
     chip = ibs.get_annot_chips(aid)
     chipsize = ibs.get_annot_chipsizes(aid)[::-1]
+
+    def interact_gridsearch_result_images(cfgdict_list, cfglbl_list, img_list,
+                                          score_list=None, fnum=None, figtitle=''):
+        """ helper function for visualizing results of gridsearch """
+        from plottool import plot_helpers as ph
+        from plottool import interact_helpers as ih
+        if score_list is None:
+            score_list = [None] * len(cfgdict_list)
+        else:
+            # sort by score if available
+            sortx_list = ut.list_argsort(score_list, reverse=True)
+            score_list = ut.list_take(score_list, sortx_list)
+            cfgdict_list = ut.list_take(cfgdict_list, sortx_list)
+            cfglbl_list = ut.list_take(cfglbl_list, sortx_list)
+            img_list = ut.list_take(img_list, sortx_list)
+        # Dont show too many results only the top few
+        score_list = ut.listclip(score_list, 25)
+
+        # Show the config results
+        fig = pt.figure(fnum=fnum)
+        # Get plots for each of the resutls
+        nRows, nCols = pt.get_square_row_cols(len(score_list), fix=True)
+        next_pnum = pt.make_pnum_nextgen(nRows, nCols)
+        for cfgdict, cfglbl, img, score in zip(cfgdict_list, cfglbl_list,
+                                                      img_list,
+                                                      score_list):
+            if score is not None:
+                cfglbl += '\nscore=%r' % (score,)
+            pt.imshow(255 * img, fnum=fnum, pnum=next_pnum(), title=cfglbl)
+            ax = pt.gca()
+            ph.set_plotdat(ax, 'cfgdict', cfgdict)
+            ph.set_plotdat(ax, 'cfglbl', cfglbl)
+        # Define clicked callback
+        def on_clicked(event):
+            print('\n[pt] clicked gridsearch axes')
+            if event is None or event.xdata is None or event.inaxes is None:
+                print('out of axes')
+                pass
+            else:
+                ax = event.inaxes
+                cfglbl = ph.get_plotdat(ax, 'cfglbl', None)
+                cfgdict = ph.get_plotdat(ax, 'cfgdict', {})
+                infostr_list = [
+                    ('cfglbl = ' + str(cfglbl)),
+                    '',
+                    ('cfgdict = ' + ut.dict_str(cfgdict)),
+                ]
+                infostr = ut.msgblock('CLICKED', '\n'.join(infostr_list))
+                print(infostr)
+        # Connect callbacks
+        ih.connect_callback(fig, 'button_press_event', on_clicked)
+        pt.set_figtitle(figtitle)
+
+    # Paramater space to search
+    # TODO: use slicing to control the params being varied
+    # Use GridSearch class to modify paramaters as you go.
+
+    gauss_patch_varydict = {
+        'gauss_shape': [(7, 7), (19, 19), (41, 41), (5, 5), (3, 3)],
+        'gauss_sigma_frac': [.2, .5, .7, .95],
+    }
+    cov_blur_varydict = {
+        'cov_blur_on': [True, False],
+        'cov_blur_ksize': [(5, 5,),  (7, 7), (17, 17)],
+        'cov_blur_sigma': [5.0, 1.2],
+    }
+    dstncvs_varydict = {
+        'p': [.01, .1, .5, 1.0],
+        'clip_fraction': [.05, .1, .2, .5],
+        'K': [2, 3, 5],
+    }
+    size_penalty_varydict = {
+        'remove_affine_information': [False, True],
+        'constant_scaling': [False, True],
+        'size_penalty_on': [True, False],
+        'size_penalty_power': [.5, .1, 1.0],
+        'size_penalty_scale': [.1, 1.0],
+    }
+    keyval_iter = ut.iflatten([
+        dstncvs_varydict.items(),
+        gauss_patch_varydict.items(),
+        cov_blur_varydict.items(),
+        size_penalty_varydict.items(),
+    ])
+
+    # Dont vary most paramaters, specify how much of their list can be used
+    param_slice_dict = {
+        'p'                  : slice(0, 5),
+        'K'                  : slice(0, 5),
+        'clip_fraction'      : slice(0, 5),
+        'clip_fraction'      : slice(0, 2),
+        #'gauss_shape'        : slice(0, 3),
+        'gauss_sigma_frac'   : slice(0, 2),
+        'remove_affine_information' : slice(0, 2),
+        'constant_scaling' : slice(0, 2),
+        'size_penalty_on' : slice(0, 2),
+        #'cov_blur_on'        : slice(0, 2),
+        #'cov_blur_ksize'     : slice(0, 2),
+        #'cov_blur_sigma'     : slice(0, 1),
+        #'size_penalty_power' : slice(0, 2),
+        #'size_penalty_scale' : slice(0, 2),
+    }
+    varied_dict = {
+        key: val[param_slice_dict.get(key, slice(0, 1))]
+        for key, val in keyval_iter
+    }
+
+    def constrain_config(cfg):
+        """ encode what makes a configuration feasible """
+        if cfg['cov_blur_on'] is False:
+            cfg['cov_blur_ksize'] = None
+            cfg['cov_blur_sigma'] = None
+        if cfg['constant_scaling'] is True:
+            cfg['remove_affine_information'] = True
+            cfg['size_penalty_on'] = False
+        if cfg['remove_affine_information'] is True:
+            cfg['gauss_shape'] = (41, 41)
+        if cfg['size_penalty_on'] is False:
+            cfg['size_penalty_power'] = None
+            cfg['size_penalty_scale'] = None
+
+    print('Varied Dict: ')
+    print(ut.dict_str(varied_dict))
+
+    cfgdict_list, cfglbl_list = ut.make_constrained_cfg_and_lbl_list(varied_dict, constrain_config)
+
+    # Get groundtruthish distinctivness map
+    # for objective function
+    GT_IS_DSTNCVS = 255
+    GT_NOT_DSTNCVS = 100
+    GT_UNKNOWN = 0
+    label_colors = [GT_IS_DSTNCVS, GT_NOT_DSTNCVS, GT_UNKNOWN]
+    gtmask = interact_impaint.cached_impaint(chip, 'dstncvnss',
+                                             label_colors=label_colors,
+                                             aug=True, refine=ut.get_argflag('--refine'))
+    true_dstncvs_mask = gtmask == GT_IS_DSTNCVS
+    false_dstncvs_mask = gtmask == GT_NOT_DSTNCVS
+
+    true_dstncvs_mask_sum = true_dstncvs_mask.sum()
+    false_dstncvs_mask_sum = false_dstncvs_mask.sum()
+
+    def distinctiveness_objective_function(dstncvs_mask):
+        true_mask  = true_dstncvs_mask * dstncvs_mask
+        false_mask = false_dstncvs_mask * dstncvs_mask
+        true_score = true_mask.sum() / true_dstncvs_mask_sum
+        false_score = false_mask.sum() / false_dstncvs_mask_sum
+        score = true_score * (1 - false_score)
+        return score
 
     # Load distinctivness normalizer
     with ut.Timer('Loading Distinctivness Normalizer for %s' % (species_text)):
@@ -480,24 +604,38 @@ def test_single_annot_distinctiveness_params(ibs, aid):
                     for cfgdict in ut.ProgressIter(cfgdict_list, lbl='get dstcvns')]
 
     # Then compute the distinctinvess coverage map
-    patch = coverage_image.get_gaussian_weight_patch()
+    #gauss_shape = kwargs.get('gauss_shape', (19, 19))
+    #sigma_frac = kwargs.get('sigma_frac', .3)
     dstncvs_mask_list = [
         coverage_image.make_coverage_mask(
-            kpts, chipsize, fx2_score=dstncvs, mode='max', return_patch=False, patch=patch)
-        for dstncvs in ut.ProgressIter(dstncvs_list, lbl='Warping Image')
+            kpts, chipsize, fx2_score=dstncvs, mode='max', return_patch=False, **cfg)
+        for cfg, dstncvs in ut.ProgressIter(zip(cfgdict_list, dstncvs_list), lbl='Warping Image')
     ]
+    score_list = [distinctiveness_objective_function(dstncvs_mask) for dstncvs_mask in dstncvs_mask_list]
 
-    nRows, nCols = pt.get_square_row_cols(len(cfgdict_list), fix=True)
-    next_pnum = pt.make_pnum_nextgen(nRows, nCols)
-    # Show the results
-    for cfglbl, dstncvs_mask in zip(cfglbl_list, dstncvs_mask_list):
-        cfglbl = cfglbl.replace('\'', '').replace('}', '').replace('{', '')
-        pt.imshow(255 * dstncvs_mask, fnum=fnum, pnum=next_pnum(), title=cfglbl)
+    fnum = 1
+
+    interact_gridsearch_result_images(cfgdict_list, cfglbl_list, dstncvs_mask_list, score_list=score_list,
+                                      fnum=fnum, figtitle='dstncvs gridsearch')
+
+    # Show subcomponents of grid search
+    gauss_patch_cfgdict_list, gauss_patch_cfglbl_list = ut.get_cfgdict_lbl_list_subset(cfgdict_list, gauss_patch_varydict)
+    patch_list = [coverage_image.get_gaussian_weight_patch(**cfgdict)
+                  for cfgdict in ut.ProgressIter(gauss_patch_cfgdict_list, lbl='patch cfg')]
+
+    interact_gridsearch_result_images(gauss_patch_cfgdict_list, gauss_patch_cfglbl_list, patch_list,
+                                      fnum=fnum + 1, figtitle='gaussian patches')
+
+    patch = patch_list[0]
+    #ut.embed()
 
     # Show the first mask in more depth
     dstncvs = dstncvs_list[0]
     dstncvs_mask = dstncvs_mask_list[0]
-    coverage_image.show_coverage_map(chip, dstncvs_mask, patch, kpts, fnum=fnum + 1, ell_alpha=.2, show_mask_kpts=False)
+    coverage_image.show_coverage_map(chip, dstncvs_mask, patch, kpts, fnum=fnum + 2, ell_alpha=.2, show_mask_kpts=False)
+
+    pt.imshow(gtmask, fnum=fnum + 3, pnum=(1, 2, 1), title='ground truth distinctiveness')
+    pt.imshow(chip, fnum=fnum + 3, pnum=(1, 2, 2))
     pt.present()
     #ut.embed()
     #pt.iup()
@@ -505,6 +643,43 @@ def test_single_annot_distinctiveness_params(ibs, aid):
     #ut.print_resource_usage()
     #pt.set_figtitle(mode)
     #pass
+
+
+def test_example():
+    import scipy.linalg as spl
+    M = np.array([
+        [1.0, 0.6, 0. , 0. , 0. ],
+        [0.6, 1.0, 0.5, 0.2, 0. ],
+        [0. , 0.5, 1.0, 0. , 0. ],
+        [0. , 0.2, 0. , 1.0, 0.8],
+        [0. , 0. , 0. , 0.8, 1.0],
+    ])
+    M_ = M / M.sum(axis=0)[:, None]
+    #eigvals, eigvecs = np.linalg.eigh(M_)
+    #, left=True, right=False)
+    eigvals, eigvecs = spl.eig(M_, left=True, right=False)
+    index = np.where(np.isclose(eigvals, 1))[0]
+    pi = stationary_vector = eigvecs.T[index]
+    pi_test = pi.dot(M_)
+    pi / pi.sum()
+    print(pi / np.linalg.norm(pi))
+    print(pi_test / np.linalg.norm(pi_test))
+
+    M = np.array([
+        [1.0, 0.6],
+        [0.6, 1.0],
+    ])
+    M_ = M / M.sum(axis=0)[:, None]
+    #eigvals, eigvecs = np.linalg.eigh(M_)
+    #, left=True, right=False)
+    eigvals, eigvecs = spl.eig(M_, left=True, right=False)
+    index = np.where(np.isclose(eigvals, 1))[0]
+    pi = stationary_vector = eigvecs.T[index]
+    pi_test = pi.dot(M_)
+    pi / pi.sum()
+    print(pi / np.linalg.norm(pi))
+    print(pi_test / np.linalg.norm(pi_test))
+    #pi = pi / pi.sum()
 
 
 def dev_train_distinctiveness(species=None):

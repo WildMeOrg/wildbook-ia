@@ -28,6 +28,7 @@ Win32CommandLine:
     "C:\Program Files (x86)\IBEIS\IBEISApp.exe"
 
 """
+from __future__ import absolute_import, division, print_function
 from os.path import dirname, realpath, join, exists, normpath
 import six
 import utool as ut
@@ -40,7 +41,7 @@ def fix_pyinstaller_sip_api():
     import PyInstaller
     from os.path import dirname, join
     hook_fpath = join(dirname(PyInstaller.__file__), 'loader', 'rthooks', 'pyi_rth_qt4plugins.py')
-    patch_text = ut.codeblock(
+    patch_code = ut.codeblock(
         '''
         try:
             import sip
@@ -58,8 +59,9 @@ def fix_pyinstaller_sip_api():
             print('Warning: Value Error: %s' % str(ex))
         pass
         ''')
+    fpath = hook_fpath
 
-    ut.editfile(hook_fpath)
+    #ut.editfile(hook_fpath)
     pass
 
 
