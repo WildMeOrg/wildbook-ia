@@ -46,7 +46,7 @@ def iter_reduce_ufunc(ufunc, arr_iter, initial=None):
     return out
 
 
-def warped_patch_generator(patch, dsize, affmat_list, weight_list):
+def warped_patch_generator(patch, dsize, affmat_list, weight_list, **kwargs):
     """
     generator that warps the patches (like gaussian) onto an image with dsize using constant memory.
 
@@ -55,7 +55,7 @@ def warped_patch_generator(patch, dsize, affmat_list, weight_list):
     References:
         http://docs.opencv.org/modules/imgproc/doc/geometric_transformations.html#warpaffine
     """
-    USE_BIG_KEYPOINT_PENALTY = True
+    size_penalty_on = kwargs.get('size_penalty_on', True)
     shape = dsize[::-1]
     #warpAffine is weird. If the shape of the dst is the same as src we can
     #use the dst outvar. I dont know why it needs that.  It seems that this
@@ -75,9 +75,10 @@ def warped_patch_generator(patch, dsize, affmat_list, weight_list):
         cv2.warpAffine(padded_patch, M, dsize, dst=warped,
                        flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT,
                        borderValue=0)
-        if USE_BIG_KEYPOINT_PENALTY:
-            # TODO: paramatarize
-            total_weight = (warped.sum() ** .5) * .1
+        if size_penalty_on:
+            size_penalty_power = kwargs.get('size_penalty_power', .5)
+            size_penalty_scale = kwargs.get('size_penalty_scale', .1)
+            total_weight = (warped.sum() ** size_penalty_power) * size_penalty_scale
             if total_weight > 1:
                 # Whatever the size of the keypoint is it should
                 # contribute a total of 1 score
@@ -86,8 +87,8 @@ def warped_patch_generator(patch, dsize, affmat_list, weight_list):
 
 
 @profile
-def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
-                         scale_factor=1.0, mode='max'):
+def warp_patch_onto_kpts(kpts, patch, chip_shape, fx2_score=None,
+                         scale_factor=1.0, mode='max', **kwargs):
     r"""
     Overlays the source image onto a destination image in each keypoint location
 
@@ -102,11 +103,11 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
         ndarray: mask
 
     CommandLine:
-        python -m vtool.coverage_image --test-warp_patch_into_kpts
-        python -m vtool.coverage_image --test-warp_patch_into_kpts --show
-        python -m vtool.coverage_image --test-warp_patch_into_kpts --show --hole
-        python -m vtool.coverage_image --test-warp_patch_into_kpts --show --square
-        python -m vtool.coverage_image --test-warp_patch_into_kpts --show --square --hole
+        python -m vtool.coverage_image --test-warp_patch_onto_kpts
+        python -m vtool.coverage_image --test-warp_patch_onto_kpts --show
+        python -m vtool.coverage_image --test-warp_patch_onto_kpts --show --hole
+        python -m vtool.coverage_image --test-warp_patch_onto_kpts --show --square
+        python -m vtool.coverage_image --test-warp_patch_onto_kpts --show --square --hole
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -133,7 +134,7 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
         >>> if HOLE:
         >>>     patch[int(patch.shape[0] / 2), int(patch.shape[1] / 2)] = 0
         >>> # execute function
-        >>> dstimg = warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score, scale_factor)
+        >>> dstimg = warp_patch_onto_kpts(kpts, patch, chip_shape, fx2_score, scale_factor)
         >>> # verify results
         >>> print('dstimg stats %r' % (ut.get_stats_str(dstimg, axis=None)),)
         >>> print('patch stats %r' % (ut.get_stats_str(patch, axis=None)),)
@@ -156,15 +157,41 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
     if fx2_score is None:
         fx2_score = np.ones(len(kpts))
     dsize = (chip_scale_w, chip_scale_h)
+    remove_affine_information = kwargs.get('remove_affine_information', False)
+    constant_scaling = kwargs.get('constant_scaling', False)
     # Allocate destination image
     patch_shape = patch.shape
     # Scale keypoints into destination image
-    M_list = ktool.get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor)
+    if remove_affine_information:
+        # disregard affine information in keypoints
+        # i still dont understand why we are trying this
+        (patch_h, patch_w) = patch_shape
+        half_width  = (patch_w / 2.0)  # - .5
+        half_height = (patch_h / 2.0)  # - .5
+        import vtool as vt
+        # Center src image
+        T1 = vt.translation_mat3x3(-half_width + .5, -half_height + .5)
+        # Scale src to the unit circle
+        if not constant_scaling:
+            S1 = vt.scale_mat3x3(1.0 / half_width, 1.0 / half_height)
+        # Transform the source image to the keypoint ellipse
+        kpts_T = np.array([vt.translation_mat3x3(x, y) for (x, y) in vt.get_xys(kpts).T])
+        if not constant_scaling:
+            kpts_S = np.array([vt.scale_mat3x3(np.sqrt(scale)) for scale in vt.get_scales(kpts).T])
+        # Adjust for the requested scale factor
+        S2 = vt.scale_mat3x3(scale_factor, scale_factor)
+        #perspective_list = [S2.dot(A).dot(S1).dot(T1) for A in invVR_aff2Ds]
+        if not constant_scaling:
+            M_list = reduce(vt.matrix_multiply, (S2, kpts_T, kpts_S, S1, T1))
+        else:
+            M_list = reduce(vt.matrix_multiply, (S2, kpts_T, T1))
+    else:
+        M_list = ktool.get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor)
     affmat_list = M_list[:, 0:2, :]
     weight_list = fx2_score
     # For each keypoint warp a gaussian scaled by the feature score into the image
     warped_patch_iter = warped_patch_generator(
-        patch, dsize, affmat_list, weight_list)
+        patch, dsize, affmat_list, weight_list, **kwargs)
     # Either max or sum
     if mode == 'max':
         dstimg = iter_reduce_ufunc(np.maximum, warped_patch_iter)
@@ -181,7 +208,7 @@ def warp_patch_into_kpts(kpts, patch, chip_shape, fx2_score=None,
 # should be configured.
 #def configurable_func(
 
-def get_gaussian_weight_patch(shape=(19, 19), sigma_frac=.3, norm_01=True):
+def get_gaussian_weight_patch(gauss_shape=(19, 19), gauss_sigma_frac=.3, gauss_norm_01=True):
     r"""
     2d gaussian image useful for plotting
 
@@ -201,22 +228,21 @@ def get_gaussian_weight_patch(shape=(19, 19), sigma_frac=.3, norm_01=True):
         >>> result = str(patch)
         >>> print(result)
     """
-    srcshape = (19, 19)
     # Perdoch uses roughly .95 of the radius
-    radius = srcshape[0] / 2.0
-    sigma = sigma_frac * radius
+    radius = gauss_shape[0] / 2.0
+    sigma = gauss_sigma_frac * radius
     # Similar to SIFT's computeCircularGaussMask in helpers.cpp
     # uses smmWindowSize=19 in hesaff for patch size. and 1.6 for sigma
     # Create gaussian image to warp
-    patch = ptool.gaussian_patch(shape=srcshape, sigma=sigma)
-    if norm_01:
+    patch = ptool.gaussian_patch(shape=gauss_shape, sigma=sigma)
+    if gauss_norm_01:
         np.divide(patch, patch.max(), out=patch)
     return patch
 
 
 @profile
 def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None,
-                       return_patch=True, patch=None):
+                       return_patch=True, patch=None, **kwargs):
     r"""
     Returns a intensity image denoting which pixels are covered by the input
     keypoints
@@ -255,14 +281,24 @@ def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None,
         >>>     pt.show_if_requested()
     """
     if patch is None:
-        patch = get_gaussian_weight_patch()
+        gauss_shape = kwargs.get('gauss_shape', (19, 19))
+        gauss_sigma_frac = kwargs.get('gauss_sigma_frac', .3)
+        patch = get_gaussian_weight_patch(gauss_shape, gauss_sigma_frac)
     if mode is None:
         mode = 'max'
-    scale_factor = .25
-    dstimg = warp_patch_into_kpts(kpts, patch, chip_shape, mode=mode,
-                                  fx2_score=fx2_score, scale_factor=scale_factor)
-    cv2.GaussianBlur(dstimg, ksize=(17, 17,), sigmaX=5.0, sigmaY=5.0,
-                     dst=dstimg, borderType=cv2.BORDER_CONSTANT)
+    cov_scale_factor = kwargs.get('cov_scale_factor', .25)
+    cov_blur_ksize = kwargs.get('cov_blur_ksize', (17, 17))
+    cov_blur_sigma = kwargs.get('cov_blur_sigma', 5.0)
+    dstimg = warp_patch_onto_kpts(
+        kpts, patch, chip_shape,
+        mode=mode,
+        fx2_score=fx2_score,
+        scale_factor=cov_scale_factor,
+        **kwargs
+    )
+    if kwargs.get('cov_blur_on', True):
+        cv2.GaussianBlur(dstimg, ksize=cov_blur_ksize, sigmaX=cov_blur_sigma, sigmaY=cov_blur_sigma,
+                         dst=dstimg, borderType=cv2.BORDER_CONSTANT)
     dsize = tuple(chip_shape[0:2][::-1])
     dstimg = cv2.resize(dstimg, dsize)
     #print(dstimg)

@@ -1,10 +1,9 @@
 from __future__ import absolute_import, division, print_function
-from six.moves import range
+from six.moves import range, zip  # NOQA
 import numpy as np
 import cv2
-# Tools
-import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(
+import utool as ut
+(print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[seg]', DEBUG=False)
 
 DEBUG_SEGM = False
@@ -71,12 +70,126 @@ def fill_holes(mask):
     return out
 
 
+def demo_grabcut(bgr_img):
+    r"""
+    Args:
+        img (ndarray[uint8_t, ndim=2]):  image data
+
+    CommandLine:
+        python -m vtool.segmentation --test-demo_grabcut --show
+
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.segmentation import *  # NOQA
+        >>> # build test data
+        >>> import utool as ut
+        >>> import plottool as pt
+        >>> import vtool as vt
+        >>> img_fpath = ut.grab_test_imgpath('easy1.png')
+        >>> bgr_img = vt.imread(img_fpath)
+        >>> # execute function
+        >>> result = demo_grabcut(bgr_img)
+        >>> # verify results
+        >>> print(result)
+        >>> if ut.show_was_requested():
+        >>>     pt.show_if_requested()
+    """
+    import plottool as pt
+    from plottool import interact_impaint
+    label_colors = [       255,           170,            50,          0]
+    label_values = [cv2.GC_FGD, cv2.GC_PR_FGD, cv2.GC_PR_BGD, cv2.GC_BGD]
+    h, w = bgr_img.shape[0:2]
+    init_mask = np.zeros((h, w), dtype=np.float32)  # Initialize: mask
+    # Set inside to cv2.GC_PR_FGD (probably forground)
+    init_mask[ :, :] = cv2.GC_PR_BGD * label_colors[label_values.index(cv2.GC_PR_BGD)]
+    # Set border to cv2.GC_BGD (definitely background)
+    init_mask[ 0, :] = cv2.GC_BGD * label_colors[label_values.index(cv2.GC_BGD)]
+    init_mask[-1, :] = cv2.GC_BGD * label_colors[label_values.index(cv2.GC_BGD)]
+    init_mask[:,  0] = cv2.GC_BGD * label_colors[label_values.index(cv2.GC_BGD)]
+    init_mask[:, -1] = cv2.GC_BGD * label_colors[label_values.index(cv2.GC_BGD)]
+    #import vtool as vt
+    cached_mask_fpath = 'tmp_mask.png'
+    custom_mask = interact_impaint.cached_impaint(bgr_img, cached_mask_fpath, label_colors=None)
+    #if ut.checkpath(cached_mask_fpath):
+    #    custom_mask = vt.imread(cached_mask_fpath, grayscale=True)
+    #else:
+    #    custom_mask = interact_impaint.impaint_mask(bgr_img, label_colors, init_mask=init_mask)
+    #    vt.imwrite(cached_mask_fpath, custom_mask)
+
+    prior_mask = custom_mask.copy()
+
+    # Convert colors to out labels
+    label_locs = [custom_mask == color for color in label_colors]
+    # Put user labels in there
+    for label_loc, value in zip(label_locs, label_values):
+        prior_mask[label_loc] = value
+    print('running grabcut')
+    post_mask = grabcut(bgr_img, prior_mask)
+    seg_chip = mask_colored_img(bgr_img, post_mask, 'bgr')
+    print('finished running grabcut')
+    pt.imshow(post_mask * 255, pnum=(1, 2, 1))
+    pt.imshow(seg_chip, pnum=(1, 2, 2))
+
+
+def grabcut(bgr_img, prior_mask, binary=True):
+    """
+    Referencs:
+        http://docs.opencv.org/trunk/doc/py_tutorials/py_imgproc/py_grabcut/py_grabcut.html
+    """
+    # Grab Cut Parameters
+    (h, w) = bgr_img.shape[0:2]
+    rect = (0, 0, w, h)
+    num_iters = 5
+    mode = cv2.GC_INIT_WITH_MASK
+    bgd_model = np.zeros((1, 13 * 5), np.float64)
+    fgd_model = np.zeros((1, 13 * 5), np.float64)
+    # Grab Cut Execution
+    post_mask = prior_mask.copy()
+    cv2.grabCut(bgr_img, post_mask, rect, bgd_model, fgd_model, num_iters, mode=mode)
+    if binary:
+        is_forground = (post_mask == cv2.GC_FGD) + (post_mask == cv2.GC_PR_FGD)
+        post_mask = np.where(is_forground, 255, 0).astype('uint8')
+    else:
+        label_colors = [       255,           170,            50,          0]
+        label_values = [cv2.GC_FGD, cv2.GC_PR_FGD, cv2.GC_PR_BGD, cv2.GC_BGD]
+        pos_list = [post_mask == value for value in label_values]
+        for pos, color in zip(pos_list, label_colors):
+            post_mask[pos] = color
+    return post_mask
+
+
+into_hsv_flags = {
+    'bgr': cv2.COLOR_BGR2HSV,
+    'rgb': cv2.COLOR_RGB2HSV,
+}
+
+from_hsv_flags = {
+    'bgr': cv2.COLOR_HSV2BGR,
+}
+
+
+def mask_colored_img(img_rgb, mask, encoding='bgr'):
+    if mask.dtype == np.uint8:
+        mask /= 255.0
+    into_hsv_flag = into_hsv_flags[encoding]
+    from_hsv_flag = from_hsv_flags[encoding]
+    # Mask out value component
+    img_hsv = cv2.cvtColor(img_rgb, into_hsv_flag)
+    img_hsv = np.array(img_hsv, dtype=np.float) / 255.0
+    VAL_INDEX = 2
+    img_hsv[:, :, VAL_INDEX] *= mask
+    img_hsv = np.array(np.round(img_hsv * 255.0), dtype=np.uint8)
+    masked_img_rgb = cv2.cvtColor(img_hsv, from_hsv_flag)
+    return masked_img_rgb
+
+
 # Open CV relevant values:
 # grabcut_mode = cv2.GC_EVAL
 # grabcut_mode = cv2.GC_INIT_WITH_RECT
 # cv2.GC_BGD, cv2.GC_PR_BGD, cv2.GC_PR_FGD, cv2.GC_FGD
 #@profile
-def grabcut(rgb_chip):
+def grabcut2(rgb_chip):
     (h, w) = rgb_chip.shape[0:2]
     _mask = np.zeros((h, w), dtype=np.uint8)  # Initialize: mask
     # Set inside to cv2.GC_PR_FGD (probably forground)
@@ -100,16 +213,12 @@ def grabcut(rgb_chip):
     chip_mask = clean_mask(chip_mask)
     chip_mask = np.array(chip_mask, np.float) / 255.0
     # Mask value component of HSV space
-    chip_hsv = cv2.cvtColor(rgb_chip, cv2.COLOR_RGB2HSV)
-    chip_hsv = np.array(chip_hsv, dtype=np.float) / 255.0
-    chip_hsv[:, :, 2] *= chip_mask
-    chip_hsv = np.array(np.round(chip_hsv * 255.0), dtype=np.uint8)
-    seg_chip = cv2.cvtColor(chip_hsv, cv2.COLOR_HSV2RGB)
+    seg_chip = mask_colored_img(rgb_chip, chip_mask, 'rgb')
     return seg_chip
 
 
 def segment(img_fpath, bbox_, new_size=None):
-    'Runs grabcut'
+    """ Runs grabcut """
     printDBG('[segm] segment(img_fpath=%r, bbox=%r)>' % (img_fpath, bbox_))
     num_iters = 5
     bgd_model = np.zeros((1, 13 * 5), np.float64)
@@ -123,7 +232,7 @@ def segment(img_fpath, bbox_, new_size=None):
     (img_h, img_w) = img_resz.shape[:2]                       # Image Shape
     printDBG(' * img_resz.shape=%r' % ((img_h, img_w),))
     # WH Safe
-    tlbr = utool.xywh_to_tlbr(bbox_resz, (img_w, img_h))  # Rectangle ANNOTATION
+    tlbr = ut.xywh_to_tlbr(bbox_resz, (img_w, img_h))  # Rectangle ANNOTATION
     (x1, y1, x2, y2) = tlbr
     rect = tuple(bbox_resz)                               # Initialize: rect
     printDBG(' * rect=%r' % (rect,))
@@ -132,7 +241,7 @@ def segment(img_fpath, bbox_, new_size=None):
     _mask = np.zeros((img_h, img_w), dtype=np.uint8)  # Initialize: mask
     _mask[y1:y2, x1:x2] = cv2.GC_PR_FGD             # Set ANNOTATION to cv2.GC_PR_FGD
     # Grab Cut
-    tt = utool.Timer(' * cv2.grabCut()', verbose=DEBUG_SEGM)
+    tt = ut.Timer(' * cv2.grabCut()', verbose=DEBUG_SEGM)
     cv2.grabCut(img_resz, _mask, rect, bgd_model, fgd_model, num_iters, mode=mode)
     tt.toc()
     img_mask = np.where((_mask == cv2.GC_FGD) + (_mask == cv2.GC_PR_FGD), 255, 0).astype('uint8')
@@ -148,3 +257,16 @@ def segment(img_fpath, bbox_, new_size=None):
     chip_hsv = np.array(np.round(chip_hsv * 255.0), dtype=np.uint8)
     seg_chip = cv2.cvtColor(chip_hsv, cv2.COLOR_HSV2RGB)
     return seg_chip, img_mask
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m vtool.segmentation
+        python -m vtool.segmentation --allexamples
+        python -m vtool.segmentation --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
