@@ -423,15 +423,17 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         print('-------------')
         print('ScoreDiffMatStats: %s' % testnameid)
         print('column_lbls = %r' % (column_lbls,))
-        scorediffs_mat = np.array(cfgx2_scorediffs)
-        print('stats = %s' % (ut.get_stats_str(np.array(cfgx2_scorediffs).T, newlines=True),))
-        print('sum = %r' % (np.sum(cfgx2_scorediffs, axis=1),))
+        scorediffs_mat = np.array(ut.replace_nones(cfgx2_scorediffs, -1))
+        print('stats = %s' % (ut.get_stats_str(scorediffs_mat.T, newlines=True),))
+        print('sum = %r' % (np.sum(scorediffs_mat, axis=1),))
         pos_scorediff_mat = [scorediff[scorediff > 0] for scorediff in scorediffs_mat]
         neg_scorediff_mat = [scorediff[scorediff < 0] for scorediff in scorediffs_mat]
-        for negstats in neg_scorediff_mat:
-            print('neg stats = %s' % (ut.get_stats_str(negstats, newlines=False),))
-        for posstats in pos_scorediff_mat:
-            print('pos stats = %s' % (ut.get_stats_str(posstats, newlines=False),))
+        print('pos_stats = ' + ut.get_stats_str(stat_dict=ut.get_jagged_stats(neg_scorediff_mat), newlines=True))
+        print('neg_stats = ' + ut.get_stats_str(stat_dict=ut.get_jagged_stats(pos_scorediff_mat), newlines=True))
+        #for negstats in neg_scorediff_mat:
+        #    print('neg stats = %s' % (ut.get_stats_str(negstats, newlines=False),))
+        #for posstats in pos_scorediff_mat:
+        #    print('pos stats = %s' % (ut.get_stats_str(posstats, newlines=False),))
         #print(ut.get_stats_str(np.array(cfgx2_scorediffs).T, newlines=True))
         print('pos_sum = %r' % (list(map(np.sum, pos_scorediff_mat)),))
         print('nos_sum = %r' % (list(map(np.sum, neg_scorediff_mat)),))
