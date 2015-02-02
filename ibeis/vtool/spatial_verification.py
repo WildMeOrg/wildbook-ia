@@ -623,46 +623,6 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         svtup = (homog_inliers, homog_errors, H, None, None, None)
         return svtup
 
-
-def ibeis_test(qreq_):
-    import six
-    from ibeis.model.hots import pipeline
-    cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum')
-    ibs, qreq_ = pipeline.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict)
-    locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
-    qaid2_chipmatch = locals_['qaid2_chipmatch_FILT']
-    xy_thresh       = qreq_.qparams.xy_thresh
-    scale_thresh    = qreq_.qparams.scale_thresh
-    ori_thresh      = qreq_.qparams.ori_thresh
-    use_chip_extent = qreq_.qparams.use_chip_extent
-    min_nInliers    = qreq_.qparams.min_nInliers
-    qaid = six.next(six.iterkeys(qaid2_chipmatch))
-    chipmatch = qaid2_chipmatch[qaid]
-    (daid2_fm, daid2_fs, daid2_fk) = chipmatch
-    topx2_aid, nRerank = pipeline.get_prescore_shortlist(qaid, chipmatch, qreq_)
-    daid2_fm_V, daid2_fs_V, daid2_fk_V = pipeline.new_fmfsfk()
-    kpts1 = qreq_.ibs.get_annot_kpts(qaid)
-    topx2_kpts = qreq_.ibs.get_annot_kpts(topx2_aid)
-    topx2_dlen_sqrd = pipeline.precompute_topx2_dlen_sqrd(qreq_, daid2_fm, topx2_aid, topx2_kpts, nRerank, use_chip_extent)
-    topx = 0
-    daid = topx2_aid[topx]
-    fm = daid2_fm[daid]
-    dlen_sqrd2 = topx2_dlen_sqrd[topx]
-    kpts2 = topx2_kpts[topx]
-    fs    = daid2_fs[daid]
-    fk    = daid2_fk[daid]  # NOQA
-
-    import vtool.spatial_verification as sver
-    returnAff = True
-
-    homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff = sver.spatially_verify_kpts(
-        kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
-        dlen_sqrd2=dlen_sqrd2, min_nInliers=min_nInliers, returnAff=returnAff)
-
-    homog_xy_errors = homog_errors[0]
-
-    fs = fs * (1 - np.sqrt(homog_xy_errors / (dlen_sqrd2)))
-
 #try:
 #    import cyth
 #    if cyth.DYNAMIC:
