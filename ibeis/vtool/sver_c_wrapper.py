@@ -93,7 +93,7 @@ def test_calling():
     ori_thresh = ktool.KPTS_DTYPE(TAU / 4)
 
     if ut.get_argflag('--dummy'):
-        (kpts1, kpts2, fm_input, rchip1, rchip2) = dummy.testdata_dummy_matches()
+        (kpts1, kpts2, fm_input, fs_input, rchip1, rchip2) = dummy.testdata_dummy_matches()
     else:
         fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
         fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
