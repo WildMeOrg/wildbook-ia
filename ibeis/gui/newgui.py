@@ -328,11 +328,19 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         def get_working_species_set():
             """ hack to make only species with detectors show up """
-            working_species_tups = [
-                (species_tup.species_nice, species_tup.species_text)
-                for species_tup in const.SPECIES_TUPS
-                if species_tup.species_text in const.SPECIES_WITH_DETECTORS
-            ]
+            # TODO: allow for custom user-define species
+            RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = True
+            if RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS:
+                working_species_tups = [
+                    (species_tup.species_nice, species_tup.species_text)
+                    for species_tup in const.SPECIES_TUPS
+                    if species_tup.species_text in const.SPECIES_WITH_DETECTORS
+                ]
+            else:
+                working_species_tups = [
+                    (species_tup.species_nice, species_tup.species_text)
+                    for species_tup in const.SPECIES_TUPS
+                ]
             return working_species_tups
 
         # TODO: update these options depending on ibs.get_species_with_detectors

@@ -178,9 +178,11 @@ class Species(object):
     WILDEBEEST    = 'wildebeest'
     WATER_BUFFALO = 'water_buffalo'
     CHEETAH       = 'cheetah'
+    TIGER         = 'tiger'
+    HYENA         = 'hyena'
     UNKNOWN       = UNKNOWN
 
-
+# TODO: allow for custom species
 SpeciesTuple = namedtuple('SpeciesTuple', ('species_text', 'species_code', 'species_nice'))
 
 SPECIES_TUPS = [
@@ -195,6 +197,8 @@ SPECIES_TUPS = [
     SpeciesTuple(Species.WILDEBEEST,         'WB', 'Wildebeest'),
     SpeciesTuple(Species.JAG,               'JAG', 'Jaguar'),
     SpeciesTuple(Species.LEOPARD,          'LOEP', 'Leopard'),
+    SpeciesTuple(Species.TIGER,           'TIGER', 'Tiger'),
+    SpeciesTuple(Species.HYENA,           'HYENA', 'Hyena'),
     SpeciesTuple(Species.LION,             'LION', 'Lion'),
     SpeciesTuple(Species.CHEETAH,          'CHTH', 'Cheetah'),
     SpeciesTuple(Species.SEALS_SPOTTED,   'SEAL1', 'Seal (spotted)'),

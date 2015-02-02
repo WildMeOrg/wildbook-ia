@@ -437,15 +437,23 @@ def test_app():
 
 
 def main():
+    """
+    CommandLine:
+        python installers.py --all
+        python installers.py --inno
+
+    """
+    print('For a full run use: python installers.py --all')
     print('[installer] +--- MAIN ---')
     BUILD_APP       = ut.get_argflag(('--build'))
     BUILD_INSTALLER = ut.get_argflag(('--inno', '--package', '--pkg'))
     TEST_APP        = ut.get_argflag(('--test'))
     CLEAN_BUILD     = ut.get_argflag(('--clean'))
+    ALL             = ut.get_argflag('--all')
 
     fix_importlib_hook()
     # default behavior is full build
-    BUILD_ALL = ut.get_argflag('--all') or not (BUILD_APP or BUILD_INSTALLER or TEST_APP)
+    BUILD_ALL = ALL or not (BUILD_APP or BUILD_INSTALLER or TEST_APP)
 
     # 1) SETUP: CLEAN UP
     if CLEAN_BUILD or BUILD_ALL:
