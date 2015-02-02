@@ -47,7 +47,7 @@ def get_diffmat_str(rank_mat, qaids, nCfg):
     return diff_matstr
 
 
-def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
+def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
                   testnameid, sel_rows, sel_cols, cfgx2_lbl):
     """
     Prints results from an experiment harness run.
@@ -59,6 +59,15 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
 
     """
 
+    # Parse result info out of the lists
+    cfgx2_bestranks = ut.get_list_column(cfgx2_cfgresinfo, 0)
+    cfgx2_nextbestranks = ut.get_list_column(cfgx2_cfgresinfo, 1)
+    cfgx2_scorediffs = ut.get_list_column(cfgx2_cfgresinfo, 2)
+    cfgx2_aveprecs = ut.get_list_column(cfgx2_cfgresinfo, 3)
+
+    column_lbls = [ut.remove_vowels(lbl).replace(' ', '').replace(',', '')
+                   for lbl in cfgx2_lbl]
+
     print(' --- PRINT RESULTS ---')
     #X_LIST = [1, 5]  # Num of ranks less than to score
     X_LIST = [1]  # Num of ranks less than to score
@@ -67,7 +76,8 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
     nQuery = len(qaids)
     #--------------------
     # Print Best Results
-    rank_mat = np.hstack(bestranks_list)  # concatenate each query rank across configs
+    rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
+    rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
 
     # Set invalid ranks to the worse possible rank
     worst_possible_rank = max(9001, len(daids) + len(qaids) + 1)
@@ -342,15 +352,15 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
 
     @utool.argv_flag_dec
     def print_rankmat():
+        # Prints best ranks
         print('-------------')
         print('RankMat: %s' % testnameid)
         print(' nRows=%r, nCols=%r' % lbld_mat.shape)
         header = (' labled rank matrix: rows=queries, cols=cfgs:')
         #print('\n'.join(qx2_lbl))
         print('\n'.join(cfgx2_lbl))
-        column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
-        column_lbls = [ut.remove_vowels(lbl).replace(' ', '').replace(',', '') for lbl in cfgx2_lbl]
-        column_lbls = map(str, range(nCfg))
+        #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
+        column_list = rank_mat.T
         print(ut.make_csv_table(column_list, row_lbls=qaids,
                                 column_lbls=column_lbls, header=header,
                                 transpose=False))
@@ -360,8 +370,78 @@ def print_results(ibs, qaids, daids, cfg_list, bestranks_list, cfgx2_aveprecs,
         print('[harn]-------------')
     print_rankmat()
 
+    #------------
+
+    @utool.argv_flag_dec
+    def print_next_rankmat():
+        # Prints nextbest ranks
+        print('-------------')
+        print('NextRankMat: %s' % testnameid)
+        header = (' top false rank matrix: rows=queries, cols=cfgs:')
+        #print('\n'.join(qx2_lbl))
+        print('\n'.join(cfgx2_lbl))
+        #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
+        column_list = cfgx2_nextbestranks
+        print(ut.make_csv_table(column_list, row_lbls=qaids,
+                                column_lbls=column_lbls, header=header,
+                                transpose=False))
+        #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
+        #with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
+        #print(lbld_mat)
+        print('[harn]-------------')
+    print_next_rankmat()
+
+    #------------
+
+    @utool.argv_flag_dec
+    def print_scorediff_mat():
+        # Prints nextbest ranks
+        print('-------------')
+        print('ScoreDiffMat: %s' % testnameid)
+        header = (' score difference between top true and top false: rows=queries, cols=cfgs:')
+        #print('\n'.join(qx2_lbl))
+        print('\n'.join(cfgx2_lbl))
+        #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
+        column_list = cfgx2_scorediffs
+        column_type = [float] * len(column_list)
+        print(ut.make_csv_table(column_list, row_lbls=qaids,
+                                column_lbls=column_lbls,
+                                column_type=column_type,
+                                header=header,
+                                transpose=False))
+        #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
+        #with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
+        #print(lbld_mat)
+        print('[harn]-------------')
+    print_scorediff_mat()
+
+    #------------
+
+    @utool.argv_flag_dec
+    def print_scorediff_mat_stats():
+        # Prints nextbest ranks
+        print('-------------')
+        print('ScoreDiffMatStats: %s' % testnameid)
+        print('column_lbls = %r' % (column_lbls,))
+        scorediffs_mat = np.array(cfgx2_scorediffs)
+        print('stats = %s' % (ut.get_stats_str(np.array(cfgx2_scorediffs).T, newlines=True),))
+        print('sum = %r' % (np.sum(cfgx2_scorediffs, axis=1),))
+        pos_scorediff_mat = [scorediff[scorediff > 0] for scorediff in scorediffs_mat]
+        neg_scorediff_mat = [scorediff[scorediff < 0] for scorediff in scorediffs_mat]
+        for negstats in neg_scorediff_mat:
+            print('neg stats = %s' % (ut.get_stats_str(negstats, newlines=False),))
+        for posstats in pos_scorediff_mat:
+            print('pos stats = %s' % (ut.get_stats_str(posstats, newlines=False),))
+        #print(ut.get_stats_str(np.array(cfgx2_scorediffs).T, newlines=True))
+        print('pos_sum = %r' % (list(map(np.sum, pos_scorediff_mat)),))
+        print('nos_sum = %r' % (list(map(np.sum, neg_scorediff_mat)),))
+        #ut.embed()
+        print('[harn]-------------')
+    print_scorediff_mat_stats()
+
     @utool.argv_flag_dec
     def print_diffmat():
+        # score differences over configs
         print('-------------')
         print('Diffmat: %s' % testnameid)
         diff_matstr = get_diffmat_str(rank_mat, qaids, nCfg)

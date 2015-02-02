@@ -853,12 +853,12 @@ class IBEISController(object):
             >>>     for fnum, gid in enumerate(gid_list):
             >>>         viz_image.show_image(ibs, gid, fnum=fnum)
             >>>     pt.show_if_requested()
-            >>> # Rem,ove newly detected annotations
+            >>> # Remove newly detected annotations
             >>> ibs.delete_annots(ut.flatten(aids_list))
         """
         # TODO: Return confidence here as well
         print('[ibs] detecting using random forests')
-        from ibeis.model.detect import randomforest  # NOQ
+        from ibeis.model.detect import randomforest  # NOQA
         detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, species, **kwargs)
         # ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
         # ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after

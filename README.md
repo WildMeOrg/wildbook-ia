@@ -712,6 +712,10 @@ python dev.py --allhard --qaid 1:10:2 -t best nsum custom custom:vsone_reranking
 
 python dev.py --allgt -t best nsum custom custom:vsone_reranking=True custom:sv_on=False
 
+python dev.py --allgt -t custom best --print-scorediff-mat-stats
+
+python dev.py --allgt -t custom best custom:rotation_invariance=True --print-scorediff-mat-stats
+
 ```
 
 #---------------

@@ -590,7 +590,6 @@ def test_confidence_measures(ibs, qres_list, qaid_list):
 
     if False:
         true_nid_list = ibs.get_annot_name_rowids(qaid_list)
-        #bestaidrank_list  = [qres.get_best_gt_rank(ibs=ibs) for qres in qres_list]
         decision_tup_list = [qres.get_name_decisiontup(ibs) for qres in qres_list]
         decision_nid_list = ut.get_list_column(decision_tup_list, 0)
         decision_score_list = ut.get_list_column(decision_tup_list, 1)
