@@ -72,6 +72,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_qres2">ibeis.viz.interact.interact_qres2 module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_query_decision">ibeis.viz.interact.interact_query_decision module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_sver">ibeis.viz.interact.interact_sver module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.old_interact_matches">ibeis.viz.interact.old_interact_matches module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact">Module contents</a></li>
 </ul>
 </li>
@@ -290,7 +291,41 @@ title_suffix (str):</dd>
 <tt class="descclassname">ibeis.viz.viz_image.</tt><tt class="descname">show_image</tt><big>(</big><em>ibs</em>, <em>gid</em>, <em>sel_aids=[]</em>, <em>fnum=None</em>, <em>annote=True</em>, <em>draw_lbls=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_image.html#show_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_image.show_image" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapped function wrp_noexectb(show_image)</p>
 <p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;gid&#8217;, &#8216;sel_aids&#8217;, &#8216;fnum&#8217;, &#8216;annote&#8217;, &#8216;draw_lbls&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=([], None, True, True))</p>
-<p>orig_docstr =  Driver function to show images</p>
+<dl class="docutils">
+<dt>orig_docstr =</dt>
+<dd><p class="first">Driver function to show images</p>
+<dl class="last docutils">
+<dt>Args:</dt>
+<dd>ibs (IBEISController):  ibeis controller object
+gid (int): image row id
+sel_aids (list):
+fnum (int):  figure number
+annote (bool):
+draw_lbls (bool):</dd>
+<dt>Returns:</dt>
+<dd>tuple: (fig, ax)</dd>
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.viz.viz_image &#8211;test-show_image &#8211;show</dd>
+<dt>Example:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_image</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sel_aids</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fnum</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">annote</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">draw_lbls</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span> <span class="o">=</span> <span class="n">show_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">annote</span><span class="p">,</span> <span class="n">draw_lbls</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -298,9 +333,9 @@ title_suffix (str):</dd>
 <span id="ibeis-viz-viz-matches-module"></span><h2>ibeis.viz.viz_matches module<a class="headerlink" href="#module-ibeis.viz.viz_matches" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="ibeis.viz.viz_matches.annotate_matches">
-<tt class="descclassname">ibeis.viz.viz_matches.</tt><tt class="descname">annotate_matches</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>aid2</em>, <em>offset1=(0</em>, <em>0)</em>, <em>offset2=(0</em>, <em>0)</em>, <em>xywh2=(0</em>, <em>0</em>, <em>0</em>, <em>0)</em>, <em>xywh1=(0</em>, <em>0</em>, <em>0</em>, <em>0)</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_matches.html#annotate_matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_matches.annotate_matches" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.viz.viz_matches.</tt><tt class="descname">annotate_matches</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>aid2</em>, <em>offset1=(0</em>, <em>0)</em>, <em>offset2=(0</em>, <em>0)</em>, <em>xywh2=None</em>, <em>xywh1=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_matches.html#annotate_matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_matches.annotate_matches" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapped function wrp_noexectb(annotate_matches)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;qres&#8217;, &#8216;aid2&#8217;, &#8216;offset1&#8217;, &#8216;offset2&#8217;, &#8216;xywh2&#8217;, &#8216;xywh1&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=((0, 0), (0, 0), (0, 0, 0, 0), (0, 0, 0, 0)))</p>
+<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;qres&#8217;, &#8216;aid2&#8217;, &#8216;offset1&#8217;, &#8216;offset2&#8217;, &#8216;xywh2&#8217;, &#8216;xywh1&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=((0, 0), (0, 0), None, None))</p>
 <dl class="docutils">
 <dt>orig_docstr =</dt>
 <dd><p class="first">Helper function
@@ -326,6 +361,33 @@ groundtruth score</p>
 qres (QueryResult):  object of feature correspondences and scores
 aid2 (int): result annotation id
 sel_fm (list): selected features match indicies</dd>
+<dt>Kwargs:</dt>
+<dd>vert (bool)</dd>
+<dt>Returns:</dt>
+<dd>tuple: (ax, xywh1, xywh2)</dd>
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.viz.viz_matches &#8211;test-show_matches &#8211;show</dd>
+<dt>Example:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_matches</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="n">cfgdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">())[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid2</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sel_fm</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">xywh1</span><span class="p">,</span> <span class="n">xywh2</span><span class="p">)</span> <span class="o">=</span> <span class="n">show_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">sel_fm</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">((</span><span class="n">ax</span><span class="p">,</span> <span class="n">xywh1</span><span class="p">,</span> <span class="n">xywh2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#if not utool.get_argflag(&#39;--noshow&#39;):</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--show&#39;</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>   <span class="n">execstr</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">present</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span>   <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -394,9 +456,11 @@ elif annot_mode == 2, then draw only lines</dd>
 </div></blockquote>
 <dl class="last docutils">
 <dt>Returns:</dt>
-<dd>?: fig</dd>
+<dd>mpl.Figure: fig</dd>
 <dt>CommandLine:</dt>
-<dd>python -m ibeis.viz.viz_qres &#8211;test-show_qres</dd>
+<dd><p class="first">./main.py &#8211;query 1 -y &#8211;db PZ_MTEST &#8211;noshow-qtres</p>
+<p class="last">python -m ibeis.viz.viz_qres &#8211;test-show_qres</p>
+</dd>
 <dt>Example:</dt>
 <dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_qres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
@@ -446,6 +510,55 @@ elif annot_mode == 2, then draw only lines</dd>
 </div>
 <div class="section" id="module-ibeis.viz.viz_sver">
 <span id="ibeis-viz-viz-sver-module"></span><h2>ibeis.viz.viz_sver module<a class="headerlink" href="#module-ibeis.viz.viz_sver" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.viz.viz_sver.show_constrained_match">
+<tt class="descclassname">ibeis.viz.viz_sver.</tt><tt class="descname">show_constrained_match</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em>, <em>H</em>, <em>fm=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_sver.html#show_constrained_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_sver.show_constrained_match" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</li>
+<li><strong>aid1</strong> (<em>int</em>) &#8211; annotation id</li>
+<li><strong>aid2</strong> (<em>int</em>) &#8211; annotation id</li>
+<li><strong>H</strong> (<em>ndarray[float64_t, ndim=2]</em>) &#8211; homography/perspective matrix</li>
+<li><strong>fm</strong> (<em>list</em>) &#8211; list of feature matches as tuples (qfx, dfx)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.viz.viz_sver &#8211;test-show_constrained_match &#8211;show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_sver</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid1</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid2</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span> <span class="o">-</span><span class="mf">4.68815126e-01</span><span class="p">,</span>   <span class="mf">7.80306795e-02</span><span class="p">,</span>  <span class="o">-</span><span class="mf">2.23674587e+01</span><span class="p">],</span>
+<span class="gp">... </span>              <span class="p">[</span>  <span class="mf">4.54394231e-02</span><span class="p">,</span>  <span class="o">-</span><span class="mf">7.67438835e-01</span><span class="p">,</span>   <span class="mf">5.92158624e+01</span><span class="p">],</span>
+<span class="gp">... </span>              <span class="p">[</span>  <span class="mf">2.12918867e-04</span><span class="p">,</span>  <span class="o">-</span><span class="mf">8.64851418e-05</span><span class="p">,</span>  <span class="o">-</span><span class="mf">6.21472492e-01</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span> <span class="mi">244</span><span class="p">,</span>  <span class="mi">132</span><span class="p">],</span> <span class="p">[</span> <span class="mi">604</span><span class="p">,</span>  <span class="mi">602</span><span class="p">],</span> <span class="p">[</span> <span class="mi">187</span><span class="p">,</span>  <span class="mi">604</span><span class="p">],</span> <span class="p">[</span> <span class="mi">200</span><span class="p">,</span>  <span class="mi">610</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="p">[</span> <span class="mi">243</span><span class="p">,</span>  <span class="mi">627</span><span class="p">],</span> <span class="p">[</span> <span class="mi">831</span><span class="p">,</span>  <span class="mi">819</span><span class="p">],</span> <span class="p">[</span> <span class="mi">601</span><span class="p">,</span>  <span class="mi">851</span><span class="p">],</span> <span class="p">[</span> <span class="mi">602</span><span class="p">,</span>  <span class="mi">852</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="p">[</span> <span class="mi">610</span><span class="p">,</span>  <span class="mi">855</span><span class="p">],</span> <span class="p">[</span> <span class="mi">609</span><span class="p">,</span>  <span class="mi">857</span><span class="p">],</span> <span class="p">[</span> <span class="mi">865</span><span class="p">,</span>  <span class="mi">860</span><span class="p">],</span> <span class="p">[</span> <span class="mi">617</span><span class="p">,</span>  <span class="mi">863</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="p">[</span> <span class="mi">979</span><span class="p">,</span>  <span class="mi">984</span><span class="p">],</span> <span class="p">[</span> <span class="mi">860</span><span class="p">,</span> <span class="mi">1013</span><span class="p">],</span> <span class="p">[</span> <span class="mi">605</span><span class="p">,</span> <span class="mi">1020</span><span class="p">],</span> <span class="p">[</span> <span class="mi">866</span><span class="p">,</span> <span class="mi">1027</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="p">[</span> <span class="mi">667</span><span class="p">,</span> <span class="mi">1071</span><span class="p">],</span> <span class="p">[</span><span class="mi">1022</span><span class="p">,</span> <span class="mi">1163</span><span class="p">],</span> <span class="p">[</span><span class="mi">1135</span><span class="p">,</span> <span class="mi">1165</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">show_constrained_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">fm</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="function">
 <dt id="ibeis.viz.viz_sver.show_sver">
 <tt class="descclassname">ibeis.viz.viz_sver.</tt><tt class="descname">show_sver</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em>, <em>chipmatch_FILT=None</em>, <em>aid2_svtup=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_sver.html#show_sver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_sver.show_sver" title="Permalink to this definition">¶</a></dt>

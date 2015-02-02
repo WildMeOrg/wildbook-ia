@@ -55,6 +55,7 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
+<span class="c">#import numpy as np</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[decor]&#39;</span><span class="p">)</span>
 
 <span class="n">DEBUG_ADDERS</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--debug-adders&#39;</span><span class="p">)</span>
@@ -96,17 +97,23 @@
 
 <span class="c">#    def __delitem__(self, index):</span>
 <span class="c">#        del self._cache[index]</span>
-
-
-<span class="c">#API_CACHE = ut.get_argflag(&#39;--api-cache&#39;)</span></div>
-<span class="n">API_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-api-cache&#39;</span><span class="p">)</span>
+</div>
 <span class="n">DEV_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--dev-cache&#39;</span><span class="p">,</span> <span class="s">&#39;--devcache&#39;</span><span class="p">))</span>
-<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">in_main_process</span><span class="p">():</span>
-    <span class="k">if</span> <span class="n">API_CACHE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[accessor_decors] API_CACHE IS ENABLED&#39;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c">#print(&#39;[accessor_decors] API_CACHE IS DISABLED&#39;)</span>
-        <span class="k">pass</span>
+
+<span class="n">RELEASE_MODE</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">if</span> <span class="n">RELEASE_MODE</span><span class="p">:</span>
+    <span class="n">API_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-api-cache&#39;</span><span class="p">)</span>
+    <span class="n">ASSERT_API_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--assert-api-cache&#39;</span><span class="p">,</span> <span class="s">&#39;--naac&#39;</span><span class="p">))</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">API_CACHE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--api-cache&#39;</span><span class="p">)</span>
+    <span class="n">ASSERT_API_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--noassert-api-cache&#39;</span><span class="p">,</span> <span class="s">&#39;--naac&#39;</span><span class="p">))</span>
+
+<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">in_main_process</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">API_CACHE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[accessor_decors] API_CACHE IS ENABLED&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[accessor_decors] API_CACHE IS DISABLED&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="init_tablecache"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.init_tablecache">[docs]</a><span class="k">def</span> <span class="nf">init_tablecache</span><span class="p">():</span>
@@ -197,8 +204,46 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[get] </span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s"> </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> cache hits&#39;</span> <span class="o">%</span>
                   <span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colname</span><span class="p">,</span> <span class="n">num_hit</span><span class="p">,</span> <span class="n">num_total</span><span class="p">))</span>
 
+        <span class="k">def</span> <span class="nf">assert_cache_hits</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="n">kwargs_hash</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">cached_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">)</span>
+            <span class="n">cache_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">[</span><span class="n">tblname</span><span class="p">][</span><span class="n">colname</span><span class="p">][</span><span class="n">kwargs_hash</span><span class="p">]</span>
+            <span class="c"># Load cached values for each rowid</span>
+            <span class="n">cache_vals_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">cache_</span><span class="p">,</span> <span class="n">cached_rowid_list</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="n">db_vals_list</span> <span class="o">=</span> <span class="n">getter_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cached_rowid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="c"># Assert everything is valid</span>
+            <span class="n">msg_fmt</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                [assert_cache_hits] tblname = %r</span>
+<span class="sd">                [assert_cache_hits] colname = %r</span>
+<span class="sd">                [assert_cache_hits] cfgkeys = %r</span>
+<span class="sd">                [assert_cache_hits] CACHE INVALID: %r != %r</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+            <span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">msg_fmt</span> <span class="o">%</span> <span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colname</span><span class="p">,</span> <span class="n">cfgkeys</span><span class="p">,</span> <span class="n">cache_vals_list</span><span class="p">,</span> <span class="n">db_vals_list</span><span class="p">,</span> <span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">list1</span> <span class="o">=</span> <span class="n">cache_vals_list</span>
+                <span class="n">list2</span> <span class="o">=</span> <span class="n">db_vals_list</span>
+                <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">lists_eq</span><span class="p">(</span><span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">),</span> <span class="n">msg</span>
+                <span class="c">#if isinstance(db_vals_list, list):</span>
+                <span class="c">#    assert cache_vals_list == db_vals_list, msg</span>
+                <span class="c">#else:</span>
+                <span class="c">#    assert np.all(cache_vals_list == db_vals_list), msg</span>
+            <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ex</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex2</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">cache_vals_list</span><span class="p">))</span>
+                <span class="k">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">db_vals_list</span><span class="p">))</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex2</span><span class="p">)</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+                <span class="k">raise</span>
+
         <span class="c">#@profile cannot profile this because it is alrady being profiled by</span>
         <span class="k">def</span> <span class="nf">wrp_getter_cacher</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Wrapper function that caches rowid values in a dictionary</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c"># HACK TAKE OUT GETTING DEBUG OUT OF KWARGS</span>
+            <span class="n">debug_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;debug&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">cfgkeys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">kwargs_hash</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dict_hashid</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">cfgkeys</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
@@ -209,8 +254,13 @@
             <span class="n">vals_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">cache_</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
             <span class="c"># Mark rowids with cache misses</span>
             <span class="n">ismiss_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals_list</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="n">debug_</span><span class="p">:</span>
                 <span class="n">debug_cache_hits</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
+            <span class="c"># HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT</span>
+            <span class="n">with_assert</span> <span class="o">=</span> <span class="n">ASSERT_API_CACHE</span>
+            <span class="k">if</span> <span class="n">with_assert</span><span class="p">:</span>
+                <span class="n">assert_cache_hits</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="n">kwargs_hash</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="c"># END HACK</span>
             <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">):</span>
                 <span class="n">miss_indices</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_where</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">)</span>
                 <span class="n">miss_rowids</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">)</span>
@@ -221,7 +271,7 @@
                     <span class="n">vals_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>  <span class="c"># Output write</span>
                 <span class="c"># cache save</span>
                 <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">miss_rowids</span><span class="p">,</span> <span class="n">miss_vals</span><span class="p">):</span>
-                    <span class="n">cache_</span><span class="p">[</span><span class="n">rowid</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>     <span class="c"># Cache write</span>
+                    <span class="n">cache_</span><span class="p">[</span><span class="n">rowid</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>     <span class="c"># Cache writd(ne</span>
             <span class="k">return</span> <span class="n">vals_list</span>
         <span class="n">wrp_getter_cacher</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_getter_cacher</span><span class="p">,</span> <span class="n">getter_func</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">wrp_getter_cacher</span>

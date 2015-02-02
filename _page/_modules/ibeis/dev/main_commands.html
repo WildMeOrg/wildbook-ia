@@ -124,7 +124,7 @@
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">set_default_dbdir</span><span class="p">:</span>
         <span class="n">sysres</span><span class="o">.</span><span class="n">set_default_dbdir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">update_query_cfg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c"># Set query parameters from command line</span>
+        <span class="c"># Set query parameters from command line using the --cfg flag</span>
         <span class="n">cfgdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_cfgstr_list</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;Custom cfgdict specified&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">))</span>

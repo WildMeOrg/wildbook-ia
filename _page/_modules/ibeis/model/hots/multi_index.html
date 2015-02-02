@@ -292,9 +292,11 @@
 <span class="sd">            &gt;&gt;&gt; K = 3</span>
 <span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1)</span>
 <span class="sd">            &gt;&gt;&gt; (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K)</span>
-<span class="sd">            &gt;&gt;&gt; result = str(list(map(np.shape, qfx2_idx_list)))</span>
-<span class="sd">            &gt;&gt;&gt; print(result)</span>
-<span class="sd">            [(1074, 3), (1074, 3), (1074, 3), (1074, 3), (1074, 3), (1074, 3)]</span>
+<span class="sd">            &gt;&gt;&gt; shape_list = list(map(np.shape, qfx2_idx_list))</span>
+<span class="sd">            &gt;&gt;&gt; d1_list = ut.get_list_column(shape_list, 0)</span>
+<span class="sd">            &gt;&gt;&gt; d2_list = ut.get_list_column(shape_list, 1)</span>
+<span class="sd">            &gt;&gt;&gt; ut.assert_eq(d2_list, [3] * 6)</span>
+<span class="sd">            &gt;&gt;&gt; ut.assert_eq(d1_list, [len(qfx2_vec)] * 6)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">qfx2_idx_list</span>  <span class="o">=</span> <span class="p">[]</span>
         <span class="n">qfx2_dist_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -366,9 +368,11 @@
 <span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.multi_index import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; mxer, qreq_, ibs = testdata_mindexer()</span>
-<span class="sd">            &gt;&gt;&gt; result = mxer.get_offsets()</span>
-<span class="sd">            &gt;&gt;&gt; print(result)</span>
-<span class="sd">            [21384 36627 49435 54244 57786 60482]</span>
+<span class="sd">            &gt;&gt;&gt; offset_list = mxer.get_offsets()</span>
+<span class="sd">            &gt;&gt;&gt; #target = np.array([15257, 12769,  4819,  3542,  2694])</span>
+<span class="sd">            &gt;&gt;&gt; target = np.array([21384, 36627, 49435, 54244, 57786, 60482])</span>
+<span class="sd">            &gt;&gt;&gt; error = ut.assert_almost_eq(offset_list, target, 100)</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;error.max() = %r&#39; % (error.max(),))</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nIndexed_list</span> <span class="o">=</span> <span class="n">mxer</span><span class="o">.</span><span class="n">get_nIndexed_list</span><span class="p">()</span>
         <span class="n">offset_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">nIndexed_list</span><span class="p">)</span>
@@ -390,9 +394,11 @@
 <span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.multi_index import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; mxer, qreq_, ibs = testdata_mindexer()</span>
-<span class="sd">            &gt;&gt;&gt; result = mxer.get_nIndexed_list()</span>
-<span class="sd">            &gt;&gt;&gt; print(result)</span>
-<span class="sd">            [21384, 15243, 12808, 4809, 3542, 2696]</span>
+<span class="sd">            &gt;&gt;&gt; nIndexed_list = mxer.get_nIndexed_list()</span>
+<span class="sd">            &gt;&gt;&gt; target = np.array([21384, 15243, 12808, 4809, 3542, 2696])</span>
+<span class="sd">            &gt;&gt;&gt; error = ut.assert_almost_eq(nIndexed_list, target, 100)</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;error.max() = %r&#39; % (error.max(),))</span>
+<span class="sd">            &gt;&gt;&gt; #np.all(ut.inbounds(nIndexed_list, low, high))</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nIndexed_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">nnindexer</span><span class="o">.</span><span class="n">num_indexed_vecs</span><span class="p">()</span>
                          <span class="k">for</span> <span class="n">nnindexer</span> <span class="ow">in</span> <span class="n">mxer</span><span class="o">.</span><span class="n">nn_indexer_list</span><span class="p">]</span>
@@ -412,8 +418,25 @@
         <span class="k">return</span> <span class="n">num_indexed_list</span>
 </div>
 <div class="viewcode-block" id="MultiNeighborIndex.assert_can_add_aids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.multi_index.MultiNeighborIndex.assert_can_add_aids">[docs]</a>    <span class="k">def</span> <span class="nf">assert_can_add_aids</span><span class="p">(</span><span class="n">mxer</span><span class="p">,</span> <span class="n">new_aid_list</span><span class="p">):</span>
-        <span class="n">indexed_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">mxer</span><span class="o">.</span><span class="n">get_multi_indexed_aids</span><span class="p">())</span>
-        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">get_uncovered_mask</span><span class="p">(</span><span class="n">indexed_aids</span><span class="p">,</span> <span class="n">new_aid_list</span><span class="p">)),</span> <span class="s">&#39;new aids must be disjoint from current aids&#39;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Aids that are already indexed should never be added.</span>
+
+<span class="sd">        Ignore:</span>
+<span class="sd">            qreq_vsmany_ = ut.search_stack_for_localvar(&#39;qreq_vsmany_&#39;)</span>
+<span class="sd">            qreq_vsmany_.get_external_daids()</span>
+<span class="sd">            qreq_vsmany_.get_external_qaids()</span>
+<span class="sd">            qreq_vsmany_.ibs.get_annot_exemplar_flags(new_aid_list)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">indexed_aids_list</span> <span class="o">=</span> <span class="n">mxer</span><span class="o">.</span><span class="n">get_multi_indexed_aids</span><span class="p">()</span>
+        <span class="n">indexed_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">indexed_aids_list</span><span class="p">)</span>
+        <span class="n">uncovered_mask</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_uncovered_mask</span><span class="p">(</span><span class="n">indexed_aids</span><span class="p">,</span> <span class="n">new_aid_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">uncovered_mask</span><span class="p">):</span>
+            <span class="n">msg_list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s">&#39;new aids must be disjoint from current aids&#39;</span><span class="p">,</span>
+                <span class="s">&#39;new_aid_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_aid_list</span><span class="p">,)</span>
+            <span class="p">]</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg_list</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="MultiNeighborIndex.add_support"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.multi_index.MultiNeighborIndex.add_support">[docs]</a>    <span class="k">def</span> <span class="nf">add_support</span><span class="p">(</span><span class="n">mxer</span><span class="p">,</span> <span class="n">new_aid_list</span><span class="p">,</span> <span class="n">new_vecs_list</span><span class="p">,</span> <span class="n">new_fgws_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -479,12 +502,8 @@
 <span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.multi_index import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; mxer, qreq_, ibs = testdata_mindexer()</span>
-<span class="sd">            &gt;&gt;&gt; result = mxer.num_indexed_vecs()</span>
-<span class="sd">            &gt;&gt;&gt; print(result)</span>
-<span class="sd">            60482</span>
-
-<span class="sd">        54244</span>
-<span class="sd">        54200 on win32</span>
+<span class="sd">            &gt;&gt;&gt; num_indexed = mxer.num_indexed_vecs()</span>
+<span class="sd">            &gt;&gt;&gt; ut.assert_inbounds(num_indexed, 60300, 60500)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">nnindexer</span><span class="o">.</span><span class="n">num_indexed_vecs</span><span class="p">()</span>
                        <span class="k">for</span> <span class="n">nnindexer</span> <span class="ow">in</span> <span class="n">mxer</span><span class="o">.</span><span class="n">nn_indexer_list</span><span class="p">])</span>

@@ -126,6 +126,51 @@
     <span class="n">draw_sv</span><span class="o">.</span><span class="n">show_sv</span><span class="p">(</span><span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">homog_tup</span><span class="o">=</span><span class="n">homog_tup</span><span class="p">,</span> <span class="n">aff_tup</span><span class="o">=</span><span class="n">aff_tup</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 </div>
+<div class="viewcode-block" id="show_constrained_match"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_sver.show_constrained_match">[docs]</a><span class="k">def</span> <span class="nf">show_constrained_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">fm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        aid1 (int):  annotation id</span>
+<span class="sd">        aid2 (int):  annotation id</span>
+<span class="sd">        H (ndarray[float64_t, ndim=2]):  homography/perspective matrix</span>
+<span class="sd">        fm (list):  list of feature matches as tuples (qfx, dfx)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_sver --test-show_constrained_match --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_sver import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid1 = 1</span>
+<span class="sd">        &gt;&gt;&gt; aid2 = 3</span>
+<span class="sd">        &gt;&gt;&gt; H = np.array([[ -4.68815126e-01,   7.80306795e-02,  -2.23674587e+01],</span>
+<span class="sd">        ...               [  4.54394231e-02,  -7.67438835e-01,   5.92158624e+01],</span>
+<span class="sd">        ...               [  2.12918867e-04,  -8.64851418e-05,  -6.21472492e-01]])</span>
+<span class="sd">        &gt;&gt;&gt; fm = np.array([[ 244,  132], [ 604,  602], [ 187,  604], [ 200,  610],</span>
+<span class="sd">        ...                [ 243,  627], [ 831,  819], [ 601,  851], [ 602,  852],</span>
+<span class="sd">        ...                [ 610,  855], [ 609,  857], [ 865,  860], [ 617,  863],</span>
+<span class="sd">        ...                [ 979,  984], [ 860, 1013], [ 605, 1020], [ 866, 1027],</span>
+<span class="sd">        ...                [ 667, 1071], [1022, 1163], [1135, 1165]])</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = show_constrained_match(ibs, aid1, aid2, H, fm)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_sv</span>
+    <span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">fm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">kpts1</span> <span class="o">=</span> <span class="n">kpts2</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">draw_sv</span><span class="o">.</span><span class="n">draw_svmatch</span><span class="p">(</span><span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">kpts1</span><span class="o">=</span><span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="o">=</span><span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="o">=</span><span class="n">fm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>

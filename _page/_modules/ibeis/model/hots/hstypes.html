@@ -78,6 +78,8 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
 
 <span class="c">#INTEGER_TYPE = np.int32</span>
 <span class="n">INDEX_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span>
@@ -98,7 +100,19 @@
 <span class="n">VEC_PSEUDO_MAX</span> <span class="o">=</span> <span class="mi">512</span>
 <span class="c"># unit sphere points can only be twice the maximum descriptor magnitude away</span>
 <span class="c"># from each other. The pseudo max is 512, so 1024 is the upper bound</span>
-<span class="n">VEC_PSEUDO_MAX_DISTANCE</span> <span class="o">=</span> <span class="n">VEC_PSEUDO_MAX</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="c"># FURTHERMORE SIFT Descriptors are constrained to be in the upper right quadrent</span>
+<span class="c"># which means any two vectors with one full component and zeros elsewhere are</span>
+<span class="c"># maximally distant. VEC_PSEUDO_MAX_DISTANCE = np.sqrt(2) * VEC_PSEUDO_MAX</span>
+<span class="k">if</span> <span class="n">VEC_MIN</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="c"># Can be on only on one quadrent of unit sphere</span>
+    <span class="n">VEC_PSEUDO_MAX_DISTANCE</span> <span class="o">=</span> <span class="n">VEC_PSEUDO_MAX</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+    <span class="n">VEC_PSEUDO_MAX_DISTANCE_SQRD</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="p">(</span><span class="mf">512.0</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">VEC_MIN</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="c"># Can be on whole unit sphere</span>
+    <span class="n">VEC_PSEUDO_MAX_DISTANCE</span> <span class="o">=</span> <span class="n">VEC_PSEUDO_MAX</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;impossible state&#39;</span><span class="p">)</span>
+
 <span class="n">PSEUDO_UINT8_MAX_SQRD</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">VEC_PSEUDO_MAX</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
 
 
@@ -136,8 +150,17 @@
     <span class="n">DISTINCTIVENESS</span> <span class="o">=</span> <span class="s">&#39;distinctiveness&#39;</span>
     <span class="n">FG</span> <span class="o">=</span> <span class="s">&#39;fg&#39;</span>
     <span class="n">RATIO</span> <span class="o">=</span> <span class="s">&#39;ratio&#39;</span>
+    <span class="n">DIST</span> <span class="o">=</span> <span class="s">&#39;dist&#39;</span>
     <span class="n">LNBNN</span> <span class="o">=</span> <span class="s">&#39;lnbnn&#39;</span>
-    <span class="n">DUPVOTE</span> <span class="o">=</span> <span class="s">&#39;dupvote&#39;</span></div>
+    <span class="n">DUPVOTE</span> <span class="o">=</span> <span class="s">&#39;dupvote&#39;</span>
+    <span class="n">HOMOGERR</span> <span class="o">=</span> <span class="s">&#39;homogerr&#39;</span>
+
+<span class="c"># Denote which scores should be  used as weights</span>
+<span class="c"># the others are used as scores</span></div>
+<span class="n">WEIGHT_FILTERS</span> <span class="o">=</span> <span class="p">[</span><span class="n">FiltKeys</span><span class="o">.</span><span class="n">FG</span><span class="p">,</span> <span class="n">FiltKeys</span><span class="o">.</span><span class="n">DISTINCTIVENESS</span><span class="p">,</span> <span class="n">FiltKeys</span><span class="o">.</span><span class="n">HOMOGERR</span><span class="p">]</span>
+
+
+<span class="n">ChipMatch</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;ChipMatch&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;aid2_fm&#39;</span><span class="p">,</span> <span class="s">&#39;aid2_fsv&#39;</span><span class="p">,</span> <span class="s">&#39;aid2_fk&#39;</span><span class="p">,</span> <span class="s">&#39;aid2_score&#39;</span><span class="p">,</span> <span class="s">&#39;aid2_H&#39;</span><span class="p">))</span>
 </pre></div>
 
           </div>

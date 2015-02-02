@@ -84,6 +84,14 @@ ibeis.viz.interact.interact_sver module
     :undoc-members:
     :show-inheritance:
 
+ibeis.viz.interact.old_interact_matches module
+----------------------------------------------
+
+.. automodule:: ibeis.viz.interact.old_interact_matches
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

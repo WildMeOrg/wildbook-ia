@@ -50,20 +50,15 @@
             
   <h1>Source code for ibeis.dev.experiment_harness</h1><div class="highlight"><pre>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">DoctestCMD:</span>
-<span class="sd">    python -c &quot;import ibeis; import doctest; from ibeis.dev import experiment_harness; print(doctest.testmod(ibeis.dev.experiment_harness))&quot;</span>
-<span class="sd">    python -m ibeis.dev.experiment_harness</span>
+<span class="sd">Runs many queries and keeps track of some results</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="c"># Python</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">textwrap</span>
-<span class="c"># Scientific</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="c"># Tools</span>
+<span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="c"># IBEIS</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
 <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">experiment_helpers</span> <span class="k">as</span> <span class="n">eh</span>
 <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">experiment_printres</span>
@@ -79,7 +74,7 @@
 
 
 <span class="c">#@profile</span>
-<div class="viewcode-block" id="get_qx2_bestrank"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.experiment_harness.get_qx2_bestrank">[docs]</a><span class="k">def</span> <span class="nf">get_qx2_bestrank</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">):</span>
+<div class="viewcode-block" id="get_config_result_info"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.experiment_harness.get_config_result_info">[docs]</a><span class="k">def</span> <span class="nf">get_config_result_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper function.</span>
 
@@ -100,7 +95,7 @@
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids()[0:3]</span>
 <span class="sd">        &gt;&gt;&gt; daids = ibs.get_valid_aids()[0:5]</span>
-<span class="sd">        &gt;&gt;&gt; qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)</span>
+<span class="sd">        &gt;&gt;&gt; qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -111,10 +106,17 @@
 <span class="sd">        &gt;&gt;&gt; # ibs.cfg.query_cfg.codename = &#39;vsone&#39;</span>
 <span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids()[0:3]</span>
 <span class="sd">        &gt;&gt;&gt; daids = ibs.get_valid_aids()[0:5]</span>
-<span class="sd">        &gt;&gt;&gt; qx2_bestranks, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)</span>
+<span class="sd">        &gt;&gt;&gt; qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        for qaid, qres in six.iteritems(qaid2_qres):</span>
+<span class="sd">            break</span>
+<span class="sd">        for qaid, qres in six.iteritems(qaid2_qres):</span>
+<span class="sd">            qres.ishow_top(ibs)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Execute or load query</span>
     <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+    <span class="n">qx2_qres</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qaids</span><span class="p">)</span>
     <span class="c"># Get the groundtruth that could have been matched in this experiment</span>
     <span class="n">qx2_gtaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">daids</span><span class="p">)</span>
     <span class="c"># Get the groundtruth ranks</span>
@@ -133,24 +135,85 @@
     <span class="c">#qx2_gtranks = qx2_sorted_gtranks</span>
     <span class="c"># &lt;/TECHNICALLY NONNECESSARY, BUT MAKES LIFE EASIER&gt;</span>
     <span class="c">#</span>
-    <span class="c"># Compute measures</span>
     <span class="c">#with ut.EmbedOnException():</span>
     <span class="c"># qres = qaid2_qres[qaid]</span>
-    <span class="n">qx2_bestranks</span> <span class="o">=</span> <span class="p">[[</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span><span class="o">.</span><span class="n">get_best_gt_rank</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)]</span>
-                     <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">gt_aids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qx2_gtaids</span><span class="p">)]</span>
+
+    <span class="c"># Compute accuracy measures</span>
+
+    <span class="k">def</span> <span class="nf">get_qres_name_result_info</span><span class="p">(</span><span class="n">qres</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        these are results per query we care about</span>
+<span class="sd">         * gt and gf rank, their score and the difference</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">qaid</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_qaid</span><span class="p">()</span>
+        <span class="n">qnid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+        <span class="n">nscoretup</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_nscoretup</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">sorted_nids</span><span class="p">,</span> <span class="n">sorted_nscores</span><span class="p">,</span> <span class="n">sorted_aids</span><span class="p">,</span> <span class="n">sorted_scores</span><span class="p">)</span>  <span class="o">=</span> <span class="n">nscoretup</span>
+        <span class="c">#sorted_score_diff = -np.diff(sorted_nscores.tolist())</span>
+        <span class="n">sorted_nids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sorted_nids</span><span class="p">)</span>
+        <span class="n">is_positive</span>  <span class="o">=</span> <span class="n">sorted_nids</span> <span class="o">==</span> <span class="n">qnid</span>
+        <span class="n">is_negative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="o">~</span><span class="n">is_positive</span><span class="p">,</span> <span class="n">sorted_nids</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">gt_rank</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">is_positive</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">is_positive</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">gf_rank</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">is_negative</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">is_negative</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">gt_rank</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">gf_rank</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">gt_aid</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">gf_aid</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">gt_raw_score</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">gf_raw_score</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">score_diff</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gt_aid</span> <span class="o">=</span> <span class="n">sorted_aids</span><span class="p">[</span><span class="n">gt_rank</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">gf_aid</span> <span class="o">=</span> <span class="n">sorted_aids</span><span class="p">[</span><span class="n">gf_rank</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">gt_raw_score</span> <span class="o">=</span> <span class="n">sorted_nscores</span><span class="p">[</span><span class="n">gt_rank</span><span class="p">]</span>
+            <span class="n">gf_raw_score</span> <span class="o">=</span> <span class="n">sorted_nscores</span><span class="p">[</span><span class="n">gf_rank</span><span class="p">]</span>
+            <span class="n">score_diff</span> <span class="o">=</span> <span class="n">gt_raw_score</span> <span class="o">-</span> <span class="n">gf_raw_score</span>
+        <span class="n">qresinfotup</span> <span class="o">=</span> <span class="n">gt_rank</span><span class="p">,</span> <span class="n">gf_rank</span><span class="p">,</span> <span class="n">gt_aid</span><span class="p">,</span> <span class="n">gf_aid</span><span class="p">,</span> <span class="n">gt_raw_score</span><span class="p">,</span> <span class="n">gf_raw_score</span><span class="p">,</span> <span class="n">score_diff</span>
+        <span class="k">return</span> <span class="n">qresinfotup</span>
+    <span class="c">#ibs.get_aids_and_scores()</span>
+
+    <span class="n">qx2_qresinfotup</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_qres_name_result_info</span><span class="p">(</span><span class="n">qres</span><span class="p">)</span> <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">qx2_qres</span><span class="p">]</span>
+
+    <span class="n">qx2_bestranks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">qx2_qresinfotup</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">qx2_next_bestranks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">qx2_qresinfotup</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">qx2_scorediff</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">qx2_qresinfotup</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+
+    <span class="c">#qx2_gtranks = [qaid2_qres[qaid].get_aid_ranks(gt_aids)</span>
+    <span class="c">#               for qaid, gt_aids in zip(qaids, qx2_gtaids)]</span>
+
+    <span class="c">#qx2_gfranks = [list(set(range(len(gtranks) + 1)) - set(gtranks))</span>
+    <span class="c">#               for gtranks in qx2_gtranks]</span>
+
+    <span class="c">#qx2_best_gt_aid = [-1 ]</span>
+
+    <span class="c">##qx2_bestranks = [[qaid2_qres[qaid].get_best_gt_rank(ibs=ibs, gt_aids=gt_aids)]</span>
+    <span class="c">##                 for qaid, gt_aids in zip(qaids, qx2_gtaids)]</span>
+    <span class="c">#qx2_bestranks = [-1 if len(gtranks) == 0 else min(gtranks) for gtranks in qx2_gtranks]</span>
+
+    <span class="c">#qx2_bestranks_gf = [-1 if len(gtranks) == 0 else min(gtranks) for gtranks in qx2_gfranks]</span>
+
+    <span class="c">#qx2_bestscores = []</span>
+    <span class="c">#qx2_bestscores_gf = []</span>
+
     <span class="n">qx2_avepercision</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span><span class="o">.</span><span class="n">get_average_percision</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">)</span> <span class="k">for</span>
                         <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">gt_aids</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qx2_gtaids</span><span class="p">)]</span>
+
     <span class="c"># Compute mAP score  # TODO: use mAP score</span>
+    <span class="c"># (Actually map score doesn&#39;t make much sense if using name scoring</span>
     <span class="n">qx2_avepercision</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qx2_avepercision</span><span class="p">)</span>
     <span class="n">mAP</span> <span class="o">=</span> <span class="n">qx2_avepercision</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">qx2_avepercision</span><span class="p">)]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>  <span class="c"># NOQA</span>
-    <span class="k">return</span> <span class="n">qx2_bestranks</span><span class="p">,</span> <span class="n">qx2_avepercision</span>
+
+    <span class="n">qx2_bestranks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">replace_nones</span><span class="p">(</span><span class="n">qx2_bestranks</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">qx2_bestranks</span><span class="p">,</span> <span class="n">qx2_next_bestranks</span><span class="p">,</span> <span class="n">qx2_scorediff</span><span class="p">,</span> <span class="n">qx2_avepercision</span>
 
 
 <span class="c">#-----------</span>
 <span class="c">#@utool.indent_func(&#39;[harn]&#39;)</span>
 <span class="c">#@profile</span></div>
 <div class="viewcode-block" id="test_configurations"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.experiment_harness.test_configurations">[docs]</a><span class="k">def</span> <span class="nf">test_configurations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Test harness driver function</span>
 
 <span class="sd">    Args:</span>
@@ -159,12 +222,19 @@
 <span class="sd">        daid_list (int): data annotation id</span>
 <span class="sd">        test_cfg_name_list (list):</span>
 
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.dev.experiment_harness --test-test_configurations</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.dev.experiment_harness import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibs.opendb(&#39;PZ_MTEST&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; qaid_list = [0]</span>
-<span class="sd">        &gt;&gt;&gt; test_cfg_name_list = [&#39;best&#39;, &#39;smk2&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = ibs.get_valid_aids()[::40]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; #test_cfg_name_list = [&#39;best&#39;, &#39;smk2&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; test_cfg_name_list = [&#39;custom&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Test Each configuration</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
@@ -202,29 +272,35 @@
 
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
     <span class="n">testnameid</span> <span class="o">=</span> <span class="n">dbname</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)</span>
-    <span class="n">msg</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
-<span class="s">    ---------------------</span>
-<span class="s">    [harn] TEST_CFG </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">: &#39;&#39;&#39;</span> <span class="o">+</span> <span class="n">testnameid</span> <span class="o">+</span> <span class="s">&#39;&#39;&#39;</span>
-<span class="s">    ---------------------&#39;&#39;&#39;</span><span class="p">)</span>
-    <span class="n">mark_prog</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">simple_progres_func</span><span class="p">(</span><span class="n">TESTRES_VERBOSITY</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="s">&#39;+&#39;</span><span class="p">)</span>
+    <span class="c">#msg = textwrap.dedent(&#39;&#39;&#39;</span>
+    <span class="c">#---------------------</span>
+    <span class="c">#[harn] TEST_CFG %d/%d: &#39;&#39;&#39; + testnameid + &#39;&#39;&#39;</span>
+    <span class="c">#---------------------&#39;&#39;&#39;)</span>
+    <span class="n">lbl</span> <span class="o">=</span> <span class="s">&#39;[harn] TEST_CFG &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)</span>
+    <span class="c">#mark_prog = utool.simple_progres_func(TESTRES_VERBOSITY, msg, &#39;+&#39;)</span>
     <span class="c"># Run each test configuration</span>
     <span class="c"># Query Config / Col Loop</span>
     <span class="c">#nTotalQueries  = nQuery * nCfg  # number of quieries to run in total</span>
+    <span class="n">cfgx2_cfgresinfo</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;experiment_harness&#39;</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">cfgx</span><span class="p">,</span> <span class="n">query_cfg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">):</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-                <span class="n">mark_prog</span><span class="p">(</span><span class="n">cfgx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nCfg</span><span class="p">)</span>
-                <span class="k">print</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
+        <span class="n">cfgiter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">),</span> <span class="n">nTotal</span><span class="o">=</span><span class="n">nCfg</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">)</span>
+        <span class="c">#for cfgx, query_cfg in enumerate(cfg_list):</span>
+        <span class="k">for</span> <span class="n">cfgx</span><span class="p">,</span> <span class="n">query_cfg</span> <span class="ow">in</span> <span class="n">cfgiter</span><span class="p">:</span>
+            <span class="c">#if not utool.QUIET:</span>
+            <span class="c">#    mark_prog(cfgx + 1, nCfg)</span>
+            <span class="c">#    print(query_cfg.get_cfgstr())</span>
             <span class="c">#cfglbl = cfgx2_lbl[cfgx]</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_query_cfg</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">)</span>
             <span class="c"># Set data to the current config</span>
             <span class="c">#nPrevQueries = nQuery * cfgx  # number of pervious queries</span>
             <span class="c"># Run the test / read cache</span>
             <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s"> cfg </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">cfgx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nCfg</span><span class="p">)):</span>
-                <span class="n">qx2_bestranks</span><span class="p">,</span> <span class="n">qx2_avepercision</span> <span class="o">=</span> <span class="n">get_qx2_bestrank</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+                <span class="n">cfgres_info</span> <span class="o">=</span> <span class="n">get_config_result_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+                <span class="c">#qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision = cfgres_info</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">NOMEMORY</span><span class="p">:</span>
-                <span class="n">bestranks_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qx2_bestranks</span><span class="p">)</span>
-                <span class="n">cfgx2_aveprecs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qx2_avepercision</span><span class="p">)</span>
+                <span class="n">cfgx2_cfgresinfo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cfgres_info</span><span class="p">)</span>
+                <span class="c">#bestranks_list.append(qx2_bestranks)</span>
+                <span class="c">#cfgx2_aveprecs.append(qx2_avepercision)</span>
             <span class="c"># Store the results</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn] Finished testing parameters&#39;</span><span class="p">)</span>
@@ -232,7 +308,7 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;ran tests in memory savings mode. Cannot Print. exiting&#39;</span><span class="p">)</span>
         <span class="k">return</span>
     <span class="n">experiment_printres</span><span class="o">.</span><span class="n">print_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfg_list</span><span class="p">,</span>
-                                      <span class="n">bestranks_list</span><span class="p">,</span> <span class="n">cfgx2_aveprecs</span><span class="p">,</span> <span class="n">testnameid</span><span class="p">,</span> <span class="n">sel_rows</span><span class="p">,</span>
+                                      <span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="n">testnameid</span><span class="p">,</span> <span class="n">sel_rows</span><span class="p">,</span>
                                       <span class="n">sel_cols</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">)</span>
     <span class="c"># Reset query config so nothing unexpected happens</span>
     <span class="c"># TODO: should probably just use a cfgdict to build a list of QueryRequest</span>

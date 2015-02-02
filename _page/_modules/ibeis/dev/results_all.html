@@ -641,7 +641,6 @@
 
     <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
         <span class="n">true_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
-        <span class="c">#bestaidrank_list  = [qres.get_best_gt_rank(ibs=ibs) for qres in qres_list]</span>
         <span class="n">decision_tup_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qres</span><span class="o">.</span><span class="n">get_name_decisiontup</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span> <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">qres_list</span><span class="p">]</span>
         <span class="n">decision_nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">decision_tup_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">decision_score_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">decision_tup_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>

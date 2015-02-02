@@ -89,9 +89,9 @@
                              <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>    <span class="c"># IBEIS Control</span>
     <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_CONVERT_BBOX_POLY</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
-    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s">&#39;test_locals&#39;</span><span class="p">)</span>
-    <span class="n">execstr</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">ipython_execstr</span><span class="p">()</span>
-    <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
+    <span class="c">#execstr = utool.execstr_dict(test_locals, &#39;test_locals&#39;)</span>
+    <span class="c">#execstr += &#39;\n&#39; + utool.ipython_execstr()</span>
+    <span class="c">#exec(execstr)</span>
 </pre></div>
 
           </div>

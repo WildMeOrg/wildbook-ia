@@ -57,6 +57,7 @@
 <span class="c"># import utool</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 
 
@@ -70,11 +71,15 @@
     <span class="n">chips</span>      <span class="o">=</span> <span class="s">&#39;chips&#39;</span>
     <span class="n">flann</span>      <span class="o">=</span> <span class="s">&#39;flann&#39;</span>
     <span class="n">images</span>     <span class="o">=</span> <span class="s">&#39;images&#39;</span>
+    <span class="n">trees</span>      <span class="o">=</span> <span class="s">&#39;trees&#39;</span>
     <span class="n">qres</span>       <span class="o">=</span> <span class="s">&#39;qres&#39;</span>
     <span class="n">bigcache</span>   <span class="o">=</span> <span class="s">&#39;qres_bigcache&#39;</span>
     <span class="n">detectimg</span>  <span class="o">=</span> <span class="s">&#39;detectimg&#39;</span>
     <span class="n">thumbs</span>     <span class="o">=</span> <span class="s">&#39;thumbs&#39;</span>
     <span class="n">trashdir</span>   <span class="o">=</span> <span class="s">&#39;trashed_images&#39;</span>
+    <span class="n">distinctdir</span> <span class="o">=</span> <span class="s">&#39;distinctiveness_model&#39;</span>
+    <span class="n">scorenormdir</span> <span class="o">=</span> <span class="s">&#39;scorenorm&#39;</span>
+    <span class="n">smartpatrol</span> <span class="o">=</span> <span class="s">&#39;smart_patrol&#39;</span>
 
 </div>
 <div class="viewcode-block" id="REL_PATHS"><a class="viewcode-back" href="../../ibeis.html#ibeis.constants.REL_PATHS">[docs]</a><span class="k">class</span> <span class="nc">REL_PATHS</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -85,11 +90,13 @@
     <span class="n">backups</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">backups</span><span class="p">)</span>
     <span class="n">chips</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">chips</span><span class="p">)</span>
     <span class="n">images</span>   <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">images</span><span class="p">)</span>
+    <span class="n">trees</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">trees</span><span class="p">)</span>
     <span class="c"># All computed dirs live in &lt;dbdir&gt;/_ibsdb/_ibeis_cache</span>
     <span class="n">thumbs</span>   <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">thumbs</span><span class="p">)</span>
     <span class="n">flann</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">flann</span><span class="p">)</span>
     <span class="n">qres</span>     <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">qres</span><span class="p">)</span>
     <span class="n">bigcache</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">bigcache</span><span class="p">)</span>
+    <span class="n">distinctdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">distinctdir</span><span class="p">)</span>
 
 
 <span class="c"># TODO: Remove anything under this block completely</span>
@@ -221,43 +228,62 @@
     <span class="n">WILDEBEEST</span>    <span class="o">=</span> <span class="s">&#39;wildebeest&#39;</span>
     <span class="n">WATER_BUFFALO</span> <span class="o">=</span> <span class="s">&#39;water_buffalo&#39;</span>
     <span class="n">CHEETAH</span>       <span class="o">=</span> <span class="s">&#39;cheetah&#39;</span>
+    <span class="n">TIGER</span>         <span class="o">=</span> <span class="s">&#39;tiger&#39;</span>
+    <span class="n">HYENA</span>         <span class="o">=</span> <span class="s">&#39;hyena&#39;</span>
     <span class="n">UNKNOWN</span>       <span class="o">=</span> <span class="n">UNKNOWN</span>
-</div>
+
+<span class="c"># TODO: allow for custom species</span></div>
+<span class="n">SpeciesTuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;SpeciesTuple&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;species_text&#39;</span><span class="p">,</span> <span class="s">&#39;species_code&#39;</span><span class="p">,</span> <span class="s">&#39;species_nice&#39;</span><span class="p">))</span>
+
 <span class="n">SPECIES_TUPS</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">,</span>     <span class="s">&#39;Zebra (Plains)&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_GREVY</span><span class="p">,</span>     <span class="s">&#39;Zebra (Grevy</span><span class="se">\&#39;</span><span class="s">s)&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">GIRAFFE</span><span class="p">,</span>       <span class="s">&#39;Giraffes&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">ELEPHANT_SAV</span><span class="p">,</span>  <span class="s">&#39;Elephant (savanna)&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">JAG</span><span class="p">,</span>           <span class="s">&#39;Jaguar&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">LEOPARD</span><span class="p">,</span>       <span class="s">&#39;Leopard&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">LION</span><span class="p">,</span>          <span class="s">&#39;Lion&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">WILDDOG</span><span class="p">,</span>       <span class="s">&#39;Wild Dog&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">LIONFISH</span><span class="p">,</span>      <span class="s">&#39;Lionfish&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">WHALESHARK</span><span class="p">,</span>    <span class="s">&#39;Whale Shark&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">POLAR_BEAR</span><span class="p">,</span>    <span class="s">&#39;Polar Bear&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">WILDEBEEST</span><span class="p">,</span>    <span class="s">&#39;Wildebeest&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">SEALS_SPOTTED</span><span class="p">,</span> <span class="s">&#39;Seal (spotted)&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">SEALS_RINGED</span><span class="p">,</span>  <span class="s">&#39;Seal (Siamaa Ringed)&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">CHEETAH</span><span class="p">,</span>       <span class="s">&#39;Cheetah&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">,</span>       <span class="s">&#39;Unknown&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">,</span>          <span class="s">&#39;PZ&#39;</span><span class="p">,</span> <span class="s">&#39;Zebra (Plains)&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_GREVY</span><span class="p">,</span>          <span class="s">&#39;GZ&#39;</span><span class="p">,</span> <span class="s">&#39;Zebra (Grevy</span><span class="se">\&#39;</span><span class="s">s)&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">GIRAFFE</span><span class="p">,</span>           <span class="s">&#39;GIR&#39;</span><span class="p">,</span> <span class="s">&#39;Giraffes&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">ELEPHANT_SAV</span><span class="p">,</span>     <span class="s">&#39;ELEP&#39;</span><span class="p">,</span> <span class="s">&#39;Elephant (savanna)&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">POLAR_BEAR</span><span class="p">,</span>         <span class="s">&#39;PB&#39;</span><span class="p">,</span> <span class="s">&#39;Polar Bear&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">WILDDOG</span><span class="p">,</span>            <span class="s">&#39;WD&#39;</span><span class="p">,</span> <span class="s">&#39;Wild Dog&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">LIONFISH</span><span class="p">,</span>           <span class="s">&#39;LF&#39;</span><span class="p">,</span> <span class="s">&#39;Lionfish&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">WHALESHARK</span><span class="p">,</span>         <span class="s">&#39;WS&#39;</span><span class="p">,</span> <span class="s">&#39;Whale Shark&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">WILDEBEEST</span><span class="p">,</span>         <span class="s">&#39;WB&#39;</span><span class="p">,</span> <span class="s">&#39;Wildebeest&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">JAG</span><span class="p">,</span>               <span class="s">&#39;JAG&#39;</span><span class="p">,</span> <span class="s">&#39;Jaguar&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">LEOPARD</span><span class="p">,</span>          <span class="s">&#39;LOEP&#39;</span><span class="p">,</span> <span class="s">&#39;Leopard&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">TIGER</span><span class="p">,</span>           <span class="s">&#39;TIGER&#39;</span><span class="p">,</span> <span class="s">&#39;Tiger&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">HYENA</span><span class="p">,</span>           <span class="s">&#39;HYENA&#39;</span><span class="p">,</span> <span class="s">&#39;Hyena&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">LION</span><span class="p">,</span>             <span class="s">&#39;LION&#39;</span><span class="p">,</span> <span class="s">&#39;Lion&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">CHEETAH</span><span class="p">,</span>          <span class="s">&#39;CHTH&#39;</span><span class="p">,</span> <span class="s">&#39;Cheetah&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">SEALS_SPOTTED</span><span class="p">,</span>   <span class="s">&#39;SEAL1&#39;</span><span class="p">,</span> <span class="s">&#39;Seal (spotted)&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">SEALS_RINGED</span><span class="p">,</span>    <span class="s">&#39;SEAL2&#39;</span><span class="p">,</span> <span class="s">&#39;Seal (Siamaa Ringed)&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">,</span>       <span class="s">&#39;UNKNOWN&#39;</span><span class="p">,</span> <span class="s">&#39;Unknown&#39;</span><span class="p">),</span>
 <span class="p">]</span>
 
 <span class="n">SPECIES_WITH_DETECTORS</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">Species</span><span class="o">.</span><span class="n">ZEB_GREVY</span><span class="p">,</span>
     <span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">,</span>
     <span class="n">Species</span><span class="o">.</span><span class="n">GIRAFFE</span><span class="p">,</span>
+    <span class="n">Species</span><span class="o">.</span><span class="n">ELEPHANT_SAV</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="n">VALID_SPECIES</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">SPECIES_TUPS</span><span class="p">]</span>
-<span class="n">SPECIES_NICE</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">SPECIES_TUPS</span><span class="p">]</span>
+<span class="n">SPECIES_CODE_TO_TEXT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">tup</span><span class="o">.</span><span class="n">species_code</span><span class="p">:</span> <span class="n">tup</span><span class="o">.</span><span class="n">species_text</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">SPECIES_TUPS</span>
+<span class="p">}</span>
+
+<span class="n">VALID_SPECIES</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="o">.</span><span class="n">species_text</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">SPECIES_TUPS</span><span class="p">]</span>
+<span class="n">SPECIES_NICE</span>  <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="o">.</span><span class="n">species_nice</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">SPECIES_TUPS</span><span class="p">]</span>
 
 
 <span class="n">VS_EXEMPLARS_KEY</span> <span class="o">=</span> <span class="s">&#39;vs_exemplars&#39;</span>
 <span class="n">INTRA_ENC_KEY</span> <span class="o">=</span> <span class="s">&#39;intra_encounter&#39;</span>
 
 <span class="n">HARD_NOTE_TAG</span> <span class="o">=</span> <span class="s">&#39;&lt;HARDCASE&gt;&#39;</span>
+<span class="n">WILDBOOK_TARGET</span> <span class="o">=</span> <span class="s">&#39;prod&#39;</span>
 
 
+<div class="viewcode-block" id="ZIPPED_URLS"><a class="viewcode-back" href="../../ibeis.html#ibeis.constants.ZIPPED_URLS">[docs]</a><span class="k">class</span> <span class="nc">ZIPPED_URLS</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">PZ_MTEST</span>       <span class="o">=</span> <span class="s">&#39;https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip&#39;</span>
+    <span class="n">NAUTS</span>          <span class="o">=</span> <span class="s">&#39;https://www.dropbox.com/s/8gt3eaiw8rb31rh/NAUT_test.zip&#39;</span>
+    <span class="n">PZ_DISTINCTIVE</span> <span class="o">=</span> <span class="s">&#39;https://www.dropbox.com/s/gbp24qks9z3fzm6/distinctivness_zebra_plains.zip&#39;</span>
+    <span class="n">GZ_DISTINCTIVE</span> <span class="o">=</span> <span class="s">&#39;https://www.dropbox.com/s/nb5gv7wibwo3ib4/distinctivness_zebra_grevys.zip&#39;</span>
+</div>
 <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
     <span class="n">__STR__</span> <span class="o">=</span> <span class="nb">unicode</span>  <span class="c"># change to str if needed</span>
 <span class="k">else</span><span class="p">:</span>

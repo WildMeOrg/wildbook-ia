@@ -49,6 +49,19 @@
           <div class="body">
             
   <h1>Source code for ibeis.control.manual_image_funcs</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions for images and encoutners that will be injected into an</span>
+<span class="sd">IBEISController instance.</span>
+
+
+<span class="sd">CommandLine:</span>
+<span class="sd">    # Autogenerate Encounter Functions</span>
+<span class="sd">    # key should be the table name</span>
+<span class="sd">    # the write flag makes a file, but dont use that</span>
+<span class="sd">    python -m ibeis.control.template_generator --key featweight</span>
+<span class="sd">    python -m ibeis.control.template_generator --key encounter</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">functools</span>
@@ -75,6 +88,9 @@
 <span class="n">ENCOUNTER_ROWID</span>            <span class="o">=</span> <span class="s">&#39;encounter_rowid&#39;</span>
 <span class="n">ENCOUNTER_SHIPPED_FLAG</span>     <span class="o">=</span> <span class="s">&#39;encounter_shipped_flag&#39;</span>
 <span class="n">ENCOUNTER_START_TIME_POSIX</span> <span class="o">=</span> <span class="s">&#39;encounter_start_time_posix&#39;</span>
+
+<span class="n">ENCOUNTER_SMART_WAYPOINT_ID</span> <span class="o">=</span> <span class="s">&#39;encounter_smart_waypoint_id&#39;</span>
+<span class="n">ENCOUNTER_SMART_XML_FNAME</span>   <span class="o">=</span> <span class="s">&#39;encounter_smart_xml_fname&#39;</span>
 
 
 <span class="nd">@register_ibs_method</span>
@@ -126,7 +142,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@ider</span>
-<div class="viewcode-block" id="get_valid_eids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_valid_eids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_eids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">min_num_gids</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">processed</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">shipped</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="get_valid_eids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_valid_eids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_eids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">min_num_gids</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">processed</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">shipped</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        list_ (list):  list of all encounter ids &quot;&quot;&quot;</span>
@@ -135,13 +151,13 @@
         <span class="n">num_gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_num_gids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
         <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_gids</span> <span class="o">&gt;=</span> <span class="n">min_num_gids</span> <span class="k">for</span> <span class="n">num_gids</span> <span class="ow">in</span> <span class="n">num_gids_list</span><span class="p">]</span>
         <span class="n">eid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">processed</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">processed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_processed_flags</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
-        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">]</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">processed</span> <span class="k">else</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">]</span>
         <span class="n">eid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">shipped</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">shipped</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_shipped_flags</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
-        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">]</span>
+        <span class="n">isvalid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">shipped</span> <span class="k">else</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">]</span>
         <span class="n">eid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">isvalid_list</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">eid_list</span>
@@ -1150,7 +1166,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
-<div class="viewcode-block" id="get_encounter_end_time_posixs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_encounter_end_time_posixs">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_end_time_posixs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="get_encounter_end_time_posix"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_encounter_end_time_posix">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_end_time_posix</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; encounter_end_time_posix_list &lt;- encounter.encounter_end_time_posix[encounter_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;encounter_end_time_posix&quot; in the &quot;encounter&quot; table</span>
@@ -1171,7 +1187,7 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_ = get_autogen_testdata()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
-<span class="sd">        &gt;&gt;&gt; encounter_end_time_posix_list = ibs.get_encounter_end_time_posixs(encounter_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; encounter_end_time_posix_list = ibs.get_encounter_end_time_posix(encounter_rowid_list)</span>
 <span class="sd">        &gt;&gt;&gt; assert len(encounter_rowid_list) == len(encounter_end_time_posix_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
@@ -1212,6 +1228,27 @@
     <span class="n">encounter_gps_lat_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
         <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">encounter_gps_lat_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<div class="viewcode-block" id="update_encounter_info"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.update_encounter_info">[docs]</a><span class="k">def</span> <span class="nf">update_encounter_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; sets start and end time for encounters</span>
+
+<span class="sd">    FIXME: should not need to bulk update, should be handled as it goes</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DOCTEST_DISABLE</span>
+<span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs.get_valid_eids()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">encounter_rowid_list</span><span class="p">)</span>
+    <span class="n">hasgids_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">gids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">gids</span> <span class="ow">in</span> <span class="n">gids_list_</span><span class="p">]</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">gids_list_</span><span class="p">,</span> <span class="n">hasgids_list</span><span class="p">)</span>
+    <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">hasgids_list</span><span class="p">)</span>
+    <span class="n">unixtimes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">,</span> <span class="n">gids_list</span><span class="p">)</span>
+    <span class="n">encounter_end_time_posix_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">unixtimes</span><span class="p">)</span> <span class="k">for</span> <span class="n">unixtimes</span> <span class="ow">in</span> <span class="n">unixtimes_list</span><span class="p">]</span>
+    <span class="n">encounter_start_time_posix_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">unixtimes</span><span class="p">)</span> <span class="k">for</span> <span class="n">unixtimes</span> <span class="ow">in</span> <span class="n">unixtimes_list</span><span class="p">]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_end_time_posix</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">encounter_end_time_posix_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_start_time_posix</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">encounter_start_time_posix_list</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -1348,7 +1385,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
-<div class="viewcode-block" id="get_encounter_start_time_posixs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_encounter_start_time_posixs">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_start_time_posixs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="get_encounter_start_time_posix"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_encounter_start_time_posix">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_start_time_posix</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; encounter_start_time_posix_list &lt;- encounter.encounter_start_time_posix[encounter_rowid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;encounter_start_time_posix&quot; in the &quot;encounter&quot; table</span>
@@ -1369,7 +1406,7 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_ = get_autogen_testdata()</span>
 <span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
-<span class="sd">        &gt;&gt;&gt; encounter_start_time_posix_list = ibs.get_encounter_start_time_posixs(encounter_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; encounter_start_time_posix_list = ibs.get_encounter_start_time_posix(encounter_rowid_list)</span>
 <span class="sd">        &gt;&gt;&gt; assert len(encounter_rowid_list) == len(encounter_start_time_posix_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
@@ -1381,7 +1418,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@setter</span>
-<div class="viewcode-block" id="set_encounter_end_time_posixs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.set_encounter_end_time_posixs">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_end_time_posixs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_end_time_posix_list</span><span class="p">):</span>
+<div class="viewcode-block" id="set_encounter_end_time_posix"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.set_encounter_end_time_posix">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_end_time_posix</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_end_time_posix_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; encounter_end_time_posix_list -&gt; encounter.encounter_end_time_posix[encounter_rowid_list]</span>
 
 <span class="sd">    Args:</span>
@@ -1499,7 +1536,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@setter</span>
-<div class="viewcode-block" id="set_encounter_start_time_posixs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.set_encounter_start_time_posixs">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_start_time_posixs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_start_time_posix_list</span><span class="p">):</span>
+<div class="viewcode-block" id="set_encounter_start_time_posix"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.set_encounter_start_time_posix">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_start_time_posix</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_start_time_posix_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; encounter_start_time_posix_list -&gt; encounter.encounter_start_time_posix[encounter_rowid_list]</span>
 
 <span class="sd">    Args:</span>
@@ -1531,6 +1568,115 @@
     <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;image_rowid=? AND encounter_rowid=?&#39;</span>
     <span class="n">egrid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">EG_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">egrid_list</span>
+
+
+<span class="c"># NEW ENCOUNTER SMART SETTER GETTERS</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="c">#@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_WAYPOINT_ID)</span>
+<div class="viewcode-block" id="get_encounter_smart_waypoint_ids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_encounter_smart_waypoint_ids">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_smart_waypoint_ids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; encounter_smart_waypoint_id_list &lt;- encounter.encounter_smart_waypoint_id[encounter_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;encounter_smart_waypoint_id&quot; in the &quot;encounter&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: encounter_smart_waypoint_id_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = encounter_smart_waypoint_id</span>
+<span class="sd">        tbl = encounter</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = get_autogen_testdata()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_smart_waypoint_id_list = ibs.get_encounter_smart_waypoint_ids(encounter_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(encounter_rowid_list) == len(encounter_smart_waypoint_id_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_SMART_WAYPOINT_ID</span><span class="p">,)</span>
+    <span class="n">encounter_smart_waypoint_id_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">encounter_smart_waypoint_id_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="c">#@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_XML_FNAME)</span>
+<div class="viewcode-block" id="get_encounter_smart_xml_fnames"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_encounter_smart_xml_fnames">[docs]</a><span class="k">def</span> <span class="nf">get_encounter_smart_xml_fnames</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; encounter_smart_xml_fname_list &lt;- encounter.encounter_smart_xml_fname[encounter_rowid_list]</span>
+
+<span class="sd">    gets data from the &quot;native&quot; column &quot;encounter_smart_xml_fname&quot; in the &quot;encounter&quot; table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: encounter_smart_xml_fname_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tgetter_table_column</span>
+<span class="sd">        col = encounter_smart_xml_fname</span>
+<span class="sd">        tbl = encounter</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_image_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = get_autogen_testdata()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_rowid_list = ibs._get_all_encounter_rowids()</span>
+<span class="sd">        &gt;&gt;&gt; encounter_smart_xml_fname_list = ibs.get_encounter_smart_xml_fnames(encounter_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert len(encounter_rowid_list) == len(encounter_smart_xml_fname_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_SMART_XML_FNAME</span><span class="p">,)</span>
+    <span class="n">encounter_smart_xml_fname_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">encounter_smart_xml_fname_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="c">#@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_WAYPOINT_ID, native_rowids=True)</span>
+<div class="viewcode-block" id="set_encounter_smart_waypoint_ids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.set_encounter_smart_waypoint_ids">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_smart_waypoint_ids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_smart_waypoint_id_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; encounter_smart_waypoint_id_list -&gt; encounter.encounter_smart_waypoint_id[encounter_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list</span>
+<span class="sd">        encounter_smart_waypoint_id_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = encounter</span>
+<span class="sd">        col = encounter_smart_waypoint_id</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_SMART_WAYPOINT_ID</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span>
+               <span class="n">encounter_smart_waypoint_id_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="c">#@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_XML_FNAME, native_rowids=True)</span>
+<div class="viewcode-block" id="set_encounter_smart_xml_fnames"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.set_encounter_smart_xml_fnames">[docs]</a><span class="k">def</span> <span class="nf">set_encounter_smart_xml_fnames</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">encounter_rowid_list</span><span class="p">,</span> <span class="n">encounter_smart_xml_fname_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; encounter_smart_xml_fname_list -&gt; encounter.encounter_smart_xml_fname[encounter_rowid_list]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encounter_rowid_list</span>
+<span class="sd">        encounter_smart_xml_fname_list</span>
+
+<span class="sd">    TemplateInfo:</span>
+<span class="sd">        Tsetter_native_column</span>
+<span class="sd">        tbl = encounter</span>
+<span class="sd">        col = encounter_smart_xml_fname</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">encounter_rowid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ENCOUNTER_SMART_XML_FNAME</span><span class="p">,)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span>
+               <span class="n">encounter_smart_xml_fname_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="get_autogen_testdata"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_autogen_testdata">[docs]</a><span class="k">def</span> <span class="nf">get_autogen_testdata</span><span class="p">():</span>
