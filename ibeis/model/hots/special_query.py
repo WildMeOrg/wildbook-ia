@@ -32,13 +32,6 @@ sh Tinc.sh --test-test_inc_query:1 --num-init 0 --no-normcache --test-title "PZ_
 sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs --test-title "GZ_DEV" --gzdev --ninit 34 --naac --interupt-case
 sh Tinc.sh --test-test_inc_query:2 --num-init 0 --devcache --no-normcache --vsone-errs --test-title "GZ_DEV" --gzdev --ninit 47 --naac --interupt-case
 
-
-Todo tomorrow:
-
-add coverage as option to IBEIS
-add spatially constrained matching as option to IBEIS
-
-
 """
 from __future__ import absolute_import, division, print_function
 import six

@@ -293,7 +293,7 @@ class SpatialVerifyConfig(ConfigBase):
         tau = 6.28  # 318530
         sv_cfg.sv_on = True
         sv_cfg.xy_thresh = .01
-        sv_cfg.scale_thresh = 2
+        sv_cfg.scale_thresh = 2.0
         sv_cfg.ori_thresh   = tau / 4.0
         sv_cfg.min_nInliers = 4
         sv_cfg.nShortlist = 50

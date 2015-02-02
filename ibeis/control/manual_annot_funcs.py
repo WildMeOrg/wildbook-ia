@@ -53,7 +53,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                 vert_list=None, annot_uuid_list=None, viewpoint_list=None,
                 annot_visual_uuid_list=None, annot_semantic_uuid_list=None,
                 species_rowid_list=None, quiet_delete_thumbs=False,
-                prevent_visual_duplicates=False):
+                prevent_visual_duplicates=True):
     r"""
     Adds an annotation to images
 
