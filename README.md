@@ -712,6 +712,11 @@ python dev.py --allhard --qaid 1:10:2 -t best nsum custom custom:rrvsone_on=True
 
 python dev.py --allgt -t best nsum custom custom:rrvsone_on=True custom:sv_on=False
 
+python dev.py --allgt -t custom best --print-scorediff-mat-stats
+
+python dev.py --allgt -t custom custom:vsone_reranking=True --print-scorediff-mat-stats
+
+
 ```
 
 #---------------

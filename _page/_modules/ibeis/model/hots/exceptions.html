@@ -53,6 +53,9 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="c">#import utool</span>
 <span class="c">#print, print_,  printDBG, rrr, profile = utool.inject(__name__, &#39;[hsexcept]&#39;, DEBUG=False)</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[hsecept]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="QueryException"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.exceptions.QueryException">[docs]</a><span class="k">class</span> <span class="nc">QueryException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>

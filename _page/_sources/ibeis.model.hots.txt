@@ -19,6 +19,14 @@ ibeis.model.hots._neighbor_experiment module
     :undoc-members:
     :show-inheritance:
 
+ibeis.model.hots._pipeline_helpers module
+-----------------------------------------
+
+.. automodule:: ibeis.model.hots._pipeline_helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.model.hots.automated_helpers module
 -----------------------------------------
 
@@ -47,6 +55,14 @@ ibeis.model.hots.devcases module
 --------------------------------
 
 .. automodule:: ibeis.model.hots.devcases
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.distinctiveness_normalizer module
+--------------------------------------------------
+
+.. automodule:: ibeis.model.hots.distinctiveness_normalizer
     :members:
     :undoc-members:
     :show-inheritance:
@@ -191,6 +207,14 @@ ibeis.model.hots.voting_rules2 module
 -------------------------------------
 
 .. automodule:: ibeis.model.hots.voting_rules2
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.vsone_pipeline module
+--------------------------------------
+
+.. automodule:: ibeis.model.hots.vsone_pipeline
     :members:
     :undoc-members:
     :show-inheritance:

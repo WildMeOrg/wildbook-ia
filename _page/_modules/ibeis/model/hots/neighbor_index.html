@@ -72,7 +72,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">pyflann</span>
-<span class="kn">import</span> <span class="nn">lockfile</span>
+<span class="c">#import lockfile</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">exists</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>  <span class="c"># NOQA</span>
@@ -91,7 +91,7 @@
 <span class="n">UUID_MAP</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="ContextUUIDMap"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.ContextUUIDMap">[docs]</a><span class="k">class</span> <span class="nc">ContextUUIDMap</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="UUIDMapHyrbridCache"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.UUIDMapHyrbridCache">[docs]</a><span class="k">class</span> <span class="nc">UUIDMapHyrbridCache</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class that lets multiple ways of writing to the uuid_map</span>
 <span class="sd">    be swapped in and out interchangably</span>
@@ -99,36 +99,42 @@
 <span class="sd">    TODO: the global read / write should periodically sync itself to disk and it</span>
 <span class="sd">    should be loaded from disk initially</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="n">uuid_map_fpath</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uuid_maps</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+        <span class="c">#self.uuid_map_fpath = uuid_map_fpath</span>
+        <span class="c">#self.init(uuid_map_fpath, min_reindex_thresh)</span>
 
-<div class="viewcode-block" id="ContextUUIDMap.init"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.ContextUUIDMap.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="UUIDMapHyrbridCache.init"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.UUIDMapHyrbridCache.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
         <span class="c">#self.read_func  = self.read_uuid_map_cpkl</span>
         <span class="c">#self.write_func = self.write_uuid_map_cpkl</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">read_func</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_uuid_map_global</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">write_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_uuid_map_global</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_func</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_uuid_map_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_uuid_map_dict</span>
+
+    <span class="c">#def __call__(self):</span>
+    <span class="c">#    return  self.read_func(*self.args, **self.kwargs)</span>
 </div>
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span>  <span class="bp">self</span><span class="o">.</span><span class="n">read_func</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+<div class="viewcode-block" id="UUIDMapHyrbridCache.dump"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.UUIDMapHyrbridCache.dump">[docs]</a>    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="p">):</span>
+        <span class="c"># TODO: DUMP AND LOAD THIS HYBRID CACHE TO DISK</span>
+        <span class="c">#write_uuid_map_cpkl</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="s">&#39;uuid_maps_hybrid_cache.cPkl&#39;</span>
+        <span class="n">cpkl_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">lock_and_save_cPkl</span><span class="p">(</span><span class="n">cpkl_fpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">uuid_maps</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="UUIDMapHyrbridCache.load"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.UUIDMapHyrbridCache.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cachedir</span><span class="p">):</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="s">&#39;uuid_maps_hybrid_cache.cPkl&#39;</span>
+        <span class="n">cpkl_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uuid_maps</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lock_and_load_cPkl</span><span class="p">(</span><span class="n">cpkl_fpath</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span>
-
-    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_trace</span><span class="p">):</span>
-        <span class="k">pass</span>
-
-    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">):</span>
-        <span class="n">uuid_map_fpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uuid_map_fpath</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">write_func</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">)</span>
-
+    <span class="c">#def __setitem__(self, daids_hashid, visual_uuid_list):</span>
+    <span class="c">#    uuid_map_fpath = self.uuid_map_fpath</span>
+    <span class="c">#    self.write_func(uuid_map_fpath, visual_uuid_list, daids_hashid)</span>
+</div>
     <span class="nd">@profile</span>
-<div class="viewcode-block" id="ContextUUIDMap.read_uuid_map_global"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.ContextUUIDMap.read_uuid_map_global">[docs]</a>    <span class="k">def</span> <span class="nf">read_uuid_map_global</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; uses global variable instead of disk &quot;&quot;&quot;</span>
-        <span class="k">global</span> <span class="n">UUID_MAP</span>
-        <span class="n">uuid_map</span> <span class="o">=</span> <span class="n">UUID_MAP</span><span class="p">[</span><span class="n">uuid_map_fpath</span><span class="p">]</span>
+<div class="viewcode-block" id="UUIDMapHyrbridCache.read_uuid_map_dict"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.UUIDMapHyrbridCache.read_uuid_map_dict">[docs]</a>    <span class="k">def</span> <span class="nf">read_uuid_map_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; uses in memory dictionary instead of disk &quot;&quot;&quot;</span>
+        <span class="n">uuid_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uuid_maps</span><span class="p">[</span><span class="n">uuid_map_fpath</span><span class="p">]</span>
         <span class="n">candidate_uuids</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">uuid_map</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">min_reindex_thresh</span>
@@ -136,62 +142,64 @@
         <span class="k">return</span> <span class="n">candidate_uuids</span>
 </div>
     <span class="nd">@profile</span>
-<div class="viewcode-block" id="ContextUUIDMap.write_uuid_map_global"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.ContextUUIDMap.write_uuid_map_global">[docs]</a>    <span class="k">def</span> <span class="nf">write_uuid_map_global</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; uses global variable instead of disk &quot;&quot;&quot;</span>
-        <span class="k">global</span> <span class="n">UUID_MAP</span>
+<div class="viewcode-block" id="UUIDMapHyrbridCache.write_uuid_map_dict"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.UUIDMapHyrbridCache.write_uuid_map_dict">[docs]</a>    <span class="k">def</span> <span class="nf">write_uuid_map_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; uses in memory dictionary instead of disk &quot;&quot;&quot;</span>
         <span class="c">#with ut.EmbedOnException():</span>
-        <span class="n">uuid_map</span> <span class="o">=</span> <span class="n">UUID_MAP</span><span class="p">[</span><span class="n">uuid_map_fpath</span><span class="p">]</span>
+        <span class="n">uuid_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">uuid_maps</span><span class="p">[</span><span class="n">uuid_map_fpath</span><span class="p">]</span>
         <span class="n">uuid_map</span><span class="p">[</span><span class="n">daids_hashid</span><span class="p">]</span> <span class="o">=</span> <span class="n">visual_uuid_list</span>
-</div>
-    <span class="nd">@profile</span>
-<div class="viewcode-block" id="ContextUUIDMap.read_uuid_map_shelf"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.ContextUUIDMap.read_uuid_map_shelf">[docs]</a>    <span class="k">def</span> <span class="nf">read_uuid_map_shelf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">):</span>
-        <span class="c">#with ut.EmbedOnException():</span>
-        <span class="k">with</span> <span class="n">lockfile</span><span class="o">.</span><span class="n">LockFile</span><span class="p">(</span><span class="n">uuid_map_fpath</span> <span class="o">+</span> <span class="s">&#39;.lock&#39;</span><span class="p">):</span>
-            <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">shelf_open</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">)</span> <span class="k">as</span> <span class="n">uuid_map</span><span class="p">:</span>
-                <span class="n">candidate_uuids</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">uuid_map</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">min_reindex_thresh</span>
-                <span class="p">}</span>
-        <span class="k">return</span> <span class="n">candidate_uuids</span>
-</div>
-    <span class="nd">@profile</span>
-<div class="viewcode-block" id="ContextUUIDMap.write_uuid_map_shelf"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.ContextUUIDMap.write_uuid_map_shelf">[docs]</a>    <span class="k">def</span> <span class="nf">write_uuid_map_shelf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Writing </span><span class="si">%d</span><span class="s"> visual uuids to uuid map&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">visual_uuid_list</span><span class="p">)))</span>
-        <span class="k">with</span> <span class="n">lockfile</span><span class="o">.</span><span class="n">LockFile</span><span class="p">(</span><span class="n">uuid_map_fpath</span> <span class="o">+</span> <span class="s">&#39;.lock&#39;</span><span class="p">):</span>
-            <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">shelf_open</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">)</span> <span class="k">as</span> <span class="n">uuid_map</span><span class="p">:</span>
-                <span class="n">uuid_map</span><span class="p">[</span><span class="n">daids_hashid</span><span class="p">]</span> <span class="o">=</span> <span class="n">visual_uuid_list</span>
-</div>
-    <span class="nd">@profile</span>
-<div class="viewcode-block" id="ContextUUIDMap.read_uuid_map_cpkl"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.ContextUUIDMap.read_uuid_map_cpkl">[docs]</a>    <span class="k">def</span> <span class="nf">read_uuid_map_cpkl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">):</span>
-        <span class="k">with</span> <span class="n">lockfile</span><span class="o">.</span><span class="n">LockFile</span><span class="p">(</span><span class="n">uuid_map_fpath</span> <span class="o">+</span> <span class="s">&#39;.lock&#39;</span><span class="p">):</span>
-            <span class="c">#with ut.shelf_open(uuid_map_fpath) as uuid_map:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">uuid_map</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">)</span>
-                <span class="n">candidate_uuids</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">uuid_map</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">min_reindex_thresh</span>
-                <span class="p">}</span>
-            <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">{}</span>
-        <span class="k">return</span> <span class="n">candidate_uuids</span>
-</div>
-    <span class="nd">@profile</span>
-<div class="viewcode-block" id="ContextUUIDMap.write_uuid_map_cpkl"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.ContextUUIDMap.write_uuid_map_cpkl">[docs]</a>    <span class="k">def</span> <span class="nf">write_uuid_map_cpkl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        let the multi-indexer know about any big caches we&#39;ve made multi-indexer.</span>
-<span class="sd">        Also lets nnindexer know about other prebuilt indexers so it can attempt to</span>
-<span class="sd">        just add points to them as to avoid a rebuild.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Writing </span><span class="si">%d</span><span class="s"> visual uuids to uuid map&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">visual_uuid_list</span><span class="p">)))</span>
-        <span class="k">with</span> <span class="n">lockfile</span><span class="o">.</span><span class="n">LockFile</span><span class="p">(</span><span class="n">uuid_map_fpath</span> <span class="o">+</span> <span class="s">&#39;.lock&#39;</span><span class="p">):</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">uuid_map</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-                <span class="n">uuid_map</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">uuid_map</span><span class="p">[</span><span class="n">daids_hashid</span><span class="p">]</span> <span class="o">=</span> <span class="n">visual_uuid_list</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">save_cPkl</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">uuid_map</span><span class="p">)</span>
+
+    <span class="c">#@profile</span>
+    <span class="c">#def read_uuid_map_shelf(self, uuid_map_fpath, min_reindex_thresh):</span>
+    <span class="c">#    #with ut.EmbedOnException():</span>
+    <span class="c">#    with lockfile.LockFile(uuid_map_fpath + &#39;.lock&#39;):</span>
+    <span class="c">#        with ut.shelf_open(uuid_map_fpath) as uuid_map:</span>
+    <span class="c">#            candidate_uuids = {</span>
+    <span class="c">#                key: val for key, val in six.iteritems(uuid_map)</span>
+    <span class="c">#                if len(val) &gt;= min_reindex_thresh</span>
+    <span class="c">#            }</span>
+    <span class="c">#    return candidate_uuids</span>
+
+    <span class="c">#@profile</span>
+    <span class="c">#def write_uuid_map_shelf(self, uuid_map_fpath, visual_uuid_list, daids_hashid):</span>
+    <span class="c">#    print(&#39;Writing %d visual uuids to uuid map&#39; % (len(visual_uuid_list)))</span>
+    <span class="c">#    with lockfile.LockFile(uuid_map_fpath + &#39;.lock&#39;):</span>
+    <span class="c">#        with ut.shelf_open(uuid_map_fpath) as uuid_map:</span>
+    <span class="c">#            uuid_map[daids_hashid] = visual_uuid_list</span>
+
+    <span class="c">#@profile</span>
+    <span class="c">#def read_uuid_map_cpkl(self, uuid_map_fpath, min_reindex_thresh):</span>
+    <span class="c">#    with lockfile.LockFile(uuid_map_fpath + &#39;.lock&#39;):</span>
+    <span class="c">#        #with ut.shelf_open(uuid_map_fpath) as uuid_map:</span>
+    <span class="c">#        try:</span>
+    <span class="c">#            uuid_map = ut.load_cPkl(uuid_map_fpath)</span>
+    <span class="c">#            candidate_uuids = {</span>
+    <span class="c">#                key: val for key, val in six.iteritems(uuid_map)</span>
+    <span class="c">#                if len(val) &gt;= min_reindex_thresh</span>
+    <span class="c">#            }</span>
+    <span class="c">#        except IOError:</span>
+    <span class="c">#            return {}</span>
+    <span class="c">#    return candidate_uuids</span>
+
+    <span class="c">#@profile</span>
+    <span class="c">#def write_uuid_map_cpkl(self, uuid_map_fpath, visual_uuid_list, daids_hashid):</span>
+    <span class="c">#    &quot;&quot;&quot;</span>
+    <span class="c">#    let the multi-indexer know about any big caches we&#39;ve made multi-indexer.</span>
+    <span class="c">#    Also lets nnindexer know about other prebuilt indexers so it can attempt to</span>
+    <span class="c">#    just add points to them as to avoid a rebuild.</span>
+    <span class="c">#    &quot;&quot;&quot;</span>
+    <span class="c">#    print(&#39;Writing %d visual uuids to uuid map&#39; % (len(visual_uuid_list)))</span>
+    <span class="c">#    with lockfile.LockFile(uuid_map_fpath + &#39;.lock&#39;):</span>
+    <span class="c">#        try:</span>
+    <span class="c">#            uuid_map = ut.load_cPkl(uuid_map_fpath)</span>
+    <span class="c">#        except IOError:</span>
+    <span class="c">#            uuid_map = {}</span>
+    <span class="c">#        uuid_map[daids_hashid] = visual_uuid_list</span>
+    <span class="c">#        ut.save_cPkl(uuid_map_fpath, uuid_map)</span>
 
 </div></div>
+<span class="n">UUID_MAP_CACHE</span> <span class="o">=</span> <span class="n">UUIDMapHyrbridCache</span><span class="p">()</span>
+
+
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="write_uuid_map"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.write_uuid_map">[docs]</a><span class="k">def</span> <span class="nf">write_uuid_map</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -199,14 +207,17 @@
 <span class="sd">    Also lets nnindexer know about other prebuilt indexers so it can attempt to</span>
 <span class="sd">    just add points to them as to avoid a rebuild.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">with</span> <span class="n">ContextUUIDMap</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="k">as</span> <span class="n">uuid_map</span><span class="p">:</span>
-        <span class="n">uuid_map</span><span class="p">[</span><span class="n">daids_hashid</span><span class="p">]</span> <span class="o">=</span> <span class="n">visual_uuid_list</span>
+    <span class="c">#UUID_MAP_CACHE[daids_hashid] = visual_uuid_list</span>
+    <span class="n">UUID_MAP_CACHE</span><span class="o">.</span><span class="n">write_uuid_map_dict</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">daids_hashid</span><span class="p">)</span>
+    <span class="c">#with ContextUUIDMap(uuid_map_fpath, None) as uuid_map:</span>
+    <span class="c">#    uuid_map[daids_hashid] = visual_uuid_list</span>
 
 </div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="read_uuid_map"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.read_uuid_map">[docs]</a><span class="k">def</span> <span class="nf">read_uuid_map</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">):</span>
-    <span class="k">with</span> <span class="n">ContextUUIDMap</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">)</span> <span class="k">as</span> <span class="n">uuid_map</span><span class="p">:</span>
-        <span class="n">candidate_uuids</span> <span class="o">=</span> <span class="n">uuid_map</span><span class="p">()</span>
+
+    <span class="c">#with ContextUUIDMap(uuid_map_fpath, min_reindex_thresh) as uuid_map:</span>
+    <span class="n">candidate_uuids</span> <span class="o">=</span> <span class="n">UUID_MAP_CACHE</span><span class="o">.</span><span class="n">read_uuid_map_dict</span><span class="p">(</span><span class="n">uuid_map_fpath</span><span class="p">,</span> <span class="n">min_reindex_thresh</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">candidate_uuids</span>
 
 </div>
@@ -224,7 +235,7 @@
 <span class="sd">        &gt;&gt;&gt; uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; result = str(ut.path_ndir_split(uuid_map_fpath, 3))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        _ibeis_cache/flann/uuid_map_FLANN(4_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).shelf</span>
+<span class="sd">        _ibeis_cache/flann/uuid_map_FLANN(8_kdtrees)_FEAT(hesaff+sift_)_CHIP(sz450).cPkl</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">flann_cachedir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_flann_cachedir</span><span class="p">()</span>
     <span class="c"># Have uuid shelf conditioned on the baseline flann and feature parameters</span>
@@ -768,6 +779,7 @@
         <span class="n">nnindexer</span><span class="o">.</span><span class="n">idx2_fgw</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># (M x 1) Descriptor forground weight</span>
         <span class="n">nnindexer</span><span class="o">.</span><span class="n">idx2_ax</span>  <span class="o">=</span> <span class="bp">None</span>  <span class="c"># (M x 1) Index into the aid_list</span>
         <span class="n">nnindexer</span><span class="o">.</span><span class="n">idx2_fx</span>  <span class="o">=</span> <span class="bp">None</span>  <span class="c"># (M x 1) Index into the annot&#39;s features</span>
+        <span class="n">nnindexer</span><span class="o">.</span><span class="n">max_distance</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># max possible distance for normalization</span>
         <span class="n">nnindexer</span><span class="o">.</span><span class="n">cfgstr</span>   <span class="o">=</span> <span class="n">cfgstr</span>  <span class="c"># configuration id</span>
         <span class="n">nnindexer</span><span class="o">.</span><span class="n">flann_params</span> <span class="o">=</span> <span class="n">flann_params</span>
         <span class="n">nnindexer</span><span class="o">.</span><span class="n">cores</span>  <span class="o">=</span> <span class="n">flann_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cores&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
@@ -788,7 +800,8 @@
         <span class="k">if</span> <span class="n">nnindexer</span><span class="o">.</span><span class="n">idx2_vec</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">VEC_TYPE</span><span class="p">:</span>
             <span class="n">nnindexer</span><span class="o">.</span><span class="n">max_distance</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">VEC_PSEUDO_MAX_DISTANCE</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;NNindexer should get uint8s right now unless the algorithm has changed&#39;</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;NNindexer should get uint8s right now unless the algorithm has changed&#39;</span><span class="p">)</span>
+        <span class="n">nnindexer</span><span class="o">.</span><span class="n">max_distance_sqrd</span> <span class="o">=</span> <span class="n">nnindexer</span><span class="o">.</span><span class="n">max_distance</span> <span class="o">**</span> <span class="mi">2</span>
 </div>
     <span class="nd">@profile</span>
 <div class="viewcode-block" id="NeighborIndex.add_support"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.NeighborIndex.add_support">[docs]</a>    <span class="k">def</span> <span class="nf">add_support</span><span class="p">(</span><span class="n">nnindexer</span><span class="p">,</span> <span class="n">new_aid_list</span><span class="p">,</span> <span class="n">new_vecs_list</span><span class="p">,</span> <span class="n">new_fgws_list</span><span class="p">,</span>
@@ -952,7 +965,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the indicies and squared distance to the nearest K neighbors.</span>
 <span class="sd">        The distance is noramlized between zero and one using</span>
-<span class="sd">        VEC_PSEUDO_MAX_DISTANCE</span>
+<span class="sd">        VEC_PSEUDO_MAX_DISTANCE = (np.sqrt(2) * VEC_PSEUDO_MAX)</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            qfx2_vec : (N x D) an array of N, D-dimensional query vectors</span>
@@ -1010,8 +1023,8 @@
             <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">nnindexer</span><span class="o">.</span><span class="n">flann</span><span class="o">.</span><span class="n">nn_index</span><span class="p">(</span>
                 <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">checks</span><span class="o">=</span><span class="n">nnindexer</span><span class="o">.</span><span class="n">checks</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="n">nnindexer</span><span class="o">.</span><span class="n">cores</span><span class="p">)</span>
             <span class="c"># Ensure that distance returned are between 0 and 1</span>
-            <span class="n">qfx2_dist</span> <span class="o">=</span> <span class="n">qfx2_dist</span> <span class="o">/</span> <span class="p">(</span><span class="n">nnindexer</span><span class="o">.</span><span class="n">max_distance</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-            <span class="c">#qfx2_dist = np.sqrt(qfx2_dist) / nnindexer.max_distance</span>
+            <span class="n">qfx2_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">qfx2_dist</span><span class="p">,</span> <span class="n">nnindexer</span><span class="o">.</span><span class="n">max_distance_sqrd</span><span class="p">)</span>
+            <span class="c">#qfx2_dist = np.sqrt(qfx2_dist) / nnindexer.max_distance_sqrd</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="NeighborIndex.empty_neighbors"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.NeighborIndex.empty_neighbors">[docs]</a>    <span class="k">def</span> <span class="nf">empty_neighbors</span><span class="p">(</span><span class="n">nnindexer</span><span class="p">,</span> <span class="n">nQfx</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
@@ -1145,12 +1158,9 @@
 
 <span class="c"># ------------</span>
 <span class="c"># NEW</span>
-</div>
-<div class="viewcode-block" id="BuildBackgroundNNIndexer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.BuildBackgroundNNIndexer">[docs]</a><span class="k">class</span> <span class="nc">BuildBackgroundNNIndexer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span>
 
 </div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="check_background_process"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.check_background_process">[docs]</a><span class="k">def</span> <span class="nf">check_background_process</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    checks to see if the process has finished and then</span>
@@ -1176,6 +1186,7 @@
     <span class="k">return</span> <span class="n">CURRENT_THREAD</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">CURRENT_THREAD</span><span class="o">.</span><span class="n">is_alive</span><span class="p">()</span>
 
 </div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="request_background_nnindexer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.neighbor_index.request_background_nnindexer">[docs]</a><span class="k">def</span> <span class="nf">request_background_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; FIXME: Duplicate code</span>
 

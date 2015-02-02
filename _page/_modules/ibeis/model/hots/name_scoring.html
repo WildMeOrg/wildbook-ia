@@ -61,12 +61,12 @@
                                            <span class="s">&#39;sorted_aids&#39;</span><span class="p">,</span> <span class="s">&#39;sorted_scores&#39;</span><span class="p">))</span>
 
 
-<div class="viewcode-block" id="get_one_score_per_name"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.name_scoring.get_one_score_per_name">[docs]</a><span class="k">def</span> <span class="nf">get_one_score_per_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">):</span>
+<div class="viewcode-block" id="group_scores_by_name"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.name_scoring.group_scores_by_name">[docs]</a><span class="k">def</span> <span class="nf">group_scores_by_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts annotation scores to name scores</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.model.hots.name_scoring --test-get_one_score_per_name</span>
+<span class="sd">        python -m ibeis.model.hots.name_scoring --test-group_scores_by_name</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -84,11 +84,14 @@
 <span class="sd">        &gt;&gt;&gt; print(qres.get_inspect_str())</span>
 <span class="sd">        &gt;&gt;&gt; print(qres.get_inspect_str(ibs=ibs, name_scoring=True))</span>
 <span class="sd">        &gt;&gt;&gt; aid_list, score_list = qres.get_aids_and_scores()</span>
-<span class="sd">        &gt;&gt;&gt; nscoretup = get_one_score_per_name(ibs, aid_list, score_list)</span>
+<span class="sd">        &gt;&gt;&gt; nscoretup = group_scores_by_name(ibs, aid_list, score_list)</span>
 <span class="sd">        &gt;&gt;&gt; (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup</span>
-<span class="sd">        &gt;&gt;&gt; result = np.array_repr(sorted_nids[0:2])</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        array([1, 5])</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(sorted_nids[0], 1)</span>
+
+<span class="sd">    # TODO: this code needs a really good test case</span>
+<span class="sd">    #&gt;&gt;&gt; result = np.array_repr(sorted_nids[0:2])</span>
+<span class="sd">    #&gt;&gt;&gt; print(result)</span>
+<span class="sd">    #array([1, 5])</span>
 
 <span class="sd">    Ignore::</span>
 <span class="sd">        # hack in dict of Nones prob for testing</span>

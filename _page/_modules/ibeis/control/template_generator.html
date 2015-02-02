@@ -67,7 +67,7 @@
 
 <span class="sd">CommandLine:</span>
 <span class="sd">    python ibeis/control/template_generator.py</span>
-<span class="sd">    python -m ibeis.control.template_generator -key featweight --write</span>
+<span class="sd">    python -m ibeis.control.template_generator --key featweight --write</span>
 
 <span class="sd">TODO:</span>
 <span class="sd">   * autogen testdata function</span>
@@ -201,6 +201,7 @@
     <span class="s">&#39;vecs&#39;</span>                        <span class="p">:</span> <span class="s">&#39;vec_arr&#39;</span><span class="p">,</span>
     <span class="s">&#39;residualvecs&#39;</span>                <span class="p">:</span> <span class="s">&#39;rvec_arr&#39;</span><span class="p">,</span>
     <span class="s">&#39;verts&#39;</span>                       <span class="p">:</span> <span class="s">&#39;vert_arr&#39;</span><span class="p">,</span>
+    <span class="s">&#39;posixs&#39;</span>                      <span class="p">:</span> <span class="s">&#39;posix&#39;</span><span class="p">,</span>
 <span class="p">}</span>
 
 
@@ -296,6 +297,9 @@
     <span class="k">if</span> <span class="n">func_type</span> <span class="o">==</span> <span class="s">&#39;2_Native.deleter&#39;</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">flagskw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;with_api_cache&#39;</span><span class="p">,</span> <span class="n">WITH_API_CACHE</span><span class="p">):</span>
             <span class="n">func_code</span> <span class="o">=</span> <span class="s">&#39;@accessor_decors.cache_invalidator({TABLE})</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtdict</span><span class="p">)</span> <span class="o">+</span> <span class="n">func_code</span>
+    <span class="k">if</span> <span class="n">func_type</span> <span class="o">==</span> <span class="s">&#39;2_Native.setter&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">flagskw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;with_api_cache&#39;</span><span class="p">,</span> <span class="n">WITH_API_CACHE</span><span class="p">):</span>
+            <span class="n">func_code</span> <span class="o">=</span> <span class="s">&#39;@accessor_decors.cache_invalidator({TABLE}, {COLNAME}, native_rowids=True)</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmtdict</span><span class="p">)</span> <span class="o">+</span> <span class="n">func_code</span>
     <span class="c"># Need to register all function with ibs</span>
     <span class="k">if</span> <span class="n">flagskw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;with_decor&#39;</span><span class="p">,</span> <span class="n">WITH_DECOR</span><span class="p">):</span>
         <span class="n">func_code</span> <span class="o">=</span> <span class="s">&#39;@register_ibs_method</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">func_code</span>
@@ -329,7 +333,9 @@
 
         <span class="k">if</span> <span class="n">sqldb</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">all_colnames</span> <span class="o">=</span> <span class="n">sqldb</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
-            <span class="n">superkey_colnames</span> <span class="o">=</span> <span class="n">sqldb</span><span class="o">.</span><span class="n">get_table_superkey_colnames</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
+            <span class="c"># TODO: handle more than one superkey_colnames</span>
+            <span class="n">superkey_colnames_list</span> <span class="o">=</span> <span class="n">sqldb</span><span class="o">.</span><span class="n">get_table_superkey_colnames</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
+            <span class="n">superkey_colnames</span> <span class="o">=</span> <span class="n">superkey_colnames_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">primarykey_colnames</span> <span class="o">=</span> <span class="n">sqldb</span><span class="o">.</span><span class="n">get_table_primarykey_colnames</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
             <span class="n">other_colnames</span> <span class="o">=</span> <span class="n">sqldb</span><span class="o">.</span><span class="n">get_table_otherkey_colnames</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">dbself</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -347,6 +353,7 @@
     <span class="n">ignorecolnames</span> <span class="o">=</span> <span class="n">tblname2_ignorecolnames</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="p">[])</span>
     <span class="n">other_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">colname</span> <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">other_colnames</span>
                       <span class="k">if</span> <span class="n">colname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">ignorecolnames</span><span class="p">)]</span>
+    <span class="c">#ut.embed()</span>
     <span class="n">tableinfo</span> <span class="o">=</span> <span class="p">(</span><span class="n">dbself</span><span class="p">,</span> <span class="n">all_colnames</span><span class="p">,</span> <span class="n">superkey_colnames</span><span class="p">,</span> <span class="n">primarykey_colnames</span><span class="p">,</span> <span class="n">other_colnames</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">tableinfo</span>
 
@@ -591,6 +598,7 @@
     <span class="c">#leaf_other_propname_lists = &#39;, &#39;.join([colname + &#39;_list&#39; for colname in other_colnames])</span>
     <span class="c"># for the preproc_tbe.compute... method</span>
     <span class="n">leaf_props</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">other_colnames</span><span class="p">)</span>
+    <span class="c"># TODO: handle more than one superkey_colnames</span>
     <span class="n">superkey_args</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">colname</span> <span class="o">+</span> <span class="s">&#39;_list&#39;</span> <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">superkey_colnames</span><span class="p">])</span>
 
     <span class="c"># WE WILL DEFINE SEVERAL CLOSURES THAT USE THIS DICTIONARY</span>

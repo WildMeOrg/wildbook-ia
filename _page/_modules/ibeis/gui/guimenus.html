@@ -121,12 +121,23 @@
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Import Images (select directory)&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+I&#39;</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_dir</span><span class="p">)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionImport_Img_AsAnnot_file&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Import Cropped Images As Annotations (select file(s))&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_as_annots_from_file</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionImport_Img_file_with_smart&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Import Images (select file(s)) with smart Patrol XML&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_file_with_smart</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionImport_Img_dir_with_smart&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Import Images (select directory) with smart Patrol XML&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_dir_with_smart</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionLocalizeImages&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Localize Images&#39;</span><span class="p">,</span>
@@ -150,7 +161,7 @@
 <span class="c">#        slot_fn=back.add_annot)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionQuery&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Query&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Query Single Annotation&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Q&#39;</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">query</span><span class="p">)</span>
     <span class="c">#mainwin.menuActions.addSeparator()</span>
@@ -177,20 +188,20 @@
     <span class="c">#    slot_fn=back.select_prev)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDelete_ANNOTATION&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete ANNOTATION&#39;</span><span class="p">,</span>
-        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+Del&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_annot</span><span class="p">)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDelete_Image&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Trash Image&#39;</span><span class="p">,</span>
-        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_image</span><span class="p">)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDeleteAllEncounters&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete All Encounters&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_all_encounters</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDelete_Image&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Image&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_image</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDelete_ANNOTATION&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Annotation&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+Del&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_annot</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionTrainWithEncounters&#39;</span><span class="p">,</span>
@@ -211,24 +222,28 @@
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionCompute_Encounters&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Cluster Encounters&#39;</span><span class="p">,</span>
-        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+2&#39;</span><span class="p">,</span>
+        <span class="c">#shortcut=&#39;Ctrl+2&#39;,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">compute_encounters</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDetect&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Run Detection&#39;</span><span class="p">,</span>
-        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+3&#39;</span><span class="p">,</span>
+        <span class="c">#shortcut=&#39;Ctrl+3&#39;,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionCompute_Queries&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Compute Queries&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Compute Old Style Queries&#39;</span><span class="p">,</span>
         <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;&#39;&#39;This might take anywhere from a coffee break to an</span>
 <span class="s">                    overnight procedure depending on how many ANNOTATIONs you</span><span class="se">\&#39;</span><span class="s">ve</span>
 <span class="s">                    made. It queries each chip and saves the result which</span>
 <span class="s">                    allows multiple queries to be rapidly inspected later.&#39;&#39;&#39;</span><span class="p">,</span>
-        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+4&#39;</span><span class="p">,</span>
+        <span class="c">#shortcut=&#39;Ctrl+4&#39;,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionComputeIncremental_Queries&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Compute Incremental Queries&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">incremental_query</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionShipProcessedEncounters&#39;</span><span class="p">,</span>
@@ -236,7 +251,7 @@
         <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;&#39;&#39;This action will ship to WildBook any encounters that have</span>
 <span class="s">                    been marked as processed.  This can also be used to send</span>
 <span class="s">                    processed encounters that failed to ship correctly.&#39;&#39;&#39;</span><span class="p">,</span>
-        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+5&#39;</span><span class="p">,</span>
+        <span class="c">#shortcut=&#39;Ctrl+5&#39;,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">send_unshipped_processed_encounters</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
@@ -247,7 +262,7 @@
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionPrecomputeANNOTATIONFeatures&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Precompute Chips/Features&#39;</span><span class="p">,</span>
-        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+Return&#39;</span><span class="p">,</span>
+        <span class="c">#shortcut=&#39;Ctrl+Return&#39;,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">compute_feats</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionPrecomputeThumbnails&#39;</span><span class="p">,</span>
@@ -302,6 +317,11 @@
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;View Application Files Directory&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_app_files_dir</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionViewLogsDir&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;View Log Directory&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_log_dir</span><span class="p">)</span>
     <span class="c"># ---</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="c"># ---</span>
@@ -310,6 +330,17 @@
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Redownload Detection Models&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">redownload_detection_models</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionFixCleanDatabase&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Fix/Clean Database&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">fix_and_clean_database</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionConsistencyCheck&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Run Consistency Checks&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_consistency_checks</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDelete_Precomputed_Results&#39;</span><span class="p">,</span>
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Cached Query Results&#39;</span><span class="p">,</span>
@@ -330,17 +361,6 @@
         <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Thumbnails&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_thumbnails</span><span class="p">)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionFixCleanDatabase&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Fix/Clean Database&#39;</span><span class="p">,</span>
-        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">fix_and_clean_database</span><span class="p">)</span>
-    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionConsistencyCheck&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Run Consistency Checks&#39;</span><span class="p">,</span>
-        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_consistency_checks</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="setup_developer_menu"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guimenus.setup_developer_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_developer_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
@@ -358,7 +378,7 @@
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_mode</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDeveloper_CLS&#39;</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="s">&#39;CLS&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Refresh Tables&#39;</span><span class="p">,</span>
         <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+Shift+C&#39;</span><span class="p">,</span>
         <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_cls</span><span class="p">)</span>
     <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>

@@ -643,7 +643,7 @@
 
     <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">species_text</span> <span class="o">+</span> <span class="n">query_cfgstr</span>
 
-    <span class="k">if</span> <span class="n">cfgstr</span> <span class="ow">in</span> <span class="n">NORMALIZER_CACHE</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">NORMALIZER_CACHE</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">):</span>  <span class="c"># NOQA</span>
         <span class="c"># use memory cache</span>
         <span class="n">normalizer</span> <span class="o">=</span> <span class="n">NORMALIZER_CACHE</span><span class="p">[</span><span class="n">cfgstr</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
@@ -716,9 +716,11 @@
 <span class="sd">        &gt;&gt;&gt; result = score_normalizer.get_fname()</span>
 <span class="sd">        &gt;&gt;&gt; result += &#39;\n&#39; + score_normalizer.get_cfgstr()</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        zebra_plains_normalizer_n%w@df%th@i@seel.cPkl</span>
-<span class="sd">        _vsone_NN(single,K1+1,last,cks1024)_FILT(ratio&lt;0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
+<span class="sd">        zebra_plains_normalizer_x@!cxcgfncxz97mo.cPkl</span>
+<span class="sd">        _vsone_NN(single,K1+1,last,cks704)_FILT(ratio&lt;0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(8_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
 
+<span class="sd">    zebra_plains_normalizer_n%w@df%th@i@seel.cPkl</span>
+<span class="sd">    _vsone_NN(single,K1+1,last,cks1024)_FILT(ratio&lt;0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>
 
 <span class="sd">    normalizer_5cv1%3s&amp;.cPkl</span>
 <span class="sd">    PZ_MTEST_DSUUIDS((9)67j%dr%&amp;bl%4oh4+)_QSUUIDS((9)67j%dr%&amp;bl%4oh4+)zebra_plains_vsone_NN(single,K1+1,last,cks1024)_FILT(ratio&lt;0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)</span>

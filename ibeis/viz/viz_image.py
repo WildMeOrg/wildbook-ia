@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import zip
 import utool
+import plottool as pt  # NOQA
 import plottool.draw_func2 as df2
 from plottool import viz_image2
 import numpy as np
@@ -46,7 +47,38 @@ def get_annot_annotations(ibs, aid_list, sel_aids=[], draw_lbls=True):
 @utool.indent_func
 def show_image(ibs, gid, sel_aids=[], fnum=None,
                annote=True, draw_lbls=True, **kwargs):
-    """ Driver function to show images """
+    """
+    Driver function to show images
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid (int): image row id
+        sel_aids (list):
+        fnum (int):  figure number
+        annote (bool):
+        draw_lbls (bool):
+
+    Returns:
+        tuple: (fig, ax)
+
+    CommandLine:
+        python -m ibeis.viz.viz_image --test-show_image --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_image import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid = ibs.get_valid_gids()[0]
+        >>> sel_aids = []
+        >>> fnum = None
+        >>> annote = True
+        >>> draw_lbls = True
+        >>> # execute function
+        >>> (fig, ax) = show_image(ibs, gid, sel_aids, fnum, annote, draw_lbls)
+        >>> pt.show_if_requested()
+    """
     if fnum is None:
         fnum = df2.next_fnum()
     # Read Image
@@ -67,3 +99,15 @@ def show_image(ibs, gid, sel_aids=[], fnum=None,
     vh.set_ibsdat(ax, 'viztype', 'image')
     vh.set_ibsdat(ax, 'gid', gid)
     return fig, ax
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.viz.viz_image
+        python -m ibeis.viz.viz_image --allexamples
+        python -m ibeis.viz.viz_image --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

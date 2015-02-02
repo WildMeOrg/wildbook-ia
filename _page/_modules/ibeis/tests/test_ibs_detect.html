@@ -54,7 +54,7 @@
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>
+<span class="c">#from ibeis.model.detect import randomforest</span>
 <span class="c"># IBEIS</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[TEST_DETECT]&#39;</span><span class="p">)</span>
 
@@ -104,8 +104,8 @@
     <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>    <span class="c"># IBEIS Control</span>
     <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_DETECT</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
-    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s">&#39;test_locals&#39;</span><span class="p">)</span>
-    <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
+    <span class="c">#execstr = utool.execstr_dict(test_locals, &#39;test_locals&#39;)</span>
+    <span class="c">#exec(execstr)</span>
     <span class="k">if</span> <span class="n">SPECIAL</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">df2</span>
         <span class="n">df2</span><span class="o">.</span><span class="n">present</span><span class="p">()</span>

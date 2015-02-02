@@ -83,9 +83,8 @@
 <span class="n">ANNOT_EXEMPLAR_FLAG</span> <span class="o">=</span> <span class="s">&#39;annot_exemplar_flag&#39;</span>
 
 
-<span class="n">tmp</span> <span class="o">=</span> <span class="bp">None</span>
-
-
+<span class="c"># TODO CACHE THIS AND FIND WHAT IT SHOULD INVALIDATE IT</span>
+<span class="c"># ADD ANNOTS, DELETE ANNOTS ANYTHING ELSE?</span>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@ider</span>
 <span class="k">def</span> <span class="nf">_get_all_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -93,13 +92,8 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        list_ (list):  all unfiltered aids (annotation rowids)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">global</span> <span class="n">tmp</span>
-    <span class="k">if</span> <span class="n">tmp</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">all_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
-        <span class="n">tmp</span> <span class="o">=</span> <span class="n">all_aids</span>
-        <span class="k">return</span> <span class="n">all_aids</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">tmp</span>
+    <span class="n">all_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">all_aids</span>
 
 
 <span class="nd">@register_ibs_method</span>
@@ -110,7 +104,7 @@
                 <span class="n">vert_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                 <span class="n">annot_visual_uuid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">annot_semantic_uuid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                 <span class="n">species_rowid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">quiet_delete_thumbs</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-                <span class="n">prevent_visual_duplicates</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+                <span class="n">prevent_visual_duplicates</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Adds an annotation to images</span>
 
@@ -1329,7 +1323,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
-<span class="nd">@accessor_decors.dev_cache_getter</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">ANNOT_SEMANTIC_UUID</span><span class="p">)</span>
+<span class="c">#@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID)</span>
 <div class="viewcode-block" id="get_annot_semantic_uuids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_semantic_uuids">[docs]</a><span class="k">def</span> <span class="nf">get_annot_semantic_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; annot_semantic_uuid_list &lt;- annot.annot_semantic_uuid[aid_list]</span>
 
@@ -1467,9 +1461,9 @@
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  ibeis controller object</span>
 <span class="sd">        eid (None):</span>
-<span class="sd">        include_only_gid_list (list):</span>
+<span class="sd">        include_only_gid_list (list): if specified filters annots not in these gids</span>
 <span class="sd">        viewpoint (str):</span>
-<span class="sd">        is_exemplar (None):</span>
+<span class="sd">        is_exemplar (bool): if specified filters annots to either be or not be exemplars</span>
 <span class="sd">        species (None):</span>
 <span class="sd">        is_known (None):</span>
 
@@ -1479,6 +1473,9 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_valid_aids</span>
 
+<span class="sd">    Ignore:</span>
+<span class="sd">        ibs.print_annotation_table()</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
@@ -1487,6 +1484,8 @@
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; eid = 1</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_all_encounters()</span>
+<span class="sd">        &gt;&gt;&gt; ibs.compute_encounters()</span>
 <span class="sd">        &gt;&gt;&gt; include_only_gid_list = None</span>
 <span class="sd">        &gt;&gt;&gt; viewpoint = &#39;no-filter&#39;</span>
 <span class="sd">        &gt;&gt;&gt; is_exemplar = None</span>
@@ -1494,16 +1493,32 @@
 <span class="sd">        &gt;&gt;&gt; is_known = False</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = get_valid_aids(ibs, eid, include_only_gid_list, viewpoint, is_exemplar, species, is_known)</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_names(aid_list), [const.UNKNOWN])</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_species(aid_list), [const.Species.ZEB_PLAIN])</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_names(aid_list), [const.UNKNOWN] * 2, &#39;bad name&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_species(aid_list), [const.Species.ZEB_PLAIN] * 2, &#39;bad species&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [False] * 2, &#39;bad exemplar&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; result = str(aid_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        [4]</span>
+<span class="sd">        [1, 4]</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis import constants as const</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; aid_list1 = get_valid_aids(ibs, is_exemplar=True)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list2 = get_valid_aids(ibs, is_exemplar=False)</span>
+<span class="sd">        &gt;&gt;&gt; intersect_aids = set(aid_list1).intersection(aid_list2)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(len(aid_list1), 9)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(len(aid_list2), 4)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(len(intersect_aids), 0)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># getting encounter aid</span>
     <span class="k">if</span> <span class="n">eid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">is_exemplar</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_exemplar</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c"># Optimization Hack</span>
             <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="s">&#39;annot_exemplar_flag=?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">is_exemplar</span><span class="p">,))</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1519,6 +1534,9 @@
             <span class="c"># corresponding unoptimized hack for is_exemplar</span>
             <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
             <span class="n">aid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">is_exemplar</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
+            <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+            <span class="n">aid_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
     <span class="c"># -- valid aid filtering --</span>
     <span class="k">if</span> <span class="n">include_only_gid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">gid_list</span>     <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -1591,12 +1609,41 @@
 <span class="sd">    Sets names/nids of a list of annotations.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        aid_list</span>
-<span class="sd">        name_rowid_list</span>
+<span class="sd">        aid_list (list):</span>
+<span class="sd">        name_rowid_list (list):</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; # check clean state</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_names(aid_list), [&#39;____&#39;, &#39;easy&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [0, 1])</span>
+<span class="sd">        &gt;&gt;&gt; # run function</span>
+<span class="sd">        &gt;&gt;&gt; name_list = [&#39;easy&#39;, &#39;____&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; name_rowid_list = ibs.get_name_rowids_from_text(name_list)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_annot_name_rowids(aid_list, name_rowid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # check results</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_names(aid_list), [&#39;easy&#39;, &#39;____&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [0, 0])</span>
+<span class="sd">        &gt;&gt;&gt; # restore database state</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_annot_names(aid_list, [&#39;____&#39;, &#39;easy&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; ibs.set_annot_exemplar_flags(aid_list, [0, 1])</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_names(aid_list), [&#39;____&#39;, &#39;easy&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [0, 1])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#ibsfuncs.assert_lblannot_rowids_are_type(ibs, name_rowid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">aid_list</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">NAME_ROWID</span><span class="p">,)</span>
+    <span class="c"># WE NEED TO PERFORM A SPECIAL CHECK. ANY ANIMAL WHICH IS GIVEN AN UNKONWN</span>
+    <span class="c"># NAME MUST HAVE ITS EXEMPLAR FLAG SET TO FALSE</span>
+    <span class="n">will_be_unknown_flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">name_rowid_list</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">will_be_unknown_flag_list</span><span class="p">):</span>
+        <span class="c"># remove exemplar status from any annotations that will become unknown</span>
+        <span class="n">will_be_unknown_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">will_be_unknown_flag_list</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">will_be_unknown_aids</span><span class="p">,</span> <span class="p">[</span><span class="bp">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">will_be_unknown_aids</span><span class="p">))</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
     <span class="c"># postset nids</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">update_annot_semantic_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -1635,7 +1682,7 @@
     <span class="c">#name_rowid_list = ibs.get_name_rowids_from_text(name_list, ensure=True)</span>
     <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">name_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">update_annot_semantic_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="c">#ibs.update_annot_semantic_uuids(aid_list) # set annot_name_rowids does this</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -1844,6 +1891,39 @@
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_VISUAL_UUID</span><span class="p">,),</span> <span class="n">annot_visual_uuid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="c"># If visual uuids are changes semantic ones are also changed</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">update_annot_semantic_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">_visual_infotup</span><span class="o">=</span><span class="n">visual_infotup</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<div class="viewcode-block" id="get_annot_chip_dlen_sqrd"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_chip_dlen_sqrd">[docs]</a><span class="k">def</span> <span class="nf">get_annot_chip_dlen_sqrd</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        aid_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray: topx2_dlen_sqrd</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annot_chip_dlen_sqrd</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; topx2_dlen_sqrd = ibs.get_annot_chip_dlen_sqrd(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(topx2_dlen_sqrd)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">topx2_dlen_sqrd</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">((</span><span class="n">w</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">h</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chipsizes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">topx2_dlen_sqrd</span>
 
 </div>
 <div class="viewcode-block" id="testdata_annot"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.testdata_annot">[docs]</a><span class="k">def</span> <span class="nf">testdata_annot</span><span class="p">():</span>

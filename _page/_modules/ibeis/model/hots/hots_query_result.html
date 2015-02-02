@@ -245,6 +245,8 @@
         <span class="n">qres</span><span class="o">.</span><span class="n">filtkey_list</span> <span class="o">=</span> <span class="bp">None</span>   <span class="c"># list of filter keys for each dimension in fsv</span>
         <span class="n">qres</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># messy (meta information of query)</span>
         <span class="c">#qres.daid_list = None  # matchable daids</span>
+        <span class="c"># HACK for keeping interactions alive</span>
+        <span class="n">qres</span><span class="o">.</span><span class="n">_live_interactions</span> <span class="o">=</span> <span class="p">[]</span>
 
 <div class="viewcode-block" id="QueryResult.get_fm_list"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.get_fm_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_fm_list</span><span class="p">(</span><span class="n">qres</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -353,8 +355,13 @@
         <span class="n">fpath</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">(</span><span class="n">qresdir</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[qr] cache save: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">split</span><span class="p">(</span><span class="n">fpath</span><span class="p">)[</span><span class="mi">1</span><span class="p">],))</span>
+        <span class="n">ignore_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_live_interactions&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ignore_keys</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">save_dict</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">__dict__</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">save_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_keys</span><span class="p">}</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
-            <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">__dict__</span><span class="p">,</span> <span class="n">file_</span><span class="p">)</span>
+            <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">save_dict</span><span class="p">,</span> <span class="n">file_</span><span class="p">,</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="QueryResult.__eq__"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.__eq__">[docs]</a>    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; For testing. Do not use&quot;&quot;&quot;</span>
@@ -412,7 +419,7 @@
         <span class="n">aid_list</span><span class="p">,</span> <span class="n">score_list</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aids_and_chip_scores</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">score_list</span><span class="p">)):</span>
             <span class="n">score_list</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aid_scores</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">rawscore</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">nscoretup</span> <span class="o">=</span> <span class="n">name_scoring</span><span class="o">.</span><span class="n">get_one_score_per_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">)</span>
+        <span class="n">nscoretup</span> <span class="o">=</span> <span class="n">name_scoring</span><span class="o">.</span><span class="n">group_scores_by_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">)</span>
         <span class="c"># (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup</span>
         <span class="k">return</span> <span class="n">nscoretup</span>
 </div>
@@ -462,8 +469,9 @@
 <div class="viewcode-block" id="QueryResult.get_top_aids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.get_top_aids">[docs]</a>    <span class="k">def</span> <span class="nf">get_top_aids</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns a ranked list of chip indexes &quot;&quot;&quot;</span>
         <span class="c"># TODO: rename num to ranks_lt</span>
-        <span class="n">aid_arr</span><span class="p">,</span> <span class="n">score_arr</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aids_and_scores</span><span class="p">(</span><span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span>
-                                                      <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="n">aid_arr</span><span class="p">,</span> <span class="n">score_arr</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aids_and_scores</span><span class="p">(</span><span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="c"># fix when score_arr is a bad probability</span>
+        <span class="n">score_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">get_aid_scores</span><span class="p">(</span><span class="n">aid_arr</span><span class="p">,</span> <span class="n">rawscore</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
         <span class="c"># Get chip-ids sorted by scores</span>
         <span class="n">top_aids</span> <span class="o">=</span> <span class="n">aid_arr</span><span class="p">[</span><span class="n">score_arr</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
         <span class="n">num_indexed</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
@@ -520,7 +528,10 @@
             <span class="k">return</span> <span class="n">mx</span>
 </div>
 <div class="viewcode-block" id="QueryResult.get_worse_possible_rank"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.get_worse_possible_rank">[docs]</a>    <span class="k">def</span> <span class="nf">get_worse_possible_rank</span><span class="p">(</span><span class="n">qres</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; a good non None value to use for None ranks &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        DEPRICATE</span>
+
+<span class="sd">        a good non None value to use for None ranks &quot;&quot;&quot;</span>
         <span class="c">#worse_possible_rank = max(len(qres.get_daids()) + 2, 9001)</span>
         <span class="n">worse_possible_rank</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">get_daids</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">worse_possible_rank</span>
@@ -585,21 +596,21 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">gt_ranks</span>
 </div>
-<div class="viewcode-block" id="QueryResult.get_best_gt_rank"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.get_best_gt_rank">[docs]</a>    <span class="k">def</span> <span class="nf">get_best_gt_rank</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Returns the best rank over all the groundtruth &quot;&quot;&quot;</span>
-        <span class="n">gt_ranks</span><span class="p">,</span> <span class="n">gt_aids</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_gt_ranks</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gt_aids</span><span class="o">=</span><span class="n">gt_aids</span><span class="p">,</span> <span class="n">return_gtaids</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">aidrank_tups</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">,</span> <span class="n">gt_ranks</span><span class="p">))</span>
+<div class="viewcode-block" id="QueryResult.get_best_aid_rank"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.get_best_aid_rank">[docs]</a>    <span class="k">def</span> <span class="nf">get_best_aid_rank</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">aids</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the best rank over all the input aids &quot;&quot;&quot;</span>
+        <span class="n">ranks</span><span class="p">,</span> <span class="n">aids</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aid_ranks</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+        <span class="n">aidrank_tups</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">ranks</span><span class="p">))</span>
         <span class="c"># Get only the aids that placed in the shortlist</span>
-        <span class="c">#valid_gtaids = np.array([ aid for aid, rank in aidrank_tups if rank is not None])</span>
-        <span class="n">valid_ranks</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rank</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">rank</span> <span class="ow">in</span> <span class="n">aidrank_tups</span> <span class="k">if</span> <span class="n">rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">])</span>
+        <span class="n">valid_ranks</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">rank</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">rank</span> <span class="ow">in</span> <span class="n">aidrank_tups</span>
+                                 <span class="k">if</span> <span class="n">rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">])</span>
         <span class="c"># Sort so lowest score is first</span>
         <span class="n">best_rankx</span> <span class="o">=</span> <span class="n">valid_ranks</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
         <span class="c">#best_gtaids  = best_gtaids[best_rankx]</span>
-        <span class="n">best_gtranks</span> <span class="o">=</span> <span class="n">valid_ranks</span><span class="p">[</span><span class="n">best_rankx</span><span class="p">]</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">best_gtranks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">best_ranks</span> <span class="o">=</span> <span class="n">valid_ranks</span><span class="p">[</span><span class="n">best_rankx</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">best_ranks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">best_rank</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">best_rank</span> <span class="o">=</span> <span class="n">best_gtranks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">best_rank</span> <span class="o">=</span> <span class="n">best_ranks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">best_rank</span>
 
     <span class="c"># ----------------------------------------</span>
@@ -764,6 +775,72 @@
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;update&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
             <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">fig</span>
+</div>
+<div class="viewcode-block" id="QueryResult.show_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.show_matches">[docs]</a>    <span class="k">def</span> <span class="nf">show_matches</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_matches</span>
+        <span class="k">return</span> <span class="n">viz_matches</span><span class="o">.</span><span class="n">show_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="QueryResult.dump_top_match"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.dump_top_match">[docs]</a>    <span class="k">def</span> <span class="nf">dump_top_match</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --quality</span>
+
+<span class="sd">            python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --dpi=160 --no-fmatches</span>
+<span class="sd">            python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --dpi=120 --no-fmatches --saveax</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.viz.viz_qres import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; # build test data</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; kwargs = {}</span>
+<span class="sd">            &gt;&gt;&gt; kwargs[&#39;dpi&#39;] = ut.get_argval(&#39;--dpi&#39;, int, None)</span>
+<span class="sd">            &gt;&gt;&gt; kwargs[&#39;figsize&#39;] = ut.get_argval(&#39;--figsize&#39;, list, None)</span>
+<span class="sd">            &gt;&gt;&gt; kwargs[&#39;fpath&#39;] = ut.get_argval(&#39;--fpath&#39;, str, None)</span>
+<span class="sd">            &gt;&gt;&gt; kwargs[&#39;draw_fmatches&#39;] = not ut.get_argflag(&#39;--no-fmatches&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; kwargs[&#39;vert&#39;] = ut.get_argflag(&#39;--vert&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; kwargs[&#39;draw_border&#39;] = ut.get_argflag(&#39;--draw_border&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; #kwargs[&#39;saveax&#39;] = ut.get_argflag(&#39;--saveax&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; kwargs[&#39;in_image&#39;] = ut.get_argflag(&#39;--in-image&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; kwargs[&#39;draw_lbl&#39;] = ut.get_argflag(&#39;--no-draw-lbl&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; qres = ibs.query_chips(ibs.get_valid_aids()[0:1])[0]</span>
+<span class="sd">            &gt;&gt;&gt; qres.dump_top_match(ibs, **kwargs)</span>
+<span class="sd">            &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+        <span class="c"># Pop save kwargs from kwargs</span>
+        <span class="n">save_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;dpi&#39;</span><span class="p">,</span> <span class="s">&#39;figsize&#39;</span><span class="p">,</span> <span class="s">&#39;saveax&#39;</span><span class="p">,</span> <span class="s">&#39;fpath&#39;</span><span class="p">]</span>
+        <span class="n">save_vals</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_pop</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">save_keys</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">savekw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">save_keys</span><span class="p">,</span> <span class="n">save_vals</span><span class="p">))</span>
+        <span class="n">fpath</span> <span class="o">=</span> <span class="n">savekw</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;fpath&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fpath</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">savekw</span><span class="p">[</span><span class="s">&#39;usetitle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="c"># Draw Matches</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ax</span><span class="p">,</span> <span class="n">xywh1</span><span class="p">,</span> <span class="n">xywh2</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">show_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">make_smaller_title</span><span class="p">())</span>
+        <span class="c"># Adjust</span>
+        <span class="c">#pt.adjust_subplots(0, 0, 1, 1, 0, 0)</span>
+        <span class="c"># Save Figure</span>
+        <span class="n">img_fpath</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">save_figure</span><span class="p">(</span><span class="n">fpath</span><span class="o">=</span><span class="n">fpath</span><span class="p">,</span> <span class="o">**</span><span class="n">savekw</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span><span class="n">img_fpath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">img_fpath</span>
+        <span class="c">#pt.figure(fnum=pt.next_fnum())</span>
+        <span class="c">#pt.imshow(img_fpath)</span>
+</div>
+<div class="viewcode-block" id="QueryResult.ishow_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.ishow_matches">[docs]</a>    <span class="k">def</span> <span class="nf">ishow_matches</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_matches</span>  <span class="c"># NOQA</span>
+        <span class="c">#if aid == &#39;top&#39;:</span>
+        <span class="c">#    aid = qres.get_top_aids(ibs)</span>
+        <span class="n">match_interaction</span> <span class="o">=</span> <span class="n">interact_matches</span><span class="o">.</span><span class="n">MatchInteraction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c"># Keep the interaction alive at least while the qres is alive</span>
+        <span class="n">qres</span><span class="o">.</span><span class="n">_live_interactions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">match_interaction</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">match_interaction</span>
+        <span class="c">#fig = interact_matches.ishow_matches(ibs, qres, aid, *args, **kwargs)</span>
+        <span class="c">#return fig</span>
 </div>
 <div class="viewcode-block" id="QueryResult.qt_inspect_gui"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.qt_inspect_gui">[docs]</a>    <span class="k">def</span> <span class="nf">qt_inspect_gui</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[qres] qt_inspect_gui&#39;</span><span class="p">)</span>

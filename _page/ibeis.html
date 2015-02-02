@@ -116,6 +116,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.gui.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.gui.html#module-ibeis.gui.clock_offset_gui">ibeis.gui.clock_offset_gui module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.gui.html#module-ibeis.gui.guiback">ibeis.gui.guiback module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.gui.html#module-ibeis.gui.guiheaders">ibeis.gui.guiheaders module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.gui.html#module-ibeis.gui.guimenus">ibeis.gui.guimenus module</a></li>
@@ -154,10 +155,12 @@
 </li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots._neighbor_experiment">ibeis.model.hots._neighbor_experiment module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots._pipeline_helpers">ibeis.model.hots._pipeline_helpers module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_helpers">ibeis.model.hots.automated_helpers module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_matcher">ibeis.model.hots.automated_matcher module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_oracle">ibeis.model.hots.automated_oracle module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.devcases">ibeis.model.hots.devcases module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.distinctiveness_normalizer">ibeis.model.hots.distinctiveness_normalizer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.exceptions">ibeis.model.hots.exceptions module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hots_query_result">ibeis.model.hots.hots_query_result module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hstypes">ibeis.model.hots.hstypes module</a></li>
@@ -176,6 +179,7 @@
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.system_suggestor">ibeis.model.hots.system_suggestor module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.user_dialogs">ibeis.model.hots.user_dialogs module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.voting_rules2">ibeis.model.hots.voting_rules2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.vsone_pipeline">ibeis.model.hots.vsone_pipeline module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.word_index">ibeis.model.hots.word_index module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots">Module contents</a></li>
 </ul>
@@ -268,6 +272,7 @@
 <li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_qres2">ibeis.viz.interact.interact_qres2 module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_query_decision">ibeis.viz.interact.interact_query_decision module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.interact_sver">ibeis.viz.interact.interact_sver module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact.old_interact_matches">ibeis.viz.interact.old_interact_matches module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ibeis.viz.interact.html#module-ibeis.viz.interact">Module contents</a></li>
 </ul>
 </li>
@@ -365,6 +370,11 @@ string name changes)</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.distinctdir">
+<tt class="descname">distinctdir</tt><em class="property"> = 'distinctiveness_model'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.distinctdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="ibeis.constants.PATH_NAMES.flann">
 <tt class="descname">flann</tt><em class="property"> = 'flann'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.flann" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -377,6 +387,16 @@ string name changes)</p>
 <dl class="attribute">
 <dt id="ibeis.constants.PATH_NAMES.qres">
 <tt class="descname">qres</tt><em class="property"> = 'qres'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.qres" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.scorenormdir">
+<tt class="descname">scorenormdir</tt><em class="property"> = 'scorenorm'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.scorenormdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.smartpatrol">
+<tt class="descname">smartpatrol</tt><em class="property"> = 'smart_patrol'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.smartpatrol" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -397,6 +417,11 @@ string name changes)</p>
 <dl class="attribute">
 <dt id="ibeis.constants.PATH_NAMES.trashdir">
 <tt class="descname">trashdir</tt><em class="property"> = 'trashed_images'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.trashdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.PATH_NAMES.trees">
+<tt class="descname">trees</tt><em class="property"> = 'trees'</em><a class="headerlink" href="#ibeis.constants.PATH_NAMES.trees" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -427,6 +452,11 @@ string name changes)</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="ibeis.constants.REL_PATHS.distinctdir">
+<tt class="descname">distinctdir</tt><em class="property"> = '_ibsdb/_ibeis_cache/distinctiveness_model'</em><a class="headerlink" href="#ibeis.constants.REL_PATHS.distinctdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="ibeis.constants.REL_PATHS.flann">
 <tt class="descname">flann</tt><em class="property"> = '_ibsdb/_ibeis_cache/flann'</em><a class="headerlink" href="#ibeis.constants.REL_PATHS.flann" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -449,6 +479,11 @@ string name changes)</p>
 <dl class="attribute">
 <dt id="ibeis.constants.REL_PATHS.trashdir">
 <tt class="descname">trashdir</tt><em class="property"> = 'trashed_images'</em><a class="headerlink" href="#ibeis.constants.REL_PATHS.trashdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.REL_PATHS.trees">
+<tt class="descname">trees</tt><em class="property"> = '_ibsdb/trees'</em><a class="headerlink" href="#ibeis.constants.REL_PATHS.trees" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -475,6 +510,11 @@ string name changes)</p>
 <dl class="attribute">
 <dt id="ibeis.constants.Species.GIRAFFE">
 <tt class="descname">GIRAFFE</tt><em class="property"> = 'giraffe'</em><a class="headerlink" href="#ibeis.constants.Species.GIRAFFE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.Species.HYENA">
+<tt class="descname">HYENA</tt><em class="property"> = 'hyena'</em><a class="headerlink" href="#ibeis.constants.Species.HYENA" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -528,6 +568,11 @@ string name changes)</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="ibeis.constants.Species.TIGER">
+<tt class="descname">TIGER</tt><em class="property"> = 'tiger'</em><a class="headerlink" href="#ibeis.constants.Species.TIGER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="ibeis.constants.Species.UNKNOWN">
 <tt class="descname">UNKNOWN</tt><em class="property"> = '____'</em><a class="headerlink" href="#ibeis.constants.Species.UNKNOWN" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -565,6 +610,75 @@ string name changes)</p>
 <dl class="attribute">
 <dt id="ibeis.constants.Species.ZEB_PLAIN">
 <tt class="descname">ZEB_PLAIN</tt><em class="property"> = 'zebra_plains'</em><a class="headerlink" href="#ibeis.constants.Species.ZEB_PLAIN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.constants.SpeciesTuple">
+<em class="property">class </em><tt class="descclassname">ibeis.constants.</tt><tt class="descname">SpeciesTuple</tt><a class="headerlink" href="#ibeis.constants.SpeciesTuple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">tuple</span></tt></p>
+<p>SpeciesTuple(species_text, species_code, species_nice)</p>
+<dl class="method">
+<dt id="ibeis.constants.SpeciesTuple.__getnewargs__">
+<tt class="descname">__getnewargs__</tt><big>(</big><big>)</big><a class="headerlink" href="#ibeis.constants.SpeciesTuple.__getnewargs__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.constants.SpeciesTuple.__getstate__">
+<tt class="descname">__getstate__</tt><big>(</big><big>)</big><a class="headerlink" href="#ibeis.constants.SpeciesTuple.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exclude the OrderedDict from pickling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.constants.SpeciesTuple.__repr__">
+<tt class="descname">__repr__</tt><big>(</big><big>)</big><a class="headerlink" href="#ibeis.constants.SpeciesTuple.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a nicely formatted representation string</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.SpeciesTuple.species_code">
+<tt class="descname">species_code</tt><a class="headerlink" href="#ibeis.constants.SpeciesTuple.species_code" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.SpeciesTuple.species_nice">
+<tt class="descname">species_nice</tt><a class="headerlink" href="#ibeis.constants.SpeciesTuple.species_nice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.SpeciesTuple.species_text">
+<tt class="descname">species_text</tt><a class="headerlink" href="#ibeis.constants.SpeciesTuple.species_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.constants.ZIPPED_URLS">
+<em class="property">class </em><tt class="descclassname">ibeis.constants.</tt><tt class="descname">ZIPPED_URLS</tt><a class="reference internal" href="_modules/ibeis/constants.html#ZIPPED_URLS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.constants.ZIPPED_URLS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="attribute">
+<dt id="ibeis.constants.ZIPPED_URLS.GZ_DISTINCTIVE">
+<tt class="descname">GZ_DISTINCTIVE</tt><em class="property"> = 'https://www.dropbox.com/s/nb5gv7wibwo3ib4/distinctivness_zebra_grevys.zip'</em><a class="headerlink" href="#ibeis.constants.ZIPPED_URLS.GZ_DISTINCTIVE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.ZIPPED_URLS.NAUTS">
+<tt class="descname">NAUTS</tt><em class="property"> = 'https://www.dropbox.com/s/8gt3eaiw8rb31rh/NAUT_test.zip'</em><a class="headerlink" href="#ibeis.constants.ZIPPED_URLS.NAUTS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.ZIPPED_URLS.PZ_DISTINCTIVE">
+<tt class="descname">PZ_DISTINCTIVE</tt><em class="property"> = 'https://www.dropbox.com/s/gbp24qks9z3fzm6/distinctivness_zebra_plains.zip'</em><a class="headerlink" href="#ibeis.constants.ZIPPED_URLS.PZ_DISTINCTIVE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ibeis.constants.ZIPPED_URLS.PZ_MTEST">
+<tt class="descname">PZ_MTEST</tt><em class="property"> = 'https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip'</em><a class="headerlink" href="#ibeis.constants.ZIPPED_URLS.PZ_MTEST" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -857,11 +971,12 @@ multiple annotations per name and large time variation within names.</p>
 <dd><p class="first">python -m ibeis.ibsfuncs &#8211;test-export_testset_for_chuck &#8211;dbdir /raid/work2/Turk/PZ_Master &#8211;min-num-annots 100
 python -m ibeis.ibsfuncs &#8211;test-export_testset_for_chuck &#8211;dbdir /raid/work2/Turk/PZ_Master &#8211;min-num-annots 500</p>
 <p class="last">python -m ibeis.ibsfuncs &#8211;test-export_testset_for_chuck &#8211;dbdir /raid/work2/Turk/GZ_Master &#8211;min-num-annots 100
-python -m ibeis.ibsfuncs &#8211;test-export_testset_for_chuck &#8211;dbdir /raid/work2/Turk/GZ_Master &#8211;min-num-annots 500</p>
+python -m ibeis.ibsfuncs &#8211;test-export_testset_for_chuck &#8211;dbdir
+/raid/work2/Turk/GZ_Master &#8211;min-num-annots 500_DOCTEST</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
@@ -1011,7 +1126,8 @@ is associated with an unknown annotation</p>
 <dl class="function">
 <dt id="ibeis.ibsfuncs.get_annot_groundfalse_sample">
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">get_annot_groundfalse_sample</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>per_name=1</em>, <em>seed=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#get_annot_groundfalse_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.get_annot_groundfalse_sample" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>FIXME</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -1038,12 +1154,12 @@ is associated with an unknown annotation</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">per_name</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seed</span> <span class="o">=</span> <span class="mi">42</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sample_trues_list</span> <span class="o">=</span> <span class="n">get_annot_groundfalse_sample</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">per_name</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">sample_trues_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">[[3, 5, 7, 8, 10, 12, 13], [3, 7, 8, 10, 12, 13], [3, 6, 7, 8, 10, 12, 13], [2, 6, 7, 8, 10, 12]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#result = str(sample_trues_list)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#print(result)</span>
 </pre></div>
 </div>
-<p>[[2, 6, 7, 8, 10, 12, 13], [2, 7, 8, 10, 12, 13], [2, 5, 7, 8, 10, 12, 13], [2, 6, 7, 8, 10, 12]]
+<p>[[3, 5, 7, 8, 10, 12, 13], [3, 7, 8, 10, 12, 13], [3, 6, 7, 8, 10, 12, 13], [2, 6, 7, 8, 10, 12]]
+[[2, 6, 7, 8, 10, 12, 13], [2, 7, 8, 10, 12, 13], [2, 5, 7, 8, 10, 12, 13], [2, 6, 7, 8, 10, 12]]
 [[2, 5, 7, 8, 10, 12, 13], [3, 7, 8, 10, 12, 13], [2, 5, 7, 8, 10, 12, 13], [3, 5, 7, 8, 10, 12]]</p>
 </dd></dl>
 
@@ -1134,8 +1250,9 @@ is associated with an unknown annotation</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sample_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_rowid_sample</span><span class="p">(</span><span class="n">per_name</span><span class="p">,</span> <span class="n">min_ngt</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">sample_aids</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># FIXME</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#result = str(sample_aids)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#print(result)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1449,7 +1566,7 @@ to try it as a query against.</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.make_next_name">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">make_next_name</tt><big>(</big><em>ibs</em>, <em>num=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#make_next_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.make_next_name" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">make_next_name</tt><big>(</big><em>ibs</em>, <em>num=None</em>, <em>str_format=2</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#make_next_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.make_next_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a number of names which are not in the database, but does not
 add them</p>
 </dd></dl>
@@ -1527,13 +1644,13 @@ add them</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.print_alr_table">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_alr_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_alr_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_alr_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dumps chip table to stdout</p>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_alr_table</tt><big>(</big><em>ibs</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_alr_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_alr_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps alr table to stdout</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.print_annotation_table">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_annotation_table</tt><big>(</big><em>ibs</em>, <em>verbosity=1</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_annotation_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_annotation_table" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_annotation_table</tt><big>(</big><em>ibs</em>, <em>verbosity=1</em>, <em>exclude_columns=[]</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_annotation_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_annotation_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dumps annotation table to stdout</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1560,8 +1677,8 @@ add them</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.print_config_table">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_config_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_config_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_config_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dumps chip table to stdout</p>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_config_table</tt><big>(</big><em>ibs</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_config_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_config_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps config table to stdout</p>
 </dd></dl>
 
 <dl class="function">
@@ -1571,14 +1688,18 @@ add them</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.print_egpairs_table">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_egpairs_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_egpairs_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_egpairs_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dumps chip table to stdout</p>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_egpairs_table</tt><big>(</big><em>ibs</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_egpairs_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_egpairs_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps egpairs table to stdout</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.print_encounter_table">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_encounter_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_encounter_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_encounter_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dumps chip table to stdout</p>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_encounter_table</tt><big>(</big><em>ibs</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_encounter_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_encounter_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps encounter table to stdout</p>
+<dl class="docutils">
+<dt>Kwargs:</dt>
+<dd>exclude_columns (list):</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -1594,26 +1715,26 @@ add them</p>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.print_image_table">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_image_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_image_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_image_table" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_image_table</tt><big>(</big><em>ibs</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_image_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_image_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dumps chip table to stdout</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.print_lblannot_table">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_lblannot_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_lblannot_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_lblannot_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dumps chip table to stdout</p>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_lblannot_table</tt><big>(</big><em>ibs</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_lblannot_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_lblannot_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps lblannot table to stdout</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.print_name_table">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_name_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_name_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_name_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dumps chip table to stdout</p>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_name_table</tt><big>(</big><em>ibs</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_name_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_name_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps name table to stdout</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.ibsfuncs.print_species_table">
-<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_species_table</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_species_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_species_table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dumps chip table to stdout</p>
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">print_species_table</tt><big>(</big><em>ibs</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#print_species_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.print_species_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps species table to stdout</p>
 </dd></dl>
 
 <dl class="function">
@@ -1643,6 +1764,12 @@ add them</p>
 <tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">rebase_images</tt><big>(</big><em>ibs</em>, <em>new_path</em>, <em>gid_list=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#rebase_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.rebase_images" title="Permalink to this definition">¶</a></dt>
 <dd><p>Moves the images into the ibeis image cache.
 Images are renamed to img_uuid.ext</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.ibsfuncs.recompute_fgweights">
+<tt class="descclassname">ibeis.ibsfuncs.</tt><tt class="descname">recompute_fgweights</tt><big>(</big><em>ibs</em>, <em>aid_list=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/ibsfuncs.html#recompute_fgweights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.ibsfuncs.recompute_fgweights" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete all feature weights and then recompute them</p>
 </dd></dl>
 
 <dl class="function">
@@ -1794,7 +1921,7 @@ and that have been reviewed</dd>
 <dt>CommandLine:</dt>
 <dd>python -m ibeis.ibsfuncs &#8211;test-update_ungrouped_special_encounter</dd>
 <dt>Example:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.ibsfuncs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>

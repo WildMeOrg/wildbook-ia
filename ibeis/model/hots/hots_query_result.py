@@ -476,7 +476,10 @@ class QueryResult(__OBJECT_BASE__):
             return mx
 
     def get_worse_possible_rank(qres):
-        """ a good non None value to use for None ranks """
+        """
+        DEPRICATE
+
+        a good non None value to use for None ranks """
         #worse_possible_rank = max(len(qres.get_daids()) + 2, 9001)
         worse_possible_rank = len(qres.get_daids()) + 1
         return worse_possible_rank
@@ -541,21 +544,21 @@ class QueryResult(__OBJECT_BASE__):
         else:
             return gt_ranks
 
-    def get_best_gt_rank(qres, ibs=None, gt_aids=None):
-        """ Returns the best rank over all the groundtruth """
-        gt_ranks, gt_aids = qres.get_gt_ranks(ibs=ibs, gt_aids=gt_aids, return_gtaids=True)
-        aidrank_tups = list(zip(gt_aids, gt_ranks))
+    def get_best_aid_rank(qres, aids):
+        """ Returns the best rank over all the input aids """
+        ranks, aids = qres.get_aid_ranks(aids)
+        aidrank_tups = list(zip(aids, ranks))
         # Get only the aids that placed in the shortlist
-        #valid_gtaids = np.array([ aid for aid, rank in aidrank_tups if rank is not None])
-        valid_ranks  = np.array([rank for aid, rank in aidrank_tups if rank is not None])
+        valid_ranks  = np.array([rank for aid, rank in aidrank_tups
+                                 if rank is not None])
         # Sort so lowest score is first
         best_rankx = valid_ranks.argsort()
         #best_gtaids  = best_gtaids[best_rankx]
-        best_gtranks = valid_ranks[best_rankx]
-        if len(best_gtranks) == 0:
+        best_ranks = valid_ranks[best_rankx]
+        if len(best_ranks) == 0:
             best_rank = -1
         else:
-            best_rank = best_gtranks[0]
+            best_rank = best_ranks[0]
         return best_rank
 
     # ----------------------------------------
@@ -763,6 +766,8 @@ class QueryResult(__OBJECT_BASE__):
         if fpath is None:
             savekw['usetitle'] = True
         # Draw Matches
+        fnum = pt.next_fnum()
+        pt.figure(fnum=fnum, doclf=True, docla=True)
         aid = qres.get_top_aids(ibs)[0]
         ax, xywh1, xywh2 = qres.show_matches(ibs, aid, **kwargs)
         pt.set_figtitle(qres.make_smaller_title())

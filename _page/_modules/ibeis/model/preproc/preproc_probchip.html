@@ -261,7 +261,7 @@
             <span class="s">&#39;output_gpath_list&#39;</span><span class="p">:</span> <span class="n">probchip_fpath_list</span><span class="p">,</span>
             <span class="s">&#39;mode&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="p">}</span>
-        <span class="n">randomforest</span><span class="o">.</span><span class="n">detect_gpath_list_with_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">results_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">randomforest</span><span class="o">.</span><span class="n">detect_gpath_list_with_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">))</span>  <span class="c"># NOQA</span>
         <span class="n">probchip_fpath_list_</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">probchip_fpath_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] Done computing probability images&#39;</span><span class="p">)</span>

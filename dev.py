@@ -901,7 +901,8 @@ if __name__ == '__main__':
     EXAMPLE_STR = ut.msgblock('dev.py Examples', ut.codeblock(EXAMPLE_TEXT))
 
     print(INTRO_STR)
-    print(EXAMPLE_STR)
+    if ut.get_argflag(('--help', '--verbose')):
+        print(EXAMPLE_STR)
 
     CMD   = '--cmd' in sys.argv
     NOGUI = '--gui' not in sys.argv

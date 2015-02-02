@@ -178,7 +178,7 @@
     <span class="n">interactive_after</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--interactive-after&#39;</span><span class="p">,</span> <span class="s">&#39;--ia&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
     <span class="c"># Add information to an empty database from a groundtruth database</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid1_to_aid2</span> <span class="o">=</span> <span class="n">ah</span><span class="o">.</span><span class="n">setup_incremental_test</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">interactive_after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="bp">True</span> <span class="ow">or</span> <span class="n">interactive_after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">back</span> <span class="o">=</span> <span class="n">main_module</span><span class="o">.</span><span class="n">_init_gui</span><span class="p">()</span>
         <span class="n">back</span><span class="o">.</span><span class="n">connect_ibeis_control</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -186,7 +186,7 @@
     <span class="n">interactive</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_incremental_query</span><span class="p">(</span>
         <span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid1_to_aid2</span><span class="p">,</span>
         <span class="n">interactive_after</span><span class="o">=</span><span class="n">interactive_after</span><span class="p">,</span> <span class="n">num_initial</span><span class="o">=</span><span class="n">num_initial</span><span class="p">,</span> <span class="n">back</span><span class="o">=</span><span class="n">back</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">interactive_after</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">interactive</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">back</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">interactive_after</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">interactive</span><span class="p">:</span>
         <span class="c"># need to startup backend</span>
         <span class="n">back</span> <span class="o">=</span> <span class="n">main_module</span><span class="o">.</span><span class="n">_init_gui</span><span class="p">()</span>
         <span class="n">back</span><span class="o">.</span><span class="n">connect_ibeis_control</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>

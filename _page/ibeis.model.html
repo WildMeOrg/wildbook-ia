@@ -87,10 +87,12 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots._neighbor_experiment">ibeis.model.hots._neighbor_experiment module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots._pipeline_helpers">ibeis.model.hots._pipeline_helpers module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_helpers">ibeis.model.hots.automated_helpers module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_matcher">ibeis.model.hots.automated_matcher module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.automated_oracle">ibeis.model.hots.automated_oracle module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.devcases">ibeis.model.hots.devcases module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.distinctiveness_normalizer">ibeis.model.hots.distinctiveness_normalizer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.exceptions">ibeis.model.hots.exceptions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hots_query_result">ibeis.model.hots.hots_query_result module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.hstypes">ibeis.model.hots.hstypes module</a></li>
@@ -109,6 +111,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.system_suggestor">ibeis.model.hots.system_suggestor module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.user_dialogs">ibeis.model.hots.user_dialogs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.voting_rules2">ibeis.model.hots.voting_rules2 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.vsone_pipeline">ibeis.model.hots.vsone_pipeline module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots.word_index">ibeis.model.hots.word_index module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.html#module-ibeis.model.hots">Module contents</a></li>
 </ul>
@@ -447,7 +450,9 @@ TODO: this might not need to be here</p>
 <dl class="method">
 <dt id="ibeis.model.Config.QueryConfig.apply_codename">
 <tt class="descname">apply_codename</tt><big>(</big><em>query_cfg</em>, <em>codename=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/Config.html#QueryConfig.apply_codename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.Config.QueryConfig.apply_codename" title="Permalink to this definition">¶</a></dt>
-<dd><p>codenames denote mass changes to configurations</p>
+<dd><p>codenames denote mass changes to configurations
+it is a hacky solution to setting different parameter
+values all at once.</p>
 </dd></dl>
 
 <dl class="method">

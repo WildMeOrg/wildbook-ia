@@ -54,22 +54,21 @@
 <span class="sd">off of the utool.Preference.Pref class which really needs a good overhaul</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[cfg]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[cfg]&#39;</span><span class="p">)</span>
 
-<span class="c">#ConfigBase = utool.DynStruct</span>
+<span class="c">#ConfigBase = ut.DynStruct</span>
 <span class="c">#ConfigBase = object</span>
-<span class="n">ConfigBase</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">Pref</span>
+<span class="n">ConfigBase</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">Pref</span>
 
 
 <div class="viewcode-block" id="make_config_metaclass"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.make_config_metaclass">[docs]</a><span class="k">def</span> <span class="nf">make_config_metaclass</span><span class="p">():</span>
-    <span class="n">methods_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_comparison_methods</span><span class="p">()</span>
+    <span class="n">methods_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_comparison_methods</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_register</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="n">methods_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
@@ -106,7 +105,7 @@
                 <span class="k">if</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
                     <span class="n">funcname</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
                     <span class="n">dct</span><span class="p">[</span><span class="n">funcname</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
-                <span class="c">#utool.inject_func_as_method(metaself, func)</span>
+                <span class="c">#ut.inject_func_as_method(metaself, func)</span>
 
             <span class="c">#return type(name, bases, dct)</span>
             <span class="k">return</span> <span class="nb">type</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
@@ -244,14 +243,15 @@
             <span class="n">filt_cfg</span><span class="p">[</span><span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">filt</span> <span class="o">+</span> <span class="s">&#39;_depends&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">depends</span>
             <span class="n">filt_cfg</span><span class="p">[</span><span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">filt</span> <span class="o">+</span> <span class="s">&#39;_sign&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sign</span>
         <span class="c"># thresh test is: sign * score &lt;= sign * thresh</span>
-        <span class="c"># sign +1 --&gt; Lower scores are better</span>
-        <span class="c"># sign -1 --&gt; Higher scores are better</span>
+        <span class="c"># sign +1 := Lower scores are better</span>
+        <span class="c"># sign -1 := Higher scores are better</span>
         <span class="c">#tup( Sign,        Filt, ValidSignThresh, ScoreMetaWeight)</span>
         <span class="c">#    (sign,        filt, thresh, weight,  depends)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>  <span class="s">&#39;bboxdist&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>     <span class="s">&#39;recip&#39;</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">,</span> <span class="s">&#39;filt_cfg.Krecip &gt; 0&#39;</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>    <span class="s">&#39;bursty&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>     <span class="s">&#39;ratio&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">addfilt</span><span class="p">(</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>      <span class="s">&#39;dist&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>     <span class="s">&#39;lnbnn&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">1.0</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>   <span class="s">&#39;dupvote&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">1.0</span><span class="p">)</span>
         <span class="n">addfilt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>    <span class="s">&#39;lograt&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>    <span class="mf">0.0</span><span class="p">)</span>
@@ -344,7 +344,7 @@
         <span class="n">tau</span> <span class="o">=</span> <span class="mf">6.28</span>  <span class="c"># 318530</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">sv_on</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">xy_thresh</span> <span class="o">=</span> <span class="o">.</span><span class="mo">01</span>
-        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">scale_thresh</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">scale_thresh</span> <span class="o">=</span> <span class="mf">2.0</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">ori_thresh</span>   <span class="o">=</span> <span class="n">tau</span> <span class="o">/</span> <span class="mf">4.0</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">min_nInliers</span> <span class="o">=</span> <span class="mi">4</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">nShortlist</span> <span class="o">=</span> <span class="mi">50</span>
@@ -358,7 +358,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">sv_on</span> <span class="ow">or</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">xy_thresh</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[</span><span class="s">&#39;_SV(OFF)&#39;</span><span class="p">]</span>
         <span class="n">thresh_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">xy_thresh</span><span class="p">,</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">scale_thresh</span><span class="p">,</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">ori_thresh</span><span class="p">)</span>
-        <span class="n">thresh_str</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">remove_chars</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">thresh_tup</span><span class="p">),</span> <span class="s">&#39; ()&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;;&#39;</span><span class="p">)</span>
+        <span class="n">thresh_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">remove_chars</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">thresh_tup</span><span class="p">),</span> <span class="s">&#39; ()&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;;&#39;</span><span class="p">)</span>
         <span class="n">sv_cfgstr</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s">&#39;_SV(&#39;</span><span class="p">,</span>
             <span class="n">thresh_str</span><span class="p">,</span>
@@ -615,15 +615,16 @@
 </div></div>
 <span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
 <div class="viewcode-block" id="QueryConfig"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.QueryConfig">[docs]</a><span class="k">class</span> <span class="nc">QueryConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; query configuration parameters</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    query configuration parameters</span>
 
-<span class="sd">        Example:</span>
-<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">            &gt;&gt;&gt; import ibeis</span>
-<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; cfg = ibs.cfg.query_cfg</span>
-<span class="sd">            &gt;&gt;&gt; cfgstr = ibs.cfg.query_cfg.get_cfgstr()</span>
-<span class="sd">            &gt;&gt;&gt; print(cfgstr)</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; cfg = ibs.cfg.query_cfg</span>
+<span class="sd">        &gt;&gt;&gt; cfgstr = ibs.cfg.query_cfg.get_cfgstr()</span>
+<span class="sd">        &gt;&gt;&gt; print(cfgstr)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -642,14 +643,16 @@
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">_valid_pipeline_roots</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;vsmany&#39;</span><span class="p">,</span> <span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="s">&#39;smk&#39;</span><span class="p">]</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="s">&#39;vsmany&#39;</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">with_metadata</span> <span class="o">=</span> <span class="bp">False</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">return_expanded_nns</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">return_expanded_nns</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># for hacky distinctivness</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">use_external_distinctiveness</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># for distinctivness model</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">vsone_reranking</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">codename</span> <span class="o">=</span> <span class="s">&#39;None&#39;</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">species_code</span> <span class="o">=</span> <span class="s">&#39;____&#39;</span>  <span class="c"># TODO: make use of this</span>
-        <span class="c">#if utool.is_developer():</span>
+        <span class="c">#if ut.is_developer():</span>
         <span class="c">#    query_cfg.pipeline_root = &#39;smk&#39;</span>
         <span class="c"># Depends on feature config</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[config] NEW QueryConfig&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="QueryConfig.update_query_cfg"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.QueryConfig.update_query_cfg">[docs]</a>    <span class="k">def</span> <span class="nf">update_query_cfg</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">cfgdict</span><span class="p">):</span>
@@ -683,6 +686,8 @@
 <div class="viewcode-block" id="QueryConfig.apply_codename"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.QueryConfig.apply_codename">[docs]</a>    <span class="k">def</span> <span class="nf">apply_codename</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="n">codename</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        codenames denote mass changes to configurations</span>
+<span class="sd">        it is a hacky solution to setting different parameter</span>
+<span class="sd">        values all at once.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">codename</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">codename</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">codename</span>
@@ -712,8 +717,20 @@
             <span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="n">filt_cfg</span><span class="o">.</span><span class="n">lnbnn_weight</span> <span class="o">=</span> <span class="mf">0.0</span>
             <span class="c">#filt_cfg.ratio_thresh = 1.6</span>
-            <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_thresh</span> <span class="o">=</span> <span class="o">.</span><span class="mi">625</span>
-            <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_weight</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="k">if</span> <span class="n">codename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;_dist&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;_dist_&#39;</span> <span class="ow">in</span> <span class="n">codename</span><span class="p">:</span>
+                <span class="c"># no ratio use distance</span>
+                <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_thresh</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_weight</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">filt_cfg</span><span class="o">.</span><span class="n">dist_thresh</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="n">filt_cfg</span><span class="o">.</span><span class="n">dist_weight</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_thresh</span> <span class="o">=</span> <span class="o">.</span><span class="mi">625</span>
+                <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_weight</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="k">if</span> <span class="s">&#39;_ratio&#39;</span> <span class="ow">in</span> <span class="n">codename</span><span class="p">:</span>
+                <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_thresh</span> <span class="o">=</span> <span class="o">.</span><span class="mi">625</span>
+                <span class="n">filt_cfg</span><span class="o">.</span><span class="n">ratio_weight</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="k">if</span> <span class="s">&#39;_extern_distinctiveness&#39;</span> <span class="ow">in</span> <span class="n">codename</span><span class="p">:</span>
+                <span class="n">query_cfg</span><span class="o">.</span><span class="n">use_external_distinctiveness</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="n">filt_cfg</span><span class="o">.</span><span class="n">dupvote_weight</span> <span class="o">=</span> <span class="mf">0.0</span>
             <span class="k">if</span> <span class="n">codename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;vsone_unnorm&#39;</span><span class="p">):</span>
                 <span class="n">agg_cfg</span><span class="o">.</span><span class="n">score_normalization</span> <span class="o">=</span> <span class="bp">False</span>
@@ -769,8 +786,8 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">hasvalid_root</span><span class="p">,</span> <span class="s">&#39;invalid pipeline root </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span>
         <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">SUPER_STRICT</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">SUPER_STRICT</span><span class="p">:</span>
                 <span class="k">raise</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_valid_pipeline_roots</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -1017,9 +1034,9 @@
                         <span class="n">valstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">val</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">valstr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-                    <span class="c">#namestr = utool.hashstr(alias.get(name, name), hashlen=6,</span>
-                    <span class="c">#                        alphabet=utool.util_hash.ALPHABET_27)</span>
-                    <span class="n">namestr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">clipstr</span><span class="p">(</span><span class="n">alias</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span> <span class="mi">5</span><span class="p">)</span>
+                    <span class="c">#namestr = ut.hashstr(alias.get(name, name), hashlen=6,</span>
+                    <span class="c">#                        alphabet=ut.util_hash.ALPHABET_27)</span>
+                    <span class="n">namestr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">clipstr</span><span class="p">(</span><span class="n">alias</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span> <span class="mi">5</span><span class="p">)</span>
                     <span class="n">str_</span> <span class="o">=</span> <span class="n">namestr</span> <span class="o">+</span> <span class="s">&#39;=&#39;</span> <span class="o">+</span> <span class="n">valstr</span>
                     <span class="k">yield</span> <span class="n">str_</span>
             <span class="n">feat_cfgstrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="s">&#39;,&#39;</span> <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">_gen</span><span class="p">())))</span>
@@ -1078,7 +1095,8 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">DetectionConfig</span><span class="p">,</span> <span class="n">detect_cfg</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;detect_cfg&#39;</span><span class="p">)</span>
         <span class="n">detect_cfg</span><span class="o">.</span><span class="n">species</span>     <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_GREVY</span>
         <span class="n">detect_cfg</span><span class="o">.</span><span class="n">detector</span>    <span class="o">=</span> <span class="s">&#39;rf&#39;</span>
-        <span class="n">detect_cfg</span><span class="o">.</span><span class="n">scale_list</span>  <span class="o">=</span> <span class="s">&#39;1.33, 1.00, 0.75, 0.56, 0.42, 0.32, 0.24, 0.18, 0.13&#39;</span>
+        <span class="c"># detect_cfg.scale_list  = &#39;1.3, 1.2, 1.1, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1&#39;</span>
+        <span class="n">detect_cfg</span><span class="o">.</span><span class="n">scale_list</span>  <span class="o">=</span> <span class="s">&#39;1.15, 1.0, 0.85, 0.7, 0.55, 0.4, 0.25, 0.10&#39;</span>
         <span class="n">detect_cfg</span><span class="o">.</span><span class="n">trees_path</span>  <span class="o">=</span> <span class="s">&#39;&#39;</span>
         <span class="n">detect_cfg</span><span class="o">.</span><span class="n">detectimg_sqrt_area</span> <span class="o">=</span> <span class="mi">800</span>
         <span class="n">detect_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -1152,6 +1170,8 @@
         <span class="n">other_cfg</span><span class="o">.</span><span class="n">detect_add_after</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="c"># other_cfg.detect_use_chunks = True</span>
         <span class="n">other_cfg</span><span class="o">.</span><span class="n">use_more_special_encounters</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">location_for_names</span> <span class="o">=</span> <span class="s">&#39;IBEIS&#39;</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">smart_enabled</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">other_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c">#def get_cfgstr_list(nn_cfg):</span>
@@ -1171,7 +1191,7 @@
 <div class="viewcode-block" id="default_vsone_cfg"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.default_vsone_cfg">[docs]</a><span class="k">def</span> <span class="nf">default_vsone_cfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="c"># DEPRICATE</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;pipeline_root&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;vsone&#39;</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">dict_update_newkeys</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="p">{</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">dict_update_newkeys</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="p">{</span>
         <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
         <span class="s">&#39;checks&#39;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span>
         <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
@@ -1227,7 +1247,7 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[Config] building default config&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">cfgname</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">cfgname</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">z_cfgname</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[config] default_query_cfg()&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">new</span><span class="p">:</span>
         <span class="n">fpath</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">()</span>
