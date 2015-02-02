@@ -1,10 +1,14 @@
 """
-TODO: Module Licence and docstring
+Note:
+    THERE ARE FUNCTIONS THAT ARE INJECTED INTO THE CONTROLLER
+    THAT ARE NOT DEFINED IN THIS MODULE.
 
-functions in the IBEISController have been split up into several submodules.
+    functions in the IBEISController have been split up into several submodules.
+    look at the modules listed in autogenmodname_list to see the full list of
+    functions that will be injected into an IBEISController object
 
-look at the modules listed in autogenmodname_list to see the full list of
-functions that will be injected into an IBEISController object
+TODO:
+    Module Licence and docstring
 """
 # TODO: rename annotation annotations
 # TODO: make all names consistent

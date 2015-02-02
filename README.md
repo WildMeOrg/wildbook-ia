@@ -704,13 +704,13 @@ python dev.py --setdb --db PZ_Master0
 python dev.py --allhard --qaid 1:10:2 --noqcache -t best
 
 python dev.py --allhard --qaid 1:10:2 -t custom
-python dev.py --allhard --qaid 1:10:2 -t best --cfg vsone_reranking=True 
+python dev.py --allhard --qaid 1:10:2 -t best --cfg rrvsone_on=True 
 
-python dev.py --allhard --qaid 1:10:2 -t best nsum custom custom:vsone_reranking=True
-python dev.py --allhard --qaid 1:10:2 -t best nsum custom custom:vsone_reranking=True custom:sv_on=False
+python dev.py --allhard --qaid 1:10:2 -t best nsum custom custom:rrvsone_on=True
+python dev.py --allhard --qaid 1:10:2 -t best nsum custom custom:rrvsone_on=True custom:sv_on=False
 
 
-python dev.py --allgt -t best nsum custom custom:vsone_reranking=True custom:sv_on=False
+python dev.py --allgt -t best nsum custom custom:rrvsone_on=True custom:sv_on=False
 
 ```
 

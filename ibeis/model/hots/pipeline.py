@@ -287,7 +287,9 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     qaid2_chipmatch_SVER_ = spatial_verification(qreq_, qaid2_chipmatch_FILT_,
                                                  verbose=verbose)
 
-    if qreq_.qparams.vsone_reranking:
+    # We might just put this check inside the function like it is for SVER.
+    # or just not do that and use some good pipeline framework
+    if qreq_.qparams.rrvsone_on:
         # VSONE RERANKING
         qaid2_chipmatch_VSONERR_ = vsone_reranking(qreq_, qaid2_chipmatch_SVER_, verbose=verbose)
         qaid2_chipmatch_ = qaid2_chipmatch_VSONERR_

@@ -563,6 +563,29 @@ class VocabAssignConfig(ConfigBase):
 
 
 @six.add_metaclass(ConfigMetaclass)
+class RerankVsOneConfig(ConfigBase):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> rrvsone_cfg = RerankVsOneConfig()
+        >>> result = rrvsone_cfg.get_cfgstr()
+        >>> print(result)
+    """
+    def __init__(rrvsone_cfg, **kwargs):
+        super(RerankVsOneConfig, rrvsone_cfg).__init__(name='rrvsone_cfg')
+        rrvsone_cfg.rrvsone_on = False
+
+    def get_cfgstr_list(rrvsone_cfg, **kwargs):
+        rrvsone_cfg_list = [
+            '_RRVsOne(',
+            '%s' % (rrvsone_cfg.rrvsone_on),
+            ')',
+        ]
+        return rrvsone_cfg_list
+
+
+@six.add_metaclass(ConfigMetaclass)
 class QueryConfig(ConfigBase):
     """
     query configuration parameters
@@ -584,6 +607,7 @@ class QueryConfig(ConfigBase):
         query_cfg.agg_cfg        = AggregateConfig(**kwargs)
         query_cfg.flann_cfg      = FlannConfig(**kwargs)
         query_cfg.smk_cfg        = SMKConfig(**kwargs)
+        query_cfg.rrvsone_cfg    = RerankVsOneConfig(**kwargs)
         # causes some bug in Preference widget if these don't have underscore
         query_cfg._featweight_cfg = FeatureWeightConfig(**kwargs)
         query_cfg.use_cache = False
@@ -594,7 +618,6 @@ class QueryConfig(ConfigBase):
         query_cfg.with_metadata = False
         query_cfg.return_expanded_nns = False  # for hacky distinctivness
         query_cfg.use_external_distinctiveness = False  # for distinctivness model
-        query_cfg.vsone_reranking = False
         query_cfg.codename = 'None'
         query_cfg.species_code = '____'  # TODO: make use of this
         #if ut.is_developer():
@@ -603,6 +626,38 @@ class QueryConfig(ConfigBase):
         query_cfg.update_query_cfg(**kwargs)
         if ut.VERYVERBOSE:
             print('[config] NEW QueryConfig')
+
+    def get_cfgstr_list(query_cfg, **kwargs):
+        # Ensure feasibility of the configuration
+        query_cfg.make_feasible()
+
+        # Build cfgstr
+        cfgstr_list = ['_' + query_cfg.pipeline_root ]
+        if str(query_cfg.pipeline_root) == 'smk':
+            # SMK Parameters
+            if kwargs.get('use_smk', True):
+                cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_sv', True):
+                cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
+        elif str(query_cfg.pipeline_root) == 'vsmany' or str(query_cfg.pipeline_root) == 'vsone':
+            # Naive Bayes Parameters
+            if kwargs.get('use_nn', True):
+                cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_filt', True):
+                cfgstr_list += query_cfg.filt_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_sv', True):
+                cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_agg', True):
+                cfgstr_list += query_cfg.agg_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_flann', True):
+                cfgstr_list += query_cfg.flann_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_rrvsone', True):
+                cfgstr_list += query_cfg.rrvsone_cfg.get_cfgstr_list(**kwargs)
+        else:
+            raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
+        if kwargs.get('use_featweight', True):
+            cfgstr_list += query_cfg._featweight_cfg.get_cfgstr_list(**kwargs)
+        return cfgstr_list
 
     def update_query_cfg(query_cfg, **cfgdict):
         # Each config paramater should be unique
@@ -620,6 +675,7 @@ class QueryConfig(ConfigBase):
         query_cfg.smk_cfg.update(**cfgdict)
         query_cfg.smk_cfg.vocabassign_cfg.update(**cfgdict)
         query_cfg.smk_cfg.vocabtrain_cfg.update(**cfgdict)
+        query_cfg.rrvsone_cfg.update(**cfgdict)
         query_cfg._featweight_cfg.update(**cfgdict)
         query_cfg._featweight_cfg._feat_cfg.update(**cfgdict)
         query_cfg._featweight_cfg._feat_cfg._chip_cfg.update(**cfgdict)
@@ -758,36 +814,6 @@ class QueryConfig(ConfigBase):
         copy_ = copy.deepcopy(query_cfg)
         copy_.update_query_cfg(**kwargs)
         return copy_
-
-    def get_cfgstr_list(query_cfg, **kwargs):
-        # Ensure feasibility of the configuration
-        query_cfg.make_feasible()
-
-        # Build cfgstr
-        cfgstr_list = ['_' + query_cfg.pipeline_root ]
-        if str(query_cfg.pipeline_root) == 'smk':
-            # SMK Parameters
-            if kwargs.get('use_smk', True):
-                cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)
-            if kwargs.get('use_sv', True):
-                cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
-        elif str(query_cfg.pipeline_root) == 'vsmany' or str(query_cfg.pipeline_root) == 'vsone':
-            # Naive Bayes Parameters
-            if kwargs.get('use_nn', True):
-                cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
-            if kwargs.get('use_filt', True):
-                cfgstr_list += query_cfg.filt_cfg.get_cfgstr_list(**kwargs)
-            if kwargs.get('use_sv', True):
-                cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
-            if kwargs.get('use_agg', True):
-                cfgstr_list += query_cfg.agg_cfg.get_cfgstr_list(**kwargs)
-            if kwargs.get('use_flann', True):
-                cfgstr_list += query_cfg.flann_cfg.get_cfgstr_list(**kwargs)
-        else:
-            raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
-        if kwargs.get('use_featweight', True):
-            cfgstr_list += query_cfg._featweight_cfg.get_cfgstr_list(**kwargs)
-        return cfgstr_list
 
 
 @six.add_metaclass(ConfigMetaclass)

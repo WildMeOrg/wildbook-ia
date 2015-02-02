@@ -59,7 +59,7 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
     #---
     if stop_node == 'vsone_reranking':
         return locals()
-    if qreq_.qparams.vsone_reranking:
+    if qreq_.qparams.rrvsone_on:
         # VSONE RERANKING
         qaid2_chipmatch_VSONERR = vsone_reranking(qreq_, qaid2_chipmatch_SVER, verbose=verbose)
         qaid2_chipmatch = qaid2_chipmatch_VSONERR

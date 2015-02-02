@@ -304,8 +304,13 @@ def single_vsone_query(ibs, qaid, daid_list, H_list):
         pt.update()
     """
     from ibeis.model.hots import name_scoring
+    print('==================')
+    #ut.print_resource_usage()
     fm_list, fs_list = compute_query_matches(ibs, qaid, daid_list, H_list)  # 35.8
+    #ut.print_resource_usage()
+    # BIG MEMORY JUMP HERE
     cov_score_list = compute_query_coverage(ibs, qaid, daid_list, fm_list, fs_list)  # 64.2
+    #ut.print_resource_usage()
     NAME_SCORING = True
     if NAME_SCORING:
         # Keep only the best annotation per name
@@ -360,6 +365,8 @@ def compute_query_constrained_matches(ibs, qaid, daid_list, H_list):
             ratio_thresh2, K)
         fm_SCR_list.append(fm_SCR)
         fs_SCR_list.append(fs_SCR)
+    del flann
+    print('---------------- ;)(')
     return fm_SCR_list, fs_SCR_list
 
 
@@ -393,8 +400,11 @@ def compute_query_coverage(ibs, qaid, daid_list, fm_list, fs_list):
     weights = (qfgweight * qdstncvs) ** .5
     #  Hits     Time     Per Hit    %Time
     #    3      2298873 766291.0      9.1
+    print('==--==--==--==--==--==')
+    ut.print_resource_usage()
     weight_mask, patch = coverage_image.make_coverage_mask(
         qkpts, qchipsize, fx2_score=weights, mode=mode)  # 9% of the time
+    ut.print_resource_usage()
     # Apply weighted scoring to matches
     score_list = []
     for fm, fs, ddstncvs, dfgweight in zip(fm_list, fs_list, ddstncvs_list, dfgweight_list):
@@ -414,6 +424,7 @@ def compute_query_coverage(ibs, qaid, daid_list, fm_list, fs_list):
         #    weight_color = np.dstack(stacktup)
         coverage_score = weight_mask_m.sum() / weight_mask.sum()
         score_list.append(coverage_score)
+    ut.print_resource_usage()
     return score_list
 
 
