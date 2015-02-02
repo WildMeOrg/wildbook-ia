@@ -3,11 +3,10 @@ import ctypes as C
 import numpy as np
 #import vtool
 import vtool.keypoint as ktool
-import vtool.tests.dummy as dummy
-import vtool.spatial_verification as sver
 import utool as ut
+from os.path import dirname, join
 
-TAU = 2 * np.pi  # tauday.org
+TAU = 2 * np.pi  # tauday.com
 c_double_p = C.POINTER(C.c_double)
 
 # copied/adapted from _pyhesaff.py
@@ -20,13 +19,6 @@ errs_t = np.ctypeslib.ndpointer(dtype=np.float64, ndim=3, flags=FLAGS_RW)
 mats_t = np.ctypeslib.ndpointer(dtype=np.float64, ndim=3, flags=FLAGS_RW)
 
 
-#def call_python_version(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
-#    out_inliers, out_errors, out_mats = sver.get_affine_inliers(
-#        kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
-#    return out_inliers, out_errors, out_mats
-
-
-from os.path import dirname, join
 dpath = dirname(__file__)
 cpp_fname = join(dpath, 'sver.cpp')
 lib_fname = join(dpath, 'sver.so')
@@ -69,6 +61,7 @@ def get_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, 
 
 def test_calling():
     """
+    Test to ensure cpp and python agree and that cpp is faster
 
     CommandLine:
         python -m vtool.sver_c_wrapper --test-test_calling
@@ -88,6 +81,8 @@ def test_calling():
         %timeit call_python_version(*args)
         %timeit get_affine_inliers_cpp(*args)
     """
+    import vtool.spatial_verification as sver
+    import vtool.tests.dummy as dummy
     xy_thresh_sqrd = ktool.KPTS_DTYPE(.1)
     scale_thresh_sqrd = ktool.KPTS_DTYPE(2)
     ori_thresh = ktool.KPTS_DTYPE(TAU / 4)

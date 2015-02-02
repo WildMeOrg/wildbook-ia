@@ -22,6 +22,13 @@ import scipy.sparse.linalg as spsl
 from numpy.core.umath_tests import matrix_multiply
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
+
+try:
+    from vtool import sver_c_wrapper
+except Exception as ex:
+    ut.printex(ex, 'please build the sver c wrapper (run with --rebuild-sver')
+    raise
+
 profile = ut.profile
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[sver]', DEBUG=False)
 
@@ -423,10 +430,16 @@ def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
     """
     # Test each affine hypothesis
     # get list if inliers, errors, the affine matrix for each hypothesis
-    aff_inliers_list, aff_errors_list, Aff_mats = get_affine_inliers(kpts1, kpts2, fm,
-                                                                     xy_thresh_sqrd,
-                                                                     scale_thresh,
-                                                                     ori_thresh)
+    USE_CPP_WRAPPER = True
+    if USE_CPP_WRAPPER:
+        aff_inliers_list, aff_errors_list, Aff_mats = sver_c_wrapper.get_affine_inliers_cpp(
+            kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh)
+    else:
+        aff_inliers_list, aff_errors_list, Aff_mats = get_affine_inliers(kpts1, kpts2, fm,
+                                                                         xy_thresh_sqrd,
+                                                                         scale_thresh,
+                                                                         ori_thresh)
+
     # Determine the best hypothesis using the number of inliers
     # TODO: other measures in the error lists could be used as well
     nInliers_list = np.array([len(inliers) for inliers in aff_inliers_list])
@@ -534,41 +547,38 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
     Returns:
         tuple : (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff) if success else None
 
+    CommandLine:
+        python -m vtool.spatial_verification --test-spatially_verify_kpts --show
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.spatial_verification import *
-        >>> import ibeis
-        >>> import pyflann
-        >>> from ibeis.model.hots import query_request
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qaid = 1
-        >>> daid = ibs.get_annot_groundtruth(qaid)[0]
-        >>> kpts1, kpts2 = ibs.get_annot_kpts([qaid, daid])
-        >>> qvecs, dvecs = ibs.get_annot_vecs([qaid, daid])
-        >>> # Simple ratio-test matching
-        >>> flann = pyflann.FLANN()
-        >>> flann.build_index(dvecs)
-        >>> qfx2_dfx, qfx2_dist = flann.nn_index(qvecs, 2)
-        >>> ratio = (qfx2_dist.T[1] / qfx2_dist.T[0])
-        >>> valid = ratio < 1.2
-        >>> valid_qfx = np.where(valid)[0]
-        >>> valid_dfx = qfx2_dfx.T[0][valid]
-        >>> fm = np.vstack((valid_qfx, valid_dfx)).T
-        >>> fs = ratio[valid]
-        >>> fk = np.ones(fs.size)
+        >>> import vtool.tests.dummy as dummy
+        >>> (kpts1, kpts2, fm, fs, rchip1, rchip2) = dummy.testdata_ratio_matches()
         >>> xy_thresh = .01
         >>> dlen_sqrd2 = 447271.015
         >>> min_nInliers = 4
-        >>> returnAff = False
+        >>> returnAff = True
         >>> ori_thresh = 1.57
         >>> scale_thresh = 2.0
+        >>> svtup = spatially_verify_kpts(kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh, dlen_sqrd2, min_nInliers, returnAff)
+        >>> assert svtup is not None and len(svtup) == 6, 'sver failed'
+        >>> homog_inliers, homog_errors, H = svtup[0:3]
+        >>> aff_inliers, aff_errors, Aff = svtup[3:6]
+        >>> if ut.show_was_requested():
+        >>>     import plottool as pt
+        >>>     homog_tup = (homog_inliers, H)
+        >>>     aff_tup = (aff_inliers, Aff)
+        >>>     pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup)
+        >>>     pt.show_if_requested()
     """
     if ut.VERYVERBOSE:
         print('[sver] Starting spatial verification')
     if len(fm) == 0:
         if ut.VERYVERBOSE:
             print('[sver] Cannot verify with no matches')
-        return None
+        svtup = None
+        return svtup
     # Cast keypoints to float64 to avoid numerical issues
     kpts1 = kpts1.astype(np.float64, casting='same_kind', copy=False)
     kpts2 = kpts2.astype(np.float64, casting='same_kind', copy=False)
@@ -585,7 +595,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         if ut.VERYVERBOSE:
             print('[sver] Failed spatial verification len(aff_inliers) = %r' %
                   (len(aff_inliers),))
-        return None
+        svtup = None
+        return svtup
     # Refine inliers using a projective transformation (homography)
     try:
         homog_inliers, homog_errors, H = get_homography_inliers(
