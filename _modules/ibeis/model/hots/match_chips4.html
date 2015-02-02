@@ -254,7 +254,8 @@
         <span class="c"># mask queries that have already been executed</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">set_external_qaid_mask</span><span class="p">(</span><span class="n">cachehit_qaids</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] cache-query is off&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] cache-query is off&#39;</span><span class="p">)</span>
         <span class="n">qaid2_qres_hit</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="c"># Execute and save cachemiss queries</span>
     <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsone</span><span class="p">:</span>
@@ -279,7 +280,8 @@
     <span class="k">if</span> <span class="n">save_qcache</span><span class="p">:</span>
         <span class="n">pipeline</span><span class="o">.</span><span class="n">save_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] not saving vsmany chunk&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] not saving vsmany chunk&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">qaid2_qres</span>
 
 </div>
@@ -298,10 +300,12 @@
         <span class="n">qaid2_qres_</span> <span class="o">=</span> <span class="p">{</span><span class="n">qaid</span><span class="p">:</span> <span class="n">qres</span> <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">qres_chunk</span><span class="p">}</span>
         <span class="c"># Save chunk of vsone queries</span>
         <span class="k">if</span> <span class="n">save_qcache</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] saving vsone chunk&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] saving vsone chunk&#39;</span><span class="p">)</span>
             <span class="n">pipeline</span><span class="o">.</span><span class="n">save_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_qres_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] not saving vsone chunk&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] not saving vsone chunk&#39;</span><span class="p">)</span>
         <span class="c"># Add current chunk to results</span>
         <span class="n">qaid2_qres</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">qaid2_qres_</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">qaid2_qres</span>
@@ -322,7 +326,8 @@
     <span class="n">qreq_chunk_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">qreq_shallow_iter</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">qreq_chunk</span> <span class="ow">in</span> <span class="n">qreq_chunk_iter</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">__qreq</span><span class="p">,</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">qreq_chunk</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Generating vsone for qaid=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,))</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Generating vsone for qaid=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,))</span>
             <span class="n">qres</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">request_ibeis_query_L0</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">__qreq</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)[</span><span class="n">qaid</span><span class="p">]</span>
             <span class="k">yield</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qres</span><span class="p">)</span>
 

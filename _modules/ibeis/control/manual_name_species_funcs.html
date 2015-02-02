@@ -71,6 +71,7 @@
 
 
 <span class="n">ANNOT_ROWID</span>         <span class="o">=</span> <span class="s">&#39;annot_rowid&#39;</span>
+<span class="n">ANNOT_SEMANTIC_UUID</span> <span class="o">=</span> <span class="s">&#39;annot_semantic_uuid&#39;</span>
 <span class="n">NAME_ROWID</span>          <span class="o">=</span> <span class="s">&#39;name_rowid&#39;</span>
 <span class="n">SPECIES_ROWID</span>       <span class="o">=</span> <span class="s">&#39;species_rowid&#39;</span>
 
@@ -689,6 +690,7 @@
 
 </div>
 <span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.dev_cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">ANNOT_SEMANTIC_UUID</span><span class="p">,</span> <span class="n">native_rowids</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="nd">@setter</span>
 <div class="viewcode-block" id="set_name_alias_texts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_species_funcs.set_name_alias_texts">[docs]</a><span class="k">def</span> <span class="nf">set_name_alias_texts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_alias_text_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -701,6 +703,7 @@
     <span class="c">#ibsfuncs.assert_valid_names(name_alias_text_list)</span>
     <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">value</span><span class="p">,)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">name_alias_text_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ALIAS_TEXT</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">)</span>
+    <span class="c"># TODO: ibs.update_annot_semantic_uuids(aid_list)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>

@@ -51,7 +51,10 @@
             
   <h1>Source code for ibeis.model.hots.query_request</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">neighbor_index</span><span class="p">,</span> <span class="n">multi_index</span><span class="p">,</span> <span class="n">score_normalization</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">neighbor_index</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">multi_index</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">score_normalization</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">distinctiveness_normalizer</span>
 <span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">copy</span>
@@ -141,32 +144,25 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    HACK turns of featweights if they cannot be applied</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
     <span class="c"># Only apply the hack with repsect to the queried annotations</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
     <span class="n">unique_species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_database_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="c"># turn off featureweights when not absolutely sure they are ok to us,)</span>
-    <span class="n">SPECIES_WITH_DETECTORS</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_GREVY</span><span class="p">,</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">,</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">GIRAFFE</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">candetect</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="nb">len</span><span class="p">(</span><span class="n">unique_species</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span>
-        <span class="n">unique_species</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">SPECIES_WITH_DETECTORS</span>
-    <span class="p">)</span>
+    <span class="n">candetect</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_species</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span>
+                 <span class="n">ibs</span><span class="o">.</span><span class="n">has_species_detector</span><span class="p">(</span><span class="n">unique_species</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">candetect</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;HACKING FG_WEIGHT OFF (database species is not supported)&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_species</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;  * len(unique_species) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_species</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;  * unique_species = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unique_species</span><span class="p">,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;  * valid species = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">SPECIES_WITH_DETECTORS</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;  * valid species = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_species_with_detectors</span><span class="p">(),))</span>
         <span class="c">#cfg._featweight_cfg.featweight_on = &#39;ERR&#39;</span>
         <span class="n">cfgdict</span><span class="p">[</span><span class="s">&#39;featweight_on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;ERR&#39;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c">#print(ibs.get_annot_species_texts(aid_list))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;HACK FG_WEIGHT NOT APPLIED, unique_species=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unique_species</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;NO NEED TO HACK. FG_WEIGHT CAN BE ON, unique_species=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unique_species</span><span class="p">,))</span>
+        <span class="k">pass</span>
         <span class="c">#, aid_list=%r&#39; % (unique_species, aid_list))</span>
     <span class="k">return</span> <span class="n">unique_species</span>
 
@@ -213,6 +209,7 @@
         <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="c"># The scoring normalization mechanism</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">normalizer</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">dstcnvs_normer</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="c"># Hacky metadata</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c"># DEPRICATE?</span>
@@ -227,6 +224,44 @@
         <span class="n">qreq_</span><span class="o">.</span><span class="n">set_external_daids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">set_external_qaids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
 
+    <span class="nd">@profile</span>
+<div class="viewcode-block" id="QueryRequest.remove_internal_daids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.remove_internal_daids">[docs]</a>    <span class="k">def</span> <span class="nf">remove_internal_daids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">remove_daids</span><span class="p">):</span>
+        <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">        State Modification: remove daids from the query request.  Do not call</span>
+<span class="sd">        this function often. It invalidates the indexer, which is very slow to</span>
+<span class="sd">        rebuild.  Should only be done between query pipeline runs.</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.model.hots.query_request --test-remove_internal_daids</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.query_request import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; # build test data</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; species = ibeis.const.Species.ZEB_PLAIN</span>
+<span class="sd">            &gt;&gt;&gt; daids = ibs.get_valid_aids(species=species, is_exemplar=True)</span>
+<span class="sd">            &gt;&gt;&gt; qaids = ibs.get_valid_aids(species=species, is_exemplar=False)</span>
+<span class="sd">            &gt;&gt;&gt; qreq_ = ibs.new_query_request(qaids, daids)</span>
+<span class="sd">            &gt;&gt;&gt; remove_daids = daids[0:1]</span>
+<span class="sd">            &gt;&gt;&gt; # execute function</span>
+<span class="sd">            &gt;&gt;&gt; assert len(qreq_.internal_daids) == 4, &#39;bad setup data&#39;</span>
+<span class="sd">            &gt;&gt;&gt; qreq_.remove_internal_daids(remove_daids)</span>
+<span class="sd">            &gt;&gt;&gt; # verify results</span>
+<span class="sd">            &gt;&gt;&gt; assert len(qreq_.internal_daids) == 3, &#39;did not remove&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Invalidate the current indexer, mask and metadata</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids_mask</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c"># Find indicies to remove</span>
+        <span class="n">delete_flags</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_covered_mask</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span><span class="p">,</span> <span class="n">remove_daids</span><span class="p">)</span>
+        <span class="n">delete_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">delete_flags</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">delete_indices</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">remove_daids</span><span class="p">),</span> <span class="s">&#39;requested removal of nonexistant daids&#39;</span>
+        <span class="c"># Remove indicies</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">internal_daids</span><span class="p">,</span> <span class="n">delete_indices</span><span class="p">)</span>
+</div>
     <span class="nd">@profile</span>
 <div class="viewcode-block" id="QueryRequest.add_internal_daids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.add_internal_daids">[docs]</a>    <span class="k">def</span> <span class="nf">add_internal_daids</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">new_daids</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -274,7 +309,6 @@
             <span class="n">qreq2_</span><span class="o">.</span><span class="n">set_external_daids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
         <span class="c"># The shallow copy does not bring over output / query data</span>
         <span class="n">qreq2_</span><span class="o">.</span><span class="n">indexer</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">qreq2_</span><span class="o">.</span><span class="n">normalizer</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">qreq2_</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">qreq2_</span><span class="o">.</span><span class="n">hasloaded</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">return</span> <span class="n">qreq2_</span>
@@ -552,6 +586,8 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        feature weights and normalizers should be loaded before vsone queries</span>
 <span class="sd">        are issued. They do not depened only on qparams</span>
+
+<span class="sd">        Load non-query specific normalizers / weights</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[qreq] lazy preloading&#39;</span><span class="p">)</span>
@@ -559,6 +595,8 @@
             <span class="n">qreq_</span><span class="o">.</span><span class="n">ensure_featweights</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">score_normalization</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">load_score_normalizer</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">use_external_distinctiveness</span><span class="p">:</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">load_distinctiveness_normalizer</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 </div>
     <span class="nd">@profile</span>
 <div class="viewcode-block" id="QueryRequest.lazy_load"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.lazy_load">[docs]</a>    <span class="k">def</span> <span class="nf">lazy_load</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
@@ -598,8 +636,12 @@
             <span class="n">index_method</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">index_method</span>
             <span class="k">if</span> <span class="n">index_method</span> <span class="o">==</span> <span class="s">&#39;single&#39;</span><span class="p">:</span>
                 <span class="c"># TODO: SYSTEM updatable indexer</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;loading single indexer normalizer&#39;</span><span class="p">)</span>
                 <span class="n">indexer</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_ibeis_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;loading multi indexer normalizer&#39;</span><span class="p">)</span>
                 <span class="n">indexer</span> <span class="o">=</span> <span class="n">multi_index</span><span class="o">.</span><span class="n">request_ibeis_mindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span> <span class="o">=</span> <span class="n">indexer</span>
             <span class="k">return</span> <span class="bp">True</span>
@@ -608,9 +650,28 @@
 <div class="viewcode-block" id="QueryRequest.load_score_normalizer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.load_score_normalizer">[docs]</a>    <span class="k">def</span> <span class="nf">load_score_normalizer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">normalizer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;loading score normalizer&#39;</span><span class="p">)</span>
         <span class="c"># TODO: SYSTEM updatable normalizer</span>
         <span class="n">normalizer</span> <span class="o">=</span> <span class="n">score_normalization</span><span class="o">.</span><span class="n">request_ibeis_normalizer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">normalizer</span> <span class="o">=</span> <span class="n">normalizer</span>
+</div>
+    <span class="nd">@profile</span>
+<div class="viewcode-block" id="QueryRequest.load_distinctiveness_normalizer"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.load_distinctiveness_normalizer">[docs]</a>    <span class="k">def</span> <span class="nf">load_distinctiveness_normalizer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.model.hots import distinctiveness_normalizer</span>
+<span class="sd">            &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">dstcnvs_normer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;loading external distinctiveness normalizer&#39;</span><span class="p">)</span>
+        <span class="c"># TODO: SYSTEM updatable dstcnvs_normer</span>
+        <span class="n">dstcnvs_normer</span> <span class="o">=</span> <span class="n">distinctiveness_normalizer</span><span class="o">.</span><span class="n">request_ibeis_distinctiveness_normalizer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">dstcnvs_normer</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;qreq_.dstcnvs_normer = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">dstcnvs_normer</span><span class="p">,))</span>
 
     <span class="c"># load data lists</span>
     <span class="c"># see _broken/broken_qreq.py</span>

@@ -52,42 +52,392 @@
   <h1>Source code for ibeis.model.hots.devcases</h1><div class="highlight"><pre>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">development module storing my &quot;development state&quot;</span>
+
+<span class="sd">TODO:</span>
+<span class="sd">    * figure out what packages I use have lisencing issues.</span>
+<span class="sd">        - Reimplement them or work around them.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
 <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>  <span class="c"># NOQA</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[devcases]&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="load_gztest"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.devcases.load_gztest">[docs]</a><span class="k">def</span> <span class="nf">load_gztest</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+<div class="viewcode-block" id="myquery"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.devcases.myquery">[docs]</a><span class="k">def</span> <span class="nf">myquery</span><span class="p">():</span>
     <span class="sd">r&quot;&quot;&quot;</span>
+
+<span class="sd">    BUG::</span>
+<span class="sd">        THERE IS A BUG SOMEWHERE: HOW IS THIS POSSIBLE?</span>
+<span class="sd">        if everything is weightd ) how di the true positive even get a score</span>
+<span class="sd">        while the true negative did not</span>
+<span class="sd">        qres_copy.filtkey_list = [&#39;ratio&#39;, &#39;fg&#39;, &#39;homogerr&#39;, &#39;distinctiveness&#39;]</span>
+<span class="sd">        CORRECT STATS</span>
+<span class="sd">        {</span>
+<span class="sd">            &#39;max&#39;  : [0.832, 0.968, 0.604, 0.000],</span>
+<span class="sd">            &#39;min&#39;  : [0.376, 0.524, 0.000, 0.000],</span>
+<span class="sd">            &#39;mean&#39; : [0.561, 0.924, 0.217, 0.000],</span>
+<span class="sd">            &#39;std&#39;  : [0.114, 0.072, 0.205, 0.000],</span>
+<span class="sd">            &#39;nMin&#39; : [1, 1, 1, 51],</span>
+<span class="sd">            &#39;nMax&#39; : [1, 1, 1, 1],</span>
+<span class="sd">            &#39;shape&#39;: (52, 4),</span>
+<span class="sd">        }</span>
+<span class="sd">        INCORRECT STATS</span>
+<span class="sd">        {</span>
+<span class="sd">            &#39;max&#39;  : [0.759, 0.963, 0.264, 0.000],</span>
+<span class="sd">            &#39;min&#39;  : [0.379, 0.823, 0.000, 0.000],</span>
+<span class="sd">            &#39;mean&#39; : [0.506, 0.915, 0.056, 0.000],</span>
+<span class="sd">            &#39;std&#39;  : [0.125, 0.039, 0.078, 0.000],</span>
+<span class="sd">            &#39;nMin&#39; : [1, 1, 1, 24],</span>
+<span class="sd">            &#39;nMax&#39; : [1, 1, 1, 1],</span>
+<span class="sd">            &#39;shape&#39;: (26, 4),</span>
+<span class="sd">        #   score_diff,  tp_score,  tn_score,       p,   K,  clip_fraction,  fg_power,  homogerr_power</span>
+<span class="sd">             0.494,     0.494,     0.000,  73.000,   2,          0.500,     0.100,          10.000</span>
+
+<span class="sd">    see how seperability changes as we very things</span>
+
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.model.hots.special_query --test-load_gztest</span>
+<span class="sd">        python -m ibeis.model.hots.devcases --test-myquery</span>
+<span class="sd">        python -m ibeis.model.hots.devcases --test-myquery --show --index 0</span>
+<span class="sd">        python -m ibeis.model.hots.devcases --test-myquery --show --index 1</span>
+<span class="sd">        python -m ibeis.model.hots.devcases --test-myquery --show --index 2</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://en.wikipedia.org/wiki/Pareto_distribution &lt;- look into</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.special_query import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;GZ_ALL&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.all_imports import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.devcases import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ut.dev_ipython_copypaster(myquery) if ut.inIPython() else myquery()</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">match_chips4</span> <span class="k">as</span> <span class="n">mc4</span>
-    <span class="n">dir_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_module_dir</span><span class="p">(</span><span class="n">mc4</span><span class="p">)</span>
-    <span class="n">eval_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dir_</span><span class="p">,</span>  <span class="s">&#39;GZ_TESTTUP.txt&#39;</span><span class="p">))</span>
-    <span class="n">testcases</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">eval_text</span><span class="p">)</span>
-    <span class="n">count_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">count_dict_vals</span><span class="p">(</span><span class="n">testcases</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">count_dict</span><span class="p">))</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">special_query</span>  <span class="c"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>  <span class="c"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--index&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">tn_aid</span> <span class="o">=</span> <span class="n">testdata_my_exmaples</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">qaids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
+    <span class="n">daids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid2</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">tn_aid</span><span class="p">]</span>
+    <span class="n">qvuuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid1</span><span class="p">)</span>
 
-    <span class="n">testtup_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">testcases</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;vsone_wins&#39;</span><span class="p">,</span>
-                                                            <span class="s">&#39;vsmany_outperformed&#39;</span><span class="p">,</span>
-                                                            <span class="s">&#39;vsmany_dominates&#39;</span><span class="p">,</span>
-                                                            <span class="s">&#39;vsmany_wins&#39;</span><span class="p">]))</span>
-    <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">testtup</span><span class="o">.</span><span class="n">qaid_t</span> <span class="k">for</span> <span class="n">testtup</span> <span class="ow">in</span> <span class="n">testtup_list</span><span class="p">]</span>
-    <span class="n">visual_uuids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
-    <span class="n">visual_uuids</span>
+    <span class="n">cfgdict_vsone</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">sv_on</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="c">#sv_on=False,</span>
+        <span class="c">#codename=&#39;vsone_unnorm_dist_ratio_extern_distinctiveness&#39;,</span>
+        <span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsone_unnorm_ratio_extern_distinctiveness&#39;</span><span class="p">,</span>
+        <span class="n">sver_weighting</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">use_cache</span>   <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">save_qcache</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="n">qres_list</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict_vsone</span><span class="p">,</span>
+                                       <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+                                       <span class="n">save_qcache</span><span class="o">=</span><span class="n">save_qcache</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">load_distinctiveness_normalizer</span><span class="p">()</span>
+    <span class="n">qres</span> <span class="o">=</span> <span class="n">qres_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">top_aids</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()</span>  <span class="c"># NOQA</span>
+    <span class="n">qres_orig</span> <span class="o">=</span> <span class="n">qres</span>  <span class="c"># NOQA</span>
+
+    <span class="k">def</span> <span class="nf">test_config</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qres_orig</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; function to grid search over &quot;&quot;&quot;</span>
+        <span class="n">qres_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">qres_orig</span><span class="p">)</span>
+        <span class="n">qreq_vsone_</span> <span class="o">=</span> <span class="n">qreq_</span>
+        <span class="n">qres_vsone</span> <span class="o">=</span> <span class="n">qres_copy</span>
+        <span class="n">filtkey</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">FiltKeys</span><span class="o">.</span><span class="n">DISTINCTIVENESS</span>
+        <span class="n">newfsv_list</span><span class="p">,</span> <span class="n">newscore_aids</span> <span class="o">=</span> <span class="n">special_query</span><span class="o">.</span><span class="n">get_extern_distinctiveness</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qres_copy</span><span class="p">,</span> <span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">special_query</span><span class="o">.</span><span class="n">apply_new_qres_filter_scores</span><span class="p">(</span><span class="n">qreq_vsone_</span><span class="p">,</span> <span class="n">qres_vsone</span><span class="p">,</span> <span class="n">newfsv_list</span><span class="p">,</span> <span class="n">newscore_aids</span><span class="p">,</span> <span class="n">filtkey</span><span class="p">)</span>
+        <span class="n">tp_score</span>  <span class="o">=</span> <span class="n">qres_copy</span><span class="o">.</span><span class="n">aid2_score</span><span class="p">[</span><span class="n">aid2</span><span class="p">]</span>
+        <span class="n">tn_score</span>  <span class="o">=</span> <span class="n">qres_copy</span><span class="o">.</span><span class="n">aid2_score</span><span class="p">[</span><span class="n">tn_aid</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">qres_copy</span><span class="p">,</span> <span class="n">tp_score</span><span class="p">,</span> <span class="n">tn_score</span>
+
+    <span class="c">#[.01, .1, .2, .5, .6, .7, .8, .9, 1.0]),</span>
+    <span class="n">FiltKeys</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">FiltKeys</span>
+    <span class="n">grid_basis</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c">#ut.DimensionBasis(&#39;p&#39;, np.linspace(1, 100.0, 50)),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">DimensionBasis</span><span class="p">(</span>
+            <span class="s">&#39;p&#39;</span><span class="p">,</span>
+            <span class="c"># higher seems better but effect flattens out</span>
+            <span class="c"># current_best = 73</span>
+            <span class="c"># This seems to imply that anything with a distinctivness less than</span>
+            <span class="c"># .9 is not relevant</span>
+            <span class="c">#[73.0]</span>
+            <span class="p">[</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+            <span class="c">#[1, 20, 73]</span>
+        <span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">DimensionBasis</span><span class="p">(</span>
+            <span class="c"># the score seems to significantly drop off when k&gt;2</span>
+            <span class="c"># but then has a spike at k=8</span>
+            <span class="c"># best is k=2</span>
+            <span class="s">&#39;K&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="c">#[2, 3, 4, 5, 7, 8, 9, 16],</span>
+        <span class="p">),</span>
+        <span class="c">#ut.DimensionBasis(&#39;clip_fraction&#39;, ),</span>
+        <span class="c">#ut.DimensionBasis(&#39;clip_fraction&#39;, np.linspace(.01, .11, 100)),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">DimensionBasis</span><span class="p">(</span>
+            <span class="s">&#39;clip_fraction&#39;</span><span class="p">,</span>
+            <span class="c"># THERE IS A VERY CLEAR SPIKE AT .09</span>
+            <span class="p">[</span><span class="o">.</span><span class="mi">09</span><span class="p">],</span>
+            <span class="c">#[.09, 1.0],</span>
+            <span class="c">#np.linspace(.05, .15, 10),</span>
+        <span class="p">),</span>
+        <span class="c">#ut.DimensionBasis(FiltKeys.FG + &#39;_power&#39;, ),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">DimensionBasis</span><span class="p">(</span>
+            <span class="n">FiltKeys</span><span class="o">.</span><span class="n">FG</span> <span class="o">+</span> <span class="s">&#39;_power&#39;</span><span class="p">,</span>
+            <span class="c"># the forground power seems to be very influential in scoring</span>
+            <span class="c"># it seems higher is better but effect flattens out</span>
+            <span class="c"># the reason it seems to be better is because it zeros out weights</span>
+            <span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]</span>
+            <span class="c">#np.linspace(.01, 30.0, 10)</span>
+        <span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">DimensionBasis</span><span class="p">(</span>
+            <span class="n">FiltKeys</span><span class="o">.</span><span class="n">HOMOGERR</span> <span class="o">+</span> <span class="s">&#39;_power&#39;</span><span class="p">,</span>
+            <span class="c"># current_best = 2.5</span>
+            <span class="c">#[2.5]</span>
+            <span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]</span>
+            <span class="c">#np.linspace(.1, 10, 5)</span>
+            <span class="c">#np.linspace(.1, 10, 30)</span>
+        <span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">gridsearch</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">GridSearch</span><span class="p">(</span><span class="n">grid_basis</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;qvuuid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qvuuid</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Begin Grid Search&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">cfgdict</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">gridsearch</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;GridSearch&#39;</span><span class="p">):</span>
+        <span class="n">qres_copy</span><span class="p">,</span> <span class="n">tp_score</span><span class="p">,</span> <span class="n">tn_score</span> <span class="o">=</span> <span class="n">test_config</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qres_orig</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">gridsearch</span><span class="o">.</span><span class="n">append_result</span><span class="p">(</span><span class="n">tp_score</span><span class="p">,</span> <span class="n">tn_score</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Finish Grid Search&#39;</span><span class="p">)</span>
+
+    <span class="c"># Get best result</span>
+    <span class="n">best_cfgdict</span> <span class="o">=</span> <span class="n">gridsearch</span><span class="o">.</span><span class="n">get_rank_cfgdict</span><span class="p">()</span>
+    <span class="n">qres_copy</span><span class="p">,</span> <span class="n">tp_score</span><span class="p">,</span> <span class="n">tn_score</span> <span class="o">=</span> <span class="n">test_config</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qres_orig</span><span class="p">,</span> <span class="n">best_cfgdict</span><span class="p">)</span>
+
+    <span class="c"># Examine closely what you can do with scores</span>
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">qres_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">qres_orig</span><span class="p">)</span>
+        <span class="n">qreq_vsone_</span> <span class="o">=</span> <span class="n">qreq_</span>
+        <span class="n">filtkey</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">FiltKeys</span><span class="o">.</span><span class="n">DISTINCTIVENESS</span>
+        <span class="n">newfsv_list</span><span class="p">,</span> <span class="n">newscore_aids</span> <span class="o">=</span> <span class="n">special_query</span><span class="o">.</span><span class="n">get_extern_distinctiveness</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qres_copy</span><span class="p">,</span> <span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+        <span class="k">def</span> <span class="nf">make_new_chipmatch</span><span class="p">(</span><span class="n">qres_copy</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">listfind</span><span class="p">(</span><span class="n">qres_copy</span><span class="o">.</span><span class="n">filtkey_list</span><span class="p">,</span> <span class="n">filtkey</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span>
+            <span class="n">weight_filters</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">WEIGHT_FILTERS</span>
+            <span class="n">weight_filtxs</span><span class="p">,</span> <span class="n">nonweight_filtxs</span> <span class="o">=</span> <span class="n">special_query</span><span class="o">.</span><span class="n">index_partition</span><span class="p">(</span><span class="n">qres_copy</span><span class="o">.</span><span class="n">filtkey_list</span><span class="p">,</span> <span class="n">weight_filters</span><span class="p">)</span>
+
+            <span class="n">aid2_fsv</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">aid2_fs</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">aid2_score</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="k">for</span> <span class="n">new_fsv_vsone</span><span class="p">,</span> <span class="n">daid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">newfsv_list</span><span class="p">,</span> <span class="n">newscore_aids</span><span class="p">):</span>
+                <span class="k">pass</span>
+                <span class="k">break</span>
+                <span class="c">#scorex_vsone  = ut.listfind(qres_copy.filtkey_list, filtkey)</span>
+                <span class="c">#if scorex_vsone is None:</span>
+                <span class="c"># TODO: add spatial verification as a filter score</span>
+                <span class="c"># augment the vsone scores</span>
+                <span class="c"># TODO: paramaterize</span>
+                <span class="n">weighted_ave_score</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">if</span> <span class="n">weighted_ave_score</span><span class="p">:</span>
+                    <span class="c"># weighted average scoring</span>
+                    <span class="n">new_fs_vsone</span> <span class="o">=</span> <span class="n">special_query</span><span class="o">.</span><span class="n">weighted_average_scoring</span><span class="p">(</span><span class="n">new_fsv_vsone</span><span class="p">,</span> <span class="n">weight_filtxs</span><span class="p">,</span> <span class="n">nonweight_filtxs</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c"># product scoring</span>
+                    <span class="n">new_fs_vsone</span> <span class="o">=</span> <span class="n">special_query</span><span class="o">.</span><span class="n">product_scoring</span><span class="p">(</span><span class="n">new_fsv_vsone</span><span class="p">)</span>
+                <span class="n">new_score_vsone</span> <span class="o">=</span> <span class="n">new_fs_vsone</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="n">aid2_fsv</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span>   <span class="o">=</span> <span class="n">new_fsv_vsone</span>
+                <span class="n">aid2_fs</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span>    <span class="o">=</span> <span class="n">new_fs_vsone</span>
+                <span class="n">aid2_score</span><span class="p">[</span><span class="n">daid</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_score_vsone</span>
+            <span class="k">return</span> <span class="n">aid2_fsv</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_score</span>
+
+        <span class="c"># Look at plot of query products</span>
+        <span class="k">for</span> <span class="n">new_fsv_vsone</span><span class="p">,</span> <span class="n">daid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">newfsv_list</span><span class="p">,</span> <span class="n">newscore_aids</span><span class="p">):</span>
+            <span class="n">new_fs_vsone</span> <span class="o">=</span> <span class="n">special_query</span><span class="o">.</span><span class="n">product_scoring</span><span class="p">(</span><span class="n">new_fsv_vsone</span><span class="p">)</span>
+            <span class="n">scores_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_fs_vsone</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">plot_sorted_scores</span><span class="p">(</span><span class="n">scores_list</span><span class="p">,</span> <span class="n">logscale</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">daid</span><span class="p">))</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">iup</span><span class="p">()</span>
+        <span class="n">special_query</span><span class="o">.</span><span class="n">apply_new_qres_filter_scores</span><span class="p">(</span><span class="n">qreq_vsone_</span><span class="p">,</span> <span class="n">qres_copy</span><span class="p">,</span> <span class="n">newfsv_list</span><span class="p">,</span> <span class="n">newscore_aids</span><span class="p">,</span> <span class="n">filtkey</span><span class="p">)</span>
+
+    <span class="c"># PRINT INFO</span>
+    <span class="kn">import</span> <span class="nn">functools</span>
+    <span class="c">#ut.rrrr()</span>
+    <span class="n">get_stats_str</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">tp_stats_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">qres_copy</span><span class="o">.</span><span class="n">aid2_fsv</span><span class="p">[</span><span class="n">aid2</span><span class="p">]),</span> <span class="s">&#39;:&#39;</span><span class="p">)</span>
+    <span class="n">tn_stats_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">qres_copy</span><span class="o">.</span><span class="n">aid2_fsv</span><span class="p">[</span><span class="n">tn_aid</span><span class="p">]),</span> <span class="s">&#39;:&#39;</span><span class="p">)</span>
+    <span class="n">info_str_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">info_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;qres_copy.filtkey_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qres_copy</span><span class="o">.</span><span class="n">filtkey_list</span><span class="p">,))</span>
+    <span class="n">info_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;CORRECT STATS&#39;</span><span class="p">)</span>
+    <span class="n">info_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tp_stats_str</span><span class="p">)</span>
+    <span class="n">info_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;INCORRECT STATS&#39;</span><span class="p">)</span>
+    <span class="n">info_str_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tn_stats_str</span><span class="p">)</span>
+    <span class="n">info_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">info_str_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">info_str</span><span class="p">)</span>
+
+    <span class="c"># SHOW BEST RESULT</span>
+    <span class="c">#qres_copy.ishow_top(ibs, fnum=pt.next_fnum())</span>
+    <span class="c">#qres_orig.ishow_top(ibs, fnum=pt.next_fnum())</span>
+
+    <span class="c"># Text Informatio</span>
+    <span class="n">param_lbl</span> <span class="o">=</span> <span class="s">&#39;p&#39;</span>
+    <span class="n">param_stats_str</span> <span class="o">=</span> <span class="n">gridsearch</span><span class="o">.</span><span class="n">get_dimension_stats_str</span><span class="p">(</span><span class="n">param_lbl</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">param_stats_str</span><span class="p">)</span>
+
+    <span class="n">csvtext</span> <span class="o">=</span> <span class="n">gridsearch</span><span class="o">.</span><span class="n">get_csv_results</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">csvtext</span><span class="p">)</span>
+
+    <span class="c"># Paramter visuzliation</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+    <span class="c"># plot paramter influence</span>
+    <span class="n">param_label_list</span> <span class="o">=</span> <span class="n">gridsearch</span><span class="o">.</span><span class="n">get_param_lbls</span><span class="p">()</span>
+    <span class="n">pnum_</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_pnum_func</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">param_label_list</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">px</span><span class="p">,</span> <span class="n">param_label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">param_label_list</span><span class="p">):</span>
+        <span class="n">gridsearch</span><span class="o">.</span><span class="n">plot_dimension</span><span class="p">(</span><span class="n">param_label</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(</span><span class="n">px</span><span class="p">))</span>
+    <span class="c"># plot match figure</span>
+    <span class="n">pnum2_</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_pnum_func</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">qres_copy</span><span class="o">.</span><span class="n">show_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum2_</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">qres_copy</span><span class="o">.</span><span class="n">show_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">tn_aid</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum2_</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+    <span class="c"># Add figure labels</span>
+    <span class="n">figtitle</span> <span class="o">=</span> <span class="s">&#39;Effect of parameters on vsone separation for a single case&#39;</span>
+    <span class="n">subtitle</span> <span class="o">=</span> <span class="s">&#39;qvuuid = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qvuuid</span><span class="p">)</span>
+    <span class="n">figtitle</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">subtitle</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
+    <span class="c"># Save Figure</span>
+    <span class="c">#fig_fpath = pt.save_figure(usetitle=True)</span>
+    <span class="c">#print(fig_fpath)</span>
+    <span class="c"># Write CSV Results</span>
+    <span class="c">#csv_fpath = fig_fpath + &#39;.csv.txt&#39;</span>
+    <span class="c">#ut.write_to(csv_fpath, csvtext)</span>
+
+    <span class="c">#qres_copy.ishow_top(ibs)</span>
+    <span class="c">#from matplotlib import pyplot as plt</span>
+    <span class="c">#plt.show()</span>
+    <span class="c">#print(ut.list_str()))</span>
+    <span class="c"># TODO: plot max variation dims</span>
+    <span class="c">#import plottool as pt</span>
+    <span class="c">#pt.plot(p_list, diff_list)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    viz.show_chip(ibs, aid1)</span>
+<span class="sd">    import plottool as pt</span>
+<span class="sd">    pt.update()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+</div>
+<div class="viewcode-block" id="get_dev_test_fpaths"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.devcases.get_dev_test_fpaths">[docs]</a><span class="k">def</span> <span class="nf">get_dev_test_fpaths</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">tn_aid</span> <span class="o">=</span> <span class="n">testdata_my_exmaples</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">fpath1</span><span class="p">,</span> <span class="n">fpath2</span><span class="p">,</span> <span class="n">fpath3</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpaths</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">tn_aid</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">fpath1</span><span class="p">,</span> <span class="n">fpath2</span><span class="p">,</span> <span class="n">fpath3</span>
+
+</div>
+<div class="viewcode-block" id="testdata_my_exmaples"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.devcases.testdata_my_exmaples">[docs]</a><span class="k">def</span> <span class="nf">testdata_my_exmaples</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.all_imports import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.devcases import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; index = 1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;GZ_ALL&#39;</span><span class="p">)</span>
+    <span class="n">vsone_pair_examples</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;8415b50f-2c98-0d52-77d6-04002ff4d6f8&#39;</span><span class="p">),</span> <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;308fc664-7990-91ad-0576-d2e8ea3103d0&#39;</span><span class="p">)],</span>
+        <span class="p">[</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;490f76bf-7616-54d5-576a-8fbc907e46ae&#39;</span><span class="p">),</span> <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;2046509f-0a9f-1470-2b47-5ea59f803d4b&#39;</span><span class="p">)],</span>
+        <span class="p">[</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;5cdf68ab-be49-ee3f-94d8-5483772c8618&#39;</span><span class="p">),</span> <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;879977a7-b841-d223-dd91-761dfa58d486&#39;</span><span class="p">)],</span>
+    <span class="p">]</span>
+    <span class="n">gf_mapping</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;8415b50f-2c98-0d52-77d6-04002ff4d6f8&#39;</span><span class="p">):</span> <span class="p">[</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;38211759-8fa7-875b-1f3e-39a630653f66&#39;</span><span class="p">)],</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;490f76bf-7616-54d5-576a-8fbc907e46ae&#39;</span><span class="p">):</span> <span class="p">[</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;58920d6e-31ba-307c-2ac8-e56aff2b2b9e&#39;</span><span class="p">)],</span>  <span class="c"># other bad_aid is actually a good partial match</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;5cdf68ab-be49-ee3f-94d8-5483772c8618&#39;</span><span class="p">):</span> <span class="p">[</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;5a8c8ad7-873a-e6ed-98df-56a452e0a93e&#39;</span><span class="p">)],</span>
+    <span class="p">}</span>
+
+    <span class="c">#ibs.get_annot_visual_uuids([36, 3])</span>
+
+    <span class="n">vuuid_pair</span> <span class="o">=</span> <span class="n">vsone_pair_examples</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    <span class="n">vuuid1</span><span class="p">,</span> <span class="n">vuuid2</span> <span class="o">=</span> <span class="n">vuuid_pair</span>
+    <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_visual_uuid</span><span class="p">(</span><span class="n">vuuid_pair</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">aid1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+    <span class="k">assert</span> <span class="n">aid2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+    <span class="c">#daids = ibs.get_valid_aids()</span>
+
+    <span class="n">tn_vuuid</span> <span class="o">=</span> <span class="n">gf_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">vuuid1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tn_vuuid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">qaids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
+        <span class="n">find_close_incorrect_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;baste the result in gf_mapping&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="n">tn_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_visual_uuid</span><span class="p">(</span><span class="n">tn_vuuid</span><span class="p">)</span>
+    <span class="n">tn_aid</span> <span class="o">=</span> <span class="n">tn_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">tn_aid</span>
+
+</div>
+<div class="viewcode-block" id="find_close_incorrect_match"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.devcases.find_close_incorrect_match">[docs]</a><span class="k">def</span> <span class="nf">find_close_incorrect_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
+    <span class="n">use_cache</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">save_qcache</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">cfgdict_vsmany</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">index_method</span><span class="o">=</span><span class="s">&#39;single&#39;</span><span class="p">,</span>
+                          <span class="n">pipeline_root</span><span class="o">=</span><span class="s">&#39;vsmany&#39;</span><span class="p">,)</span>
+    <span class="n">qres_vsmany_list</span><span class="p">,</span> <span class="n">qreq_vsmany_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span>
+        <span class="n">qaids</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(),</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict_vsmany</span><span class="p">,</span>
+        <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">save_qcache</span><span class="o">=</span><span class="n">save_qcache</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">qres_vsmany</span> <span class="o">=</span> <span class="n">qres_vsmany_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">qres_vsmany</span><span class="o">.</span><span class="n">ishow_top</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">top_aids</span> <span class="o">=</span> <span class="n">qres_vsmany</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()</span>
+    <span class="n">top_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
+    <span class="n">qaid</span> <span class="o">=</span> <span class="n">qaids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">qnid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+    <span class="n">is_groundfalse</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="o">!=</span> <span class="n">qnid</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">top_nids</span><span class="p">]</span>
+    <span class="n">top_gf_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">top_aids</span><span class="p">,</span> <span class="n">is_groundfalse</span><span class="p">)</span>
+    <span class="c">#top_gt_aids = ut.filterfalse_items(top_aids, is_groundfalse)</span>
+    <span class="n">top_gf_vuuids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">top_gf_aids</span><span class="p">)</span>
+    <span class="n">qvuuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+    <span class="n">gf_mapping</span> <span class="o">=</span> <span class="p">{</span><span class="n">qvuuid</span><span class="p">:</span> <span class="n">top_gf_vuuids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]}</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;gf_mapping = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">gf_mapping</span><span class="p">))</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="show_power_law_plots"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.devcases.show_power_law_plots">[docs]</a><span class="k">def</span> <span class="nf">show_power_law_plots</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.devcases --test-show_power_law_plots --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; #%pylab qt4</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.all_imports import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.devcases import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; show_power_law_plots()</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">xdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="n">ydata</span> <span class="o">=</span> <span class="n">xdata</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">powers</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mo">01</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]</span>
+    <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_square_row_cols</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">powers</span><span class="p">),</span> <span class="n">fix</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">pnum_next</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_pnum_nextgen</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">powers</span><span class="p">:</span>
+        <span class="n">plotkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span>
+            <span class="n">marker</span><span class="o">=</span><span class="s">&#39;g-&#39;</span><span class="p">,</span>
+            <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_next</span><span class="p">(),</span>
+            <span class="n">title</span><span class="o">=</span><span class="s">&#39;p=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">,)</span>
+        <span class="p">)</span>
+        <span class="n">ydata_</span> <span class="o">=</span> <span class="n">ydata</span> <span class="o">**</span> <span class="n">p</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">plot2</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="n">ydata_</span><span class="p">,</span> <span class="o">**</span><span class="n">plotkw</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="s">&#39;power laws y = x ** p&#39;</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="get_gzall_small_test"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.devcases.get_gzall_small_test">[docs]</a><span class="k">def</span> <span class="nf">get_gzall_small_test</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ibs.get_annot_visual_uuids([qaid, aid])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c">#aid_list = [839, 999, 1047, 209, 307, 620, 454, 453, 70, 1015, 939, 1021,</span>
     <span class="c">#              306, 742, 1010, 802, 619, 1041, 27, 420, 740, 1016, 140, 992,</span>
     <span class="c">#              1043, 662, 816, 793, 994, 867, 534, 986, 783, 858, 937, 60,</span>
@@ -95,14 +445,14 @@
     <span class="n">debug_examples</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;308fc664-7990-91ad-0576-d2e8ea3103d0&#39;</span><span class="p">),</span>
     <span class="p">]</span>
-    <span class="n">vsone_pair_examples</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">[</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;8415b50f-2c98-0d52-77d6-04002ff4d6f8&#39;</span><span class="p">),</span> <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;308fc664-7990-91ad-0576-d2e8ea3103d0&#39;</span><span class="p">)]</span>
-    <span class="p">]</span>
-    <span class="n">vsone_pair_examples</span>
+    <span class="c">#vsone_pair_examples</span>
     <span class="n">debug_examples</span>
 
     <span class="n">ignore_vuuids</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;be6fe4d6-ae87-0f8f-269f-e9f706b69e41&#39;</span><span class="p">),</span>  <span class="c"># OUT OF PLANE</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;c3394b28-e7f2-2da6-1a49-335b748acf9e&#39;</span><span class="p">),</span>  <span class="c"># HUGE OUT OF PLANE, foal (vsmany gets rank3)</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;490f76bf-7616-54d5-576a-8fbc907e46ae&#39;</span><span class="p">),</span>
+        <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;2046509f-0a9f-1470-2b47-5ea59f803d4b&#39;</span><span class="p">),</span>
     <span class="p">]</span>
     <span class="n">vuuid_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;e9a9544d-083d-6c30-b00f-d6806824a21a&#39;</span><span class="p">),</span>
@@ -146,6 +496,34 @@
         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;265cf095-64f6-e5dd-8f7d-2a82f627b7d1&#39;</span><span class="p">),</span>
         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;4b19968e-f813-f238-0dcc-6a54f1943d57&#39;</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">vuuid_list</span><span class="p">,</span> <span class="n">ignore_vuuids</span>
+
+</div>
+<div class="viewcode-block" id="load_gztest"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.devcases.load_gztest">[docs]</a><span class="k">def</span> <span class="nf">load_gztest</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.special_query --test-load_gztest</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.devcases import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;GZ_ALL&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">match_chips4</span> <span class="k">as</span> <span class="n">mc4</span>
+    <span class="n">dir_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_module_dir</span><span class="p">(</span><span class="n">mc4</span><span class="p">)</span>
+    <span class="n">eval_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dir_</span><span class="p">,</span>  <span class="s">&#39;GZ_TESTTUP.txt&#39;</span><span class="p">))</span>
+    <span class="n">testcases</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">eval_text</span><span class="p">)</span>
+    <span class="n">count_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">count_dict_vals</span><span class="p">(</span><span class="n">testcases</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">count_dict</span><span class="p">))</span>
+
+    <span class="n">testtup_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">testcases</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;vsone_wins&#39;</span><span class="p">,</span>
+                                                            <span class="s">&#39;vsmany_outperformed&#39;</span><span class="p">,</span>
+                                                            <span class="s">&#39;vsmany_dominates&#39;</span><span class="p">,</span>
+                                                            <span class="s">&#39;vsmany_wins&#39;</span><span class="p">]))</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">testtup</span><span class="o">.</span><span class="n">qaid_t</span> <span class="k">for</span> <span class="n">testtup</span> <span class="ow">in</span> <span class="n">testtup_list</span><span class="p">]</span>
+    <span class="n">visual_uuids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
+    <span class="n">visual_uuids</span>
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>

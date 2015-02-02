@@ -57,15 +57,25 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="c">#print, print_, printDBG, rrr, profile = ut.inject(__name__, &#39;[suggest]&#39;)</span>
 
 
 <span class="c"># ---- GLOBALS ----</span>
 
-<span class="n">ChoiceTuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;ChoiceTuple&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;sorted_nids&#39;</span><span class="p">,</span> <span class="s">&#39;sorted_nscore&#39;</span><span class="p">,</span>
-                                         <span class="s">&#39;sorted_rawscore&#39;</span><span class="p">,</span> <span class="s">&#39;sorted_aids&#39;</span><span class="p">,</span>
-                                         <span class="s">&#39;sorted_ascores&#39;</span><span class="p">))</span>
+<span class="n">ChoiceTuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+    <span class="s">&#39;ChoiceTuple&#39;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s">&#39;sorted_nids&#39;</span><span class="p">,</span> <span class="s">&#39;sorted_nscore&#39;</span><span class="p">,</span> <span class="s">&#39;sorted_rawscore&#39;</span><span class="p">,</span>
+     <span class="s">&#39;sorted_aids&#39;</span><span class="p">,</span> <span class="s">&#39;sorted_ascores&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+
+
+<span class="c"># An exmplar decision adds and removes exemplars</span>
+<span class="n">ExemplarDecision</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+    <span class="s">&#39;ExemplarDecision&#39;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s">&#39;new_exemplar_aids&#39;</span><span class="p">,</span> <span class="s">&#39;remove_exemplar_aids&#39;</span><span class="p">)</span>
+<span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_qres_name_choices"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.system_suggestor.get_qres_name_choices">[docs]</a><span class="k">def</span> <span class="nf">get_qres_name_choices</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">):</span>
@@ -226,53 +236,115 @@
 <span class="sd">        &gt;&gt;&gt; result = str((autoexmplr_msg, exemplar_decision, exemplar_confidence))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[suggest_exemplar] Deciding if adding qaid=</span><span class="si">%r</span><span class="s"> as an exemplar&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[suggest_exemplar] Deciding if adding qaid=</span><span class="si">%r</span><span class="s"> as an exemplar&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,))</span>
     <span class="c"># Need a good criteria here</span>
     <span class="n">max_exemplars</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">max_exemplars</span>
+    <span class="c">#max_exemplars = 2</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[suggest_exemplar] max_exemplars = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">max_exemplars</span><span class="p">)</span>
     <span class="n">other_exemplars</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">is_exemplar</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">num_other_exemplars</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">other_exemplars</span><span class="p">)</span>
     <span class="c">#</span>
-    <span class="n">is_already_exemplar</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
-    <span class="n">can_add_more</span> <span class="o">=</span> <span class="n">num_other_exemplars</span> <span class="o">&lt;</span> <span class="n">max_exemplars</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[suggest_exemplar] num_other_exemplars = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">num_other_exemplars</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[suggest_exemplar] is_already_exemplar = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">is_already_exemplar</span><span class="p">)</span>
+    <span class="n">is_already_exemplar</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+    <span class="n">have_max_exemplars</span> <span class="o">=</span> <span class="n">num_other_exemplars</span> <span class="o">&gt;=</span> <span class="n">max_exemplars</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[suggest_exemplar] num_other_exemplars = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">num_other_exemplars</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[suggest_exemplar] is_already_exemplar = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">is_already_exemplar</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_already_exemplar</span><span class="p">:</span>
+        <span class="c">#ut.embed()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[suggest_exemplar] WARNING is_already_exemplar = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">is_already_exemplar</span><span class="p">)</span>
 
     <span class="n">exemplar_confidence</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">if</span> <span class="n">num_other_exemplars</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">autoexmplr_msg</span> <span class="o">=</span> <span class="s">&#39;First exemplar of this name.&#39;</span>
-        <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">if</span> <span class="n">is_already_exemplar</span><span class="p">:</span>
+        <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="n">ExemplarDecision</span><span class="p">([],</span> <span class="p">[])</span>
+        <span class="n">autoexmplr_msg</span> <span class="o">=</span> <span class="s">&#39;WARNING exemplar suggestion should not be in this state&#39;</span>
+    <span class="k">elif</span> <span class="n">num_other_exemplars</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c"># Always add the first exemplar</span>
+        <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="n">ExemplarDecision</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="p">[])</span>
         <span class="n">exemplar_confidence</span> <span class="o">=</span> <span class="mf">1.0</span>
-        <span class="k">return</span> <span class="n">autoexmplr_msg</span><span class="p">,</span> <span class="n">exemplar_decision</span><span class="p">,</span> <span class="n">exemplar_confidence</span>
-    <span class="k">elif</span> <span class="ow">not</span> <span class="n">is_already_exemplar</span> <span class="ow">and</span> <span class="n">can_add_more</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[suggest_exemplar] Testing exemplar disinctiveness&#39;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[suggest_exemplar]&#39;</span><span class="p">):</span>
-            <span class="n">exemplar_distinctiveness_thresh</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">exemplar_distinctiveness_thresh</span>
-            <span class="c"># Logic to choose query based on exemplar score distance</span>
-            <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
-            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">other_exemplars</span>
-            <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsone_norm_csum&#39;</span><span class="p">)</span>
-            <span class="n">qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">qres</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">is_distinctive</span> <span class="o">=</span> <span class="bp">True</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c">#ut.embed()</span>
-                <span class="n">aid_arr</span><span class="p">,</span> <span class="n">score_arr</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aids_and_scores</span><span class="p">()</span>
-                <span class="n">is_distinctive</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">aid_arr</span> <span class="o">&lt;</span> <span class="n">exemplar_distinctiveness_thresh</span><span class="p">)</span>
+        <span class="n">autoexmplr_msg</span> <span class="o">=</span> <span class="s">&#39;First exemplar of this name.&#39;</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">have_max_exemplars</span><span class="p">:</span>
+        <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="n">ExemplarDecision</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="p">[])</span>
+        <span class="n">exemplar_confidence</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">autoexmplr_msg</span> <span class="o">=</span> <span class="s">&#39;This name has room for more exemplars&#39;</span>
+    <span class="k">elif</span> <span class="n">have_max_exemplars</span><span class="p">:</span>
+        <span class="n">METHOD</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">METHOD</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="n">exemplar_method1_distinctiveness</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">other_exemplars</span><span class="p">)</span>
+            <span class="n">autoexmplr_msg</span> <span class="o">=</span> <span class="s">&#39;[suggest_exemplar] computed bsed on distinctivness &#39;</span>
+        <span class="k">elif</span> <span class="n">METHOD</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="n">exemplar_method2_randomness</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">other_exemplars</span><span class="p">)</span>
+            <span class="n">autoexmplr_msg</span> <span class="o">=</span> <span class="s">&#39;[suggest_exemplar] randomly chose &#39;</span>
+        <span class="k">elif</span> <span class="n">METHOD</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="n">ExemplarDecision</span><span class="p">([],</span> <span class="p">[])</span>
+            <span class="n">autoexmplr_msg</span> <span class="o">=</span> <span class="s">&#39;[suggest_exemplar] defaulting  &#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Impossible State&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">is_distinctive</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[suggest_exemplar] Not testing exemplar disinctiveness&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Impossible State&#39;</span><span class="p">)</span>
 
-    <span class="n">do_exemplar_add</span> <span class="o">=</span> <span class="p">(</span><span class="n">can_add_more</span> <span class="ow">and</span> <span class="n">is_distinctive</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_already_exemplar</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">do_exemplar_add</span><span class="p">:</span>
-        <span class="n">autoexmplr_msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;marking as qaid=</span><span class="si">%r</span><span class="s"> exemplar&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,))</span>
-        <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="bp">True</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="bp">False</span>
-        <span class="n">autoexmplr_msg</span> <span class="o">=</span> <span class="s">&#39;annotation is not marked as exemplar&#39;</span>
+    <span class="n">autoexmplr_msg</span> <span class="o">+=</span> <span class="s">&#39;exemplar_decision=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">exemplar_decision</span><span class="p">,)</span>
 
     <span class="k">return</span> <span class="n">autoexmplr_msg</span><span class="p">,</span> <span class="n">exemplar_decision</span><span class="p">,</span> <span class="n">exemplar_confidence</span>
+
+</div>
+<div class="viewcode-block" id="exemplar_method2_randomness"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.system_suggestor.exemplar_method2_randomness">[docs]</a><span class="k">def</span> <span class="nf">exemplar_method2_randomness</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">other_exemplars</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.system_suggestor --test-exemplar_method2_randomness</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.system_suggestor import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; random.seed(0)</span>
+<span class="sd">        &gt;&gt;&gt; qaid = 4</span>
+<span class="sd">        &gt;&gt;&gt; other_exemplars = [1, 2, 3, 5, 6, 9]</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; exemplar_decision = exemplar_method2_randomness(qaid, other_exemplars)</span>
+<span class="sd">        &gt;&gt;&gt; exemplar_decision_list = [exemplar_method2_randomness(qaid, other_exemplars) for _ in range(1000)]</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; flat_others = ut.flatten(ut.get_list_column(exemplar_decision_list, 1))</span>
+<span class="sd">        &gt;&gt;&gt; result = str(flat_others)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [3, 2, 6, 1, 3, 2, 9, 3, 6, 2, 1, 5, 1, 6, 1]</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        ibs = ut.search_stack_for_localvar(&#39;ibs&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rand_thresh</span> <span class="o">=</span> <span class="o">.</span><span class="mo">01</span>
+    <span class="c">#rand_thresh = .1</span>
+    <span class="c">#rand_thresh = .9</span>
+    <span class="n">rand_float</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+    <span class="k">if</span>  <span class="n">rand_float</span> <span class="o">&lt;</span> <span class="n">rand_thresh</span><span class="p">:</span>
+        <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="n">ExemplarDecision</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="p">[</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">other_exemplars</span><span class="p">)])</span>
+        <span class="c">#ut.embed()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="n">ExemplarDecision</span><span class="p">([],</span> <span class="p">[])</span>
+    <span class="k">return</span> <span class="n">exemplar_decision</span>
+
+</div>
+<div class="viewcode-block" id="exemplar_method1_distinctiveness"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.system_suggestor.exemplar_method1_distinctiveness">[docs]</a><span class="k">def</span> <span class="nf">exemplar_method1_distinctiveness</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">other_exemplars</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    choose as exemplar if it is distinctive with respect to other exemplars</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># FIXME ExemplarDecision</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[suggest_exemplar] Testing exemplar disinctiveness&#39;</span><span class="p">)</span>
+    <span class="n">exemplar_distinctiveness_thresh</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">exemplar_distinctiveness_thresh</span>
+    <span class="c"># Logic to choose query based on exemplar score distance</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+    <span class="n">daid_list</span> <span class="o">=</span> <span class="n">other_exemplars</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsone_norm_csum&#39;</span><span class="p">)</span>
+    <span class="n">qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">qres</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c">#ut.embed()</span>
+        <span class="n">aid_arr</span><span class="p">,</span> <span class="n">score_arr</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aids_and_scores</span><span class="p">()</span>
+        <span class="n">exemplar_decision</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">aid_arr</span> <span class="o">&lt;</span> <span class="n">exemplar_distinctiveness_thresh</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">exemplar_decision</span>
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>

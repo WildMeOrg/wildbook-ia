@@ -69,7 +69,7 @@
 
 <dl class="function">
 <dt id="ibeis.model.detect.grabmodels.ensure_models">
-<tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">ensure_models</tt><big>(</big><em>modeldir='default'</em>, <em>version='1.0'</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#ensure_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.ensure_models" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">ensure_models</tt><big>(</big><em>modeldir='default'</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#ensure_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.ensure_models" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -93,7 +93,33 @@
 <dl class="function">
 <dt id="ibeis.model.detect.grabmodels.get_species_trees_paths">
 <tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">get_species_trees_paths</tt><big>(</big><em>species</em>, <em>modeldir='default'</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#get_species_trees_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.get_species_trees_paths" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">?: trees_path</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.model.detect.grabmodels &#8211;test-get_species_trees_paths</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">modeldir</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">trees_path</span> <span class="o">=</span> <span class="n">get_species_trees_paths</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">modeldir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">trees_path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.detect.grabmodels.iter_algo_modeldirs">
@@ -102,7 +128,7 @@
 
 <dl class="function">
 <dt id="ibeis.model.detect.grabmodels.redownload_models">
-<tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">redownload_models</tt><big>(</big><em>modeldir='default'</em>, <em>version='1.0'</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#redownload_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.redownload_models" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.model.detect.grabmodels.</tt><tt class="descname">redownload_models</tt><big>(</big><em>modeldir='default'</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/detect/grabmodels.html#redownload_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.detect.grabmodels.redownload_models" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -196,6 +222,27 @@ False: ibs.get_image_paths() is used</p>
 </tr>
 </tbody>
 </table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.model.detect.randomforest &#8211;test-detect_gid_list_with_species</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.detect.randomforest</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.detect.randomforest</span> <span class="kn">import</span> <span class="n">_get_models</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">detect_gid_list_with_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">downsample</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -224,7 +271,7 @@ False: ibs.get_image_paths() is used</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">iter</td>
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><em>iter</em></td>
 </tr>
 </tbody>
 </table>

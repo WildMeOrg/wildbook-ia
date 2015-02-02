@@ -1415,7 +1415,31 @@
 </div>
     <span class="nd">@default_decorator</span>
 <div class="viewcode-block" id="SQLDatabaseController.get_table_csv"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.SQLDatabaseControl.SQLDatabaseController.get_table_csv">[docs]</a>    <span class="k">def</span> <span class="nf">get_table_csv</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">exclude_columns</span><span class="o">=</span><span class="p">[]):</span>
-        <span class="sd">&quot;&quot;&quot; Conveinience: Converts a tablename to csv format &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; Conveinience: Converts a tablename to csv format</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tablename (str):</span>
+<span class="sd">            exclude_columns (list):</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: csv_table</span>
+
+<span class="sd">        CommandLine:</span>
+<span class="sd">            python -m ibeis.control.SQLDatabaseControl --test-get_table_csv</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.control.SQLDatabaseControl import *  # NOQA</span>
+<span class="sd">            &gt;&gt;&gt; # build test data</span>
+<span class="sd">            &gt;&gt;&gt; db = &#39;?&#39;</span>
+<span class="sd">            &gt;&gt;&gt; tablename = &#39;?&#39;</span>
+<span class="sd">            &gt;&gt;&gt; exclude_columns = []</span>
+<span class="sd">            &gt;&gt;&gt; # execute function</span>
+<span class="sd">            &gt;&gt;&gt; csv_table = db.get_table_csv(tablename, exclude_columns)</span>
+<span class="sd">            &gt;&gt;&gt; # verify results</span>
+<span class="sd">            &gt;&gt;&gt; result = str(csv_table)</span>
+<span class="sd">            &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">column_names</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
         <span class="n">column_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">column_lbls</span> <span class="o">=</span> <span class="p">[]</span>

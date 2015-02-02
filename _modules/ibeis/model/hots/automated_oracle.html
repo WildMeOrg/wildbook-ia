@@ -90,7 +90,8 @@
 <span class="sd">    Find what the correct decision should be ibs is the database we are working</span>
 <span class="sd">    with ibs_gt has pristine groundtruth</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Oracle is making decision using oracle_method=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">oracle_method</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Oracle is making decision using oracle_method=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">oracle_method</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">metatup</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING METATUP IS NONE&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">None</span>
@@ -109,7 +110,8 @@
         <span class="n">chosen_names</span> <span class="o">=</span> <span class="n">oracle_method2</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">qnid1</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown oracle method </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">oracle_method</span><span class="p">,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Oracle decision is chosen_names=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chosen_names</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Oracle decision is chosen_names=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chosen_names</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">chosen_names</span>
 
 </div>

@@ -59,7 +59,7 @@
 <span class="sd">    * On opening new database the tables are refreshed for the closing database.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">filter</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">filter</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">isdir</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">import</span> <span class="nn">functools</span>  <span class="c"># NOQA</span>
@@ -310,7 +310,6 @@
         <span class="c"># Connect signals and slots</span>
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">_connect_signals_and_slots</span><span class="p">()</span>
         <span class="c"># Connect the IBEIS control</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&quot;WIDGET: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">ibs</span><span class="p">))</span>
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">connect_ibeis_control</span><span class="p">(</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">ibs</span><span class="p">)</span>
 
     <span class="c">#@checks_qt_error</span>
@@ -377,10 +376,30 @@
                                           <span class="n">bgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
                                           <span class="n">fgcolor</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 
+        <span class="k">def</span> <span class="nf">get_working_species_set</span><span class="p">():</span>
+            <span class="sd">&quot;&quot;&quot; hack to make only species with detectors show up &quot;&quot;&quot;</span>
+            <span class="c"># TODO: allow for custom user-define species</span>
+            <span class="n">RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">if</span> <span class="n">RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS</span><span class="p">:</span>
+                <span class="n">working_species_tups</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="n">species_tup</span><span class="o">.</span><span class="n">species_nice</span><span class="p">,</span> <span class="n">species_tup</span><span class="o">.</span><span class="n">species_text</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">species_tup</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TUPS</span>
+                    <span class="k">if</span> <span class="n">species_tup</span><span class="o">.</span><span class="n">species_text</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_WITH_DETECTORS</span>
+                <span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">working_species_tups</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="n">species_tup</span><span class="o">.</span><span class="n">species_nice</span><span class="p">,</span> <span class="n">species_tup</span><span class="o">.</span><span class="n">species_text</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">species_tup</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">SPECIES_TUPS</span>
+                <span class="p">]</span>
+            <span class="k">return</span> <span class="n">working_species_tups</span>
+
+        <span class="c"># TODO: update these options depending on ibs.get_species_with_detectors</span>
+        <span class="c"># when a controller is attached to the gui</span>
         <span class="n">detection_combo_box_options</span> <span class="o">=</span> <span class="p">[</span>
             <span class="c"># Text              # Value</span>
             <span class="p">(</span><span class="s">&#39;Select Species&#39;</span><span class="p">,</span>  <span class="s">&#39;none&#39;</span><span class="p">),</span>
-        <span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SPECIES_NICE</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">VALID_SPECIES</span><span class="p">))</span>
+        <span class="p">]</span> <span class="o">+</span> <span class="n">get_working_species_set</span><span class="p">()</span>
+        <span class="c">#list(zip(const.SPECIES_NICE, const.VALID_SPECIES))</span>
         <span class="n">ibswgt</span><span class="o">.</span><span class="n">species_combo</span> <span class="o">=</span> <span class="n">_COMBO</span><span class="p">(</span><span class="n">detection_combo_box_options</span><span class="p">,</span>
                                       <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">change_detection_species</span><span class="p">)</span>
 
@@ -590,14 +609,19 @@
             <span class="n">ibswgt</span><span class="o">.</span><span class="n">_tab_table_wgt</span><span class="o">.</span><span class="n">blockSignals</span><span class="p">(</span><span class="n">block_wgt_flag</span><span class="p">)</span>
             <span class="n">ibswgt</span><span class="o">.</span><span class="n">_change_enc</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
-            <span class="n">DEFAULT_LARGEST_ENCOUNTER</span> <span class="o">=</span> <span class="bp">True</span>
-            <span class="k">if</span> <span class="n">DEFAULT_LARGEST_ENCOUNTER</span><span class="p">:</span>
-                <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
-                <span class="n">numImg_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_num_gids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
-                <span class="n">argx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argsort</span><span class="p">(</span><span class="n">numImg_list</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-                <span class="n">eid</span> <span class="o">=</span> <span class="n">eid_list</span><span class="p">[</span><span class="n">argx</span><span class="p">]</span>
-                <span class="n">ibswgt</span><span class="o">.</span><span class="n">select_encounter_tab</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-                <span class="c">#ibswgt._change_enc(eid)</span>
+            <span class="n">LOAD_ENCOUNTER_ON_START</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">if</span> <span class="n">LOAD_ENCOUNTER_ON_START</span><span class="p">:</span>
+                <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">(</span><span class="n">shipped</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">DEFAULT_LARGEST_ENCOUNTER</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="k">if</span> <span class="n">DEFAULT_LARGEST_ENCOUNTER</span><span class="p">:</span>
+                        <span class="n">numImg_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_num_gids</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+                        <span class="n">argx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argsort</span><span class="p">(</span><span class="n">numImg_list</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="n">eid</span> <span class="o">=</span> <span class="n">eid_list</span><span class="p">[</span><span class="n">argx</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>  <span class="c"># Grab &quot;first&quot; encounter</span>
+                        <span class="n">eid</span> <span class="o">=</span> <span class="n">eid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">ibswgt</span><span class="o">.</span><span class="n">select_encounter_tab</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+                    <span class="c">#ibswgt._change_enc(eid)</span>
 </div>
 <div class="viewcode-block" id="IBEISGuiWidget.setWindowTitle"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.newgui.IBEISGuiWidget.setWindowTitle">[docs]</a>    <span class="k">def</span> <span class="nf">setWindowTitle</span><span class="p">(</span><span class="n">ibswgt</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
         <span class="n">parent_</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
@@ -731,18 +755,22 @@
             <span class="c"># Conditional context menu</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">context_options</span> <span class="o">+=</span> <span class="p">[</span>
-                    <span class="p">(</span><span class="s">&#39;merge </span><span class="si">%d</span><span class="s"> encounter into </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>  <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">),</span> <span class="p">(</span><span class="n">enctext</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Run detection on encounter (can cause duplicates)&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_on_encounter</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Merge </span><span class="si">%d</span><span class="s"> encounter into </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>  <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">),</span> <span class="p">(</span><span class="n">enctext</span><span class="p">)),</span>
                         <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">merge_encounters</span><span class="p">(</span><span class="n">id_list</span><span class="p">,</span> <span class="n">merge_destination_id</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">),</span>
-                    <span class="p">(</span><span class="s">&#39;delete encounter&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_encounter</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
-                    <span class="p">(</span><span class="s">&#39;export encounter&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">export_encounters</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Delete encounter&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_encounter</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Delete encounter (and images)&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_encounter_and_images</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Export encounter&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">export_encounters</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
                 <span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">context_options</span> <span class="o">+=</span> <span class="p">[</span>
-                    <span class="p">(</span><span class="s">&#39;merge </span><span class="si">%d</span><span class="s"> encounters into </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>  <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">),</span> <span class="p">(</span><span class="n">enctext</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Run detection on encounters (can cause duplicates)&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_on_encounter</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Merge </span><span class="si">%d</span><span class="s"> encounters into </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>  <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">id_list</span><span class="p">),</span> <span class="p">(</span><span class="n">enctext</span><span class="p">)),</span>
                         <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">merge_encounters</span><span class="p">(</span><span class="n">id_list</span><span class="p">,</span> <span class="n">merge_destination_id</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">),</span>
-                    <span class="p">(</span><span class="s">&#39;delete encounters&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_encounter</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Delete encounters&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_encounter</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Delete encounters (and images)&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">delete_encounter_and_images</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
                     <span class="c"># (&#39;export encounters&#39;, lambda: ibswgt.back.export_encounters(id_list)),</span>
                 <span class="p">]</span>
         <span class="c"># ---- IMAGE CONTEXT ----</span>
@@ -755,10 +783,12 @@
                 <span class="n">context_options</span> <span class="o">+=</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s">&#39;View image&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;View detection image (Hough) [dev]&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">show_hough_image</span><span class="p">(</span><span class="n">gid</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Add annotation from entire image&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">add_annotation_from_image</span><span class="p">([</span><span class="n">gid</span><span class="p">])),</span>
                     <span class="p">(</span><span class="s">&#39;Run detection on image (can cause duplicates)&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_on_images</span><span class="p">([</span><span class="n">gid</span><span class="p">])),</span>
                 <span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">context_options</span> <span class="o">+=</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="s">&#39;Add annotation from entire images&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">add_annotation_from_image</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;Run detection on images (can cause duplicates)&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_on_images</span><span class="p">(</span><span class="n">id_list</span><span class="p">)),</span>
                 <span class="p">]</span>
             <span class="c"># Special condition for encounters</span>
@@ -797,6 +827,7 @@
                 <span class="n">context_options</span> <span class="o">+=</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s">&#39;View image&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="bp">True</span><span class="p">)),</span>
                     <span class="p">(</span><span class="s">&#39;View detection image (Hough) [dev]&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">show_hough_image</span><span class="p">(</span><span class="n">gid</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="s">&#39;Add annotation from entire image&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">add_annotation_from_image</span><span class="p">([</span><span class="n">gid</span><span class="p">])),</span>
                     <span class="p">(</span><span class="s">&#39;Run detection on image (can cause duplicates)&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection_on_images</span><span class="p">([</span><span class="n">gid</span><span class="p">])),</span>
                     <span class="p">(</span><span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">),</span>
                     <span class="p">(</span><span class="s">&#39;Go to image in Images Table&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">_goto_image_image</span><span class="p">(</span><span class="n">gid</span><span class="p">)),</span>

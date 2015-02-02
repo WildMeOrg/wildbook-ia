@@ -63,9 +63,26 @@
 
 
 <span class="n">NN_WEIGHT_FUNC_DICT</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">MISC_WEIGHT_FUNC_DICT</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">EPS</span> <span class="o">=</span> <span class="mf">1E-8</span>
 
 
+<div class="viewcode-block" id="testdata_nn_weights"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.testdata_nn_weights">[docs]</a><span class="k">def</span> <span class="nf">testdata_nn_weights</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; dbname = &#39;testdb1&#39;</span>
+<span class="sd">    &gt;&gt;&gt; cfgdict = {&#39;fg_weight&#39;: 1.0}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="n">dbname</span><span class="p">,</span>
+                                                <span class="n">qaid_list</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span>
+                                                <span class="n">daid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span>
+                                                <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+    <span class="n">pipeline_locals_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;weight_neighbors&#39;</span><span class="p">)</span>
+    <span class="n">qaid2_nns</span>     <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_nns&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_nnvalid0</span> <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_nnvalid0&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnvalid0</span>
+
+</div>
 <span class="k">def</span> <span class="nf">_register_nn_normalized_weight_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Decorator for weighting functions</span>
@@ -73,19 +90,27 @@
 <span class="sd">    Registers a nearest neighbor normalized weighting</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">NN_WEIGHT_FUNC_DICT</span>
-    <span class="n">nnweight</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_fn&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_fn&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nn_weights] registering norm func: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnweight</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nn_weights] registering norm func: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
     <span class="n">filtfunc</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">nn_normalized_weight</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
-    <span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">nnweight</span><span class="p">]</span> <span class="o">=</span> <span class="n">filtfunc</span>
+    <span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">filtfunc</span>
     <span class="k">return</span> <span class="n">func</span>
 
 
 <span class="k">def</span> <span class="nf">_register_nn_simple_weight_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="n">nnweight</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_match_weighter&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_match_weighter&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nn_weights] registering simple func: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nnweight</span><span class="p">,))</span>
-    <span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">nnweight</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nn_weights] registering simple func: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
+    <span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+    <span class="k">return</span> <span class="n">func</span>
+
+
+<span class="k">def</span> <span class="nf">_register_misc_weight_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_match_weighter&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nn_weights] registering simple func: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
+    <span class="n">MISC_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
     <span class="k">return</span> <span class="n">func</span>
 
 
@@ -267,9 +292,37 @@
     <span class="k">return</span> <span class="n">qaid2_fgvote_weight</span>
 
 </div>
+<span class="nd">@_register_misc_weight_func</span>
+<div class="viewcode-block" id="distinctiveness_match_weighter"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.distinctiveness_match_weighter">[docs]</a><span class="k">def</span> <span class="nf">distinctiveness_match_weighter</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.nn_weights import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import nn_weights</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = dict(featweight_on=True, fg_weight=1.0, codename=&#39;vsone_dist_extern_distinctiveness&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; tup = nn_weights.testdata_nn_weights(&#39;PZ_MTEST&#39;, cfgdict=cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, qaid2_nns, qaid2_nnvalid0 = tup</span>
+
+<span class="sd">    TODO: finish intergration</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dstcnvs_normer</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">dstcnvs_normer</span>
+    <span class="k">assert</span> <span class="n">dstcnvs_normer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
+    <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span>
+    <span class="n">dstcvs_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">vecs</span> <span class="ow">in</span> <span class="n">vecs_list</span><span class="p">:</span>
+        <span class="n">qfx2_vec</span> <span class="o">=</span> <span class="n">vecs</span>
+        <span class="n">dstcvs</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">get_distinctiveness</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">)</span>
+        <span class="n">dstcvs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dstcvs</span><span class="p">)</span>
+    <span class="n">qaid2_dstcvs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">dstcvs_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">qaid2_dstcvs</span>
+
+</div>
 <div class="viewcode-block" id="nn_normalized_weight"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.nn_normalized_weight">[docs]</a><span class="k">def</span> <span class="nf">nn_normalized_weight</span><span class="p">(</span><span class="n">normweight_fn</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnvalid0</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Weights nearest neighbors using the chosen function</span>
+<span class="sd">    Generic function to weight nearest neighbors</span>
+
+<span class="sd">    ratio, lnbnn, and other nearest neighbor based functions use this</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        normweight_fn (func): chosen weight function e.g. lnbnn</span>
@@ -570,6 +623,12 @@
 
 </div>
 <span class="nd">@_register_nn_normalized_weight_func</span>
+<div class="viewcode-block" id="dist_fn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.dist_fn">[docs]</a><span class="k">def</span> <span class="nf">dist_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; just use straight up distance &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">vdist</span>
+
+</div>
+<span class="nd">@_register_nn_normalized_weight_func</span>
 <div class="viewcode-block" id="logratio_fn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.logratio_fn">[docs]</a><span class="k">def</span> <span class="nf">logratio_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">ndist</span><span class="p">,</span> <span class="n">vdist</span> <span class="o">+</span> <span class="n">EPS</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
 
@@ -627,22 +686,6 @@
         <span class="k">if</span> <span class="n">normweight_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="n">test_weight_fn</span><span class="p">(</span><span class="n">nn_weight</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">)</span>
-
-</div>
-<div class="viewcode-block" id="testdata_nn_weights"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.testdata_nn_weights">[docs]</a><span class="k">def</span> <span class="nf">testdata_nn_weights</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="p">{}):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    &gt;&gt;&gt; dbname = &#39;testdb1&#39;</span>
-<span class="sd">    &gt;&gt;&gt; cfgdict = {&#39;fg_weight&#39;: 1.0}</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
-    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="n">dbname</span><span class="p">,</span>
-                                                <span class="n">qaid_list</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span>
-                                                <span class="n">daid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span>
-                                                <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
-    <span class="n">pipeline_locals_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;weight_neighbors&#39;</span><span class="p">)</span>
-    <span class="n">qaid2_nns</span>     <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_nns&#39;</span><span class="p">]</span>
-    <span class="n">qaid2_nnvalid0</span> <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_nnvalid0&#39;</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnvalid0</span>
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
