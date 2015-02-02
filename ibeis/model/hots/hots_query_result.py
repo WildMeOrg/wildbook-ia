@@ -766,7 +766,7 @@ class QueryResult(__OBJECT_BASE__):
         if fpath is None:
             savekw['usetitle'] = True
         # Draw Matches
-        fnum = pt.get_next_fnum()
+        fnum = pt.next_fnum()
         pt.figure(fnum=fnum, doclf=True, docla=True)
         aid = qres.get_top_aids(ibs)[0]
         ax, xywh1, xywh2 = qres.show_matches(ibs, aid, **kwargs)
