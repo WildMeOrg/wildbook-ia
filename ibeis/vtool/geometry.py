@@ -1,6 +1,7 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
 from six.moves import zip
+import numpy as np
 import utool
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[geom]', DEBUG=False)
@@ -45,9 +46,6 @@ def homogonize_list(xy_list):
 
 def unhomogonize_list(xyz_list):
     return [(x / z, y / z) for (x, y, z) in xyz_list]
-
-
-import numpy as np
 
 
 def homogonize(xy_arr):
