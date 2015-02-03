@@ -532,3 +532,54 @@ def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
         pass
     #return [res for res in generator]
     return new_gpath_list
+
+
+def find_pixel_value(img, pixel):
+    r"""
+    Args:
+        img (ndarray[uint8_t, ndim=2]):  image data
+        pixel (?):
+
+    CommandLine:
+        python -m vtool.math --test-find_pixel_value
+
+    References:
+        http://stackoverflow.com/questions/21407815/get-column-row-index-from-numpy-array-that-meets-a-boolean-condition
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.math import *  # NOQA
+        >>> # build test data
+        >>> img = np.random.rand(10, 10, 3) + 1.0
+        >>> pixel = np.array([0, 0, 0])
+        >>> img[5, 5, :] = pixel
+        >>> img[2, 3, :] = pixel
+        >>> img[1, 1, :] = pixel
+        >>> img[0, 0, :] = pixel
+        >>> img[2, 0, :] = pixel
+        >>> # execute function
+        >>> result = find_pixel_value(img, pixel)
+        >>> # verify results
+        >>> print(result)
+        [[0 0]
+         [1 1]
+         [2 0]
+         [2 3]
+         [5 5]]
+    """
+    mask2d = np.all(img == pixel[None, None, :], axis=2)
+    pixel_locs = np.column_stack(np.where(mask2d))
+    return pixel_locs
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m vtool.image
+        python -m vtool.image --allexamples
+        python -m vtool.image --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

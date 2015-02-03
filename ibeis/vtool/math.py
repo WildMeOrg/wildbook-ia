@@ -161,6 +161,42 @@ def test_language_modulus():
     print(table)
 
 
+def iceil(num, dtype=np.int32):
+    """ Integer ceiling. (because numpy doesn't seem to have it!)
+
+    Args:
+        num (ndarray or scalar):
+
+    Returns:
+        ndarray or scalar:
+
+    CommandLine:
+        python -m utool.util_alg --test-iceil
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> num = 1.5
+        >>> result = iceil(num)
+        >>> print(result)
+        2
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> num = [1.5, 2.9]
+        >>> result = iceil(num)
+        >>> print(result)
+        [2, 3]
+    """
+    return np.ceil(num).astype(dtype)
+
+
+def iround(num, dtype=np.int32):
+    """ Integer round. (because numpy doesn't seem to have it!) """
+    return np.round(num).astype(dtype)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
