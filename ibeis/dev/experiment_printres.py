@@ -15,6 +15,7 @@ from os.path import join, dirname, split, basename, splitext
 from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
 from six.moves import map, range
+import vtool as vt
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[expt_report]')
 
 
@@ -57,13 +58,23 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     CommandLine:
         python dev.py -t best --db seals2 --allgt --vz
 
+        python dev.py --db PZ_MTEST --allgt -t custom --print-confusion-stats
+
+        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-scorediff-mat-stats
+        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-scorediff-mat-stats
+        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats --print-scorediff-mat-stats
+
+        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats
+
     """
 
     # Parse result info out of the lists
-    cfgx2_bestranks = ut.get_list_column(cfgx2_cfgresinfo, 0)
-    cfgx2_nextbestranks = ut.get_list_column(cfgx2_cfgresinfo, 1)
-    cfgx2_scorediffs = ut.get_list_column(cfgx2_cfgresinfo, 2)
-    cfgx2_aveprecs = ut.get_list_column(cfgx2_cfgresinfo, 3)
+    cfgx2_bestranks     = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_bestranks')
+    cfgx2_nextbestranks = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_next_bestranks')
+    cfgx2_gt_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
+    cfgx2_gf_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gf_raw_score')
+    cfgx2_scorediffs    = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorediff')
+    cfgx2_aveprecs      = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_avepercision')
 
     column_lbls = [ut.remove_vowels(lbl).replace(' ', '').replace(',', '')
                    for lbl in cfgx2_lbl]
@@ -417,19 +428,29 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
 
     #------------
 
+    def jagged_stats_str(arr):
+        return ut.get_stats_str(stat_dict=ut.get_jagged_stats(arr, use_nan=True), newlines=True)
+
     @utool.argv_flag_dec
     def print_scorediff_mat_stats():
         # Prints nextbest ranks
         print('-------------')
         print('ScoreDiffMatStats: %s' % testnameid)
         print('column_lbls = %r' % (column_lbls,))
-        scorediffs_mat = np.array(ut.replace_nones(cfgx2_scorediffs, -1))
+        scorediffs_mat = np.array(ut.replace_nones(cfgx2_scorediffs, np.nan))
         print('stats = %s' % (ut.get_stats_str(scorediffs_mat.T, newlines=True),))
         print('sum = %r' % (np.sum(scorediffs_mat, axis=1),))
-        pos_scorediff_mat = [scorediff[scorediff > 0] for scorediff in scorediffs_mat]
-        neg_scorediff_mat = [scorediff[scorediff < 0] for scorediff in scorediffs_mat]
-        print('pos_stats = ' + ut.get_stats_str(stat_dict=ut.get_jagged_stats(pos_scorediff_mat), newlines=True))
-        print('neg_stats = ' + ut.get_stats_str(stat_dict=ut.get_jagged_stats(neg_scorediff_mat), newlines=True))
+        istrue_list = [scorediff > 0 for scorediff in scorediffs_mat]
+        isfalse_list = [~isfalse for isfalse in istrue_list]
+        #pos_scorediff_mat = [scorediff[scorediff > 0] for scorediff in scorediffs_mat]
+        pos_scorediff_mat = vt.zipcompress(scorediffs_mat, istrue_list)
+        neg_scorediff_mat = vt.zipcompress(scorediffs_mat, isfalse_list)
+        #pos_scorediff_mat = [scorediff.compress(istrue) for scorediff, istrue in zip(scorediffs_mat, istrue_list)]
+        #neg_scorediff_mat = [scorediff.compress(isfalse) for scorediff, isfalse in zip(scorediffs_mat, isfalse_list)]
+        #pos_scorediff_mat = [scorediff[scorediff > 0] for scorediff in scorediffs_mat]
+        #neg_scorediff_mat = [scorediff[scorediff < 0] for scorediff in scorediffs_mat]
+        print('pos_stats = ' + jagged_stats_str(pos_scorediff_mat))
+        print('neg_stats = ' + jagged_stats_str(neg_scorediff_mat))
         #for negstats in neg_scorediff_mat:
         #    print('neg stats = %s' % (ut.get_stats_str(negstats, newlines=False),))
         #for posstats in pos_scorediff_mat:
@@ -440,6 +461,32 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         #ut.embed()
         print('[harn]-------------')
     print_scorediff_mat_stats()
+
+    @utool.argv_flag_dec
+    def print_confusion_stats():
+        # Prints nextbest ranks
+        print('-------------')
+        print('ScoreDiffMatStats: %s' % testnameid)
+        print('column_lbls = %r' % (column_lbls,))
+
+        scorediffs_mat = np.array(ut.replace_nones(cfgx2_scorediffs, np.nan))
+        istrue_list  = [scorediff > 0 for scorediff in scorediffs_mat]
+        isfalse_list = [~istrue for istrue in istrue_list]
+
+        #cfgx2_gt_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
+        #cfgx2_gf_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gf_raw_score')
+
+        tp_rawscores = vt.zipcompress(cfgx2_gt_rawscores, istrue_list)
+        fp_rawscores = vt.zipcompress(cfgx2_gt_rawscores, isfalse_list)
+        tn_rawscores = vt.zipcompress(cfgx2_gf_rawscores, istrue_list)
+        fn_rawscores = vt.zipcompress(cfgx2_gf_rawscores, isfalse_list)
+
+        print('stats(tp_rawscores) = ' + jagged_stats_str(tp_rawscores))
+        print('stats(fp_rawscores) = ' + jagged_stats_str(fp_rawscores))
+        print('stats(tn_rawscores) = ' + jagged_stats_str(tn_rawscores))
+        print('stats(fn_rawscores) = ' + jagged_stats_str(fn_rawscores))
+        print('[harn]-------------')
+    print_confusion_stats()
 
     @utool.argv_flag_dec
     def print_diffmat():
