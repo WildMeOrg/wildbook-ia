@@ -23,6 +23,7 @@ from vtool import coverage_image
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 from ibeis.model.hots import distinctiveness_normalizer
 import utool as ut
+from six.moves import zip, range  # NOQA
 #profile = ut.profile
 print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[vsonepipe]', DEBUG=False)
 
@@ -371,6 +372,7 @@ def compute_query_constrained_matches(ibs, qaid, daid_list, H_list):
 
 
 @profile
+@ut.memprof
 def compute_query_coverage(ibs, qaid, daid_list, fm_list, fs_list):
     """
     Returns a grayscale chip match which represents which pixels
@@ -403,27 +405,32 @@ def compute_query_coverage(ibs, qaid, daid_list, fm_list, fs_list):
     print('==--==--==--==--==--==')
     ut.print_resource_usage()
     weight_mask, patch = coverage_image.make_coverage_mask(
-        qkpts, qchipsize, fx2_score=weights, mode=mode)  # 9% of the time
+        qkpts, qchipsize, fx2_score=weights, mode=mode, resize=False)  # 9% of the time
     ut.print_resource_usage()
     # Apply weighted scoring to matches
     score_list = []
     for fm, fs, ddstncvs, dfgweight in zip(fm_list, fs_list, ddstncvs_list, dfgweight_list):
         # Get matching query keypoints
-        qkpts_m = qkpts.take(fm.T[0], axis=0)
-        ddstncvs_m = ddstncvs.take(fm.T[1], axis=0)
+        qkpts_m     = qkpts.take(fm.T[0], axis=0)
+        ddstncvs_m  = ddstncvs.take(fm.T[1], axis=0)
         dfgweight_m = dfgweight.take(fm.T[1], axis=0)
-        qdstncvs_m = qdstncvs.take(fm.T[0], axis=0)
+        qdstncvs_m  = qdstncvs.take(fm.T[0], axis=0)
         qfgweight_m = qfgweight.take(fm.T[0], axis=0)
         weights_m = fs * np.sqrt(qdstncvs_m * ddstncvs_m) * np.sqrt(qfgweight_m * dfgweight_m)
         # Hits     Time     Per Hit    %Time
         #  46      1000214  21743.8      4.0
         weight_mask_m, patch = coverage_image.make_coverage_mask(
-            qkpts_m, qchipsize, fx2_score=weights_m, mode=mode)  # 4% of the time
+            qkpts_m, qchipsize, fx2_score=weights_m, mode=mode, resize=False)  # 4% of the time
         #if True:
         #    stacktup = (weight_mask, np.zeros(weight_mask.shape), weight_mask_m)
         #    weight_color = np.dstack(stacktup)
         coverage_score = weight_mask_m.sum() / weight_mask.sum()
+        del weights_m
+        del weight_mask_m
         score_list.append(coverage_score)
+    print('END>>>')
+    ut.print_resource_usage()
+    del weight_mask
     ut.print_resource_usage()
     return score_list
 

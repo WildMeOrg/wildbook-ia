@@ -714,7 +714,7 @@ python dev.py --allgt -t best nsum custom custom:rrvsone_on=True custom:sv_on=Fa
 
 python dev.py --allgt -t custom best --print-scorediff-mat-stats
 
-python dev.py --allgt -t custom custom:vsone_reranking=True --print-scorediff-mat-stats
+python dev.py --allgt -t custom custom:rrvsone_on=True --print-scorediff-mat-stats
 
 
 ```
