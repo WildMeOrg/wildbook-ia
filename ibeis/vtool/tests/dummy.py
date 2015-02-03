@@ -279,6 +279,17 @@ def testdata_dummy_matches():
     return (kpts1, kpts2, fm, fs, rchip1, rchip2)
 
 
+def get_testdata_kpts(fname=None):
+    if fname is None:
+        kpts = get_dummy_kpts()
+    else:
+        from vtool import features as feattool
+        import utool as ut
+        fpath = ut.grab_test_imgpath(fname)
+        kpts, vecs = feattool.extract_features(fpath)
+    return kpts
+
+
 def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
     r"""
     Runs simple ratio-test matching between two images.
