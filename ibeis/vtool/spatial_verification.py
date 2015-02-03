@@ -25,9 +25,12 @@ import vtool.linalg as ltool
 
 try:
     from vtool import sver_c_wrapper
+    HAS_SVER_C_WRAPPER = True
 except Exception as ex:
+    HAS_SVER_C_WRAPPER = False
     ut.printex(ex, 'please build the sver c wrapper (run with --rebuild-sver')
-    raise
+    if not ut.WIN32:
+        raise
 
 profile = ut.profile
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[sver]', DEBUG=False)
@@ -430,8 +433,7 @@ def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
     """
     # Test each affine hypothesis
     # get list if inliers, errors, the affine matrix for each hypothesis
-    USE_CPP_WRAPPER = True
-    if USE_CPP_WRAPPER:
+    if HAS_SVER_C_WRAPPER:
         aff_inliers_list, aff_errors_list, Aff_mats = sver_c_wrapper.get_affine_inliers_cpp(
             kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh)
     else:

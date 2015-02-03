@@ -241,8 +241,9 @@ def get_gaussian_weight_patch(gauss_shape=(19, 19), gauss_sigma_frac=.3, gauss_n
 
 
 @profile
+#@ut.memprof
 def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None,
-                       return_patch=True, patch=None, **kwargs):
+                       return_patch=True, patch=None, resize=True, **kwargs):
     r"""
     Returns a intensity image denoting which pixels are covered by the input
     keypoints
@@ -299,8 +300,9 @@ def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None,
     if kwargs.get('cov_blur_on', True):
         cv2.GaussianBlur(dstimg, ksize=cov_blur_ksize, sigmaX=cov_blur_sigma, sigmaY=cov_blur_sigma,
                          dst=dstimg, borderType=cv2.BORDER_CONSTANT)
-    dsize = tuple(chip_shape[0:2][::-1])
-    dstimg = cv2.resize(dstimg, dsize)
+    if resize:
+        dsize = tuple(chip_shape[0:2][::-1])
+        dstimg = cv2.resize(dstimg, dsize)
     #print(dstimg)
     if return_patch:
         return dstimg, patch
