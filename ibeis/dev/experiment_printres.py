@@ -428,8 +428,8 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         print('sum = %r' % (np.sum(scorediffs_mat, axis=1),))
         pos_scorediff_mat = [scorediff[scorediff > 0] for scorediff in scorediffs_mat]
         neg_scorediff_mat = [scorediff[scorediff < 0] for scorediff in scorediffs_mat]
-        print('pos_stats = ' + ut.get_stats_str(stat_dict=ut.get_jagged_stats(neg_scorediff_mat), newlines=True))
-        print('neg_stats = ' + ut.get_stats_str(stat_dict=ut.get_jagged_stats(pos_scorediff_mat), newlines=True))
+        print('pos_stats = ' + ut.get_stats_str(stat_dict=ut.get_jagged_stats(pos_scorediff_mat), newlines=True))
+        print('neg_stats = ' + ut.get_stats_str(stat_dict=ut.get_jagged_stats(neg_scorediff_mat), newlines=True))
         #for negstats in neg_scorediff_mat:
         #    print('neg stats = %s' % (ut.get_stats_str(negstats, newlines=False),))
         #for posstats in pos_scorediff_mat:

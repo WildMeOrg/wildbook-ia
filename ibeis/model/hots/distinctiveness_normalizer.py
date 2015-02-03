@@ -447,58 +447,6 @@ def test_single_annot_distinctiveness_params(ibs, aid):
     chip = ibs.get_annot_chips(aid)
     chipsize = ibs.get_annot_chipsizes(aid)[::-1]
 
-    def interact_gridsearch_result_images(cfgdict_list, cfglbl_list, img_list,
-                                          score_list=None, fnum=None, figtitle=''):
-        """ helper function for visualizing results of gridsearch """
-        from plottool import plot_helpers as ph
-        from plottool import interact_helpers as ih
-        if score_list is None:
-            score_list = [None] * len(cfgdict_list)
-        else:
-            # sort by score if available
-            sortx_list = ut.list_argsort(score_list, reverse=True)
-            score_list = ut.list_take(score_list, sortx_list)
-            cfgdict_list = ut.list_take(cfgdict_list, sortx_list)
-            cfglbl_list = ut.list_take(cfglbl_list, sortx_list)
-            img_list = ut.list_take(img_list, sortx_list)
-        # Dont show too many results only the top few
-        score_list = ut.listclip(score_list, 25)
-
-        # Show the config results
-        fig = pt.figure(fnum=fnum)
-        # Get plots for each of the resutls
-        nRows, nCols = pt.get_square_row_cols(len(score_list), fix=True)
-        next_pnum = pt.make_pnum_nextgen(nRows, nCols)
-        for cfgdict, cfglbl, img, score in zip(cfgdict_list, cfglbl_list,
-                                                      img_list,
-                                                      score_list):
-            if score is not None:
-                cfglbl += '\nscore=%r' % (score,)
-            pt.imshow(255 * img, fnum=fnum, pnum=next_pnum(), title=cfglbl)
-            ax = pt.gca()
-            ph.set_plotdat(ax, 'cfgdict', cfgdict)
-            ph.set_plotdat(ax, 'cfglbl', cfglbl)
-        # Define clicked callback
-        def on_clicked(event):
-            print('\n[pt] clicked gridsearch axes')
-            if event is None or event.xdata is None or event.inaxes is None:
-                print('out of axes')
-                pass
-            else:
-                ax = event.inaxes
-                cfglbl = ph.get_plotdat(ax, 'cfglbl', None)
-                cfgdict = ph.get_plotdat(ax, 'cfgdict', {})
-                infostr_list = [
-                    ('cfglbl = ' + str(cfglbl)),
-                    '',
-                    ('cfgdict = ' + ut.dict_str(cfgdict)),
-                ]
-                infostr = ut.msgblock('CLICKED', '\n'.join(infostr_list))
-                print(infostr)
-        # Connect callbacks
-        ih.connect_callback(fig, 'button_press_event', on_clicked)
-        pt.set_figtitle(figtitle)
-
     # Paramater space to search
     # TODO: use slicing to control the params being varied
     # Use GridSearch class to modify paramaters as you go.
@@ -533,9 +481,9 @@ def test_single_annot_distinctiveness_params(ibs, aid):
 
     # Dont vary most paramaters, specify how much of their list can be used
     param_slice_dict = {
-        'p'                  : slice(0, 5),
-        'K'                  : slice(0, 5),
-        'clip_fraction'      : slice(0, 5),
+        'p'                  : slice(0, 2),
+        'K'                  : slice(0, 2),
+        'clip_fraction'      : slice(0, 2),
         'clip_fraction'      : slice(0, 2),
         #'gauss_shape'        : slice(0, 3),
         'gauss_sigma_frac'   : slice(0, 2),
@@ -615,16 +563,21 @@ def test_single_annot_distinctiveness_params(ibs, aid):
 
     fnum = 1
 
-    interact_gridsearch_result_images(cfgdict_list, cfglbl_list, dstncvs_mask_list, score_list=score_list,
-                                      fnum=fnum, figtitle='dstncvs gridsearch')
+    def show_covimg_result(img, fnum=None, pnum=None):
+        pt.imshow(255 * img, fnum=fnum, pnum=pnum)
+
+    ut.interact_gridsearch_result_images(
+        show_covimg_result, cfgdict_list, cfglbl_list, dstncvs_mask_list,
+        score_list=score_list, fnum=fnum, figtitle='dstncvs gridsearch')
 
     # Show subcomponents of grid search
     gauss_patch_cfgdict_list, gauss_patch_cfglbl_list = ut.get_cfgdict_lbl_list_subset(cfgdict_list, gauss_patch_varydict)
     patch_list = [coverage_image.get_gaussian_weight_patch(**cfgdict)
                   for cfgdict in ut.ProgressIter(gauss_patch_cfgdict_list, lbl='patch cfg')]
 
-    interact_gridsearch_result_images(gauss_patch_cfgdict_list, gauss_patch_cfglbl_list, patch_list,
-                                      fnum=fnum + 1, figtitle='gaussian patches')
+    ut.interact_gridsearch_result_images(
+        show_covimg_result, gauss_patch_cfgdict_list, gauss_patch_cfglbl_list,
+        patch_list, fnum=fnum + 1, figtitle='gaussian patches')
 
     patch = patch_list[0]
     #ut.embed()
@@ -645,41 +598,41 @@ def test_single_annot_distinctiveness_params(ibs, aid):
     #pass
 
 
-def test_example():
-    import scipy.linalg as spl
-    M = np.array([
-        [1.0, 0.6, 0. , 0. , 0. ],
-        [0.6, 1.0, 0.5, 0.2, 0. ],
-        [0. , 0.5, 1.0, 0. , 0. ],
-        [0. , 0.2, 0. , 1.0, 0.8],
-        [0. , 0. , 0. , 0.8, 1.0],
-    ])
-    M_ = M / M.sum(axis=0)[:, None]
-    #eigvals, eigvecs = np.linalg.eigh(M_)
-    #, left=True, right=False)
-    eigvals, eigvecs = spl.eig(M_, left=True, right=False)
-    index = np.where(np.isclose(eigvals, 1))[0]
-    pi = stationary_vector = eigvecs.T[index]
-    pi_test = pi.dot(M_)
-    pi / pi.sum()
-    print(pi / np.linalg.norm(pi))
-    print(pi_test / np.linalg.norm(pi_test))
+#def test_example():
+#    import scipy.linalg as spl
+#    M = np.array([
+#        [1.0, 0.6, 0. , 0. , 0. ],
+#        [0.6, 1.0, 0.5, 0.2, 0. ],
+#        [0. , 0.5, 1.0, 0. , 0. ],
+#        [0. , 0.2, 0. , 1.0, 0.8],
+#        [0. , 0. , 0. , 0.8, 1.0],
+#    ])
+#    M_ = M / M.sum(axis=0)[:, None]
+#    #eigvals, eigvecs = np.linalg.eigh(M_)
+#    #, left=True, right=False)
+#    eigvals, eigvecs = spl.eig(M_, left=True, right=False)
+#    index = np.where(np.isclose(eigvals, 1))[0]
+#    pi = stationary_vector = eigvecs.T[index]
+#    pi_test = pi.dot(M_)
+#    pi / pi.sum()
+#    print(pi / np.linalg.norm(pi))
+#    print(pi_test / np.linalg.norm(pi_test))
 
-    M = np.array([
-        [1.0, 0.6],
-        [0.6, 1.0],
-    ])
-    M_ = M / M.sum(axis=0)[:, None]
-    #eigvals, eigvecs = np.linalg.eigh(M_)
-    #, left=True, right=False)
-    eigvals, eigvecs = spl.eig(M_, left=True, right=False)
-    index = np.where(np.isclose(eigvals, 1))[0]
-    pi = stationary_vector = eigvecs.T[index]
-    pi_test = pi.dot(M_)
-    pi / pi.sum()
-    print(pi / np.linalg.norm(pi))
-    print(pi_test / np.linalg.norm(pi_test))
-    #pi = pi / pi.sum()
+#    M = np.array([
+#        [1.0, 0.6],
+#        [0.6, 1.0],
+#    ])
+#    M_ = M / M.sum(axis=0)[:, None]
+#    #eigvals, eigvecs = np.linalg.eigh(M_)
+#    #, left=True, right=False)
+#    eigvals, eigvecs = spl.eig(M_, left=True, right=False)
+#    index = np.where(np.isclose(eigvals, 1))[0]
+#    pi = stationary_vector = eigvecs.T[index]
+#    pi_test = pi.dot(M_)
+#    pi / pi.sum()
+#    print(pi / np.linalg.norm(pi))
+#    print(pi_test / np.linalg.norm(pi_test))
+#    #pi = pi / pi.sum()
 
 
 def dev_train_distinctiveness(species=None):
