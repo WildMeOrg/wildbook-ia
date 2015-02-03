@@ -29,7 +29,7 @@ try:
 except Exception as ex:
     HAS_SVER_C_WRAPPER = False
     ut.printex(ex, 'please build the sver c wrapper (run with --rebuild-sver')
-    if False or not ut.WIN32:
+    if False and not ut.WIN32:
         raise
 
 profile = ut.profile
