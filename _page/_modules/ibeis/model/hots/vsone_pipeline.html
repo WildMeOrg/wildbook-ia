@@ -60,6 +60,19 @@
 
 <span class="sd">      - we can reduce the size of the vsone shortlist</span>
 
+<span class="sd">TODOLIST:</span>
+<span class="sd">    * Precompute distinctivness</span>
+<span class="sd">    * Paramatarize</span>
+<span class="sd">     - grid / image coverage</span>
+<span class="sd">     - image cov params</span>
+<span class="sd">     - grid cov params</span>
+<span class="sd">     - scr-vsone / rat-vsone</span>
+<span class="sd">     - scr-params</span>
+<span class="sd">     - rat-params</span>
+
+<span class="sd">     - true-pos-score in qres</span>
+<span class="sd">     - false-neg-score in qres</span>
+<span class="sd">     - false-pos-score in qres</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
@@ -75,6 +88,7 @@
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">distinctiveness_normalizer</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span>  <span class="c"># NOQA</span>
 <span class="c">#profile = ut.profile</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span>  <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[vsonepipe]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
@@ -160,7 +174,8 @@
     <span class="kn">import</span> <span class="nn">functools</span>
     <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
     <span class="n">fnum</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">chipsize</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chipsizes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">chipsize</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chipsizes</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+    <span class="c">#chipshape = chipsize[::-1]</span>
     <span class="n">chip</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
     <span class="n">kpts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
     <span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">)</span>  <span class="c"># win32 hack</span>
@@ -177,11 +192,13 @@
         <span class="c">#print(fx2_weight)</span>
         <span class="n">fx2_score</span> <span class="o">=</span> <span class="n">fx2_score</span> <span class="o">*</span> <span class="n">fx2_weight</span>
     <span class="n">fx2_score</span> <span class="o">**=</span> <span class="mi">1</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">key_list</span><span class="p">)</span>  <span class="c"># geometric average</span>
-    <span class="c">#ut.print_resource_usage()</span>
-    <span class="n">mask</span><span class="p">,</span> <span class="n">patch</span> <span class="o">=</span> <span class="n">coverage_image</span><span class="o">.</span><span class="n">make_coverage_mask</span><span class="p">(</span>
-        <span class="n">kpts</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">,</span> <span class="n">fx2_score</span><span class="o">=</span><span class="n">fx2_score</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;max&#39;</span><span class="p">)</span>
-    <span class="c">#ut.print_resource_usage()</span>
-    <span class="n">coverage_image</span><span class="o">.</span><span class="n">show_coverage_map</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">patch</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">ell_alpha</span><span class="o">=.</span><span class="mi">2</span><span class="p">,</span> <span class="n">show_mask_kpts</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="c">#mask, patch = coverage_image.make_coverage_mask(</span>
+    <span class="c">#    kpts, chipshape, fx2_score=fx2_score, mode=&#39;max&#39;)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">coverage_image</span><span class="o">.</span><span class="n">get_grid_coverage_mask</span><span class="p">(</span>
+        <span class="n">kpts</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">,</span> <span class="n">fx2_score</span><span class="p">,</span> <span class="n">grid_scale_factor</span><span class="o">=.</span><span class="mi">1</span><span class="p">,</span> <span class="n">grid_steps</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">resize</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="c">#mask = (mask / mask.max()) ** 2</span>
+    <span class="n">coverage_image</span><span class="o">.</span><span class="n">show_coverage_map</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">ell_alpha</span><span class="o">=.</span><span class="mi">2</span><span class="p">,</span> <span class="n">show_mask_kpts</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
 
 
@@ -356,8 +373,11 @@
 <span class="sd">        pt.update()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">name_scoring</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;==================&#39;</span><span class="p">)</span>
     <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span> <span class="o">=</span> <span class="n">compute_query_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">H_list</span><span class="p">)</span>  <span class="c"># 35.8</span>
-    <span class="n">cov_score_list</span> <span class="o">=</span> <span class="n">compute_query_coverage</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">)</span>  <span class="c"># 64.2</span>
+    <span class="c"># BIG MEMORY JUMP HERE</span>
+    <span class="c">#cov_score_list = compute_image_coverage_score(ibs, qaid, daid_list, fm_list, fs_list)  # 64.2</span>
+    <span class="n">cov_score_list</span> <span class="o">=</span> <span class="n">compute_grid_coverage_score</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">)</span>  <span class="c"># 64.2</span>
     <span class="n">NAME_SCORING</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="k">if</span> <span class="n">NAME_SCORING</span><span class="p">:</span>
         <span class="c"># Keep only the best annotation per name</span>
@@ -378,6 +398,7 @@
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="compute_query_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.compute_query_matches">[docs]</a><span class="k">def</span> <span class="nf">compute_query_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">H_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot; calls specified vsone matching routine for single (qaid, daids) pair &quot;&quot;&quot;</span>
+    <span class="c"># TODO: implement unconstrained regular vsone</span>
     <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span> <span class="o">=</span> <span class="n">compute_query_constrained_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">H_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span>
 
@@ -412,14 +433,54 @@
             <span class="n">ratio_thresh2</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
         <span class="n">fm_SCR_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fm_SCR</span><span class="p">)</span>
         <span class="n">fs_SCR_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fs_SCR</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">flann</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;---------------- ;)(&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">fm_SCR_list</span><span class="p">,</span> <span class="n">fs_SCR_list</span>
 
 </div>
+<div class="viewcode-block" id="testdata_scoring"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.testdata_scoring">[docs]</a><span class="k">def</span> <span class="nf">testdata_scoring</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">dupvote_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">prescore_method</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">,</span> <span class="n">score_method</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">,</span> <span class="n">sver_weighting</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">qaid</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+    <span class="c"># VSMANY TO GET HOMOG</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">)</span>
+    <span class="n">locals_</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;chipmatch_to_resdict&#39;</span><span class="p">)</span>
+    <span class="n">qaid2_chipmatch</span> <span class="o">=</span> <span class="n">locals_</span><span class="p">[</span><span class="s">&#39;qaid2_chipmatch_SVER&#39;</span><span class="p">]</span>
+    <span class="n">qaid_list</span><span class="p">,</span> <span class="n">top_aids_list</span><span class="p">,</span> <span class="n">top_Hs_list</span> <span class="o">=</span> <span class="n">make_vsone_rerank_pairs</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_chipmatch</span><span class="p">)</span>
+    <span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">daid_list</span> <span class="o">=</span> <span class="n">top_aids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">H_list</span> <span class="o">=</span> <span class="n">top_Hs_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c"># run vsone</span>
+    <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span> <span class="o">=</span> <span class="n">compute_query_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">H_list</span><span class="p">)</span>  <span class="c"># 35.8</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span>
+    <span class="c">#qaid = qaid_list[0]</span>
+    <span class="c">#chipmatch = qaid2_chipmatch[qaid]</span>
+    <span class="c">#fm = chipmatch.aid2_fm[daid]</span>
+    <span class="c">#fsv = chipmatch.aid2_fsv[daid]</span>
+
+</div>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="compute_query_coverage"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.compute_query_coverage">[docs]</a><span class="k">def</span> <span class="nf">compute_query_coverage</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">):</span>
+<span class="c">#@ut.memprof</span>
+<div class="viewcode-block" id="compute_image_coverage_score"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.compute_image_coverage_score">[docs]</a><span class="k">def</span> <span class="nf">compute_image_coverage_score</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a grayscale chip match which represents which pixels</span>
 <span class="sd">    should be matches in order for a candidate to be considered a match.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-compute_image_coverage_score</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.vsone_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qaid, daid_list, fm_list, fs_list = testdata_scoring()</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; score_list = compute_image_coverage_score(ibs, qaid, daid_list, fm_list, fs_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(score_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
 
 <span class="sd">    Ignore:</span>
 <span class="sd">        import plottool as pt</span>
@@ -438,32 +499,93 @@
     <span class="n">qfgweight</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">dfgweight_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="c"># Make weight mask</span>
-    <span class="n">qchipsize</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chipsizes</span><span class="p">(</span><span class="n">qaid</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">qchipsize</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chipsizes</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+    <span class="n">qchipshape</span> <span class="o">=</span> <span class="n">qchipsize</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">qkpts</span>     <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
     <span class="n">mode</span> <span class="o">=</span> <span class="s">&#39;max&#39;</span>
     <span class="c"># Foregroundness*Distinctiveness weight mask</span>
     <span class="n">weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">qfgweight</span> <span class="o">*</span> <span class="n">qdstncvs</span><span class="p">)</span> <span class="o">**</span> <span class="o">.</span><span class="mi">5</span>
     <span class="c">#  Hits     Time     Per Hit    %Time</span>
     <span class="c">#    3      2298873 766291.0      9.1</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;==--==--==--==--==--==&#39;</span><span class="p">)</span>
     <span class="n">weight_mask</span><span class="p">,</span> <span class="n">patch</span> <span class="o">=</span> <span class="n">coverage_image</span><span class="o">.</span><span class="n">make_coverage_mask</span><span class="p">(</span>
-        <span class="n">qkpts</span><span class="p">,</span> <span class="n">qchipsize</span><span class="p">,</span> <span class="n">fx2_score</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>  <span class="c"># 9% of the time</span>
+        <span class="n">qkpts</span><span class="p">,</span> <span class="n">qchipsize</span><span class="p">,</span> <span class="n">fx2_score</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">resize</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>  <span class="c"># 9% of the time</span>
+    <span class="c">#print(&#39;==--==--==--==--==--==&#39;)</span>
+    <span class="c">#10 loops, best of 3: 116 ms per loop</span>
+    <span class="n">weight_mask</span><span class="p">,</span> <span class="n">patch</span> <span class="o">=</span> <span class="n">coverage_image</span><span class="o">.</span><span class="n">make_coverage_mask</span><span class="p">(</span><span class="n">qkpts</span><span class="p">,</span> <span class="n">qchipshape</span><span class="p">,</span> <span class="n">fx2_score</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">resize</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>  <span class="c"># 9% of the time</span>
     <span class="c"># Apply weighted scoring to matches</span>
     <span class="n">score_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">ddstncvs</span><span class="p">,</span> <span class="n">dfgweight</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">,</span> <span class="n">ddstncvs_list</span><span class="p">,</span> <span class="n">dfgweight_list</span><span class="p">):</span>
         <span class="c"># Get matching query keypoints</span>
-        <span class="n">qkpts_m</span> <span class="o">=</span> <span class="n">qkpts</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">ddstncvs_m</span> <span class="o">=</span> <span class="n">ddstncvs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">qkpts_m</span>     <span class="o">=</span> <span class="n">qkpts</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">ddstncvs_m</span>  <span class="o">=</span> <span class="n">ddstncvs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">dfgweight_m</span> <span class="o">=</span> <span class="n">dfgweight</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">qdstncvs_m</span> <span class="o">=</span> <span class="n">qdstncvs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">qdstncvs_m</span>  <span class="o">=</span> <span class="n">qdstncvs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">qfgweight_m</span> <span class="o">=</span> <span class="n">qfgweight</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">weights_m</span> <span class="o">=</span> <span class="n">fs</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">qdstncvs_m</span> <span class="o">*</span> <span class="n">ddstncvs_m</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">qfgweight_m</span> <span class="o">*</span> <span class="n">dfgweight_m</span><span class="p">)</span>
         <span class="c"># Hits     Time     Per Hit    %Time</span>
         <span class="c">#  46      1000214  21743.8      4.0</span>
         <span class="n">weight_mask_m</span><span class="p">,</span> <span class="n">patch</span> <span class="o">=</span> <span class="n">coverage_image</span><span class="o">.</span><span class="n">make_coverage_mask</span><span class="p">(</span>
-            <span class="n">qkpts_m</span><span class="p">,</span> <span class="n">qchipsize</span><span class="p">,</span> <span class="n">fx2_score</span><span class="o">=</span><span class="n">weights_m</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>  <span class="c"># 4% of the time</span>
+            <span class="n">qkpts_m</span><span class="p">,</span> <span class="n">qchipshape</span><span class="p">,</span> <span class="n">fx2_score</span><span class="o">=</span><span class="n">weights_m</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">resize</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>  <span class="c"># 4% of the time</span>
         <span class="c">#if True:</span>
         <span class="c">#    stacktup = (weight_mask, np.zeros(weight_mask.shape), weight_mask_m)</span>
         <span class="c">#    weight_color = np.dstack(stacktup)</span>
+        <span class="n">coverage_score</span> <span class="o">=</span> <span class="n">weight_mask_m</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">weight_mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">weights_m</span>
+        <span class="k">del</span> <span class="n">weight_mask_m</span>
+        <span class="n">score_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coverage_score</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">weight_mask</span>
+    <span class="k">return</span> <span class="n">score_list</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="compute_grid_coverage_score"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.compute_grid_coverage_score">[docs]</a><span class="k">def</span> <span class="nf">compute_grid_coverage_score</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-compute_grid_coverage_score</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.vsone_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qaid, daid_list, fm_list, fs_list = testdata_scoring()</span>
+<span class="sd">        &gt;&gt;&gt; score_list = compute_grid_coverage_score(ibs, qaid, daid_list, fm_list, fs_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(score_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">qdstncvs</span>  <span class="o">=</span> <span class="n">get_kpts_distinctiveness</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">qaid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ddstncvs_list</span>  <span class="o">=</span> <span class="n">get_kpts_distinctiveness</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+    <span class="c"># Foreground weight</span>
+    <span class="n">qfgweight</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dfgweight_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="c"># Make weight mask</span>
+    <span class="n">chipsize</span> <span class="o">=</span> <span class="n">qchipsize</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chipsizes</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>  <span class="c"># NOQA</span>
+    <span class="n">kpts</span> <span class="o">=</span> <span class="n">qkpts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>  <span class="c"># NOQA</span>
+    <span class="c">#mode = &#39;max&#39;</span>
+    <span class="c"># Foregroundness*Distinctiveness weight mask</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">qfgweight</span> <span class="o">*</span> <span class="n">qdstncvs</span><span class="p">)</span> <span class="o">**</span> <span class="o">.</span><span class="mi">5</span>
+    <span class="n">gridcfg</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">resize</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">grid_scale_factor</span><span class="o">=.</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">grid_steps</span><span class="o">=</span><span class="mi">2</span>
+    <span class="p">)</span>
+    <span class="c">#exec(ut.util_dbg.execstr_dict(gridcfg), globals(), locals())</span>
+    <span class="c"># 100 loops, best of 3: 10.9 ms per loop</span>
+    <span class="n">weight_mask</span> <span class="o">=</span> <span class="n">coverage_image</span><span class="o">.</span><span class="n">get_grid_coverage_mask</span><span class="p">(</span><span class="n">kpts</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="o">**</span><span class="n">gridcfg</span><span class="p">)</span>
+    <span class="c"># Prealloc data for loop</span>
+    <span class="n">weight_mask_m</span> <span class="o">=</span> <span class="n">weight_mask</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="c"># Apply weighted scoring to matches</span>
+    <span class="n">score_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">ddstncvs</span><span class="p">,</span> <span class="n">dfgweight</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">,</span> <span class="n">ddstncvs_list</span><span class="p">,</span> <span class="n">dfgweight_list</span><span class="p">):</span>
+        <span class="c"># Get matching query keypoints</span>
+        <span class="n">qkpts_m</span>     <span class="o">=</span> <span class="n">qkpts</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">ddstncvs_m</span>  <span class="o">=</span> <span class="n">ddstncvs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">dfgweight_m</span> <span class="o">=</span> <span class="n">dfgweight</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">qdstncvs_m</span>  <span class="o">=</span> <span class="n">qdstncvs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">qfgweight_m</span> <span class="o">=</span> <span class="n">qfgweight</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">weights_m</span> <span class="o">=</span> <span class="n">fs</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">qdstncvs_m</span> <span class="o">*</span> <span class="n">ddstncvs_m</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">qfgweight_m</span> <span class="o">*</span> <span class="n">dfgweight_m</span><span class="p">)</span>
+        <span class="n">weight_mask_m</span> <span class="o">=</span> <span class="n">coverage_image</span><span class="o">.</span><span class="n">get_grid_coverage_mask</span><span class="p">(</span>
+            <span class="n">qkpts_m</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">,</span> <span class="n">weights_m</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">weight_mask_m</span><span class="p">,</span> <span class="o">**</span><span class="n">gridcfg</span><span class="p">)</span>  <span class="c"># 4% of the time</span>
         <span class="n">coverage_score</span> <span class="o">=</span> <span class="n">weight_mask_m</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">weight_mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
         <span class="n">score_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coverage_score</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">score_list</span>

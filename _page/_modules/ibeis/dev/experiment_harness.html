@@ -56,7 +56,7 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">textwrap</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">six</span>
+<span class="c">#import six</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
@@ -175,9 +175,11 @@
 
     <span class="n">qx2_qresinfotup</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_qres_name_result_info</span><span class="p">(</span><span class="n">qres</span><span class="p">)</span> <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">qx2_qres</span><span class="p">]</span>
 
-    <span class="n">qx2_bestranks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">qx2_qresinfotup</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">qx2_bestranks</span>      <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">qx2_qresinfotup</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">qx2_next_bestranks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">qx2_qresinfotup</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">qx2_scorediff</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">qx2_qresinfotup</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="n">qx2_gt_raw_score</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">qx2_qresinfotup</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">qx2_gf_raw_score</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">qx2_qresinfotup</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+    <span class="n">qx2_scorediff</span>      <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">qx2_qresinfotup</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
 
     <span class="c">#qx2_gtranks = [qaid2_qres[qaid].get_aid_ranks(gt_aids)</span>
     <span class="c">#               for qaid, gt_aids in zip(qaids, qx2_gtaids)]</span>
@@ -206,7 +208,16 @@
 
     <span class="n">qx2_bestranks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">replace_nones</span><span class="p">(</span><span class="n">qx2_bestranks</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">qx2_bestranks</span><span class="p">,</span> <span class="n">qx2_next_bestranks</span><span class="p">,</span> <span class="n">qx2_scorediff</span><span class="p">,</span> <span class="n">qx2_avepercision</span>
+    <span class="n">cfgres_info</span> <span class="o">=</span> <span class="n">qx2_bestranks</span><span class="p">,</span> <span class="n">qx2_next_bestranks</span><span class="p">,</span> <span class="n">qx2_scorediff</span><span class="p">,</span> <span class="n">qx2_avepercision</span>
+    <span class="n">cfgres_info</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;qx2_bestranks&#39;</span>      <span class="p">:</span> <span class="n">qx2_bestranks</span><span class="p">,</span>
+        <span class="s">&#39;qx2_next_bestranks&#39;</span> <span class="p">:</span> <span class="n">qx2_next_bestranks</span><span class="p">,</span>
+        <span class="s">&#39;qx2_scorediff&#39;</span>      <span class="p">:</span> <span class="n">qx2_scorediff</span><span class="p">,</span>
+        <span class="s">&#39;qx2_avepercision&#39;</span>   <span class="p">:</span> <span class="n">qx2_avepercision</span><span class="p">,</span>
+        <span class="s">&#39;qx2_gt_raw_score&#39;</span>   <span class="p">:</span> <span class="n">qx2_gt_raw_score</span><span class="p">,</span>
+        <span class="s">&#39;qx2_gf_raw_score&#39;</span>   <span class="p">:</span> <span class="n">qx2_gf_raw_score</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">cfgres_info</span>
 
 
 <span class="c">#-----------</span>
@@ -266,8 +277,8 @@
     <span class="n">nCfg</span>     <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">)</span>   <span class="c"># number of configurations (cols)</span>
     <span class="c">#nQuery   = len(qaids)  # number of queries (rows)</span>
 
-    <span class="n">bestranks_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">cfgx2_aveprecs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c">#bestranks_list = []</span>
+    <span class="c">#cfgx2_aveprecs = []</span>
     <span class="c">#ibs._init_query_requestor()</span>
 
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>

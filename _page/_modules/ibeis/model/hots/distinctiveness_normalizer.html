@@ -499,58 +499,6 @@
     <span class="n">chip</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
     <span class="n">chipsize</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chipsizes</span><span class="p">(</span><span class="n">aid</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">interact_gridsearch_result_images</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfglbl_list</span><span class="p">,</span> <span class="n">img_list</span><span class="p">,</span>
-                                          <span class="n">score_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; helper function for visualizing results of gridsearch &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
-        <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
-        <span class="k">if</span> <span class="n">score_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">score_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c"># sort by score if available</span>
-            <span class="n">sortx_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argsort</span><span class="p">(</span><span class="n">score_list</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-            <span class="n">score_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">score_list</span><span class="p">,</span> <span class="n">sortx_list</span><span class="p">)</span>
-            <span class="n">cfgdict_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">sortx_list</span><span class="p">)</span>
-            <span class="n">cfglbl_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">cfglbl_list</span><span class="p">,</span> <span class="n">sortx_list</span><span class="p">)</span>
-            <span class="n">img_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">img_list</span><span class="p">,</span> <span class="n">sortx_list</span><span class="p">)</span>
-        <span class="c"># Dont show too many results only the top few</span>
-        <span class="n">score_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listclip</span><span class="p">(</span><span class="n">score_list</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
-
-        <span class="c"># Show the config results</span>
-        <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
-        <span class="c"># Get plots for each of the resutls</span>
-        <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_square_row_cols</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">score_list</span><span class="p">),</span> <span class="n">fix</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">next_pnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_pnum_nextgen</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">cfglbl</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfglbl_list</span><span class="p">,</span>
-                                                      <span class="n">img_list</span><span class="p">,</span>
-                                                      <span class="n">score_list</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">cfglbl</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">score=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">score</span><span class="p">,)</span>
-            <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">img</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">next_pnum</span><span class="p">(),</span> <span class="n">title</span><span class="o">=</span><span class="n">cfglbl</span><span class="p">)</span>
-            <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
-            <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;cfgdict&#39;</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
-            <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;cfglbl&#39;</span><span class="p">,</span> <span class="n">cfglbl</span><span class="p">)</span>
-        <span class="c"># Define clicked callback</span>
-        <span class="k">def</span> <span class="nf">on_clicked</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[pt] clicked gridsearch axes&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">event</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;out of axes&#39;</span><span class="p">)</span>
-                <span class="k">pass</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">ax</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span>
-                <span class="n">cfglbl</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;cfglbl&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-                <span class="n">cfgdict</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;cfgdict&#39;</span><span class="p">,</span> <span class="p">{})</span>
-                <span class="n">infostr_list</span> <span class="o">=</span> <span class="p">[</span>
-                    <span class="p">(</span><span class="s">&#39;cfglbl = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">cfglbl</span><span class="p">)),</span>
-                    <span class="s">&#39;&#39;</span><span class="p">,</span>
-                    <span class="p">(</span><span class="s">&#39;cfgdict = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">)),</span>
-                <span class="p">]</span>
-                <span class="n">infostr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">msgblock</span><span class="p">(</span><span class="s">&#39;CLICKED&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">infostr_list</span><span class="p">))</span>
-                <span class="k">print</span><span class="p">(</span><span class="n">infostr</span><span class="p">)</span>
-        <span class="c"># Connect callbacks</span>
-        <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="n">on_clicked</span><span class="p">)</span>
-        <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
-
     <span class="c"># Paramater space to search</span>
     <span class="c"># TODO: use slicing to control the params being varied</span>
     <span class="c"># Use GridSearch class to modify paramaters as you go.</span>
@@ -585,9 +533,9 @@
 
     <span class="c"># Dont vary most paramaters, specify how much of their list can be used</span>
     <span class="n">param_slice_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;p&#39;</span>                  <span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
-        <span class="s">&#39;K&#39;</span>                  <span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
-        <span class="s">&#39;clip_fraction&#39;</span>      <span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+        <span class="s">&#39;p&#39;</span>                  <span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="s">&#39;K&#39;</span>                  <span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="s">&#39;clip_fraction&#39;</span>      <span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
         <span class="s">&#39;clip_fraction&#39;</span>      <span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
         <span class="c">#&#39;gauss_shape&#39;        : slice(0, 3),</span>
         <span class="s">&#39;gauss_sigma_frac&#39;</span>   <span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
@@ -667,16 +615,21 @@
 
     <span class="n">fnum</span> <span class="o">=</span> <span class="mi">1</span>
 
-    <span class="n">interact_gridsearch_result_images</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfglbl_list</span><span class="p">,</span> <span class="n">dstncvs_mask_list</span><span class="p">,</span> <span class="n">score_list</span><span class="o">=</span><span class="n">score_list</span><span class="p">,</span>
-                                      <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;dstncvs gridsearch&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">show_covimg_result</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">img</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">interact_gridsearch_result_images</span><span class="p">(</span>
+        <span class="n">show_covimg_result</span><span class="p">,</span> <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfglbl_list</span><span class="p">,</span> <span class="n">dstncvs_mask_list</span><span class="p">,</span>
+        <span class="n">score_list</span><span class="o">=</span><span class="n">score_list</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;dstncvs gridsearch&#39;</span><span class="p">)</span>
 
     <span class="c"># Show subcomponents of grid search</span>
     <span class="n">gauss_patch_cfgdict_list</span><span class="p">,</span> <span class="n">gauss_patch_cfglbl_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_cfgdict_lbl_list_subset</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">gauss_patch_varydict</span><span class="p">)</span>
     <span class="n">patch_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">coverage_image</span><span class="o">.</span><span class="n">get_gaussian_weight_patch</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
                   <span class="k">for</span> <span class="n">cfgdict</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">gauss_patch_cfgdict_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;patch cfg&#39;</span><span class="p">)]</span>
 
-    <span class="n">interact_gridsearch_result_images</span><span class="p">(</span><span class="n">gauss_patch_cfgdict_list</span><span class="p">,</span> <span class="n">gauss_patch_cfglbl_list</span><span class="p">,</span> <span class="n">patch_list</span><span class="p">,</span>
-                                      <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;gaussian patches&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">interact_gridsearch_result_images</span><span class="p">(</span>
+        <span class="n">show_covimg_result</span><span class="p">,</span> <span class="n">gauss_patch_cfgdict_list</span><span class="p">,</span> <span class="n">gauss_patch_cfglbl_list</span><span class="p">,</span>
+        <span class="n">patch_list</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;gaussian patches&#39;</span><span class="p">)</span>
 
     <span class="n">patch</span> <span class="o">=</span> <span class="n">patch_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="c">#ut.embed()</span>
@@ -696,42 +649,42 @@
     <span class="c">#pt.set_figtitle(mode)</span>
     <span class="c">#pass</span>
 
-</div>
-<div class="viewcode-block" id="test_example"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.distinctiveness_normalizer.test_example">[docs]</a><span class="k">def</span> <span class="nf">test_example</span><span class="p">():</span>
-    <span class="kn">import</span> <span class="nn">scipy.linalg</span> <span class="kn">as</span> <span class="nn">spl</span>
-    <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-        <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.</span> <span class="p">,</span> <span class="mf">0.</span> <span class="p">,</span> <span class="mf">0.</span> <span class="p">],</span>
-        <span class="p">[</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.</span> <span class="p">],</span>
-        <span class="p">[</span><span class="mf">0.</span> <span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.</span> <span class="p">,</span> <span class="mf">0.</span> <span class="p">],</span>
-        <span class="p">[</span><span class="mf">0.</span> <span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.</span> <span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">],</span>
-        <span class="p">[</span><span class="mf">0.</span> <span class="p">,</span> <span class="mf">0.</span> <span class="p">,</span> <span class="mf">0.</span> <span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
-    <span class="p">])</span>
-    <span class="n">M_</span> <span class="o">=</span> <span class="n">M</span> <span class="o">/</span> <span class="n">M</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">]</span>
-    <span class="c">#eigvals, eigvecs = np.linalg.eigh(M_)</span>
-    <span class="c">#, left=True, right=False)</span>
-    <span class="n">eigvals</span><span class="p">,</span> <span class="n">eigvecs</span> <span class="o">=</span> <span class="n">spl</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">M_</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">eigvals</span><span class="p">,</span> <span class="mi">1</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">pi</span> <span class="o">=</span> <span class="n">stationary_vector</span> <span class="o">=</span> <span class="n">eigvecs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-    <span class="n">pi_test</span> <span class="o">=</span> <span class="n">pi</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M_</span><span class="p">)</span>
-    <span class="n">pi</span> <span class="o">/</span> <span class="n">pi</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">pi</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pi</span><span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">pi_test</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pi_test</span><span class="p">))</span>
 
-    <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-        <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">],</span>
-        <span class="p">[</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
-    <span class="p">])</span>
-    <span class="n">M_</span> <span class="o">=</span> <span class="n">M</span> <span class="o">/</span> <span class="n">M</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">]</span>
-    <span class="c">#eigvals, eigvecs = np.linalg.eigh(M_)</span>
-    <span class="c">#, left=True, right=False)</span>
-    <span class="n">eigvals</span><span class="p">,</span> <span class="n">eigvecs</span> <span class="o">=</span> <span class="n">spl</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">M_</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">eigvals</span><span class="p">,</span> <span class="mi">1</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">pi</span> <span class="o">=</span> <span class="n">stationary_vector</span> <span class="o">=</span> <span class="n">eigvecs</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-    <span class="n">pi_test</span> <span class="o">=</span> <span class="n">pi</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M_</span><span class="p">)</span>
-    <span class="n">pi</span> <span class="o">/</span> <span class="n">pi</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">pi</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pi</span><span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">pi_test</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pi_test</span><span class="p">))</span>
-    <span class="c">#pi = pi / pi.sum()</span>
+<span class="c">#def test_example():</span>
+<span class="c">#    import scipy.linalg as spl</span>
+<span class="c">#    M = np.array([</span>
+<span class="c">#        [1.0, 0.6, 0. , 0. , 0. ],</span>
+<span class="c">#        [0.6, 1.0, 0.5, 0.2, 0. ],</span>
+<span class="c">#        [0. , 0.5, 1.0, 0. , 0. ],</span>
+<span class="c">#        [0. , 0.2, 0. , 1.0, 0.8],</span>
+<span class="c">#        [0. , 0. , 0. , 0.8, 1.0],</span>
+<span class="c">#    ])</span>
+<span class="c">#    M_ = M / M.sum(axis=0)[:, None]</span>
+<span class="c">#    #eigvals, eigvecs = np.linalg.eigh(M_)</span>
+<span class="c">#    #, left=True, right=False)</span>
+<span class="c">#    eigvals, eigvecs = spl.eig(M_, left=True, right=False)</span>
+<span class="c">#    index = np.where(np.isclose(eigvals, 1))[0]</span>
+<span class="c">#    pi = stationary_vector = eigvecs.T[index]</span>
+<span class="c">#    pi_test = pi.dot(M_)</span>
+<span class="c">#    pi / pi.sum()</span>
+<span class="c">#    print(pi / np.linalg.norm(pi))</span>
+<span class="c">#    print(pi_test / np.linalg.norm(pi_test))</span>
+
+<span class="c">#    M = np.array([</span>
+<span class="c">#        [1.0, 0.6],</span>
+<span class="c">#        [0.6, 1.0],</span>
+<span class="c">#    ])</span>
+<span class="c">#    M_ = M / M.sum(axis=0)[:, None]</span>
+<span class="c">#    #eigvals, eigvecs = np.linalg.eigh(M_)</span>
+<span class="c">#    #, left=True, right=False)</span>
+<span class="c">#    eigvals, eigvecs = spl.eig(M_, left=True, right=False)</span>
+<span class="c">#    index = np.where(np.isclose(eigvals, 1))[0]</span>
+<span class="c">#    pi = stationary_vector = eigvecs.T[index]</span>
+<span class="c">#    pi_test = pi.dot(M_)</span>
+<span class="c">#    pi / pi.sum()</span>
+<span class="c">#    print(pi / np.linalg.norm(pi))</span>
+<span class="c">#    print(pi_test / np.linalg.norm(pi_test))</span>
+<span class="c">#    #pi = pi / pi.sum()</span>
 
 </div>
 <div class="viewcode-block" id="dev_train_distinctiveness"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.distinctiveness_normalizer.dev_train_distinctiveness">[docs]</a><span class="k">def</span> <span class="nf">dev_train_distinctiveness</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>

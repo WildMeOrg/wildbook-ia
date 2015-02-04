@@ -66,6 +66,7 @@
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_report]&#39;</span><span class="p">)</span>
 
 
@@ -108,13 +109,26 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python dev.py -t best --db seals2 --allgt --vz</span>
 
+<span class="sd">        python dev.py --db PZ_MTEST --allgt -t custom --print-confusion-stats</span>
+
+<span class="sd">        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-scorediff-mat-stats</span>
+<span class="sd">        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-scorediff-mat-stats</span>
+<span class="sd">        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats --print-scorediff-mat-stats</span>
+
+<span class="sd">        python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c"># Parse result info out of the lists</span>
-    <span class="n">cfgx2_bestranks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="n">cfgx2_nextbestranks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">cfgx2_scorediffs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="n">cfgx2_aveprecs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">cfgx2_bestranks</span>     <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="s">&#39;qx2_bestranks&#39;</span><span class="p">)</span>
+    <span class="n">cfgx2_nextbestranks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="s">&#39;qx2_next_bestranks&#39;</span><span class="p">)</span>
+    <span class="n">cfgx2_gt_rawscores</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="s">&#39;qx2_gt_raw_score&#39;</span><span class="p">)</span>
+    <span class="n">cfgx2_gf_rawscores</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="s">&#39;qx2_gf_raw_score&#39;</span><span class="p">)</span>
+    <span class="n">cfgx2_scorediffs</span>    <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="s">&#39;qx2_scorediff&#39;</span><span class="p">)</span>
+    <span class="n">cfgx2_aveprecs</span>      <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="s">&#39;qx2_avepercision&#39;</span><span class="p">)</span>
+
+    <span class="n">column_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">remove_vowels</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">cfgx2_lbl</span><span class="p">]</span>
 
     <span class="k">print</span><span class="p">(</span><span class="s">&#39; --- PRINT RESULTS ---&#39;</span><span class="p">)</span>
     <span class="c">#X_LIST = [1, 5]  # Num of ranks less than to score</span>
@@ -409,9 +423,6 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfgx2_lbl</span><span class="p">))</span>
         <span class="c">#column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]</span>
         <span class="n">column_list</span> <span class="o">=</span> <span class="n">rank_mat</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">column_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">remove_vowels</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-                       <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">cfgx2_lbl</span><span class="p">]</span>
-        <span class="c">#column_lbls = map(str, range(nCfg))</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">make_csv_table</span><span class="p">(</span><span class="n">column_list</span><span class="p">,</span> <span class="n">row_lbls</span><span class="o">=</span><span class="n">qaids</span><span class="p">,</span>
                                 <span class="n">column_lbls</span><span class="o">=</span><span class="n">column_lbls</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">,</span>
                                 <span class="n">transpose</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
@@ -427,16 +438,12 @@
     <span class="k">def</span> <span class="nf">print_next_rankmat</span><span class="p">():</span>
         <span class="c"># Prints nextbest ranks</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;-------------&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;RankMat: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testnameid</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39; nRows=</span><span class="si">%r</span><span class="s">, nCols=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">lbld_mat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="n">header</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39; labled rank matrix: rows=queries, cols=cfgs:&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;NextRankMat: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testnameid</span><span class="p">)</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39; top false rank matrix: rows=queries, cols=cfgs:&#39;</span><span class="p">)</span>
         <span class="c">#print(&#39;\n&#39;.join(qx2_lbl))</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfgx2_lbl</span><span class="p">))</span>
         <span class="c">#column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]</span>
         <span class="n">column_list</span> <span class="o">=</span> <span class="n">cfgx2_nextbestranks</span>
-        <span class="n">column_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">remove_vowels</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-                       <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">cfgx2_lbl</span><span class="p">]</span>
-        <span class="c">#column_lbls = map(str, range(nCfg))</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">make_csv_table</span><span class="p">(</span><span class="n">column_list</span><span class="p">,</span> <span class="n">row_lbls</span><span class="o">=</span><span class="n">qaids</span><span class="p">,</span>
                                 <span class="n">column_lbls</span><span class="o">=</span><span class="n">column_lbls</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">,</span>
                                 <span class="n">transpose</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
@@ -445,6 +452,92 @@
         <span class="c">#print(lbld_mat)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn]-------------&#39;</span><span class="p">)</span>
     <span class="n">print_next_rankmat</span><span class="p">()</span>
+
+    <span class="c">#------------</span>
+
+    <span class="nd">@utool.argv_flag_dec</span>
+    <span class="k">def</span> <span class="nf">print_scorediff_mat</span><span class="p">():</span>
+        <span class="c"># Prints nextbest ranks</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;-------------&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ScoreDiffMat: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testnameid</span><span class="p">)</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39; score difference between top true and top false: rows=queries, cols=cfgs:&#39;</span><span class="p">)</span>
+        <span class="c">#print(&#39;\n&#39;.join(qx2_lbl))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfgx2_lbl</span><span class="p">))</span>
+        <span class="c">#column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]</span>
+        <span class="n">column_list</span> <span class="o">=</span> <span class="n">cfgx2_scorediffs</span>
+        <span class="n">column_type</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">column_list</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">make_csv_table</span><span class="p">(</span><span class="n">column_list</span><span class="p">,</span> <span class="n">row_lbls</span><span class="o">=</span><span class="n">qaids</span><span class="p">,</span>
+                                <span class="n">column_lbls</span><span class="o">=</span><span class="n">column_lbls</span><span class="p">,</span>
+                                <span class="n">column_type</span><span class="o">=</span><span class="n">column_type</span><span class="p">,</span>
+                                <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">,</span>
+                                <span class="n">transpose</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+        <span class="c">#np.set_printoptions(threshold=5000, linewidth=5000, precision=5)</span>
+        <span class="c">#with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):</span>
+        <span class="c">#print(lbld_mat)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn]-------------&#39;</span><span class="p">)</span>
+    <span class="n">print_scorediff_mat</span><span class="p">()</span>
+
+    <span class="c">#------------</span>
+
+    <span class="k">def</span> <span class="nf">jagged_stats_str</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">stat_dict</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_jagged_stats</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">use_nan</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="nd">@utool.argv_flag_dec</span>
+    <span class="k">def</span> <span class="nf">print_scorediff_mat_stats</span><span class="p">():</span>
+        <span class="c"># Prints nextbest ranks</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;-------------&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ScoreDiffMatStats: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testnameid</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;column_lbls = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">column_lbls</span><span class="p">,))</span>
+        <span class="n">scorediffs_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">replace_nones</span><span class="p">(</span><span class="n">cfgx2_scorediffs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;stats = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">scorediffs_mat</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;sum = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">scorediffs_mat</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),))</span>
+        <span class="n">istrue_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">scorediff</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">scorediff</span> <span class="ow">in</span> <span class="n">scorediffs_mat</span><span class="p">]</span>
+        <span class="n">isfalse_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">~</span><span class="n">isfalse</span> <span class="k">for</span> <span class="n">isfalse</span> <span class="ow">in</span> <span class="n">istrue_list</span><span class="p">]</span>
+        <span class="c">#pos_scorediff_mat = [scorediff[scorediff &gt; 0] for scorediff in scorediffs_mat]</span>
+        <span class="n">pos_scorediff_mat</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">zipcompress</span><span class="p">(</span><span class="n">scorediffs_mat</span><span class="p">,</span> <span class="n">istrue_list</span><span class="p">)</span>
+        <span class="n">neg_scorediff_mat</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">zipcompress</span><span class="p">(</span><span class="n">scorediffs_mat</span><span class="p">,</span> <span class="n">isfalse_list</span><span class="p">)</span>
+        <span class="c">#pos_scorediff_mat = [scorediff.compress(istrue) for scorediff, istrue in zip(scorediffs_mat, istrue_list)]</span>
+        <span class="c">#neg_scorediff_mat = [scorediff.compress(isfalse) for scorediff, isfalse in zip(scorediffs_mat, isfalse_list)]</span>
+        <span class="c">#pos_scorediff_mat = [scorediff[scorediff &gt; 0] for scorediff in scorediffs_mat]</span>
+        <span class="c">#neg_scorediff_mat = [scorediff[scorediff &lt; 0] for scorediff in scorediffs_mat]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;pos_stats = &#39;</span> <span class="o">+</span> <span class="n">jagged_stats_str</span><span class="p">(</span><span class="n">pos_scorediff_mat</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;neg_stats = &#39;</span> <span class="o">+</span> <span class="n">jagged_stats_str</span><span class="p">(</span><span class="n">neg_scorediff_mat</span><span class="p">))</span>
+        <span class="c">#for negstats in neg_scorediff_mat:</span>
+        <span class="c">#    print(&#39;neg stats = %s&#39; % (ut.get_stats_str(negstats, newlines=False),))</span>
+        <span class="c">#for posstats in pos_scorediff_mat:</span>
+        <span class="c">#    print(&#39;pos stats = %s&#39; % (ut.get_stats_str(posstats, newlines=False),))</span>
+        <span class="c">#print(ut.get_stats_str(np.array(cfgx2_scorediffs).T, newlines=True))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;pos_sum = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="n">pos_scorediff_mat</span><span class="p">)),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;nos_sum = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="n">neg_scorediff_mat</span><span class="p">)),))</span>
+        <span class="c">#ut.embed()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn]-------------&#39;</span><span class="p">)</span>
+    <span class="n">print_scorediff_mat_stats</span><span class="p">()</span>
+
+    <span class="nd">@utool.argv_flag_dec</span>
+    <span class="k">def</span> <span class="nf">print_confusion_stats</span><span class="p">():</span>
+        <span class="c"># Prints nextbest ranks</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;-------------&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ScoreDiffMatStats: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testnameid</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;column_lbls = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">column_lbls</span><span class="p">,))</span>
+
+        <span class="n">scorediffs_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">replace_nones</span><span class="p">(</span><span class="n">cfgx2_scorediffs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">))</span>
+        <span class="n">istrue_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">scorediff</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">scorediff</span> <span class="ow">in</span> <span class="n">scorediffs_mat</span><span class="p">]</span>
+        <span class="n">isfalse_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">~</span><span class="n">istrue</span> <span class="k">for</span> <span class="n">istrue</span> <span class="ow">in</span> <span class="n">istrue_list</span><span class="p">]</span>
+
+        <span class="c">#cfgx2_gt_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, &#39;qx2_gt_raw_score&#39;)</span>
+        <span class="c">#cfgx2_gf_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, &#39;qx2_gf_raw_score&#39;)</span>
+
+        <span class="n">tp_rawscores</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">zipcompress</span><span class="p">(</span><span class="n">cfgx2_gt_rawscores</span><span class="p">,</span> <span class="n">istrue_list</span><span class="p">)</span>
+        <span class="n">fp_rawscores</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">zipcompress</span><span class="p">(</span><span class="n">cfgx2_gt_rawscores</span><span class="p">,</span> <span class="n">isfalse_list</span><span class="p">)</span>
+        <span class="n">tn_rawscores</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">zipcompress</span><span class="p">(</span><span class="n">cfgx2_gf_rawscores</span><span class="p">,</span> <span class="n">istrue_list</span><span class="p">)</span>
+        <span class="n">fn_rawscores</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">zipcompress</span><span class="p">(</span><span class="n">cfgx2_gf_rawscores</span><span class="p">,</span> <span class="n">isfalse_list</span><span class="p">)</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;stats(tp_rawscores) = &#39;</span> <span class="o">+</span> <span class="n">jagged_stats_str</span><span class="p">(</span><span class="n">tp_rawscores</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;stats(fp_rawscores) = &#39;</span> <span class="o">+</span> <span class="n">jagged_stats_str</span><span class="p">(</span><span class="n">fp_rawscores</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;stats(tn_rawscores) = &#39;</span> <span class="o">+</span> <span class="n">jagged_stats_str</span><span class="p">(</span><span class="n">tn_rawscores</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;stats(fn_rawscores) = &#39;</span> <span class="o">+</span> <span class="n">jagged_stats_str</span><span class="p">(</span><span class="n">fn_rawscores</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn]-------------&#39;</span><span class="p">)</span>
+    <span class="n">print_confusion_stats</span><span class="p">()</span>
 
     <span class="nd">@utool.argv_flag_dec</span>
     <span class="k">def</span> <span class="nf">print_diffmat</span><span class="p">():</span>

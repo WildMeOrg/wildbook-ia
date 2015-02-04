@@ -180,19 +180,17 @@ normalizations.</p>
 <dl class="function">
 <dt id="ibeis.model.preproc.preproc_chip.add_annot_chips_params_gen">
 <tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">add_annot_chips_params_gen</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>qreq_=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#add_annot_chips_params_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.add_annot_chips_params_gen" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(add_annot_chips_params_gen)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;aid_list&#8217;, &#8216;<a href="#id1"><span class="problematic" id="id2">qreq_</span></a>&#8216;], varargs=None, keywords=None, defaults=(None,))</p>
-<p>orig_docstr = Computes parameters for SQLController</p>
-<blockquote>
-<div><p>computes chips if they do not exist.
+<dd><p>Computes parameters for SQLController</p>
+<p>computes chips if they do not exist.
 generates values for add_annot_chips sqlcommands</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>ibs (IBEISController):
-aid_list (list):
-<a href="#id3"><span class="problematic" id="id4">qreq_</span></a> (QueryRequest):</dd>
-<dt>Example:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.preproc.preproc_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
@@ -206,9 +204,6 @@ aid_list (list):
 <span class="go">(&#39;chip_aid=1_bbox=(0,0,1047,715)_theta=0.0_gid=1_CHIP(sz450).png&#39;, 545, 372)</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-</div></blockquote>
 </dd></dl>
 
 <dl class="function">
@@ -304,20 +299,17 @@ aid_list (list):
 <dl class="function">
 <dt id="ibeis.model.preproc.preproc_chip.delete_chips">
 <tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">delete_chips</tt><big>(</big><em>ibs</em>, <em>cid_list</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#delete_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.delete_chips" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(delete_chips)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;cid_list&#8217;, &#8216;verbose&#8217;], varargs=None, keywords=None, defaults=(False,))</p>
-<p>orig_docstr =</p>
-<blockquote>
-<div><p>DEPRICATE</p>
+<dd><p>DEPRICATE</p>
 <p>Removes chips from disk (does not remove from SQLController)
 this action must be performed by you.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>ibs (IBEISController):
-cid_list (list):
-verbose (bool):</dd>
-<dt>Example:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.preproc.preproc_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.preproc.preproc_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">testdata_preproc_chip</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">compute_and_write_chips_lazy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
@@ -328,9 +320,6 @@ verbose (bool):</dd>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-</div></blockquote>
 </dd></dl>
 
 <dl class="function">
@@ -626,14 +615,9 @@ on the earth (specified in decimal degrees)
 <dl class="function">
 <dt id="ibeis.model.preproc.preproc_encounter.ibeis_compute_encounters">
 <tt class="descclassname">ibeis.model.preproc.preproc_encounter.</tt><tt class="descname">ibeis_compute_encounters</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_encounter.html#ibeis_compute_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_encounter.ibeis_compute_encounters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(ibeis_compute_encounters)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;gid_list&#8217;], varargs=None, keywords=None, defaults=None)</p>
-<dl class="docutils">
-<dt>orig_docstr =</dt>
-<dd>clusters encounters togethers (by time, not yet space)
+<dd><p>clusters encounters togethers (by time, not yet space)
 An encounter is a meeting, localized in time and space between a camera and
-a group of animals.  Animals are identified within each encounter.</dd>
-</dl>
+a group of animals.  Animals are identified within each encounter.</p>
 </dd></dl>
 
 <dl class="function">
@@ -862,8 +846,8 @@ aid, kpts, probchip_fpath</td>
 <dd><p class="first">import plottool as pt
 pt.imshow(probchip_list[0])
 patch_list = [vtpatch.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts[0:1]]
-<a href="#id5"><span class="problematic" id="id6">patch_</span></a> = patch_list[0].copy()
-patch = <a href="#id7"><span class="problematic" id="id8">patch_</span></a>
+<a href="#id1"><span class="problematic" id="id2">patch_</span></a> = patch_list[0].copy()
+patch = <a href="#id3"><span class="problematic" id="id4">patch_</span></a>
 patch = patch_[-20:, :20, 0]</p>
 <p>import vtool as vt
 gaussian_patch = vt.gaussian_patch(patch.shape[1], patch.shape[0], shape=patch.shape[0:2], norm_01=False)</p>

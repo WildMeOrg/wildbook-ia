@@ -339,7 +339,9 @@
     <span class="n">qaid2_chipmatch_SVER_</span> <span class="o">=</span> <span class="n">spatial_verification</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_chipmatch_FILT_</span><span class="p">,</span>
                                                  <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsone_reranking</span><span class="p">:</span>
+    <span class="c"># We might just put this check inside the function like it is for SVER.</span>
+    <span class="c"># or just not do that and use some good pipeline framework</span>
+    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">rrvsone_on</span><span class="p">:</span>
         <span class="c"># VSONE RERANKING</span>
         <span class="n">qaid2_chipmatch_VSONERR_</span> <span class="o">=</span> <span class="n">vsone_reranking</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_chipmatch_SVER_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="n">qaid2_chipmatch_</span> <span class="o">=</span> <span class="n">qaid2_chipmatch_VSONERR_</span>
