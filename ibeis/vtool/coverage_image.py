@@ -18,8 +18,10 @@ def show_coverage_map(chip, mask, patch, kpts, fnum=None, ell_alpha=.6,
     pnum_ = pt.get_pnum_func(nRows=2, nCols=2)
     if patch is not None:
         pt.imshow((patch * 255).astype(np.uint8), fnum=fnum, pnum=pnum_(0), title='patch')
-    #ut.embed()
-    pt.imshow((mask * 255).astype(np.uint8), fnum=fnum, pnum=pnum_(1), title='mask')
+        #ut.embed()
+        pt.imshow((mask * 255).astype(np.uint8), fnum=fnum, pnum=pnum_(1), title='mask')
+    else:
+        pt.imshow((mask * 255).astype(np.uint8), fnum=fnum, pnum=(2, 1, 1), title='mask')
     if show_mask_kpts:
         pt.draw_kpts2(kpts, rect=True, ell_alpha=ell_alpha)
     pt.imshow(chip, fnum=fnum, pnum=pnum_(2), title='chip')
@@ -407,7 +409,7 @@ def grid_coverage(kpts, chipsize, weights, grid_scale_factor=.3, grid_steps=1, g
 
 
 def get_grid_coverage_mask(kpts, chipsize, weights, grid_scale_factor=.3,
-                           grid_steps=1, resize=False, out=None):
+                           grid_steps=1, resize=False, out=None, grid_sigma=1.6):
     r"""
     Args:
         kpts (ndarray[float32_t, ndim=2]):  keypoints
@@ -439,7 +441,11 @@ def get_grid_coverage_mask(kpts, chipsize, weights, grid_scale_factor=.3,
     with ut.EmbedOnException():
         import vtool as vt
         coverage_gridtup = grid_coverage(
-            kpts, chipsize, weights, grid_scale_factor=grid_scale_factor, grid_steps=grid_steps)
+            kpts, chipsize, weights,
+            grid_scale_factor=grid_scale_factor,
+            grid_steps=grid_steps,
+            grid_sigma=grid_sigma
+        )
         gridshape = coverage_gridtup[0:2]
         neighbor_bin_weights, neighbor_bin_indicies = coverage_gridtup[-2:]
         #neighbor_bin_indicies.shape = (steps + 1 * 2, len(kpts), 2)
@@ -476,24 +482,34 @@ def get_grid_coverage_mask(kpts, chipsize, weights, grid_scale_factor=.3,
 def testdata_coveragegrid(fname=None):
     import vtool as vt
     # build test data
-    kpts = vt.dummy.get_testdata_kpts(fname)
-    if fname is None:
+    kpts, vecs = vt.dummy.get_testdata_kpts(fname, with_vecs=True)
+    # HACK IN DISTINCTIVENESS
+    if fname is not None:
+        from ibeis.model.hots import distinctiveness_normalizer
+        cachedir = ut.get_app_resource_dir('ibeis', 'distinctiveness_model')
+        species = 'zebra_plains'
+        dstcnvs_normer = distinctiveness_normalizer.DistinctivnessNormalizer(species, cachedir=cachedir)
+        dstcnvs_normer.load(cachedir)
+        weights = dstcnvs_normer.get_distinctiveness(vecs)
+    else:
         kpts = np.vstack((kpts, [0, 0, 1, 1, 1, 0]))
         kpts = np.vstack((kpts, [0.01, 10, 1, 1, 1, 0]))
         kpts = np.vstack((kpts, [0.94, 11.5, 1, 1, 1, 0]))
+        weights = np.ones(len(kpts))
     chipsize = tuple(vt.iceil(vt.get_kpts_image_extent(kpts)).tolist())
-    weights = np.ones(len(kpts))
     return kpts, chipsize, weights
 
 
 def get_coverage_grid_gridsearch_configs():
     search_basis = {
-        'grid_scale_factor': [.1, .25, .5, 1.0],
-        'grid_steps': [1, 2, 3, 10],
+        'grid_scale_factor': [.05, .25, .3, 1.0],
+        'grid_steps': [1, 3, 10],
+        'grid_sigma': [1.0, 1.6, 2.0],
     }
     param_slice_dict = {
-        'grid_scale_factor' : slice(0, 4),
+        'grid_scale_factor' : slice(0, 3),
         'grid_steps'        : slice(0, 4),
+        'grid_sigma'        : slice(0, 4),
     }
     varied_dict = {
         key: val[param_slice_dict.get(key, slice(0, 1))]
@@ -502,39 +518,6 @@ def get_coverage_grid_gridsearch_configs():
     # Make configuration for every parameter setting
     cfgdict_list, cfglbl_list = ut.make_constrained_cfg_and_lbl_list(varied_dict)
     return cfgdict_list, cfglbl_list
-
-
-def gridsearch_coverage_grid_mask():
-    """
-    CommandLine:
-        python -m vtool.coverage_image --test-gridsearch_coverage_grid_mask --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.coverage_image import *  # NOQA
-        >>> import plottool as pt
-        >>> gridsearch_coverage_grid_mask()
-        >>> pt.show_if_requested()
-    """
-    import plottool as pt
-    cfgdict_list, cfglbl_list = get_coverage_grid_gridsearch_configs()
-    kpts, chipsize, weights = testdata_coveragegrid('easy1.png')
-    gridmask_list = [
-        get_grid_coverage_mask(kpts, chipsize, weights, **cfgdict)
-        for cfgdict in ut.ProgressIter(cfgdict_list, lbl='coverage grid')
-    ]
-    gridmask_list = [
-        255 * (gridmask / gridmask.max()) for gridmask in gridmask_list
-    ]
-
-    fnum = 1
-    ut.interact_gridsearch_result_images(
-        pt.imshow, cfgdict_list, cfglbl_list,
-        gridmask_list, fnum=fnum, figtitle='coverage grid', unpack=False,
-        max_plots=25)
-
-    pt.iup()
-    #pt.show_if_requested()
 
 
 def gridsearch_coverage_grid():
@@ -566,6 +549,41 @@ def gridsearch_coverage_grid():
     pt.iup()
 
 
+def gridsearch_coverage_grid_mask():
+    """
+    CommandLine:
+        python -m vtool.coverage_image --test-gridsearch_coverage_grid_mask --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.coverage_image import *  # NOQA
+        >>> import plottool as pt
+        >>> gridsearch_coverage_grid_mask()
+        >>> pt.show_if_requested()
+    """
+    import plottool as pt
+    cfgdict_list, cfglbl_list = get_coverage_grid_gridsearch_configs()
+    kpts, chipsize, weights = testdata_coveragegrid('easy1.png')
+    gridmask_list = [
+        255 *  get_grid_coverage_mask(kpts, chipsize, weights, **cfgdict)
+        for cfgdict in ut.ProgressIter(cfgdict_list, lbl='coverage grid')
+    ]
+    NORMHACK = True
+    if NORMHACK:
+        gridmask_list = [
+            255 * (gridmask / gridmask.max()) for gridmask in gridmask_list
+        ]
+
+    fnum = 1
+    ut.interact_gridsearch_result_images(
+        pt.imshow, cfgdict_list, cfglbl_list,
+        gridmask_list, fnum=fnum, figtitle='coverage grid', unpack=False,
+        max_plots=25)
+
+    pt.iup()
+    #pt.show_if_requested()
+
+
 def visualize_coverage_grid(num_rows, num_cols,
                             subbin_xy_arr,
                             neighbor_bin_centers,
@@ -590,6 +608,7 @@ def visualize_coverage_grid(num_rows, num_cols,
     ax.scatter(subbin_xy_arr[0], subbin_xy_arr[1], marker='o')
     # Plot Weighted Lines to Subbins
     pt_colors = pt.distinct_colors(len(subbin_xy_arr.T))
+    # TODO: Implement this with line segment actors instead
     for subbin_centers, subbin_weights in zip(neighbor_bin_centers,
                                               neighbor_bin_weights):
         for pt_xys, center_xys, weight, color in zip(subbin_xy_arr.T, subbin_centers,
