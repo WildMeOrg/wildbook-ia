@@ -313,7 +313,7 @@ def make_coverage_mask(kpts, chipsize, fx2_score=None, mode=None,
         return dstimg
 
 
-def grid_coverage(kpts, chipsize, weights, grid_scale_factor=.3, grid_steps=1):
+def grid_coverage(kpts, chipsize, weights, grid_scale_factor=.3, grid_steps=1, grid_sigma=1.6):
     r"""
     Args:
         kpts (ndarray[float32_t, ndim=2]):  keypoints
@@ -372,8 +372,8 @@ def grid_coverage(kpts, chipsize, weights, grid_scale_factor=.3, grid_steps=1):
         neighbor_subbin_sqrddist_arr = np.power(_tmp, 2, out=_tmp).sum(axis=2)
         return neighbor_subbin_sqrddist_arr
 
-    def weighted_gaussian_falloff(neighbor_subbin_sqrddist_arr, weights):
-        _gaussweights = vt.gauss_func1d_unnormalized(neighbor_subbin_sqrddist_arr)
+    def weighted_gaussian_falloff(neighbor_subbin_sqrddist_arr, weights, grid_sigma):
+        _gaussweights = vt.gauss_func1d_unnormalized(neighbor_subbin_sqrddist_arr, grid_sigma)
         # Each column sums to 1
         np.divide(_gaussweights, _gaussweights.sum(axis=0)[None, :], out=_gaussweights)
         # Scale initial weights by the gaussian falloff
@@ -382,8 +382,8 @@ def grid_coverage(kpts, chipsize, weights, grid_scale_factor=.3, grid_steps=1):
 
     # Compute grid size and stride
     chip_w, chip_h = chipsize
-    num_rows = vt.iround(grid_scale_factor * chip_h)
-    num_cols = vt.iround(grid_scale_factor * chip_w)
+    num_rows = max(vt.iround(grid_scale_factor * chip_h), 1)
+    num_cols = max(vt.iround(grid_scale_factor * chip_w), 1)
     chipstride = np.array((chip_w / num_cols, chip_h / num_rows))
     # Find keypoint subbin locations relative to edges
     xy_arr = vt.get_xys(kpts)
@@ -396,7 +396,7 @@ def grid_coverage(kpts, chipsize, weights, grid_scale_factor=.3, grid_steps=1):
     # compute distance to neighbors
     neighbor_subbin_sqrddist_arr = compute_subbin_to_bins_dist(neighbor_bin_centers, subbin_xy_arr)
     # scale weights using guassia falloff
-    neighbor_bin_weights = weighted_gaussian_falloff(neighbor_subbin_sqrddist_arr, weights)
+    neighbor_bin_weights = weighted_gaussian_falloff(neighbor_subbin_sqrddist_arr, weights, grid_sigma)
     # convert to rowcol
     neighbor_bin_indicies = neighbor_bin_rc_indicies = neighbor_bin_xy_indicies[:, :, ::-1]  # NOQA
 
@@ -436,39 +436,40 @@ def get_grid_coverage_mask(kpts, chipsize, weights, grid_scale_factor=.3,
         >>> result = str(weightgrid)
         >>> print(result)
     """
-    import vtool as vt
-    coverage_gridtup = grid_coverage(
-        kpts, chipsize, weights, grid_scale_factor=grid_scale_factor, grid_steps=grid_steps)
-    gridshape = coverage_gridtup[0:2]
-    neighbor_bin_weights, neighbor_bin_indicies = coverage_gridtup[-2:]
-    #neighbor_bin_indicies.shape = (steps + 1 * 2, len(kpts), 2)
-    oldshape_indicies = neighbor_bin_indicies.shape
-    newshape_indicies = (np.prod(oldshape_indicies[0:2]), oldshape_indicies[2])
-    neighbor_bin_indicies =  neighbor_bin_indicies.reshape(newshape_indicies).T
-    neighbor_bin_weights = neighbor_bin_weights.flatten()
-    # Get flat indexing into gridbins
-    neighbor_bin_flat_indicies = np.ravel_multi_index(neighbor_bin_indicies, gridshape)
-    # Group by bins with weight
-    unique_flatxs, grouped_flatxs = vt.group_indicies(neighbor_bin_flat_indicies)
-    grouped_weights = vt.apply_grouping(neighbor_bin_weights, grouped_flatxs)
-    # FIXME: boundary cases are not handled right because their vote is split
-    # into the same bin and is fighting with itself durring the max
-    max_weights = list(map(np.max, grouped_weights))
-    if out is None:
-        weightgrid = np.zeros(gridshape)
-    else:
-        # outvar specified
-        weightgrid = out
-        weightgrid[:] = 0
-    unique_rows, unique_cols = np.unravel_index(unique_flatxs, gridshape)
-    weightgrid[unique_rows, unique_cols] = max_weights
-    #flat_weightgrid = np.zeros(np.prod(gridshape))
-    #flat_weightgrid[unique_flatxs] = max_weights
-    #ut.embed()
-    #weightgrid = np.reshape(flat_weightgrid, gridshape)
-    if resize:
-        weightgrid = cv2.resize(weightgrid, chipsize,
-                                interpolation=cv2.INTER_NEAREST)
+    with ut.EmbedOnException():
+        import vtool as vt
+        coverage_gridtup = grid_coverage(
+            kpts, chipsize, weights, grid_scale_factor=grid_scale_factor, grid_steps=grid_steps)
+        gridshape = coverage_gridtup[0:2]
+        neighbor_bin_weights, neighbor_bin_indicies = coverage_gridtup[-2:]
+        #neighbor_bin_indicies.shape = (steps + 1 * 2, len(kpts), 2)
+        oldshape_indicies = neighbor_bin_indicies.shape
+        newshape_indicies = (np.prod(oldshape_indicies[0:2]), oldshape_indicies[2])
+        neighbor_bin_indicies =  neighbor_bin_indicies.reshape(newshape_indicies).T
+        neighbor_bin_weights = neighbor_bin_weights.flatten()
+        # Get flat indexing into gridbins
+        neighbor_bin_flat_indicies = np.ravel_multi_index(neighbor_bin_indicies, gridshape)
+        # Group by bins with weight
+        unique_flatxs, grouped_flatxs = vt.group_indicies(neighbor_bin_flat_indicies)
+        grouped_weights = vt.apply_grouping(neighbor_bin_weights, grouped_flatxs)
+        # FIXME: boundary cases are not handled right because their vote is split
+        # into the same bin and is fighting with itself durring the max
+        max_weights = list(map(np.max, grouped_weights))
+        if out is None:
+            weightgrid = np.zeros(gridshape)
+        else:
+            # outvar specified
+            weightgrid = out
+            weightgrid[:] = 0
+        unique_rows, unique_cols = np.unravel_index(unique_flatxs, gridshape)
+        weightgrid[unique_rows, unique_cols] = max_weights
+        #flat_weightgrid = np.zeros(np.prod(gridshape))
+        #flat_weightgrid[unique_flatxs] = max_weights
+        #ut.embed()
+        #weightgrid = np.reshape(flat_weightgrid, gridshape)
+        if resize:
+            weightgrid = cv2.resize(weightgrid, chipsize,
+                                    interpolation=cv2.INTER_NEAREST)
     return weightgrid
 
 
