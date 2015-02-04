@@ -614,6 +614,29 @@
 
 </div></div>
 <span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
+<div class="viewcode-block" id="RerankVsOneConfig"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.RerankVsOneConfig">[docs]</a><span class="k">class</span> <span class="nc">RerankVsOneConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.Config import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; rrvsone_cfg = RerankVsOneConfig()</span>
+<span class="sd">        &gt;&gt;&gt; result = rrvsone_cfg.get_cfgstr()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">rrvsone_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">RerankVsOneConfig</span><span class="p">,</span> <span class="n">rrvsone_cfg</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;rrvsone_cfg&#39;</span><span class="p">)</span>
+        <span class="n">rrvsone_cfg</span><span class="o">.</span><span class="n">rrvsone_on</span> <span class="o">=</span> <span class="bp">False</span>
+
+<div class="viewcode-block" id="RerankVsOneConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.RerankVsOneConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">rrvsone_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">rrvsone_cfg_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s">&#39;_RRVsOne(&#39;</span><span class="p">,</span>
+            <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rrvsone_cfg</span><span class="o">.</span><span class="n">rrvsone_on</span><span class="p">),</span>
+            <span class="s">&#39;)&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">rrvsone_cfg_list</span>
+
+</div></div>
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>
 <div class="viewcode-block" id="QueryConfig"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.QueryConfig">[docs]</a><span class="k">class</span> <span class="nc">QueryConfig</span><span class="p">(</span><span class="n">ConfigBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    query configuration parameters</span>
@@ -635,6 +658,7 @@
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">agg_cfg</span>        <span class="o">=</span> <span class="n">AggregateConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span>      <span class="o">=</span> <span class="n">FlannConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span>        <span class="o">=</span> <span class="n">SMKConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">rrvsone_cfg</span>    <span class="o">=</span> <span class="n">RerankVsOneConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c"># causes some bug in Preference widget if these don&#39;t have underscore</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span> <span class="o">=</span> <span class="n">FeatureWeightConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">use_cache</span> <span class="o">=</span> <span class="bp">False</span>
@@ -645,7 +669,6 @@
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">with_metadata</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">return_expanded_nns</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># for hacky distinctivness</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">use_external_distinctiveness</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># for distinctivness model</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">vsone_reranking</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">codename</span> <span class="o">=</span> <span class="s">&#39;None&#39;</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">species_code</span> <span class="o">=</span> <span class="s">&#39;____&#39;</span>  <span class="c"># TODO: make use of this</span>
         <span class="c">#if ut.is_developer():</span>
@@ -655,6 +678,38 @@
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[config] NEW QueryConfig&#39;</span><span class="p">)</span>
 
+<div class="viewcode-block" id="QueryConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.QueryConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c"># Ensure feasibility of the configuration</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">make_feasible</span><span class="p">()</span>
+
+        <span class="c"># Build cfgstr</span>
+        <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;smk&#39;</span><span class="p">:</span>
+            <span class="c"># SMK Parameters</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_smk&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_sv&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">str</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;vsmany&#39;</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;vsone&#39;</span><span class="p">:</span>
+            <span class="c"># Naive Bayes Parameters</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_nn&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_filt&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_sv&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_agg&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_flann&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_rrvsone&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">rrvsone_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;bad pipeline root: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_featweight&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+            <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cfgstr_list</span>
+</div>
 <div class="viewcode-block" id="QueryConfig.update_query_cfg"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.QueryConfig.update_query_cfg">[docs]</a>    <span class="k">def</span> <span class="nf">update_query_cfg</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">cfgdict</span><span class="p">):</span>
         <span class="c"># Each config paramater should be unique</span>
         <span class="c"># So updating them all should not cause conflicts</span>
@@ -671,6 +726,7 @@
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabassign_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabtrain_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">query_cfg</span><span class="o">.</span><span class="n">rrvsone_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
         <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
@@ -809,36 +865,6 @@
         <span class="n">copy_</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">)</span>
         <span class="n">copy_</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">copy_</span>
-</div>
-<div class="viewcode-block" id="QueryConfig.get_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.model.html#ibeis.model.Config.QueryConfig.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="c"># Ensure feasibility of the configuration</span>
-        <span class="n">query_cfg</span><span class="o">.</span><span class="n">make_feasible</span><span class="p">()</span>
-
-        <span class="c"># Build cfgstr</span>
-        <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="p">]</span>
-        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;smk&#39;</span><span class="p">:</span>
-            <span class="c"># SMK Parameters</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_smk&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
-                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_sv&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
-                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">str</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;vsmany&#39;</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;vsone&#39;</span><span class="p">:</span>
-            <span class="c"># Naive Bayes Parameters</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_nn&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
-                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">nn_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_filt&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
-                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">filt_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_sv&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
-                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_agg&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
-                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">agg_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_flann&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
-                <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;bad pipeline root: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_featweight&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
-            <span class="n">cfgstr_list</span> <span class="o">+=</span> <span class="n">query_cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">cfgstr_list</span>
 
 </div></div>
 <span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ConfigMetaclass</span><span class="p">)</span>

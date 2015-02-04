@@ -1296,11 +1296,6 @@ dev_train_distinctiveness &#8211;species PZ &#8211;publish</dd>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.model.hots.distinctiveness_normalizer.test_example">
-<tt class="descclassname">ibeis.model.hots.distinctiveness_normalizer.</tt><tt class="descname">test_example</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/distinctiveness_normalizer.html#test_example"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.distinctiveness_normalizer.test_example" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="ibeis.model.hots.distinctiveness_normalizer.test_single_annot_distinctiveness_params">
 <tt class="descclassname">ibeis.model.hots.distinctiveness_normalizer.</tt><tt class="descname">test_single_annot_distinctiveness_params</tt><big>(</big><em>ibs</em>, <em>aid</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/distinctiveness_normalizer.html#test_single_annot_distinctiveness_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.distinctiveness_normalizer.test_single_annot_distinctiveness_params" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
@@ -1451,9 +1446,7 @@ python -m ibeis.model.hots.hots_query_result &#8211;test-dump_top_match &#8211;s
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.get_aid_ranks">
 <tt class="descname">get_aid_ranks</tt><big>(</big><em>qres</em>, <em>aid_arr</em>, <em>fillvalue=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.get_aid_ranks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.get_aid_ranks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(get_aid_ranks)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;qres&#8217;, &#8216;aid_arr&#8217;, &#8216;fillvalue&#8217;], varargs=None, keywords=None, defaults=(None,))</p>
-<p>orig_docstr =  get ranks of annotation ids</p>
+<dd><p>get ranks of annotation ids</p>
 </dd></dl>
 
 <dl class="method">
@@ -7208,17 +7201,65 @@ model, or precompute feature distinctiveness.<ul>
 </li>
 </ul>
 </dd>
+<dt>TODOLIST:</dt>
+<dd><ul class="first simple">
+<li>Precompute distinctivness</li>
+<li>Paramatarize</li>
+</ul>
+<blockquote class="last">
+<div><ul class="simple">
+<li>grid / image coverage</li>
+<li>image cov params</li>
+<li>grid cov params</li>
+<li>scr-vsone / rat-vsone</li>
+<li>scr-params</li>
+<li>rat-params</li>
+<li>true-pos-score in qres</li>
+<li>false-neg-score in qres</li>
+<li>false-pos-score in qres</li>
+</ul>
+</div></blockquote>
+</dd>
 </dl>
 <dl class="function">
-<dt id="ibeis.model.hots.vsone_pipeline.compute_query_constrained_matches">
-<tt class="descclassname">ibeis.model.hots.vsone_pipeline.</tt><tt class="descname">compute_query_constrained_matches</tt><big>(</big><em>ibs</em>, <em>qaid</em>, <em>daid_list</em>, <em>H_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/vsone_pipeline.html#compute_query_constrained_matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.vsone_pipeline.compute_query_constrained_matches" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="ibeis.model.hots.vsone_pipeline.compute_grid_coverage_score">
+<tt class="descclassname">ibeis.model.hots.vsone_pipeline.</tt><tt class="descname">compute_grid_coverage_score</tt><big>(</big><em>ibs</em>, <em>qaid</em>, <em>daid_list</em>, <em>fm_list</em>, <em>fs_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/vsone_pipeline.html#compute_grid_coverage_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.vsone_pipeline.compute_grid_coverage_score" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.model.hots.vsone_pipeline &#8211;test-compute_grid_coverage_score</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.vsone_pipeline</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span> <span class="o">=</span> <span class="n">testdata_scoring</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">score_list</span> <span class="o">=</span> <span class="n">compute_grid_coverage_score</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">score_list</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
-<dt id="ibeis.model.hots.vsone_pipeline.compute_query_coverage">
-<tt class="descclassname">ibeis.model.hots.vsone_pipeline.</tt><tt class="descname">compute_query_coverage</tt><big>(</big><em>ibs</em>, <em>qaid</em>, <em>daid_list</em>, <em>fm_list</em>, <em>fs_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/vsone_pipeline.html#compute_query_coverage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.vsone_pipeline.compute_query_coverage" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.model.hots.vsone_pipeline.compute_image_coverage_score">
+<tt class="descclassname">ibeis.model.hots.vsone_pipeline.</tt><tt class="descname">compute_image_coverage_score</tt><big>(</big><em>ibs</em>, <em>qaid</em>, <em>daid_list</em>, <em>fm_list</em>, <em>fs_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/vsone_pipeline.html#compute_image_coverage_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.vsone_pipeline.compute_image_coverage_score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a grayscale chip match which represents which pixels
 should be matches in order for a candidate to be considered a match.</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.model.hots.vsone_pipeline &#8211;test-compute_image_coverage_score</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.vsone_pipeline</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span> <span class="o">=</span> <span class="n">testdata_scoring</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">score_list</span> <span class="o">=</span> <span class="n">compute_image_coverage_score</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">score_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="docutils">
 <dt>Ignore:</dt>
 <dd>import plottool as pt
@@ -7227,6 +7268,11 @@ pt.imshow(weight_mask_m * 255, update=True, fnum=3)
 pt.imshow(weight_color * 255, update=True, fnum=3)</dd>
 </dl>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.vsone_pipeline.compute_query_constrained_matches">
+<tt class="descclassname">ibeis.model.hots.vsone_pipeline.</tt><tt class="descname">compute_query_constrained_matches</tt><big>(</big><em>ibs</em>, <em>qaid</em>, <em>daid_list</em>, <em>H_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/vsone_pipeline.html#compute_query_constrained_matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.vsone_pipeline.compute_query_constrained_matches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.vsone_pipeline.compute_query_matches">
@@ -7385,6 +7431,11 @@ for fm, daid, H in zip(fm_SCR_list, daid_list, H_list):</p>
 <dl class="function">
 <dt id="ibeis.model.hots.vsone_pipeline.spatially_constrained_match">
 <tt class="descclassname">ibeis.model.hots.vsone_pipeline.</tt><tt class="descname">spatially_constrained_match</tt><big>(</big><em>flann</em>, <em>dvecs</em>, <em>qkpts</em>, <em>dkpts</em>, <em>H</em>, <em>dlen_sqrd</em>, <em>match_xy_thresh</em>, <em>ratio_thresh2</em>, <em>K</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/vsone_pipeline.html#spatially_constrained_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.vsone_pipeline.spatially_constrained_match" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.vsone_pipeline.testdata_scoring">
+<tt class="descclassname">ibeis.model.hots.vsone_pipeline.</tt><tt class="descname">testdata_scoring</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/vsone_pipeline.html#testdata_scoring"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.vsone_pipeline.testdata_scoring" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">

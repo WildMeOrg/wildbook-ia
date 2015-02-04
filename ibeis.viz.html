@@ -87,21 +87,26 @@
 <dl class="function">
 <dt id="ibeis.viz.viz_chip.show_chip">
 <tt class="descclassname">ibeis.viz.viz_chip.</tt><tt class="descname">show_chip</tt><big>(</big><em>ibs</em>, <em>aid</em>, <em>in_image=False</em>, <em>annote=True</em>, <em>title_suffix=''</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_chip.html#show_chip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_chip.show_chip" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(show_chip)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;aid&#8217;, &#8216;in_image&#8217;, &#8216;annote&#8217;, &#8216;title_suffix&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(False, True, &#8216;&#8217;))</p>
-<p>orig_docstr =  Driver function to show chips</p>
-<blockquote>
-<div><dl class="docutils">
-<dt>Args:</dt>
-<dd>ibs (IBEISController):
-aid (int): annotation rowid
-in_image (bool): displays annotation with the context of its source image
-annote (bool): enables overlay annoations
-title_suffix (str):</dd>
+<dd><p>Driver function to show chips</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>aid</strong> (<em>int</em>) &#8211; annotation rowid</li>
+<li><strong>in_image</strong> (<em>bool</em>) &#8211; displays annotation with the context of its source image</li>
+<li><strong>annote</strong> (<em>bool</em>) &#8211; enables overlay annoations</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
 <dt>Keywords:</dt>
 <dd>color (3/4-tuple, ndarray, or str): colors for keypoints</dd>
-<dt>Example:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">plottool.viz_keypoints</span> <span class="kn">import</span> <span class="n">_annotate_kpts</span>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">plottool.viz_keypoints</span> <span class="kn">import</span> <span class="n">_annotate_kpts</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_Mothers&#39;</span><span class="p">)</span>
@@ -114,9 +119,6 @@ title_suffix (str):</dd>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="n">in_image</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="n">annote</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-</div></blockquote>
 </dd></dl>
 
 </div>
@@ -130,9 +132,7 @@ title_suffix (str):</dd>
 <dl class="function">
 <dt id="ibeis.viz.viz_helpers.get_annot_kpts_in_imgspace">
 <tt class="descclassname">ibeis.viz.viz_helpers.</tt><tt class="descname">get_annot_kpts_in_imgspace</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_helpers.html#get_annot_kpts_in_imgspace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_helpers.get_annot_kpts_in_imgspace" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(get_annot_kpts_in_imgspace)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;aid_list&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=None)</p>
-<p>orig_docstr =  Transforms keypoints so they are plotable in imagespace</p>
+<dd><p>Transforms keypoints so they are plotable in imagespace</p>
 </dd></dl>
 
 <dl class="function">
@@ -154,34 +154,22 @@ title_suffix (str):</dd>
 <dl class="function">
 <dt id="ibeis.viz.viz_helpers.get_bboxes">
 <tt class="descclassname">ibeis.viz.viz_helpers.</tt><tt class="descname">get_bboxes</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>offset_list=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_helpers.html#get_bboxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_helpers.get_bboxes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(get_bboxes)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;aid_list&#8217;, &#8216;offset_list&#8217;], varargs=None, keywords=None, defaults=(None,))</p>
-<p>orig_docstr =</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.viz.viz_helpers.get_chips">
 <tt class="descclassname">ibeis.viz.viz_helpers.</tt><tt class="descname">get_chips</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>in_image=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_helpers.html#get_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_helpers.get_chips" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(get_chips)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;aid_list&#8217;, &#8216;in_image&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(False,))</p>
-<p>orig_docstr =</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.viz.viz_helpers.get_image_titles">
 <tt class="descclassname">ibeis.viz.viz_helpers.</tt><tt class="descname">get_image_titles</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_helpers.html#get_image_titles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_helpers.get_image_titles" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function _wrp_preserve(get_image_titles)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;gid_list&#8217;], varargs=None, keywords=None, defaults=None)</p>
-<p>orig_docstr =</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.viz.viz_helpers.get_kpts">
 <tt class="descclassname">ibeis.viz.viz_helpers.</tt><tt class="descname">get_kpts</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>in_image=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_helpers.html#get_kpts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_helpers.get_kpts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(get_kpts)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;aid_list&#8217;, &#8216;in_image&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(False,))</p>
-<p>orig_docstr =</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.viz.viz_helpers.get_nidstrs">
@@ -240,22 +228,14 @@ title_suffix (str):</dd>
 <dl class="function">
 <dt id="ibeis.viz.viz_hough.show_hough_image">
 <tt class="descclassname">ibeis.viz.viz_hough.</tt><tt class="descname">show_hough_image</tt><big>(</big><em>ibs</em>, <em>gid</em>, <em>species=None</em>, <em>fnum=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_hough.html#show_hough_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_hough.show_hough_image" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(show_hough_image)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;gid&#8217;, &#8216;species&#8217;, &#8216;fnum&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(None, None))</p>
-<p>orig_docstr =</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.viz.viz_hough.show_probability_chip">
 <tt class="descclassname">ibeis.viz.viz_hough.</tt><tt class="descname">show_probability_chip</tt><big>(</big><em>ibs</em>, <em>aid</em>, <em>species=None</em>, <em>fnum=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_hough.html#show_probability_chip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_hough.show_probability_chip" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(show_probability_chip)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;aid&#8217;, &#8216;species&#8217;, &#8216;fnum&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(None, None))</p>
-<dl class="docutils">
-<dt>orig_docstr =</dt>
-<dd><p class="first">TODO: allow species override in controller</p>
-<dl class="last docutils">
-<dt>Example:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_hough</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<dd><p>TODO: allow species override in controller</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_hough</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_hough</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
@@ -267,10 +247,6 @@ title_suffix (str):</dd>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df2</span><span class="o">.</span><span class="n">present</span><span class="p">()</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -289,25 +265,32 @@ title_suffix (str):</dd>
 <dl class="function">
 <dt id="ibeis.viz.viz_image.show_image">
 <tt class="descclassname">ibeis.viz.viz_image.</tt><tt class="descname">show_image</tt><big>(</big><em>ibs</em>, <em>gid</em>, <em>sel_aids=[]</em>, <em>fnum=None</em>, <em>annote=True</em>, <em>draw_lbls=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_image.html#show_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_image.show_image" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(show_image)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;gid&#8217;, &#8216;sel_aids&#8217;, &#8216;fnum&#8217;, &#8216;annote&#8217;, &#8216;draw_lbls&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=([], None, True, True))</p>
+<dd><p>Driver function to show images</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</li>
+<li><strong>gid</strong> (<em>int</em>) &#8211; image row id</li>
+<li><strong>fnum</strong> (<em>int</em>) &#8211; figure number</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">(fig, ax)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="docutils">
-<dt>orig_docstr =</dt>
-<dd><p class="first">Driver function to show images</p>
-<dl class="last docutils">
-<dt>Args:</dt>
-<dd>ibs (IBEISController):  ibeis controller object
-gid (int): image row id
-sel_aids (list):
-fnum (int):  figure number
-annote (bool):
-draw_lbls (bool):</dd>
-<dt>Returns:</dt>
-<dd>tuple: (fig, ax)</dd>
 <dt>CommandLine:</dt>
 <dd>python -m ibeis.viz.viz_image &#8211;test-show_image &#8211;show</dd>
-<dt>Example:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_image</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
@@ -322,10 +305,6 @@ draw_lbls (bool):</dd>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -334,41 +313,50 @@ draw_lbls (bool):</dd>
 <dl class="function">
 <dt id="ibeis.viz.viz_matches.annotate_matches">
 <tt class="descclassname">ibeis.viz.viz_matches.</tt><tt class="descname">annotate_matches</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>aid2</em>, <em>offset1=(0</em>, <em>0)</em>, <em>offset2=(0</em>, <em>0)</em>, <em>xywh2=None</em>, <em>xywh1=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_matches.html#annotate_matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_matches.annotate_matches" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(annotate_matches)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;qres&#8217;, &#8216;aid2&#8217;, &#8216;offset1&#8217;, &#8216;offset2&#8217;, &#8216;xywh2&#8217;, &#8216;xywh1&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=((0, 0), (0, 0), None, None))</p>
-<dl class="docutils">
-<dt>orig_docstr =</dt>
-<dd><p class="first">Helper function
+<dd><p>Helper function
 Draws annotation on top of a matching chip plot</p>
-<p class="last">does not draw feature matches. that is done in plottool.draw_func2.show_chipmatch2
+<p>does not draw feature matches. that is done in plottool.draw_func2.show_chipmatch2
 this handles things like the labels and borders based on
 groundtruth score</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.viz.viz_matches.show_matches">
 <tt class="descclassname">ibeis.viz.viz_matches.</tt><tt class="descname">show_matches</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>aid2</em>, <em>sel_fm=[]</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_matches.html#show_matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_matches.show_matches" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(show_matches)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;qres&#8217;, &#8216;aid2&#8217;, &#8216;sel_fm&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=([],))</p>
+<dd><p>shows single annotated match result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>qres</strong> (<em>QueryResult</em>) &#8211; object of feature correspondences and scores</li>
+<li><strong>aid2</strong> (<em>int</em>) &#8211; result annotation id</li>
+<li><strong>sel_fm</strong> (<em>list</em>) &#8211; selected features match indicies</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="docutils">
-<dt>orig_docstr =</dt>
-<dd><p class="first">shows single annotated match result.</p>
-<dl class="last docutils">
-<dt>Args:</dt>
-<dd>ibs (IBEISController):
-qres (QueryResult):  object of feature correspondences and scores
-aid2 (int): result annotation id
-sel_fm (list): selected features match indicies</dd>
 <dt>Kwargs:</dt>
 <dd>vert (bool)</dd>
-<dt>Returns:</dt>
-<dd>tuple: (ax, xywh1, xywh2)</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(ax, xywh1, xywh2)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
 <dt>CommandLine:</dt>
 <dd>python -m ibeis.viz.viz_matches &#8211;test-show_matches &#8211;show</dd>
-<dt>Example:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_matches</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
@@ -387,10 +375,6 @@ sel_fm (list): selected features match indicies</dd>
 <span class="gp">&gt;&gt;&gt; </span>   <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -399,10 +383,7 @@ sel_fm (list): selected features match indicies</dd>
 <dl class="function">
 <dt id="ibeis.viz.viz_name.show_name">
 <tt class="descclassname">ibeis.viz.viz_name.</tt><tt class="descname">show_name</tt><big>(</big><em>ibs</em>, <em>nid</em>, <em>nid2_aids=None</em>, <em>in_image=True</em>, <em>fnum=0</em>, <em>sel_aids=[]</em>, <em>subtitle=''</em>, <em>annote=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_name.html#show_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_name.show_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(show_name)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;nid&#8217;, &#8216;nid2_aids&#8217;, &#8216;in_image&#8217;, &#8216;fnum&#8217;, &#8216;sel_aids&#8217;, &#8216;subtitle&#8217;, &#8216;annote&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(None, True, 0, [], &#8216;&#8217;, False))</p>
-<p>orig_docstr =</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.viz.viz_name.show_name_of">
@@ -420,10 +401,7 @@ sel_fm (list): selected features match indicies</dd>
 <dl class="function">
 <dt id="ibeis.viz.viz_nearest_descriptors.show_nearest_descriptors">
 <tt class="descclassname">ibeis.viz.viz_nearest_descriptors.</tt><tt class="descname">show_nearest_descriptors</tt><big>(</big><em>ibs</em>, <em>qaid</em>, <em>qfx</em>, <em>fnum=None</em>, <em>stride=5</em>, <em>consecutive_distance_compare=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_nearest_descriptors.html#show_nearest_descriptors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_nearest_descriptors.show_nearest_descriptors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(show_nearest_descriptors)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;qaid&#8217;, &#8216;qfx&#8217;, &#8216;fnum&#8217;, &#8216;stride&#8217;, &#8216;consecutive_distance_compare&#8217;], varargs=None, keywords=None, defaults=(None, 5, False))</p>
-<p>orig_docstr =</p>
-</dd></dl>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-ibeis.viz.viz_qres">
@@ -431,19 +409,22 @@ sel_fm (list): selected features match indicies</dd>
 <dl class="function">
 <dt id="ibeis.viz.viz_qres.show_qres">
 <tt class="descclassname">ibeis.viz.viz_qres.</tt><tt class="descname">show_qres</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_qres.html#show_qres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_qres.show_qres" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(show_qres)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;qres&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=None)</p>
-<dl class="docutils">
-<dt>orig_docstr =</dt>
-<dd><p class="first">Display Query Result Logic</p>
+<dd><p>Display Query Result Logic</p>
 <p>Defaults to: query chip, groundtruth matches, and top matches
 python -c &#8220;import utool, ibeis; print(utool.auto_docstr(&#8216;ibeis.viz.viz_qres&#8217;, &#8216;show_qres&#8217;))&#8221;
 qres.ishow calls down into this</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>ibs (IBEISController):  ibeis controller object
-qres (QueryResult):  object of feature correspondences and scores</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</li>
+<li><strong>qres</strong> (<em>QueryResult</em>) &#8211; object of feature correspondences and scores</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <p>Kwargs:</p>
 <blockquote>
 <div><p>in_image (bool) show result  in image view if True else chip view</p>
@@ -454,15 +435,22 @@ elif annot_mode == 1, then dont draw lines or ellipse
 elif annot_mode == 2, then draw only lines</dd>
 </dl>
 </div></blockquote>
-<dl class="last docutils">
-<dt>Returns:</dt>
-<dd>mpl.Figure: fig</dd>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">mpl.Figure: fig</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
 <dt>CommandLine:</dt>
 <dd><p class="first">./main.py &#8211;query 1 -y &#8211;db PZ_MTEST &#8211;noshow-qtres</p>
 <p class="last">python -m ibeis.viz.viz_qres &#8211;test-show_qres</p>
 </dd>
-<dt>Example:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_qres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
@@ -474,37 +462,22 @@ elif annot_mode == 2, then draw only lines</dd>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.viz.viz_qres.show_qres_analysis">
 <tt class="descclassname">ibeis.viz.viz_qres.</tt><tt class="descname">show_qres_analysis</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_qres.html#show_qres_analysis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_qres.show_qres_analysis" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(show_qres_analysis)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;qres&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=None)</p>
+<dd><p>Wrapper around show_qres.</p>
 <dl class="docutils">
-<dt>orig_docstr =</dt>
-<dd><p class="first">Wrapper around show_qres.</p>
-<dl class="last docutils">
 <dt>KWARGS:</dt>
 <dd>aid_list - show matches against aid_list (default top 3)</dd>
-</dl>
-</dd>
 </dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.viz.viz_qres.show_qres_top">
 <tt class="descclassname">ibeis.viz.viz_qres.</tt><tt class="descname">show_qres_top</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_qres.html#show_qres_top"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_qres.show_qres_top" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(show_qres_top)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;qres&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=None)</p>
-<dl class="docutils">
-<dt>orig_docstr =</dt>
-<dd>Wrapper around show_qres.</dd>
-</dl>
+<dd><p>Wrapper around show_qres.</p>
 </dd></dl>
 
 </div>
@@ -562,14 +535,9 @@ elif annot_mode == 2, then draw only lines</dd>
 <dl class="function">
 <dt id="ibeis.viz.viz_sver.show_sver">
 <tt class="descclassname">ibeis.viz.viz_sver.</tt><tt class="descname">show_sver</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em>, <em>chipmatch_FILT=None</em>, <em>aid2_svtup=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_sver.html#show_sver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_sver.show_sver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapped function wrp_noexectb(show_sver)</p>
-<p>orig_argspec = ArgSpec(args=[&#8216;ibs&#8217;, &#8216;aid1&#8217;, &#8216;aid2&#8217;, &#8216;chipmatch_FILT&#8217;, &#8216;aid2_svtup&#8217;], varargs=None, keywords=&#8217;kwargs&#8217;, defaults=(None, None))</p>
-<dl class="docutils">
-<dt>orig_docstr =</dt>
-<dd><p class="first">Compiles IBEIS information and sends it to plottool</p>
-<dl class="last docutils">
-<dt>Example:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<dd><p>Compiles IBEIS information and sends it to plottool</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_sver</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
@@ -585,10 +553,6 @@ elif annot_mode == 2, then draw only lines</dd>
 <span class="gp">... </span>    <span class="k">exec</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">present</span><span class="p">())</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-</dd>
-</dl>
 </dd></dl>
 
 </div>

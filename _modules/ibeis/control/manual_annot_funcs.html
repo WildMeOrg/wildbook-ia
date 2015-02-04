@@ -568,8 +568,31 @@
 <span class="c">#@cache_getter(const.ANNOTATION_TABLE, &#39;chipsizes&#39;)</span>
 <div class="viewcode-block" id="get_annot_chipsizes"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_chipsizes">[docs]</a><span class="k">def</span> <span class="nf">get_annot_chipsizes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        aid_list (int):  list of annotation ids</span>
+<span class="sd">        ensure (bool):  eager evaluation if True</span>
+
 <span class="sd">    Returns:</span>
-<span class="sd">        chipsz_list (list): the imagesizes of computed annotation chips</span>
+<span class="sd">        list: chipsz_list - the (width, height) of computed annotation chips.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annot_chipsizes</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:3]</span>
+<span class="sd">        &gt;&gt;&gt; ensure = True</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; chipsz_list = get_annot_chipsizes(ibs, aid_list, ensure)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(chipsz_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [(545, 372), (603, 336), (520, 390)]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cid_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
     <span class="n">chipsz_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_sizes</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
@@ -602,6 +625,32 @@
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
 <div class="viewcode-block" id="get_annot_exemplar_flags"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_exemplar_flags">[docs]</a><span class="k">def</span> <span class="nf">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    returns if an annotation is an exemplar</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        aid_list (int):  list of annotation ids</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: annot_exemplar_flag_list - True if annotation is an exemplar</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annot_exemplar_flags</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = get_annot_exemplar_flags(ibs, aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">annot_exemplar_flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;annot_exemplar_flag&#39;</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">annot_exemplar_flag_list</span>
 
@@ -620,6 +669,8 @@
 <span class="c">#@cache_getter(const.ANNOTATION_TABLE, &#39;image_rowid&#39;)</span>
 <div class="viewcode-block" id="get_annot_gids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_gids">[docs]</a><span class="k">def</span> <span class="nf">get_annot_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get parent image rowids of annotations</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        aid_list (list):</span>
 
