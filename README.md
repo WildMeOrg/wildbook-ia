@@ -715,6 +715,11 @@ python dev.py --allgt -t best nsum custom custom:rrvsone_on=True custom:sv_on=Fa
 python dev.py --allgt -t custom best --print-scorediff-mat-stats
 
 python dev.py --allgt -t custom custom:rrvsone_on=True --print-scorediff-mat-stats
+python dev.py --allgt -t custom custom:rrvsone_on=True --print-scorediff-mat-stats
+
+
+
+python dev.py --qaid 1:10:2 -t custom:rrvsone_on=True 
 
 
 ```

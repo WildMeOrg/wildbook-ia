@@ -16,22 +16,58 @@ from utool._internal.meta_util_six import get_funcname
 ConfigBase = ut.Pref
 
 
+class ParamInfo(object):
+    """ small class for individual paramater information """
+    def __init__(pi, varname, default, shortprefix=ut.NoParam, type_=ut.NoParam):
+        pi.varname = varname
+        pi.default = default
+        pi.shortprefix = shortprefix
+        pi.type_ = type(default) if type_ is ut.NoParam else type_
+
+    def get_itemstr(pi, cfg):
+        varstr = str(getattr(cfg,  pi.varname))
+        if pi.shortprefix is not ut.NoParam:
+            itemstr = pi.shortprefix + varstr
+        else:
+            itemstr =  pi.varname + '=' + varstr
+        return itemstr
+
+
 def make_config_metaclass():
+    """
+    Creates a metaclass for Config objects that automates some of the more
+    tedious functions to write
+
+    Like:
+        get_cfgstr
+        and the comparison methods
+    """
     methods_list = ut.get_comparison_methods()
 
+    # Decorator for functions that we will inject into our metaclass
     def _register(func):
         methods_list.append(func)
         return func
 
     @_register
     def get_cfgstr_list(cfg, **kwargs):
-        item_list = parse_config_items(cfg)
-        return ['METACONFIG(' + ','.join([key + '=' + str(val) for key, val in item_list]) + ')']
-        #return ['cfg']
+        """ default get_cfgstr_list, can be overrided by a config object """
+        if hasattr(cfg, 'get_param_info_list'):
+            itemstr_list = [pi.get_itemstr(cfg) for pi in cfg.get_param_info_list()]
+        else:
+            item_list = parse_config_items(cfg)
+            itemstr_list = [key + '=' + str(val) for key, val in item_list]
+        config_name = cfg.get_config_name()
+        return [config_name , '(' + ','.join(itemstr_list) + ')']
 
-    # Needed for comparison operators
+    @_register
+    def get_config_name(cfg, **kwargs):
+        """ the user should overwrite this function """
+        return 'METACONFIG'
+
     @_register
     def __hash__(cfg):
+        """ Needed for comparison operators """
         return hash(cfg.get_cfgstr())
 
     @_register
@@ -39,34 +75,29 @@ def make_config_metaclass():
         return ''.join(cfg.get_cfgstr_list(**kwargs))
 
     class ConfigMetaclass(type):
-        """ Defines extra methods for Configs
         """
-        #print(dct)
+        Defines extra methods for Configs
+        """
 
         def __new__(cls, name, bases, dct):
-            """cls - meta
+            """
+            cls - meta
             name - classname
             supers - bases
             dct - class dictionary
             """
             #assert 'get_cfgstr_list' in dct, 'must have defined get_cfgstr_list.  name=%r' % (name,)
+            # Inject registered function
             for func in methods_list:
                 if get_funcname(func) not in dct:
                     funcname = get_funcname(func)
                     dct[funcname] = func
+                else:
+                    funcname = get_funcname(func)
+                    dct['meta_' + funcname] = func
                 #ut.inject_func_as_method(metaself, func)
-
-            #return type(name, bases, dct)
             return type.__new__(cls, name, bases, dct)
 
-    #def __init__(metaself, name, bases, dct):
-    #    super(ConfigMetaclass, metaself).__init__(name, bases, dct)
-
-    #    # Give the new class the registered methods
-    #    #funcname = get_funcname(func)
-    #    #setattr(metaself, funcname, func)
-
-    #    #metaself.__cfgmetaclass__ = True
     return ConfigMetaclass
 
 ConfigMetaclass = make_config_metaclass()
@@ -565,23 +596,63 @@ class VocabAssignConfig(ConfigBase):
 @six.add_metaclass(ConfigMetaclass)
 class RerankVsOneConfig(ConfigBase):
     """
-    Example:
+    CommandLine:
+        python -m ibeis.model.Config --test-RerankVsOneConfig
+
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.Config import *  # NOQA
-        >>> rrvsone_cfg = RerankVsOneConfig()
+        >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=True)
         >>> result = rrvsone_cfg.get_cfgstr()
         >>> print(result)
+        RRVsOne(True,nNm=5,nApN=4)
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=False)
+        >>> result = rrvsone_cfg.get_cfgstr()
+        >>> print(result)
+        _RRVsOne(False)
+
     """
     def __init__(rrvsone_cfg, **kwargs):
         super(RerankVsOneConfig, rrvsone_cfg).__init__(name='rrvsone_cfg')
-        rrvsone_cfg.rrvsone_on = False
+        for pi in rrvsone_cfg.get_param_info_list():
+            setattr(rrvsone_cfg, pi.varname, pi.default)
+        rrvsone_cfg.update(**kwargs)
+
+    def get_config_name(rrvsone_cfg):
+        return 'RRVsOne'
+
+    def get_param_info_list(rrvsone_cfg):
+        # new way to try and specify config options.
+        # not sure if i like it yet
+        PI = ParamInfo
+        param_info_list = [
+            PI('rrvsone_on', False, ''),
+            PI('nNameShortlistVsone', 5, 'nNm='),
+            PI('nAnnotPerName', 4, 'nApN='),
+            # spatially constrained matching
+            PI('scr_xy_thresh', .05, 'xy>'),
+            PI('scr_ratio_thresh', .7, 'rat>'),
+            PI('scr_normalizer_mode', 'far', ''),
+            PI('scr_K', 7, 'scK'),
+            # grid scoring
+            PI('grid_scale_factor', .1, 'sf'),
+            PI('grid_steps', 2, 'st'),
+        ]
+        return param_info_list
 
     def get_cfgstr_list(rrvsone_cfg, **kwargs):
-        rrvsone_cfg_list = [
-            '_RRVsOne(',
-            '%s' % (rrvsone_cfg.rrvsone_on),
-            ')',
-        ]
+        if rrvsone_cfg.rrvsone_on:
+            rrvsone_cfg_list = rrvsone_cfg.meta_get_cfgstr_list(**kwargs)
+        else:
+            rrvsone_cfg_list = [
+                '_RRVsOne(',
+                str(rrvsone_cfg.rrvsone_on),
+                ')'
+            ]
         return rrvsone_cfg_list
 
 
