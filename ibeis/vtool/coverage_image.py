@@ -89,7 +89,7 @@ def warped_patch_generator(patch, dsize, affmat_list, weight_list, **kwargs):
 
 
 @profile
-def warp_patch_onto_kpts(kpts, patch, chip_shape, fx2_score=None,
+def warp_patch_onto_kpts(kpts, patch, chipshape, fx2_score=None,
                          scale_factor=1.0, mode='max', **kwargs):
     r"""
     Overlays the source image onto a destination image in each keypoint location
@@ -97,7 +97,7 @@ def warp_patch_onto_kpts(kpts, patch, chip_shape, fx2_score=None,
     Args:
         kpts (ndarray[float32_t, ndim=2]):  keypoints
         patch (ndarray): patch to warp (like gaussian)
-        chip_shape (tuple):
+        chipshape (tuple):
         fx2_score (ndarray): score for every keypoint
         scale_factor (float):
 
@@ -120,7 +120,7 @@ def warp_patch_onto_kpts(kpts, patch, chip_shape, fx2_score=None,
         >>> (kpts, vecs) = pyhesaff.detect_kpts(img_fpath)
         >>> kpts = kpts[::15]
         >>> chip = vt.imread(img_fpath)
-        >>> chip_shape = chip.shape
+        >>> chipshape = chip.shape
         >>> fx2_score = np.ones(len(kpts))
         >>> scale_factor = 1.0
         >>> srcshape = (19, 19)
@@ -136,7 +136,7 @@ def warp_patch_onto_kpts(kpts, patch, chip_shape, fx2_score=None,
         >>> if HOLE:
         >>>     patch[int(patch.shape[0] / 2), int(patch.shape[1] / 2)] = 0
         >>> # execute function
-        >>> dstimg = warp_patch_onto_kpts(kpts, patch, chip_shape, fx2_score, scale_factor)
+        >>> dstimg = warp_patch_onto_kpts(kpts, patch, chipshape, fx2_score, scale_factor)
         >>> # verify results
         >>> print('dstimg stats %r' % (ut.get_stats_str(dstimg, axis=None)),)
         >>> print('patch stats %r' % (ut.get_stats_str(patch, axis=None)),)
@@ -151,8 +151,8 @@ def warp_patch_onto_kpts(kpts, patch, chip_shape, fx2_score=None,
     """
     #if len(kpts) == 0:
     #    return None
-    chip_scale_h = int(np.ceil(chip_shape[0] * scale_factor))
-    chip_scale_w = int(np.ceil(chip_shape[1] * scale_factor))
+    chip_scale_h = int(np.ceil(chipshape[0] * scale_factor))
+    chip_scale_w = int(np.ceil(chipshape[1] * scale_factor))
     if len(kpts) == 0:
         dstimg =  np.zeros((chip_scale_h, chip_scale_w))
         return dstimg
@@ -244,7 +244,7 @@ def get_gaussian_weight_patch(gauss_shape=(19, 19), gauss_sigma_frac=.3, gauss_n
 
 @profile
 #@ut.memprof
-def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None,
+def make_coverage_mask(kpts, chipsize, fx2_score=None, mode=None,
                        return_patch=True, patch=None, resize=True, **kwargs):
     r"""
     Returns a intensity image denoting which pixels are covered by the input
@@ -252,7 +252,7 @@ def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None,
 
     Args:
         kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
-        chip_shape (tuple):
+        chipsize (tuple): width height of the underlying image
 
     Returns:
         tuple (ndarray, ndarray): dstimg, patch
@@ -274,15 +274,16 @@ def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None,
         >>> (kpts, vecs) = pyhesaff.detect_kpts(img_fpath)
         >>> kpts = kpts[::10]
         >>> chip = vt.imread(img_fpath)
-        >>> chip_shape = chip.shape
+        >>> chipsize = chip.shape[0:2][::-1]
         >>> # execute function
-        >>> dstimg, patch = make_coverage_mask(kpts, chip_shape)
+        >>> dstimg, patch = make_coverage_mask(kpts, chipsize)
         >>> # show results
         >>> if ut.show_was_requested():
         >>>     mask = dstimg
         >>>     show_coverage_map(chip, mask, patch, kpts)
         >>>     pt.show_if_requested()
     """
+    chipshape = chipsize[::-1]
     if patch is None:
         gauss_shape = kwargs.get('gauss_shape', (19, 19))
         gauss_sigma_frac = kwargs.get('gauss_sigma_frac', .3)
@@ -293,7 +294,7 @@ def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None,
     cov_blur_ksize = kwargs.get('cov_blur_ksize', (17, 17))
     cov_blur_sigma = kwargs.get('cov_blur_sigma', 5.0)
     dstimg = warp_patch_onto_kpts(
-        kpts, patch, chip_shape,
+        kpts, patch, chipshape,
         mode=mode,
         fx2_score=fx2_score,
         scale_factor=cov_scale_factor,
@@ -303,7 +304,7 @@ def make_coverage_mask(kpts, chip_shape, fx2_score=None, mode=None,
         cv2.GaussianBlur(dstimg, ksize=cov_blur_ksize, sigmaX=cov_blur_sigma, sigmaY=cov_blur_sigma,
                          dst=dstimg, borderType=cv2.BORDER_CONSTANT)
     if resize:
-        dsize = tuple(chip_shape[0:2][::-1])
+        dsize = chipsize
         dstimg = cv2.resize(dstimg, dsize)
     #print(dstimg)
     if return_patch:
@@ -411,12 +412,12 @@ def get_grid_coverage_mask(kpts, chipsize, weights, grid_scale_factor=.3,
     Args:
         kpts (ndarray[float32_t, ndim=2]):  keypoints
         chipsize (tuple):  width, height
-        weights (?):
+        weights (ndarray[float32_t, ndim=1]):
         grid_scale_factor (float):
         grid_steps (int):
 
     Returns:
-        ?: weightgrid
+        ndarray: weightgrid
 
     CommandLine:
         python -m vtool.coverage_image --test-get_grid_coverage_mask
