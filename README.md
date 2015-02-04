@@ -672,12 +672,12 @@ python dev.py -t best --db seals2 --allgt
 # Make sure things are working on Naut_Dan
 python dev.py --allgt -t nsum vsmany vsone smk --print-all --db NAUT_Dan
 # Debug spatial verification
-python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-rankmat
-python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-rankmat --va --vh --fig-dname debug_sver
-python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-rankmat --va --vh --fig-dname debug_sver_excludequery --exclude-query --use-figcache
+python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-best-rankmat
+python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-best-rankmat --va --vh --fig-dname debug_sver
+python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-best-rankmat --va --vh --fig-dname debug_sver_excludequery --exclude-query --use-figcache
 
-python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-rankmat
-python dev.py --db PZ_MTEST -t sver_new --allhard  --print-rankmat
+python dev.py --db PZ_MTEST -t vary_sver --allhard  --print-best-rankmat
+python dev.py --db PZ_MTEST -t sver_new --allhard  --print-best-rankmat
 python dev.py --db PZ_MTEST -t sver_new best --allgt
 python dev.py --db GZ_ALL -t sver_new best --allgt
 
@@ -718,8 +718,29 @@ python dev.py --allgt -t custom custom:rrvsone_on=True --print-scorediff-mat-sta
 python dev.py --allgt -t custom custom:rrvsone_on=True --print-scorediff-mat-stats
 
 
+export PRINTFLAGS="--print-scorediff-mat-stats --print-confusion-stats --print-best-rankmat --print-next-rankmat"
+export CASEFLAGS="--qaids 1 2 3 4 5 45 49 50 51"
 
-python dev.py --qaid 1:10:2 -t custom:rrvsone_on=True 
+python dev.py $CASEFLAGS $PRINTFLAGS -t custom:rrvsone_on=True 
+python dev.py $CASEFLAGS $PRINTFLAGS -t custom 
+
+python dev.py $CASEFLAGS $PRINTFLAGS -t custom custom:rrvsone_on=True \
+ custom:rrvsone_on=True,grid_steps=4 custom:rrvsone_on=True,grid_steps=1\
+ custom:rrvsone_on=True,grid_scale_factor=1.00,grid_steps=4\
+ custom:rrvsone_on=True,grid_scale_factor=0.10,grid_steps=4\
+ custom:rrvsone_on=True,grid_scale_factor=0.01,grid_steps=1
+
+# Case failed because grid was too small. Fixed by clamping grid to min(1, ...)
+python dev.py $CASEFLAGS $PRINTFLAGS -t custom:rrvsone_on=True,grid_scale_factor=.001,grid_steps=1
+
+python dev.py $CASEFLAGS $PRINTFLAGS -t\
+ custom:rrvsone_on=True,grid_scale_factor=0.30,grid_steps=1\
+ custom:rrvsone_on=True,grid_scale_factor=0.25,grid_steps=2\
+ custom:rrvsone_on=True,grid_scale_factor=0.20,grid_steps=1\
+ custom:rrvsone_on=True,grid_scale_factor=0.15,grid_steps=1\
+ custom:rrvsone_on=True,grid_scale_factor=0.10,grid_steps=2\
+ custom:rrvsone_on=True,grid_scale_factor=0.05,grid_steps=1\
+
 
 
 ```
