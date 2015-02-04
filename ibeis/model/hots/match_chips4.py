@@ -1,6 +1,5 @@
 """
-DoctestCMD:
-    python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.match_chips4))"
+Runs functions in pipeline to get query reuslts and does some caching.
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
