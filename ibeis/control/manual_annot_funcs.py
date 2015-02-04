@@ -517,8 +517,31 @@ def get_annot_chips(ibs, aid_list, ensure=True):
 #@cache_getter(const.ANNOTATION_TABLE, 'chipsizes')
 def get_annot_chipsizes(ibs, aid_list, ensure=True):
     """
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+        ensure (bool):  eager evaluation if True
+
     Returns:
-        chipsz_list (list): the imagesizes of computed annotation chips
+        list: chipsz_list - the (width, height) of computed annotation chips.
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_chipsizes
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:3]
+        >>> ensure = True
+        >>> # execute function
+        >>> chipsz_list = get_annot_chipsizes(ibs, aid_list, ensure)
+        >>> # verify results
+        >>> result = str(chipsz_list)
+        >>> print(result)
+        [(545, 372), (603, 336), (520, 390)]
     """
     cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure)
     chipsz_list = ibs.get_chip_sizes(cid_list)
@@ -551,6 +574,32 @@ def get_annot_detect_confidence(ibs, aid_list):
 @register_ibs_method
 @getter_1to1
 def get_annot_exemplar_flags(ibs, aid_list):
+    r"""
+    returns if an annotation is an exemplar
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+
+    Returns:
+        list: annot_exemplar_flag_list - True if annotation is an exemplar
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_exemplar_flags
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> # execute function
+        >>> gid_list = get_annot_exemplar_flags(ibs, aid_list)
+        >>> # verify results
+        >>> result = str(gid_list)
+        >>> print(result)
+    """
     annot_exemplar_flag_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_exemplar_flag',), aid_list)
     return annot_exemplar_flag_list
 
@@ -569,6 +618,8 @@ def get_annot_feat_rowids(ibs, aid_list, ensure=False, eager=True, nInput=None, 
 #@cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
 def get_annot_gids(ibs, aid_list):
     """
+    Get parent image rowids of annotations
+
     Args:
         aid_list (list):
 

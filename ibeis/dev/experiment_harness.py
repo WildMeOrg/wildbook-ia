@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 import textwrap
 import numpy as np
-import six
+#import six
 import utool
 import utool as ut
 from ibeis import params
@@ -124,9 +124,11 @@ def get_config_result_info(ibs, qaids, daids):
 
     qx2_qresinfotup = [get_qres_name_result_info(qres) for qres in qx2_qres]
 
-    qx2_bestranks = ut.get_list_column(qx2_qresinfotup, 0)
+    qx2_bestranks      = ut.get_list_column(qx2_qresinfotup, 0)
     qx2_next_bestranks = ut.get_list_column(qx2_qresinfotup, 1)
-    qx2_scorediff = ut.get_list_column(qx2_qresinfotup, 6)
+    qx2_gt_raw_score   = ut.get_list_column(qx2_qresinfotup, 4)
+    qx2_gf_raw_score   = ut.get_list_column(qx2_qresinfotup, 5)
+    qx2_scorediff      = ut.get_list_column(qx2_qresinfotup, 6)
 
     #qx2_gtranks = [qaid2_qres[qaid].get_aid_ranks(gt_aids)
     #               for qaid, gt_aids in zip(qaids, qx2_gtaids)]
@@ -155,7 +157,16 @@ def get_config_result_info(ibs, qaids, daids):
 
     qx2_bestranks = ut.replace_nones(qx2_bestranks, -1)
 
-    return qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision
+    cfgres_info = qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision
+    cfgres_info = {
+        'qx2_bestranks'      : qx2_bestranks,
+        'qx2_next_bestranks' : qx2_next_bestranks,
+        'qx2_scorediff'      : qx2_scorediff,
+        'qx2_avepercision'   : qx2_avepercision,
+        'qx2_gt_raw_score'   : qx2_gt_raw_score,
+        'qx2_gf_raw_score'   : qx2_gf_raw_score,
+    }
+    return cfgres_info
 
 
 #-----------
@@ -215,8 +226,8 @@ def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
     nCfg     = len(cfg_list)   # number of configurations (cols)
     #nQuery   = len(qaids)  # number of queries (rows)
 
-    bestranks_list = []
-    cfgx2_aveprecs = []
+    #bestranks_list = []
+    #cfgx2_aveprecs = []
     #ibs._init_query_requestor()
 
     dbname = ibs.get_dbname()
