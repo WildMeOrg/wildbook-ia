@@ -587,7 +587,7 @@ def show_annot_weights(ibs, aid, mode='dstncvs'):
     #mask, patch = coverage_image.make_coverage_mask(
     #    kpts, chipshape, fx2_score=fx2_score, mode='max')
     mask = coverage_image.get_grid_coverage_mask(
-        kpts, chipsize, fx2_score, grid_scale_factor=.3, grid_steps=5,
+        kpts, chipsize, fx2_score, grid_scale_factor=.5, grid_steps=2, grid_sigma=3.0,
         resize=True)
     #mask = (mask / mask.max()) ** 2
     coverage_image.show_coverage_map(chip, mask, None, kpts, fnum, ell_alpha=.2, show_mask_kpts=False)

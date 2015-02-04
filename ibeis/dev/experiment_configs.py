@@ -43,6 +43,17 @@ nsum = augbase(small_best, {
     'prescore_method':   ['nsum'],
 })
 
+
+rrvsone_best = augbase(nsum, {
+    'rrvsone_on': [True],
+})
+
+rrvsone_grid = augbase(rrvsone_best, {
+    'grid_scale_factor': [.05, .1, .15, .2, .25, .3][::2],
+    'grid_steps': [1, 3, 7],
+    'grid_sigma': [1.2, 1.6, 2.0],
+})
+
 nsum_nosv = augbase(nsum, {
     'sv_on':    [False],
     'dupvote_weight':    [1.0],

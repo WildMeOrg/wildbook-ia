@@ -735,11 +735,29 @@ python dev.py $CASEFLAGS $PRINTFLAGS -t custom:rrvsone_on=True,grid_scale_factor
 
 python dev.py $CASEFLAGS $PRINTFLAGS -t\
  custom:rrvsone_on=True,grid_scale_factor=0.30,grid_steps=1\
- custom:rrvsone_on=True,grid_scale_factor=0.25,grid_steps=2\
+ custom:rrvsone_on=True,grid_scale_factor=0.25,grid_steps=1\
  custom:rrvsone_on=True,grid_scale_factor=0.20,grid_steps=1\
  custom:rrvsone_on=True,grid_scale_factor=0.15,grid_steps=1\
- custom:rrvsone_on=True,grid_scale_factor=0.10,grid_steps=2\
+ custom:rrvsone_on=True,grid_scale_factor=0.10,grid_steps=1\
  custom:rrvsone_on=True,grid_scale_factor=0.05,grid_steps=1\
+
+python dev.py $CASEFLAGS $PRINTFLAGS -t\
+ custom:rrvsone_on=True,grid_scale_factor=0.30,grid_steps=3\
+ custom:rrvsone_on=True,grid_scale_factor=0.25,grid_steps=3\
+ custom:rrvsone_on=True,grid_scale_factor=0.20,grid_steps=3\
+ custom:rrvsone_on=True,grid_scale_factor=0.15,grid_steps=3\
+ custom:rrvsone_on=True,grid_scale_factor=0.10,grid_steps=3\
+ custom:rrvsone_on=True,grid_scale_factor=0.05,grid_steps=3\
+
+python dev.py $CASEFLAGS $PRINTFLAGS -t\
+ custom:rrvsone_on=True,grid_scale_factor=0.30,grid_steps=7\
+ custom:rrvsone_on=True,grid_scale_factor=0.25,grid_steps=7\
+ custom:rrvsone_on=True,grid_scale_factor=0.20,grid_steps=7\
+ custom:rrvsone_on=True,grid_scale_factor=0.15,grid_steps=7\
+ custom:rrvsone_on=True,grid_scale_factor=0.10,grid_steps=7\
+ custom:rrvsone_on=True,grid_scale_factor=0.05,grid_steps=7\
+
+python dev.py $CASEFLAGS $PRINTFLAGS -t rrvsone_grid
 
 
 
