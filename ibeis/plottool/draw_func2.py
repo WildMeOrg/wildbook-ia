@@ -6,57 +6,37 @@
 # plot_<funcname> will not clear the axes or figure. More useful for graphs
 # draw_<funcname> same as plot for now. More useful for images
 from __future__ import absolute_import, division, print_function
-import utool as ut
-ut.noinject(__name__, '[df2-init]')
 from six.moves import range, zip, map
 import six
-#import os
-#import sys
-import utool
 import utool as ut  # NOQA
-# Matplotlib
 import matplotlib as mpl
-# Should be taken care of by parent
-#if not sys.platform.startswith('win32') and not sys.platform.startswith('darwin') and os.environ.get('DISPLAY', None) is None:
-#    # Write to files if we cannot display
-#    TARGET_BACKEND = 'PDF'
-#else:
-#    TARGET_BACKEND = 'Qt4Agg'
-#mpl.use(TARGET_BACKEND)
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 try:
     from mpl_toolkits.axes_grid1 import make_axes_locatable
 except ImportError as ex:
-    utool.printex(ex,  'try pip install mpl_toolkits.axes_grid1 or something.  idk yet', iswarning=False)
+    ut.printex(ex,  'try pip install mpl_toolkits.axes_grid1 or something.  idk yet', iswarning=False)
     raise
-# Python
 import colorsys
 import pylab
 import warnings
-# Qt
-#from __PYQT__ import QtCore, QtGui
-#from __PYQT__.QtCore import Qt
-# Scientific
 import numpy as np
 import cv2
-# VTool
-import vtool.patch as ptool
-import vtool.image as gtool
-# Drawtool
 from plottool import mpl_keypoint as mpl_kp
-#from plottool.custom_figure import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
-#from plottool.custom_constants import *  # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
-#from plottool.fig_presenter import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
 from plottool import color_funcs as color_fns  # NOQA
 from plottool import custom_constants  # NOQA
 from plottool import custom_figure
 from plottool import fig_presenter
+#from plottool.custom_figure import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
+#from plottool.custom_constants import *  # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
+#from plottool.fig_presenter import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
+import vtool.patch as ptool
+import vtool.image as gtool
 
 DEBUG = False
 # Try not injecting into plotting things
 ut.noinject(__name__, '[df2]')
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[df2]', DEBUG=DEBUG)
+#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[df2]', DEBUG=DEBUG)
 
 
 def printDBG(*args):
@@ -210,7 +190,7 @@ def distinct_colors(N, brightness=.878, shuffle=True):
     HSV_tuples = [(x * 1.0 / N, sat, val) for x in range(N)]
     RGB_tuples = list(map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples))
     if shuffle:
-        utool.deterministic_shuffle(RGB_tuples)
+        ut.deterministic_shuffle(RGB_tuples)
     return RGB_tuples
 
 
@@ -1141,7 +1121,7 @@ def colorbar(scalars, colors, custom=False, lbl=None):
     # This line alone removes data
     # axis.set_ticks([0, .5, 1])
     if custom:
-        #missing_ixs = utool.find_nonconsec_indicies(unique_scalars, bounds)
+        #missing_ixs = ut.find_nonconsec_indicies(unique_scalars, bounds)
         #sel_bounds = np.array([x for ix, x in enumerate(bounds) if ix not in missing_ixs])
         #ticks = sel_bounds + .5 - (sel_bounds.min())
         #ticklabels = sel_bounds
@@ -1205,7 +1185,8 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
 def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
                ell=True, pts=False, rect=False, eig=False, ori=False,
                pts_size=2, ell_alpha=.6, ell_linewidth=1.5,
-               ell_color=None, pts_color=ORANGE, color_list=None, siftkw={}, **kwargs):
+               ell_color=None, pts_color=ORANGE, color_list=None, pts_alpha=1.0,
+               siftkw={}, **kwargs):
     """
     thin wrapper around mpl_keypoint.draw_keypoints
 
@@ -1254,7 +1235,7 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
         # ensure numpy
         kpts = np.array(kpts)
 
-    if utool.DEBUG2:
+    if ut.DEBUG2:
         printDBG('-------------')
         printDBG('draw_kpts2():')
         #printDBG(' * kwargs.keys()=%r' % (kwargs.keys(),))
@@ -1266,7 +1247,6 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
         printDBG(' * drawing kpts.shape=%r' % (kpts.shape,))
     assert len(kpts) > 0, 'len(kpts) < 0'
     ax = gca()
-    ell_alpha = ell_alpha
     if color_list is not None:
         ell_color = color_list
         pts_color = color_list
@@ -1289,8 +1269,10 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
         # properties
         'ell_color': ell_color,
         'ell_alpha': ell_alpha,
-        'pts_color': pts_color,
         'ell_linewidth': ell_linewidth,
+        'pts_color': pts_color,
+        'pts_alpha': pts_alpha,
+        'pts_size': pts_size,
     })
 
     mpl_kp.draw_keypoints(ax, kpts, siftkw=siftkw, **_kwargs)
@@ -1327,7 +1309,7 @@ def draw_keypoint_gradient_orientations(rchip, kpt, sift=None, mode='vec',
     draw_kpts2(wkpts, sifts=sifts, siftkw=siftkw, **kptkw)
 
 
-@utool.indent_func('[df2.dkp]')
+#@ut.indent_func('[df2.dkp]')
 def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwargs):
     #print('--------------------')
     printDBG('[df2] draw_keypoint_patch()')
@@ -1381,7 +1363,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
     #printDBG('[df2] ----- IMSHOW ------ ')
     #printDBG('[***df2.imshow] fnum=%r pnum=%r title=%r *** ' % (fnum, pnum, title))
     #printDBG('[***df2.imshow] img.shape = %r ' % (img.shape,))
-    #printDBG('[***df2.imshow] img.stats = %r ' % (utool.get_stats_str(img),))
+    #printDBG('[***df2.imshow] img.stats = %r ' % (ut.get_stats_str(img),))
     fig = figure(fnum=fnum, pnum=pnum, title=title, figtitle=figtitle, **kwargs)
     ax = gca()
     if isinstance(img, six.string_types):
@@ -1903,7 +1885,7 @@ def stack_square_images(img_list):
         return img_list[0]
     num_vert = int(np.ceil(np.sqrt(len(img_list))))
     num_horiz = int(np.ceil(len(img_list) / float(num_vert)))
-    vert_patches = [stack_image_list(imgs, vert=True) for imgs in list(utool.ichunks(img_list, num_horiz))]
+    vert_patches = [stack_image_list(imgs, vert=True) for imgs in list(ut.ichunks(img_list, num_horiz))]
     bigpatch = stack_image_list(vert_patches, vert=False)
     return bigpatch
 
@@ -2069,5 +2051,4 @@ if __name__ == '__main__':
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
-    import utool as ut  # NOQA
     ut.doctest_funcs()
