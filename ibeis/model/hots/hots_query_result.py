@@ -759,11 +759,11 @@ class QueryResult(__OBJECT_BASE__):
         """
         import plottool as pt
         # Pop save kwargs from kwargs
-        save_keys = ['dpi', 'figsize', 'saveax', 'fpath']
+        save_keys = ['dpi', 'figsize', 'saveax', 'fpath', 'fpath_strict']
         save_vals = ut.dict_take_pop(kwargs, save_keys, None)
         savekw = dict(zip(save_keys, save_vals))
         fpath = savekw.pop('fpath')
-        if fpath is None:
+        if fpath is None and 'fpath_strict' not in savekw:
             savekw['usetitle'] = True
         # Draw Matches
         fnum = pt.next_fnum()
@@ -775,7 +775,7 @@ class QueryResult(__OBJECT_BASE__):
         #pt.adjust_subplots(0, 0, 1, 1, 0, 0)
         # Save Figure
         img_fpath = pt.save_figure(fpath=fpath, **savekw)
-        if True:
+        if False:
             ut.startfile(img_fpath)
         return img_fpath
         #pt.figure(fnum=pt.next_fnum())
