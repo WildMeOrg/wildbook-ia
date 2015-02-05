@@ -195,7 +195,7 @@ def detect_gid_list_with_species(ibs, gid_list, species, downsample=True, **kwar
         >>> print(result)
     """
     tree_path_list = _get_models(ibs, species)
-    results_iter = detect_gid_list(ibs, gid_list, tree_path_list, downsample=downsample, **kwargs)
+    results_iter = detect_gid_list(ibs, gid_list, tree_path_list, downsample=downsample, verbose=False, **kwargs)
     return results_iter
 
 
@@ -251,7 +251,8 @@ def detect(ibs, gpath_list, tree_path_list, **kwargs):
     if 'scale_list' not in kwargs.keys():
         kwargs['scale_list'] = list(map(float, ibs.cfg.detect_cfg.scale_list.split(',')))
         assert all([ isinstance(scale, float) for scale in kwargs['scale_list'] ])
-    print('[randomforest.detect()] Detecting with %d trees with scale_list=%r' % (len(tree_path_list), kwargs['scale_list'], ))
+    if kwargs['verbose']:
+        print('[randomforest.detect()] Detecting with %d trees with scale_list=%r' % (len(tree_path_list), kwargs['scale_list'], ))
     # Run detection
     detector = pyrf.Random_Forest_Detector()
     forest = detector.forest(tree_path_list, verbose=False)
