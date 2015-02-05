@@ -184,13 +184,13 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext):
     # Format safely
     fname_fmt = '{fname}_{size_suffix}{ext}'
     fmt_dict = dict(fname=fname, ext=ext, size_suffix=size_suffix)
-    fname_clean = utool.long_fname_format(fname_fmt, fmt_dict, ['size_suffix'], max_len=255, hashlen=4)
+    fname_clean = utool.long_fname_format(fname_fmt, fmt_dict, ['size_suffix'], max_len=155, hashlen=8)
     # Normalize extension
     fpath_clean = join(dpath, fname_clean)
     return fpath_clean
 
 
-def save_figure(fnum=None, fpath=None, usetitle=False, overwrite=True,
+def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwrite=True,
                 defaultext=None, verbose=2, dpi=None, figsize=None, saveax=None):
     """
     Helper to save the figure image to disk. Tries to be smart about filename
@@ -199,6 +199,7 @@ def save_figure(fnum=None, fpath=None, usetitle=False, overwrite=True,
     Args:
         fnum (int):  figure number
         fpath (str): file path string
+        fpath_strict (str): uses this exact path
         usetitle (bool): uses title as the fpath
         overwrite (bool): default=True
         defaultext (str): default extension
@@ -220,8 +221,10 @@ def save_figure(fnum=None, fpath=None, usetitle=False, overwrite=True,
         else:
             defaultext = '.jpg'
     fig, fnum = prepare_figure_for_save(fnum, dpi, figsize)
-    fpath_clean = prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext)
-
+    if fpath_strict is None:
+        fpath_clean = prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext)
+    else:
+        fpath_clean = fpath_strict 
     savekw = {'dpi': dpi}
 
     if saveax is not None:
