@@ -28,7 +28,7 @@ indices into kpts{1,2} indicating a match
 #ifdef RUNTIME_BOUNDS_CHECKING
 #define CHECK_FM_BOUNDS(fm, fm_len, kpts1_len, kpts2_len) \
     for(size_t fm_ind = 0; fm_ind < fm_len; fm_ind += 2) { \
-        if((fm[fm_ind] >= kpts1_len) || (fm[fm_ind + 1] >= kpts2_len)) { \
+        if((fm[fm_ind] >= (kpts1_len/6)) || (fm[fm_ind + 1] >= (kpts2_len/6))) { \
             puts("CHECK_FM_BOUNDS: bad fm indexes"); \
             return; \
         } \
@@ -128,15 +128,15 @@ extern "C" {
         MARKUSED(kpts2_len);
         CHECK_FM_BOUNDS(fm, fm_len, kpts1_len, kpts2_len);
 // remove some redundancy in a possibly-ugly way
-#define SETUP_RELEVANT_VARIABLES \
-double* kpt1 = &kpts1[6*fm[fm_ind+0]]; \
-double* kpt2 = &kpts2[6*fm[fm_ind+1]]; \
-Matx<double, 3, 3> invVR1_m = get_invV_mat( \
-    kpt1[0], kpt1[1], kpt1[2], \
-    kpt1[3], kpt1[4], kpt1[5]); \
-Matx<double, 3, 3> invVR2_m = get_invV_mat( \
-    kpt2[0], kpt2[1], kpt2[2], \
-    kpt2[3], kpt2[4], kpt2[5]);
+#define SETUP_invVRs(idx, prefix) \
+double* prefix##kpt1 = &kpts1[6*fm[(idx)+0]]; \
+double* prefix##kpt2 = &kpts2[6*fm[(idx)+1]]; \
+Matx<double, 3, 3> prefix##invVR1_m = get_invV_mat( \
+    prefix##kpt1[0], prefix##kpt1[1], prefix##kpt1[2], \
+    prefix##kpt1[3], prefix##kpt1[4], prefix##kpt1[5]); \
+Matx<double, 3, 3> prefix##invVR2_m = get_invV_mat( \
+    prefix##kpt2[0], prefix##kpt2[1], prefix##kpt2[2], \
+    prefix##kpt2[3], prefix##kpt2[4], prefix##kpt2[5]);
         //vector<Matx<double, 3, 3> > Aff_mats;
 // MATRIX_REF(i) should be the same as Aff_mats[i], but 
 //  directly operating on the numpy-allocated memory
@@ -144,7 +144,7 @@ Matx<double, 3, 3> invVR2_m = get_invV_mat( \
 #define MATRIX_REF(i) (*((i)+((Matx<double, 3, 3>*)out_matrices_list)))
         //vector<vector<double> > xy_errs, scale_errs, ori_errs;
         for(size_t fm_ind = 0; fm_ind < fm_len; fm_ind += 2) {
-            SETUP_RELEVANT_VARIABLES
+            SETUP_invVRs(fm_ind,)
             //Aff_mats.push_back(get_Aff_mat(invVR1_m, invVR2_m));
             MATRIX_REF(fm_ind/2) = get_Aff_mat(invVR1_m, invVR2_m);
         }
@@ -153,9 +153,9 @@ Matx<double, 3, 3> invVR2_m = get_invV_mat( \
             //xy_errs.push_back(vector<double>());
             //scale_errs.push_back(vector<double>());
             //ori_errs.push_back(vector<double>());
+            Matx<double, 3, 3> Aff_mat = MATRIX_REF(i);
             for(size_t fm_ind = 0; fm_ind < fm_len; fm_ind += 2) {
-                SETUP_RELEVANT_VARIABLES
-                Matx<double, 3, 3> Aff_mat = MATRIX_REF(i);
+                SETUP_invVRs(fm_ind,)
                 // _test_hypothesis_inliers
                 Matx<double, 3, 3> invVR1_mt = Aff_mat * invVR1_m;
                 double xy_err = xy_distance(invVR1_mt, invVR2_m);
@@ -181,7 +181,6 @@ Matx<double, 3, 3> invVR2_m = get_invV_mat( \
             }
         }
 #undef MATRIX_REF
-#undef SETUP_RELEVANT_VARIABLES
 /*
 #define SHOW_ERRVEC(vec) \
 for(size_t i = 0; i < vec.size(); i++) { \
@@ -221,6 +220,51 @@ for(size_t i = 0; i < vec.size(); i++) { \
         */
     }
 
+    int get_best_affine_inliers(double* kpts1, size_t kpts1_len,
+                    double* kpts2, size_t kpts2_len,
+                    size_t* fm, size_t fm_len,
+                    double xy_thresh_sqrd, double scale_thresh_sqrd, double ori_thresh,
+                    // memory is expected to by allocated by the caller (i.e. via numpy.empty)
+                    bool* out_inliers, double* out_errors, double* out_matrix)
+    {
+        MARKUSED(kpts1_len);
+        MARKUSED(kpts2_len);
+        CHECK_FM_BOUNDS(fm, fm_len, kpts1_len, kpts2_len);
+        const size_t num_matches = fm_len/2;
+        int current_max_inliers = 0;
+        bool* tmp_inliers = new bool[num_matches];
+        double* tmp_errors = new double[num_matches*3];
+        for(size_t i1 = 0; i1 < fm_len; i1 += 2) {
+            SETUP_invVRs(i1,i1_)
+            Matx<double, 3, 3> Aff_mat = get_Aff_mat(i1_invVR1_m, i1_invVR2_m);
+            int inliers_for_i1 = 0;
+            for(size_t i2 = 0; i2 < fm_len; i2 += 2) {
+                SETUP_invVRs(i2,i2_)
+                Matx<double, 3, 3> i2_invVR1_mt = Aff_mat * i2_invVR1_m;
+                double    xy_err = tmp_errors[(0*num_matches)+(i2/2)] =  xy_distance(i2_invVR1_mt, i2_invVR2_m);
+                double   ori_err = tmp_errors[(1*num_matches)+(i2/2)] = ori_distance(i2_invVR1_mt, i2_invVR2_m);
+                double scale_err = tmp_errors[(2*num_matches)+(i2/2)] = det_distance(i2_invVR1_mt, i2_invVR2_m);
+                bool is_inlier = (   xy_err <    xy_thresh_sqrd) &&
+                                 (scale_err < scale_thresh_sqrd) &&
+                                 (  ori_err <   ori_thresh);
+                if(is_inlier) { inliers_for_i1++; }
+                tmp_inliers[i2/2] = is_inlier;
+            }
+            //printf("inliers_for_i1 %lu = %d\n", i1, inliers_for_i1);
+            if(inliers_for_i1 >= current_max_inliers) {
+                current_max_inliers = inliers_for_i1;
+                // reuse the output space for the current maximum (since 
+                //  the final "current maximum" is the intended output)
+                memcpy(out_inliers, tmp_inliers, num_matches*sizeof(bool));
+                memcpy(out_errors, tmp_errors, num_matches*3*sizeof(double));
+                memcpy(out_matrix, &Aff_mat, sizeof(Matx<double, 3, 3>));
+            }
+        }
+        delete [] tmp_inliers;
+        //printf("final: %d\n", current_max_inliers);
+        return current_max_inliers;
+    }
+#undef SETUP_invVRs
     void hello_world() {
         puts("Hello from C++!");
     }

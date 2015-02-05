@@ -15,9 +15,9 @@ FLAGS_RW = 'aligned, c_contiguous, writeable'
 kpts_t = np.ctypeslib.ndpointer(dtype=np.float64, ndim=2, flags=FLAGS_RW)
 fms_t = np.ctypeslib.ndpointer(dtype=np.int64, ndim=2, flags=FLAGS_RW)
 
-inliers_t = np.ctypeslib.ndpointer(dtype=np.bool, ndim=2, flags=FLAGS_RW)
-errs_t = np.ctypeslib.ndpointer(dtype=np.float64, ndim=3, flags=FLAGS_RW)
-mats_t = np.ctypeslib.ndpointer(dtype=np.float64, ndim=3, flags=FLAGS_RW)
+inliers_t = lambda ndim: np.ctypeslib.ndpointer(dtype=np.bool, ndim=ndim, flags=FLAGS_RW)
+errs_t = lambda ndim: np.ctypeslib.ndpointer(dtype=np.float64, ndim=ndim, flags=FLAGS_RW)
+mats_t = lambda ndim: np.ctypeslib.ndpointer(dtype=np.float64, ndim=ndim, flags=FLAGS_RW)
 
 
 #def call_python_version(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
@@ -42,11 +42,23 @@ if ut.get_argflag('--rebuild-sver'):
 c_sver = C.cdll[lib_fname]
 c_getaffineinliers = c_sver['get_affine_inliers']
 c_getaffineinliers.restype = None
+# for every affine hypothesis, for every keypoint pair (is 
+#  it an inlier, the error triples, the hypothesis itself)
 c_getaffineinliers.argtypes = [kpts_t, C.c_size_t,
                                 kpts_t, C.c_size_t,
                                 fms_t, C.c_size_t,
                                 C.c_double, C.c_double, C.c_double,
-                                inliers_t, errs_t, mats_t]
+                                inliers_t(2), errs_t(3), mats_t(3)]
+# for the best affine hypothesis, for every keypoint pair 
+#  (is it an inlier, the error triples (transposed?), the 
+#   hypothesis itself)
+c_getbestaffineinliers = c_sver['get_best_affine_inliers']
+c_getbestaffineinliers.restype = C.c_int
+c_getbestaffineinliers.argtypes = [kpts_t, C.c_size_t,
+                                    kpts_t, C.c_size_t,
+                                    fms_t, C.c_size_t,
+                                    C.c_double, C.c_double, C.c_double,
+                                    inliers_t(1), errs_t(2), mats_t(2)]
 
 
 def get_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
@@ -66,6 +78,22 @@ def get_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, 
     out_inliers = [np.where(row)[0] for row in out_inlier_flags]
     return out_inliers, out_errors, out_mats
 
+def get_best_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
+    #np.ascontiguousarray(kpts1)
+    #with ut.Timer('PreC'):
+    fm = np.ascontiguousarray(fm)
+    out_inlier_flags = np.empty((len(fm),), np.bool)
+    out_errors = np.empty((3, len(fm)), np.float64)
+    out_mat = np.empty((3, 3), np.float64)
+    #with ut.Timer('C'):
+    c_getbestaffineinliers(kpts1, 6 * len(kpts1),
+                           kpts2, 6 * len(kpts2),
+                           fm, 2 * len(fm),
+                           xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh,
+                           out_inlier_flags, out_errors, out_mat)
+    #with ut.Timer('C'):
+    out_inliers = np.where(out_inlier_flags)[0]
+    return out_inliers, out_errors, out_mat
 
 def test_calling():
     """
@@ -99,39 +127,57 @@ def test_calling():
         fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
         (kpts1, kpts2, fm_input, fs_input, rchip1, rchip2) = dummy.testdata_ratio_matches(fname1, fname2)
 
+    def harness(py_func, c_func, args, show_output=False):
+        # test both versions
+        with ut.Timer('time aff hyothesis python') as t_py:
+            out_inliers_py, out_errors_py, out_mats_py = py_func(*args)
+        with ut.Timer('time aff hyothesis c') as t_c:
+            out_inliers_c, out_errors_c, out_mats_c = c_func(*args)
+
+        print('speedup = %r' % (t_py.ellapsed / t_c.ellapsed))
+
+        if show_output:
+            print('python output:')
+            print(out_inliers_py)
+            print(out_errors_py)
+            print(out_mats_py)
+            print('c output:')
+            print(out_inliers_c)
+            print(out_errors_c)
+            print(out_mats_c)
+
+        msg =  'c and python disagree'
+        try:
+            assert ut.lists_eq(out_inliers_c, out_inliers_py), msg
+        except AssertionError as ex:
+            ut.printex(ex)
+            raise
+        try:
+            passed, error = ut.almost_eq(out_errors_c, out_errors_py, 1E-7, ret_error=True)
+            assert np.all(passed), msg
+        except AssertionError as ex:
+            passed_flat = passed.ravel()
+            error_flat = error.ravel()
+            failed_indexes = np.where(~passed_flat)[0]
+            failing_errors = error_flat.take(failed_indexes)
+            print(failing_errors)
+            ut.printex(ex)
+            raise
+        try:
+            assert np.all(ut.almost_eq(out_mats_c, out_mats_py, 1E-9)), msg
+        except AssertionError as ex:
+            ut.printex(ex)
+            raise
+
     # pack up call to aff hypothesis
     args = (kpts1, kpts2, fm_input, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
 
-    # test both versions
-    with ut.Timer('time aff hyothesis python') as t_py:
-        out_inliers_py, out_errors_py, out_mats_py = sver.get_affine_inliers(*args)
-    with ut.Timer('time aff hyothesis c') as t_c:
-        out_inliers_c, out_errors_c, out_mats_c = get_affine_inliers_cpp(*args)
-
-    print('speedup = %r' % (t_py.ellapsed / t_c.ellapsed))
-
-    msg =  'c and python disagree'
-    try:
-        assert ut.lists_eq(out_inliers_c, out_inliers_py), msg
-    except AssertionError as ex:
-        ut.printex(ex)
-        raise
-    try:
-        passed, error = ut.almost_eq(out_errors_c, out_errors_py, 1E-7, ret_error=True)
-        assert np.all(passed), msg
-    except AssertionError as ex:
-        passed_flat = passed.ravel()
-        error_flat = error.ravel()
-        failed_indexes = np.where(~passed_flat)[0]
-        failing_errors = error_flat.take(failed_indexes)
-        print(failing_errors)
-        ut.printex(ex)
-        raise
-    try:
-        assert np.all(ut.almost_eq(out_mats_c, out_mats_py, 1E-9)), msg
-    except AssertionError as ex:
-        ut.printex(ex)
-        raise
+    print('get_affine_inliers')
+    print('-----')
+    harness(sver.get_affine_inliers, get_affine_inliers_cpp, args)
+    print('get_best_affine_inliers')
+    print('-----')
+    harness(sver.get_best_affine_inliers, get_best_affine_inliers_cpp, args, show_output=True)
 
     best_argx = np.array(map(len, out_inliers_c)).argmax()
     #best_inliers_py = out_inliers_py[best_argx]
