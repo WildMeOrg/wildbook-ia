@@ -251,11 +251,11 @@ def detect(ibs, gpath_list, tree_path_list, **kwargs):
     if 'scale_list' not in kwargs.keys():
         kwargs['scale_list'] = list(map(float, ibs.cfg.detect_cfg.scale_list.split(',')))
         assert all([ isinstance(scale, float) for scale in kwargs['scale_list'] ])
-    if kwargs['verbose']:
+    if kwargs.get('verbose', False):
         print('[randomforest.detect()] Detecting with %d trees with scale_list=%r' % (len(tree_path_list), kwargs['scale_list'], ))
     # Run detection
-    detector = pyrf.Random_Forest_Detector()
-    forest = detector.forest(tree_path_list, verbose=False)
+    detector = pyrf.Random_Forest_Detector(quiet=True)
+    forest = detector.forest(tree_path_list)
     results_iter = detector.detect(forest, gpath_list, **kwargs)
     return results_iter
 
