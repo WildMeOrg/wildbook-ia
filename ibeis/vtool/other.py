@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
+from six.moves import zip, range  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[other]', DEBUG=False)
 
 
@@ -68,6 +69,15 @@ def weighted_average_scoring(fsv, weight_filtxs, nonweight_filtxs):
     weight_fs_norm01 = np.nan_to_num(weight_fs_norm01)
     new_fs = np.multiply(nonweight_fs, weight_fs_norm01)
     return new_fs
+
+
+def zipcompress(arr_list, flags_list, axis=None):
+    return [np.compress(flags, arr, axis=axis) for arr, flags in zip(arr_list, flags_list)]
+
+
+def ziptake(arr_list, indicies_list, axis=None):
+    return [arr.take(indicies, axis=axis) for arr, indicies in zip(arr_list, indicies_list)]
+
 
 if __name__ == '__main__':
     """

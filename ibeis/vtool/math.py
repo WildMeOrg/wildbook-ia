@@ -161,6 +161,109 @@ def test_language_modulus():
     print(table)
 
 
+def iceil(num, dtype=np.int32):
+    """ Integer ceiling. (because numpy doesn't seem to have it!)
+
+    Args:
+        num (ndarray or scalar):
+
+    Returns:
+        ndarray or scalar:
+
+    CommandLine:
+        python -m utool.util_alg --test-iceil
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> num = 1.5
+        >>> result = iceil(num)
+        >>> print(result)
+        2
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> num = [1.5, 2.9]
+        >>> result = iceil(num)
+        >>> print(result)
+        [2, 3]
+    """
+    return np.ceil(num).astype(dtype)
+
+
+def iround(num, dtype=np.int32):
+    """ Integer round. (because numpy doesn't seem to have it!) """
+    return np.round(num).astype(dtype)
+
+
+TAU = np.pi * 2
+
+
+def gauss_func1d(x, mu=0.0, sigma=1.0):
+    r"""
+    Args:
+        x (?):
+        mu (float):
+        sigma (float):
+
+    CommandLine:
+        python -m vtool.math --test-gauss_func1d
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.math import *  # NOQA
+        >>> # build test data
+        >>> x = np.array([-2, -1, -.5, 0, .5, 1, 2])
+        >>> mu = 0.0
+        >>> sigma = 1.0
+        >>> # execute function
+        >>> gaussval = gauss_func1d(x, mu, sigma)
+        >>> if ut.show_was_requested():
+        >>>     import plottool as pt
+        >>>     pt.plot(x, gaussval)
+        >>>     pt.show_if_requested()
+        >>> # verify results
+        >>> result = np.array_repr(gaussval, precision=2)
+        >>> print(result)
+        array([ 0.05,  0.24,  0.35,  0.4 ,  0.35,  0.24,  0.05])
+    """
+    coeff = np.reciprocal(sigma * np.sqrt(TAU))
+    exponent_expr_numer = np.power(np.subtract(x, mu), 2)
+    exponent_expr_denom = (-2 * (sigma ** 2))
+    exponent_expr = np.divide(exponent_expr_numer, exponent_expr_denom)
+    gaussval = coeff * np.exp(exponent_expr)
+    return gaussval
+
+
+def gauss_func1d_unnormalized(x, sigma=1.0):
+    """
+    faster version with no normalization
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.math import *  # NOQA
+        >>> # build test data
+        >>> x = np.array([-2, -1, -.5, 0, .5, 1, 2])
+        >>> sigma = 1.0
+        >>> # execute function
+        >>> gaussval = gauss_func1d_unnormalized(x, sigma)
+        >>> if ut.show_was_requested():
+        >>>     import plottool as pt
+        >>>     pt.plot(x, gaussval)
+        >>>     pt.show_if_requested()
+        >>> # verify results
+        >>> result = np.array_repr(gaussval, precision=2)
+        >>> print(result)
+        array([ 0.05,  0.24,  0.35,  0.4 ,  0.35,  0.24,  0.05])
+    """
+    exponent_expr_denom = (-2 * (sigma ** 2))
+    tmp = exponent_expr_numer = np.power(x, 2.0)
+    exponent_expr = np.divide(exponent_expr_numer, exponent_expr_denom, out=tmp)
+    gaussval = np.exp(exponent_expr, out=tmp)
+    return gaussval
+
+
 if __name__ == '__main__':
     """
     CommandLine:

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
+from __future__ import absolute_import, division, print_function
 import ctypes as C
 import numpy as np
 #import vtool
 import vtool.keypoint as ktool
-import vtool.tests.dummy as dummy
-import vtool.spatial_verification as sver
 import utool as ut
+from os.path import dirname, join
 
-TAU = 2 * np.pi  # tauday.org
+TAU = 2 * np.pi  # tauday.com
 c_double_p = C.POINTER(C.c_double)
 
 # copied/adapted from _pyhesaff.py
@@ -20,13 +20,6 @@ errs_t = lambda ndim: np.ctypeslib.ndpointer(dtype=np.float64, ndim=ndim, flags=
 mats_t = lambda ndim: np.ctypeslib.ndpointer(dtype=np.float64, ndim=ndim, flags=FLAGS_RW)
 
 
-#def call_python_version(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
-#    out_inliers, out_errors, out_mats = sver.get_affine_inliers(
-#        kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
-#    return out_inliers, out_errors, out_mats
-
-
-from os.path import dirname, join
 dpath = dirname(__file__)
 cpp_fname = join(dpath, 'sver.cpp')
 lib_fname = join(dpath, 'sver.so')
@@ -64,14 +57,15 @@ c_getbestaffineinliers.argtypes = [kpts_t, C.c_size_t,
 def get_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
     #np.ascontiguousarray(kpts1)
     #with ut.Timer('PreC'):
-    fm = np.ascontiguousarray(fm)
-    out_inlier_flags = np.empty((len(fm), len(fm)), np.bool)
-    out_errors = np.empty((len(fm), 3, len(fm)), np.float64)
-    out_mats = np.empty((len(fm), 3, 3), np.float64)
+    num_matches = len(fm)
+    fm = np.ascontiguousarray(fm, dtype=np.int64)
+    out_inlier_flags = np.empty((num_matches, num_matches), np.bool)
+    out_errors = np.empty((num_matches, 3, num_matches), np.float64)
+    out_mats = np.empty((num_matches, 3, 3), np.float64)
     #with ut.Timer('C'):
-    c_getaffineinliers(kpts1, 6 * len(kpts1),
-                       kpts2, 6 * len(kpts2),
-                       fm, 2 * len(fm),
+    c_getaffineinliers(kpts1, kpts1.size,
+                       kpts2, kpts2.size,
+                       fm, fm.size,
                        xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh,
                        out_inlier_flags, out_errors, out_mats)
     #with ut.Timer('C'):
@@ -97,6 +91,7 @@ def get_best_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_s
 
 def test_calling():
     """
+    Test to ensure cpp and python agree and that cpp is faster
 
     CommandLine:
         python -m vtool.sver_c_wrapper --test-test_calling
@@ -116,12 +111,16 @@ def test_calling():
         %timeit call_python_version(*args)
         %timeit get_affine_inliers_cpp(*args)
     """
-    xy_thresh_sqrd = ktool.KPTS_DTYPE(.1)
-    scale_thresh_sqrd = ktool.KPTS_DTYPE(2)
-    ori_thresh = ktool.KPTS_DTYPE(TAU / 4)
+    import vtool.spatial_verification as sver
+    import vtool.tests.dummy as dummy
+    xy_thresh_sqrd = ktool.KPTS_DTYPE(.4)
+    scale_thresh_sqrd = ktool.KPTS_DTYPE(2.0)
+    ori_thresh = ktool.KPTS_DTYPE(TAU / 4.0)
+    keys = 'xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh'.split(', ')
+    print(ut.dict_str(ut.dict_subset(locals(), keys)))
 
     if ut.get_argflag('--dummy'):
-        (kpts1, kpts2, fm_input, rchip1, rchip2) = dummy.testdata_dummy_matches()
+        (kpts1, kpts2, fm_input, fs_input, rchip1, rchip2) = dummy.testdata_dummy_matches()
     else:
         fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
         fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
@@ -179,11 +178,13 @@ def test_calling():
     print('-----')
     harness(sver.get_best_affine_inliers, get_best_affine_inliers_cpp, args, show_output=True)
 
-    best_argx = np.array(map(len, out_inliers_c)).argmax()
+    num_inliers_list = np.array(map(len, out_inliers_c))
+    best_argx = num_inliers_list.argmax()
     #best_inliers_py = out_inliers_py[best_argx]
     best_inliers_c = out_inliers_c[best_argx]
 
     fm_output = fm_input.take(best_inliers_c, axis=0)
+    #ut.embed()
 
     import plottool as pt
     fnum = pt.next_fnum()

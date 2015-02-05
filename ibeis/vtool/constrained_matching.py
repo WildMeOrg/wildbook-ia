@@ -376,8 +376,8 @@ class Annot(object):
         annot.rchip     = gtool.imread(annot.fpath)
         annot.dstncvs   = compute_distinctivness([annot.vecs], annot.species)[0]
         annot.fgweights = compute_forgroundness(annot.fpath, annot.kpts, annot.species)
-        annot.chip_shape = annot.rchip.shape
-        annot.dlen_sqrd = annot.chip_shape[0] ** 2 + annot.chip_shape[1] ** 2
+        annot.chipshape = annot.rchip.shape
+        annot.dlen_sqrd = annot.chipshape[0] ** 2 + annot.chipshape[1] ** 2
 
     def lazy_compute(annot):
         if annot.dstncvs_mask is None:
@@ -386,17 +386,19 @@ class Annot(object):
             annot.compute_fgweight_mask()
 
     def compute_fgweight_mask(annot):
-        keys = ['kpts', 'chip_shape', 'fgweights']
-        kpts, chip_shape, fgweights = ut.dict_take(annot.__dict__, keys)
+        keys = ['kpts', 'chipshape', 'fgweights']
+        kpts, chipshape, fgweights = ut.dict_take(annot.__dict__, keys)
+        chipsize = chipshape[0:2][::-1]
         fgweight_mask, patch = coverage_image.make_coverage_mask(
-            kpts, chip_shape, fx2_score=fgweights, mode='max')
+            kpts, chipsize, fx2_score=fgweights, mode='max')
         annot.fgweight_mask = fgweight_mask
 
     def compute_dstncvs_mask(annot):
-        keys = ['kpts', 'chip_shape', 'dstncvs']
-        kpts, chip_shape, dstncvs = ut.dict_take(annot.__dict__, keys)
+        keys = ['kpts', 'chipshape', 'dstncvs']
+        kpts, chipshape, dstncvs = ut.dict_take(annot.__dict__, keys)
+        chipsize = chipshape[0:2][::-1]
         dstncvs_mask, patch = coverage_image.make_coverage_mask(
-            kpts, chip_shape, fx2_score=dstncvs, mode='max')
+            kpts, chipsize, fx2_score=dstncvs, mode='max')
         annot.dstncvs_mask = dstncvs_mask
 
     def baseline_match(annot, annot2):
@@ -536,10 +538,11 @@ class AnnotMatch(object):
         fm = match.fm
         fs = match.fs
         kpts2       = match.annot2.kpts
-        chip_shape2 = match.annot2.chip_shape
+        chipshape2 = match.annot2.chipshape
+        chipsize2 = chipshape2[0:2][::-1]
         kpts2_m = kpts2.take(fm.T[1], axis=0)
         coverage_mask2, patch = coverage_image.make_coverage_mask(
-            kpts2_m, chip_shape2, fx2_score=fs, mode='max')
+            kpts2_m, chipsize2, fx2_score=fs, mode='max')
         match.coverage_mask2 = coverage_mask2
 
     # --- INFO ---

@@ -563,7 +563,7 @@ def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
     # Adjust for the requested scale factor
     S2 = ltool.scale_mat3x3(scale_factor, scale_factor)
     #perspective_list = [S2.dot(A).dot(S1).dot(T1) for A in invVR_aff2Ds]
-    M_list = reduce(matrix_multiply, (S2, invVR_aff2Ds, S1, T1))
+    M_list = reduce(matrix_multiply, (S2, invVR_aff2Ds, S1.dot(T1)))
     return M_list
 
 
