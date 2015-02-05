@@ -69,15 +69,24 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     """
 
     # Parse result info out of the lists
-    cfgx2_bestranks     = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_bestranks')
-    cfgx2_nextbestranks = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_next_bestranks')
-    cfgx2_gt_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
-    cfgx2_gf_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gf_raw_score')
-    cfgx2_scorediffs    = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorediff')
-    cfgx2_aveprecs      = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_avepercision')
+    cfgx2_bestranks      = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_bestranks')
+    cfgx2_nextbestranks  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_next_bestranks')
+    cfgx2_gt_rawscores   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
+    cfgx2_gf_rawscores   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gf_raw_score')
+    cfgx2_aveprecs       = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_avepercision')
 
-    column_lbls = [ut.remove_vowels(lbl).replace(' ', '').replace(',', '')
+    cfgx2_scorediffs     = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorediff')
+    cfgx2_scorefactor    = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorefactor')
+    cfgx2_scorelogfactor = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorelogfactor')
+    cfgx2_scoreexpdiff   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scoreexpdiff')
+
+    column_lbls = [ut.remove_chars(ut.remove_vowels(lbl), [' ', ','])
                    for lbl in cfgx2_lbl]
+
+    scorediffs_mat     = np.array(ut.replace_nones(cfgx2_scorediffs, np.nan))
+    scorefactor_mat    = np.array(ut.replace_nones(cfgx2_scorefactor, np.nan))
+    scorelogfactor_mat = np.array(ut.replace_nones(cfgx2_scorelogfactor, np.nan))
+    scoreexpdiff_mat   = np.array(ut.replace_nones(cfgx2_scoreexpdiff, np.nan))
 
     print(' --- PRINT RESULTS ---')
     #X_LIST = [1, 5]  # Num of ranks less than to score
@@ -93,6 +102,11 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     # Set invalid ranks to the worse possible rank
     worst_possible_rank = max(9001, len(daids) + len(qaids) + 1)
     rank_mat[rank_mat == -1] =  worst_possible_rank
+
+    # A positive scorediff indicates the groundtruth was better than the
+    # groundfalse scores
+    istrue_list  = [scorediff > 0 for scorediff in scorediffs_mat]
+    isfalse_list = [~istrue for istrue in istrue_list]
 
     # Label the rank matrix:
     _colxs = np.arange(nCfg)
@@ -374,7 +388,8 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         column_list = rank_mat.T
         print(ut.make_csv_table(column_list, row_lbls=qaids,
                                 column_lbls=column_lbls, header=header,
-                                transpose=False))
+                                transpose=False,
+                                use_lbl_width=len(cfgx2_lbl) < 5))
         #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
         #with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
         #print(lbld_mat)
@@ -395,7 +410,8 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         column_list = cfgx2_nextbestranks
         print(ut.make_csv_table(column_list, row_lbls=qaids,
                                 column_lbls=column_lbls, header=header,
-                                transpose=False))
+                                transpose=False,
+                                use_lbl_width=len(cfgx2_lbl) < 5))
         #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
         #with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
         #print(lbld_mat)
@@ -419,7 +435,8 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
                                 column_lbls=column_lbls,
                                 column_type=column_type,
                                 header=header,
-                                transpose=False))
+                                transpose=False,
+                                use_lbl_width=len(cfgx2_lbl) < 5))
         #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
         #with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
         #print(lbld_mat)
@@ -427,46 +444,85 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     print_scorediff_mat()
 
     #------------
-
-    def jagged_stats_str(arr):
-        stat_dict = ut.get_jagged_stats(arr, use_nan=True)
-        stat_str =  ut.get_stats_str(stat_dict=stat_dict, precision=3, newlines=True)
-        stat_str = ut.align(stat_str, ':')
-        return stat_str
+    def jagged_stats_info(arr, lbl, col_lbls):
+        stat_dict = ut.get_jagged_stats(arr, use_nan=True, use_sum=True)
+        sel_stat_dict, sel_indices = ut.find_interesting_stats(stat_dict, col_lbls)
+        sel_col_lbls = ut.list_take(col_lbls, sel_indices)
+        statstr_kw   = dict(precision=3, newlines=True, lbl=lbl, align=True)
+        stat_str     = ut.get_stats_str(stat_dict=stat_dict, **statstr_kw)
+        sel_stat_str = ut.get_stats_str(stat_dict=sel_stat_dict, **statstr_kw)
+        sel_stat_str = 'sel_col_lbls = %s' % (ut.list_str(sel_col_lbls),) + '\n' + sel_stat_str
+        return stat_str, sel_stat_str
 
     @utool.argv_flag_dec
     def print_scorediff_mat_stats():
-        # Prints nextbest ranks
-        print('-------------')
-        print('ScoreDiffMatStats: %s' % testnameid)
-        print('column_lbls = %r' % (column_lbls,))
-        scorediffs_mat = np.array(ut.replace_nones(cfgx2_scorediffs, np.nan))
-        print('stats = %s' % (ut.get_stats_str(scorediffs_mat.T, precision=3, newlines=True, use_nan=True),))
-        print('sum = %r' % (np.sum(scorediffs_mat, axis=1),))
-        istrue_list = [scorediff > 0 for scorediff in scorediffs_mat]
-        isfalse_list = [~isfalse for isfalse in istrue_list]
-        pos_scorediff_mat = vt.zipcompress(scorediffs_mat, istrue_list)
-        neg_scorediff_mat = vt.zipcompress(scorediffs_mat, isfalse_list)
-        print('stats(pos_scorediff) = ' + jagged_stats_str(pos_scorediff_mat))
-        print('stats(neg_scorediff) = ' + jagged_stats_str(neg_scorediff_mat))
-        print('sum(pos_scorediff) = %r' % (list(map(np.sum, pos_scorediff_mat)),))
-        print('sum(neg_scorediff) = %r' % (list(map(np.sum, neg_scorediff_mat)),))
+        with ut.EmbedOnException():
+            # Prints nextbest ranks
+            print('-------------')
+            print('ScoreDiffMatStats: %s' % testnameid)
+            print('column_lbls = %r' % (column_lbls,))
+            #print('stats = %s' % (ut.get_stats_str(scorediffs_mat.T, precision=3, newlines=True, use_nan=True),))
+            #print('sum = %r' % (np.sum(scorediffs_mat, axis=1),))
+
+            #pos_scorediff_mat = vt.zipcompress(scorediffs_mat, istrue_list)
+            #neg_scorediff_mat = vt.zipcompress(scorediffs_mat, isfalse_list)
+
+            score_comparison_mats = [scorediffs_mat, scorefactor_mat, scorelogfactor_mat, scoreexpdiff_mat]
+            # Get the variable names from the stack!
+            score_comparison_lbls = list(map(ut.get_varname_from_stack, score_comparison_mats))
+
+            full_statstr_list = []
+            sel_statstr_list  = []
+
+            # For each type of score difference get true and false subsets
+            for score_comp_mat, lbl in zip(score_comparison_mats, score_comparison_lbls):
+                #lbl = ut.get_varname_from_stack(score_comp_mat)
+                pos_score_comp_mat = vt.zipcompress(score_comp_mat, istrue_list)
+                neg_score_comp_mat = vt.zipcompress(score_comp_mat, isfalse_list)
+                # Get statistics on each type of score difference
+                full_statstr, sel_statstr         = jagged_stats_info(    score_comp_mat,          lbl, cfgx2_lbl)
+                full_pos_statstr, sel_pos_statstr = jagged_stats_info(pos_score_comp_mat, 'pos_' + lbl, cfgx2_lbl)
+                full_neg_statstr, sel_neg_statstr = jagged_stats_info(neg_score_comp_mat, 'neg_' + lbl, cfgx2_lbl)
+                # Append lists
+                full_statstr_list.extend([full_statstr, full_pos_statstr, full_neg_statstr])
+                sel_statstr_list.extend([sel_statstr, sel_pos_statstr, sel_neg_statstr])
+
+            #scorediff_str, scorediff_selstr = jagged_stats_info(scorediffs_mat, 'scorediffs_mat', cfgx2_lbl)
+            #pos_scorediff_str, pos_scorediff_selstr = jagged_stats_info(pos_scorediff_mat, 'pos_scorediff_mat', cfgx2_lbl)
+            #neg_scorediff_str, neg_scorediff_selstr = jagged_stats_info(neg_scorediff_mat, 'neg_scorediff_mat', cfgx2_lbl)
+
+            scorefactor_mat
+            scorelogfactor_mat
+            scoreexpdiff_mat
+            PRINT_FULL_STATS = False
+            if PRINT_FULL_STATS:
+                for statstr in full_statstr_list:
+                    print(statstr)
+
+            for statstr in sel_statstr_list:
+                print(statstr)
+
+        #print(scorediff_str)
+        #print(neg_scorediff_str)
+        #print(pos_scorediff_str)
+
+        #print(scorediff_selstr)
+        #print(pos_scorediff_selstr)
+        #print(neg_scorediff_selstr)
         #ut.embed()
         print('[harn]-------------')
     print_scorediff_mat_stats()
 
     @utool.argv_flag_dec
     def print_confusion_stats():
+        """
+        CommandLine:
+            python dev.py --allgt --print-scorediff-mat-stats --print-confusion-stats -t rrvsone_grid
+        """
         # Prints nextbest ranks
         print('-------------')
         print('ScoreDiffMatStats: %s' % testnameid)
         print('column_lbls = %r' % (column_lbls,))
-
-        scorediffs_mat = np.array(ut.replace_nones(cfgx2_scorediffs, np.nan))
-        # A positive scorediff indicates the groundtruth was better than the
-        # groundfalse scores
-        istrue_list  = [scorediff > 0 for scorediff in scorediffs_mat]
-        isfalse_list = [~istrue for istrue in istrue_list]
 
         #cfgx2_gt_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
         #cfgx2_gf_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gf_raw_score')
@@ -479,10 +535,21 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         tn_rawscores = vt.zipcompress(gf_rawscores_mat, istrue_list)
         fn_rawscores = vt.zipcompress(gf_rawscores_mat, isfalse_list)
 
-        print('stats(tp_rawscores) = ' + jagged_stats_str(tp_rawscores))
-        print('stats(fp_rawscores) = ' + jagged_stats_str(fp_rawscores))
-        print('stats(tn_rawscores) = ' + jagged_stats_str(tn_rawscores))
-        print('stats(fn_rawscores) = ' + jagged_stats_str(fn_rawscores))
+        tp_rawscores_str, tp_rawscore_statstr = jagged_stats_info(tp_rawscores, 'tp_rawscores', cfgx2_lbl)
+        fp_rawscores_str, fp_rawscore_statstr = jagged_stats_info(fp_rawscores, 'fp_rawscores', cfgx2_lbl)
+        tn_rawscores_str, tn_rawscore_statstr = jagged_stats_info(tn_rawscores, 'tn_rawscores', cfgx2_lbl)
+        fn_rawscores_str, fn_rawscore_statstr = jagged_stats_info(fn_rawscores, 'fn_rawscores', cfgx2_lbl)
+
+        #print(tp_rawscores_str)
+        #print(fp_rawscores_str)
+        #print(tn_rawscores_str)
+        #print(fn_rawscores_str)
+
+        print(tp_rawscore_statstr)
+        print(fp_rawscore_statstr)
+        print(tn_rawscore_statstr)
+        print(fn_rawscore_statstr)
+
         print('[harn]-------------')
     print_confusion_stats()
 

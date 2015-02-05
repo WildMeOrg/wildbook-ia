@@ -97,12 +97,13 @@ def postload_commands(ibs, back):
     if params.args.dump_schema:
         ibs.db.print_schema()
     if params.args.select_aid is not None:
-        try:
-            ibsfuncs.assert_valid_aids(ibs, (params.args.select_aid,))
-        except AssertionError:
-            print('Valid RIDs are: %r' % (ibs.get_valid_aids(),))
-            raise
-        back.select_aid(params.args.select_aid)
+        if back is not None:
+            try:
+                ibsfuncs.assert_valid_aids(ibs, (params.args.select_aid,))
+            except AssertionError:
+                print('Valid RIDs are: %r' % (ibs.get_valid_aids(),))
+                raise
+            back.select_aid(params.args.select_aid)
     if params.args.query_aid is not None:
         from ibeis.constants import VS_EXEMPLARS_KEY
         back.query(params.args.query_aid, query_mode=VS_EXEMPLARS_KEY)

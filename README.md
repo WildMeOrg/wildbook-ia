@@ -758,6 +758,17 @@ python dev.py $CASEFLAGS $PRINTFLAGS -t\
  custom:rrvsone_on=True,grid_scale_factor=0.05,grid_steps=7\
 
 python dev.py $CASEFLAGS $PRINTFLAGS -t rrvsone_grid
+python dev.py --allgt $PRINTFLAGS -t rrvsone_grid
+
+python dev.py --allgt --print-scorediff-mat-stats --print-confusion-stats --print-best-rankmat --print-next-rankmat -t rrvsone_grid
+
+
+# Testing Distinctivness Parameters
+python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db GZ_ALL --aid 2
+python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db PZ_MTEST --aid 10
+python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db GZ_ALL --aid 2
+
+python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db PZ_MTEST --aid 2
 
 
 

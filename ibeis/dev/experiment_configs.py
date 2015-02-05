@@ -49,7 +49,7 @@ rrvsone_best = augbase(nsum, {
 })
 
 rrvsone_grid = augbase(rrvsone_best, {
-    'grid_scale_factor': [.05, .1, .15, .2, .25, .3][::2],
+    'grid_scale_factor': [.05, .1, .15, .2, .25, .3, .5][::1],
     'grid_steps': [1, 3, 7],
     'grid_sigma': [1.2, 1.6, 2.0],
 })

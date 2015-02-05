@@ -111,14 +111,28 @@ def get_config_result_info(ibs, qaids, daids):
             gf_aid = None
             gt_raw_score = None
             gf_raw_score = None
-            score_diff = None
+            score_diff = score_factor = score_logfactor = score_expdiff = None
         else:
             gt_aid = sorted_aids[gt_rank][0]
             gf_aid = sorted_aids[gf_rank][0]
             gt_raw_score = sorted_nscores[gt_rank]
             gf_raw_score = sorted_nscores[gf_rank]
-            score_diff = gt_raw_score - gf_raw_score
-        qresinfotup = gt_rank, gf_rank, gt_aid, gf_aid, gt_raw_score, gf_raw_score, score_diff
+            # different comparison methods
+            score_diff      = gt_raw_score - gf_raw_score
+            score_factor    = gt_raw_score / gf_raw_score
+            score_logfactor = np.log(gt_raw_score) / np.log(gf_raw_score)
+            score_expdiff   = np.exp(gt_raw_score) - np.log(gf_raw_score)
+            # TEST SCORE COMPARISON METHODS
+            #truescore  = np.random.rand(4)
+            #falsescore = np.random.rand(4)
+            #score_diff      = truescore - falsescore
+            #score_factor    = truescore / falsescore
+            #score_logfactor = np.log(truescore) / np.log(falsescore)
+            #score_expdiff   = np.exp(truescore) - np.exp(falsescore)
+            #for x in [score_diff, score_factor, score_logfactor, score_expdiff]:
+            #    print(x.argsort())
+
+        qresinfotup = gt_rank, gf_rank, gt_aid, gf_aid, gt_raw_score, gf_raw_score, score_diff, score_factor, score_logfactor, score_expdiff
         return qresinfotup
     #ibs.get_aids_and_scores()
 
@@ -129,6 +143,9 @@ def get_config_result_info(ibs, qaids, daids):
     qx2_gt_raw_score   = ut.get_list_column(qx2_qresinfotup, 4)
     qx2_gf_raw_score   = ut.get_list_column(qx2_qresinfotup, 5)
     qx2_scorediff      = ut.get_list_column(qx2_qresinfotup, 6)
+    qx2_scorefactor    = ut.get_list_column(qx2_qresinfotup, 7)
+    qx2_scorelogfactor = ut.get_list_column(qx2_qresinfotup, 8)
+    qx2_scoreexpdiff   = ut.get_list_column(qx2_qresinfotup, 9)
 
     #qx2_gtranks = [qaid2_qres[qaid].get_aid_ranks(gt_aids)
     #               for qaid, gt_aids in zip(qaids, qx2_gtaids)]
@@ -161,10 +178,13 @@ def get_config_result_info(ibs, qaids, daids):
     cfgres_info = {
         'qx2_bestranks'      : qx2_bestranks,
         'qx2_next_bestranks' : qx2_next_bestranks,
-        'qx2_scorediff'      : qx2_scorediff,
         'qx2_avepercision'   : qx2_avepercision,
         'qx2_gt_raw_score'   : qx2_gt_raw_score,
         'qx2_gf_raw_score'   : qx2_gf_raw_score,
+        'qx2_scorediff'      : qx2_scorediff,
+        'qx2_scorefactor'    : qx2_scorefactor,
+        'qx2_scorelogfactor' : qx2_scorelogfactor,
+        'qx2_scoreexpdiff'   : qx2_scoreexpdiff,
     }
     return cfgres_info
 
@@ -243,7 +263,8 @@ def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
     #nTotalQueries  = nQuery * nCfg  # number of quieries to run in total
     cfgx2_cfgresinfo = []
     with utool.Timer('experiment_harness'):
-        cfgiter = ut.ProgressIter(enumerate(cfg_list), nTotal=nCfg, lbl=lbl, freq=1)
+        cfgiter = ut.ProgressIter(enumerate(cfg_list), nTotal=nCfg, lbl=lbl,
+                                  freq=1, time_thresh=4)
         #for cfgx, query_cfg in enumerate(cfg_list):
         for cfgx, query_cfg in cfgiter:
             #if not utool.QUIET:
