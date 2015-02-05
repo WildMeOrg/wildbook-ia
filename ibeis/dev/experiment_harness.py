@@ -243,7 +243,7 @@ def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
     #nTotalQueries  = nQuery * nCfg  # number of quieries to run in total
     cfgx2_cfgresinfo = []
     with utool.Timer('experiment_harness'):
-        cfgiter = ut.ProgressIter(enumerate(cfg_list), nTotal=nCfg, lbl=lbl)
+        cfgiter = ut.ProgressIter(enumerate(cfg_list), nTotal=nCfg, lbl=lbl, freq=1)
         #for cfgx, query_cfg in enumerate(cfg_list):
         for cfgx, query_cfg in cfgiter:
             #if not utool.QUIET:

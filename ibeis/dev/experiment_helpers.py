@@ -273,7 +273,7 @@ def get_cfg_list_and_lbls(test_cfg_name_list, ibs=None):
         >>> ibs = None
     """
     cfg_list, cfgx2_lbl = get_cfg_list(test_cfg_name_list, ibs=ibs)
-    print(cfgx2_lbl)
+    #print(cfgx2_lbl)
     # cfgx2_lbl denotes which parameters are being varied.
     # If there is just one config then nothing is varied
     return (cfg_list, cfgx2_lbl)

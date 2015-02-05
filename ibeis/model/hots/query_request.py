@@ -777,13 +777,21 @@ class QueryParams(object):
         qparams.vsone              = pipeline_root == 'vsone'
         # Add custom strings to the mix as well
         qparams.featweight_cfgstr = cfg._featweight_cfg.get_cfgstr()
-        qparams.feat_cfgstr  = cfg._featweight_cfg._feat_cfg.get_cfgstr()
-        qparams.nn_cfgstr    = cfg.nn_cfg.get_cfgstr()
-        qparams.filt_cfgstr  = cfg.filt_cfg.get_cfgstr()
-        qparams.sv_cfgstr    = cfg.sv_cfg.get_cfgstr()
-        qparams.flann_cfgstr = cfg.flann_cfg.get_cfgstr()
-        qparams.query_cfgstr = cfg.get_cfgstr()
+        qparams.feat_cfgstr       = cfg._featweight_cfg._feat_cfg.get_cfgstr()
+        qparams.nn_cfgstr         = cfg.nn_cfg.get_cfgstr()
+        qparams.filt_cfgstr       = cfg.filt_cfg.get_cfgstr()
+        qparams.sv_cfgstr         = cfg.sv_cfg.get_cfgstr()
+        qparams.flann_cfgstr      = cfg.flann_cfg.get_cfgstr()
+        qparams.query_cfgstr      = cfg.get_cfgstr()
         qparams.vocabtrain_cfgstr = cfg.smk_cfg.vocabtrain_cfg.get_cfgstr()
+
+    def get(qparams, key, *d):
+        """ get a paramater value by string """
+        ERROR_ON_DEFAULT = True
+        if ERROR_ON_DEFAULT:
+            return getattr(qparams, key)
+        else:
+            return getattr(qparams, key, *d)
 
 
 def get_test_qreq():

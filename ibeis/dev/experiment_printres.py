@@ -362,7 +362,7 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     #------------
 
     @utool.argv_flag_dec
-    def print_rankmat():
+    def print_best_rankmat():
         # Prints best ranks
         print('-------------')
         print('RankMat: %s' % testnameid)
@@ -379,7 +379,7 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         #with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
         #print(lbld_mat)
         print('[harn]-------------')
-    print_rankmat()
+    print_best_rankmat()
 
     #------------
 
@@ -429,7 +429,10 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     #------------
 
     def jagged_stats_str(arr):
-        return ut.get_stats_str(stat_dict=ut.get_jagged_stats(arr, use_nan=True), newlines=True)
+        stat_dict = ut.get_jagged_stats(arr, use_nan=True)
+        stat_str =  ut.get_stats_str(stat_dict=stat_dict, precision=3, newlines=True)
+        stat_str = ut.align(stat_str, ':')
+        return stat_str
 
     @utool.argv_flag_dec
     def print_scorediff_mat_stats():
@@ -438,26 +441,16 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         print('ScoreDiffMatStats: %s' % testnameid)
         print('column_lbls = %r' % (column_lbls,))
         scorediffs_mat = np.array(ut.replace_nones(cfgx2_scorediffs, np.nan))
-        print('stats = %s' % (ut.get_stats_str(scorediffs_mat.T, newlines=True),))
+        print('stats = %s' % (ut.get_stats_str(scorediffs_mat.T, precision=3, newlines=True, use_nan=True),))
         print('sum = %r' % (np.sum(scorediffs_mat, axis=1),))
         istrue_list = [scorediff > 0 for scorediff in scorediffs_mat]
         isfalse_list = [~isfalse for isfalse in istrue_list]
-        #pos_scorediff_mat = [scorediff[scorediff > 0] for scorediff in scorediffs_mat]
         pos_scorediff_mat = vt.zipcompress(scorediffs_mat, istrue_list)
         neg_scorediff_mat = vt.zipcompress(scorediffs_mat, isfalse_list)
-        #pos_scorediff_mat = [scorediff.compress(istrue) for scorediff, istrue in zip(scorediffs_mat, istrue_list)]
-        #neg_scorediff_mat = [scorediff.compress(isfalse) for scorediff, isfalse in zip(scorediffs_mat, isfalse_list)]
-        #pos_scorediff_mat = [scorediff[scorediff > 0] for scorediff in scorediffs_mat]
-        #neg_scorediff_mat = [scorediff[scorediff < 0] for scorediff in scorediffs_mat]
-        print('pos_stats = ' + jagged_stats_str(pos_scorediff_mat))
-        print('neg_stats = ' + jagged_stats_str(neg_scorediff_mat))
-        #for negstats in neg_scorediff_mat:
-        #    print('neg stats = %s' % (ut.get_stats_str(negstats, newlines=False),))
-        #for posstats in pos_scorediff_mat:
-        #    print('pos stats = %s' % (ut.get_stats_str(posstats, newlines=False),))
-        #print(ut.get_stats_str(np.array(cfgx2_scorediffs).T, newlines=True))
-        print('pos_sum = %r' % (list(map(np.sum, pos_scorediff_mat)),))
-        print('nos_sum = %r' % (list(map(np.sum, neg_scorediff_mat)),))
+        print('stats(pos_scorediff) = ' + jagged_stats_str(pos_scorediff_mat))
+        print('stats(neg_scorediff) = ' + jagged_stats_str(neg_scorediff_mat))
+        print('sum(pos_scorediff) = %r' % (list(map(np.sum, pos_scorediff_mat)),))
+        print('sum(neg_scorediff) = %r' % (list(map(np.sum, neg_scorediff_mat)),))
         #ut.embed()
         print('[harn]-------------')
     print_scorediff_mat_stats()
@@ -470,16 +463,21 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         print('column_lbls = %r' % (column_lbls,))
 
         scorediffs_mat = np.array(ut.replace_nones(cfgx2_scorediffs, np.nan))
+        # A positive scorediff indicates the groundtruth was better than the
+        # groundfalse scores
         istrue_list  = [scorediff > 0 for scorediff in scorediffs_mat]
         isfalse_list = [~istrue for istrue in istrue_list]
 
         #cfgx2_gt_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
         #cfgx2_gf_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gf_raw_score')
 
-        tp_rawscores = vt.zipcompress(cfgx2_gt_rawscores, istrue_list)
-        fp_rawscores = vt.zipcompress(cfgx2_gt_rawscores, isfalse_list)
-        tn_rawscores = vt.zipcompress(cfgx2_gf_rawscores, istrue_list)
-        fn_rawscores = vt.zipcompress(cfgx2_gf_rawscores, isfalse_list)
+        gt_rawscores_mat = ut.replace_nones(cfgx2_gt_rawscores, np.nan)
+        gf_rawscores_mat = ut.replace_nones(cfgx2_gf_rawscores, np.nan)
+
+        tp_rawscores = vt.zipcompress(gt_rawscores_mat, istrue_list)
+        fp_rawscores = vt.zipcompress(gt_rawscores_mat, isfalse_list)
+        tn_rawscores = vt.zipcompress(gf_rawscores_mat, istrue_list)
+        fn_rawscores = vt.zipcompress(gf_rawscores_mat, isfalse_list)
 
         print('stats(tp_rawscores) = ' + jagged_stats_str(tp_rawscores))
         print('stats(fp_rawscores) = ' + jagged_stats_str(fp_rawscores))

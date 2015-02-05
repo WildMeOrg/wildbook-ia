@@ -445,7 +445,7 @@ def test_single_annot_distinctiveness_params(ibs, aid):
     kpts = ibs.get_annot_kpts(aid)
     print(kpts)
     chip = ibs.get_annot_chips(aid)
-    chipsize = ibs.get_annot_chipsizes(aid)[::-1]
+    chipsize = ibs.get_annot_chipsizes(aid)
 
     # Paramater space to search
     # TODO: use slicing to control the params being varied
