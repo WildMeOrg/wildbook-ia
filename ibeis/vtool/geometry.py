@@ -60,11 +60,13 @@ def unhomogonize(xyz_arr):
     return xy_arr
 
 
-def draw_verts(img, verts, color=(0, 128, 255), thickness=2):
+def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2):
+    img = np.copy(img_in)
     if isinstance(verts, np.ndarray):
         verts = verts.tolist()
     import cv2
     line_sequence = zip(verts[:-1], verts[1:])
+    cv2.line(img, tuple(verts[0]), tuple(verts[-1]), color, thickness)
     for (p1, p2) in line_sequence:
         #print('p1, p2: (%r, %r)' % (p1, p2))
         cv2.line(img, tuple(p1), tuple(p2), color, thickness)
