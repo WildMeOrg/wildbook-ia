@@ -107,14 +107,15 @@ def get_best_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd,
     return out_inliers, out_errors, out_mat
 
 
-def assert_output_equal(output1, output2, thresh=1E-7, nestpath=None, level=0):
+def assert_output_equal(output1, output2, thresh=1E-7, nestpath=None, level=0,
+        lbl1='', lbl2=''):
     """ recursive equality checks """
     # Setup
     if nestpath is None:
         # record the path through the nested structure as testing goes on
         nestpath = []
     # print out these variables in all error cases
-    common_keys = ['level', 'nestpath', ]
+    common_keys = ['lbl1', 'lbl2', 'level', 'nestpath']
     # CHECK: types
     try:
         assert type(output1) == type(output2), 'types are not equal'
@@ -158,7 +159,8 @@ def assert_output_equal(output1, output2, thresh=1E-7, nestpath=None, level=0):
         for count, (item1, item2) in enumerate(zip(output1, output2)):
             # recursive call
             try:
-                assert_output_equal(item1, item2, nestpath=nestpath + [count], level=level + 1)
+                assert_output_equal(item1, item2, lbl1=lbl2, lbl2=lbl1,
+                        nestpath=nestpath + [count], level=level + 1)
             except AssertionError as ex:
                 ut.printex(ex, 'recursive call failed', keys=common_keys + ['item1', 'item2', 'count'])
                 raise
@@ -172,7 +174,7 @@ def assert_output_equal(output1, output2, thresh=1E-7, nestpath=None, level=0):
             raise
 
 
-def compare_implementations(func1, func2, args, show_output=False):
+def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2=''):
     """
     tests two different implementations of the same function
     """
@@ -188,7 +190,7 @@ def compare_implementations(func1, func2, args, show_output=False):
         output2 = func2(*args)
     print('speedup = %r' % (t1.ellapsed / t2.ellapsed))
     try:
-        assert_output_equal(output1, output2)
+        assert_output_equal(output1, output2, lbl1=lbl1, lbl2=lbl2)
         print('implementations are in agreement :) ')
     except AssertionError as ex:
         # prints out a nested list corresponding to nested structure
@@ -292,7 +294,7 @@ def test_calling():
             inlier_tup = compare_implementations(
                 sver.get_affine_inliers,
                 get_affine_inliers_cpp,
-                args)
+                args, lbl1='py', lbl2='c')
             out_inliers, out_errors, out_mats = inlier_tup
     except AssertionError as ex:
         ex_list.append(ex)
@@ -303,7 +305,7 @@ def test_calling():
             bestinlier_tup = compare_implementations(
                 sver.get_best_affine_inliers,
                 get_best_affine_inliers_cpp,
-                args, show_output=True)
+                args, show_output=True, lbl1='py', lbl2='c')
             bestinliers, besterror, bestmat = bestinlier_tup
     except AssertionError as ex:
         ex_list.append(ex)
