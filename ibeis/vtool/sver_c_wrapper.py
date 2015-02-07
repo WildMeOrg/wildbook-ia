@@ -160,7 +160,7 @@ def assert_output_equal(output1, output2, thresh=1E-7, nestpath=None, level=0):
             try:
                 assert_output_equal(item1, item2, nestpath=nestpath + [count], level=level + 1)
             except AssertionError as ex:
-                ut.printex(ex, 'recursive call failed', keys=common_keys + ['item1', 'item2'])
+                ut.printex(ex, 'recursive call failed', keys=common_keys + ['item1', 'item2', 'count'])
                 raise
     # CHECK: scalars
     else:
