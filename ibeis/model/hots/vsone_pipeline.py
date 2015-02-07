@@ -292,7 +292,7 @@ def compute_query_constrained_matches(ibs, qaid, daid_list, H_list, config):
 
 @profile
 #@ut.memprof
-def compute_image_coverage_score(ibs, qaid, daid_list, fm_list, fs_list):
+def compute_image_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config={}):
     """
     Returns a grayscale chip match which represents which pixels
     should be matches in order for a candidate to be considered a match.
@@ -320,10 +320,10 @@ def compute_image_coverage_score(ibs, qaid, daid_list, fm_list, fs_list):
     # Distinctivness Weight
     #  Hits     Time     Per Hit    %Time
     #     3      7213349 2404449.7     28.6
-    qdstncvs  = get_kpts_distinctiveness(ibs, [qaid])[0]
+    qdstncvs  = get_kpts_distinctiveness(ibs, [qaid], config=config)[0]
     #  Hits     Time     Per Hit    %Time
     #     3     14567165 4855721.7     57.8
-    ddstncvs_list  = get_kpts_distinctiveness(ibs, daid_list)
+    ddstncvs_list  = get_kpts_distinctiveness(ibs, daid_list, config=config)
     # Foreground weight
     qfgweight = ibs.get_annot_fgweights([qaid], ensure=True)[0]
     dfgweight_list = ibs.get_annot_fgweights(daid_list, ensure=True)
@@ -378,8 +378,8 @@ def compute_grid_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config={
         >>> score_list = compute_grid_coverage_score(ibs, qaid, daid_list, fm_list, fs_list)
         >>> print(score_list)
     """
-    qdstncvs  = get_kpts_distinctiveness(ibs, [qaid])[0]
-    ddstncvs_list  = get_kpts_distinctiveness(ibs, daid_list)
+    qdstncvs  = get_kpts_distinctiveness(ibs, [qaid], config)[0]
+    ddstncvs_list  = get_kpts_distinctiveness(ibs, daid_list, config)
     # Foreground weight
     qfgweight = ibs.get_annot_fgweights([qaid], ensure=True)[0]
     dfgweight_list = ibs.get_annot_fgweights(daid_list, ensure=True)
@@ -438,7 +438,7 @@ def spatially_constrained_match(flann, dvecs, qkpts, dkpts, H, dlen_sqrd,
 
 
 @profile
-def get_kpts_distinctiveness(ibs, aid_list):
+def get_kpts_distinctiveness(ibs, aid_list, config={}):
     """
     per-species disinctivness wrapper around ibeis cached function
     """
@@ -451,11 +451,19 @@ def get_kpts_distinctiveness(ibs, aid_list):
     # Map distinctivness computation
     normer_list = [distinctiveness_normalizer.request_species_distinctiveness_normalizer(species)
                    for species in species_text_list]
+
+    dcvs_kw = {
+        'dcvs_K'        : config.get('dcvs_K'),
+        'dcvs_power'    : config.get('dcvs_power'),
+        'dcvs_min_clip' : config.get('dcvs_min_clip'),
+        'dcvs_max_clip' : config.get('dcvs_max_clip'),
+    }
+
     # Reduce to get results
     dstncvs_groups = [
         # uses ibeis non-persistant cache
         # code lives in manual_ibeiscontrol_funcs
-        ibs.get_annot_kpts_distinctiveness(aids, dstncvs_normer=dstncvs_normer)
+        ibs.get_annot_kpts_distinctiveness(aids, dstncvs_normer=dstncvs_normer, **dcvs_kw)
         for dstncvs_normer, aids in zip(normer_list, aids_groups)
     ]
     dstncvs_list = vt.invert_apply_grouping(dstncvs_groups, groupxs)

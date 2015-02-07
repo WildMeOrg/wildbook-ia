@@ -642,6 +642,11 @@ class RerankVsOneConfig(ConfigBase):
             PI('grid_scale_factor', .25, 'sf'),
             PI('grid_steps', 3, 'stps'),
             PI('grid_sigma', 1.6, 'sigma'),
+            # distinctiveness
+            PI('dcvs_K', 5, 'dcvsK'),
+            PI('dcvs_clip_min', .2, 'mn'),
+            PI('dcvs_clip_max', .3, 'mx'),
+            PI('dcvs_power', 1, 'p'),
         ]
         return param_info_list
 

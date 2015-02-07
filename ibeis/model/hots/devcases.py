@@ -42,7 +42,7 @@ def myquery():
             'nMin' : [1, 1, 1, 24],
             'nMax' : [1, 1, 1, 1],
             'shape': (26, 4),
-        #   score_diff,  tp_score,  tn_score,       p,   K,  clip_fraction,  fg_power,  homogerr_power
+        #   score_diff,  tp_score,  tn_score,       p,   K,  dcvs_clip_max,  fg_power,  homogerr_power
              0.494,     0.494,     0.000,  73.000,   2,          0.500,     0.100,          10.000
 
     see how seperability changes as we very things
@@ -126,10 +126,10 @@ def myquery():
             [2]
             #[2, 3, 4, 5, 7, 8, 9, 16],
         ),
-        #ut.DimensionBasis('clip_fraction', ),
-        #ut.DimensionBasis('clip_fraction', np.linspace(.01, .11, 100)),
+        #ut.DimensionBasis('dcvs_clip_max', ),
+        #ut.DimensionBasis('dcvs_clip_max', np.linspace(.01, .11, 100)),
         ut.DimensionBasis(
-            'clip_fraction',
+            'dcvs_clip_max',
             # THERE IS A VERY CLEAR SPIKE AT .09
             [.09],
             #[.09, 1.0],

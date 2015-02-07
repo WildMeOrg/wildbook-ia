@@ -768,8 +768,28 @@ python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness
 python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db PZ_MTEST --aid 10
 python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db GZ_ALL --aid 2
 
-python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db PZ_MTEST --aid 2
+python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db PZ_MTEST --aid 5
+python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db PZ_MTEST --aid 1
 
+
+# 2D Gaussian Curves
+python -m vtool.patch --test-test_show_gaussian_patches2 --show
+
+
+# Coverage Image
+python -m vtool.coverage_image --test-make_coverage_mask --show
+
+
+
+# Testing Grid Coverage
+python -m vtool.coverage_image --test-grid_coverage --show
+python -m vtool.coverage_image --test-gridsearch_coverage_grid --show
+python -m vtool.coverage_image --test-gridsearch_coverage_grid_mask --show
+
+
+# TODO: 
+# static lnbnn, normonly, and count test
+# combinme vsone and vsmany matches in vsone rr 
 
 
 ```

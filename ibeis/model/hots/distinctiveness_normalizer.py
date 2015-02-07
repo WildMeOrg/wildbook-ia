@@ -236,12 +236,12 @@ class DistinctivnessNormalizer(ut.Cachable):
         CommandLine:
             python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show
             python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --db GZ_ALL --show
-            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --p .25
-            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --p .5
-            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --p .1
-            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --K 1&
-            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --K 2&
-            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --K 3&
+            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .25
+            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .5
+            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_power .1
+            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 1&
+            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 2&
+            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 3&
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -249,7 +249,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             >>> dstcnvs_normer, qreq_ = testdata_distinctiveness()
             >>> qaid = qreq_.get_external_qaids()[0]
             >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qaid)
-            >>> default_dict = {'p': .25, 'K': 5, 'clip_fraction': .5}
+            >>> default_dict = {'dcvs_power': .25, 'dcvs_K': 5, 'dcvs_clip_max': .5}
             >>> kwargs = ut.get_dict_vals_from_commandline(default_dict)
             >>> qfx2_dstncvs = dstcnvs_normer.get_distinctiveness(qfx2_vec, **kwargs)
             >>> ut.assert_eq(len(qfx2_dstncvs.shape), 1)
@@ -269,35 +269,35 @@ class DistinctivnessNormalizer(ut.Cachable):
             %s/\(^ *\)\(.*\)/\1>>> \2/c
 
         """
-        K = kwargs.get('K', 5)
-        assert K > 0 and K < len(dstcnvs_normer.vecs)
+        dcvs_K = kwargs.get('dcvs_K', 2)
+        assert dcvs_K > 0 and dcvs_K < len(dstcnvs_normer.vecs)
         if len(qfx2_vec) == 0:
-            (qfx2_idx, qfx2_dist) = dstcnvs_normer.empty_neighbors(0, K)
+            (qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.empty_neighbors(0, dcvs_K)
         else:
             # perform nearest neighbors
-            (qfx2_idx, qfx2_dist) = dstcnvs_normer.flann.nn_index(
-                qfx2_vec, K, checks=dstcnvs_normer.checks, cores=dstcnvs_normer.cores)
+            (qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.flann.nn_index(
+                qfx2_vec, dcvs_K, checks=dstcnvs_normer.checks, cores=dstcnvs_normer.cores)
             # Ensure that distance returned are between 0 and 1
             #qfx2_dist = qfx2_dist / (dstcnvs_normer.max_distance ** 2)
-            qfx2_dist = np.divide(qfx2_dist, dstcnvs_normer.max_distance_sqrd)
+            qfx2_dist = np.sqrt(qfx2_dist_sqrd.astype(np.float64)) / 724.0
+            #qfx2_dist32 = np.sqrt(np.divide(qfx2_dist_sqrd, dstcnvs_normer.max_distance_sqrd))
+            #qfx2_dist =
             #qfx2_dist = np.sqrt(qfx2_dist) / dstcnvs_normer.max_distance
-        if K == 1:
+        if dcvs_K == 1:
             qfx2_dist = qfx2_dist[:, None]
-        norm_sqared_dist = qfx2_dist.T[-1].T
-        with ut.EmbedOnException():
-            qfx2_dstncvs = compute_distinctiveness_from_dist(norm_sqared_dist, **kwargs)
+        norm_dist = qfx2_dist.T[dcvs_K - 1].T
+        qfx2_dstncvs = compute_distinctiveness_from_dist(norm_dist, **kwargs)
         return qfx2_dstncvs
 
 
 def show_chip_distinctiveness_plot(chip, kpts, dstncvs, fnum=1, pnum=None):
     import plottool as pt
     pt.figure(fnum, pnum=pnum)
-    #ut.embed()
     ax = pt.gca()
     divider = pt.ensure_divider(ax)
     #ax1 = divider.append_axes("left", size="50%", pad=0)
     ax1 = ax
-    ax2 = divider.append_axes("bottom", size="50%", pad=0.05)
+    ax2 = divider.append_axes("bottom", size="100%", pad=0.05)
     #f, (ax1, ax2) = pt.plt.subplots(1, 2, sharex=True)
     cmapstr = 'rainbow'  # 'hot'
     color_list = pt.df2.plt.get_cmap(cmapstr)(ut.norm_zero_one(dstncvs))
@@ -313,45 +313,49 @@ def show_chip_distinctiveness_plot(chip, kpts, dstncvs, fnum=1, pnum=None):
     #pt.draw_kpts2(kpts, pts_color=color_list, ell_color=color_list, ell_alpha=.1, ell=True, pts=True)
     #pt.draw_kpts2(kpts, color_list=color_list, pts_alpha=1.0, pts_size=1.5,
     #              ell=True, ell_alpha=.1, pts=False)
+    ell = ut.get_argflag('--ell')
     pt.draw_kpts2(kpts, color_list=color_list, pts_alpha=1.0, pts_size=1.5,
-                  ell=False, ell_alpha=.1, pts=True)
+                  ell=ell, ell_alpha=.3, pts=not ell)
     pt.plt.sca(ax)
     #pt.figure(fnum, pnum=pnum)
 
 
-def compute_distinctiveness_from_dist(norm_sqared_dist, **kwargs):
+def compute_distinctiveness_from_dist(norm_dist, **kwargs):
     """
-    Compute distinctiveness from distance to K+1 nearest neighbor
+    Compute distinctiveness from distance to dcvs_K+1 nearest neighbor
 
     Ignore:
-        norm_sqared_dist = np.random.rand(1000)
+        norm_dist = np.random.rand(1000)
 
         import numexpr
 
-        %timeit np.divide(norm_sqared_dist, clip_fraction)
-        %timeit numexpr.evaluate('norm_sqared_dist / clip_fraction', local_dict=dict(norm_sqared_dist=norm_sqared_dist, clip_fraction=clip_fraction))
-        wd_cliped = np.divide(norm_sqared_dist, clip_fraction)
+        %timeit np.divide(norm_dist, dcvs_clip_max)
+        %timeit numexpr.evaluate('norm_dist / dcvs_clip_max', local_dict=dict(norm_dist=norm_dist, dcvs_clip_max=dcvs_clip_max))
+        wd_cliped = np.divide(norm_dist, dcvs_clip_max)
 
         %timeit numexpr.evaluate('wd_cliped > 1.0', local_dict=locals())
         %timeit np.greater(wd_cliped, 1.0)
 
-        %timeit np.power(wd_cliped, p)
-        %timeit numexpr.evaluate('wd_cliped ** p', local_dict=locals())
+        %timeit np.power(wd_cliped, dcvs_power)
+        %timeit numexpr.evaluate('wd_cliped ** dcvs_power', local_dict=locals())
 
         %timeit
     """
     # TODO: paramaterize
     # expondent to augment distinctiveness scores.
-    #p = kwargs.get('p', .5)
-    p = kwargs.get('p', .25)
-    #1.0)
+    dcvs_power = kwargs.get('dcvs_power', 1.0)
+    dcvs_clip_max = kwargs.get('dcvs_clip_max', .3)
+    dcvs_clip_min = kwargs.get('dcvs_clip_min', 0.2)
     # clip the distinctiveness at this fraction
-    #clip_fraction = kwargs.get('clip_fraction', .2)
-    #clip_fraction = kwargs.get('clip_fraction', .4)
-    clip_fraction = kwargs.get('clip_fraction', .5)
-    wd_cliped = np.divide(norm_sqared_dist, clip_fraction)
-    wd_cliped[np.greater(wd_cliped, 1.0)] = 1.0
-    dstncvs = np.power(wd_cliped, p)
+    #dcvs_clip_max = kwargs.get('dcvs_clip_max', .2)
+    #dcvs_clip_max = kwargs.get('dcvs_clip_max', .4)
+    clip_range = dcvs_clip_max - dcvs_clip_min
+    # apply distinctivness normalization
+    _tmp = np.clip(norm_dist, dcvs_clip_min, dcvs_clip_max)
+    np.subtract(_tmp, dcvs_clip_min, out=_tmp)
+    np.divide(_tmp, clip_range, out=_tmp)
+    np.power(_tmp, dcvs_power, out=_tmp)
+    dstncvs = _tmp
     return dstncvs
 
 
@@ -509,9 +513,12 @@ def test_single_annot_distinctiveness_params(ibs, aid):
     # Use GridSearch class to modify paramaters as you go.
 
     varied_dict = {
-        'p': [.01, .1, .25, .3, .5, .75, 1.0, 1.5, 2.0][2:],
-        'clip_fraction': [.05, .1, .2, .5, 1.0][-1:],
-        'K': [2, 3, 5, 7][-1:],
+        # TODO rename to dcvs_K
+        'dcvs_power': [.5, 1.0, 1.5, 2.0][:],
+        'dcvs_clip_max': [.05, .3, .4, .45, .5, 1.0][1:4],
+        'dcvs_clip_min': [.2, .02, .03][0:1],
+        'dcvs_K': [5, 7, 15][0:1],
+        # Going with dcvs_K=5, dcvs_power=1, min=.2, max=.3
     }
 
     print('Varied Dict: ')
@@ -529,6 +536,8 @@ def test_single_annot_distinctiveness_params(ibs, aid):
     dstncvs_list = [dstcvnss_normer.get_distinctiveness(vecs, **cfgdict)
                     for cfgdict in ut.ProgressIter(cfgdict_list, lbl='get dstcvns')]
 
+    #fgweights = ibs.get_annot_fgweights([aid])[0]
+    #dstncvs_list = [x * fgweights for x in dstncvs_list]
     fnum = 1
 
     import functools
@@ -539,235 +548,6 @@ def test_single_annot_distinctiveness_params(ibs, aid):
         score_list=None, fnum=fnum, figtitle='dstncvs gridsearch')
 
     pt.present()
-
-
-def old_test_single_annot_distinctiveness_params(ibs, aid):
-    r"""
-
-    CommandLine:
-        python -m ibeis.model.hots.distinctiveness_normalizer --test-old_test_single_annot_distinctiveness_params --show
-        python -m ibeis.model.hots.distinctiveness_normalizer --test-old_test_single_annot_distinctiveness_params --show --db GZ_ALL
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA
-        >>> import plottool as pt
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb(ut.get_argval('--db', type_=str, default='PZ_MTEST'))
-        >>> aid = ut.get_argval('--aid', type_=int, default=1)
-        >>> # execute function
-        >>> old_test_single_annot_distinctiveness_params(ibs, aid)
-        >>> pt.show_if_requested()
-    """
-    ####
-    # TODO: Also paramatarize the downweighting based on the keypoint size
-    ####
-    # HACK IN ABILITY TO SET CONFIG
-    from ibeis.dev.main_commands import postload_commands
-    postload_commands(ibs, None)
-
-    from vtool import coverage_image
-    import plottool as pt
-    from plottool import interact_impaint
-
-    #cfglbl_list = cfgdict_list
-    #ut.all_dict_combinations_lbls(varied_dict)
-
-    # Get info to find distinctivness of
-    species_text = ibs.get_annot_species(aid)
-    vecs = ibs.get_annot_vecs(aid)
-    kpts = ibs.get_annot_kpts(aid)
-    print(kpts)
-    chip = ibs.get_annot_chips(aid)
-    chipsize = ibs.get_annot_chipsizes(aid)
-
-    # Paramater space to search
-    # TODO: use slicing to control the params being varied
-    # Use GridSearch class to modify paramaters as you go.
-
-    gauss_patch_varydict = {
-        'gauss_shape': [(7, 7), (19, 19), (41, 41), (5, 5), (3, 3)],
-        'gauss_sigma_frac': [.2, .5, .7, .95],
-    }
-    cov_blur_varydict = {
-        'cov_blur_on': [True, False],
-        'cov_blur_ksize': [(5, 5,),  (7, 7), (17, 17)],
-        'cov_blur_sigma': [5.0, 1.2],
-    }
-    dstncvs_varydict = {
-        'p': [.01, .1, .5, 1.0],
-        'clip_fraction': [.05, .1, .2, .5],
-        'K': [2, 3, 5],
-    }
-    size_penalty_varydict = {
-        'remove_affine_information': [False, True],
-        'constant_scaling': [False, True],
-        'size_penalty_on': [True, False],
-        'size_penalty_power': [.5, .1, 1.0],
-        'size_penalty_scale': [.1, 1.0],
-    }
-    keyval_iter = ut.iflatten([
-        dstncvs_varydict.items(),
-        gauss_patch_varydict.items(),
-        cov_blur_varydict.items(),
-        size_penalty_varydict.items(),
-    ])
-
-    # Dont vary most paramaters, specify how much of their list can be used
-    param_slice_dict = {
-        'p'                  : slice(0, 2),
-        'K'                  : slice(0, 2),
-        'clip_fraction'      : slice(0, 2),
-        'clip_fraction'      : slice(0, 2),
-        #'gauss_shape'        : slice(0, 3),
-        'gauss_sigma_frac'          : slice(0, 2),
-        'remove_affine_information' : slice(0, 2),
-        'constant_scaling'          : slice(0, 2),
-        'size_penalty_on'           : slice(0, 2),
-        #'cov_blur_on'        : slice(0, 2),
-        #'cov_blur_ksize'     : slice(0, 2),
-        #'cov_blur_sigma'     : slice(0, 1),
-        #'size_penalty_power' : slice(0, 2),
-        #'size_penalty_scale' : slice(0, 2),
-    }
-    varied_dict = {
-        key: val[param_slice_dict.get(key, slice(0, 1))]
-        for key, val in keyval_iter
-    }
-
-    def constrain_config(cfg):
-        """ encode what makes a configuration feasible """
-        if cfg['cov_blur_on'] is False:
-            cfg['cov_blur_ksize'] = None
-            cfg['cov_blur_sigma'] = None
-        if cfg['constant_scaling'] is True:
-            cfg['remove_affine_information'] = True
-            cfg['size_penalty_on'] = False
-        if cfg['remove_affine_information'] is True:
-            cfg['gauss_shape'] = (41, 41)
-        if cfg['size_penalty_on'] is False:
-            cfg['size_penalty_power'] = None
-            cfg['size_penalty_scale'] = None
-
-    print('Varied Dict: ')
-    print(ut.dict_str(varied_dict))
-
-    cfgdict_list, cfglbl_list = ut.make_constrained_cfg_and_lbl_list(varied_dict, constrain_config)
-
-    # Get groundtruthish distinctivness map
-    # for objective function
-    GT_IS_DSTNCVS = 255
-    GT_NOT_DSTNCVS = 100
-    GT_UNKNOWN = 0
-    label_colors = [GT_IS_DSTNCVS, GT_NOT_DSTNCVS, GT_UNKNOWN]
-    gtmask = interact_impaint.cached_impaint(chip, 'dstncvnss',
-                                             label_colors=label_colors,
-                                             aug=True, refine=ut.get_argflag('--refine'))
-    true_dstncvs_mask = gtmask == GT_IS_DSTNCVS
-    false_dstncvs_mask = gtmask == GT_NOT_DSTNCVS
-
-    true_dstncvs_mask_sum = true_dstncvs_mask.sum()
-    false_dstncvs_mask_sum = false_dstncvs_mask.sum()
-
-    def distinctiveness_objective_function(dstncvs_mask):
-        true_mask  = true_dstncvs_mask * dstncvs_mask
-        false_mask = false_dstncvs_mask * dstncvs_mask
-        true_score = true_mask.sum() / true_dstncvs_mask_sum
-        false_score = false_mask.sum() / false_dstncvs_mask_sum
-        score = true_score * (1 - false_score)
-        return score
-
-    # Load distinctivness normalizer
-    with ut.Timer('Loading Distinctivness Normalizer for %s' % (species_text)):
-        dstcvnss_normer = request_species_distinctiveness_normalizer(species_text)
-
-    # Get distinctivness over all params
-    dstncvs_list = [dstcvnss_normer.get_distinctiveness(vecs, **cfgdict)
-                    for cfgdict in ut.ProgressIter(cfgdict_list, lbl='get dstcvns')]
-
-    # Then compute the distinctinvess coverage map
-    #gauss_shape = kwargs.get('gauss_shape', (19, 19))
-    #sigma_frac = kwargs.get('sigma_frac', .3)
-    dstncvs_mask_list = [
-        coverage_image.make_coverage_mask(
-            kpts, chipsize, fx2_score=dstncvs, mode='max', return_patch=False, **cfg)
-        for cfg, dstncvs in ut.ProgressIter(zip(cfgdict_list, dstncvs_list), lbl='Warping Image')
-    ]
-    score_list = [distinctiveness_objective_function(dstncvs_mask) for dstncvs_mask in dstncvs_mask_list]
-
-    fnum = 1
-
-    def show_covimg_result(img, fnum=None, pnum=None):
-        pt.imshow(255 * img, fnum=fnum, pnum=pnum)
-
-    ut.interact_gridsearch_result_images(
-        show_covimg_result, cfgdict_list, cfglbl_list, dstncvs_mask_list,
-        score_list=score_list, fnum=fnum, figtitle='dstncvs gridsearch')
-
-    # Show subcomponents of grid search
-    gauss_patch_cfgdict_list, gauss_patch_cfglbl_list = ut.get_cfgdict_lbl_list_subset(cfgdict_list, gauss_patch_varydict)
-    patch_list = [coverage_image.get_gaussian_weight_patch(**cfgdict)
-                  for cfgdict in ut.ProgressIter(gauss_patch_cfgdict_list, lbl='patch cfg')]
-
-    ut.interact_gridsearch_result_images(
-        show_covimg_result, gauss_patch_cfgdict_list, gauss_patch_cfglbl_list,
-        patch_list, fnum=fnum + 1, figtitle='gaussian patches')
-
-    patch = patch_list[0]
-    #ut.embed()
-
-    # Show the first mask in more depth
-    dstncvs = dstncvs_list[0]
-    dstncvs_mask = dstncvs_mask_list[0]
-    coverage_image.show_coverage_map(chip, dstncvs_mask, patch, kpts, fnum=fnum + 2, ell_alpha=.2, show_mask_kpts=False)
-
-    pt.imshow(gtmask, fnum=fnum + 3, pnum=(1, 2, 1), title='ground truth distinctiveness')
-    pt.imshow(chip, fnum=fnum + 3, pnum=(1, 2, 2))
-    pt.present()
-    #ut.embed()
-    #pt.iup()
-
-    #ut.print_resource_usage()
-    #pt.set_figtitle(mode)
-    #pass
-
-
-#def test_example():
-#    import scipy.linalg as spl
-#    M = np.array([
-#        [1.0, 0.6, 0. , 0. , 0. ],
-#        [0.6, 1.0, 0.5, 0.2, 0. ],
-#        [0. , 0.5, 1.0, 0. , 0. ],
-#        [0. , 0.2, 0. , 1.0, 0.8],
-#        [0. , 0. , 0. , 0.8, 1.0],
-#    ])
-#    M_ = M / M.sum(axis=0)[:, None]
-#    #eigvals, eigvecs = np.linalg.eigh(M_)
-#    #, left=True, right=False)
-#    eigvals, eigvecs = spl.eig(M_, left=True, right=False)
-#    index = np.where(np.isclose(eigvals, 1))[0]
-#    pi = stationary_vector = eigvecs.T[index]
-#    pi_test = pi.dot(M_)
-#    pi / pi.sum()
-#    print(pi / np.linalg.norm(pi))
-#    print(pi_test / np.linalg.norm(pi_test))
-
-#    M = np.array([
-#        [1.0, 0.6],
-#        [0.6, 1.0],
-#    ])
-#    M_ = M / M.sum(axis=0)[:, None]
-#    #eigvals, eigvecs = np.linalg.eigh(M_)
-#    #, left=True, right=False)
-#    eigvals, eigvecs = spl.eig(M_, left=True, right=False)
-#    index = np.where(np.isclose(eigvals, 1))[0]
-#    pi = stationary_vector = eigvecs.T[index]
-#    pi_test = pi.dot(M_)
-#    pi / pi.sum()
-#    print(pi / np.linalg.norm(pi))
-#    print(pi_test / np.linalg.norm(pi_test))
-#    #pi = pi / pi.sum()
 
 
 def dev_train_distinctiveness(species=None):
