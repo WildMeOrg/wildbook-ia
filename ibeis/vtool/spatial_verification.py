@@ -28,8 +28,9 @@ try:
     HAS_SVER_C_WRAPPER = True
 except Exception as ex:
     HAS_SVER_C_WRAPPER = False
-    ut.printex(ex, 'please build the sver c wrapper (run with --rebuild-sver')
-    if False and not ut.WIN32:
+    if ut.VERBOSE:
+        ut.printex(ex, 'please build the sver c wrapper (run with --rebuild-sver')
+    if False:
         raise
 
 profile = ut.profile
@@ -551,6 +552,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
 
     CommandLine:
         python -m vtool.spatial_verification --test-spatially_verify_kpts --show
+        python -m vtool.spatial_verification --test-spatially_verify_kpts
 
     Example:
         >>> # ENABLE_DOCTEST
