@@ -328,15 +328,14 @@ def grid_coverage(kpts, chipsize, weights, grid_scale_factor=.3, grid_steps=1, g
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.coverage_image import *  # NOQA
-        >>> kpts, chipsize, weights = testdata_coveragegrid()
+        >>> kpts, chipsize, weights = testdata_coverage()
         >>> grid_scale_factor = .3
-        >>> grid_steps = 1
-        >>> coverage_gridtup = grid_coverage(kpts, chipsize, weights)
-        >>> num_cols, num_rows, subbin_xy_arr, neighbor_bin_centers, neighbor_bin_weights = coverage_gridtup
+        >>> grid_steps = 2
+        >>> grid_sigma = 1.6
+        >>> coverage_gridtup = grid_coverage(kpts, chipsize, weights, grid_scale_factor, grid_steps, grid_sigma)
         >>> if ut.show_was_requested():
         >>>     import plottool as pt
-        >>>     visualize_coverage_grid(num_cols, num_rows, subbin_xy_arr,
-        >>>                    neighbor_bin_centers, neighbor_bin_weights)
+        >>>     visualize_coverage_grid(*coverage_gridtup)
         >>>     pt.show_if_requested()
     """
     import vtool as vt
@@ -429,7 +428,7 @@ def get_grid_coverage_mask(kpts, chipsize, weights, grid_scale_factor=.3,
         >>> from vtool.coverage_image import *  # NOQA
         >>> import vtool as vt
         >>> # build test data
-        >>> kpts, chipsize, weights = testdata_coveragegrid('easy1.png')
+        >>> kpts, chipsize, weights = testdata_coverage('easy1.png')
         >>> grid_scale_factor = 0.3
         >>> grid_steps = 2
         >>> # execute function
@@ -479,7 +478,7 @@ def get_grid_coverage_mask(kpts, chipsize, weights, grid_scale_factor=.3,
     return weightgrid
 
 
-def testdata_coveragegrid(fname=None):
+def testdata_coverage(fname=None):
     import vtool as vt
     # build test data
     kpts, vecs = vt.dummy.get_testdata_kpts(fname, with_vecs=True)
@@ -502,14 +501,14 @@ def testdata_coveragegrid(fname=None):
 
 def get_coverage_grid_gridsearch_configs():
     search_basis = {
-        'grid_scale_factor': [.05, .25, .3, 1.0],
-        'grid_steps': [1, 3, 10],
-        'grid_sigma': [1.0, 1.6, 2.0],
+        'scale_factor': [.3, .5],
+        'mode': ['max'],
+        #'grid_sigma': [1.0, 1.6],
     }
     param_slice_dict = {
-        'grid_scale_factor' : slice(0, 3),
-        'grid_steps'        : slice(0, 4),
-        'grid_sigma'        : slice(0, 4),
+        'scale_factor' : slice(0, 3),
+        'mode'        : slice(0, 4),
+        #'grid_sigma'        : slice(0, 4),
     }
     varied_dict = {
         key: val[param_slice_dict.get(key, slice(0, 1))]
@@ -533,7 +532,7 @@ def gridsearch_coverage_grid():
         >>> pt.show_if_requested()
     """
     import plottool as pt
-    kpts, chipsize, weights = testdata_coveragegrid()
+    kpts, chipsize, weights = testdata_coverage()
     cfgdict_list, cfglbl_list = get_coverage_grid_gridsearch_configs()
     coverage_gridtup_list = [
         grid_coverage(kpts, chipsize, weights, **cfgdict)
@@ -563,7 +562,7 @@ def gridsearch_coverage_grid_mask():
     """
     import plottool as pt
     cfgdict_list, cfglbl_list = get_coverage_grid_gridsearch_configs()
-    kpts, chipsize, weights = testdata_coveragegrid('easy1.png')
+    kpts, chipsize, weights = testdata_coverage('easy1.png')
     gridmask_list = [
         255 *  get_grid_coverage_mask(kpts, chipsize, weights, **cfgdict)
         for cfgdict in ut.ProgressIter(cfgdict_list, lbl='coverage grid')
@@ -584,12 +583,71 @@ def gridsearch_coverage_grid_mask():
     #pt.show_if_requested()
 
 
+def get_coverage_image_gridsearch_configs():
+    search_basis = {
+        'grid_scale_factor': [.05, .3, 1.0],
+        'grid_steps': [1, 3, 7],
+        'grid_sigma': [1.0, 1.6],
+    }
+    param_slice_dict = {
+        'grid_scale_factor' : slice(0, 3),
+        'grid_steps'        : slice(0, 4),
+        'grid_sigma'        : slice(0, 4),
+    }
+    varied_dict = {
+        key: val[param_slice_dict.get(key, slice(0, 1))]
+        for key, val in six.iteritems(search_basis)
+    }
+    # Make configuration for every parameter setting
+    cfgdict_list, cfglbl_list = ut.make_constrained_cfg_and_lbl_list(varied_dict)
+    return cfgdict_list, cfglbl_list
+
+
+def gridsearch_coverage_image_mask():
+    """
+    CommandLine:
+        python -m vtool.coverage_image --test-gridsearch_coverage_image_mask --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.coverage_image import *  # NOQA
+        >>> import plottool as pt
+        >>> gridsearch_coverage_image_mask()
+        >>> pt.show_if_requested()
+    """
+    import plottool as pt
+    cfgdict_list, cfglbl_list = get_coverage_image_gridsearch_configs()
+    kpts, chipsize, weights = testdata_coverage('easy1.png')
+    imgmask_list = [
+        255 *  make_coverage_mask(kpts, chipsize, weights, return_patch=False, **cfgdict)
+        for cfgdict in ut.ProgressIter(cfgdict_list, lbl='coverage grid')
+    ]
+    #NORMHACK = True
+    #if NORMHACK:
+    #    imgmask_list = [
+    #        255 * (mask / mask.max()) for mask in imgmask_list
+    #    ]
+
+    fnum = 1
+    ut.interact_gridsearch_result_images(
+        pt.imshow, cfgdict_list, cfglbl_list,
+        imgmask_list, fnum=fnum, figtitle='coverage image', unpack=False,
+        max_plots=25)
+
+    pt.iup()
+    #pt.show_if_requested()
+
+
+
 def visualize_coverage_grid(num_rows, num_cols,
                             subbin_xy_arr,
                             neighbor_bin_centers,
                             neighbor_bin_weights,
                             neighbor_bin_indicies,
                             fnum=None, pnum=None):
+    """
+    visualizes the voting scheme on the grid. (not a mask, and no max)
+    """
     import plottool as pt
     import vtool as vt
 
