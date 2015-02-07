@@ -24,6 +24,7 @@ import vtool.keypoint as ktool
 import vtool.linalg as ltool
 
 try:
+    raise Exception('forcing sver_c_wrapper off')
     from vtool import sver_c_wrapper
     HAS_SVER_C_WRAPPER = True
 except Exception as ex:
