@@ -4,7 +4,7 @@ from six.moves import zip, range, map  # NOQA
 import numpy as np
 import utool as ut
 import cv2
-from vtool import coverage_image
+from vtool import coverage_kpts
 print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[covgrid]', DEBUG=False)
 
 
@@ -29,7 +29,7 @@ def make_grid_coverage_mask(kpts, chipsize, weights, grid_scale_factor=.3,
         >>> from vtool.coverage_grid import *  # NOQA
         >>> import vtool as vt
         >>> # build test data
-        >>> kpts, chipsize, weights = coverage_image.testdata_coverage('easy1.png')
+        >>> kpts, chipsize, weights = coverage_kpts.testdata_coverage('easy1.png')
         >>> grid_scale_factor = 0.3
         >>> grid_steps = 2
         >>> # execute function
@@ -90,7 +90,7 @@ def sparse_grid_coverage(kpts, chipsize, weights, grid_scale_factor=.3, grid_ste
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.coverage_grid import *  # NOQA
-        >>> kpts, chipsize, weights = coverage_image.testdata_coverage()
+        >>> kpts, chipsize, weights = coverage_kpts.testdata_coverage()
         >>> grid_scale_factor = .3
         >>> grid_steps = 2
         >>> grid_sigma = 1.6
@@ -273,7 +273,7 @@ def gridsearch_coverage_grid():
     """
     import plottool as pt
     fname = None  # 'easy1.png'
-    kpts, chipsize, weights = coverage_image.testdata_coverage(fname)
+    kpts, chipsize, weights = coverage_kpts.testdata_coverage(fname)
     if len(kpts) > 100:
         kpts = kpts[::100]
         weights = weights[::100]
@@ -307,7 +307,7 @@ def gridsearch_coverage_grid_mask():
     """
     import plottool as pt
     cfgdict_list, cfglbl_list = get_coverage_grid_gridsearch_configs()
-    kpts, chipsize, weights = coverage_image.testdata_coverage('easy1.png')
+    kpts, chipsize, weights = coverage_kpts.testdata_coverage('easy1.png')
     gridmask_list = [
         255 *  make_grid_coverage_mask(kpts, chipsize, weights, **cfgdict)
         for cfgdict in ut.ProgressIter(cfgdict_list, lbl='coverage grid')

@@ -27,7 +27,8 @@ IMPORT_TUPLES = [
     ('nearest_neighbors', None),
     ('clustering2', None),
     ('other', None),
-    #('coverage_image', None),
+    #('coverage_kpts', None),
+    #('coverage_grid', None),
 ]
 
 #import sys

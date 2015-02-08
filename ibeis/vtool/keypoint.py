@@ -512,7 +512,7 @@ def get_transforms_from_patch_image_kpts(kpts, patch_shape, scale_factor=1.0):
                 [  0.  ,   0.  ,   1.  ]]])
 
     Ignore:
-        >>> from vtool.coverage_image import *  # NOQA
+        >>> from vtool.coverage_kpts import *  # NOQA
         >>> import vtool as vt
         >>> kpts = vt.dummy.get_dummy_kpts()
         >>> invVR_aff2Ds = [np.array(((a, 0, x),

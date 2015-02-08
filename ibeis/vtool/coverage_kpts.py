@@ -26,14 +26,14 @@ def make_kpts_coverage_mask(kpts, chipsize, weights=None, cov_agg_mode=None,
         tuple (ndarray, ndarray): dstimg, patch
 
     CommandLine:
-        python -m vtool.coverage_image --test-make_kpts_coverage_mask --show
-        python -m vtool.coverage_image --test-make_kpts_coverage_mask
+        python -m vtool.coverage_kpts --test-make_kpts_coverage_mask --show
+        python -m vtool.coverage_kpts --test-make_kpts_coverage_mask
 
         python -m vtool.patch --test-test_show_gaussian_patches2 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.coverage_image import *  # NOQA
+        >>> from vtool.coverage_kpts import *  # NOQA
         >>> import vtool as vt
         >>> import plottool as pt
         >>> import pyhesaff
@@ -139,15 +139,15 @@ def warp_patch_onto_kpts(kpts, patch, chipshape, weights=None, **kwargs):
         ndarray: mask
 
     CommandLine:
-        python -m vtool.coverage_image --test-warp_patch_onto_kpts
-        python -m vtool.coverage_image --test-warp_patch_onto_kpts --show
-        python -m vtool.coverage_image --test-warp_patch_onto_kpts --show --hole
-        python -m vtool.coverage_image --test-warp_patch_onto_kpts --show --square
-        python -m vtool.coverage_image --test-warp_patch_onto_kpts --show --square --hole
+        python -m vtool.coverage_kpts --test-warp_patch_onto_kpts
+        python -m vtool.coverage_kpts --test-warp_patch_onto_kpts --show
+        python -m vtool.coverage_kpts --test-warp_patch_onto_kpts --show --hole
+        python -m vtool.coverage_kpts --test-warp_patch_onto_kpts --show --square
+        python -m vtool.coverage_kpts --test-warp_patch_onto_kpts --show --square --hole
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.coverage_image import *  # NOQA
+        >>> from vtool.coverage_kpts import *  # NOQA
         >>> import vtool as vt
         >>> import pyhesaff
         >>> img_fpath    = ut.grab_test_imgpath('carl.jpg')
@@ -252,11 +252,11 @@ def get_gaussian_weight_patch(gauss_shape=(19, 19), gauss_sigma_frac=.3, gauss_n
         ndarray: patch
 
     CommandLine:
-        python -m vtool.coverage_image --test-get_gaussian_weight_patch
+        python -m vtool.coverage_kpts --test-get_gaussian_weight_patch
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.coverage_image import *  # NOQA
+        >>> from vtool.coverage_kpts import *  # NOQA
         >>> # build test data
         >>> # execute function
         >>> patch = get_gaussian_weight_patch()
@@ -276,7 +276,7 @@ def get_gaussian_weight_patch(gauss_shape=(19, 19), gauss_sigma_frac=.3, gauss_n
     return patch
 
 
-def get_coverage_image_gridsearch_configs():
+def get_coverage_kpts_gridsearch_configs():
     varied_dict = {
         'cov_agg_mode'           : ['max', 'sum'],
         'cov_blur_ksize'        : [(19, 19), (5, 5)],
@@ -314,17 +314,17 @@ def get_coverage_image_gridsearch_configs():
 def gridsearch_kpts_coverage_mask():
     """
     CommandLine:
-        python -m vtool.coverage_image --test-gridsearch_kpts_coverage_mask --show
+        python -m vtool.coverage_kpts --test-gridsearch_kpts_coverage_mask --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from vtool.coverage_image import *  # NOQA
+        >>> from vtool.coverage_kpts import *  # NOQA
         >>> import plottool as pt
         >>> gridsearch_kpts_coverage_mask()
         >>> pt.show_if_requested()
     """
     import plottool as pt
-    cfgdict_list, cfglbl_list = get_coverage_image_gridsearch_configs()
+    cfgdict_list, cfglbl_list = get_coverage_kpts_gridsearch_configs()
     kpts, chipsize, weights = testdata_coverage('easy1.png')
     imgmask_list = [
         255 *  make_kpts_coverage_mask(kpts, chipsize, weights, return_patch=False, **cfgdict)
@@ -391,9 +391,9 @@ def show_coverage_map(chip, mask, patch, kpts, fnum=None, ell_alpha=.6,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.coverage_image
-        python -m vtool.coverage_image --allexamples
-        python -m vtool.coverage_image --allexamples --noface --nosrc
+        python -m vtool.coverage_kpts
+        python -m vtool.coverage_kpts --allexamples
+        python -m vtool.coverage_kpts --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

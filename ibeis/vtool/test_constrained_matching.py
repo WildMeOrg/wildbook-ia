@@ -230,12 +230,12 @@ class SimpleMatcher(object):
             _fm, _fs = matchtup_dict[key]
             title = keytitle_dict[key]
             if kwargs.get('coverage'):
-                from vtool import coverage_image
+                from vtool import coverage_kpts
                 kpts2, rchip2 = ut.dict_get(locals_, ('kpts2', 'rchip2'))
                 kpts2_m = kpts2.take(_fm.T[1], axis=0)
                 chipshape2 = rchip2.shape
                 chipsize2 = chipshape2[0:2][::-1]
-                coverage_mask = coverage_image.make_kpts_coverage_mask(kpts2_m, chipsize2, fx2_score=_fs, resize=True, return_patch=False)
+                coverage_mask = coverage_kpts.make_kpts_coverage_mask(kpts2_m, chipsize2, fx2_score=_fs, resize=True, return_patch=False)
                 pt.imshow(coverage_mask * 255, pnum=pnum, fnum=fnum)
             else:
                 if kwargs.get('norm', False):
