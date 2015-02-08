@@ -17,7 +17,7 @@ ut.noinject(__name__, '[plots]')
 def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.8):
     r"""
     Args:
-        hist (?):
+        hist (ndarray):
         centers (None):
 
     CommandLine:
@@ -100,15 +100,15 @@ def colorline(x, y, z=None, cmap=plt.get_cmap('hsv'), norm=plt.Normalize(0.0, 1.
         http://nbviewer.ipython.org/github/dpsanders/matplotlib-examples/blob/master/colorline.ipynb
 
     CommandLine:
-        python -m plottool.plots --test-colorline
+        python -m plottool.plots --test-colorline --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.plots import *  # NOQA
         >>> import plottool as pt
         >>> # build test data
-        >>> x = np.array([1, 2, 3, 4, 5]) / 5.0
-        >>> y = np.array([1, 2, 3, 4, 5]) / 5.0
+        >>> x = np.array([1, 3, 3, 2, 5]) / 5.0
+        >>> y = np.array([1, 2, 1, 3, 5]) / 5.0
         >>> z = None
         >>> cmap = df2.plt.get_cmap('hsv')
         >>> norm = plt.Normalize(0.0, 1.0)
@@ -119,17 +119,22 @@ def colorline(x, y, z=None, cmap=plt.get_cmap('hsv'), norm=plt.Normalize(0.0, 1.
         >>> result = colorline(x, y, z, cmap)
         >>> # verify results
         >>> print(result)
+        >>> pt.dark_background()
         >>> pt.show_if_requested()
     """
     from matplotlib.collections import LineCollection
 
     def make_segments(x, y):
         """
-        Create list of line segments from x and y coordinates, in the correct format for LineCollection:
-        an array of the form   numlines x (points per line) x 2 (x and y) array
+        Create list of line segments from x and y coordinates, in the
+        Returns:
+            ndarray - segments in correct format for LineCollection:
+                an array with shape: (numlines, points per line, 2)
+                the last dimension is for x and y respectively
         """
         points = np.array([x, y]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
+        ut.embed()
         return segments
 
     # Default colors equally spaced on [0,1]:

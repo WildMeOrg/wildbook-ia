@@ -18,7 +18,8 @@ LARGE    = 14
 def FontProp(*args, **kwargs):
     """ overwrite fontproperties with custom settings """
     kwargs['family'] = 'monospace'
-    return mpl.font_manager.FontProperties(*args, **kwargs)
+    font_prop = mpl.font_manager.FontProperties(*args, **kwargs)
+    return font_prop
 
 FONTS = ut.DynStruct()
 FONTS.smallest  = FontProp(weight='light', size=SMALLEST)
