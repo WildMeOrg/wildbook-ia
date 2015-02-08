@@ -134,7 +134,6 @@ def colorline(x, y, z=None, cmap=plt.get_cmap('hsv'), norm=plt.Normalize(0.0, 1.
         """
         points = np.array([x, y]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
-        ut.embed()
         return segments
 
     # Default colors equally spaced on [0,1]:
