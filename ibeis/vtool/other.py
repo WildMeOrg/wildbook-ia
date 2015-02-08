@@ -99,6 +99,45 @@ def iter_reduce_ufunc(ufunc, arr_iter, initial=None):
     return out
 
 
+def clipnorm(arr, min_, max_, out=None):
+    """
+    normalizes arr to the range 0 to 1 using min_ and max_ as clipping bounds
+    """
+    out_args = tuple() if out is None else (out,)
+    arr_ = np.subtract(arr, min_, *out_args)
+    arr_ = np.divide(arr_, max_ - min_, *out_args)
+    arr_ = np.clip(arr_, 0.0, 1.0, *out_args)
+    return arr_
+
+
+def componentwise_dot(arr1, arr2):
+    """
+    a dot product is a componentwise multiplication of
+    two vector and then a sum.
+
+    Args:
+        arr1 (ndarray)
+        arr2 (ndarray):
+
+    Returns:
+        ndarray: cosangle
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> np.random.seed(0)
+        >>> arr1 = np.random.rand(3, 128)
+        >>> arr1 = arr1 / np.linalg.norm(arr1, axis=1)[:, None]
+        >>> arr2 = arr1
+        >>> cosangle = componentwise_dot(arr1, arr2)
+        >>> result = str(cosangle)
+        >>> print(result)
+        [ 1.  1.  1.]
+    """
+    cosangle = np.multiply(arr1, arr2).sum(axis=-1).T
+    return cosangle
+
+
 if __name__ == '__main__':
     """
     CommandLine:
