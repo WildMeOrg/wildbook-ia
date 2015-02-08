@@ -91,6 +91,7 @@ def matplotlib_version():
 @checkinfo('2.4.8')
 def opencv_version():
     import cv2
+    #print(cv2.getBuildInformation())
     return module_stdinfo_dict(cv2, libdep=utool.get_dynlib_dependencies(cv2.__file__))
 
 

@@ -3,10 +3,12 @@ import utool
 import utool as ut
 import six
 import numpy as np
+import vtool as vt
 import vtool.linalg as ltool
-from six.moves import zip
 import functools
+from ibeis.model.hots import scoring
 from ibeis.model.hots import hstypes
+from six.moves import zip
 print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[nnweight]')
 
 
@@ -138,7 +140,7 @@ def componentwise_uint8_dot(qfx2_qvec, qfx2_dvec):
     """
     arr1 = qfx2_qvec.astype(np.float32)
     arr2 = qfx2_dvec.astype(np.float32)
-    cosangle = np.multiply(arr1, arr2).sum(axis=-1).T / hstypes.PSEUDO_UINT8_MAX_SQRD
+    cosangle = vt.componentwise_dot(arr1, arr2) / hstypes.PSEUDO_UINT8_MAX_SQRD
     return cosangle
 
 
@@ -198,11 +200,9 @@ def cos_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
         qfx2_qvec = qreq_.ibs.get_annot_vecs(qaid)[np.newaxis, :, :]
         # database forground weights
         qfx2_dvec = qreq_.indexer.get_nn_vecs(qfx2_idx.T[0:K])
-        # Component-wise dot product
-        qfx2_cos = componentwise_uint8_dot(qfx2_qvec, qfx2_dvec)
-        # Selectivity function
-        alpha = 3
-        qfx2_cosweight = np.multiply(np.sign(qfx2_cos), np.power(qfx2_cos, alpha))
+        # Component-wise dot product + selectivity function
+        alpha = 3.0
+        qfx2_cosweight = scoring.sift_selectivity_score(qfx2_qvec, qfx2_dvec, alpha)
         qaid2_cos_weight[qaid] = qfx2_cosweight
     return qaid2_cos_weight
 
