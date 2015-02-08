@@ -50,7 +50,6 @@ CommandLine:
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range
 import six
-from collections import defaultdict
 import numpy as np
 import vtool as vt
 from vtool import keypoint as ktool
@@ -68,79 +67,9 @@ import utool as ut
 print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[pipeline]', DEBUG=False)
 
 
+# TODO: chimatch should really be an object that moves through the pipeline
 ChipMatch = hstypes.ChipMatch
 
-
-@profile
-def _fix_chipmatch(chipmatch_):
-    """
-    removes matches without enough support
-    enforces type and shape of arrays
-
-    CommandLine:
-        python -m ibeis.model.hots.pipeline --test-_fix_chipmatch
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> from ibeis.model.hots.pipeline import _fix_chipmatch  # NOQA
-        >>> # build test data
-        >>> chipmatch_ = (
-        ...    {1: [(0, 0), (1, 1)], 2: [(0, 0), (1, 1), (2, 2)]},
-        ...    {1: [    .5,     .7], 2: [    .2,     .4,     .6]},
-        ...    {1: [     1,      1], 2: [     1,      1,      1]},
-        ...    None,
-        ...    None,
-        ...    )
-        >>> # execute function
-        >>> chipmatch = _fix_chipmatch(chipmatch_)
-        >>> # verify results
-        >>> result_full = ut.dict_str(chipmatch._asdict())
-        >>> print(result_full)
-        >>> result = ut.hashstr(result_full)
-        >>> print(result)
-        7272n6vxvb%a%ove
-
-    """
-    (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = chipmatch_
-    minMatches = 2  # TODO: paramaterize
-    # FIXME: This is slow
-    fm_dtype  = hstypes.FM_DTYPE
-    fsv_dtype = hstypes.FS_DTYPE
-    fk_dtype  = hstypes.FK_DTYPE
-    # Mark valid chipmatches
-    aid_list_     = list(six.iterkeys(aid2_fm_))
-    fm_list_      = list(six.itervalues(aid2_fm_))
-    isvalid_list_ = [len(fm) > minMatches for fm in fm_list_]
-    # Filter invalid chipmatches
-    aid_list   = ut.filter_items(aid_list_, isvalid_list_)
-    fm_list    = ut.filter_items(fm_list_, isvalid_list_)
-    fsv_list   = ut.dict_take(aid2_fsv_, aid_list)
-    fk_list    = ut.dict_take(aid2_fk_, aid_list)
-    score_list = None if aid2_score_ is None or len(aid2_score_) == 0 else ut.dict_take(aid2_score_, aid_list)
-    H_list     = None if aid2_H_ is None else ut.dict_take(aid2_H_, aid_list)
-    # Convert to numpy an dictionary format
-    aid2_fm    = {aid: np.array(fm, fm_dtype) for aid, fm in zip(aid_list, fm_list)}
-    aid2_fsv   = {aid: np.array(fsv, fsv_dtype) for aid, fsv in zip(aid_list, fsv_list)}
-    aid2_fk    = {aid: np.array(fk, fk_dtype) for aid, fk in zip(aid_list, fk_list)}
-    aid2_score = {} if score_list is None else {aid: score for aid, score in zip(aid_list, score_list)}
-    aid2_H     = None if H_list is None else {aid: H for aid, H in zip(aid_list, H_list)}
-    # Ensure shape
-    #for aid, fm in six.iteritems(aid2_fm_):
-    #    fm.shape = (fm.size // 2, 2)
-    chipmatch = ChipMatch(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
-    return chipmatch
-
-
-def new_chipmatch(with_homog=False, with_score=True):
-    """ returns new chipmatch for a single qaid """
-    aid2_fm = defaultdict(list)
-    aid2_fsv = defaultdict(list)
-    aid2_fk = defaultdict(list)
-    aid2_score = dict() if with_score else None
-    aid2_H = dict() if with_homog else None
-    chipmatch = ChipMatch(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
-    return chipmatch
 
 #=================
 # Globals
@@ -904,7 +833,7 @@ def build_chipmatches(qreq_, qaid2_nns, qaid2_nnvalid0, qaid2_nnfilts, qaid2_nnf
         assert len(external_qaids) == 1, 'vsone can only accept one external qaid'
         extern_qaid = external_qaids[0]
         # these dict keys are external daids
-        chipmatch_ = new_chipmatch(with_homog=False)
+        chipmatch_ = hstypes.new_chipmatch(with_homog=False)
         (daid2_fm, daid2_fsv, daid2_fk, aid2_score, daid2_H) = chipmatch_
         #ut.embed()
         # External daids are internal qaids in vsone
@@ -924,7 +853,7 @@ def build_chipmatches(qreq_, qaid2_nns, qaid2_nnvalid0, qaid2_nnfilts, qaid2_nnf
             daid2_fsv[extern_daid] = fsv
             daid2_fk[extern_daid] = fk
         # Vsone finalization
-        chipmatch = _fix_chipmatch(chipmatch_)
+        chipmatch = hstypes.fix_chipmatch(chipmatch_)
         # build vsone dict output
         qaid2_chipmatch = {extern_qaid: chipmatch}
     else:
@@ -954,7 +883,7 @@ def append_chipmatch_vsone_nonagg(valid_match_tup):
 
 def append_chipmatch_vsmany_nonagg(valid_match_tup):
     # NEW WAY OF DOING THINGS
-    chipmatch = new_chipmatch(with_homog=False)
+    chipmatch = hstypes.new_chipmatch(with_homog=False)
     aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H = chipmatch
     # TODO: Sorting the valid lists by aid might help the speed of this
     # code. Also, consolidating fm, fsv, and fk into one vector will reduce
@@ -966,7 +895,7 @@ def append_chipmatch_vsmany_nonagg(valid_match_tup):
         aid2_fm[daid].append(fm)
         aid2_fsv[daid].append(fsv)
         aid2_fk[daid].append(fk)
-    chipmatch = _fix_chipmatch(chipmatch)
+    chipmatch = hstypes.fix_chipmatch(chipmatch)
     return chipmatch
 
 
@@ -1034,7 +963,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, nnfilts):
         >>> (qfx2_score_agg, qfx2_valid_agg) = nnfiltagg
         >>> # execute function
         >>> valid_match_tup = get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, nnfilts)
-        >>> (fm, fsv, fk, H) = append_chipmatch_vsone_nonagg(valid_match_tup)
+        >>> (fm, fsv, fk, _, H) = append_chipmatch_vsone_nonagg(valid_match_tup)
         >>> ut.assert_eq(H, None, 'no H yet')
         >>> ut.assert_eq(fm.shape[1], 2, 'column for (qfx, dfx)')
         >>> #ut.assert_eq(fm.shape[0], fk.shape[0], 'one rank for every match')
@@ -1171,7 +1100,7 @@ def _internal_sver(qreq_, kpts1, topx2_aid, topx2_kpts, topx2_dlen_sqrd,
     # unpack chipmatch
     (daid2_fm, daid2_fsv, daid2_fk, daid2_score, daid2_H) = chipmatch
     # Precompute sver chipmatch
-    chipmatchSV_ = new_chipmatch(with_homog=True)
+    chipmatchSV_ = hstypes.new_chipmatch(with_homog=True)
     (daid2_fm_V, daid2_fsv_V, daid2_fk_V, daid2_score_V, daid2_H_V) = chipmatchSV_
     # dbg info (can remove if there is a speed issue)
     daid2_svtup = {} if qreq_.qparams.with_metadata else None
@@ -1219,7 +1148,7 @@ def _internal_sver(qreq_, kpts1, topx2_aid, topx2_kpts, topx2_dlen_sqrd,
             daid2_fk_V[daid]  = fk_SV
             daid2_H_V[daid]   = H
             #nFeatMatchSVAff += len(aff_inliers)
-    chipmatchSV = _fix_chipmatch(chipmatchSV_)
+    chipmatchSV = hstypes.fix_chipmatch(chipmatchSV_)
     return chipmatchSV, daid2_svtup
 
 

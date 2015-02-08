@@ -632,7 +632,7 @@ class RerankVsOneConfig(ConfigBase):
         param_info_list = [
             PI('rrvsone_on', False, ''),
             PI('nNameShortlistVsone', 5, 'nNm='),
-            PI('nAnnotPerName', 4, 'nApN='),
+            PI('nAnnotPerName', 2, 'nApN='),
             # spatially constrained matching
             PI('scr_xy_thresh', .05, 'xy>'),
             PI('scr_ratio_thresh', .7, 'rat>'),
