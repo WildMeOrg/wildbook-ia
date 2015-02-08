@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
+from six import next
 from six.moves import zip, range  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[other]', DEBUG=False)
 
@@ -77,6 +78,25 @@ def zipcompress(arr_list, flags_list, axis=None):
 
 def ziptake(arr_list, indicies_list, axis=None):
     return [arr.take(indicies, axis=axis) for arr, indicies in zip(arr_list, indicies_list)]
+
+
+def iter_reduce_ufunc(ufunc, arr_iter, initial=None):
+    """
+    constant memory iteration and reduction
+
+    applys ufunc from left to right over the input arrays
+
+    """
+    if initial is None:
+        try:
+            out = next(arr_iter).copy()
+        except StopIteration:
+            return None
+    else:
+        out = initial
+    for arr in arr_iter:
+        ufunc(out, arr, out=out)
+    return out
 
 
 if __name__ == '__main__':

@@ -235,7 +235,7 @@ class SimpleMatcher(object):
                 kpts2_m = kpts2.take(_fm.T[1], axis=0)
                 chipshape2 = rchip2.shape
                 chipsize2 = chipshape2[0:2][::-1]
-                coverage_mask, patch = coverage_image.make_coverage_mask(kpts2_m, chipsize2, fx2_score=_fs)
+                coverage_mask = coverage_image.make_kpts_coverage_mask(kpts2_m, chipsize2, fx2_score=_fs, resize=True, return_patch=False)
                 pt.imshow(coverage_mask * 255, pnum=pnum, fnum=fnum)
             else:
                 if kwargs.get('norm', False):
