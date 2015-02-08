@@ -776,13 +776,13 @@ python -m ibeis.model.hots.distinctiveness_normalizer --test-test_single_annot_d
 python -m vtool.patch --test-test_show_gaussian_patches2 --show
 
 # Test Keypoint Coverage
-python -m vtool.coverage_image --test-make_coverage_mask --show
-python -m vtool.coverage_image --test-gridsearch_kpts_coverage_mask --show
+python -m vtool.coverage_kpts --test-make_coverage_mask --show
+python -m vtool.coverage_kpts --test-gridsearch_kpts_coverage_mask --show
 
 # Test Grid Coverage
 python -m vtool.coverage_grid --test-sparse_grid_coverage --show
-python -m vtool.coverage_image --test-gridsearch_coverage_grid --show
-python -m vtool.coverage_image --test-gridsearch_coverage_grid_mask --show
+python -m vtool.coverage_grid --test-gridsearch_coverage_grid --show
+python -m vtool.coverage_grid --test-gridsearch_coverage_grid_mask --show
 
 
 # TODO: 

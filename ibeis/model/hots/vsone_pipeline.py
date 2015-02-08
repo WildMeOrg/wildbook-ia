@@ -26,8 +26,9 @@ import vtool as vt
 from ibeis.model.hots import name_scoring
 from ibeis.model.hots import hstypes
 #import pyflann
-#from ibeis.model.hots import coverage_image
-from vtool import coverage_image
+#from ibeis.model.hots import coverage_kpts
+from vtool import coverage_kpts
+from vtool import coverage_grid
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 from ibeis.model.hots import distinctiveness_normalizer
 import utool as ut
@@ -317,7 +318,7 @@ def compute_image_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config=
     qkpts     = ibs.get_annot_kpts(qaid)
     mode = 'max'
     weights = (qfgweight * qdstncvs) ** .5
-    weight_mask = coverage_image.make_kpts_coverage_mask(
+    weight_mask = coverage_kpts.make_kpts_coverage_mask(
         qkpts, qchipsize, fx2_score=weights, mode=mode, resize=False,
         return_patch=False)
     # Apply weighted scoring to matches
@@ -328,7 +329,7 @@ def compute_image_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config=
         qdstncvs_m  = qdstncvs.take(fm.T[0], axis=0)
         qfgweight_m = qfgweight.take(fm.T[0], axis=0)
         weights_m   = fs * qdstncvs_m * qfgweight_m
-        weight_mask_m, patch = coverage_image.make_kpts_coverage_mask(
+        weight_mask_m, patch = coverage_kpts.make_kpts_coverage_mask(
             qkpts_m, qchipsize, fx2_score=weights_m, mode=mode, resize=False)
         coverage_score = weight_mask_m.sum() / weight_mask.sum()
         score_list.append(coverage_score)
@@ -366,7 +367,7 @@ def compute_grid_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config={
     )
     #exec(ut.util_dbg.execstr_dict(gridcfg), globals(), locals())
     # 100 loops, best of 3: 10.9 ms per loop
-    weight_mask = coverage_image.make_grid_coverage_mask(kpts, chipsize, weights, **gridcfg)
+    weight_mask = coverage_grid.make_grid_coverage_mask(kpts, chipsize, weights, **gridcfg)
     # Prealloc data for loop
     weight_mask_m = weight_mask.copy()
     # Apply weighted scoring to matches
@@ -377,7 +378,7 @@ def compute_grid_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config={
         qdstncvs_m  = qdstncvs.take(fm.T[0], axis=0)
         qfgweight_m = qfgweight.take(fm.T[0], axis=0)
         weights_m   = fs * qdstncvs_m * qfgweight_m
-        weight_mask_m = coverage_image.make_grid_coverage_mask(
+        weight_mask_m = coverage_grid.make_grid_coverage_mask(
             qkpts_m, chipsize, weights_m, out=weight_mask_m, **gridcfg)  # 4% of the time
         coverage_score = weight_mask_m.sum() / weight_mask.sum()
         score_list.append(coverage_score)
@@ -550,13 +551,13 @@ def show_annot_weights(ibs, aid, mode='dstncvs'):
         #print(fx2_weight)
         fx2_score = fx2_score * fx2_weight
     fx2_score **= 1.0 / len(key_list)  # geometric average
-    #mask, patch = coverage_image.make_kpts_coverage_mask(
+    #mask, patch = coverage_kpts.make_kpts_coverage_mask(
     #    kpts, chipshape, fx2_score=fx2_score, mode='max')
-    mask = coverage_image.make_grid_coverage_mask(
+    mask = coverage_grid.make_grid_coverage_mask(
         kpts, chipsize, fx2_score, grid_scale_factor=.5, grid_steps=2, grid_sigma=3.0,
         resize=True)
     #mask = (mask / mask.max()) ** 2
-    coverage_image.show_coverage_map(chip, mask, None, kpts, fnum, ell_alpha=.2, show_mask_kpts=False)
+    coverage_kpts.show_coverage_map(chip, mask, None, kpts, fnum, ell_alpha=.2, show_mask_kpts=False)
     pt.set_figtitle(mode)
 
 

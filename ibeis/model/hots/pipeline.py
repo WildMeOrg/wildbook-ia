@@ -58,7 +58,7 @@ from vtool import spatial_verification as sver
 from ibeis.model.hots import name_scoring
 from ibeis.model.hots import hots_query_result
 from ibeis.model.hots import hstypes
-#from ibeis.model.hots import coverage_image
+#from ibeis.model.hots import coverage_kpts
 from ibeis.model.hots import nn_weights
 from ibeis.model.hots import voting_rules2 as vr2
 from ibeis.model.hots import exceptions as hsexcept
@@ -1677,7 +1677,7 @@ def score_chipmatch(qreq_, qaid, chipmatch, score_method):
     #elif score_method.startswith('coverage'):
     #    # Method num is at the end of coverage
     #    method = int(score_method.replace('coverage', '0'))
-    #    daid2_score = coverage_image.score_chipmatch_coverage(qaid, chipmatch, qreq_, method=method)
+    #    daid2_score = coverage_kpts.score_chipmatch_coverage(qaid, chipmatch, qreq_, method=method)
     else:
         raise Exception('[hs] unknown scoring method:' + score_method)
 
