@@ -248,10 +248,48 @@ def nearest_point(x, y, pts, mode='random'):
 
 
 def intersect2d_indicies(A, B):
-    A_, B_, C_  = intersect2d_structured_numpy(A, B)
-    ax_list = np.flatnonzero(flag_intersection(A_, C_))
-    bx_list = np.flatnonzero(flag_intersection(A_, B_))
+    r"""
+    Args:
+        A (ndarray[ndims=2]):
+        B (ndarray[ndims=2]):
+
+    Returns:
+        tuple: (ax_list, bx_list)
+
+    CommandLine:
+        python -m vtool.linalg --test-intersect2d_indicies
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> # build test data
+        >>> A = np.array([[ 158,  171], [ 542,  297], [ 955, 1113], [ 255, 1254], [ 976, 1255], [ 170, 1265]])
+        >>> B = array([[ 117,  211], [ 158,  171], [ 255, 1254], [ 309,  328], [ 447, 1148], [ 750,  357], [ 976, 1255]])
+        >>> # execute function
+        >>> (ax_list, bx_list) = intersect2d_indicies(A, B)
+        >>> # verify results
+        >>> result = str((ax_list, bx_list))
+        >>> print(result)
+        (array([0, 3, 4]), array([1, 2, 6]))
+    """
+    flag_list1, flag_list2 = intersect2d_flags(A, B)
+    ax_list = np.flatnonzero(flag_list1)
+    bx_list = np.flatnonzero(flag_list2)
     return ax_list, bx_list
+
+
+def intersect2d_flags(A, B):
+    A_, B_, C_  = intersect2d_structured_numpy(A, B)
+    flag_list1 = flag_intersection(A_, C_)
+    flag_list2 = flag_intersection(B_, C_)
+    return flag_list1, flag_list2
+
+
+def flag_intersection(X_, C_):
+    if X_.size == 0 or C_.size == 0:
+        return np.empty((0,), dtype=np.bool)
+    flags = np.logical_or.reduce([X_ == c for c in C_]).T[0]
+    return flags
 
 
 def intersect2d_structured_numpy(A, B, assume_unique=False):
@@ -271,13 +309,6 @@ def intersect2d_structured_numpy(A, B, assume_unique=False):
     #                       B.copy().view(dtype),
     #                       assume_unique=assume_unique)
     return A_, B_, C_
-
-
-def flag_intersection(X_, C_):
-    if X_.size == 0 or C_.size == 0:
-        return np.empty((0,), dtype=np.bool)
-    flags = np.logical_or.reduce([X_ == c for c in C_]).T[0]
-    return flags
 
 
 def intersect2d_numpy(A, B, assume_unique=False, return_indicies=False):

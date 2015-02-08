@@ -184,7 +184,7 @@ def warp_patch_onto_kpts(kpts, patch, chipshape, weights=None, **kwargs):
         >>>     pt.show_if_requested()
     """
     import vtool as vt
-    cov_scale_factor = kwargs.get('cov_scale_factor', .25)
+    cov_scale_factor = kwargs.get('cov_scale_factor', .2)
     cov_agg_mode = kwargs.get('cov_agg_mode', 'max')
     #if len(kpts) == 0:
     #    return None
@@ -279,9 +279,9 @@ def get_gaussian_weight_patch(gauss_shape=(19, 19), gauss_sigma_frac=.3, gauss_n
 def get_coverage_kpts_gridsearch_configs():
     varied_dict = {
         'cov_agg_mode'           : ['max', 'sum'],
-        'cov_blur_ksize'        : [(19, 19), (5, 5)],
+        'cov_blur_ksize'         : [(19, 19), (5, 5)],
         'cov_blur_on'            : [True, False],
-        'cov_blur_sigma'        : [5.0],
+        'cov_blur_sigma'         : [5.0],
         'cov_remove_scale'       : [True],
         'cov_remove_shape'       : [False, True],
         'cov_scale_factor'       : [.3],
