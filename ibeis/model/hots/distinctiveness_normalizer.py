@@ -270,7 +270,7 @@ class DistinctivnessNormalizer(ut.Cachable):
 
         """
         dcvs_K = kwargs.get('dcvs_K', 2)
-        assert dcvs_K > 0 and dcvs_K < len(dstcnvs_normer.vecs)
+        assert dcvs_K > 0 and dcvs_K < len(dstcnvs_normer.vecs), 'dcvs_K=%r' % (dcvs_K,)
         if len(qfx2_vec) == 0:
             (qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.empty_neighbors(0, dcvs_K)
         else:

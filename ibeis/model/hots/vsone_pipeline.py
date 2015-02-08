@@ -316,21 +316,32 @@ def compute_image_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config=
     # Denominator weight mask
     qchipsize = ibs.get_annot_chipsizes(qaid)
     qkpts     = ibs.get_annot_kpts(qaid)
-    mode = 'max'
+    kptscov_cfg = {
+        'cov_agg_mode'           : 'max',
+        'cov_blur_ksize'         : (19, 19),
+        'cov_blur_on'            : True,
+        'cov_blur_sigma'         : 5.0,
+        'cov_remove_scale'       : True,
+        'cov_remove_shape'       : True,
+        'cov_scale_factor'       : .2,
+        'cov_size_penalty_frac'  : .1,
+        'cov_size_penalty_on'    : True,
+        'cov_size_penalty_power' : .5,
+    }
     weights = (qfgweight * qdstncvs) ** .5
     weight_mask = coverage_kpts.make_kpts_coverage_mask(
-        qkpts, qchipsize, fx2_score=weights, mode=mode, resize=False,
-        return_patch=False)
+        qkpts, qchipsize, weights, resize=False,
+        return_patch=False, **kptscov_cfg)
     # Apply weighted scoring to matches
     score_list = []
-    for fm, fs, ddstncvs, dfgweight in zip(fm_list, fs_list):
+    for fm, fs in zip(fm_list, fs_list):
         # Get matching query keypoints
         qkpts_m     = qkpts.take(fm.T[0], axis=0)
         qdstncvs_m  = qdstncvs.take(fm.T[0], axis=0)
         qfgweight_m = qfgweight.take(fm.T[0], axis=0)
         weights_m   = fs * qdstncvs_m * qfgweight_m
         weight_mask_m, patch = coverage_kpts.make_kpts_coverage_mask(
-            qkpts_m, qchipsize, fx2_score=weights_m, mode=mode, resize=False)
+            qkpts_m, qchipsize, weights_m, resize=False, **kptscov_cfg)
         coverage_score = weight_mask_m.sum() / weight_mask.sum()
         score_list.append(coverage_score)
     del weight_mask
@@ -360,26 +371,30 @@ def compute_grid_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config={
     #mode = 'max'
     # Foregroundness*Distinctiveness weight mask
     weights = (qfgweight * qdstncvs) ** .5
-    gridcfg = dict(
-        resize=False,
-        grid_scale_factor=config.get('grid_scale_factor', .2),
-        grid_steps=config.get('grid_steps', 2),
-    )
+    gridcov_cfg = {
+        'grid_scale_factor' : config.get('grid_scale_factor', .2),
+        'grid_steps'        : config.get('grid_steps', 2),
+        'grid_sigma'        : config.get('grid_sigma', 1.6),
+    }
+    #    resize=False,
+    #    grid_scale_factor=config.get('grid_scale_factor', .2),
+    #    grid_steps=config.get('grid_steps', 2),
+    #)
     #exec(ut.util_dbg.execstr_dict(gridcfg), globals(), locals())
     # 100 loops, best of 3: 10.9 ms per loop
-    weight_mask = coverage_grid.make_grid_coverage_mask(kpts, chipsize, weights, **gridcfg)
+    weight_mask = coverage_grid.make_grid_coverage_mask(kpts, chipsize, weights, resize=False, **gridcov_cfg)
     # Prealloc data for loop
     weight_mask_m = weight_mask.copy()
     # Apply weighted scoring to matches
     score_list = []
-    for fm, fs, ddstncvs, dfgweight in zip(fm_list, fs_list):
+    for fm, fs in zip(fm_list, fs_list):
         # Get matching query keypoints
         qkpts_m     = qkpts.take(fm.T[0], axis=0)
         qdstncvs_m  = qdstncvs.take(fm.T[0], axis=0)
         qfgweight_m = qfgweight.take(fm.T[0], axis=0)
         weights_m   = fs * qdstncvs_m * qfgweight_m
         weight_mask_m = coverage_grid.make_grid_coverage_mask(
-            qkpts_m, chipsize, weights_m, out=weight_mask_m, **gridcfg)  # 4% of the time
+            qkpts_m, chipsize, weights_m, out=weight_mask_m, resize=False, **gridcov_cfg)  # 4% of the time
         coverage_score = weight_mask_m.sum() / weight_mask.sum()
         score_list.append(coverage_score)
     return score_list
@@ -422,10 +437,10 @@ def get_kpts_distinctiveness(ibs, aid_list, config={}):
                    for species in species_text_list]
 
     dcvs_kw = {
-        'dcvs_K'        : config.get('dcvs_K'),
-        'dcvs_power'    : config.get('dcvs_power'),
-        'dcvs_min_clip' : config.get('dcvs_min_clip'),
-        'dcvs_max_clip' : config.get('dcvs_max_clip'),
+        'dcvs_K'        : config.get('dcvs_K', 5),
+        'dcvs_power'    : config.get('dcvs_power', 1),
+        'dcvs_min_clip' : config.get('dcvs_min_clip', .2),
+        'dcvs_max_clip' : config.get('dcvs_max_clip', .3),
     }
 
     # Reduce to get results

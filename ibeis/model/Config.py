@@ -639,7 +639,7 @@ class RerankVsOneConfig(ConfigBase):
             PI('scr_normalizer_mode', 'far', ''),
             PI('scr_K', 7, 'scK'),
             # grid scoring
-            PI('grid_scale_factor', .25, 'sf'),
+            PI('grid_scale_factor', .2, 'sf'),
             PI('grid_steps', 3, 'stps'),
             PI('grid_sigma', 1.6, 'sigma'),
             # distinctiveness

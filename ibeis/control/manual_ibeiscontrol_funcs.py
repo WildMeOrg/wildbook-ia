@@ -131,7 +131,7 @@ from ibeis.control import accessor_decors
 
 #@ut.time_func
 @register_ibs_method
-def get_annot_kpts_distinctiveness(ibs, aid_list, dstncvs_normer=None):
+def get_annot_kpts_distinctiveness(ibs, aid_list, dstncvs_normer=None, **kwargs):
     """
     very hacky, but cute way to cache keypoint distinctivness
 
@@ -164,7 +164,7 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, dstncvs_normer=None):
     """
     cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False, eager=True, nInput=None)
     fid_list = ibs.get_chip_fids(cid_list, ensure=False, eager=True, nInput=None)
-    dstncvs_list = get_feat_kpts_distinctiveness(ibs, fid_list, dstncvs_normer=dstncvs_normer)
+    dstncvs_list = get_feat_kpts_distinctiveness(ibs, fid_list, dstncvs_normer=dstncvs_normer, **kwargs)
     return dstncvs_list
 
 
