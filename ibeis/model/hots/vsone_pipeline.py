@@ -1,7 +1,6 @@
 """
 special pipeline for vsone specific functions
 
-
 Current Issues:
     * getting feature distinctiveness is too slow, we can either try a different
       model, or precompute feature distinctiveness.
@@ -10,18 +9,14 @@ Current Issues:
 
 TODOLIST:
     * Precompute distinctivness
-    * Paramatarize
-     - grid / image coverage
-     - image cov params
-     - grid cov params
-     - scr-vsone / rat-vsone
-     - scr-params
-     - rat-params
-
-     - true-pos-score in qres
-     - false-neg-score in qres
-     - false-pos-score in qres
-
+    * keep feature matches from vsmany (allow prior_fm)
+    * Each keypoint gets
+      - foregroundness
+      - global distinctivness (databasewide) LNBNN
+      - local distinctivness (imagewide) RATIO
+      - regional match quality (descriptor based) COS
+    * Circular hesaff keypoints
+    * Asymetric weight scoring
 """
 from __future__ import absolute_import, division, print_function
 import six
@@ -62,18 +57,9 @@ def vsone_reranking(qreq_, qaid2_chipmatch, verbose=False):
         >>>     import plottool as pt
         >>>     show_top_chipmatches(qreq_.ibs, qaid2_chipmatch_VSONE)
         >>>     pt.show_if_requested()
-
-    Ignore:
-        max_depth = None
-        max_depth2 = 1
-        print(ut.depth_profile(Hs_list, 0))
-        print(ut.depth_profile(scores_list, max_depth))
-        print(ut.depth_profile(daid_list, max_depth))
-        print(ut.depth_profile(fms_list, max_depth2))
-        print(ut.depth_profile(fsvs_list, max_depth))
     """
     # First find a shortlist to execute vsone reranking on
-    qaid_list, daids_list, Hs_list = make_vsone_rerank_pairs(qreq_, qaid2_chipmatch)  # NOQA
+    qaid_list, daids_list, Hs_list = make_rerank_pair_shortlist(qreq_, qaid2_chipmatch)  # NOQA
     # Then execute vsone reranking
     vsone_res_tup = execute_vsone_reranking(qreq_, qaid_list, daids_list, Hs_list)
     # Format the output into chipmatches
@@ -94,12 +80,12 @@ def vsone_reranking(qreq_, qaid2_chipmatch, verbose=False):
 
 
 @profile
-def make_vsone_rerank_pairs(qreq_, qaid2_chipmatch):
+def make_rerank_pair_shortlist(qreq_, qaid2_chipmatch):
     """
     Makes shortlists for vsone reranking
 
     CommandLine:
-        python -m ibeis.model.hots.vsone_pipeline --test-make_vsone_rerank_pairs
+        python -m ibeis.model.hots.vsone_pipeline --test-make_rerank_pair_shortlist
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -110,13 +96,27 @@ def make_vsone_rerank_pairs(qreq_, qaid2_chipmatch):
         >>> qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
         >>> qaid = qreq_.get_external_qaids()[0]
         >>> chipmatch = qaid2_chipmatch[qaid]
-        >>> qaid_list, top_aids_list, top_Hs_list = make_vsone_rerank_pairs(qreq_, qaid2_chipmatch)
+        >>> # execute test function
+        >>> qaid_list, top_aids_list, top_Hs_list = make_rerank_pair_shortlist(qreq_, qaid2_chipmatch)
+        >>> # verify results
         >>> top_aid_list = top_aids_list[0]
         >>> top_nid_list = ibs.get_annot_name_rowids(top_aid_list)
         >>> print('top_aid_list = %r' % (top_aid_list,))
         >>> print('top_nid_list = %r' % (top_nid_list,))
         >>> assert top_nid_list.index(1) == 0, 'name 1 should be rank 1'
         >>> assert len(top_nid_list) == 5, 'should have 3 names and up to 2 image per name'
+
+    Ignore:
+        #vsone_query_pairs = make_rerank_pair_shortlist(qreq_, qaid2_chipmatch)
+        #ibs = qreq_.ibs
+        #for fnum, vsone_pair_tup in enumerate(vsone_query_pairs):
+        #    (qaid, daid_list, H_list) = vsone_pair_tup
+        #    nRows, nCols = pt.get_square_row_cols(len(daid_list))
+        #    next_pnum = pt.make_pnum_nextgen(*daid_list)
+        #    for daid in daid_list:
+        #        fm = qaid2_chipmatch[qaid].aid2_fm[daid]
+        #        H = qaid2_chipmatch[qaid].aid2_H[daid]
+        #        viz_sver.show_constrained_match(ibs, qaid, daid, H, fm, pnum=next_pnum())
     """
     from ibeis.model.hots import pipeline
     score_method = qreq_.qparams.score_method
@@ -285,8 +285,6 @@ def compute_query_constrained_matches(ibs, qaid, daid_list, H_list, config):
             ratio_thresh2, K, normalizer_mode)
         fm_SCR_list.append(fm_SCR)
         fs_SCR_list.append(fs_SCR)
-    del flann
-    #print('---------------- ;)(')
     return fm_SCR_list, fs_SCR_list
 
 
@@ -310,54 +308,29 @@ def compute_image_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config=
         >>> # verify results
         >>> result = str(score_list)
         >>> print(result)
-
-    Ignore:
-        import plottool as pt
-        pt.imshow(weight_mask * 255, update=True, fnum=2)
-        pt.imshow(weight_mask_m * 255, update=True, fnum=3)
-        pt.imshow(weight_color * 255, update=True, fnum=3)
     """
-    # Distinctivness Weight
-    #  Hits     Time     Per Hit    %Time
-    #     3      7213349 2404449.7     28.6
-    qdstncvs  = get_kpts_distinctiveness(ibs, [qaid], config=config)[0]
-    #  Hits     Time     Per Hit    %Time
-    #     3     14567165 4855721.7     57.8
-    ddstncvs_list  = get_kpts_distinctiveness(ibs, daid_list, config=config)
-    # Foreground weight
+    # Distinctivness and foreground weight
+    qdstncvs  = get_kpts_distinctiveness(ibs, [qaid])[0]
     qfgweight = ibs.get_annot_fgweights([qaid], ensure=True)[0]
-    dfgweight_list = ibs.get_annot_fgweights(daid_list, ensure=True)
-    # Make weight mask
+    # Denominator weight mask
     qchipsize = ibs.get_annot_chipsizes(qaid)
     qkpts     = ibs.get_annot_kpts(qaid)
     mode = 'max'
-    # Foregroundness*Distinctiveness weight mask
     weights = (qfgweight * qdstncvs) ** .5
-    #  Hits     Time     Per Hit    %Time
-    #    3      2298873 766291.0      9.1
-    print('==--==--==--==--==--==')
-    weight_mask, patch = coverage_image.make_coverage_mask(
-        qkpts, qchipsize, fx2_score=weights, mode=mode, resize=False)  # 9% of the time
+    weight_mask = coverage_image.make_kpts_coverage_mask(
+        qkpts, qchipsize, fx2_score=weights, mode=mode, resize=False,
+        return_patch=False)
     # Apply weighted scoring to matches
     score_list = []
-    for fm, fs, ddstncvs, dfgweight in zip(fm_list, fs_list, ddstncvs_list, dfgweight_list):
+    for fm, fs, ddstncvs, dfgweight in zip(fm_list, fs_list):
         # Get matching query keypoints
         qkpts_m     = qkpts.take(fm.T[0], axis=0)
-        ddstncvs_m  = ddstncvs.take(fm.T[1], axis=0)
-        dfgweight_m = dfgweight.take(fm.T[1], axis=0)
         qdstncvs_m  = qdstncvs.take(fm.T[0], axis=0)
         qfgweight_m = qfgweight.take(fm.T[0], axis=0)
-        weights_m = fs * np.sqrt(qdstncvs_m * ddstncvs_m) * np.sqrt(qfgweight_m * dfgweight_m)
-        # Hits     Time     Per Hit    %Time
-        #  46      1000214  21743.8      4.0
-        weight_mask_m, patch = coverage_image.make_coverage_mask(
-            qkpts_m, qchipsize, fx2_score=weights_m, mode=mode, resize=False)  # 4% of the time
-        #if True:
-        #    stacktup = (weight_mask, np.zeros(weight_mask.shape), weight_mask_m)
-        #    weight_color = np.dstack(stacktup)
+        weights_m   = fs * qdstncvs_m * qfgweight_m
+        weight_mask_m, patch = coverage_image.make_kpts_coverage_mask(
+            qkpts_m, qchipsize, fx2_score=weights_m, mode=mode, resize=False)
         coverage_score = weight_mask_m.sum() / weight_mask.sum()
-        del weights_m
-        del weight_mask_m
         score_list.append(coverage_score)
     del weight_mask
     return score_list
@@ -378,11 +351,8 @@ def compute_grid_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config={
         >>> score_list = compute_grid_coverage_score(ibs, qaid, daid_list, fm_list, fs_list)
         >>> print(score_list)
     """
-    qdstncvs  = get_kpts_distinctiveness(ibs, [qaid], config)[0]
-    ddstncvs_list  = get_kpts_distinctiveness(ibs, daid_list, config)
-    # Foreground weight
+    qdstncvs  = get_kpts_distinctiveness(ibs, [qaid])[0]
     qfgweight = ibs.get_annot_fgweights([qaid], ensure=True)[0]
-    dfgweight_list = ibs.get_annot_fgweights(daid_list, ensure=True)
     # Make weight mask
     chipsize = qchipsize = ibs.get_annot_chipsizes(qaid)  # NOQA
     kpts = qkpts = ibs.get_annot_kpts(qaid)  # NOQA
@@ -396,20 +366,18 @@ def compute_grid_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config={
     )
     #exec(ut.util_dbg.execstr_dict(gridcfg), globals(), locals())
     # 100 loops, best of 3: 10.9 ms per loop
-    weight_mask = coverage_image.get_grid_coverage_mask(kpts, chipsize, weights, **gridcfg)
+    weight_mask = coverage_image.make_grid_coverage_mask(kpts, chipsize, weights, **gridcfg)
     # Prealloc data for loop
     weight_mask_m = weight_mask.copy()
     # Apply weighted scoring to matches
     score_list = []
-    for fm, fs, ddstncvs, dfgweight in zip(fm_list, fs_list, ddstncvs_list, dfgweight_list):
+    for fm, fs, ddstncvs, dfgweight in zip(fm_list, fs_list):
         # Get matching query keypoints
         qkpts_m     = qkpts.take(fm.T[0], axis=0)
-        ddstncvs_m  = ddstncvs.take(fm.T[1], axis=0)
-        dfgweight_m = dfgweight.take(fm.T[1], axis=0)
         qdstncvs_m  = qdstncvs.take(fm.T[0], axis=0)
         qfgweight_m = qfgweight.take(fm.T[0], axis=0)
-        weights_m = fs * np.sqrt(qdstncvs_m * ddstncvs_m) * np.sqrt(qfgweight_m * dfgweight_m)
-        weight_mask_m = coverage_image.get_grid_coverage_mask(
+        weights_m   = fs * qdstncvs_m * qfgweight_m
+        weight_mask_m = coverage_image.make_grid_coverage_mask(
             qkpts_m, chipsize, weights_m, out=weight_mask_m, **gridcfg)  # 4% of the time
         coverage_score = weight_mask_m.sum() / weight_mask.sum()
         score_list.append(coverage_score)
@@ -480,7 +448,7 @@ def testdata_scoring():
     ibs, qreq_ = plh.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict, qaid_list=qaid_list)
     locals_ = plh.testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')
     qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
-    qaid_list, top_aids_list, top_Hs_list = make_vsone_rerank_pairs(qreq_, qaid2_chipmatch)
+    qaid_list, top_aids_list, top_Hs_list = make_rerank_pair_shortlist(qreq_, qaid2_chipmatch)
     qaid = qaid_list[0]
     daid_list = top_aids_list[0]
     H_list = top_Hs_list[0]
@@ -511,25 +479,15 @@ def show_top_chipmatches(ibs, qaid2_chipmatch, fnum_offset=0, figtitle=''):
             H = chipmatch.aid2_H[daid]
             score = chipmatch.aid2_score[daid]
             viz_sver.show_constrained_match(ibs, qaid, daid, H, fm, fnum=fnum, pnum=next_pnum())
-            if ibs.get_match_truth(qaid, daid):
-                pt.draw_border(pt.gca(), pt.TRUE_GREEN, 4)
+            truth = ibs.get_match_truth(qaid, daid)
+            color = {1: pt.TRUE_GREEN, 2: pt.UNKNOWN_PURP, 0: pt.FALSE_RED}[truth]
+            pt.draw_border(pt.gca(), color, 4)
             pt.set_title('score = %.3f' % (score,))
             #top_score_list = ut.dict_take(chipmatch.aid2_score, top_daid_list)
             #top_fm_list    = ut.dict_take(chipmatch.aid2_fm, top_daid_list)
             #top_fsv_list   = ut.dict_take(chipmatch.aid2_fsv, top_daid_list)
             #top_H_list     = ut.dict_take(chipmatch.aid2_H, top_daid_list)
         pt.set_figtitle('qaid=%r %s' % (qaid, figtitle))
-
-    #vsone_query_pairs = make_vsone_rerank_pairs(qreq_, qaid2_chipmatch)
-    #ibs = qreq_.ibs
-    #for fnum, vsone_pair_tup in enumerate(vsone_query_pairs):
-    #    (qaid, daid_list, H_list) = vsone_pair_tup
-    #    nRows, nCols = pt.get_square_row_cols(len(daid_list))
-    #    next_pnum = pt.make_pnum_nextgen(*daid_list)
-    #    for daid in daid_list:
-    #        fm = qaid2_chipmatch[qaid].aid2_fm[daid]
-    #        H = qaid2_chipmatch[qaid].aid2_H[daid]
-    #        viz_sver.show_constrained_match(ibs, qaid, daid, H, fm, pnum=next_pnum())
 
 
 def show_annot_weights(ibs, aid, mode='dstncvs'):
@@ -592,9 +550,9 @@ def show_annot_weights(ibs, aid, mode='dstncvs'):
         #print(fx2_weight)
         fx2_score = fx2_score * fx2_weight
     fx2_score **= 1.0 / len(key_list)  # geometric average
-    #mask, patch = coverage_image.make_coverage_mask(
+    #mask, patch = coverage_image.make_kpts_coverage_mask(
     #    kpts, chipshape, fx2_score=fx2_score, mode='max')
-    mask = coverage_image.get_grid_coverage_mask(
+    mask = coverage_image.make_grid_coverage_mask(
         kpts, chipsize, fx2_score, grid_scale_factor=.5, grid_steps=2, grid_sigma=3.0,
         resize=True)
     #mask = (mask / mask.max()) ** 2

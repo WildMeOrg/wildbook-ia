@@ -524,7 +524,7 @@ def test_single_annot_distinctiveness_params(ibs, aid):
     print('Varied Dict: ')
     print(ut.dict_str(varied_dict))
 
-    cfgdict_list, cfglbl_list = ut.make_constrained_cfg_and_lbl_list(varied_dict, None)
+    cfgdict_list, cfglbl_list = ut.make_constrained_cfg_and_lbl_list(varied_dict)
 
     # Get groundtruthish distinctivness map
     # for objective function
