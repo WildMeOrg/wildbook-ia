@@ -1507,9 +1507,10 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True):
         set_title(title)
 
 
-def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None, title=None,
+def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None,
+                    fm_norm=None, title=None,
                     vert=None, fnum=None, pnum=None, heatmap=False,
-                    draw_fmatch=True, **kwargs):
+                    draw_fmatch=True, darken=None, **kwargs):
     """
     Draws two chips and the feature matches between them. feature matches
     kpts1 and kpts2 use the (x,y,a,c,d)
@@ -1538,15 +1539,15 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None, title=None,
     xywh1 = (0, 0, w1, h1)
     xywh2 = (woff, hoff, w2, h2)
     # Show the stacked chips
-    fig, ax = imshow(match_img, title=title, fnum=fnum, pnum=pnum, heatmap=heatmap)
+    fig, ax = imshow(match_img, title=title, fnum=fnum, pnum=pnum, heatmap=heatmap, darken=darken)
     # Overlay feature match nnotations
     if draw_fmatch and kpts1 is not None and kpts2 is not None:
-        plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs, **kwargs)
+        plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs, fm_norm=fm_norm, **kwargs)
     return ax, xywh1, xywh2
 
 
 # plot feature match
-def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
+def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None, lbl2=None,
                 fnum=None, pnum=None, rect=False, colorbar_=True,
                 draw_border=False, cmap=None, H1=None, H2=None, **kwargs):
     """
@@ -1568,7 +1569,7 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
         draw_border (bool):
     """
     printDBG('[df2] plot_fmatch')
-    if fm is None:
+    if fm is None and fm_norm is None:
         assert kpts1.shape == kpts2.shape, 'shapes different or fm not none'
         fm = np.tile(np.arange(0, len(kpts1)), (2, 1)).T
     pts       = kwargs.get('draw_pts', False)
@@ -1576,7 +1577,6 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
     lines     = kwargs.get('draw_lines', True)
     ell_alpha = kwargs.get('ell_alpha', .4)
     nMatch = len(fm)
-    #printDBG('[df2.draw_fnmatch] nMatch=%r' % nMatch)
     x2, y2, w2, h2 = xywh2
     offset2 = (x2, y2)
     # THIS IS NOT WHERE THIS CODE BELONGS
@@ -1588,8 +1588,8 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
         if lbl2 is not None:
             absolute_lbl(x2 + w2, y2, lbl2)
     # Plot the number of matches
-    if kwargs.get('show_nMatches', False):
-        upperleft_text('#match=%d' % nMatch)
+    #if kwargs.get('show_nMatches', False):
+    #    upperleft_text('#match=%d' % nMatch)
     # Draw all keypoints in both chips as points
     if kwargs.get('all_kpts', False):
         all_args = dict(ell=False, pts=pts, pts_color=GREEN, pts_size=2,
@@ -1624,6 +1624,15 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
             _kwargs.update(kwargs)
             draw_lines2(kpts1, kpts2, fm, fs, kpts2_offset=offset2,
                         H1=H1, H2=H2, **_kwargs)
+            if fm_norm is not None:
+                # NORMALIZING MATCHES IF GIVEN
+                _kwargs_norm = _kwargs.copy()
+                if fs is not None:
+                    cmap = 'cool'
+                    colors = scores_to_color(fs, cmap)
+                _kwargs_norm['color_list'] = colors
+                draw_lines2(kpts1, kpts2, fm_norm, fs, kpts2_offset=offset2,
+                            H1=H1, H2=H2, **_kwargs_norm)
 
         if ell:
             _drawkpts(pts=False, ell=True, color_list=colors)
