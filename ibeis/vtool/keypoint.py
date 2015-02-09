@@ -104,14 +104,6 @@ def get_xys(kpts):
     return _xys
 
 
-def get_homog_xyzs(kpts_):
-    """ Keypoint locations in chip space """
-    _xys = get_xys(kpts_)
-    _zs = np.ones(len(kpts_), dtype=kpts_.dtype)
-    _xyzs = np.vstack((_xys, _zs))
-    return _xyzs
-
-
 def get_invVs(kpts):
     """ Keypoint shapes (oriented with the gravity vector) """
     _invVs = kpts.T[2:5]
@@ -690,7 +682,7 @@ def transform_kpts(kpts, M):
     return kpts_
 
 
-def transform_kpts_xys(kpts, H):
+def transform_kpts_xys(H, kpts):
     r"""
     Args:
         kpts (ndarray[float32_t, ndim=2]):  keypoints
@@ -712,10 +704,12 @@ def transform_kpts_xys(kpts, H):
         ...               [  2.,   3.,   6.],
         ...               [  1.,   1.,   2.]])
         >>> # execute function
-        >>> xy_t = transform_kpts_xys(kpts, H)
+        >>> xy_t = transform_kpts_xys(H, kpts)
         >>> # verify results
-        >>> result = str(xy_t)
+        >>> result = ut.numpy_str(xy_t, precision=3)
         >>> print(result)
+        np.array([[ 2.979,  2.982,  2.984,  2.984,  2.985],
+                  [ 2.574,  2.482,  2.516,  2.5  ,  2.508]])
 
     Ignore::
         %pylab qt4
@@ -724,10 +718,13 @@ def transform_kpts_xys(kpts, H):
         pt.draw_kpts2(kpts)
         pt.update()
     """
-    xyz   = get_homog_xyzs(kpts)
-    xyz_t = matrix_multiply(H, xyz)
-    xy_t  = ltool.homogonize(xyz_t)
+    xy = get_xys(kpts)
+    xy_t = ltool.transform_points_with_homography(H, xy)
     return xy_t
+    #xyz   = get_homog_xyzs(kpts)
+    #xyz_t = matrix_multiply(H, xyz)
+    #xy_t  = ltool.homogonize(xyz_t)
+    #return xy_t
 
 #---------------------
 # invV_mats functions
@@ -1330,7 +1327,7 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
     Args:
         kpts1 (ndarray[float32_t, ndim=2]):  keypoints
         kpts2 (ndarray[float32_t, ndim=2]):  keypoints
-        H (ndarray[float64_t, ndim=2]):  homography/perspective matrix
+        H (ndarray[float64_t, ndim=2]):  homography/perspective matrix mapping image 1 to image 2
         fx2_to_fx1 (ndarray): has shape (nMatch, K)
 
     Returns:
@@ -1375,9 +1372,22 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
          [  54.08322366  269.64496323   94.71123543  277.70556825]]
 
     """
+    DEBUG = True
+    if DEBUG:
+        try:
+            assert kpts2.shape[0] == fx2_to_fx1.shape[0]
+            assert kpts1.max() < fx2_to_fx1.max()
+        except AssertionError as ex:
+            ut.printex(ex, 'bad shape', keys=[
+                'kpts2.shape',
+                'kpts1.shape',
+                'fx2_to_fx1.shape',
+                'fx2_to_fx1.max()']
+            )
+            raise
     # Transform img1 keypoints into img2 space
     xy2    = get_xys(kpts2)
-    xy1_t = transform_kpts_xys(kpts1, H)
+    xy1_t = transform_kpts_xys(H, kpts1)
     # get spatial keypoint distance to all neighbor candidates
     bcast_xy2   = xy2[:, None, :].T
     bcast_xy1_t = xy1_t.T[fx2_to_fx1]

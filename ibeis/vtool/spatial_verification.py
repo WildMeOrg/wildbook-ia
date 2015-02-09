@@ -125,6 +125,7 @@ def compute_homog(xy1_mn, xy2_mn):
     Generate 6 degrees of freedom homography transformation
     Computes homography from normalized (0 to 1) point correspondences
     from 2 --> 1
+    (database->query)
 
     Args:
         xy1_mn (ndarray[ndim=2]): xy points in image1
@@ -462,6 +463,9 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     """
     Given a set of hypothesis inliers, computes a homography and refines inliers
 
+    CommandLine:
+        python -m vtool.spatial_verification --test-get_homography_inliers
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.spatial_verification import *  # NOQA
@@ -469,29 +473,22 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
         >>> import vtool.keypoint as ktool
         >>> kpts1, kpts2 = dummy.get_dummy_kpts_pair((100, 100))
         >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int32)
-
-    Timeit::
-        %timeit kpts1.take(fm.T[0].astype(np.int32), axis=0)
-        %timeit kpts1[fm.T[0]]
-
-        %timeit kpts1[fm.T[0]]
-        %timeit kpts2[fm.T[1]]
-        4.23 us per loop
-
-        %timeit kpts1[fm.take(0, axis=1)]
-        %timeit kpts2[fm.take(1, axis=1)]
-        5.32 us per loop
-
-        INDEX_TYPE = np.int32
-        %timeit kpts1.take(fm.take(0, axis=1), axis=0)
-        %timeit kpts2.take(fm.take(1, axis=1), axis=0)
-        2.77 us per loop
-
-        %timeit kpts1.take(fm.T[0], axis=0)
-        %timeit kpts2.take(fm.T[1], axis=0)
-        1.48 us per loop
+        >>> aff_inliers = np.arange(len(fm))
+        >>> xy_thresh_sqrd = .01 * ktool.get_kpts_dlen_sqrd(kpts2)
+        >>> homogtup = get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
+        >>> homog_inliers, homog_errors, H = homogtup
+        >>> result = ut.list_str(homogtup, precision=3)
+        >>> print(result)
+        (
+            np.array([0, 1, 2, 3, 4, 5, 6, 7, 8]),
+            (np.array([   4.365,    5.284,    3.294,   13.049,  114.46 ,   48.971,
+                        17.655,   25.825,    3.819]), None, None),
+            np.array([[  5.634e-01,  -2.962e-02,   4.428e+00],
+                      [ -4.209e-03,   5.579e-01,   2.536e+00],
+                      [ -7.448e-05,  -2.120e-04,   6.139e-01]]),
+        )
     """
-    fm_affine = fm[aff_inliers]
+    fm_affine = fm.take(aff_inliers, axis=0)
 
     kpts1_m = kpts1.take(fm.T[0], axis=0)
     kpts2_m = kpts2.take(fm.T[1], axis=0)
@@ -511,15 +508,15 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
 
     # Then compute ax = b  [aka: x = npl.solve(a, b)]
     H = npl.solve(T2, H_prime).dot(T1)  # Unnormalize
+
     # Transform all xy1 matches to xy2 space
-    xyz1_m  = ktool.get_homog_xyzs(kpts1_m)
-    xyz1_mt = ltool.matrix_multiply(H, xyz1_m)
-    xy1_mt  = ltool.homogonize(xyz1_mt)
+    xy1_mt  = ktool.transform_kpts_xys(H, kpts1_m)
     xy2_m   = ktool.get_xys(kpts2_m)
 
     # --- Find (Squared) Homography Distance Error ---
     # You cannot test for scale or orientation easilly here because
-    # you no longer have an ellipse when using a projective transformation
+    # you no longer have an ellipse? (maybe, probably have a conic) when using a
+    # projective transformation
     xy_err = dtool.L2_sqrd(xy1_mt.T, xy2_m.T)
     homog_errors = (xy_err, None, None)
     # Estimate final inliers
@@ -578,6 +575,11 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         >>>     aff_tup = (aff_inliers, Aff)
         >>>     pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup)
         >>>     pt.show_if_requested()
+        >>> result = ut.list_type_profile(svtup)
+        >>> #result = ut.list_str(svtup, precision=3)
+        >>> print(result)
+        tuple(numpy.ndarray, tuple(numpy.ndarray, NoneType, NoneType), numpy.ndarray, numpy.ndarray, tuple(numpy.ndarray*3), numpy.ndarray)
+
     """
     if ut.VERYVERBOSE:
         print('[sver] Starting spatial verification')
