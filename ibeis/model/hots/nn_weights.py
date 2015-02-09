@@ -4,7 +4,6 @@ import utool as ut
 import six
 import numpy as np
 import vtool as vt
-import vtool.linalg as ltool
 import functools
 from ibeis.model.hots import scoring
 from ibeis.model.hots import hstypes
@@ -496,7 +495,7 @@ def mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid=None):
     Kn = qfx2_normnid.shape[1]
     # Find the positions in the normalizers that could be valid (assumes Knorm > 1)
     # compare_matrix_columns is probably inefficient
-    qfx2_valid = True - ltool.compare_matrix_columns(qfx2_normnid, qfx2_topnid)
+    qfx2_valid = True - vt.compare_matrix_columns(qfx2_normnid, qfx2_topnid)
 
     if qnid is not None:
         # Mark self as invalid, if given that information

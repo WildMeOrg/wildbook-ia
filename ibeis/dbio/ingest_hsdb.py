@@ -28,7 +28,7 @@ def is_succesful_convert(dbdir):
 def get_unconverted_hsdbs(workdir=None):
     import os
     import numpy as np
-    from vtool import linalg as ltool
+    import vtool as vt
     if workdir is None:
         workdir = sysres.get_workdir()
     dbname_list = os.listdir(workdir)
@@ -38,7 +38,7 @@ def get_unconverted_hsdbs(workdir=None):
     if FORCE_DELETE:
         needs_convert = is_hsdb_list
     else:
-        needs_convert =  ltool.and_lists(is_hsdb_list, True - is_ibs_cvt_list)
+        needs_convert =  vt.and_lists(is_hsdb_list, True - is_ibs_cvt_list)
     needs_convert_hsdbs  = dbpath_list[needs_convert].tolist()
     return needs_convert_hsdbs
 
