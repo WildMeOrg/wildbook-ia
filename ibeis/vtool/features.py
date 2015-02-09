@@ -66,7 +66,7 @@ def get_extract_features_default_params():
         >>> print(result)
     """
     import pyhesaff
-    param_dict =  pyhesaff.get_hesaff_default_params()
+    param_dict = pyhesaff.get_hesaff_default_params()
     return param_dict
 
 
