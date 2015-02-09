@@ -32,7 +32,7 @@ def _draw_patches(ax, patch_list, color, alpha, lw, fcolor='none'):
 #----------------------------
 def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
                    ell=True, pts=False, rect=False, eig=False, ori=False,
-                   sifts=None, siftkw={}, **kwargs):
+                   sifts=None, siftkw={}, H=None, **kwargs):
     """
     draws keypoints extracted by pyhesaff onto a matplotlib axis
 
@@ -55,6 +55,9 @@ def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
 
     CommandLine:
         python -m plottool.mpl_keypoint --test-draw_keypoints --show
+
+    References:
+        http://stackoverflow.com/questions/28401788/using-homogeneous-transforms-non-affine-with-matplotlib-patches
 
     Example:
         >>> # DISABLE_DOCTEST

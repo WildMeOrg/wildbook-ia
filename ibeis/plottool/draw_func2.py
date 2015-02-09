@@ -1186,7 +1186,7 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
                ell=True, pts=False, rect=False, eig=False, ori=False,
                pts_size=2, ell_alpha=.6, ell_linewidth=1.5,
                ell_color=None, pts_color=ORANGE, color_list=None, pts_alpha=1.0,
-               siftkw={}, **kwargs):
+               siftkw={}, H=None, **kwargs):
     """
     thin wrapper around mpl_keypoint.draw_keypoints
 
@@ -1275,7 +1275,7 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
         'pts_size': pts_size,
     })
 
-    mpl_kp.draw_keypoints(ax, kpts, siftkw=siftkw, **_kwargs)
+    mpl_kp.draw_keypoints(ax, kpts, siftkw=siftkw, H=H, **_kwargs)
 
 
 def draw_keypoint_gradient_orientations(rchip, kpt, sift=None, mode='vec',
@@ -1531,7 +1531,7 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None, title=None,
 # plot feature match
 def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
                 fnum=None, pnum=None, rect=False, colorbar_=True,
-                draw_border=False, cmap=None, **kwargs):
+                draw_border=False, cmap=None, H1=None, H2=None, **kwargs):
     """
     Overlays the matching features over chips that were previously plotted.
 
@@ -1578,8 +1578,8 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
         all_args = dict(ell=False, pts=pts, pts_color=GREEN, pts_size=2,
                         ell_alpha=ell_alpha, rect=rect)
         all_args.update(kwargs)
-        draw_kpts2(kpts1, **all_args)
-        draw_kpts2(kpts2, offset=offset2, **all_args)
+        draw_kpts2(kpts1, H=H1, **all_args)
+        draw_kpts2(kpts2, offset=offset2, H=H2, **all_args)
     if draw_border:
         draw_bbox(xywh1, bbox_color=BLACK, draw_arrow=False)
         draw_bbox(xywh2, bbox_color=BLACK, draw_arrow=False)
@@ -1600,8 +1600,8 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
             fxs1 = fm.T[0]
             fxs2 = fm.T[1]
             if kpts1 is not None:
-                draw_kpts2(kpts1[fxs1], rect=rect, **_kwargs)
-            draw_kpts2(kpts2[fxs2], offset=offset2, rect=rect, **_kwargs)
+                draw_kpts2(kpts1[fxs1], rect=rect, H=H1, **_kwargs)
+            draw_kpts2(kpts2[fxs2], offset=offset2, rect=rect, H=H2, **_kwargs)
 
         def _drawlines(**_kwargs):
             _kwargs.update(kwargs)
