@@ -598,6 +598,8 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
 #@profile
 def transform_kpts(kpts, M):
     r"""
+    returns M.dot(kpts_mat)
+
     Args:
         kpts (ndarray[float32_t, ndim=2]):  keypoints
         M (ndarray): transform matrix
@@ -666,11 +668,24 @@ def transform_kpts(kpts, M):
         assert np.all(MinvVR_mats3x3[:, 2, 0:2] == 0)
         assert np.all(MinvVR_mats3x3[:, 2, 2] == 1)
     except AssertionError as ex:  # NOQA
+        # THERE IS NO WAY TO GET KEYPOINTS TRANFORMED BY A HOMOGENOUS
+        # TRANSFORM MATRIX INTO THE 6 COMPONENT KEYPOINT VECTOR.
         #print(ex)
         #MinvVR_mats3x3 = ltool.rowwise_division(MinvVR_mats3x3, MinvVR_mats3x3[:, 2, 2]) # 16.4 us
+        #oris = get_invVR_mats_oris(MinvVR_mats3x3)
+        #Lmats = [ltool.rotation_mat3x3(-ori) for ori in oris]
+        #matrix_multiply(MinvVR_mats3x3, Lmats)
+        #matrix_multiply(Lmats, MinvVR_mats3x3)
+        #scipy.linalg.lu(MinvVR_mats3x3[0])
+        #scipy.linalg.qr(MinvVR_mats3x3[0])
+        #ut.embed()
+        import warnings
+        warnings.warn('WARNING: [vtool.keypoint] transform produced non-affine keypoint')
+        #ut.printex(ex, )
+        #raise
+        # We can approximate it very very roughly
         MinvVR_mats3x3 = np.divide(MinvVR_mats3x3, MinvVR_mats3x3[:, None, None, 2, 2])  # 2.6 us
         #MinvVR_mats3x3 / MinvVR_mats3x3[:, None, None, 2, :]
-        #ut.printex(ex, 'WARNING: transform produced nonhomogonous keypoint')
     kpts_ = flatten_invV_mats_to_kpts(MinvVR_mats3x3)
     return kpts_
 

@@ -1,5 +1,8 @@
+"""
+TODO: Look at this file
+    http://www.lfd.uci.edu/~gohlke/code/transformations.py.html
+"""
 from __future__ import absolute_import, division, print_function
-# Science
 #import sys
 #sys.exit(1)
 # THE NUMPY ERROR HAPPENS BECAUSE OF OPENCV
@@ -116,6 +119,7 @@ def gauss2d_pdf(x_, y_, sigma=None, mu=None):
 
 @profile
 def rotation_mat3x3(radians):
+    # TODO: handle array impouts
     sin_ = sin(radians)
     cos_ = cos(radians)
     R = array(((cos_, -sin_,  0),
@@ -279,6 +283,30 @@ def intersect2d_indicies(A, B):
 
 
 def intersect2d_flags(A, B):
+    r"""
+    Args:
+        A (ndarray[ndims=2]):
+        B (ndarray[ndims=2]):
+
+    Returns:
+        tuple: (flag_list1, flag_list2)
+
+    CommandLine:
+        python -m vtool.linalg --test-intersect2d_flags
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> # build test data
+        >>> A = array([[609, 307], [ 95, 344], [  1, 690]])
+        >>> B = array([[ 422, 1148], [ 422,  968], [ 481, 1148], [ 750, 1132], [ 759,  159]])
+        >>> # execute function
+        >>> (flag_list1, flag_list2) = intersect2d_flags(A, B)
+        >>> # verify results
+        >>> result = str((flag_list1, flag_list2))
+        >>> print(result)
+        (array([False, False, False], dtype=bool), array([False, False, False, False, False], dtype=bool))
+    """
     A_, B_, C_  = intersect2d_structured_numpy(A, B)
     flag_list1 = flag_intersection(A_, C_)
     flag_list2 = flag_intersection(B_, C_)
@@ -287,8 +315,10 @@ def intersect2d_flags(A, B):
 
 def flag_intersection(X_, C_):
     if X_.size == 0 or C_.size == 0:
-        return np.empty((0,), dtype=np.bool)
-    flags = np.logical_or.reduce([X_ == c for c in C_]).T[0]
+        flags = np.full(X_.shape[0], False, dtype=np.bool)
+        #return np.empty((0,), dtype=np.bool)
+    else:
+        flags = np.logical_or.reduce([X_ == c for c in C_]).T[0]
     return flags
 
 
