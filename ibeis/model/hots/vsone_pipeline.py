@@ -101,7 +101,9 @@ def make_rerank_pair_shortlist(qreq_, qaid2_chipmatch):
         >>> print('top_aid_list = %r' % (top_aid_list,))
         >>> print('top_nid_list = %r' % (top_nid_list,))
         >>> assert top_nid_list.index(1) == 0, 'name 1 should be rank 1'
-        >>> assert len(top_nid_list) == 5, 'should have 3 names and up to 2 image per name'
+        >>> max_num_rerank = qreq_.qparams.nNameShortlistVsone * qreq_.qparams.nAnnotPerName
+        >>> min_num_rerank = qreq_.qparams.nNameShortlistVsone
+        >>> ut.assert_inbounds(len(top_nid_list), min_num_rerank, max_num_rerank, 'incorrect number in shortlist')
 
     Ignore:
         #vsone_query_pairs = make_rerank_pair_shortlist(qreq_, qaid2_chipmatch)

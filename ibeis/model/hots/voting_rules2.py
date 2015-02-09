@@ -39,7 +39,8 @@ def score_chipmatch_csum(qaid, chipmatch, qreq_):
         >>> (aid_list, score_list) = score_chipmatch_csum(qaid, chipmatch, qreq_)
         >>> print(aid_list, score_list)
     """
-    (_, aid2_fs, _, _) = chipmatch
+    (aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H) = chipmatch
+    aid2_fs = {aid: fsv.prod(axis=1) for aid, fsv in six.iteritems(aid2_fsv)}
     aid_list = list(six.iterkeys(aid2_fs))
     fs_list = ut.dict_take(aid2_fs, aid_list)
     #fs_list  = list(six.itervalues(aid2_fs))
@@ -73,6 +74,7 @@ def score_chipmatch_nsum(qaid, chipmatch, qreq_):
         >>> from ibeis.model.hots.voting_rules2 import *  # NOQA
         >>> ibs, qreq_, qaid, chipmatch = get_chipmatch_testdata()
         >>> (aid_list, score_list) = score_chipmatch_nsum(qaid, chipmatch, qreq_)
+        >>> print(aid_list, score_list)
     """
     # FIXME:
     (nid_list, nsum_list) = score_chipmatch_true_nsum(qaid, chipmatch, qreq_)
@@ -107,7 +109,8 @@ def score_chipmatch_nsum(qaid, chipmatch, qreq_):
 
 def score_chipmatch_true_nsum(qaid, chipmatch, qreq_):
     # Nonhacky version of name scoring
-    (_, aid2_fs, _, _) = chipmatch
+    (aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H) = chipmatch
+    aid2_fs = {aid: fsv.prod(axis=1) for aid, fsv in six.iteritems(aid2_fsv)}
     aid_list = list(six.iterkeys(aid2_fs))
     annot_score_list = np.array([fs.sum() for fs in six.itervalues(aid2_fs)])
     annot_nid_list = np.array(qreq_.ibs.get_annot_name_rowids(aid_list))

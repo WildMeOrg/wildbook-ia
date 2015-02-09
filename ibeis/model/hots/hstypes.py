@@ -333,12 +333,15 @@ def fix_chipmatch(chipmatch_):
         >>> # execute function
         >>> chipmatch = fix_chipmatch(chipmatch_)
         >>> # verify results
-        >>> result_full = ut.dict_str(chipmatch._asdict())
+        >>> result_full = ut.dict_str(chipmatch._asdict(), precision=2)
         >>> print(result_full)
         >>> result = ut.hashstr(result_full)
         >>> print(result)
-        bp+gqrq3mufjs!@v
+        bkra3+4+nggilde7
 
+    wbj4cdx8e05tl0&g
+    7+z23h2cet!r9zg3
+    bp+gqrq3mufjs!@v
     7272n6vxvb%a%ove
     """
     (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = chipmatch_

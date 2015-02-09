@@ -605,7 +605,7 @@ class RerankVsOneConfig(ConfigBase):
         >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=True)
         >>> result = rrvsone_cfg.get_cfgstr()
         >>> print(result)
-        RRVsOne(True,nNm=5,nApN=4)
+        RRVsOne(True,nNm=5,nApN=2,xy>0.05,rat>0.7,far,scK7,sf0.2,stps3,sigma1.6,dcvsK5,mn0.2,mx0.3,p1)
 
     Example1:
         >>> # ENABLE_DOCTEST
