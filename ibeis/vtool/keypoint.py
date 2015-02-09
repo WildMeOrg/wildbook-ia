@@ -45,6 +45,7 @@ import numpy.linalg as npl
 from numpy.core.umath_tests import matrix_multiply
 from vtool import linalg as ltool
 from vtool import chip as ctool
+from vtool import distance as dtool
 from vtool import trig
 import utool as ut
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[kpts]')
@@ -671,7 +672,6 @@ def transform_kpts(kpts, M):
         # THERE IS NO WAY TO GET KEYPOINTS TRANFORMED BY A HOMOGENOUS
         # TRANSFORM MATRIX INTO THE 6 COMPONENT KEYPOINT VECTOR.
         #print(ex)
-        #MinvVR_mats3x3 = ltool.rowwise_division(MinvVR_mats3x3, MinvVR_mats3x3[:, 2, 2]) # 16.4 us
         #oris = get_invVR_mats_oris(MinvVR_mats3x3)
         #Lmats = [ltool.rotation_mat3x3(-ori) for ori in oris]
         #matrix_multiply(MinvVR_mats3x3, Lmats)
@@ -1381,7 +1381,7 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
     # get spatial keypoint distance to all neighbor candidates
     bcast_xy2   = xy2[:, None, :].T
     bcast_xy1_t = xy1_t.T[fx2_to_fx1]
-    fx2_to_xyerr_sqrd = ltool.L2_sqrd(bcast_xy2, bcast_xy1_t)
+    fx2_to_xyerr_sqrd = dtool.L2_sqrd(bcast_xy2, bcast_xy1_t)
     return fx2_to_xyerr_sqrd
 
 

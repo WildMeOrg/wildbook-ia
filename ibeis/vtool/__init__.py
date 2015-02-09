@@ -26,6 +26,7 @@ IMPORT_TUPLES = [
     ('geometry', None),
     ('nearest_neighbors', None),
     ('clustering2', None),
+    ('distance', None),
     ('other', None),
     #('coverage_kpts', None),
     #('coverage_grid', None),

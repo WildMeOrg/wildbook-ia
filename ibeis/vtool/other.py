@@ -138,6 +138,385 @@ def componentwise_dot(arr1, arr2):
     return cosangle
 
 
+def intersect2d_indicies(A, B):
+    r"""
+    Args:
+        A (ndarray[ndims=2]):
+        B (ndarray[ndims=2]):
+
+    Returns:
+        tuple: (ax_list, bx_list)
+
+    CommandLine:
+        python -m vtool.other --test-intersect2d_indicies
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> # build test data
+        >>> A = np.array([[ 158,  171], [ 542,  297], [ 955, 1113], [ 255, 1254], [ 976, 1255], [ 170, 1265]])
+        >>> B = np.array([[ 117,  211], [ 158,  171], [ 255, 1254], [ 309,  328], [ 447, 1148], [ 750,  357], [ 976, 1255]])
+        >>> # execute function
+        >>> (ax_list, bx_list) = intersect2d_indicies(A, B)
+        >>> # verify results
+        >>> result = str((ax_list, bx_list))
+        >>> print(result)
+        (array([0, 3, 4]), array([1, 2, 6]))
+    """
+    flag_list1, flag_list2 = intersect2d_flags(A, B)
+    ax_list = np.flatnonzero(flag_list1)
+    bx_list = np.flatnonzero(flag_list2)
+    return ax_list, bx_list
+
+
+def intersect2d_flags(A, B):
+    r"""
+    Args:
+        A (ndarray[ndims=2]):
+        B (ndarray[ndims=2]):
+
+    Returns:
+        tuple: (flag_list1, flag_list2)
+
+    CommandLine:
+        python -m vtool.other --test-intersect2d_flags
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> # build test data
+        >>> A = np.array([[609, 307], [ 95, 344], [  1, 690]])
+        >>> B = np.array([[ 422, 1148], [ 422,  968], [ 481, 1148], [ 750, 1132], [ 759,  159]])
+        >>> # execute function
+        >>> (flag_list1, flag_list2) = intersect2d_flags(A, B)
+        >>> # verify results
+        >>> result = str((flag_list1, flag_list2))
+        >>> print(result)
+        (array([False, False, False], dtype=bool), array([False, False, False, False, False], dtype=bool))
+    """
+    A_, B_, C_  = intersect2d_structured_numpy(A, B)
+    flag_list1 = flag_intersection(A_, C_)
+    flag_list2 = flag_intersection(B_, C_)
+    return flag_list1, flag_list2
+
+
+def flag_intersection(X_, C_):
+    if X_.size == 0 or C_.size == 0:
+        flags = np.full(X_.shape[0], False, dtype=np.bool)
+        #return np.empty((0,), dtype=np.bool)
+    else:
+        flags = np.logical_or.reduce([X_ == c for c in C_]).T[0]
+    return flags
+
+
+def intersect2d_structured_numpy(A, B, assume_unique=False):
+    nrows, ncols = A.shape
+    assert A.dtype == B.dtype, ('A and B must have the same dtypes.'
+                                'A.dtype=%r, B.dtype=%r' % (A.dtype, B.dtype))
+    dtype = np.dtype([('f%d' % i, A.dtype) for i in range(ncols)])
+    #try:
+    A_ = np.ascontiguousarray(A).view(dtype)
+    B_ = np.ascontiguousarray(B).view(dtype)
+    C_ = np.intersect1d(A_, B_, assume_unique=assume_unique)
+    #C = np.intersect1d(A.view(dtype),
+    #                   B.view(dtype),
+    #                   assume_unique=assume_unique)
+    #except ValueError:
+    #    C = np.intersect1d(A.copy().view(dtype),
+    #                       B.copy().view(dtype),
+    #                       assume_unique=assume_unique)
+    return A_, B_, C_
+
+
+def intersect2d_numpy(A, B, assume_unique=False, return_indicies=False):
+    """
+    References::
+        http://stackoverflow.com/questions/8317022/get-intersecting-rows-across-two-2d-numpy-arrays/8317155#8317155
+
+    Args:
+        A (ndarray[ndims=2]):
+        B (ndarray[ndims=2]):
+        assume_unique (bool):
+
+    Returns:
+        ndarray[ndims=2]: C
+
+    CommandLine:
+        python -m vtool.other --test-intersect2d_numpy
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> # build test data
+        >>> A = np.array([[  0,  78,  85, 283, 396, 400, 403, 412, 535, 552],
+        ...               [152,  98,  32, 260, 387, 285,  22, 103,  55, 261]]).T
+        >>> B = np.array([[403,  85, 412,  85, 815, 463, 613, 552],
+        ...                [ 22,  32, 103, 116, 188, 199, 217, 254]]).T
+        >>> assume_unique = False
+        >>> # execute function
+        >>> C, Ax, Bx = intersect2d_numpy(A, B, return_indicies=True)
+        >>> # verify results
+        >>> result = str((C.T, Ax, Bx))
+        >>> print(result)
+        (array([[ 85, 403, 412],
+               [ 32,  22, 103]]), array([2, 6, 7]), array([0, 1, 2]))
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> A = np.array([[1, 2, 3], [1, 1, 1]])
+        >>> B = np.array([[1, 2, 3], [1, 2, 14]])
+        >>> C, Ax, Bx = intersect2d_numpy(A, B, return_indicies=True)
+        >>> result = str((C, Ax, Bx))
+        >>> print(result)
+        (array([[1, 2, 3]]), array([0]), array([0]))
+    """
+    nrows, ncols = A.shape
+    A_, B_, C_ = intersect2d_structured_numpy(A, B, assume_unique)
+    # This last bit is optional if you're okay with "C" being a structured array...
+    C = C_.view(A.dtype).reshape(-1, ncols)
+    if return_indicies:
+        ax_list = np.flatnonzero(flag_intersection(A_, C_))
+        bx_list = np.flatnonzero(flag_intersection(B_, C_))
+        return C, ax_list, bx_list
+    else:
+        return C
+
+
+@profile
+def nearest_point(x, y, pts, mode='random'):
+    """ finds the nearest point(s) in pts to (x, y) """
+    dists = (pts.T[0] - x) ** 2 + (pts.T[1] - y) ** 2
+    fx = dists.argmin()
+    mindist = dists[fx]
+    other_fx = np.where(mindist == dists)[0]
+    if len(other_fx) > 0:
+        if mode == 'random':
+            np.random.shuffle(other_fx)
+            fx = other_fx[0]
+        if mode == 'all':
+            fx = other_fx
+        if mode == 'first':
+            fx = fx
+    return fx, mindist
+
+
+def get_uncovered_mask(covered_array, covering_array):
+    r"""
+    Args:
+        covered_array (ndarray):
+        covering_array (ndarray):
+
+    Returns:
+        ndarray: flags
+
+    CommandLine:
+        python -m vtool.other --test-get_mask_cover
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> covered_array = [1, 2, 3, 4, 5]
+        >>> covering_array = [2, 4, 5]
+        >>> flags = get_uncovered_mask(covered_array, covering_array)
+        >>> result = str(flags)
+        >>> print(result)
+        [ True False  True False False]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> covered_array = [1, 2, 3, 4, 5]
+        >>> covering_array = []
+        >>> flags = get_uncovered_mask(covered_array, covering_array)
+        >>> result = str(flags)
+        >>> print(result)
+        [ True  True  True  True  True]
+
+    """
+    if len(covering_array) == 0:
+        return np.ones(np.shape(covered_array), dtype=np.bool)
+    else:
+        flags_list = (np.not_equal(covered_array, item) for item in covering_array)
+        mask_array = and_lists(*flags_list)
+        return mask_array
+
+
+def get_covered_mask(covered_array, covering_array):
+    return ~get_uncovered_mask(covered_array, covering_array)
+
+
+def mult_lists(*args):
+    return np.multiply.reduce(args)
+
+
+def or_lists(*args):
+    """
+    Like np.logical_and, but can take more than 2 arguments
+
+    SeeAlso:
+        and_lists
+    """
+    flags = np.logical_or.reduce(args)
+    return flags
+
+
+def and_lists(*args):
+    """
+    Like np.logical_and, but can take more than 2 arguments
+
+    CommandLine:
+        python -m vtool.other --test-and_lists
+
+    SeeAlso:
+       or_lists
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arg1 = np.array([1, 1, 1, 1,])
+        >>> arg2 = np.array([1, 1, 0, 1,])
+        >>> arg3 = np.array([0, 1, 0, 1,])
+        >>> args = (arg1, arg2, arg3)
+        >>> flags = and_lists(*args)
+        >>> result = str(flags)
+        >>> print(result)
+        [False  True False  True]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> size = 10000
+        >>> np.random.seed(0)
+        >>> arg1 = np.random.randint(2, size=size)
+        >>> arg2 = np.random.randint(2, size=size)
+        >>> arg3 = np.random.randint(2, size=size)
+        >>> args = (arg1, arg2, arg3)
+        >>> flags = and_lists(*args)
+        >>> # ensure equal division
+        >>> segments = 5
+        >>> validx = np.where(flags)[0]
+        >>> endx = int(segments * (validx.size // (segments)))
+        >>> parts = np.split(validx[:endx], segments)
+        >>> result = str(list(map(np.sum, parts)))
+        >>> print(result)
+        [243734, 714397, 1204989, 1729375, 2235191]
+
+    %timeit reduce(np.logical_and, args)
+    %timeit np.logical_and.reduce(args)  # wins with more data
+    """
+    flags = np.logical_and.reduce(args)
+    return flags
+    # TODO: Cython
+    # TODO: remove reduce statement (bleh)
+    #if six.PY2:
+    #    flags =  reduce(np.logical_and, args)
+    #elif six.PY3:
+    #    flags =  functools.reduce(np.logical_and, args)
+    #return flags
+
+
+def and_3lists(arr1, arr2, arr3):
+    """
+    >>> from vtool.other import *  # NOQA
+    >>> np.random.seed(53)
+    >>> arr1 = (np.random.rand(1000) > .5).astype(np.bool)
+    >>> arr2 = (np.random.rand(1000) > .5).astype(np.bool)
+    >>> arr3 = (np.random.rand(1000) > .5).astype(np.bool)
+    >>> output = and_3lists(arr1, arr2, arr3)
+    >>> print(utool.hashstr(output))
+    prxuyy1w%ht57jaf
+
+    #if CYTH
+    #CYTH_INLINE
+    cdef:
+        np.ndarray arr1
+        np.ndarray arr2
+        np.ndarray arr3
+    #endif
+    """
+    return np.logical_and(np.logical_and(arr1, arr2), arr3)
+
+
+@profile
+def axiswise_operation2(arr1, arr2, op, axis=0):
+    """
+    Apply opperation to each row
+
+    >>> arr1 = (255 * np.random.rand(5, 128)).astype(np.uint8)
+    >>> arr2 = vecs.mean(axis=0)
+    >>> op = np.subtract
+    >>> axis = 0
+
+    performs an operation between an
+    (N x A x B ... x Z) array with an
+    (N x 1) array
+
+    %timeit op(arr1, arr2[np.newaxis, :])
+    %timeit op(arr1, arr2[None, :])
+    %timeit op(arr1, arr2.reshape(1, arr2.shape[0]))
+    arr2.shape = (1, arr2.shape[0])
+    %timeit op(arr1, arr2)
+    """
+    raise NotImplementedError()
+
+
+@profile
+def rowwise_operation(arr1, arr2, op):
+    """
+    DEPRICATE THIS IS POSSIBLE WITH STRICTLY BROADCASTING AND
+    USING np.newaxis
+
+    DEPRICATE, numpy has better ways of doing this.
+    Is the rowwise name correct? Should it be colwise?
+
+    performs an operation between an
+    (N x A x B ... x Z) array with an
+    (N x 1) array
+    """
+    # FIXME: not sure this is the correct terminology
+    assert arr1.shape[0] == arr2.shape[0]
+    broadcast_dimensions = arr1.shape[1:]  # need padding for
+    tileshape = tuple(list(broadcast_dimensions) + [1])
+    arr2_ = np.rollaxis(np.tile(arr2, tileshape), -1)
+    rowwise_result = op(arr1, arr2_)
+    return rowwise_result
+
+
+def colwise_operation(arr1, arr2, op):
+    arr1T = arr1.T
+    arr2T = arr2.T
+    rowwise_result = rowwise_operation(arr1T, arr2T, op)
+    colwise_result = rowwise_result.T
+    return colwise_result
+
+
+def compare_matrix_columns(matrix, columns):
+    # FIXME: Generalize
+    #row_matrix = matrix.T
+    #row_list   = columns.T
+    return compare_matrix_to_rows(matrix.T, columns.T).T
+
+
+@profile
+def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.logical_or):
+    # FIXME: Generalize
+    """
+    Compares each row in row_list to each row in row matrix using comp_op
+    Both must have the same number of columns.
+    Performs logic_op on the results of each individual row
+
+    compop   = np.equal
+    logic_op = np.logical_or
+    """
+    row_result_list = [np.array([comp_op(matrow, row) for matrow in row_matrix])
+                       for row in row_list]
+    output = row_result_list[0]
+    for row_result in row_result_list[1:]:
+        output = logic_op(output, row_result)
+    return output
+
+
 if __name__ == '__main__':
     """
     CommandLine:

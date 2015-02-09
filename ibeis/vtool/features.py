@@ -1,4 +1,6 @@
 from __future__ import absolute_import, print_function, division
+import utool as ut
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[feat]', DEBUG=False)
 
 
 def extract_features(img_fpath, **kwargs):

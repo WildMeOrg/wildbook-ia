@@ -176,18 +176,20 @@ def iceil(num, dtype=np.int32):
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import vtool as vt
         >>> num = 1.5
-        >>> result = iceil(num)
+        >>> result = repr(vt.iceil(num))
         >>> print(result)
         2
 
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from utool.util_alg import *  # NOQA
+        >>> import vtool as vt
         >>> num = [1.5, 2.9]
-        >>> result = iceil(num)
+        >>> result = repr(vt.iceil(num))
         >>> print(result)
-        [2, 3]
+        array([2, 3], dtype=int32)
     """
     return np.ceil(num).astype(dtype)
 

@@ -369,11 +369,8 @@ def gaussian_patch(shape=(7, 7), sigma=1.0):
         http://docs.opencv.org/modules/imgproc/doc/filtering.html#getgaussiankernel
 
     Args:
-        width (int):
-        hight (int):
-        shape (tuple):
+        shape (tuple):  array dimensions
         sigma (float):
-        norm_01 (bool):
 
     CommandLine:
         python -m vtool.patch --test-gaussian_patch2
@@ -382,13 +379,10 @@ def gaussian_patch(shape=(7, 7), sigma=1.0):
         >>> # ENABLE_DOCTEST
         >>> from vtool.patch import *  # NOQA
         >>> # build test data
-        >>> width = 3
-        >>> hieght = 3
         >>> shape = (7, 7)
         >>> sigma = 1.0
-        >>> norm_01 = False
         >>> # execute function
-        >>> gausspatch = gaussian_patch2(width, hight, shape, sigma, norm_01)
+        >>> gausspatch = gaussian_patch(shape, sigma)
         >>> assert gausspatch.sum() == 1.0
 
     Ignore:

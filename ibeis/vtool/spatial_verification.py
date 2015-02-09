@@ -22,9 +22,10 @@ import scipy.sparse.linalg as spsl
 from numpy.core.umath_tests import matrix_multiply
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
+import vtool.distance as dtool
 
 try:
-    raise Exception('forcing sver_c_wrapper off')
+    #raise Exception('forcing sver_c_wrapper off')
     from vtool import sver_c_wrapper
     HAS_SVER_C_WRAPPER = True
 except Exception as ex:
@@ -272,9 +273,9 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     _det1_mt  = ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
     _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
     ## Check for projection errors
-    xy_err    = ltool.L2_sqrd(xy2_m.T, _xy1_mt.T)
-    scale_err = ltool.det_distance(_det1_mt, det2_m)
-    ori_err   = ltool.ori_distance(_ori1_mt, ori2_m)
+    xy_err    = dtool.L2_sqrd(xy2_m.T, _xy1_mt.T)
+    scale_err = dtool.det_distance(_det1_mt, det2_m)
+    ori_err   = dtool.ori_distance(_ori1_mt, ori2_m)
 
     # Mark keypoints which are inliers to this hypothosis
     xy_inliers_flag    = np.less(xy_err, xy_thresh_sqrd)
@@ -286,6 +287,7 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     hypo_inliers_flag = xy_inliers_flag  # Try to re-use memory
     np.logical_and(hypo_inliers_flag, ori_inliers_flag, out=hypo_inliers_flag)
     np.logical_and(hypo_inliers_flag, scale_inliers_flag, out=hypo_inliers_flag)
+    #other.iter_reduce_ufunc(np.logical_and
     #hypo_inliers_flag = ltool.and_3lists(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
     hypo_errors = (xy_err, ori_err, scale_err)
     hypo_inliers = np.where(hypo_inliers_flag)[0]
@@ -518,7 +520,7 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     # --- Find (Squared) Homography Distance Error ---
     # You cannot test for scale or orientation easilly here because
     # you no longer have an ellipse when using a projective transformation
-    xy_err = ltool.L2_sqrd(xy1_mt.T, xy2_m.T)
+    xy_err = dtool.L2_sqrd(xy1_mt.T, xy2_m.T)
     homog_errors = (xy_err, None, None)
     # Estimate final inliers
     homog_inliers = np.where(xy_err < xy_thresh_sqrd)[0]

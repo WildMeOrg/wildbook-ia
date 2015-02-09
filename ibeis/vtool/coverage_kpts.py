@@ -170,7 +170,7 @@ def warp_patch_onto_kpts(kpts, patch, chipshape, weights=None, **kwargs):
         >>> if HOLE:
         >>>     patch[int(patch.shape[0] / 2), int(patch.shape[1] / 2)] = 0
         >>> # execute function
-        >>> dstimg = warp_patch_onto_kpts(kpts, patch, chipshape, weights, cov_scale_factor)
+        >>> dstimg = warp_patch_onto_kpts(kpts, patch, chipshape, weights, cov_scale_factor=cov_scale_factor)
         >>> # verify results
         >>> print('dstimg stats %r' % (ut.get_stats_str(dstimg, axis=None)),)
         >>> print('patch stats %r' % (ut.get_stats_str(patch, axis=None)),)
