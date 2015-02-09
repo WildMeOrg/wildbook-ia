@@ -10,8 +10,7 @@ from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih
 import six
-import utool
-from vtool import image as gtool
+import vtool as vt
 #import utool
 import utool as ut
 ut.noinject(__name__, '[pt.interact_multiimage]')
@@ -50,7 +49,7 @@ class MultiImageInteraction(object):
         self.first_load = True
         self.scope = []
         self.current_pagenum = 0
-        self.nPages = utool.iceil(self.nImgs / nPerPage)
+        self.nPages = vt.iceil(self.nImgs / nPerPage)
         self.show_page()
 
     def append_button(self, text, divider=None, rect=None, callback=None, **kwargs):
@@ -154,7 +153,7 @@ class MultiImageInteraction(object):
         bbox_list  = self.bboxes_list[index]
         print('bbox_list %r in display for px: %r ' % (bbox_list, px))
         theta_list = self.thetas_list[index]
-        img = gtool.imread(gpath)
+        img = vt.imread(gpath)
         label_list = [ix + 1 for ix in range(len(bbox_list))]
         #Add true values for every bbox to display
         sel_list = [True for ix in range(len(bbox_list))]
@@ -208,7 +207,7 @@ class MultiImageInteraction(object):
             theta_list = self.thetas_list[index]
             print('theta_list = %r' % (theta_list,))
             #img = mpimg.imread(gpath)
-            img = gtool.imread(gpath)
+            img = vt.imread(gpath)
             fnum = df2.next_fnum()
             mc = interact_annotations.ANNOTATIONInteraction(img, index, self.update_images, bbox_list=bbox_list, theta_list=theta_list, fnum=fnum)
             self.mc = mc
