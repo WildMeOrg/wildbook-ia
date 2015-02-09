@@ -161,9 +161,14 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, dstncvs_normer=None, **kwargs)
         >>> dstncvs_list1 = get_annot_kpts_distinctiveness(ibs, aid_list1, dstncvs_normer=dstncvs_normer)
         >>> dstncvs_list2 = get_annot_kpts_distinctiveness(ibs, aid_list2, dstncvs_normer=dstncvs_normer)
         >>> dstncvs_list3 = get_annot_kpts_distinctiveness(ibs, aid_list, dstncvs_normer=dstncvs_normer)
+        >>> sum_ = sum(dstncvs_list3[0])
+        >>> assert sum_ > 0
+        >>> assert sum_ < len(dstncvs_list3[0])
+        >>> print(sum_)
     """
-    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False, eager=True, nInput=None)
-    fid_list = ibs.get_chip_fids(cid_list, ensure=False, eager=True, nInput=None)
+    ensure = True
+    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, eager=True, nInput=None)
+    fid_list = ibs.get_chip_fids(cid_list, ensure=ensure, eager=True, nInput=None)
     dstncvs_list = get_feat_kpts_distinctiveness(ibs, fid_list, dstncvs_normer=dstncvs_normer, **kwargs)
     return dstncvs_list
 
@@ -174,8 +179,8 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, dstncvs_normer=None, **kwargs)
                               debug=None)
 def get_feat_kpts_distinctiveness(ibs, fid_list, dstncvs_normer=None, **kwargs):
     #print('[ibs] get_feat_kpts_distinctiveness fid_list=%r' % (fid_list,))
-    vecs_list = ibs.get_feat_vecs(fid_list)
-    dstncvs_list = [dstncvs_normer.get_distinctiveness(vecs, **kwargs) for vecs in vecs_list]
+    vecs_list = ibs.get_feat_vecs(fid_list, eager=True, nInput=None)
+    dstncvs_list = [None if vecs is None else dstncvs_normer.get_distinctiveness(vecs, **kwargs) for vecs in vecs_list]
     return dstncvs_list
 
 #@register_ibs_method

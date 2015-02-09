@@ -77,7 +77,67 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         >>> print(output['info_str'])
         >>> result = ut.hashstr(output['info_str'])
         >>> print(result)
-        &z3uturz&%s2p03!
+        iabfja5ms15j+cf!
+
+    +============================
+    + singleton := single sighting
+    + multiton  := multiple sightings
+     -- -- -- -- --
+     DB Info:  testdb1
+     DB Notes: None
+     DB NumContrib: 0
+     -- -- -- -- --
+     # Names                      = 7
+     # Names (unassociated)       = 0
+     # Names (singleton)          = 5
+     # Names (multiton)           = 2
+     -- -- -- -- --
+     # Annots                     = 13
+     # Annots (unknown)           = 4
+     # Annots (singleton)         = 5
+     # Annots (multiton)          = 4
+     -- -- -- -- --
+     # Annots per Name (multiton) = {
+        'max': 2.0,
+        'min': 2.0,
+        'mean': 2.0,
+        'std': 0.0,
+        'nMin': 2,
+        'nMax': 2,
+        'shape': (2,),
+    }
+     # Annots per Image           = {
+        'max': 1.0,
+        'min': 1.0,
+        'mean': 1.0,
+        'std': 0.0,
+        'nMin': 13,
+        'nMax': 13,
+        'shape': (13,),
+    }
+     # Annots per Species         = {
+        '____': 3,
+        u'bear_polar': 2,
+        u'zebra_plains': 6,
+        u'zebra_grevys': 2,
+    }
+     -- -- -- -- --
+     # Img                        = 13
+     # Img reviewed               = 0
+     # Img with gps               = 0
+     # Img with timestamp         = 13
+     Img Time Stats               = {
+        'max': '1969/12/31 21:30:13',
+        'min': '1969/12/31 19:01:41',
+        'mean': '1969/12/31 20:10:15',
+        'std': '1:13:57',
+        'nMin': 1,
+        'nMax': 1,
+        'shape': (13,),
+    }
+    L============================
+
+    &z3uturz&%s2p03!
 
     #>>> print(ut.hashstr(repr(output)))
 
