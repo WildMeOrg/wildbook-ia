@@ -218,8 +218,9 @@ def assign_spatially_constrained_matches(dlen_sqrd2, kpts1, kpts2, H,
     fx2_to_xyerr_norm = np.divide(fx2_to_xyerr, np.sqrt(dlen_sqrd2))
 
     # Find matches and normalizers which are within the spatial constraints
-
+    match_xy_thresh
     fx2_to_valid_match = ut.inbounds(fx2_to_xyerr_norm, 0, match_xy_thresh)
+    ut.embed()
     fx2_to_fx1_match_col = ut.find_first_true_indicies(fx2_to_valid_match)
 
     #if normalizer_mode == 'plus':
@@ -229,6 +230,8 @@ def assign_spatially_constrained_matches(dlen_sqrd2, kpts1, kpts2, H,
     #    #                    for fx1 in fx2_to_fx1_match_col]
     #else:
     # Set normalizer constraints
+    normalizer_min = 0
+    normalizer_max = 0
     if normalizer_mode == 'plus':
         normalizer_xy_bounds = (0, np.inf)
     elif normalizer_mode == 'far':
