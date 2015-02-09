@@ -140,14 +140,15 @@ def draw_svmatch(chip1, chip2, H, kpts1=None, kpts2=None, fm=None, fnum=None,
     wh2 = gtool.get_size(chip2)
     chip1_t = gtool.warpHomog(chip1, H, wh2)
     if kpts1 is not None:
-        kpts1_t = ktool.transform_kpts(kpts1, H)
-    else:
-        kpts1_t = None
+        #kpts1_t = ktool.transform_kpts(kpts1, H)
+        kpts1 = kpts1
+    #else:
+    #    kpts1_t = None
     #fnum = 1
     #next_pnum = pt.make_pnum_nextgen(1, 2)
 
-    pt.show_chipmatch2(chip1_t, chip2, kpts1_t, kpts2, fm=fm, fnum=fnum,
-                       pnum=pnum)
+    #pt.show_chipmatch2(chip1_t, chip2, kpts1_t, kpts2, fm=fm, fnum=fnum, H1=H, H2=None, pnum=pnum)
+    pt.show_chipmatch2(chip1_t, chip2, kpts1, kpts2, fm=fm, fnum=fnum, H1=H, H2=None, pnum=pnum)
 
     #if fnum is None:
     #    fnum = pt.next_fnum()

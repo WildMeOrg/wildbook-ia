@@ -109,7 +109,7 @@ def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
     # Extract keypoint components
     _xs, _ys = ktool.get_xys(kpts)
     # Build list of keypoint shape transforms from unit circles to ellipes
-    invVR_aff2Ds = get_invVR_aff2Ds(kpts)
+    invVR_aff2Ds = get_invVR_aff2Ds(kpts, H=H)
     try:
         if sifts is not None:
             # SIFT descriptors
@@ -163,12 +163,52 @@ def _draw_pts(ax, _xs, _ys, pts_size, pts_color, pts_alpha=None):
         return pts_patches
 
 
-def get_invVR_aff2Ds(kpts):
+class HomographyTransform(mpl.transforms.Transform):
+    """
+    References:
+        http://stackoverflow.com/questions/28401788/using-homogeneous-transforms-non-affine-with-matplotlib-patches?noredirect=1#comment45156353_28401788
+        http://matplotlib.org/users/transforms_tutorial.html
+    """
+    input_dims = 2
+    output_dims = 2
+    is_separable = False
+
+    def __init__(self, H, axis=None, use_rmin=True):
+        mpl.transforms.Transform.__init__(self)
+        self._axis = axis
+        self._use_rmin = use_rmin
+        self.H = H
+
+    def transform_non_affine(self, input_xy):
+        """
+        The input and output are Nx2 numpy arrays.
+        """
+        import vtool as vt
+        _xys = input_xy.T
+        xy_t = vt.transform_points_with_homography(self.H, _xys)
+        output_xy = xy_t.T
+        return output_xy
+    #transform_non_affine.__doc__ = mpl.transforms.Transform.transform_non_affine.__doc__
+
+    def transform_path_non_affine(self, path):
+        vertices = path.vertices
+        if len(vertices) == 2 and vertices[0, 0] == vertices[1, 0]:
+            return mpl.path.Path(self.transform(vertices), path.codes)
+        ipath = path.interpolated(path._interpolation_steps)
+        return mpl.path.Path(self.transform(ipath.vertices), ipath.codes)
+    #transform_path_non_affine.__doc__ = mpl.transforms.Transform.transform_path_non_affine.__doc__
+
+
+def get_invVR_aff2Ds(kpts, H=None):
     """ Returns matplotlib keypoint transformations (circle -> ellipse) """
     #invVR_mats = ktool.get_invV_mats(kpts, with_trans=True, with_ori=True)
     invVR_mats = ktool.get_invVR_mats3x3(kpts)
-    invVR_aff2Ds = [mpl.transforms.Affine2D(invVR)
-                    for invVR in invVR_mats]
+    if H is None:
+        invVR_aff2Ds = [mpl.transforms.Affine2D(invVR)
+                        for invVR in invVR_mats]
+    else:
+        invVR_aff2Ds = [HomographyTransform(H.dot(invVR))
+                        for invVR in invVR_mats]
     return invVR_aff2Ds
 
 

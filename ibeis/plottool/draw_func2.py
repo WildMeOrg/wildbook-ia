@@ -1148,7 +1148,8 @@ def colorbar(scalars, colors, custom=False, lbl=None):
 
 
 def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
-                color_list=None, scale_factor=1, lw=1.4, line_alpha=.35, **kwargs):
+                color_list=None, scale_factor=1, lw=1.4, line_alpha=.35,
+                H1=None, H2=None, **kwargs):
     printDBG('-------------')
     printDBG('draw_lines2()')
     printDBG(' * len(fm) = %r' % len(fm))
@@ -1163,16 +1164,32 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
     # Draw line collection
     kpts1_m = kpts1[fm[:, 0]].T
     kpts2_m = kpts2[fm[:, 1]].T
-    xxyy_iter = iter(zip(kpts1_m[0] * scale_factor,
-                         kpts2_m[0] * scale_factor + woff,
-                         kpts1_m[1] * scale_factor,
-                         kpts2_m[1] * scale_factor + hoff))
+    xy1_m = (kpts1_m[0:2])
+    xy2_m = (kpts2_m[0:2])
+    import vtool as vt
+    if H1 is not None:
+        xy1_m = vt.transform_points_with_homography(H1, xy1_m)
+    if H2 is not None:
+        xy2_m = vt.transform_points_with_homography(H2, xy2_m)
+    xy1_m = xy1_m * scale_factor
+    xy2_m = (xy2_m * scale_factor) + np.array([woff, hoff])[:, None]
+    #xxyy_iter = iter(zip(kpts1_m[0] * scale_factor,
+    #                     kpts2_m[0] * scale_factor + woff,
+    #                     kpts1_m[1] * scale_factor,
+    #                     kpts2_m[1] * scale_factor + hoff))
+    #xy1_iter =
     if color_list is None:
         if fs is None:  # Draw with solid color
             color_list    = [RED for fx in range(len(fm))]
         else:  # Draw with colors proportional to score difference
             color_list = scores_to_color(fs)
-    segments  = [((x1, y1), (x2, y2)) for (x1, x2, y1, y2) in xxyy_iter]
+    segments = [
+        ((x1, y1), (x2, y2))
+        for (x1, y1), (x2, y2) in zip(xy1_m.T, xy2_m.T)
+    ]
+    #segments  = [
+    #    ((x1, y1), (x2, y2))
+    #    for (x1, x2, y1, y2) in xxyy_iter]
     linewidth = [lw for fx in range(len(fm))]
     line_alpha = line_alpha
     line_group = LineCollection(segments, linewidth, color_list, alpha=line_alpha)
@@ -1605,7 +1622,8 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, lbl1=None, lbl2=None,
 
         def _drawlines(**_kwargs):
             _kwargs.update(kwargs)
-            draw_lines2(kpts1, kpts2, fm, fs, kpts2_offset=offset2, **_kwargs)
+            draw_lines2(kpts1, kpts2, fm, fs, kpts2_offset=offset2,
+                        H1=H1, H2=H2, **_kwargs)
 
         if ell:
             _drawkpts(pts=False, ell=True, color_list=colors)
