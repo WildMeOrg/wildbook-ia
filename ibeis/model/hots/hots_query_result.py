@@ -604,6 +604,9 @@ class QueryResult(__OBJECT_BASE__):
         #utool.embed()
         return tbldata
 
+    def print_inspect_str(qreq_, *args, **kwargs):
+        print(qreq_.get_inspect_str(*args, **kwargs))
+
     def get_inspect_str(qres, ibs=None, name_scoring=False):
         qres.assert_self()
         #ut.embed()

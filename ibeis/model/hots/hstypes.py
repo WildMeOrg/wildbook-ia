@@ -337,12 +337,8 @@ def fix_chipmatch(chipmatch_):
         >>> print(result_full)
         >>> result = ut.hashstr(result_full)
         >>> print(result)
-        bkra3+4+nggilde7
+        pan77tjmi5@xy8fu
 
-    wbj4cdx8e05tl0&g
-    7+z23h2cet!r9zg3
-    bp+gqrq3mufjs!@v
-    7272n6vxvb%a%ove
     """
     (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = chipmatch_
     minMatches = 2  # TODO: paramaterize
