@@ -106,10 +106,11 @@ def get_best_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd,
                            out_inlier_flags, out_errors, out_mat)
     #with ut.Timer('C'):
     out_inliers = np.where(out_inlier_flags)[0]
+    out_errors = tuple(out_errors)
     return out_inliers, out_errors, out_mat
 
 
-def assert_output_equal(output1, output2, thresh=1E-7, nestpath=None, level=0, lbl1='', lbl2=''):
+def assert_output_equal(output1, output2, thresh=1E-8, nestpath=None, level=0, lbl1='', lbl2=''):
     """ recursive equality checks """
     # Setup
     if nestpath is None:
@@ -195,15 +196,20 @@ def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2
         print('implementations are in agreement :) ')
     except AssertionError as ex:
         # prints out a nested list corresponding to nested structure
-        depth_profile1 = ut.depth_profile(output1)
-        depth_profile2 = ut.depth_profile(output2)
-        print('depth_profile1 = ' + ut.list_str(depth_profile1))
-        print('depth_profile2 = ' + ut.list_str(depth_profile2))
         ut.printex(ex, 'IMPLEMENTATIONS DO NOT AGREE', keys=[
             ('func1_name'),
             ('func2_name'), ]
         )
         raise
+    finally:
+        depth_profile1 = ut.depth_profile(output1)
+        depth_profile2 = ut.depth_profile(output2)
+        type_profile1 = ut.list_type_profile(output1)
+        type_profile2 = ut.list_type_profile(output2)
+        print('depth_profile1 = ' + ut.list_str(depth_profile1))
+        print('depth_profile2 = ' + ut.list_str(depth_profile2))
+        print('type_profile1 = ' + (type_profile1))
+        print('type_profile2 = ' + (type_profile2))
     print('L ___ END COMPARE IMPLEMENTATIONS ___')
     return output1
 
