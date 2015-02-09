@@ -337,7 +337,7 @@ def fix_chipmatch(chipmatch_):
         >>> print(result_full)
         >>> result = ut.hashstr(result_full)
         >>> print(result)
-        pan77tjmi5@xy8fu
+        ukih5wutvz@2fxj+
 
     """
     (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = chipmatch_

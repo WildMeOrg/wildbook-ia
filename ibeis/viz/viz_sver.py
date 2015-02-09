@@ -75,7 +75,7 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, **kwargs):
     draw_sv.show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=homog_tup, aff_tup=aff_tup, **kwargs)
 
 
-def show_constrained_match(ibs, aid1, aid2, H, fm=None, **kwargs):
+def show_constrained_match(ibs, aid1, aid2, H1=None, H2=None, fm=None, **kwargs):
     """
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -97,27 +97,25 @@ def show_constrained_match(ibs, aid1, aid2, H, fm=None, **kwargs):
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid1 = 1
         >>> aid2 = 3
-        >>> H = np.array([[ -4.68815126e-01,   7.80306795e-02,  -2.23674587e+01],
-        ...               [  4.54394231e-02,  -7.67438835e-01,   5.92158624e+01],
-        ...               [  2.12918867e-04,  -8.64851418e-05,  -6.21472492e-01]])
+        >>> H1 = np.array([[ -4.68815126e-01,   7.80306795e-02,  -2.23674587e+01],
+        ...                [  4.54394231e-02,  -7.67438835e-01,   5.92158624e+01],
+        ...                [  2.12918867e-04,  -8.64851418e-05,  -6.21472492e-01]])
+        >>> H2 = None
         >>> fm = np.array([[ 244,  132], [ 604,  602], [ 187,  604], [ 200,  610],
         ...                [ 243,  627], [ 831,  819], [ 601,  851], [ 602,  852],
         ...                [ 610,  855], [ 609,  857], [ 865,  860], [ 617,  863],
         ...                [ 979,  984], [ 860, 1013], [ 605, 1020], [ 866, 1027],
         ...                [ 667, 1071], [1022, 1163], [1135, 1165]])
         >>> # execute function
-        >>> result = show_constrained_match(ibs, aid1, aid2, H, fm)
+        >>> result = show_constrained_match(ibs, aid1, aid2, H1=H1, H2=H2, fm=fm)
         >>> # verify results
         >>> print(result)
         >>> pt.show_if_requested()
     """
     from plottool import draw_sv
     chip1, chip2 = ibs.get_annot_chips((aid1, aid2))
-    if fm is not None:
-        kpts1, kpts2 = ibs.get_annot_kpts((aid1, aid2))
-    else:
-        kpts1 = kpts2 = None
-    draw_sv.draw_svmatch(chip1, chip2, H, kpts1=kpts1, kpts2=kpts2, fm=fm, **kwargs)
+    kpts1, kpts2 = ibs.get_annot_kpts((aid1, aid2))
+    draw_sv.draw_svmatch(chip1, chip2, H1=H1, H2=H2, kpts1=kpts1, kpts2=kpts2, fm=fm, **kwargs)
 
 
 if __name__ == '__main__':
