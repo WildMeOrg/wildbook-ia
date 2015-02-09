@@ -86,6 +86,7 @@ def get_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, 
                        out_inlier_flags, out_errors, out_mats)
     #with ut.Timer('C'):
     out_inliers = [np.where(row)[0] for row in out_inlier_flags]
+    out_errors = list(map(tuple, out_errors))
     return out_inliers, out_errors, out_mats
 
 
@@ -298,7 +299,7 @@ def test_calling():
             out_inliers, out_errors, out_mats = inlier_tup
     except AssertionError as ex:
         ex_list.append(ex)
-        #raise
+        raise
 
     try:
         with ut.Indenter('[TEST2] '):
@@ -309,7 +310,7 @@ def test_calling():
             bestinliers, besterror, bestmat = bestinlier_tup
     except AssertionError as ex:
         ex_list.append(ex)
-        #raise
+        raise
 
     if len(ex_list) > 0:
         raise AssertionError('some tests failed. see previous stdout')
