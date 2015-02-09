@@ -5,6 +5,7 @@ wraps c implementations slower parts of spatial verification
 CommandLine:
     python -m vtool.sver_c_wrapper --rebuild-sver
     python -m vtool.sver_c_wrapper --rebuild-sver --allexamples
+    python -m vtool.sver_c_wrapper --allexamples
 """
 from __future__ import absolute_import, division, print_function
 import ctypes as C
@@ -33,40 +34,40 @@ dpath = dirname(__file__)
 lib_fname = join(dpath, 'libsver' + ut.util_cplat.get_lib_ext())
 
 
-if ut.get_argflag('--rebuild-sver'):  # and __name__ != '__main__':
-    USE_CMAKE = True
-    if USE_CMAKE:
-        root_dir = realpath(dirname(__file__))
-        repo_dir = dirname(root_dir)
-        ut.std_build_command(repo_dir)
-    else:
-        cpp_fname = join(dpath, 'sver.cpp')
-        cflags = '-shared -fPIC -O2 -ffast-math'
-        cmd_fmtstr = 'g++ -Wall -Wextra {cpp_fname} -lopencv_core {cflags} -o {lib_fname}'
-        cmd_str = cmd_fmtstr.format(**locals())
-        ut.cmd(cmd_str)
+if __name__ != '__main__':
+    if ut.get_argflag('--rebuild-sver'):  # and __name__ != '__main__':
+        USE_CMAKE = True
+        if USE_CMAKE:
+            root_dir = realpath(dirname(__file__))
+            repo_dir = dirname(root_dir)
+            ut.std_build_command(repo_dir)
+        else:
+            cpp_fname = join(dpath, 'sver.cpp')
+            cflags = '-shared -fPIC -O2 -ffast-math'
+            cmd_fmtstr = 'g++ -Wall -Wextra {cpp_fname} -lopencv_core {cflags} -o {lib_fname}'
+            cmd_str = cmd_fmtstr.format(**locals())
+            ut.cmd(cmd_str)
 
-
-c_sver = C.cdll[lib_fname]
-c_getaffineinliers = c_sver['get_affine_inliers']
-c_getaffineinliers.restype = None
-# for every affine hypothesis, for every keypoint pair (is
-#  it an inlier, the error triples, the hypothesis itself)
-c_getaffineinliers.argtypes = [kpts_t, C.c_size_t,
-                                kpts_t, C.c_size_t,
-                                fms_t, C.c_size_t,
-                                C.c_double, C.c_double, C.c_double,
-                                inliers_t(2), errs_t(3), mats_t(3)]
-# for the best affine hypothesis, for every keypoint pair
-#  (is it an inlier, the error triples (transposed?), the
-#   hypothesis itself)
-c_getbestaffineinliers = c_sver['get_best_affine_inliers']
-c_getbestaffineinliers.restype = C.c_int
-c_getbestaffineinliers.argtypes = [kpts_t, C.c_size_t,
+    c_sver = C.cdll[lib_fname]
+    c_getaffineinliers = c_sver['get_affine_inliers']
+    c_getaffineinliers.restype = None
+    # for every affine hypothesis, for every keypoint pair (is
+    #  it an inlier, the error triples, the hypothesis itself)
+    c_getaffineinliers.argtypes = [kpts_t, C.c_size_t,
                                     kpts_t, C.c_size_t,
                                     fms_t, C.c_size_t,
                                     C.c_double, C.c_double, C.c_double,
-                                    inliers_t(1), errs_t(2), mats_t(2)]
+                                    inliers_t(2), errs_t(3), mats_t(3)]
+    # for the best affine hypothesis, for every keypoint pair
+    #  (is it an inlier, the error triples (transposed?), the
+    #   hypothesis itself)
+    c_getbestaffineinliers = c_sver['get_best_affine_inliers']
+    c_getbestaffineinliers.restype = C.c_int
+    c_getbestaffineinliers.argtypes = [kpts_t, C.c_size_t,
+                                        kpts_t, C.c_size_t,
+                                        fms_t, C.c_size_t,
+                                        C.c_double, C.c_double, C.c_double,
+                                        inliers_t(1), errs_t(2), mats_t(2)]
 
 
 def get_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
