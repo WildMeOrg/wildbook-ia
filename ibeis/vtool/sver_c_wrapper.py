@@ -33,7 +33,7 @@ dpath = dirname(__file__)
 lib_fname = join(dpath, 'libsver' + ut.util_cplat.get_lib_ext())
 
 
-if ut.get_argflag('--rebuild-sver') and __name__ != '__main__':
+if ut.get_argflag('--rebuild-sver'):  # and __name__ != '__main__':
     USE_CMAKE = True
     if USE_CMAKE:
         root_dir = realpath(dirname(__file__))
@@ -107,8 +107,7 @@ def get_best_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd,
     return out_inliers, out_errors, out_mat
 
 
-def assert_output_equal(output1, output2, thresh=1E-7, nestpath=None, level=0,
-        lbl1='', lbl2=''):
+def assert_output_equal(output1, output2, thresh=1E-7, nestpath=None, level=0, lbl1='', lbl2=''):
     """ recursive equality checks """
     # Setup
     if nestpath is None:
@@ -159,8 +158,8 @@ def assert_output_equal(output1, output2, thresh=1E-7, nestpath=None, level=0,
         for count, (item1, item2) in enumerate(zip(output1, output2)):
             # recursive call
             try:
-                assert_output_equal(item1, item2, lbl1=lbl2, lbl2=lbl1,
-                        nestpath=nestpath + [count], level=level + 1)
+                assert_output_equal(
+                    item1, item2, lbl1=lbl2, lbl2=lbl1, nestpath=nestpath + [count], level=level + 1)
             except AssertionError as ex:
                 ut.printex(ex, 'recursive call failed', keys=common_keys + ['item1', 'item2', 'count'])
                 raise
