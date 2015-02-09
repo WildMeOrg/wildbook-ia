@@ -736,8 +736,30 @@ def whiten_xy_points(xy_m):
     return xy_norm, T
 
 
+def add_homogenous_coordinate(_xys):
+    assert _xys.shape[0] == 2
+    _zs = np.ones((1, _xys.shape[1]), dtype=_xys.dtype)
+    _xyzs = np.vstack((_xys, _zs))
+    return _xyzs
+
+
+def remove_homogenous_coordinate(_xyzs):
+    assert _xyzs.shape[0] == 3
+    _xys = np.divide(_xyzs[0:2], _xyzs[None, 2])
+    return _xys
+
+
+def transform_points_with_homography(H, _xys):
+    xyz  = add_homogenous_coordinate(_xys)
+    xyz_t = matrix_multiply(H, xyz)
+    xy_t  = remove_homogenous_coordinate(xyz_t)
+    return xy_t
+
+
 def homogonize(_xyzs):
     """
+    DEPRICATE in favor of remove_homogenous_coordinate
+
     normalizes 3d homogonous coordinates into 2d coordinates
 
     Args:
