@@ -767,13 +767,16 @@ class QueryResult(__OBJECT_BASE__):
             savekw['usetitle'] = True
         # Draw Matches
         fnum = pt.next_fnum()
-        pt.figure(fnum=fnum, doclf=True, docla=True)
+        fig = pt.figure(fnum=fnum, doclf=True, docla=True)
         aid = qres.get_top_aids(ibs)[0]
         ax, xywh1, xywh2 = qres.show_matches(ibs, aid, **kwargs)
         pt.set_figtitle(qres.make_smaller_title())
         # Adjust
         #pt.adjust_subplots(0, 0, 1, 1, 0, 0)
         # Save Figure
+        axes = fig.get_axes()
+        pt.save_figure(fpath=fpath, **savekw)  # I HAVE NO IDEA WHY THIS FIXES THE PROBLEM
+        kwargs['saveax'] = axes[-1]
         img_fpath = pt.save_figure(fpath=fpath, **savekw)
         if False:
             ut.startfile(img_fpath)
