@@ -194,7 +194,7 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
             # HACK TAKE OUT GETTING DEBUG OUT OF KWARGS
             debug_ = kwargs.pop('debug', False)
             if cfgkeys is not None:
-                kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys))
+                kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys, None))
             else:
                 kwargs_hash = None
 

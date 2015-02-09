@@ -333,13 +333,12 @@ def fix_chipmatch(chipmatch_):
         >>> # execute function
         >>> chipmatch = fix_chipmatch(chipmatch_)
         >>> # verify results
-        >>> result_full = ut.dict_str(chipmatch._asdict())
+        >>> result_full = ut.dict_str(chipmatch._asdict(), precision=2)
         >>> print(result_full)
         >>> result = ut.hashstr(result_full)
         >>> print(result)
-        bp+gqrq3mufjs!@v
+        pan77tjmi5@xy8fu
 
-    7272n6vxvb%a%ove
     """
     (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = chipmatch_
     minMatches = 2  # TODO: paramaterize

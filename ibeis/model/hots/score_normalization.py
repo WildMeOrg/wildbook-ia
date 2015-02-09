@@ -659,13 +659,17 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
         >>> qaid_list = daid_list = ibs.get_valid_aids()[1:10]
         >>> cfgdict = dict(codename='vsone_unnorm')
         >>> use_cache = True
-        >>> qres_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict, use_cache=use_cache, return_request=True)
+        >>> qres_list, qreq_ = ibs.query_chips(qaid_list, daid_list, cfgdict, use_cache=True, save_qcache=True, return_request=True)
         >>> score_normalizer = cached_ibeis_score_normalizer(ibs, qres_list, qreq_)
         >>> result = score_normalizer.get_fname()
         >>> result += '\n' + score_normalizer.get_cfgstr()
         >>> print(result)
-        zebra_plains_normalizer_x@!cxcgfncxz97mo.cPkl
-        _vsone_NN(single,K1+1,last,cks704)_FILT(ratio<0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(8_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
+        zebra_plains_normalizer_x@9kc@so9&g0hu1i.cPkl
+        _vsone_NN(single,K1+1,last,cks704)_FILT(ratio<0.625;1.0,fg;1.0)_SV(0.01;2.0;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(8_kdtrees)_RRVsOne(False)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
+
+
+    zebra_plains_normalizer_x@!cxcgfncxz97mo.cPkl
+    _vsone_NN(single,K1+1,last,cks704)_FILT(ratio<0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(8_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
 
     zebra_plains_normalizer_n%w@df%th@i@seel.cPkl
     _vsone_NN(single,K1+1,last,cks1024)_FILT(ratio<0.625;1.0,fg;1.0)_SV(0.01;2;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(4_kdtrees)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
@@ -692,6 +696,7 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
         normalizer.load(cachedir)
         print('returning cached normalizer')
     except Exception as ex:
+        print('cannot load noramlizer so computing on instead')
         ut.printex(ex, iswarning=True)
         qaid_list = qreq_.get_external_qaids()
         normalizer = learn_ibeis_score_normalizer(ibs, qaid_list, qres_list,
@@ -723,7 +728,9 @@ def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, prefix, **le
     if len(tp_support) < 2 or len(tn_support) < 2:
         print('len(tp_support) = %r' % (len(tp_support),))
         print('len(tn_support) = %r' % (len(tn_support),))
-        print('Warning: not enough data')
+        print('Warning: [score_normalization] not enough data')
+        import warnings
+        warnings.warn('Warning: [score_normalization] not enough data')
     # Train normalizer
     learntup = learn_score_normalization(tp_support, tn_support,
                                          return_all=False, **learnkw)

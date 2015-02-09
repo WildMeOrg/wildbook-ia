@@ -1447,6 +1447,7 @@ def chipmatch_to_resdict(qreq_, qaid2_chipmatch, verbose=VERB_PIPELINE):
 
     CommandLine:
         python -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict
+        python -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict:1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1470,7 +1471,7 @@ def chipmatch_to_resdict(qreq_, qaid2_chipmatch, verbose=VERB_PIPELINE):
         >>> num_filtkeys = len(qres.filtkey_list)
         >>> ut.assert_eq(num_filtkeys, qres.aid2_fsv[2].shape[1])
         >>> ut.assert_eq(num_filtkeys, 4)
-        >>> ut.assert_inbounds(qres.aid2_fsv[2].shape[0], 105, 115)
+        >>> ut.assert_inbounds(qres.aid2_fsv[2].shape[0], 105, 120)
         >>> assert np.all(qres.aid2_fs[2] == qres.aid2_fsv[2].prod(axis=1)), 'math is broken'
 
     """
@@ -1584,20 +1585,14 @@ def score_chipmatch(qreq_, qaid, chipmatch, score_method):
         >>> score_method = qreq_.qparams.score_method
         >>> daid2_score_post = score_chipmatch(qreq_, qaid, chipmatch, score_method)
     """
-    (aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H) = chipmatch
-    # HACK AROUND SCORE VECTORS
-    aid2_fs = {aid: fsv.prod(axis=1) for aid, fsv in six.iteritems(aid2_fsv)}
-    # FIXME let vr take care of score vectors
-    chipmatch_old = (aid2_fm, aid2_fs, aid2_fk, aid2_H)
-
     # HACK: Im not even sure if the 'w' suffix is correctly handled anymore
     if score_method.find('w') == len(score_method) - 1:
         score_method = score_method[:-1]
     # Choose the appropriate scoring mechanism
     if score_method == 'csum':
-        (aid_list, score_list) = vr2.score_chipmatch_csum(qaid, chipmatch_old, qreq_)
+        (aid_list, score_list) = vr2.score_chipmatch_csum(qaid, chipmatch, qreq_)
     elif score_method == 'nsum':
-        (aid_list, score_list) = vr2.score_chipmatch_nsum(qaid, chipmatch_old, qreq_)
+        (aid_list, score_list) = vr2.score_chipmatch_nsum(qaid, chipmatch, qreq_)
     #elif score_method == 'pl':
     #    daid2_score, nid2_score = vr2.score_chipmatch_PL(qaid, chipmatch, qreq_)
     #elif score_method == 'borda':

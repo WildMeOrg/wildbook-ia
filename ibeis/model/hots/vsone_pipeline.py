@@ -52,7 +52,8 @@ def vsone_reranking(qreq_, qaid2_chipmatch, verbose=False):
     Example:
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum', sver_weighting=True)
-        >>> ibs, qreq_ = plh.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict, qaid_list=[1, 4, 6])
+        >>> qaid_list = [1, 4, 6] #  [2:3]
+        >>> ibs, qreq_ = plh.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict, qaid_list=qaid_list)
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')
         >>> qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
         >>> # qaid2_chipmatch = ut.dict_subset(qaid2_chipmatch, [6])
@@ -100,7 +101,9 @@ def make_rerank_pair_shortlist(qreq_, qaid2_chipmatch):
         >>> print('top_aid_list = %r' % (top_aid_list,))
         >>> print('top_nid_list = %r' % (top_nid_list,))
         >>> assert top_nid_list.index(1) == 0, 'name 1 should be rank 1'
-        >>> assert len(top_nid_list) == 5, 'should have 3 names and up to 2 image per name'
+        >>> max_num_rerank = qreq_.qparams.nNameShortlistVsone * qreq_.qparams.nAnnotPerName
+        >>> min_num_rerank = qreq_.qparams.nNameShortlistVsone
+        >>> ut.assert_inbounds(len(top_nid_list), min_num_rerank, max_num_rerank, 'incorrect number in shortlist')
 
     Ignore:
         #vsone_query_pairs = make_rerank_pair_shortlist(qreq_, qaid2_chipmatch)
@@ -416,6 +419,7 @@ def spatially_constrained_match(flann, dvecs, qkpts, dkpts, H, dlen_sqrd,
     # Given matching distance and normalizing distance, filter by ratio scores
     fm_SCR, fs_SCR, fm_norm_SCR = constrained_matching.ratio_test2(
         match_dist_list, norm_dist_list, fm_SC, fm_norm_SC, ratio_thresh2)
+    fm_SCR = fm_SCR.astype(hstypes.FM_DTYPE)
     return fm_SCR, fs_SCR
 
 

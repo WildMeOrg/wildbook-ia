@@ -44,7 +44,7 @@ def get_config_result_info(ibs, qaids, daids):
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaids = ibs.get_valid_aids()[0:3]
         >>> daids = ibs.get_valid_aids()[0:5]
-        >>> qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
+        >>> qresinfotup = get_config_result_info(ibs, qaids, daids)
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -55,7 +55,7 @@ def get_config_result_info(ibs, qaids, daids):
         >>> # ibs.cfg.query_cfg.codename = 'vsone'
         >>> qaids = ibs.get_valid_aids()[0:3]
         >>> daids = ibs.get_valid_aids()[0:5]
-        >>> qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision = get_qx2_bestrank(ibs, qaids, daids)
+        >>> qresinfotup = get_config_result_info(ibs, qaids, daids)
 
     Ignore:
         for qaid, qres in six.iteritems(qaid2_qres):

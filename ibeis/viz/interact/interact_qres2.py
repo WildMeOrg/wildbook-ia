@@ -1,25 +1,22 @@
 from __future__ import absolute_import, division, print_function
-# UTool
-import utool
-from six.moves import range
-import six
-import functools
-from collections import OrderedDict as odict
-# Drawtool
-import plottool.draw_func2 as df2
-# IBEIS
-from ibeis.viz import viz_helpers as vh
-from ibeis import ibsfuncs
-from plottool import interact_helpers as ih
-from ibeis.viz import viz_matches
 #from ibeis.viz.interact.interact_matches import ishow_matches
-from ibeis.viz.interact.interact_sver import ishow_sver
-from ibeis.dev import results_organizer
-import matplotlib as mpl
+from six.moves import range
+import functools
+import six
+from collections import OrderedDict as odict
+import utool as ut
+import vtool as vt
+from plottool import interact_helpers as ih
 from plottool import plot_helpers as ph
-#import cv2
+import matplotlib as mpl
+import plottool.draw_func2 as df2
+from ibeis import ibsfuncs
+from ibeis.dev import results_organizer
+from ibeis.viz import viz_helpers as vh
+from ibeis.viz import viz_matches
+from ibeis.viz.interact.interact_sver import ishow_sver
 
-(print, print_, printDBG, rrr, profile) = utool.inject(
+(print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[interact_qres2]')
 
 
@@ -78,7 +75,7 @@ class Interact_QueryResult(object):
         self.qaid2_qres = qaid2_qres
         # update keyword args
         params = default_interact_qres_params()
-        utool.updateif_haskey(params, kwargs)
+        ut.updateif_haskey(params, kwargs)
         self.__dict__.update(**params)
         # initialize matches
         self.init_candidates(qaid2_qres)
@@ -98,13 +95,13 @@ class Interact_QueryResult(object):
         self.qaids = qaids
         self.aids = aids
         self.nCands = len(self.qaids)
-        self.nPages = utool.iceil(self.nCands / self.nPerPage)
+        self.nPages = vt.iceil(self.nCands / self.nPerPage)
         #if self.nCands > 0:
         #    index = 0
         #    self.select_candidate_match(index)
 
     def select_candidate_match(self, index):
-        #if not utool.isiterable(index_list):
+        #if not ut.isiterable(index_list):
         #    index = index_list
         #if index < 0 or index >= len(self.cand_match_list): raise AssertionError('no results')
             #return None
@@ -350,3 +347,16 @@ class Interact_QueryResult(object):
     def show(self):
         self.draw()
         self.bring_to_front()
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.viz.interact.interact_qres2
+        python -m ibeis.viz.interact.interact_qres2 --allexamples
+        python -m ibeis.viz.interact.interact_qres2 --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

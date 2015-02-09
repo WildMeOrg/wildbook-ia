@@ -39,7 +39,8 @@ def score_chipmatch_csum(qaid, chipmatch, qreq_):
         >>> (aid_list, score_list) = score_chipmatch_csum(qaid, chipmatch, qreq_)
         >>> print(aid_list, score_list)
     """
-    (_, aid2_fs, _, _) = chipmatch
+    (aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H) = chipmatch
+    aid2_fs = {aid: fsv.prod(axis=1) for aid, fsv in six.iteritems(aid2_fsv)}
     aid_list = list(six.iterkeys(aid2_fs))
     fs_list = ut.dict_take(aid2_fs, aid_list)
     #fs_list  = list(six.itervalues(aid2_fs))
@@ -73,6 +74,7 @@ def score_chipmatch_nsum(qaid, chipmatch, qreq_):
         >>> from ibeis.model.hots.voting_rules2 import *  # NOQA
         >>> ibs, qreq_, qaid, chipmatch = get_chipmatch_testdata()
         >>> (aid_list, score_list) = score_chipmatch_nsum(qaid, chipmatch, qreq_)
+        >>> print(aid_list, score_list)
     """
     # FIXME:
     (nid_list, nsum_list) = score_chipmatch_true_nsum(qaid, chipmatch, qreq_)
@@ -107,7 +109,8 @@ def score_chipmatch_nsum(qaid, chipmatch, qreq_):
 
 def score_chipmatch_true_nsum(qaid, chipmatch, qreq_):
     # Nonhacky version of name scoring
-    (_, aid2_fs, _, _) = chipmatch
+    (aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H) = chipmatch
+    aid2_fs = {aid: fsv.prod(axis=1) for aid, fsv in six.iteritems(aid2_fsv)}
     aid_list = list(six.iterkeys(aid2_fs))
     annot_score_list = np.array([fs.sum() for fs in six.itervalues(aid2_fs)])
     annot_nid_list = np.array(qreq_.ibs.get_annot_name_rowids(aid_list))
@@ -122,27 +125,27 @@ def score_chipmatch_nunique(ibs, qaid, chipmatch, qreq):
     raise NotImplementedError('nunique')
 
 
-def enforce_one_name(ibs, aid2_score, chipmatch=None, aid2_chipscore=None):
-    """
-    this is a hack to make the same name only show up once in the top ranked
-    list
-    """
-    if chipmatch is not None:
-        (_, aid2_fs, _, _) = chipmatch
-        aid2_chipscore = np.array([np.sum(fs) for fs in aid2_fs])
-    # FIXME
-    nid_list  = ibs.get_name_aids()
-    nid2_aids = {nid: aids for nid, aids in zip(ibs.get_name_aids(nid_list))}
-    aid2_score = np.array(aid2_score)
-    for nid, aids in enumerate(nid2_aids):
-        if len(aids) < 2 or nid <= 1:
-            continue
-        #print(aids)
-        # zero the aids with the lowest csum score
-        sortx = aid2_chipscore[aids].argsort()
-        aids_to_zero = np.array(aids)[sortx[0:-1]]
-        aid2_score[aids_to_zero] = 0
-    return aid2_score
+#def enforce_one_name(ibs, aid2_score, chipmatch=None, aid2_chipscore=None):
+#    """
+#    this is a hack to make the same name only show up once in the top ranked
+#    list
+#    """
+#    if chipmatch is not None:
+#        (_, aid2_fs, _, _) = chipmatch
+#        aid2_chipscore = np.array([np.sum(fs) for fs in aid2_fs])
+#    # FIXME
+#    nid_list  = ibs.get_name_aids()
+#    nid2_aids = {nid: aids for nid, aids in zip(ibs.get_name_aids(nid_list))}
+#    aid2_score = np.array(aid2_score)
+#    for nid, aids in enumerate(nid2_aids):
+#        if len(aids) < 2 or nid <= 1:
+#            continue
+#        #print(aids)
+#        # zero the aids with the lowest csum score
+#        sortx = aid2_chipscore[aids].argsort()
+#        aids_to_zero = np.array(aids)[sortx[0:-1]]
+#        aid2_score[aids_to_zero] = 0
+#    return aid2_score
 
 
 def score_chipmatch_PL(ibs, qcx, chipmatch, qreq):
