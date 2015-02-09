@@ -127,6 +127,12 @@ def compute_kpts_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config={
 def compute_grid_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config={}):
     """
 
+    Ignore:
+        qaid = 6
+        daid_list = [41]
+        fm_list = [[]]
+        fs_list = [[]]
+
     CommandLine:
         python -m ibeis.model.hots.scoring --test-compute_grid_coverage_score
 

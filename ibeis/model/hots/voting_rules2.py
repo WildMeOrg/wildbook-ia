@@ -41,7 +41,8 @@ def score_chipmatch_csum(qaid, chipmatch, qreq_):
     """
     (_, aid2_fs, _, _) = chipmatch
     aid_list = list(six.iterkeys(aid2_fs))
-    fs_list  = list(six.itervalues(aid2_fs))
+    fs_list = ut.dict_take(aid2_fs, aid_list)
+    #fs_list  = list(six.itervalues(aid2_fs))
     score_list = [np.sum(fs) for fs in fs_list]
     return (aid_list, score_list)
     #aid2_score = {aid: np.sum(fs) for (aid, fs) in six.iteritems(aid2_fs)}
@@ -59,6 +60,8 @@ def score_chipmatch_nsum(qaid, chipmatch, qreq_):
         dict: nid2_score
 
     CommandLine:
+        python dev.py -t custom:score_method=csum,prescore_method=csum --db GZ_ALL --show --va -w --qaid 1032 --noqcache
+
         python dev.py -t nsum_nosv --db GZ_ALL --allgt --noqcache
         python dev.py -t nsum --db GZ_ALL --show --va -w --qaid 1032 --noqcache
         python dev.py -t nsum_nosv --db GZ_ALL --show --va -w --qaid 1032 --noqcache
@@ -71,6 +74,7 @@ def score_chipmatch_nsum(qaid, chipmatch, qreq_):
         >>> ibs, qreq_, qaid, chipmatch = get_chipmatch_testdata()
         >>> (aid_list, score_list) = score_chipmatch_nsum(qaid, chipmatch, qreq_)
     """
+    # FIXME:
     (nid_list, nsum_list) = score_chipmatch_true_nsum(qaid, chipmatch, qreq_)
     # for now apply a hack to return aid scores
     # TODO: rectify this code with code in name scoring
@@ -95,7 +99,8 @@ def score_chipmatch_nsum(qaid, chipmatch, qreq_):
         else:
             print('warning in voting rules nsum')
     aid_list = list(six.iterkeys(aid2_nscore))
-    score_list = list(six.itervalues(aid2_nscore))
+    score_list = ut.dict_take(aid2_nscore, aid_list)
+    #score_list = list(six.itervalues(aid2_nscore))
     return (aid_list, score_list)
     #raise NotImplementedError('nsum')
 

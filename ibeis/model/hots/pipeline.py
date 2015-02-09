@@ -1480,9 +1480,10 @@ def chipmatch_to_resdict(qreq_, qaid2_chipmatch, verbose=VERB_PIPELINE):
     # Matchable daids
     score_method = qreq_.qparams.score_method
     # Create the result structures for each query.
-    filtkey_list = qreq_.qparams.active_filter_list
-    if qreq_.qparams.sver_weighting:
-        filtkey_list = filtkey_list[:] + [hstypes.FiltKeys.HOMOGERR]
+    filtkey_list = qreq_.qparams.get_postsver_filtkey_list()
+    #filtkey_list = qreq_.qparams.active_filter_list
+    #if qreq_.qparams.sver_weighting:
+    #    filtkey_list = filtkey_list[:] + [hstypes.FiltKeys.HOMOGERR]
 
     qres_list = qreq_.make_empty_query_results()
 

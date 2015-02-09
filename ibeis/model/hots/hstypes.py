@@ -199,9 +199,14 @@ class DefaultDictProxy(object):
     def items(self):
         return list(self.iteritems())
 
+#import six
 
+
+@six.add_metaclass(ut.ReloadingMetaclass)
 class ChipMatch2(object):
     """
+    Rename to QueryToDatabaseMatch?
+
     behaves as as the ChipMatch named tuple until we
     completely replace the old structure
     """
@@ -229,6 +234,35 @@ class ChipMatch2(object):
         cm.H_list       = None if aid2_H_ is None else ut.dict_take(aid2_H_, aid_list)
         cm.fsv_col_lbls = None
         cm.daid2_idx    = {daid: idx for idx, daid in enumerate(cm.daid_list)}
+
+    # NEW CHIPMATCH2 FUNCTIONALITY
+    def foo(cm):
+        """
+        Notes:
+        Very weird that it got a score
+
+        qaid 6 vs 41 has
+            [72, 79, 0, 17, 6, 60, 15, 36, 63]
+            [72, 79, 0, 17, 6, 60, 15, 36, 63]
+            [72, 79, 0, 17, 6, 60, 15, 36, 63]
+            [0.06041515612851823, 0.05315687383011199, 0.04921009205690737, 0.04074150879574148, 0.01662558605384169, 0, 0, 0, 0]
+            [7, 40, 41, 86, 103, 88, 8, 101, 35]
+
+        makes very little sense
+        """
+        sortx = ut.list_argsort(cm.score_list)[::-1]
+        daid_sorted  = ut.list_take(cm.daid_list, sortx)
+        fm_sorted    = ut.list_take(cm.fm_list, sortx)
+        fsv_sorted   = ut.list_take(cm.fsv_list, sortx)
+        fk_sorted    = ut.list_take(cm.fk_list, sortx)
+        score_sorted = ut.list_take(cm.score_list, sortx)
+        #H_sorted     = ut.list_take(cm.H_list, sortx)
+
+        print(list(map(len, fm_sorted)))
+        print(list(map(len, fsv_sorted)))
+        print(list(map(len, fk_sorted)))
+        print(score_sorted)
+        print(daid_sorted)
 
     # SIMULATE OLD CHIPMATCHES UNTIL TRANSFER IS COMPLETE
     # TRY NOT TO USE THESE AS THEY WILL BE MUCH SLOWER THAN

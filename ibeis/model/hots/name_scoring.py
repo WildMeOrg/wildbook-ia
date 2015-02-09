@@ -11,7 +11,8 @@ NameScoreTup = namedtuple('NameScoreTup', ('sorted_nids', 'sorted_nscore',
 
 def group_scores_by_name(ibs, aid_list, score_list):
     """
-    Converts annotation scores to name scores
+    Converts annotation scores to name scores.
+    Over multiple annotations finds keypoints best match and uses that score.
 
     CommandLine:
         python -m ibeis.model.hots.name_scoring --test-group_scores_by_name
@@ -52,10 +53,12 @@ def group_scores_by_name(ibs, aid_list, score_list):
     score_arr = np.array(score_list)
     aid_list  = np.array(aid_list)
     nid_list  = np.array(ibs.get_annot_name_rowids(aid_list))
+    # Group scores by name
     unique_nids, groupxs = vt.group_indicies(nid_list)
     grouped_scores = np.array(vt.apply_grouping(score_arr, groupxs))
     grouped_aids   = np.array(vt.apply_grouping(aid_list, groupxs))
     # Build representative score per group
+    # (find each keypoints best match per annotation within the name)
     group_nscore = np.array([scores.max() for scores in grouped_scores])
     group_sortx = group_nscore.argsort()[::-1]
     # Top nids

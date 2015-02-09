@@ -3,6 +3,7 @@ from ibeis.model.hots import neighbor_index
 from ibeis.model.hots import multi_index
 from ibeis.model.hots import score_normalization
 from ibeis.model.hots import distinctiveness_normalizer
+from ibeis.model.hots import hstypes
 from ibeis.model import Config
 import vtool as vt
 import copy
@@ -784,6 +785,16 @@ class QueryParams(object):
         qparams.flann_cfgstr      = cfg.flann_cfg.get_cfgstr()
         qparams.query_cfgstr      = cfg.get_cfgstr()
         qparams.vocabtrain_cfgstr = cfg.smk_cfg.vocabtrain_cfg.get_cfgstr()
+
+    def get_postsver_filtkey_list(qparams):
+        """ HACK: gets columns of fsv post spatial verification.  This will
+        eventually be incorporated into chipmatch instead and will not be
+        dependant on specifically where you are in the pipeline
+        """
+        filtkey_list = qparams.active_filter_list
+        if qparams.sver_weighting:
+            filtkey_list = filtkey_list[:] + [hstypes.FiltKeys.HOMOGERR]
+        return filtkey_list
 
     def get(qparams, key, *d):
         """ get a paramater value by string """

@@ -17,6 +17,10 @@ TODOLIST:
       - regional match quality (descriptor based) COS
     * Circular hesaff keypoints
     * Asymetric weight scoring
+
+    * FIX BUGS IN score_chipmatch_nsum FIRST THING TOMORROW.
+     dict keys / vals are being messed up. very inoccuous
+
 """
 from __future__ import absolute_import, division, print_function
 import six
@@ -51,7 +55,9 @@ def vsone_reranking(qreq_, qaid2_chipmatch, verbose=False):
         >>> ibs, qreq_ = plh.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict, qaid_list=[1, 4, 6])
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')
         >>> qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
+        >>> # qaid2_chipmatch = ut.dict_subset(qaid2_chipmatch, [6])
         >>> qaid2_chipmatch_VSONE = vsone_reranking(qreq_, qaid2_chipmatch)
+        >>> #qaid2_chipmatch = qaid2_chipmatch_VSONE
         >>> if ut.show_was_requested():
         >>>     import plottool as pt
         >>>     show_top_chipmatches(qreq_.ibs, qaid2_chipmatch_VSONE)
@@ -63,7 +69,9 @@ def vsone_reranking(qreq_, qaid2_chipmatch, verbose=False):
     shortlist_tup = make_rerank_pair_shortlist(qreq_, qaid2_chipmatch)
     qaid_list, daids_list, Hs_list, prior_chipmatch_list = shortlist_tup
     # Then execute vsone reranking
-    qaid2_chipmatch_VSONE = execute_vsone_reranking(ibs, config, qaid_list, daids_list, Hs_list, prior_chipmatch_list)
+    prior_filtkey_list = qreq_.qparams.get_postsver_filtkey_list()
+    qaid2_chipmatch_VSONE = execute_vsone_reranking(
+        ibs, config, qaid_list, daids_list, Hs_list, prior_chipmatch_list, prior_filtkey_list)
     return qaid2_chipmatch_VSONE
 
 
@@ -146,14 +154,14 @@ def make_rerank_pair_shortlist(qreq_, qaid2_chipmatch):
 
 
 #@profile
-def execute_vsone_reranking(ibs, config, qaid_list, daids_list_, Hs_list, prior_chipmatch_list):
+def execute_vsone_reranking(ibs, config, qaid_list, daids_list_, Hs_list, prior_chipmatch_list, prior_filtkey_list):
     r"""
     runs several pairs of (qaid, daids) vsone matches
     For each qaid, daids pair in the lists, execute a query
     """
     progkw = dict(lbl='VSONE RERANKING', freq=1)
     daid_score_fm_fsv_tup_list = [
-        single_vsone_query(ibs, qaid, daid_list, H_list, prior_chipmatch, config)
+        single_vsone_query(ibs, qaid, daid_list, H_list, prior_chipmatch, config, prior_filtkey_list)
         for (qaid, daid_list, H_list, prior_chipmatch) in
         ut.ProgressIter(
             zip(qaid_list, daids_list_, Hs_list, prior_chipmatch_list),
@@ -176,6 +184,8 @@ def execute_vsone_reranking(ibs, config, qaid_list, daids_list_, Hs_list, prior_
         aid2_score = dict(zip(daids, scores))
         aid2_H     = dict(zip(daids, Hs))
         chipmatch_VSONE = hstypes.ChipMatch(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
+        #cm = hstypes.ChipMatch2(chipmatch_VSONE)
+        #fm.foo()
         chipmatch_VSONE_list.append(chipmatch_VSONE)
     qaid2_chipmatch_VSONE = dict(zip(qaid_list, chipmatch_VSONE_list))
     #qaid2_scores = dict(zip(qaid_list, scores_list))
@@ -237,7 +247,7 @@ def single_vsone_query(ibs, qaid, daid_list, H_list, prior_chipmatch=None,
     """
     from ibeis.model.hots import name_scoring
     #print('==================')
-    fm_list, fs_list = compute_query_matches(ibs, qaid, daid_list, H_list, config=config)
+    vsone_fm_list, vsone_fs_list = compute_query_matches(ibs, qaid, daid_list, H_list, config=config)
 
     if prior_chipmatch is not None:
         # COMBINE VSONE WITH VSMANY MATCHES
@@ -246,7 +256,7 @@ def single_vsone_query(ibs, qaid, daid_list, H_list, prior_chipmatch=None,
         new_fm_list = []
         new_fs_list = []
         vecs1 = ibs.get_annot_vecs(qaid)
-        _iter = zip(daid_list, fm_list, fs_list, prior_fm_list, prior_fsv_list)
+        _iter = zip(daid_list, vsone_fm_list, vsone_fs_list, prior_fm_list, prior_fsv_list)
         for daid, vsone_fm, vsone_fs, prior_fm, prior_fsv in _iter:
             vecs2 = ibs.get_annot_vecs(daid)
             fm_both, fs_both = merge_vsone_with_prior(
@@ -256,21 +266,33 @@ def single_vsone_query(ibs, qaid, daid_list, H_list, prior_chipmatch=None,
             new_fs_list.append(fs_both)
         fm_list = new_fm_list
         fs_list = new_fs_list
+    else:
+        fm_list = vsone_fm_list
+        fs_list = vsone_fs_list
+
+    #if qaid == 6:
+    #    print(list(map(len, fm_list)))
+    #    print(list(map(len, fs_list)))
+    #    #print(list(map(len, fsv_list)))
+    #    print(daid_list)
+    #    ut.embed()
 
     cov_score_list = scoring.compute_grid_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config=config)
     # TODO: paramatarize
     #cov_score_list = scoring.compute_kpts_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config=config)
     NAME_SCORING = True
+    NAME_SCORING = False
     if NAME_SCORING:
         # Keep only the best annotation per name
+        # FIXME: There may be a problem here
         nscore_tup = name_scoring.group_scores_by_name(ibs, daid_list, cov_score_list)
         score_list = ut.flatten([scores[0:1].tolist() + ([0] * (len(scores) - 1))
                                  for scores in nscore_tup.sorted_scores])
     else:
         score_list = cov_score_list
     # Convert our one score to a score vector here
-    num_matches_iter = map(len, fm_list)
     num_filts = 1  # currently only using one vector here.
+    num_matches_iter = map(len, fm_list)
     fsv_list = [fs.reshape((num_matches, num_filts))
                 for fs, num_matches in zip(fs_list, num_matches_iter)]
     daid_score_fm_fsv_tup = (daid_list, score_list, fm_list, fsv_list)
@@ -415,10 +437,7 @@ def testdata_matching():
     daid_list = top_aids_list[0]
     H_list = top_Hs_list[0]
     prior_chipmatch = prior_chipmatch_list[0]
-    prior_filtkey_list = qreq_.qparams.active_filter_list
-    if qreq_.qparams.sver_weighting:
-        prior_filtkey_list = prior_filtkey_list[:] + [hstypes.FiltKeys.HOMOGERR]
-
+    prior_filtkey_list = qreq_.qparams.get_postsver_filtkey_list()
     return ibs, qreq_, qaid, daid_list, H_list, prior_chipmatch, prior_filtkey_list
 
 
@@ -428,6 +447,8 @@ def show_top_chipmatches(ibs, qaid2_chipmatch, fnum_offset=0, figtitle=''):
     import plottool as pt
     CLIP_TOP = 6
     for fnum_, (qaid, chipmatch) in enumerate(six.iteritems(qaid2_chipmatch)):
+        #cm = hstypes.ChipMatch2(chipmatch)
+        #cm.foo()
         fnum = fnum_ + fnum_offset
         #pt.figure(fnum=fnum, doclf=True, docla=True)
         daid_list = list(six.iterkeys(chipmatch.aid2_fm))
@@ -436,8 +457,8 @@ def show_top_chipmatches(ibs, qaid2_chipmatch, fnum_offset=0, figtitle=''):
         nRows, nCols = pt.get_square_row_cols(len(top_daid_list), fix=True)
         next_pnum = pt.make_pnum_nextgen(nRows, nCols)
         for daid in top_daid_list:
-            fm = chipmatch.aid2_fm[daid]
-            H = chipmatch.aid2_H[daid]
+            fm    = chipmatch.aid2_fm[daid]
+            H     = chipmatch.aid2_H[daid]
             score = chipmatch.aid2_score[daid]
             viz_sver.show_constrained_match(ibs, qaid, daid, H, fm, fnum=fnum, pnum=next_pnum())
             truth = ibs.get_match_truth(qaid, daid)
