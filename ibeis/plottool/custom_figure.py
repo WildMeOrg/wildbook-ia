@@ -123,7 +123,10 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
     return fig
 
 
-def prepare_figure_for_save(fnum, dpi=None, figsize=None):
+def prepare_figure_for_save(fnum, dpi=None, figsize=None, fig=None):
+    if fig is not None:
+        # HACK; doesnt set DPI this might cause issues
+        return fig, fig.number
     if dpi is None:
         dpi = DPI
     if figsize is None:
@@ -184,14 +187,16 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext):
     # Format safely
     fname_fmt = '{fname}_{size_suffix}{ext}'
     fmt_dict = dict(fname=fname, ext=ext, size_suffix=size_suffix)
-    fname_clean = ut.long_fname_format(fname_fmt, fmt_dict, ['size_suffix'], max_len=155, hashlen=8)
+    print('[custom_figure] Formating long name')
+    fname_clean = ut.long_fname_format(fname_fmt, fmt_dict, ['size_suffix', 'fname'], max_len=155, hashlen=8)
     # Normalize extension
     fpath_clean = join(dpath, fname_clean)
     return fpath_clean
 
 
 def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwrite=True,
-                defaultext=None, verbose=2, dpi=None, figsize=None, saveax=None):
+                defaultext=None, verbose=2, dpi=None, figsize=None, saveax=None,
+                fig=None):
     """
     Helper to save the figure image to disk. Tries to be smart about filename
     lengths, extensions, overwrites, etc...
@@ -220,14 +225,16 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwr
             defaultext = '.pdf'
         else:
             defaultext = '.jpg'
-    fig, fnum = prepare_figure_for_save(fnum, dpi, figsize)
+    fig, fnum = prepare_figure_for_save(fnum, dpi, figsize, fig)
     if fpath_strict is None:
         fpath_clean = prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext)
     else:
         fpath_clean = fpath_strict
     savekw = {'dpi': dpi}
+    print('saveax = %r' % (saveax,))
 
     if saveax is not None:
+        print("\n[pt] SAVING ONLY EXTENT\n")
         if saveax is True:
             saveax = plt.gca()
         extent = saveax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
