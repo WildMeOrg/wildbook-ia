@@ -326,7 +326,7 @@ def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
         >>> # execute function
         >>> default_dict = vt.get_extract_features_default_params()
         >>> default_dict['ratio_thresh'] = .625
-        >>> kwargs = ut.get_dict_vals_from_commandline(default_dict)
+        >>> kwargs = ut.argparse_dict(default_dict)
         >>> matches_testtup = testdata_ratio_matches(fname1, fname2, **kwargs)
         >>> (kpts1, kpts2, fm_RAT, fs_RAT, rchip1, rchip2) = matches_testtup
         >>> if ut.show_was_requested():

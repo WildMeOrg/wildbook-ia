@@ -2,11 +2,80 @@ from __future__ import absolute_import, division, print_function
 #from six.moves import range
 import utool as ut
 import numpy as np
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[constr]', DEBUG=False)
+from vtool import keypoint as ktool
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[matching]', DEBUG=False)
 
 
-def nearest_neighbors_to_matches(fx2_to_fx1, fx2_to_dist):
+# maximum SIFT matching distance based using uint8 trick from hesaff
+PSEUDO_MAX_VEC_COMPONENT = 512
+PSEUDO_MAX_DIST_SQRD = 2 * (PSEUDO_MAX_VEC_COMPONENT ** 2)
+PSEUDO_MAX_DIST = np.sqrt(2) * (PSEUDO_MAX_VEC_COMPONENT)
+
+
+def normalized_nearest_neighbors(flann, vecs2, K, checks=800):
     """
+    uses flann index to return nearest neighbors with distances normalized
+    between 0 and 1 using sifts uint8 trick
+    """
+    fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
+    fx2_to_dist = np.divide(np.sqrt(_fx2_to_dist.astype(np.float64)), PSEUDO_MAX_DIST)  # normalized dist
+    #fx2_to_dist = np.divide(_fx2_to_dist.astype(np.float64), PSEUDO_MAX_DIST_SQRD)  # squared normalized dist
+    return fx2_to_fx1, fx2_to_dist
+
+
+def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
+                                         fx2_to_fx1, fx2_to_dist, match_xy_thresh,
+                                         norm_xy_bounds=(0.0, 1.0)):
+    """
+    assigns spatially constrained vsone match using results of nearest
+    neighbors.
+    """
+    # Find spatial errors of keypoints under current homography
+    fx2_to_xyerr_sqrd = ktool.get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1)
+    fx2_to_xyerr = np.sqrt(fx2_to_xyerr_sqrd)
+    fx2_to_xyerr_norm = np.divide(fx2_to_xyerr, np.sqrt(chip2_dlen_sqrd))
+
+    # Find matches that satisfy spatial constraints
+    fx2_to_valid_match = ut.inbounds(fx2_to_xyerr_norm, 0, match_xy_thresh)
+    assert np.all(fx2_to_valid_match <= 1), 'cannot have relative xyerror (to dlensqrd) more than 1'
+    fx2_to_fx1_match_col = ut.find_first_true_indicies(fx2_to_valid_match)
+
+    # Find normalizers that satisfy spatial constraints
+    fx2_to_valid_normalizer = ut.inbounds(fx2_to_xyerr_norm, *norm_xy_bounds)
+    fx2_to_fx1_norm_col = ut.find_next_true_indicies(fx2_to_valid_normalizer, fx2_to_fx1_match_col)
+
+    assert fx2_to_fx1_match_col != fx2_to_fx1_norm_col, 'normlizers are matches!'
+
+    fx2_to_hasmatch = [pos is not None for pos in fx2_to_fx1_norm_col]
+    # IMAGE 2 Matching Features
+    fx2_match = np.where(fx2_to_hasmatch)[0]
+    match_col_list = np.array(ut.list_take(fx2_to_fx1_match_col, fx2_match), dtype=fx2_match.dtype)
+    norm_col_list = np.array(ut.list_take(fx2_to_fx1_norm_col, fx2_match), dtype=fx2_match.dtype)
+
+    # We now have 2d coordinates into fx2_to_fx1
+    # Covnert into 1d coordinates for flat indexing into fx2_to_fx1
+    _shape2d = fx2_to_fx1.shape
+    _match_index_2d = np.vstack((fx2_match, match_col_list))
+    _norm_index_2d  = np.vstack((fx2_match, norm_col_list))
+    #with ut.EmbedOnException():
+    match_index_1d = np.ravel_multi_index(_match_index_2d, _shape2d)
+    norm_index_1d  = np.ravel_multi_index(_norm_index_2d, _shape2d)
+
+    # Find initial matches
+    # IMAGE 1 Matching Features
+    fx1_match = fx2_to_fx1.take(match_index_1d)
+    fx1_norm = fx2_to_fx1.take(norm_index_1d)
+    # compute constrained ratio score
+    match_dist = fx2_to_dist.take(match_index_1d)
+    norm_dist = fx2_to_dist.take(norm_index_1d)
+    assigntup = fx2_match, fx1_match, fx1_norm, match_dist, norm_dist
+    return assigntup
+
+
+def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist):
+    """
+    assigns vsone matches using results of nearest neighbors.
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.matching import *  # NOQA
@@ -23,9 +92,9 @@ def nearest_neighbors_to_matches(fx2_to_fx1, fx2_to_dist):
         >>>                         [ 0.14974403,  0.15112305],
         >>>                         [ 0.22693443,  0.24428177],
         >>>                         [ 0.2155838 ,  0.23641014]], dtype=np.float64)
-        >>> matchtup = nearest_neighbors_to_matches(fx2_to_fx1, fx2_to_dist)
-        >>> fx2_match, fx1_match, fx1_norm, match_dist, norm_dist = matchtup
-        >>> result = ut.list_str(matchtup, precision=3)
+        >>> assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist)
+        >>> fx2_match, fx1_match, fx1_norm, match_dist, norm_dist = assigntup
+        >>> result = ut.list_str(assigntup, precision=3)
         >>> print(result)
         (
             np.array([0, 1, 2, 3, 4, 5], dtype=np.int32),
@@ -40,14 +109,57 @@ def nearest_neighbors_to_matches(fx2_to_fx1, fx2_to_dist):
     fx1_norm  = fx2_to_fx1.T[1]
     match_dist = fx2_to_dist.T[0]
     norm_dist  = fx2_to_dist.T[1]
-    return fx2_match, fx1_match, fx1_norm, match_dist, norm_dist
+    assigntup = fx2_match, fx1_match, fx1_norm, match_dist, norm_dist
+    return assigntup
 
 
-def ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist, ratio_thresh=.625):
+def unconstrained_ratio_match(flann, vecs2, unc_ratio_thresh=.625, **kwargs):
+    """ Lowes ratio matching
+
+    fs_dtype = kwargs.get('fs_dtype', np.float32)
+    fm_dtype = kwargs.get('fm_dtype', np.int32)
+
+    """
+    fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(flann, vecs2, K=2, checks=800)
+    #ut.embed()
+    assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist)
+    fx2_match, fx1_match, fx1_norm, match_dist, norm_dist = assigntup
+    ratio_tup = ratio_test(fx2_match, fx1_match, fx1_norm, match_dist,
+                           norm_dist, unc_ratio_thresh, **kwargs)
+    return ratio_tup
+
+
+@profile
+def spatially_constrained_ratio_match(flann, vecs2, kpts1, kpts2, H, chip2_dlen_sqrd,
+                                      match_xy_thresh=1.0, scr_ratio_thresh=.625, scr_K=7,
+                                      norm_xy_bounds=(0.0, 1.0), **kwargs):
+    """
+    performs nearest neighbors, then assigns based on spatial constraints, the
+    last step performs a ratio test.
+
+    H should map from query to database chip (1 to 2)
+    """
+    # Find several nearest matches
+    fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(flann, vecs2, scr_K, checks=800)
+    # Then find those which satisfify the constraints
+    assigntup = assign_spatially_constrained_matches(
+        chip2_dlen_sqrd, kpts1, kpts2, H, fx2_to_fx1, fx2_to_dist,
+        match_xy_thresh, norm_xy_bounds=norm_xy_bounds)
+    fx2_match, fx1_match, fx1_norm, match_dist, norm_dist = assigntup
+    # filter assignments via the ratio test
+    ratio_tup = ratio_test(fx2_match, fx1_match, fx1_norm, match_dist,
+                           norm_dist, scr_ratio_thresh, **kwargs)
+    scr_tup = ratio_tup
+    return scr_tup
+
+
+def ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist,
+               ratio_thresh=.625, fm_dtype=np.int32, fs_dtype=np.float32):
     r"""
     Lowes ratio test for one-vs-one feature matches.
-    Assumes reverse matches (image2 to image1) and returns
-    (image1 to image2) matches.
+
+    Assumes reverse matches (image2 to image1) and returns (image1 to image2)
+    matches. Generalized to accept any match or normalizer not just K=1 and K=2.
 
     Args:
         fx2_to_fx1 (ndarray): nearest neighbor indicies (from flann)
@@ -66,35 +178,33 @@ def ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist, ratio_thre
         >>> # ENABLE_DOCTEST
         >>> from vtool.matching import *  # NOQA
         >>> # build test data
-        >>> fx2_match  = np.array([0, 1, 2, 3, 4, 5], dtype=np.int32),
+        >>> fx2_match  = np.array([0, 1, 2, 3, 4, 5], dtype=np.int32)
         >>> fx1_match  = np.array([77, 116, 122, 1075, 530, 45], dtype=np.int32)
         >>> fx1_norm   = np.array([971, 120, 128, 692, 45, 530], dtype=np.int32)
         >>> match_dist = np.array([ 0.059, 0.021, 0.039, 0.15 , 0.227, 0.216])
         >>> norm_dist  = np.array([ 0.239, 0.241, 0.248, 0.151, 0.244, 0.236])
-        >>> matchtup = nearest_neighbors_to_matches(fx2_to_fx1, fx2_to_dist)
-        >>> fx2_match, fx1_match, fx1_norm, match_dist, norm_dist = matchtup
         >>> ratio_thresh = .625
         >>> # execute function
         >>> ratio_tup = ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist, ratio_thresh)
         >>> (fm_RAT, fs_RAT, fm_norm_RAT) = ratio_tup
         >>> # verify results
-        >>> result = ut.list_str(rattup, precision=3)
+        >>> result = ut.list_str(ratio_tup, precision=3)
         >>> print(result)
         (
             np.array([[ 77,   0],
                       [116,   1],
-                      [122,   2]]),
-            np.array([ 0.753,  0.912,  0.842]),
+                      [122,   2]], dtype=np.int32),
+            np.array([ 0.753,  0.913,  0.843], dtype=np.float32),
             np.array([[971,   0],
                       [120,   1],
-                      [128,   2]]),
+                      [128,   2]], dtype=np.int32),
         )
     """
-    fx2_to_ratio = np.divide(match_dist, norm_dist)
+    fx2_to_ratio = np.divide(match_dist, norm_dist).astype(fs_dtype)
     fx2_to_isvalid = np.less(fx2_to_ratio, ratio_thresh)
-    fx2_match_RAT = fx2_match.compress(fx2_to_isvalid)
-    fx1_match_RAT = fx1_match.compress(fx2_to_isvalid)
-    fx1_norm_RAT = fx1_norm.compress(fx2_to_isvalid)
+    fx2_match_RAT = fx2_match.compress(fx2_to_isvalid).astype(fm_dtype)
+    fx1_match_RAT = fx1_match.compress(fx2_to_isvalid).astype(fm_dtype)
+    fx1_norm_RAT = fx1_norm.compress(fx2_to_isvalid).astype(fm_dtype)
     # Turn the ratio into a score
     fs_RAT = np.subtract(1.0, fx2_to_ratio.compress(fx2_to_isvalid))
     fm_RAT = np.vstack((fx1_match_RAT, fx2_match_RAT)).T

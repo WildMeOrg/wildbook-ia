@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six  # NOQA
 import numpy as np
-from vtool import keypoint as ktool
+#from vtool import keypoint as ktool
 from vtool import coverage_kpts
 from vtool import spatial_verification as sver
 from vtool import matching
@@ -25,17 +25,18 @@ def assign_nearest_neighbors(vecs1, vecs2, K=2):
         'trees': 8
     }
     #pseudo_max_dist_sqrd = (np.sqrt(2) * 512) ** 2
-    pseudo_max_dist_sqrd = 2 * (512 ** 2)
+    #pseudo_max_dist_sqrd = 2 * (512 ** 2)
     flann = vt.flann_cache(vecs1, flann_params=flann_params)
     try:
-        fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
+        fx2_to_fx1, fx2_to_dist = matching.normalized_nearest_neighbors(flann, vecs2, K, checks)
+        #fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
     except pyflann.FLANNException:
         print('vecs1.shape = %r' % (vecs1.shape,))
         print('vecs2.shape = %r' % (vecs2.shape,))
         print('vecs1.dtype = %r' % (vecs1.dtype,))
         print('vecs2.dtype = %r' % (vecs2.dtype,))
         raise
-    fx2_to_dist = np.divide(_fx2_to_dist, pseudo_max_dist_sqrd)
+    #fx2_to_dist = np.divide(_fx2_to_dist, pseudo_max_dist_sqrd)
     return fx2_to_fx1, fx2_to_dist
 
 
@@ -109,14 +110,12 @@ def baseline_vsone_ratio_matcher_(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdic
     #ratio_thresh =  .99
     # GET NEAREST NEIGHBORS
     fx2_to_fx1, fx2_to_dist = assign_nearest_neighbors(vecs1, vecs2, K=2)
-    fx2_m = np.arange(len(fx2_to_fx1))
-    fx1_m = fx2_to_fx1.T[0]
-    fm_ORIG = np.vstack((fx1_m, fx2_m)).T
-    #fs_ORIG = fx2_to_dist.T[0]
-    fs_ORIG = 1 - np.divide(fx2_to_dist.T[0], fx2_to_dist.T[1])
-    #np.ones(len(fm_ORIG))
+    assigntup = matching.assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist)
+    fx2_match, fx1_match, fx1_norm, match_dist, norm_dist = assigntup
+    fm_ORIG = np.vstack((fx1_match, fx2_match)).T
+    fs_ORIG = 1 - np.divide(match_dist, norm_dist)
     # APPLY RATIO TEST
-    fm_RAT, fs_RAT, fm_norm_RAT = matching.ratio_test(fx2_to_fx1, fx2_to_dist, ratio_thresh)
+    fm_RAT, fs_RAT, fm_norm_RAT = matching.ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist, ratio_thresh)
     # SPATIAL VERIFICATION FILTER
     #with ut.EmbedOnException():
     svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_RAT, sver_xy_thresh, dlen_sqrd2)
@@ -168,7 +167,7 @@ def spatially_constrianed_matcher_(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2,
     fm_SCR, fs_SCR, fm_norm_SCR = matching.ratio_test(fx2_match, fx1_match,
                                                       fx1_norm, match_dist,
                                                       norm_dist,  ratio_thresh2)
-    fs_SC = 1 - np.divide(match_dist, norm_dist_list)   # NOQA
+    fs_SC = 1 - np.divide(match_dist, norm_dist)   # NOQA
     #fm_SCR, fs_SCR, fm_norm_SCR = ratio_test2(match_dist, norm_dist, fm_SC,
     #                                                fm_norm_SC, ratio_thresh2)
 
@@ -215,67 +214,6 @@ def spatially_constrianed_matcher_(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2,
 #    return fm_SCR, fs_SCR, fm_norm_SCR
 
 
-def assign_spatially_constrained_matches(dlen_sqrd2, kpts1, kpts2, H,
-                                         fx2_to_fx1, fx2_to_dist, match_xy_thresh,
-                                         normalizer_xy_bounds=(0, np.inf)):
-    """
-    does the work of spatially constrained matching
-    """
-    fx2_to_xyerr_sqrd = ktool.get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1)
-    fx2_to_xyerr = np.sqrt(fx2_to_xyerr_sqrd)
-    fx2_to_xyerr_norm = np.divide(fx2_to_xyerr, np.sqrt(dlen_sqrd2))
-
-    # Find matches and normalizers which are within the spatial constraints
-    match_xy_thresh
-    fx2_to_valid_match = ut.inbounds(fx2_to_xyerr_norm, 0, match_xy_thresh)
-    assert np.all(fx2_to_valid_match <= 1), 'cannot have relative xyerror (to dlensqrd) more than 1'
-    fx2_to_fx1_match_col = ut.find_first_true_indicies(fx2_to_valid_match)
-
-    #if normalizer_mode == 'plus':
-    #    normalizer_xy_bounds = (0, np.inf)
-    #    #maxk = fx2_to_dist.shape[1]
-    #    #fx2_to_fx1_norm_col = [None if fx1 is None else min(fx1 + 1, maxk)
-    #    #                    for fx1 in fx2_to_fx1_match_col]
-    #else:
-    # Set normalizer constraints
-    fx2_to_valid_normalizer = ut.inbounds(fx2_to_xyerr_norm, *normalizer_xy_bounds)
-    fx2_to_fx1_norm_col = ut.find_next_true_indicies(fx2_to_valid_normalizer, fx2_to_fx1_match_col)
-
-    try:
-        assert fx2_to_fx1_match_col != fx2_to_fx1_norm_col
-    except Exception as ex:
-        ut.embed()
-        print(fx2_to_fx1_match_col)
-        print(fx2_to_fx1_norm_col)
-        raise
-        pass
-
-    fx2_to_hasmatch = [pos is not None for pos in fx2_to_fx1_norm_col]
-    # IMAGE 2 Matching Features
-    fx2_match = np.where(fx2_to_hasmatch)[0]
-    match_col_list = np.array(ut.list_take(fx2_to_fx1_match_col, fx2_match), dtype=fx2_match.dtype)
-    norm_col_list = np.array(ut.list_take(fx2_to_fx1_norm_col, fx2_match), dtype=fx2_match.dtype)
-
-    # We now have 2d coordinates into fx2_to_fx1
-    # Covnert into 1d coordinates for flat indexing into fx2_to_fx1
-    _shape2d = fx2_to_fx1.shape
-    _match_index_2d = np.vstack((fx2_match, match_col_list))
-    _norm_index_2d  = np.vstack((fx2_match, norm_col_list))
-    #with ut.EmbedOnException():
-    match_index_1d = np.ravel_multi_index(_match_index_2d, _shape2d)
-    norm_index_1d  = np.ravel_multi_index(_norm_index_2d, _shape2d)
-
-    # Find initial matches
-    # IMAGE 1 Matching Features
-    fx1_match = fx2_to_fx1.take(match_index_1d)
-    fx1_norm = fx2_to_fx1.take(norm_index_1d)
-    # compute constrained ratio score
-    match_dist = fx2_to_dist.take(match_index_1d)
-    norm_dist = fx2_to_dist.take(norm_index_1d)
-    assigntup = fx2_match, fx1_match, fx1_norm, match_dist, norm_dist
-    return assigntup
-
-
 def spatially_constrain_matches(dlen_sqrd2, kpts1, kpts2, H_RAT,
                                 fx2_to_fx1, fx2_to_dist,
                                 match_xy_thresh, normalizer_mode='far'):
@@ -299,17 +237,17 @@ def spatially_constrain_matches(dlen_sqrd2, kpts1, kpts2, H_RAT,
     # Filter out matches that could not be constrained
 
     if normalizer_mode == 'plus':
-        normalizer_xy_bounds = (0, np.inf)
+        norm_xy_bounds = (0, np.inf)
     elif normalizer_mode == 'far':
-        normalizer_xy_bounds = (match_xy_thresh, np.inf)
+        norm_xy_bounds = (match_xy_thresh, np.inf)
     elif normalizer_mode == 'nearby':
-        normalizer_xy_bounds = (0, match_xy_thresh)
+        norm_xy_bounds = (0, match_xy_thresh)
     else:
         raise AssertionError('normalizer_mode=%r' % (normalizer_mode,))
 
-    assigntup = assign_spatially_constrained_matches(
+    assigntup = matching.assign_spatially_constrained_matches(
         dlen_sqrd2, kpts1, kpts2, H_RAT, fx2_to_fx1, fx2_to_dist,
-        match_xy_thresh, normalizer_xy_bounds=normalizer_xy_bounds)
+        match_xy_thresh, norm_xy_bounds=norm_xy_bounds)
 
     fx2_match, fx1_match, fx1_norm, match_dist, norm_dist = assigntup
 
