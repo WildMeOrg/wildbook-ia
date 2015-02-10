@@ -307,6 +307,7 @@ def get_coverage_kpts_gridsearch_configs():
         if not cfgdict['cov_blur_on']:
             cfgdict['cov_blur_ksize'] = None
             cfgdict['cov_blur_sigma'] = None
+        return cfgdict
     cfgdict_list, cfglbl_list = ut.make_constrained_cfg_and_lbl_list(varied_dict, constrain_func, slice_dict)
     return cfgdict_list, cfglbl_list
 
