@@ -734,6 +734,7 @@ class QueryResult(__OBJECT_BASE__):
     def dump_top_match(qres, ibs, *args, **kwargs):
         """
         CommandLine:
+            python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show
             python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --quality
 
             python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --dpi=160 --no-fmatches
@@ -741,7 +742,7 @@ class QueryResult(__OBJECT_BASE__):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.viz.viz_qres import *  # NOQA
+            >>> from ibeis.model.hots.hots_query_result import *  # NOQA
             >>> import plottool as pt
             >>> import ibeis
             >>> # build test data
@@ -757,8 +758,11 @@ class QueryResult(__OBJECT_BASE__):
             >>> kwargs['in_image'] = ut.get_argflag('--in-image')
             >>> kwargs['draw_lbl'] = ut.get_argflag('--no-draw-lbl')
             >>> qres = ibs.query_chips(ibs.get_valid_aids()[0:1])[0]
-            >>> qres.dump_top_match(ibs, **kwargs)
-            >>> pt.show_if_requested()
+            >>> img_fpath = qres.dump_top_match(ibs, **kwargs)
+            >>> if ut.show_was_requested():
+            >>>     # show the image dumped to disk
+            >>>     ut.startfile(img_fpath, quote=True)
+            >>> #pt.show_if_requested()
         """
         import plottool as pt
         # Pop save kwargs from kwargs
@@ -781,8 +785,8 @@ class QueryResult(__OBJECT_BASE__):
         pt.save_figure(fpath=fpath, **savekw)  # I HAVE NO IDEA WHY THIS FIXES THE PROBLEM
         kwargs['saveax'] = axes[-1]
         img_fpath = pt.save_figure(fpath=fpath, **savekw)
-        if False:
-            ut.startfile(img_fpath)
+        #if False:
+        #    ut.startfile(img_fpath)
         return img_fpath
         #pt.figure(fnum=pt.next_fnum())
         #pt.imshow(img_fpath)

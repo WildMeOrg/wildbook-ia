@@ -215,12 +215,22 @@ def get_annot_text(ibs, aid_list, draw_lbls):
 def get_query_text(ibs, qres, aid2, truth, **kwargs):
     """ returns title based on the query chip and result """
     text_list = []
+    if qres is not None:
+        qaid = qres.qaid
+        score = qres.get_aid_scores([aid2])[0]
+        rawscore = qres.get_aid_scores([aid2], rawscore=True)[0]
+        aid2_raw_rank = qres.get_aid_ranks([aid2])[0]
+    else:
+        qaid          = kwargs.get('qaid', None)
+        score         = kwargs.get('score', None)
+        rawscore      = kwargs.get('rawscore', None)
+        aid2_raw_rank = kwargs.get('aid2_raw_rank', None)
     if kwargs.get('show_truth', False):
         truth_str = '*%s*' % get_truth_text(ibs, truth)
         text_list.append(truth_str)
-    if kwargs.get('show_rank', True):
+    if kwargs.get('show_rank', qres is not None):
         try:
-            aid2_raw_rank = qres.get_aid_ranks([aid2])[0]
+            #aid2_raw_rank = qres.get_aid_ranks([aid2])[0]
             aid2_rank = aid2_raw_rank + 1 if aid2_raw_rank is not None else None
             rank_str = 'rank=%s' % str(aid2_rank)
         except Exception as ex:
@@ -228,20 +238,20 @@ def get_query_text(ibs, qres, aid2, truth, **kwargs):
             #utool.embed()
             raise
         text_list.append(rank_str)
-    if kwargs.get('show_rawscore', True):
-        rawscore = qres.get_aid_scores([aid2], rawscore=True)[0]
+    if kwargs.get('show_rawscore', qres is not None):
+        #rawscore = qres.get_aid_scores([aid2], rawscore=True)[0]
         rawscore_str = ('rawscore=' + utool.num_fmt(rawscore))
         if len(text_list) > 0:
             rawscore_str = '\n' + rawscore_str
         text_list.append(rawscore_str)
-    if kwargs.get('show_score', True):
-        score = qres.get_aid_scores([aid2])[0]
+    if kwargs.get('show_score', qres is not None):
+        #score = qres.get_aid_scores([aid2])[0]
         score_str = ('score=' + utool.num_fmt(score))
         if len(text_list) > 0:
             score_str = '\n' + score_str
         text_list.append(score_str)
     if kwargs.get('show_timedelta', False):
-        timedelta_str = ('\n' + get_timedelta_str(ibs, qres.qaid, aid2))
+        timedelta_str = ('\n' + get_timedelta_str(ibs, qaid, aid2))
         text_list.append(timedelta_str)
     query_text = ', '.join(text_list)
     return query_text

@@ -21,6 +21,15 @@ TODOLIST:
     * FIX BUGS IN score_chipmatch_nsum FIRST THING TOMORROW.
      dict keys / vals are being messed up. very inoccuous
 
+
+TestFuncs:
+    >>> # VsMany Only
+    python -m ibeis.model.hots.vsone_pipeline --test-show_post_vsmany_vser --show
+    >>> # VsOne Only
+    python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --no-merge_vsmany
+    >>> # VsOne + VsMany
+    python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show
+
 """
 from __future__ import absolute_import, division, print_function
 import six
@@ -53,7 +62,7 @@ def show_post_vsmany_vser():
         >>> show_post_vsmany_vser()
     """
     import plottool as pt
-    ibs, qreq_, qaid2_chipmatch, qaid_list = testdata_post_vsmany_sver()
+    ibs, qreq_, qaid2_chipmatch, qaid_list, rrvsone_cfgdict = testdata_post_vsmany_sver()
     qaid_list = list(six.iterkeys(qaid2_chipmatch))
     chipmatch_list = ut.dict_take(qaid2_chipmatch, qaid_list)
     # HACK POPULATE AID2_SCORE FIELD IN CHIPMATCH TUPLE
@@ -63,7 +72,7 @@ def show_post_vsmany_vser():
         else:
             daid_list, prescore_list = vr2.score_chipmatch_nsum(qaid, chipmatch, qreq_)
         ut.dict_assign(chipmatch.aid2_score, daid_list, prescore_list)
-    show_top_chipmatches(qreq_.ibs, qaid2_chipmatch)
+    show_top_chipmatches(qreq_.ibs, qaid2_chipmatch, figtitle='vsmany post sver')
     pt.show_if_requested()
 
 
@@ -75,18 +84,21 @@ def vsone_reranking(qreq_, qaid2_chipmatch, verbose=False):
     CommandLine:
         python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show
 
+        python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show
+
         python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking
         utprof.py -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking
 
     Example:
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-        >>> ibs, qreq_, qaid2_chipmatch, qaid_list = testdata_post_vsmany_sver()
+        >>> ibs, qreq_, qaid2_chipmatch, qaid_list, rrvsone_cfgdict = testdata_post_vsmany_sver()
         >>> # qaid2_chipmatch = ut.dict_subset(qaid2_chipmatch, [6])
         >>> qaid2_chipmatch_VSONE = vsone_reranking(qreq_, qaid2_chipmatch)
         >>> #qaid2_chipmatch = qaid2_chipmatch_VSONE
         >>> if ut.show_was_requested():
         >>>     import plottool as pt
-        >>>     show_top_chipmatches(qreq_.ibs, qaid2_chipmatch_VSONE)
+        >>>     figtitle = ut.dict_str(rrvsone_cfgdict, newlines=False)
+        >>>     show_top_chipmatches(qreq_.ibs, qaid2_chipmatch_VSONE, figtitle=figtitle)
         >>>     pt.show_if_requested()
     """
     ibs = qreq_.ibs
@@ -167,6 +179,11 @@ def make_rerank_pair_shortlist(qreq_, qaid2_chipmatch):
     return shortlist_tup
 
 
+#def fd():
+#    prior_fm_list  = ut.dict_take(prior_chipmatch.aid2_fm, daid_list)
+#    prior_fsv_list = ut.dict_take(prior_chipmatch.aid2_fsv, daid_list)
+
+
 #@profile
 def execute_vsone_reranking(ibs, config, qaid_list, daids_list_, Hs_list,
                             prior_chipmatch_list, prior_filtkey_list):
@@ -221,6 +238,7 @@ def single_vsone_query(ibs, qaid, daid_list, H_list, prior_chipmatch=None,
 
     CommandLine:
         python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_query:0
+        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_query:1 --show
 
     Example0:
         >>> # DISABLE_DOCTEST
@@ -250,21 +268,18 @@ def single_vsone_query(ibs, qaid, daid_list, H_list, prior_chipmatch=None,
         >>> daid_fm_fs_score_tup = single_vsone_query(ibs, qaid, daid_list, H_list)
         >>> daid_list, score_list, fm_list, fsv_list = daid_fm_fs_score_tup
         >>> print(score_list)
-
-    Ignore:
-        from ibeis.viz import viz_sver
-        import plottool as pt
-
-        next_pnum = pt.make_pnum_nextgen(*pt.get_square_row_cols(len(daid_list)))
-        for fm, daid, H in zip(fm_SCR_list, daid_list, H_list):
-            viz_sver.show_constrained_match(ibs, qaid, daid, H, fm, pnum=next_pnum())
-        pt.update()
     """
     from ibeis.model.hots import name_scoring
     #print('==================')
-    vsone_fm_list, vsone_fs_list = compute_query_matches(ibs, qaid, daid_list, H_list, config=config)
+    #vsone_fm_list, vsone_fs_list = compute_query_matches(ibs, qaid, daid_list, H_list, config=config)
+    assert config.get('use_unconstrained') is not None
+    if config.get('use_constrained') is True:
+        fm_SCR_list, fs_SCR_list, fm_norm_SCR_list = compute_query_constrained_matches(ibs, qaid, daid_list, H_list, config)
+    if config.get('use_unconstrained'):
+        vsone_fm_list, vsone_fs_list, vsone_fm_norm_list = compute_query_unconstrained_matches(ibs, qaid, daid_list, config)
     # TODO: remove hackyness and paramatarize
-    if prior_chipmatch is not None and not ut.get_argflag('--nomergeprior'):
+    merge_prior = config.get('merge_vsmany')
+    if prior_chipmatch is not None and merge_prior:
         # COMBINE VSONE WITH VSMANY MATCHES
         prior_fm_list  = ut.dict_take(prior_chipmatch.aid2_fm, daid_list)
         prior_fsv_list = ut.dict_take(prior_chipmatch.aid2_fsv, daid_list)
@@ -390,7 +405,7 @@ def quick_vsone_flann(ibs, qvecs):
         'algorithm': 'kdtree',
         'trees': 8
     }
-    use_cache = save = ut.is_developer()
+    use_cache = save = False and ut.is_developer()
     flann = vt.flann_cache(qvecs, flann_cachedir, flann_params=flann_params,
                            quiet=True, verbose=False, use_cache=use_cache, save=save)
     return flann
@@ -448,6 +463,7 @@ def compute_query_constrained_matches(ibs, qaid, daid_list, H_list, config):
         'fm_dtype'         : hstypes.FM_DTYPE,
         'fs_dtype'         : hstypes.FS_DTYPE,
     }
+    print('scr_kwargs = ' + ut.dict_str(scr_kwargs))
     scrtup_list = [
         matching.spatially_constrained_ratio_match(
             flann, dvecs, qkpts, dkpts, H, chip2_dlen_sqrd, **scr_kwargs)
@@ -502,7 +518,7 @@ def compute_query_unconstrained_matches(ibs, qaid, daid_list, config):
         'fm_dtype'     : hstypes.FM_DTYPE,
         'fs_dtype'     : hstypes.FS_DTYPE,
     }
-    print(ut.dict_str(rat_kwargs))
+    print('rat_kwargs = ' + ut.dict_str(rat_kwargs))
     scrtup_list = [
         matching.unconstrained_ratio_match(
             flann, dvecs, **rat_kwargs)
@@ -520,6 +536,32 @@ def compute_query_unconstrained_matches(ibs, qaid, daid_list, config):
 # -----------------------------
 
 
+def show_single_match(fm_list, fs_list, fm_norm_list=None, index=0,
+                      daid_list=None, H_list=None, ibs=None, qaid=None, **kwargs):
+    use_separate_norm = None
+    use_sameaxis_norm = ut.get_argflag('--shownorm')
+    fs = fs_list[index]
+    fm = fm_list[index]
+    if use_sameaxis_norm:
+        fm_norm = fm_norm_list[index]
+    else:
+        fm_norm = None
+    kwargs['darken'] = .7
+    if use_separate_norm is not None:
+        if use_separate_norm:
+            fm_norm = None
+            fm = fm_norm_list[index]
+            kwargs['cmap'] = 'cool'
+        else:
+            fm = fm_list[index]
+            fm_norm = None
+        kwargs['ell'] = False
+    daid = daid_list[index]
+    H1 = H_list[index]
+    H1 = None  # uncomment to see warping
+    show_constrained_chipmatch(ibs, qaid, daid, fm, fs=fs, H1=H1, fm_norm=fm_norm, **kwargs)
+
+
 def gridsearch_constrained_matches():
     r"""
 
@@ -535,31 +577,8 @@ def gridsearch_constrained_matches():
         >>> pt.show_if_requested()
     """
     import plottool as pt
-    use_separate_norm = None
-    use_sameaxis_norm = ut.get_argflag('--shownorm')
+    import functools
     fnum = 1
-
-    def showfunc(fm_list, fs_list, fm_norm_list=None, **kwargs):
-        fs = fs_list[0]
-        fm = fm_list[0]
-        if use_sameaxis_norm:
-            fm_norm = fm_norm_list[0]
-        else:
-            fm_norm = None
-        kwargs['darken'] = .7
-        if use_separate_norm is not None:
-            if use_separate_norm:
-                fm_norm = None
-                fm = fm_norm_list[0]
-                kwargs['cmap'] = 'cool'
-            else:
-                fm = fm_list[0]
-                fm_norm = None
-            kwargs['ell'] = False
-        daid = daid_list[0]
-        H1 = H_list[0]
-        H1 = None  # uncomment to see warping
-        show_constrained_chipmatch(ibs, qaid, daid, fm, fs=fs, H1=H1, fm_norm=fm_norm, **kwargs)
 
     varied_dict = {
         'scr_ratio_thresh': [.625, .3, .9, 0.0, 1.0],
@@ -586,28 +605,27 @@ def gridsearch_constrained_matches():
     #fname = None  # 'easy1.png'
     ibs, qreq_, qaid, daid_list, H_list, prior_chipmatch, prior_filtkey_list = testdata_matching()
     #config = qreq_.qparams
-    testindex = ut.get_argval('--testindex', int, 0)
-    daid_list = daid_list[testindex:testindex + 1]
-    H_list = H_list[testindex:testindex + 1]
     cfgresult_list = [
         compute_query_constrained_matches(ibs, qaid, daid_list, H_list, cfgdict)
         for cfgdict in ut.ProgressIter(cfgdict_list, lbl='constrained ratio match')
     ]
 
-    import functools
-    score_list = [scrtup[1][0].sum() for scrtup in cfgresult_list]
-    score_list = [scrtup[1][0].sum() / len(scrtup[1][0]) for scrtup in cfgresult_list]
-
+    index = ut.get_argval('--testindex', int, 0)
+    score_list = [scrtup[1][index].sum() for scrtup in cfgresult_list]
+    #score_list = [scrtup[1][0].sum() / len(scrtup[1][0]) for scrtup in cfgresult_list]
+    showfunc = functools.partial(show_single_match, daid_list=daid_list, H_list=H_list,
+                                 ibs=ibs, qaid=qaid, index=index)
     ut.interact_gridsearch_result_images(
-        functools.partial(showfunc, use_separate_norm=False), cfgdict_list, cfglbl_list,
-        cfgresult_list, score_list=score_list, fnum=fnum, figtitle='constrained ratio match', unpack=True,
+        showfunc, cfgdict_list, cfglbl_list,
+        cfgresult_list, score_list=score_list, fnum=fnum,
+        figtitle='constrained ratio match', unpack=True,
         max_plots=25, scorelbl='sumscore')
 
-    if use_separate_norm:
-        ut.interact_gridsearch_result_images(
-            functools.partial(showfunc, use_separate_norm=True), cfgdict_list, cfglbl_list,
-            cfgresult_list, fnum=fnum + 1, figtitle='constrained ratio match', unpack=True,
-            max_plots=25, scorelbl='sumscore')
+    #if use_separate_norm:
+    #    ut.interact_gridsearch_result_images(
+    #        functools.partial(show_single_match, use_separate_norm=True), cfgdict_list, cfglbl_list,
+    #        cfgresult_list, fnum=fnum + 1, figtitle='constrained ratio match', unpack=True,
+    #        max_plots=25, scorelbl='sumscore')
     pt.iup()
 
 
@@ -617,12 +635,14 @@ def testdata_post_vsmany_sver():
                    prescore_method='nsum',
                    score_method='nsum',
                    sver_weighting=True)
-    vsonerr_cfgdict = {
+    rrvsone_cfgdict = {
         'merge_vsmany': True,
+        'use_unconstrained': True,
+        'use_constrained': True,
     }
 
-    vsonerr_cfgdict = ut.util_arg.argparse_dict(vsonerr_cfgdict)
-    cfgdict.update(vsonerr_cfgdict)
+    rrvsone_cfgdict = ut.util_arg.argparse_dict(rrvsone_cfgdict)
+    cfgdict.update(rrvsone_cfgdict)
 
     qaid = ut.get_argval('--qaid', int, 1)
     daid_list = ut.get_argval('--daid_list', list, None)
@@ -635,14 +655,14 @@ def testdata_post_vsmany_sver():
         print('WARNING: qaid=%r has no groundtruth' % (qaid,))
     locals_ = plh.testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')
     qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
-    return ibs, qreq_, qaid2_chipmatch, qaid_list
+    return ibs, qreq_, qaid2_chipmatch, qaid_list, rrvsone_cfgdict
 
 
 def testdata_matching():
     """
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
     """
-    ibs, qreq_, qaid2_chipmatch, qaid_list = testdata_post_vsmany_sver()
+    ibs, qreq_, qaid2_chipmatch, qaid_list, rrvsone_cfgdict = testdata_post_vsmany_sver()
     qaid_list, top_aids_list, top_Hs_list, prior_chipmatch_list = make_rerank_pair_shortlist(qreq_, qaid2_chipmatch)
     qaid = qaid_list[0]
     daid_list = top_aids_list[0]
@@ -655,18 +675,20 @@ def testdata_matching():
 def show_constrained_chipmatch(ibs, qaid, daid, fm, fs=None, fm_norm=None,
                                H1=None, fnum=None, pnum=None, **kwargs):
     # viz function for compute_query_constrained_matches
-    from ibeis.viz import viz_sver
-    import plottool as pt
-    viz_sver.show_constrained_match(ibs, qaid, daid, H1=H1, fm=fm,  fs=fs, fm_norm=fm_norm, fnum=fnum, pnum=pnum, **kwargs)
-    truth = ibs.get_match_truth(qaid, daid)
-    color = {1: pt.TRUE_GREEN, 2: pt.UNKNOWN_PURP, 0: pt.FALSE_RED}[truth]
-    pt.draw_border(pt.gca(), color, 4)
+    #from ibeis.viz import viz_sver
+    from ibeis.viz import viz_matches
+    #import plottool as pt
+    viz_matches.show_matches2(ibs, qaid, daid, fm=fm, fs=fs, fm_norm=fm_norm,
+                              H1=H1, fnum=fnum, pnum=pnum, show_name=False, **kwargs)
+    #viz_sver.show_constrained_match(ibs, qaid, daid, H1=H1, fm=fm,  fs=fs, fm_norm=fm_norm, fnum=fnum, pnum=pnum, **kwargs)
+    #truth = ibs.get_match_truth(qaid, daid)
+    #color = {1: pt.TRUE_GREEN, 2: pt.UNKNOWN_PURP, 0: pt.FALSE_RED}[truth]
+    #pt.draw_border(pt.gca(), color, 4)
     #pt.set_title('score = %.3f' % (score,))
 
 
 def show_top_chipmatches(ibs, qaid2_chipmatch, fnum_offset=0, figtitle=''):
     """ helper """
-    #from ibeis.viz import viz_sver
     import plottool as pt
     CLIP_TOP = 6
     for fnum_, (qaid, chipmatch) in enumerate(six.iteritems(qaid2_chipmatch)):
@@ -690,10 +712,6 @@ def show_top_chipmatches(ibs, qaid2_chipmatch, fnum_offset=0, figtitle=''):
             pnum = next_pnum()
             show_constrained_chipmatch(ibs, qaid, daid, fm=fm, fs=fs, H1=H1, fnum=fnum, pnum=pnum)
             score = chipmatch.aid2_score[daid]
-            #viz_sver.show_constrained_match(ibs, qaid, daid, H, fm, fnum=fnum, pnum=next_pnum())
-            #truth = ibs.get_match_truth(qaid, daid)
-            #color = {1: pt.TRUE_GREEN, 2: pt.UNKNOWN_PURP, 0: pt.FALSE_RED}[truth]
-            #pt.draw_border(pt.gca(), color, 4)
             pt.set_title('score = %.3f' % (score,))
             #top_score_list = ut.dict_take(chipmatch.aid2_score, top_daid_list)
             #top_fm_list    = ut.dict_take(chipmatch.aid2_fm, top_daid_list)

@@ -604,8 +604,7 @@ class RerankVsOneConfig(ConfigBase):
         >>> from ibeis.model.Config import *  # NOQA
         >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=True)
         >>> result = rrvsone_cfg.get_cfgstr()
-        >>> print(result)
-        RRVsOne(True,nNm=5,nApN=2,xy>0.05,rat>0.7,far,scK7,sf0.2,stps3,sigma1.6,dcvsK5,mn0.2,mx0.3,p1)
+        >>> assert result.startswith('RRVsOne(True,')
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -636,14 +635,16 @@ class RerankVsOneConfig(ConfigBase):
             PI('nAnnotPerName', 2, 'nApN='),
             # matching types
             PI('merge_vsmany', True, 'mergevsmany='),
+            PI('use_unconstrained', True, 'use_unc='),
+            PI('use_constrained',   True, 'use_src='),
+            # unconstrained matching
+            PI('unc_ratio_thresh', .625, 'uncRat>'),
             # spatially constrained matching
             PI('scr_match_xy_thresh', .05, 'xy>'),
             PI('scr_norm_xy_min', 0.1, ''),
             PI('scr_norm_xy_max', 1.0, ''),
-            PI('scr_ratio_thresh', .7, 'scrrat>'),
+            PI('scr_ratio_thresh', .7, 'scrRat>'),
             PI('scr_K', 7, 'scK'),
-            # unconstrained matching
-            PI('unc_ratio_thresh', .625, 'uncrat>'),
             # grid scoring
             PI('grid_scale_factor', .2, 'sf'),
             PI('grid_steps', 3, 'stps'),
@@ -655,6 +656,12 @@ class RerankVsOneConfig(ConfigBase):
             PI('dcvs_power', 1, 'p'),
         ]
         return param_info_list
+
+    def get_constraint_func():
+        # TODO:
+        def constraint_func(cfg):
+            if cfg['rrvsone_on']:
+                return False
 
     def get_cfgstr_list(rrvsone_cfg, **kwargs):
         if rrvsone_cfg.rrvsone_on:
