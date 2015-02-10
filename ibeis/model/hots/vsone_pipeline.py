@@ -54,12 +54,7 @@ def vsone_reranking(qreq_, qaid2_chipmatch, verbose=False):
 
     Example:
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-        >>> cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum', sver_weighting=True)
-        >>> qaid_list = [1, 4, 6]
-        >>> #qaid_list = qaid_list[2:3]
-        >>> ibs, qreq_ = plh.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict, qaid_list=qaid_list)
-        >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')
-        >>> qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
+        >>> ibs, qreq_, qaid2_chipmatch, qaid_list = testdata_post_vsmany_sver()
         >>> # qaid2_chipmatch = ut.dict_subset(qaid2_chipmatch, [6])
         >>> qaid2_chipmatch_VSONE = vsone_reranking(qreq_, qaid2_chipmatch)
         >>> #qaid2_chipmatch = qaid2_chipmatch_VSONE
@@ -256,8 +251,8 @@ def single_vsone_query(ibs, qaid, daid_list, H_list, prior_chipmatch=None,
     from ibeis.model.hots import name_scoring
     #print('==================')
     vsone_fm_list, vsone_fs_list = compute_query_matches(ibs, qaid, daid_list, H_list, config=config)
-
-    if prior_chipmatch is not None:
+    # TODO: remove hackyness and paramatarize
+    if prior_chipmatch is not None and not ut.get_argflag('--nomergeprior'):
         # COMBINE VSONE WITH VSMANY MATCHES
         prior_fm_list = ut.dict_take(prior_chipmatch.aid2_fm, daid_list)
         prior_fsv_list = ut.dict_take(prior_chipmatch.aid2_fsv, daid_list)
@@ -567,19 +562,28 @@ def gridsearch_constrained_matches():
     pt.iup()
 
 
+def testdata_post_vsmany_sver():
+    dbname = ut.get_argval('--db', str, 'testdb1')
+    cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum', sver_weighting=True)
+    qaid = ut.get_argval('--qaid', int, 1)
+    daid_list = ut.get_argval('--daid_list', list, None)
+    if daid_list is None:
+        daid_list = 'all'
+    qaid_list = [qaid]
+    # VSMANY TO GET HOMOG
+    ibs, qreq_ = plh.get_pipeline_testdata(dbname, cfgdict=cfgdict, qaid_list=qaid_list, daid_list=daid_list)
+    if len(ibs.get_annot_groundtruth(qaid)) == 0:
+        print('WARNING: qaid=%r has no groundtruth' % (qaid,))
+    locals_ = plh.testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')
+    qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
+    return ibs, qreq_, qaid2_chipmatch, qaid_list
+
+
 def testdata_matching():
     """
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
     """
-    import ibeis
-    ibs = ibeis.opendb('testdb1')
-    cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum', sver_weighting=True)
-    qaid = 1
-    qaid_list = [qaid]
-    # VSMANY TO GET HOMOG
-    ibs, qreq_ = plh.get_pipeline_testdata('PZ_MTEST', cfgdict=cfgdict, qaid_list=qaid_list)
-    locals_ = plh.testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')
-    qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
+    ibs, qreq_, qaid2_chipmatch, qaid_list = testdata_post_vsmany_sver()
     qaid_list, top_aids_list, top_Hs_list, prior_chipmatch_list = make_rerank_pair_shortlist(qreq_, qaid2_chipmatch)
     qaid = qaid_list[0]
     daid_list = top_aids_list[0]
