@@ -1116,6 +1116,8 @@ def _internal_sver(qreq_, kpts1, topx2_aid, topx2_kpts, topx2_dlen_sqrd,
         fk    = daid2_fk[daid]
         try:
             # Compute homography from chip2 to chip1
+            # returned homography maps image1 space into image2 space
+            # image1 is a query chip and image2 is a database chip
             sv_tup = sver.spatially_verify_kpts(
                 kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
                 dlen_sqrd2, min_nInliers,

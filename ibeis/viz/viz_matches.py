@@ -8,7 +8,8 @@ from ibeis.viz import viz_helpers as vh
 
 
 @utool.indent_func
-def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[], **kwargs):
+def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
+                  H1=None, H2=None, **kwargs):
     """
     TODO: use this as the main function.
     Have the qres version be a wrapper
@@ -32,7 +33,7 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[], **
     try:
         ax, xywh1, xywh2 = df2.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm,
                                                fs=fs, fm_norm=fm_norm,
-                                               lbl1=lbl1, lbl2=lbl2, **kwargs)
+                                               H1=H1, H2=H2, lbl1=lbl1, lbl2=lbl2, **kwargs)
     except Exception as ex:
         utool.printex(ex, 'consider qr.remove_corrupted_queries',
                       '[viz_matches]')
@@ -86,15 +87,15 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
         #lbl2 = repr(name2)  + ' : ' +  vh.get_aidstrs(aid2)
         lbl1_list = []
         lbl2_list = []
+        if kwargs.get('show_aid', True):
+            lbl1_list.append('q' + vh.get_aidstrs(aid1))
+            lbl2_list.append(vh.get_aidstrs(aid2))
         if kwargs.get('show_name', True):
             lbl1_list.append(repr(name1))
             lbl2_list.append(repr(name2))
         if kwargs.get('show_nid', True):
             lbl1_list.append(vh.get_nidstrs(nid1))
             lbl2_list.append(vh.get_nidstrs(nid2))
-        if kwargs.get('show_aid', True):
-            lbl1_list.append(vh.get_aidstrs(aid1))
-            lbl2_list.append(vh.get_aidstrs(aid2))
         lbl1 = ' : '.join(lbl1_list)
         lbl2 = ' : '.join(lbl2_list)
     else:
@@ -266,15 +267,15 @@ def annotate_matches(ibs, qres, aid2,
         #lbl2 = repr(name2)  + ' : ' +  vh.get_aidstrs(aid2)
         lbl1_list = []
         lbl2_list = []
+        if kwargs.get('show_aid', True):
+            lbl1_list.append('q' + vh.get_aidstrs(aid1))
+            lbl2_list.append(vh.get_aidstrs(aid2))
         if kwargs.get('show_name', True):
             lbl1_list.append(repr(name1))
             lbl2_list.append(repr(name2))
         if kwargs.get('show_nid', True):
             lbl1_list.append(vh.get_nidstrs(nid1))
             lbl2_list.append(vh.get_nidstrs(nid2))
-        if kwargs.get('show_aid', True):
-            lbl1_list.append(vh.get_aidstrs(aid1))
-            lbl2_list.append(vh.get_aidstrs(aid2))
         lbl1 = ' : '.join(lbl1_list)
         lbl2 = ' : '.join(lbl2_list)
     else:
