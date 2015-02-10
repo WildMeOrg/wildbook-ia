@@ -739,6 +739,10 @@ class QueryResult(__OBJECT_BASE__):
 
             python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --dpi=160 --no-fmatches
             python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --dpi=120 --no-fmatches --saveax
+            python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show --dpi=120 --saveax
+
+        Kwargs;
+            saveax (bool): if True only save the axes not the entire figure
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -754,7 +758,7 @@ class QueryResult(__OBJECT_BASE__):
             >>> kwargs['draw_fmatches'] = not ut.get_argflag('--no-fmatches')
             >>> kwargs['vert'] = ut.get_argflag('--vert')
             >>> kwargs['draw_border'] = ut.get_argflag('--draw_border')
-            >>> #kwargs['saveax'] = ut.get_argflag('--saveax')
+            >>> kwargs['saveax'] = ut.get_argflag('--saveax')
             >>> kwargs['in_image'] = ut.get_argflag('--in-image')
             >>> kwargs['draw_lbl'] = ut.get_argflag('--no-draw-lbl')
             >>> qres = ibs.query_chips(ibs.get_valid_aids()[0:1])[0]
@@ -777,15 +781,13 @@ class QueryResult(__OBJECT_BASE__):
         fig = pt.figure(fnum=fnum, doclf=True, docla=True)
         aid = qres.get_top_aids(ibs)[0]
         # Draw Matches
-        ax, xywh1, xywh2 = qres.show_matches(ibs, aid, **kwargs)
+        ax, xywh1, xywh2 = qres.show_matches(ibs, aid, colorbar_=False, **kwargs)
         pt.set_figtitle(qres.make_smaller_title())
         # Adjust
         #pt.adjust_subplots(0, 0, 1, 1, 0, 0)
         # Save Figure
-        axes = fig.get_axes()
-        pt.save_figure(fpath=fpath, **savekw)  # I HAVE NO IDEA WHY THIS FIXES THE PROBLEM
-        kwargs['saveax'] = axes[-1]
-        img_fpath = pt.save_figure(fpath=fpath, **savekw)
+        # Setting fig=fig might make the dpi and figsize code not work
+        img_fpath = pt.save_figure(fpath=fpath, fig=fig, **savekw)
         #if False:
         #    ut.startfile(img_fpath)
         return img_fpath
