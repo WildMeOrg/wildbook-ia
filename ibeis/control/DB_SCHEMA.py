@@ -4,6 +4,8 @@ Module Licence and docstring
 TODO: ideally the ibeis.constants module would not be used here
 and each function would use its own constant variables that are suffixed
 with the last version number that they existed in
+
+TODO: Add a table for original_image_path
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
@@ -733,6 +735,13 @@ def update_1_3_3(db, ibs=None):
     db.modify_table(const.ENCOUNTER_TABLE, (
         ('encounter_smart_xml_fpath', 'encounter_smart_xml_fname',  'TEXT',           None),
     ))
+
+
+#def update_1_3_4(db, ibs=None):
+#    TODO: Finishme
+#    db.modify_table(const.ENCOUNTER_TABLE, (
+#        (None, 'image_original_path',          'TEXT'),
+#    )
 
 
 # ========================

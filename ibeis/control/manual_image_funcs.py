@@ -654,7 +654,7 @@ def get_image_gnames(ibs, gid_list):
         python -m ibeis.control.manual_image_funcs --test-get_image_gnames
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> import ibeis
         >>> # build test data
