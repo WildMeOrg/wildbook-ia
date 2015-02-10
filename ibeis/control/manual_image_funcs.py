@@ -601,7 +601,7 @@ def get_image_paths(ibs, gid_list):
         python -m ibeis.control.manual_image_funcs --test-get_image_paths
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> import ibeis
         >>> # build test data
@@ -613,12 +613,13 @@ def get_image_paths(ibs, gid_list):
         >>> new_gids = ibs.add_images([new_gpath], auto_localize=False)
         >>> new_gpath_list = get_image_paths(ibs, new_gids)
         >>> # verify results
-        >>> result = str(gpath_list)
+        >>> result = str(new_gpath_list)
         >>> print(result)
         """
     ut.assert_all_not_None(gid_list, 'gid_list', key_list=['gid_list'])
     uri_list = ibs.get_image_uris(gid_list)
     # Images should never have null uris
+    # If the uri is not absolute then it is infered to be relative to ibs.imgdir
     ut.assert_all_not_None(uri_list, 'uri_list', key_list=['uri_list', 'gid_list'])
     gpath_list = [join(ibs.imgdir, uri) for uri in uri_list]
     return gpath_list
