@@ -1510,7 +1510,7 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True):
 def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None,
                     fm_norm=None, title=None,
                     vert=None, fnum=None, pnum=None, heatmap=False,
-                    draw_fmatch=True, darken=None, **kwargs):
+                    draw_fmatch=True, darken=None, H1=None, H2=None, **kwargs):
     """
     Draws two chips and the feature matches between them. feature matches
     kpts1 and kpts2 use the (x,y,a,c,d)
@@ -1528,9 +1528,44 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None,
         pnum (tuple):  plot number
         heatmap (bool):
         draw_fmatch (bool):
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-show_chipmatch2 --show
+
+    Example:
+        >>> # DISABLE_DOCTEST (TODO REMOVE IBEIS DOCTEST)
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid1 = 1
+        >>> aid2 = 3
+        >>> H1 = np.array([[ -4.68815126e-01,   7.80306795e-02,  -2.23674587e+01],
+        ...                [  4.54394231e-02,  -7.67438835e-01,   5.92158624e+01],
+        ...                [  2.12918867e-04,  -8.64851418e-05,  -6.21472492e-01]])
+        >>> H2 = None
+        >>> fm = np.array([[ 244,  132], [ 604,  602], [ 187,  604], [ 200,  610],
+        ...                [ 243,  627], [ 831,  819], [ 601,  851], [ 602,  852],
+        ...                [ 610,  855], [ 609,  857], [ 865,  860], [ 617,  863],
+        ...                [ 979,  984], [ 860, 1013], [ 605, 1020], [ 866, 1027],
+        ...                [ 667, 1071], [1022, 1163], [1135, 1165]])
+        >>> H2 = None
+        >>> chip1, chip2 = ibs.get_annot_chips((aid1, aid2))
+        >>> kpts1, kpts2 = ibs.get_annot_kpts((aid1, aid2))
+        >>> # execute function
+        >>> result = show_chipmatch2(chip1, chip2, kpts1, kpts2, H1=H1, H2=H2, fm=fm)
+        >>> # verify results
+        >>> print(result)
+        >>> pt.show_if_requested()
     """
     printDBG('[df2] show_chipmatch2() fnum=%r, pnum=%r' % (fnum, pnum))
     #printDBG('[df2] show_chipmatch2() locals_=%s' % (ut.dict_str(locals())))
+    wh1 = gtool.get_size(rchip1)
+    wh2 = gtool.get_size(rchip2)
+    # Warp if homography is specified
+    rchip1 = gtool.warpHomog(rchip1, H1, wh2) if H1 is not None else rchip1
+    rchip2 = gtool.warpHomog(rchip2, H2, wh1) if H2 is not None else rchip2
     # get matching keypoints + offset
     (h1, w1) = rchip1.shape[0:2]  # get chip (h, w) dimensions
     (h2, w2) = rchip2.shape[0:2]
@@ -1542,7 +1577,8 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None,
     fig, ax = imshow(match_img, title=title, fnum=fnum, pnum=pnum, heatmap=heatmap, darken=darken)
     # Overlay feature match nnotations
     if draw_fmatch and kpts1 is not None and kpts2 is not None:
-        plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs, fm_norm=fm_norm, **kwargs)
+        plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs, fm_norm=fm_norm, H1=H1,
+                    H2=H2, **kwargs)
     return ax, xywh1, xywh2
 
 
