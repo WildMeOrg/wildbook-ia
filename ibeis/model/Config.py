@@ -636,7 +636,8 @@ class RerankVsOneConfig(ConfigBase):
             # spatially constrained matching
             PI('scr_xy_thresh', .05, 'xy>'),
             PI('scr_ratio_thresh', .7, 'rat>'),
-            PI('scr_normalizer_mode', 'far', ''),
+            PI('scr_normalizer_xy_min', 0.1, ''),
+            PI('scr_normalizer_xy_max', 1.0, ''),
             PI('scr_K', 7, 'scK'),
             # grid scoring
             PI('grid_scale_factor', .2, 'sf'),

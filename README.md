@@ -784,6 +784,17 @@ python -m vtool.coverage_grid --test-gridsearch_coverage_grid_mask --show
 python -m vtool.coverage_grid --test-sparse_grid_coverage --show
 python -m vtool.coverage_grid --test-gridsearch_coverage_grid --show
 
+# Test Spatially Constrained Scoring
+python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show
+python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_constrained_matches --show
+python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_constrained_matches --show --testindex 2
+
+# Test VsMany ReRanking
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --nohomog
+
+
+
 
 # TODO: 
 # static lnbnn, normonly, and count test
