@@ -1327,22 +1327,26 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
     Args:
         kpts1 (ndarray[float32_t, ndim=2]):  keypoints
         kpts2 (ndarray[float32_t, ndim=2]):  keypoints
-        H (ndarray[float64_t, ndim=2]):  homography/perspective matrix mapping image 1 to image 2
+        H (ndarray[float64_t, ndim=2]):  homography/perspective matrix mapping image 1 to image 2 space
         fx2_to_fx1 (ndarray): has shape (nMatch, K)
 
     Returns:
         ndarray: fx2_to_xyerr_sqrd has shape (nMatch, K)
 
-    Example:
+    CommandLine:
+        python -m vtool.keypoint --test-get_match_spatial_squared_error:0
+        python -m vtool.keypoint --test-get_match_spatial_squared_error:1
+
+    Example0:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.constrained_matching import *  # NOQA
+        >>> from vtool.keypoint import *  # NOQA
         >>> # build test data
         >>> kpts1 = np.array([[ 129.83,   46.97,   15.84,    4.66,    7.24,    0.  ],
-        ...                  [ 137.88,   49.87,   20.09,    5.76,    6.2 ,    0.  ],
-        ...                  [ 115.95,   53.13,   12.96,    1.73,    8.77,    0.  ],
-        ...                  [ 324.88,  172.58,  127.69,   41.29,   50.5 ,    0.  ],
-        ...                  [ 285.44,  254.61,  136.06,   -4.77,   76.69,    0.  ],
-        ...                  [ 367.72,  140.81,  172.13,   12.99,   96.15,    0.  ]], dtype=np.float32)
+        ...                   [ 137.88,   49.87,   20.09,    5.76,    6.2 ,    0.  ],
+        ...                   [ 115.95,   53.13,   12.96,    1.73,    8.77,    0.  ],
+        ...                   [ 324.88,  172.58,  127.69,   41.29,   50.5 ,    0.  ],
+        ...                   [ 285.44,  254.61,  136.06,   -4.77,   76.69,    0.  ],
+        ...                   [ 367.72,  140.81,  172.13,   12.99,   96.15,    0.  ]], dtype=np.float32)
         >>> kpts2 = np.array([[ 318.93,   11.98,   12.11,    0.38,    8.04,    0.  ],
         ...                   [ 509.47,   12.53,   22.4 ,    1.31,    5.04,    0.  ],
         ...                   [ 514.03,   13.04,   19.25,    1.74,    4.72,    0.  ],
@@ -1362,15 +1366,40 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
         >>> fx2_to_xyerr_sqrd = get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1)
         >>> fx2_to_xyerr = np.sqrt(fx2_to_xyerr_sqrd)
         >>> # verify results
-        >>> result = str(fx2_to_xyerr)
+        >>> result = ut.numpy_str(fx2_to_xyerr, precision=3)
         >>> print(result)
-        [[  82.84813777  186.23801821  183.97945482  192.63939757]
-         [ 382.98822312  374.35627682  122.17899418  289.15964849]
-         [ 387.56336468  378.93044982  126.38890667  292.39140223]
-         [ 419.24610836  176.66835461  400.17549807  167.41056948]
-         [ 174.269059    274.28862645  281.03010583   33.520562  ]
-         [  54.08322366  269.64496323   94.71123543  277.70556825]]
+        np.array([[  82.848,  186.238,  183.979,  192.639],
+                  [ 382.988,  374.356,  122.179,  289.16 ],
+                  [ 387.563,  378.93 ,  126.389,  292.391],
+                  [ 419.246,  176.668,  400.175,  167.411],
+                  [ 174.269,  274.289,  281.03 ,   33.521],
+                  [  54.083,  269.645,   94.711,  277.706]])
 
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> # build test data
+        >>> kpts1 = np.array([[  6.,   4.,   15.84,    4.66,    7.24,    0.  ],
+        ...                   [  9.,   3.,   20.09,    5.76,    6.2 ,    0.  ],
+        ...                   [  1.,   1.,   12.96,    1.73,    8.77,    0.  ],])
+        >>> kpts2 = np.array([[  2.,   1.,   12.11,    0.38,    8.04,    0.  ],
+        ...                   [  5.,   1.,   22.4 ,    1.31,    5.04,    0.  ],
+        ...                   [  6.,   1.,   19.25,    1.74,    4.72,    0.  ],])
+        >>> H = np.array([[ 2,  0, 0],
+        >>>               [ 0,  1, 0],
+        >>>               [ 0,  0, 1]])
+        >>> fx2_to_fx1 = np.array([[2, 1, 0],
+        >>>                        [0, 1, 2],
+        >>>                        [2, 1, 0]], dtype=np.int32)
+        >>> # execute function
+        >>> fx2_to_xyerr_sqrd = get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1)
+        >>> fx2_to_xyerr = np.sqrt(fx2_to_xyerr_sqrd)
+        >>> # verify results
+        >>> result = ut.numpy_str(fx2_to_xyerr, precision=3)
+        >>> print(result)
+        np.array([[  0.   ,  16.125,  10.44 ],
+                  [  7.616,  13.153,   3.   ],
+                  [  4.   ,  12.166,   6.708]])
     """
     DEBUG = True
     if DEBUG:
@@ -1385,9 +1414,10 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
                 'fx2_to_fx1.max()']
             )
             raise
-    # Transform img1 keypoints into img2 space
-    xy2    = get_xys(kpts2)
+    # Transform img1 xy-keypoints into img2 space
     xy1_t = transform_kpts_xys(H, kpts1)
+    # Get untransformed image 2 xy-keypoints
+    xy2   = get_xys(kpts2)
     # get spatial keypoint distance to all neighbor candidates
     bcast_xy2   = xy2[:, None, :].T
     bcast_xy1_t = xy1_t.T[fx2_to_fx1]

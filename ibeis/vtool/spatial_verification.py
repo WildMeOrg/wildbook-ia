@@ -462,6 +462,7 @@ def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
 def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     """
     Given a set of hypothesis inliers, computes a homography and refines inliers
+    returned homography maps image1 space into image2 space
 
     CommandLine:
         python -m vtool.spatial_verification --test-get_homography_inliers
@@ -535,6 +536,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
     """
     Driver function
     Spatially validates feature matches
+
+    Returned homography maps image1 space into image2 space.
 
     Args:
         kpts1 (ndarray[ndim=2]): all keypoints in image 1
