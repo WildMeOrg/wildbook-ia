@@ -772,10 +772,11 @@ class QueryResult(__OBJECT_BASE__):
         fpath = savekw.pop('fpath')
         if fpath is None and 'fpath_strict' not in savekw:
             savekw['usetitle'] = True
-        # Draw Matches
+        # Make new figure
         fnum = pt.next_fnum()
         fig = pt.figure(fnum=fnum, doclf=True, docla=True)
         aid = qres.get_top_aids(ibs)[0]
+        # Draw Matches
         ax, xywh1, xywh2 = qres.show_matches(ibs, aid, **kwargs)
         pt.set_figtitle(qres.make_smaller_title())
         # Adjust
