@@ -27,18 +27,44 @@ import six
 import numpy as np
 import vtool as vt
 #from ibeis.model.hots import neighbor_index
+from ibeis.model.hots import voting_rules2 as vr2
 from ibeis.model.hots import name_scoring
 from ibeis.model.hots import hstypes
 from ibeis.model.hots import scoring
 #import pyflann
 #from ibeis.model.hots import coverage_kpts
-from vtool import constrained_matching
-from vtool import matching  # NOQA
+from vtool import matching
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 import utool as ut
 from six.moves import zip, range  # NOQA
 #profile = ut.profile
 print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[vsonepipe]', DEBUG=False)
+
+
+def show_post_vsmany_vser():
+    """ TESTFUNC just show the input data
+
+    CommandLine:
+        python -m ibeis.model.hots.vsone_pipeline --test-show_post_vsmany_vser --show --homog
+        python -m ibeis.model.hots.vsone_pipeline --test-show_post_vsmany_vser --show --csum --homog
+
+    Example:
+        >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
+        >>> show_post_vsmany_vser()
+    """
+    import plottool as pt
+    ibs, qreq_, qaid2_chipmatch, qaid_list = testdata_post_vsmany_sver()
+    qaid_list = list(six.iterkeys(qaid2_chipmatch))
+    chipmatch_list = ut.dict_take(qaid2_chipmatch, qaid_list)
+    # HACK POPULATE AID2_SCORE FIELD IN CHIPMATCH TUPLE
+    for qaid, chipmatch in zip(qaid_list, chipmatch_list):
+        if ut.get_argflag('--csum'):
+            daid_list, prescore_list = vr2.score_chipmatch_csum(qaid, chipmatch, qreq_)
+        else:
+            daid_list, prescore_list = vr2.score_chipmatch_nsum(qaid, chipmatch, qreq_)
+        ut.dict_assign(chipmatch.aid2_score, daid_list, prescore_list)
+    show_top_chipmatches(qreq_.ibs, qaid2_chipmatch)
+    pt.show_if_requested()
 
 
 #@profile
@@ -103,20 +129,7 @@ def make_rerank_pair_shortlist(qreq_, qaid2_chipmatch):
         >>> max_num_rerank = qreq_.qparams.nNameShortlistVsone * qreq_.qparams.nAnnotPerName
         >>> min_num_rerank = qreq_.qparams.nNameShortlistVsone
         >>> ut.assert_inbounds(len(top_nid_list), min_num_rerank, max_num_rerank, 'incorrect number in shortlist')
-
-    Ignore:
-        #vsone_query_pairs = make_rerank_pair_shortlist(qreq_, qaid2_chipmatch)
-        #ibs = qreq_.ibs
-        #for fnum, vsone_pair_tup in enumerate(vsone_query_pairs):
-        #    (qaid, daid_list, H_list) = vsone_pair_tup
-        #    nRows, nCols = pt.get_square_row_cols(len(daid_list))
-        #    next_pnum = pt.make_pnum_nextgen(*daid_list)
-        #    for daid in daid_list:
-        #        fm = qaid2_chipmatch[qaid].aid2_fm[daid]
-        #        H = qaid2_chipmatch[qaid].aid2_H[daid]
-        #        viz_sver.show_constrained_match(ibs, qaid, daid, H, fm, pnum=next_pnum())
     """
-    from ibeis.model.hots import pipeline
     ibs = qreq_.ibs
     score_method = qreq_.qparams.score_method
     assert score_method == 'nsum'
@@ -128,17 +141,16 @@ def make_rerank_pair_shortlist(qreq_, qaid2_chipmatch):
     print('vsone reranking. ')
     qaid_list = list(six.iterkeys(qaid2_chipmatch))
     chipmatch_list = ut.dict_take(qaid2_chipmatch, qaid_list)
+    # HACK POPULATE AID2_SCORE FIELD IN CHIPMATCH TUPLE
+    for qaid, chipmatch in zip(qaid_list, chipmatch_list):
+        daid_list, prescore_list = vr2.score_chipmatch_nsum(qaid, chipmatch, qreq_)
+        ut.dict_assign(chipmatch.aid2_score, daid_list, prescore_list)
+    # now build the shortlist
     daids_list = []
     Hs_list = []
     prior_chipmatch_list = []
     for qaid, chipmatch in zip(qaid_list, chipmatch_list):
-        daid2_prescore = pipeline.score_chipmatch(qreq_, qaid, chipmatch, score_method)
-        daid_list      = np.array(list(daid2_prescore.keys()))
-        prescore_arr   = np.array(list(daid2_prescore.values()))
-        # HACK POPULATE AID2_SCORE FIELD IN CHIPMATCH TUPLE
-        ut.dict_assign(chipmatch.aid2_score, daid_list, prescore_arr)
-        #
-        nscore_tup = name_scoring.group_scores_by_name(ibs, daid_list, prescore_arr)
+        nscore_tup = name_scoring.group_scores_by_name(ibs, daid_list, prescore_list)
         (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscore_tup
         # Clip number of names
         top_aids_list_  = ut.listclip(sorted_aids, nNameShortlistVsone)
@@ -254,7 +266,7 @@ def single_vsone_query(ibs, qaid, daid_list, H_list, prior_chipmatch=None,
     # TODO: remove hackyness and paramatarize
     if prior_chipmatch is not None and not ut.get_argflag('--nomergeprior'):
         # COMBINE VSONE WITH VSMANY MATCHES
-        prior_fm_list = ut.dict_take(prior_chipmatch.aid2_fm, daid_list)
+        prior_fm_list  = ut.dict_take(prior_chipmatch.aid2_fm, daid_list)
         prior_fsv_list = ut.dict_take(prior_chipmatch.aid2_fsv, daid_list)
         new_fm_list = []
         new_fs_list = []
@@ -372,6 +384,18 @@ def compute_query_matches(ibs, qaid, daid_list, H_list, config={}):
     return fm_list, fs_list
 
 
+def quick_vsone_flann(ibs, qvecs):
+    flann_cachedir = ibs.get_flann_cachedir()
+    flann_params = {
+        'algorithm': 'kdtree',
+        'trees': 8
+    }
+    use_cache = save = ut.is_developer()
+    flann = vt.flann_cache(qvecs, flann_cachedir, flann_params=flann_params,
+                           quiet=True, verbose=False, use_cache=use_cache, save=save)
+    return flann
+
+
 @profile
 def compute_query_constrained_matches(ibs, qaid, daid_list, H_list, config):
     """
@@ -386,8 +410,9 @@ def compute_query_constrained_matches(ibs, qaid, daid_list, H_list, config):
         >>> ibs, qreq_, qaid, daid_list, H_list, prior_chipmatch, prior_filtkey_list = testdata_matching()
         >>> config = qreq_.qparams
         >>> fm_SCR_list, fs_SCR_list, fm_norm_SCR_list = compute_query_constrained_matches(ibs, qaid, daid_list, H_list, config)
-        >>> print(ut.depth_profile(fs_SCR_list))
-        >>> print(ut.depth_profile(fs_SCR_list))
+        >>> print('depth_profile(fs_SCR_list) = ' + str(ut.depth_profile(fs_SCR_list)))
+        >>> print('depth_profile(fm_SCR_list) = ' + str(ut.depth_profile(fm_SCR_list)))
+        >>> print('daid_list = ' + str(daid_list))
         >>> if ut.show_was_requested():
         >>>     import plottool as pt
         >>>     idxs = np.where(np.array(ibs.get_annot_nids(daid_list)) == ibs.get_annot_nids(qaid))[0]
@@ -399,76 +424,100 @@ def compute_query_constrained_matches(ibs, qaid, daid_list, H_list, config):
         >>>     show_constrained_chipmatch(ibs, qaid, daid, fm=fm, fs=fs, H1=H1, fnum=1, pnum=None)
         >>>     pt.show_if_requested()
     """
-    flann_params = {
-        'algorithm': 'kdtree',
-        'trees': 8
-    }
-    scr_ratio_thresh  = config.get('scr_ratio_thresh', .7)
-    scr_K             = config.get('scr_K', 7)
-    match_xy_thresh   = config.get('scr_xy_thresh', .05)
-    normalizer_xy_min = config.get('scr_normalizer_xy_min', 0.1)
-    normalizer_xy_max = config.get('scr_normalizer_xy_max', 1.0)
-    #if normalizer_xy_max <= 0:
-    #    normalizer_xy_max = 1.0
-    #eps = 1E-9
-    #ut.assert_inbounds(normalizer_xy_min, 0, normalizer_xy_max - eps, eq=True, verbose=ut.VERBOSE)
-    #ut.assert_inbounds(normalizer_xy_max, normalizer_xy_min + eps, 1.0, eq=True, verbose=ut.VERBOSE)
-    #assert normalizer_xy_max > normalizer_xy_min, 'bad range'
-    #assert normalizer_xy_min >= 0, 'bad lower bound %r' % (normalizer_xy_min,)
-    #assert normalizer_xy_max <= 1, 'bad lower bound %r' % (normalizer_xy_max,)
-    normalizer_xy_bounds = (normalizer_xy_min, normalizer_xy_max)
-    # QUERY INFO
+    scr_ratio_thresh = config.get('scr_ratio_thresh', .7)
+    scr_K            = config.get('scr_K', 7)
+    scr_match_xy_thresh  = config.get('scr_match_xy_thresh', .05)
+    scr_norm_xy_min      = config.get('scr_norm_xy_min', 0.1)
+    scr_norm_xy_max      = config.get('scr_norm_xy_max', 1.0)
+    scr_norm_xy_bounds = (scr_norm_xy_min, scr_norm_xy_max)
+    # query info
     qvecs = ibs.get_annot_vecs(qaid)
     qkpts = ibs.get_annot_kpts(qaid)
-    #query_dlen_sqrd = ibs.get_annot_chip_dlen_sqrd([qaid])[0]
-    # BUILD FLANN FOR QUERY VECTORS
-    flann_cachedir = ibs.get_flann_cachedir()
-    use_cache = save = ut.is_developer()
-    flann = vt.flann_cache(qvecs, flann_cachedir, flann_params=flann_params,
-                           quiet=True, verbose=False, use_cache=use_cache, save=save)
-    fm_SCR_list = []
-    fs_SCR_list = []
-    scrtup_list = []
-    # DATABASE INFO
+    # database info
     dvecs_list = ibs.get_annot_vecs(daid_list)
     dkpts_list = ibs.get_annot_kpts(daid_list)
-    diaglen_sqrd_list = ibs.get_annot_chip_dlen_sqrd(daid_list)
-    dinfo_list = zip(dvecs_list, dkpts_list, diaglen_sqrd_list, H_list)
-    for daid, dinfo in zip(daid_list, dinfo_list):
-        # THIS CAN BE SWAPED WITH PURE RATIO TEST
-        # ALSO, SVER CAN BE ADDED ON THE END
-        dvecs, dkpts, dlen_sqrd2, H = dinfo
-        scr_tup = spatially_constrained_ratio_match(
-            flann, dvecs, qkpts, dkpts, H, dlen_sqrd2, match_xy_thresh,
-            scr_ratio_thresh, scr_K, normalizer_xy_bounds)
-        scrtup_list.append(scr_tup)
+    dchip_dlen_sqrd_list = ibs.get_annot_chip_dlen_sqrd(daid_list)  # chip diagonal length
+    # build flann for query vectors
+    flann = quick_vsone_flann(ibs, qvecs)
+    # match database chips to query chip
+    scr_kwargs = {
+        'scr_K'            : scr_K,
+        'match_xy_thresh'  : scr_match_xy_thresh,
+        'norm_xy_bounds'   : scr_norm_xy_bounds,
+        'scr_ratio_thresh' : scr_ratio_thresh,
+        'fm_dtype'         : hstypes.FM_DTYPE,
+        'fs_dtype'         : hstypes.FS_DTYPE,
+    }
+    scrtup_list = [
+        matching.spatially_constrained_ratio_match(
+            flann, dvecs, qkpts, dkpts, H, chip2_dlen_sqrd, **scr_kwargs)
+        for dvecs, dkpts, chip2_dlen_sqrd, H in
+        zip(dvecs_list, dkpts_list, dchip_dlen_sqrd_list, H_list)]
+    # return matches and scores
     fm_SCR_list = ut.get_list_column(scrtup_list, 0)
     fs_SCR_list = ut.get_list_column(scrtup_list, 1)
     fm_norm_SCR_list = ut.get_list_column(scrtup_list, 2)
-    return fm_SCR_list, fs_SCR_list, fm_norm_SCR_list
+    match_results = fm_SCR_list, fs_SCR_list, fm_norm_SCR_list
+    return match_results
 
 
 @profile
-def spatially_constrained_ratio_match(flann, dvecs, qkpts, dkpts, H, dlen_sqrd2,
-                                      match_xy_thresh, scr_ratio_thresh,  scr_K, normalizer_xy_bounds):
-    dfx2_qfx, _dfx2_dist = flann.nn_index(dvecs, num_neighbors=scr_K, checks=800)
-    dfx2_dist = np.divide(_dfx2_dist.astype(np.float64), hstypes.VEC_PSEUDO_MAX_DISTANCE_SQRD)
-    # Remove infeasible matches
-    kpts1, kpts2 = qkpts, dkpts
-    fx2_to_fx1  = dfx2_qfx
-    fx2_to_dist = dfx2_dist
-    # COMPUTE CONSTRAINED ASSIGNMENTS
-    # H should map from query to database chip (1 to 2)
-    assigntup = constrained_matching.assign_spatially_constrained_matches(
-        dlen_sqrd2, kpts1, kpts2, H, fx2_to_fx1, fx2_to_dist,
-        match_xy_thresh, normalizer_xy_bounds=normalizer_xy_bounds)
-    fx2_match, fx1_match, fx1_norm, match_dist, norm_dist = assigntup
-    # FILTER ASSIGNMENTS VIA THE RATIO TEST
-    ratio_tup = matching.ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist, scr_ratio_thresh)
-    (fm_SCR, fs_SCR, fm_norm_SCR) = ratio_tup
-    fm_SCR = fm_SCR.astype(hstypes.FM_DTYPE)
-    fs_SCR = fs_SCR.astype(hstypes.FS_DTYPE)
-    return fm_SCR, fs_SCR, fm_norm_SCR
+def compute_query_unconstrained_matches(ibs, qaid, daid_list, config):
+    """
+
+    CommandLine:
+        python -m ibeis.model.hots.vsone_pipeline --test-compute_query_unconstrained_matches --show
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> import numpy.linalg as npl
+        >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
+        >>> ibs, qreq_, qaid, daid_list, H_list, prior_chipmatch, prior_filtkey_list = testdata_matching()
+        >>> config = qreq_.qparams
+        >>> match_results = compute_query_unconstrained_matches(ibs, qaid, daid_list, config)
+        >>> fm_RAT_list, fs_RAT_list, fm_norm_RAT_list = match_results
+        >>> print('depth_profile(fs_RAT_list) = ' + str(ut.depth_profile(fs_RAT_list)))
+        >>> print('depth_profile(fm_norm_RAT_list) = ' + str(ut.depth_profile(fm_norm_RAT_list)))
+        >>> print('daid_list = ' + str(daid_list))
+        >>> if ut.show_was_requested():
+        >>>     import plottool as pt
+        >>>     idxs = np.where(np.array(ibs.get_annot_nids(daid_list)) == ibs.get_annot_nids(qaid))[0]
+        >>>     idx = idxs[0]
+        >>>     daid = daid_list[idx]
+        >>>     fm = fm_RAT_list[idx]
+        >>>     fs = fs_RAT_list[idx]
+        >>>     show_constrained_chipmatch(ibs, qaid, daid, fm=fm, fs=fs, fnum=1, pnum=None)
+        >>>     pt.show_if_requested()
+    """
+    unc_ratio_thresh = config.get('unc_ratio_thresh', .625)
+    # query info
+    qvecs = ibs.get_annot_vecs(qaid)
+    # database info
+    dvecs_list = ibs.get_annot_vecs(daid_list)
+    # build flann for query vectors
+    flann = quick_vsone_flann(ibs, qvecs)
+    # match database chips to query chip
+    rat_kwargs = {
+        'unc_ratio_thresh' : unc_ratio_thresh,
+        'fm_dtype'     : hstypes.FM_DTYPE,
+        'fs_dtype'     : hstypes.FS_DTYPE,
+    }
+    print(ut.dict_str(rat_kwargs))
+    scrtup_list = [
+        matching.unconstrained_ratio_match(
+            flann, dvecs, **rat_kwargs)
+        for dvecs in dvecs_list]
+    # return matches and scores
+    fm_RAT_list = ut.get_list_column(scrtup_list, 0)
+    fs_RAT_list = ut.get_list_column(scrtup_list, 1)
+    fm_norm_RAT_list = ut.get_list_column(scrtup_list, 2)
+    match_results = fm_RAT_list, fs_RAT_list, fm_norm_RAT_list
+    return match_results
+
+
+# -----------------------------
+# GRIDSEARCH AND VISUALIZATIONS
+# -----------------------------
 
 
 def gridsearch_constrained_matches():
@@ -516,19 +565,19 @@ def gridsearch_constrained_matches():
         'scr_ratio_thresh': [.625, .3, .9, 0.0, 1.0],
         'scr_K': [2],
         'scr_xy_thresh': [.05, 1.0, .1],
-        'scr_normalizer_xy_min': [0, .1, .2],
-        'scr_normalizer_xy_max': [1, .3],
+        'scr_norm_xy_min': [0, .1, .2],
+        'scr_norm_xy_max': [1, .3],
     }
     slice_dict = {
         'scr_ratio_thresh': slice(0, 1),
         'scr_K': slice(0, 2),
         'scr_xy_thresh': slice(0, 2),
-        'scr_normalizer_xy_min': slice(0, 2),
-        'scr_normalizer_xy_max': slice(0, 2),
+        'scr_norm_xy_min': slice(0, 2),
+        'scr_norm_xy_max': slice(0, 2),
     }
 
     def constrain_func(cfg):
-        if cfg['scr_normalizer_xy_min'] >= cfg['scr_normalizer_xy_max']:
+        if cfg['scr_norm_xy_min'] >= cfg['scr_norm_xy_max']:
             return False
 
     # Make configuration for every parameter setting
@@ -563,8 +612,18 @@ def gridsearch_constrained_matches():
 
 
 def testdata_post_vsmany_sver():
-    dbname = ut.get_argval('--db', str, 'testdb1')
-    cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum', sver_weighting=True)
+    dbname = ut.get_argval('--db', str, 'PZ_MTEST')
+    cfgdict = dict(dupvote_weight=1.0,
+                   prescore_method='nsum',
+                   score_method='nsum',
+                   sver_weighting=True)
+    vsonerr_cfgdict = {
+        'merge_vsmany': True,
+    }
+
+    vsonerr_cfgdict = ut.util_arg.argparse_dict(vsonerr_cfgdict)
+    cfgdict.update(vsonerr_cfgdict)
+
     qaid = ut.get_argval('--qaid', int, 1)
     daid_list = ut.get_argval('--daid_list', list, None)
     if daid_list is None:
@@ -624,8 +683,9 @@ def show_top_chipmatches(ibs, qaid2_chipmatch, fnum_offset=0, figtitle=''):
             fm    = chipmatch.aid2_fm[daid]
             fsv   = chipmatch.aid2_fsv[daid]
             fs    = fsv.prod(axis=1)
-            H1     = chipmatch.aid2_H[daid]
-            if ut.get_argflag('--nohomog'):
+            if ut.get_argflag('--homog'):
+                H1 = chipmatch.aid2_H[daid]
+            else:
                 H1 = None
             pnum = next_pnum()
             show_constrained_chipmatch(ibs, qaid, daid, fm=fm, fs=fs, H1=H1, fnum=fnum, pnum=pnum)

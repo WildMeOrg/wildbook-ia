@@ -791,15 +791,16 @@ python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_constrained_matches 
 
 # Test VsMany ReRanking
 python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show
-python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --nohomog
-python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --nohomog --db GZ_ALL
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --db GZ_ALL
 
 # Problem cases with the back spot
-python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --nohomog --db GZ_ALL --qaid 425
-python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --nohomog --db GZ_ALL --qaid 662
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 425
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662
 python dev.py -t custom:score_method=csum,prescore_method=csum --db GZ_ALL --show --va -w --qaid 425 --noqcache
 # Shows vsone results with some of the competing cases
-python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --nohomog --db GZ_ALL --qaid 662 --daid_list 425 342 678 233 --nomerge-prior
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662 --daid_list 425 342 678 233 --nomerge-prior
 
 
 

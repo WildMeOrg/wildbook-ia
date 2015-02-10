@@ -250,7 +250,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             >>> qaid = qreq_.get_external_qaids()[0]
             >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qaid)
             >>> default_dict = {'dcvs_power': .25, 'dcvs_K': 5, 'dcvs_clip_max': .5}
-            >>> kwargs = ut.get_dict_vals_from_commandline(default_dict)
+            >>> kwargs = ut.argparse_dict(default_dict)
             >>> qfx2_dstncvs = dstcnvs_normer.get_distinctiveness(qfx2_vec, **kwargs)
             >>> ut.assert_eq(len(qfx2_dstncvs.shape), 1)
             >>> assert np.all(qfx2_dstncvs) <= 1

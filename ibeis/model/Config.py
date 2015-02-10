@@ -631,14 +631,19 @@ class RerankVsOneConfig(ConfigBase):
         PI = ParamInfo
         param_info_list = [
             PI('rrvsone_on', False, ''),
+            # shortlist params
             PI('nNameShortlistVsone', 5, 'nNm='),
             PI('nAnnotPerName', 2, 'nApN='),
+            # matching types
+            PI('merge_vsmany', True, 'mergevsmany='),
             # spatially constrained matching
-            PI('scr_xy_thresh', .05, 'xy>'),
-            PI('scr_ratio_thresh', .7, 'rat>'),
-            PI('scr_normalizer_xy_min', 0.1, ''),
-            PI('scr_normalizer_xy_max', 1.0, ''),
+            PI('scr_match_xy_thresh', .05, 'xy>'),
+            PI('scr_norm_xy_min', 0.1, ''),
+            PI('scr_norm_xy_max', 1.0, ''),
+            PI('scr_ratio_thresh', .7, 'scrrat>'),
             PI('scr_K', 7, 'scK'),
+            # unconstrained matching
+            PI('unc_ratio_thresh', .625, 'uncrat>'),
             # grid scoring
             PI('grid_scale_factor', .2, 'sf'),
             PI('grid_steps', 3, 'stps'),

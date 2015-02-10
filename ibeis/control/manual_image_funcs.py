@@ -140,10 +140,33 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
     Returns:
         gid_list (list of rowids): gids are image rowids
 
-    Examples:
-        >>> from ibeis.all_imports import *  # NOQA  # doctest.SKIP
-        >>> gpath_list = grabdata.get_test_gpaths(ndata=7) + ['doesnotexist.jpg']
-        >>> ibs.add_images(gpath_list)
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> # Test returns None on fail to add
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gpath_list = ['doesnotexist.jpg']
+        >>> assert not ut.checkpath(gpath_list[0])
+        >>> gid_list = ibs.add_images(gpath_list)
+        >>> assert len(gid_list) == len(gpath_list)
+        >>> assert gid_list[0] is None
+
+    Example1:
+        >>> # ENABLE_DOCTSET
+        >>> # test double add
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> new_gpath_list = [ut.grab_test_imgpath('carl.jpg')]
+        >>> new_gids1 = ibs.add_images(new_gpath_list, auto_localize=False)
+        >>> new_gids2 = ibs.add_images(new_gpath_list, auto_localize=False)
+        >>> #new_gids2 = ibs.add_images(new_gpath_list, auto_localize=True)
+        >>> assert new_gids1 == new_gids2, 'should be the same'
+        >>> new_gpath_list2 = ibs.get_image_paths(new_gids1)
+        >>> assert new_gpath_list == new_gpath_list2, 'should not move when autolocalize is False'
+        >>> # Clean things up
+        >>> ibs.delete_images(new_gids1)
     """
     from ibeis.model.preproc import preproc_image
     print('[ibs] add_images')
@@ -192,6 +215,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
 
     #ibs.cfg.other_cfg.ensure_attr('auto_localize', True)
     if auto_localize is None:
+        # grab value from config
         auto_localize = ibs.cfg.other_cfg.auto_localize
     if auto_localize:
         # Move to ibeis database local cache
@@ -237,6 +261,40 @@ def localize_images(ibs, gid_list_=None):
     """
     Moves the images into the ibeis image cache.
     Images are renamed to img_uuid.ext
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list_ (list):
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-localize_images
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> from os.path import relpath
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gpath_list  = [ut.grab_test_imgpath('carl.jpg')]
+        >>> gid_list_   = ibs.add_images(gpath_list, auto_localize=False)
+        >>> gpath_list2 = ibs.get_image_paths(gid_list_)
+        >>> assert gpath_list == gpath_list2, 'should not move when autolocalize is False'
+        >>> # execute function
+        >>> result = localize_images(ibs, gid_list_)
+        >>> gpath_list3 = ibs.get_image_paths(gid_list_)
+        >>> assert gpath_list3 != gpath_list2
+        >>> gpath3 = gpath_list3[0]
+        >>> rel_gpath3 = relpath(gpath3, ibs.get_workdir())
+        >>> result = rel_gpath3
+        >>> print(result)
+        >>> # Clean things up
+        >>> ibs.delete_images(gid_list_)
+        testdb1/_ibsdb/images/f498fa6f-6b24-b4fa-7932-2612144fedd5.jpg
+
+    Ignore:
+        ibs.vd()
+
     """
     if gid_list_ is None:
         print('WARNING: you are localizing all gids')
@@ -365,6 +423,30 @@ def get_images(ibs, gid_list):
     """
     Returns:
         list_ (list): a list of images in numpy matrix form by gid
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):
+
+    Returns:
+        list: image_list
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_images
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()[0:1]
+        >>> # execute function
+        >>> image_list = get_images(ibs, gid_list)
+        >>> # verify results
+        >>> result = str(image_list[0].shape)
+        >>> print(result)
+        (715, 1047, 3)
     """
     from vtool import image as gtool
     gpath_list = ibs.get_image_paths(gid_list)
@@ -417,7 +499,46 @@ def get_image_thumbpath(ibs, gid_list, thumbsize=None):
 def get_image_uuids(ibs, gid_list):
     """
     Returns:
-        list_ (list): a list of image uuids by gid """
+        list_ (list): a list of image uuids by gid
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):
+
+    Returns:
+        list: image_uuid_list
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_image_uuids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()
+        >>> # execute function
+        >>> image_uuid_list = get_image_uuids(ibs, gid_list)
+        >>> # verify results
+        >>> result = ut.list_str(image_uuid_list)
+        >>> print(result)
+        [
+            UUID('66ec193a-1619-b3b6-216d-1784b4833b61'),
+            UUID('d8903434-942f-e0f5-d6c2-0dcbe3137bf7'),
+            UUID('b73b72f4-4acb-c445-e72c-05ce02719d3d'),
+            UUID('0cd05978-3d83-b2ee-2ac9-798dd571c3b3'),
+            UUID('0a9bc03d-a75e-8d14-0153-e2949502aba7'),
+            UUID('2deeff06-5546-c752-15dc-2bd0fdb1198a'),
+            UUID('a9b70278-a936-c1dd-8a3b-bc1e9a998bf0'),
+            UUID('42fdad98-369a-2cbc-67b1-983d6d6a3a60'),
+            UUID('c459d381-fd74-1d99-6215-e42e3f432ea9'),
+            UUID('33fd9813-3a2b-774b-3fcc-4360d1ae151b'),
+            UUID('97e8ea74-873f-2092-b372-f928a7be30fa'),
+            UUID('588bc218-83a5-d400-21aa-d499832632b0'),
+            UUID('163a890c-36f2-981e-3529-c552b6d668a3'),
+        ]
+        """
     image_uuid_list = ibs.db.get(const.IMAGE_TABLE, ('image_uuid',), gid_list)
     return image_uuid_list
 
@@ -469,8 +590,32 @@ def get_image_gids_from_uuid(ibs, uuid_list):
 @getter_1to1
 def get_image_paths(ibs, gid_list):
     """
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list): a list of image absolute paths to img_dir
+
     Returns:
-        list_ (list): a list of image absolute paths to img_dir """
+        list: gpath_list
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_image_paths
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> #gid_list = ibs.get_valid_gids()
+        >>> # execute function
+        >>> #gpath_list = get_image_paths(ibs, gid_list)
+        >>> new_gpath = ut.grab_test_imgpath('carl.jpg')
+        >>> new_gids = ibs.add_images([new_gpath], auto_localize=False)
+        >>> new_gpath_list = get_image_paths(ibs, new_gids)
+        >>> # verify results
+        >>> result = str(gpath_list)
+        >>> print(result)
+        """
     ut.assert_all_not_None(gid_list, 'gid_list', key_list=['gid_list'])
     uri_list = ibs.get_image_uris(gid_list)
     # Images should never have null uris
@@ -498,8 +643,43 @@ def get_image_detectpaths(ibs, gid_list):
 @getter_1to1
 def get_image_gnames(ibs, gid_list):
     """
+    Args:
+        gid_list (list):
+
     Returns:
-        list_ (list): a list of original image names """
+        list: gname_list - a list of original image names
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_image_gnames
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()
+        >>> # execute function
+        >>> gname_list = get_image_gnames(ibs, gid_list)
+        >>> # verify results
+        >>> result = ut.list_str(gname_list)
+        >>> print(result)
+        [
+            u'easy1.JPG',
+            u'easy2.JPG',
+            u'easy3.JPG',
+            u'hard1.JPG',
+            u'hard2.JPG',
+            u'hard3.JPG',
+            u'jeff.png',
+            u'lena.jpg',
+            u'occl1.JPG',
+            u'occl2.JPG',
+            u'polar1.jpg',
+            u'polar2.jpg',
+            u'zebra.jpg',
+        ]
+    """
     gname_list = ibs.db.get(const.IMAGE_TABLE, ('image_original_name',), gid_list)
     return gname_list
 
