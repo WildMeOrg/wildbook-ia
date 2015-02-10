@@ -1376,7 +1376,7 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
     if DEBUG:
         try:
             assert kpts2.shape[0] == fx2_to_fx1.shape[0]
-            assert kpts1.max() < fx2_to_fx1.max()
+            assert kpts1.shape[0] >= fx2_to_fx1.max()
         except AssertionError as ex:
             ut.printex(ex, 'bad shape', keys=[
                 'kpts2.shape',
