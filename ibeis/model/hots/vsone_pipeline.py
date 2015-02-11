@@ -9,7 +9,7 @@ Current Issues:
 
 TODOLIST:
     * Precompute distinctivness
-    * keep feature matches from vsmany (allow prior_fm)
+    * keep feature matches from vsmany (allow fm_B)
     * Each keypoint gets
       - foregroundness
       - global distinctivness (databasewide) LNBNN
@@ -236,7 +236,7 @@ def single_vsone_rerank(ibs, qaid, daid_list, priors=None, config={}):
 
     CommandLine:
         python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank:0
-        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank:1 --show
+        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank:0 --show
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -274,10 +274,10 @@ def single_vsone_rerank(ibs, qaid, daid_list, priors=None, config={}):
         new_fs_list = []
         vecs1 = ibs.get_annot_vecs(qaid)
         _iter = zip(daid_list, vsone_fm_list, vsone_fs_list, prior_fm_list, prior_fs_list)
-        for daid, vsone_fm, vsone_fs, prior_fm, prior_fsv in _iter:
+        for daid, fm_A, fs_A, fm_B, prior_fsv in _iter:
             vecs2 = ibs.get_annot_vecs(daid)
-            fm_both, fs_both = merge_vsone_with_prior(
-                vecs1, vecs2,  vsone_fm, vsone_fs, prior_fm, prior_fsv)
+            fm_both, fs_both = merge_match_lists(
+                vecs1, vecs2,  fm_A, fs_A, fm_B, prior_fsv)
             new_fm_list.append(fm_both)
             new_fs_list.append(fs_both)
         fm_list = new_fm_list
@@ -315,28 +315,28 @@ def single_vsone_rerank(ibs, qaid, daid_list, priors=None, config={}):
     return reranktup
 
 
-def merge_vsone_with_prior(vecs1, vecs2, vsone_fm, vsone_fs, prior_fm, prior_fs):
+def merge_match_lists(vecs1, vecs2, fm_A, fs_A, fm_B, fs_B):
     # Find relevant prior keys
     # TODO: normalized lnbnn scores are very very low
     # these need to be adjusted as well.
 
     # These indicies were found in both vsone and prior
-    vsone_flags, prior_flags = vt.intersect2d_flags(vsone_fm, prior_fm)
-    fm_both  = vsone_fm.compress(vsone_flags, axis=0)
-    fm_vsone = vsone_fm.compress(~vsone_flags, axis=0)
-    fm_prior = prior_fm.compress(~prior_flags, axis=0)
+    flags_A, flags_B = vt.intersect2d_flags(fm_A, fm_B)
+    fm_both  = fm_A.compress(flags_A, axis=0)
+    fm_A_ = fm_A.compress(~flags_A, axis=0)
+    fm_B_ = fm_B.compress(~flags_B, axis=0)
     #
-    fs_both_vsone = vsone_fs.compress(vsone_flags)
-    fs_both_prior = prior_fs.compress(prior_flags)
-    fs_only_vsone = vsone_fs.compress(~vsone_flags)
-    fs_only_prior = prior_fs.compress(~prior_flags)
+    fs_both_vsone = fs_A.compress(flags_A)
+    fs_both_prior = fs_B.compress(flags_B)
+    fs_only_vsone = fs_A.compress(~flags_A)
+    fs_only_prior = fs_B.compress(~flags_B)
 
     # Merge feature matches
-    fm_both = np.vstack([fm_both, fm_vsone, fm_prior])
+    fm_both = np.vstack([fm_both, fm_A_, fm_B_])
     # Merge feature scores
     offset1 = len(fs_both_vsone)
-    offset2 = offset1 + len(fm_vsone)
-    offset3 = offset2 + len(fm_prior)
+    offset2 = offset1 + len(fm_A_)
+    offset3 = offset2 + len(fm_B_)
     fsv_both_cols = ['local', 'global', 'regional']
     fsv_both = np.full((len(fm_both), len(fsv_both_cols)), np.nan)
     fsv_both[0:offset1, 0]       = fs_both_vsone
