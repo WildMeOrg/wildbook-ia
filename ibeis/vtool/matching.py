@@ -275,6 +275,91 @@ def ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist,
     return ratio_tup
 
 
+def ensure_fsv_list(fsv_list):
+    """ ensure fs is at least Nx1 """
+    return [fsv[:, None] if len(fsv.shape) == 1 else fsv
+            for fsv in fsv_list]
+
+
+def marge_matches(fm_A, fm_B, fsv_A, fsv_B):
+    """ combines feature matches from two matching algorithms
+
+    Args:
+        fm_A (ndarray[ndims=2]): type A feature matches
+        fm_B (ndarray[ndims=2]): type B feature matches
+        fsv_A (ndarray[ndims=2]): type A feature scores
+        fsv_B (ndarray[ndims=2]): type B feature scores
+
+    Returns:
+        tuple: (fm_both, fs_both)
+
+    CommandLine:
+        python -m vtool.matching --test-marge_matches
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.matching import *  # NOQA
+        >>> # build test data
+        >>> fm_A  = np.array([[ 15, 17], [ 54, 29], [ 95, 111], [ 25, 125], [ 97, 125]], dtype=np.int32)
+        >>> fm_B  = np.array([[ 11, 21], [ 15, 17], [ 25, 125], [ 30,  32]], dtype=np.int32)
+        >>> fsv_A = np.array([[ .1, .2], [1.0, .9], [.8,  .2],  [.1, .1], [1.0, .9]], dtype=np.float32)
+        >>> fsv_B = np.array([[.12], [.3], [.5], [.7]], dtype=np.float32)
+        >>> # execute function
+        >>> (fm_both, fs_both) = marge_matches(fm_A, fm_B, fsv_A, fsv_B)
+        >>> # verify results
+        >>> result = ut.list_str((fm_both, fs_both), precision=3)
+        >>> print(result)
+        (
+            np.array([[ 15,  17],
+                      [ 25, 125],
+                      [ 54,  29],
+                      [ 95, 111],
+                      [ 97, 125],
+                      [ 11,  21],
+                      [ 30,  32]], dtype=np.int32),
+            np.array([[ 0.1 ,  0.2 ,  0.3 ],
+                      [ 0.1 ,  0.1 ,  0.5 ],
+                      [ 1.  ,  0.9 ,   nan],
+                      [ 0.8 ,  0.2 ,   nan],
+                      [ 1.  ,  0.9 ,   nan],
+                      [  nan,   nan,  0.12],
+                      [  nan,   nan,  0.7 ]], dtype=np.float64),
+        )
+    """
+    # Flag rows found in both fmA and fmB
+    # that are intersecting (both) or unique (only)
+    import vtool as vt
+    flags_both_A, flags_both_B = vt.intersect2d_flags(fm_A, fm_B)
+    flags_only_A = np.logical_not(flags_both_A)
+    flags_only_B = np.logical_not(flags_both_B)
+    # independent matches
+    fm_both_AB  = fm_A.compress(flags_both_A, axis=0)
+    fm_only_A   = fm_A.compress(flags_only_A, axis=0)
+    fm_only_B   = fm_B.compress(flags_only_B, axis=0)
+    # independent scores
+    fsv_both_A = fsv_A.compress(flags_both_A, axis=0)
+    fsv_both_B = fsv_B.compress(flags_both_B, axis=0)
+    fsv_only_A = fsv_A.compress(flags_only_A, axis=0)
+    fsv_only_B = fsv_B.compress(flags_only_B, axis=0)
+    # build merge offsets
+    offset1 = len(fm_both_AB)
+    offset2 = offset1 + len(fm_only_A)
+    offset3 = offset2 + len(fm_only_B)
+    # Merge feature matches
+    fm_merged = np.vstack([fm_both_AB, fm_only_A, fm_only_B])
+    # Merge feature scores
+    num_rows = fm_merged.shape[0]
+    num_cols_A = fsv_A.shape[1]
+    num_cols_B = fsv_B.shape[1]
+    num_cols = num_cols_A + num_cols_B
+    fsv_merged = np.full((num_rows, num_cols), np.nan)
+    fsv_merged[0:offset1, 0:num_cols_A] = fsv_both_A
+    fsv_merged[0:offset1, num_cols_A:]  = fsv_both_B
+    fsv_merged[offset1:offset2, 0:num_cols_A] = fsv_only_A
+    fsv_merged[offset2:offset3, num_cols_A:]  = fsv_only_B
+    return fm_merged, fsv_merged
+
+
 if __name__ == '__main__':
     """
     CommandLine:
