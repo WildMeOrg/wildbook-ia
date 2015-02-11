@@ -245,6 +245,11 @@ def single_vsone_rerank(ibs, qaid, daid_list, priors=None, config={}):
         >>> config = qreq_.qparams
         >>> reranktup = single_vsone_rerank(ibs, qaid, daid_list, priors, config)
         >>> daid_list, score_list, fm_list, fsv_list = reranktup
+        >>> cm = hstypes.ChipMatch2.from_reranktup(reranktup, qaid, priors.H_list)
+        >>> if ut.show_was_requested():
+        >>>     import plottool as pt
+        >>>     show_single_chipmatch(ibs, cm)
+        >>>     pt.show_if_requested()
         >>> print(score_list)
     """
     #print('==================')
@@ -659,8 +664,12 @@ def show_constrained_chipmatch(ibs, qaid, daid, fm, fs=None, fm_norm=None,
     #pt.set_title('score = %.3f' % (score,))
 
 
-def show_single_chipmatch(ibs, chipmatch, qaid, fnum):
+def show_single_chipmatch(ibs, chipmatch, qaid=None, fnum=None):
     import plottool as pt
+    if fnum is None:
+        fnum = pt.next_fnum()
+    if qaid is None:
+        qaid = chipmatch.qaid
     CLIP_TOP = 6
     daid_list     = list(six.iterkeys(chipmatch.aid2_fm))
     score_list    = ut.dict_take(chipmatch.aid2_score, daid_list)

@@ -213,38 +213,48 @@ class ChipMatch2(object):
     #
     _fields = ('aid2_fm', 'aid2_fsv', 'aid2_fk', 'aid2_score', 'aid2_H')
 
-    def __init__(cm, *args):
-        if len(args) == 0:
-            chipmatch_old = new_chipmatch()
-            cm.init_from_chipmatch_old(chipmatch_old)
-        elif len(args) == 1:
-            chipmatch_old = args[0]
-            cm.init_from_chipmatch_old(chipmatch_old)
-        elif len(args) == 5:
-            chipmatch_old = args
-            cm.init_from_chipmatch_old(chipmatch_old)
-        else:
-            # New way of initializing
-            cm.daid_list    = []
-            cm.fm_list      = []
-            cm.fsv_list     = []
-            cm.fk_list      = []
-            cm.score_list   = []
-            cm.H_list       = []
-            cm.fsv_col_lbls = []
-            cm.daid2_idx    = {}
+    # Alternative Cosntructors
 
-    def init_from_chipmatch_old(cm, chipmatch_old):
+    @classmethod
+    def from_chipmatch_old(cls, chipmatch_old):
         (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = chipmatch_old
         aid_list = list(six.iterkeys(aid2_fm_))
-        cm.daid_list    = aid_list
-        cm.fm_list      = ut.dict_take(aid2_fm_, aid_list)
-        cm.fsv_list     = ut.dict_take(aid2_fsv_, aid_list)
-        cm.fk_list      = ut.dict_take(aid2_fk_, aid_list)
-        cm.score_list   = None if aid2_score_ is None or len(aid2_score_) == 0 else ut.dict_take(aid2_score_, aid_list)
-        cm.H_list       = None if aid2_H_ is None else ut.dict_take(aid2_H_, aid_list)
-        cm.fsv_col_lbls = None
-        cm.daid2_idx    = {daid: idx for idx, daid in enumerate(cm.daid_list)}
+        qaid         = None
+        daid_list    = aid_list
+        fm_list      = ut.dict_take(aid2_fm_, aid_list)
+        fsv_list     = ut.dict_take(aid2_fsv_, aid_list)
+        fk_list      = ut.dict_take(aid2_fk_, aid_list)
+        score_list   = (None if aid2_score_ is None or len(aid2_score_) == 0
+                           else ut.dict_take(aid2_score_, aid_list))
+        H_list       = (None if aid2_H_ is None else
+                        ut.dict_take(aid2_H_, aid_list))
+        fsv_col_lbls = None
+        cm = ChipMatch2(qaid, daid_list, fm_list, fsv_list, fk_list, score_list, H_list, fsv_col_lbls)
+        return cm
+
+    @classmethod
+    def from_reranktup(cls, reranktup, qaid=None, H_list=None):
+        daid_list, score_list, fm_list, fsv_list = reranktup
+        fk_list = [np.ones(fm.shape[0]) for fm in fm_list]
+        fsv_col_lbls = None
+        cm = ChipMatch2(qaid, daid_list, fm_list, fsv_list, fk_list, score_list, H_list, fsv_col_lbls)
+        return cm
+
+    # Standard Contstructor
+
+    def __init__(cm, qaid=None, daid_list=None, fm_list=None, fsv_list=None, fk_list=None,
+                 score_list=None, H_list=None, fsv_col_lbls=None):
+        cm.qaid         = qaid
+        cm.daid_list    = daid_list
+        cm.fm_list      = fm_list
+        cm.fsv_list     = fsv_list
+        cm.fk_list      = fk_list
+        cm.score_list   = score_list
+        cm.H_list       = H_list
+        cm.fsv_col_lbls = fsv_col_lbls
+        # Metadata for backwards compatability
+        cm.daid2_idx    = (None if cm.daid_list is None else
+                           {daid: idx for idx, daid in enumerate(cm.daid_list)})
 
     # NEW CHIPMATCH2 FUNCTIONALITY
     def foo(cm):
