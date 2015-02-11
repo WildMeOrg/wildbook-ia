@@ -25,7 +25,8 @@ import vtool.linalg as ltool
 import vtool.distance as dtool
 
 try:
-    #raise Exception('forcing sver_c_wrapper off')
+    if ut.WIN32:
+        raise Exception('forcing sver_c_wrapper off')
     from vtool import sver_c_wrapper
     HAS_SVER_C_WRAPPER = True
 except Exception as ex:
@@ -54,6 +55,9 @@ TAU = 2 * np.pi  # tauday.org
 def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     """ Builds the M x 9 least squares matrix
 
+    CommandLine:
+        python -m vtool.spatial_verification --test-build_lstsqrs_Mx9
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.spatial_verification import *  # NOQA
@@ -62,6 +66,7 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
         >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
         >>> xy2_mn = ktool.get_xys(kpts2).astype(np.float64)
         >>> Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
+        >>> print(ut.numpy_str(Mx9))
         >>> result = ut.hashstr(Mx9)
         >>> print(result)
         f@2l62+2!ppow8yw

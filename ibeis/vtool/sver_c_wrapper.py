@@ -190,6 +190,8 @@ def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2
         output1 = func1(*args)
     with ut.Timer('time func2=' + func2_name) as t2:
         output2 = func2(*args)
+    if t2.ellapsed == 0:
+        t2.ellapsed = 1e9
     print('speedup = %r' % (t1.ellapsed / t2.ellapsed))
     try:
         assert_output_equal(output1, output2, lbl1=lbl1, lbl2=lbl2)
