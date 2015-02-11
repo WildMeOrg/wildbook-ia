@@ -33,6 +33,40 @@ class ParamInfo(object):
         return itemstr
 
 
+def parse_config_items(cfg):
+    """
+    Recursively extracts key, val pairs from Config objects
+    into a flat list. (there must not be name conflicts)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> cfg = ibs.cfg.query_cfg
+        >>> param_list = parse_config_items(cfg)
+    """
+    import ibeis
+    param_list = []
+    seen = set([])
+    for item in cfg.items():
+        key, val = item
+        if isinstance(val, ibeis.model.Config.ConfigBase):
+            child_cfg = val
+            param_list.extend(parse_config_items(child_cfg))
+            #print(key)
+            pass
+        elif key.startswith('_'):
+            #print(key)
+            pass
+        else:
+            if key in seen:
+                print('[Config] WARNING: key=%r appears more than once' % (key,))
+            seen.add(key)
+            param_list.append(item)
+            #print(key)
+    return param_list
+
+
 def make_config_metaclass():
     """
     Creates a metaclass for Config objects that automates some of the more
@@ -59,6 +93,10 @@ def make_config_metaclass():
             itemstr_list = [key + '=' + str(val) for key, val in item_list]
         config_name = cfg.get_config_name()
         return [config_name , '(' + ','.join(itemstr_list) + ')']
+
+    @_register
+    def parse_items(cfg, **kwargs):
+        return parse_config_items(cfg)
 
     @_register
     def get_config_name(cfg, **kwargs):
@@ -101,40 +139,6 @@ def make_config_metaclass():
     return ConfigMetaclass
 
 ConfigMetaclass = make_config_metaclass()
-
-
-def parse_config_items(cfg):
-    """
-    Recursively extracts key, val pairs from Config objects
-    into a flat list. (there must not be name conflicts)
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> cfg = ibs.cfg.query_cfg
-        >>> param_list = parse_config_items(cfg)
-    """
-    import ibeis
-    param_list = []
-    seen = set([])
-    for item in cfg.items():
-        key, val = item
-        if isinstance(val, ibeis.model.Config.ConfigBase):
-            child_cfg = val
-            param_list.extend(parse_config_items(child_cfg))
-            #print(key)
-            pass
-        elif key.startswith('_'):
-            #print(key)
-            pass
-        else:
-            if key in seen:
-                print('[Config] WARNING: key=%r appears more than once' % (key,))
-            seen.add(key)
-            param_list.append(item)
-            #print(key)
-    return param_list
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -634,9 +638,11 @@ class RerankVsOneConfig(ConfigBase):
             PI('nNameShortlistVsone', 5, 'nNm='),
             PI('nAnnotPerName', 2, 'nApN='),
             # matching types
-            PI('merge_vsmany', True, 'mergevsmany='),
-            PI('use_unconstrained', True, 'use_unc='),
-            PI('use_constrained',   True, 'use_src='),
+            PI('prior_coeff', .6, 'prior_coeff='),
+            PI('unconstrained_coeff', .3, 'unc_coeff='),
+            PI('constrained_coeff',   .1, 'scr_coeff='),
+            PI('sver_unconstrained',  False, 'sver_unc='),
+            PI('sver_constrained',  False, 'sver_scr='),
             # unconstrained matching
             PI('unc_ratio_thresh', .625, 'uncRat>'),
             # spatially constrained matching
@@ -646,9 +652,12 @@ class RerankVsOneConfig(ConfigBase):
             PI('scr_ratio_thresh', .7, 'scrRat>'),
             PI('scr_K', 7, 'scK'),
             # grid scoring
+            PI('use_gridcov_scoring', True),
             PI('grid_scale_factor', .2, 'sf'),
             PI('grid_steps', 3, 'stps'),
             PI('grid_sigma', 1.6, 'sigma'),
+            # grid scoring
+            PI('use_kptscov_scoring', False),
             # distinctiveness
             PI('dcvs_K', 5, 'dcvsK'),
             PI('dcvs_clip_min', .2, 'mn'),
@@ -661,6 +670,8 @@ class RerankVsOneConfig(ConfigBase):
         # TODO:
         def constraint_func(cfg):
             if cfg['rrvsone_on']:
+                return False
+            if cfg['use_gridcov_scoring'] and cfg['use_kptscov_scoring']:
                 return False
 
     def get_cfgstr_list(rrvsone_cfg, **kwargs):
