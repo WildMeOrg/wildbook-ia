@@ -215,17 +215,28 @@ class ChipMatch2(object):
 
     def __init__(cm, *args):
         if len(args) == 0:
-            chipmatch = new_chipmatch()
+            chipmatch_old = new_chipmatch()
+            cm.init_from_chipmatch_old(chipmatch_old)
         elif len(args) == 1:
-            chipmatch = args[0]
-            (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = chipmatch
-            aid_list = list(six.iterkeys(aid2_fm_))
+            chipmatch_old = args[0]
+            cm.init_from_chipmatch_old(chipmatch_old)
         elif len(args) == 5:
-            (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = args
-            aid_list = list(six.iterkeys(aid2_fm_))
+            chipmatch_old = args
+            cm.init_from_chipmatch_old(chipmatch_old)
         else:
             # New way of initializing
-            pass
+            cm.daid_list    = []
+            cm.fm_list      = []
+            cm.fsv_list     = []
+            cm.fk_list      = []
+            cm.score_list   = []
+            cm.H_list       = []
+            cm.fsv_col_lbls = []
+            cm.daid2_idx    = {}
+
+    def init_from_chipmatch_old(cm, chipmatch_old):
+        (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = chipmatch_old
+        aid_list = list(six.iterkeys(aid2_fm_))
         cm.daid_list    = aid_list
         cm.fm_list      = ut.dict_take(aid2_fm_, aid_list)
         cm.fsv_list     = ut.dict_take(aid2_fsv_, aid_list)

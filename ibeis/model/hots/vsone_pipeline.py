@@ -519,6 +519,7 @@ def testdata_post_vsmany_sver():
 
     qaid = ut.get_argval('--qaid', int, 1)
     daid_list = ut.get_argval('--daid_list', list, None)
+    #ut.embed()
     if daid_list is None:
         daid_list = 'all'
     qaid_list = [qaid]
@@ -673,6 +674,7 @@ def show_single_chipmatch(ibs, chipmatch, qaid, fnum):
         fs    = fsv.prod(axis=1)
         H1 = chipmatch.aid2_H[daid]
         pnum = next_pnum()
+        #with ut.EmbedOnException():
         show_constrained_chipmatch(ibs, qaid, daid, fm=fm, fs=fs, H1=H1, fnum=fnum, pnum=pnum)
         score = chipmatch.aid2_score[daid]
         pt.set_title('score = %.3f' % (score,))

@@ -800,7 +800,7 @@ python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog 
 python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662
 python dev.py -t custom:score_method=csum,prescore_method=csum --db GZ_ALL --show --va -w --qaid 425 --noqcache
 # Shows vsone results with some of the competing cases
-python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662 --daid_list 425 342 678 233 --nomerge-prior
+python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662 --daid_list=425,342,678,233
 
 
 
