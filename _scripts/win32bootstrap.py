@@ -19,6 +19,8 @@ import utool as ut
 from six.moves import filterfalse
 import urllib2
 
+'http://downloads.sourceforge.net/project/opencvlibrary/opencv-win/2.4.10/opencv-2.4.10.exe'
+
 opencv_alt_ext_href = 'https://sourceforge.net/projects/opencvlibrary/files/opencv-win/3.0.0-beta/'
 
 UNOFFICIAL_WEBURL = 'http://www.lfd.uci.edu/~gohlke/pythonlibs/'

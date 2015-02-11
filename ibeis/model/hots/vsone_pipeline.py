@@ -247,7 +247,6 @@ def single_vsone_rerank(ibs, qaid, daid_list, priors=None, config={}):
         >>> daid_list, score_list, fm_list, fsv_list = reranktup
         >>> print(score_list)
     """
-    from ibeis.model.hots import name_scoring
     #print('==================')
     merge_prior       = config.get('merge_vsmany')
     use_constrained   = config.get('use_constrained')
@@ -624,18 +623,6 @@ def gridsearch_constrained_matches():
 # -----------------------------
 
 
-def show_constrained_chipmatch(ibs, qaid, daid, fm, fs=None, fm_norm=None,
-                               H1=None, fnum=None, pnum=None, **kwargs):
-    if not ut.get_argflag('--homog'):
-        H1 = None
-    # viz function for compute_query_constrained_matches
-    from ibeis.viz import viz_matches
-    #import plottool as pt
-    viz_matches.show_matches2(ibs, qaid, daid, fm=fm, fs=fs, fm_norm=fm_norm,
-                              H1=H1, fnum=fnum, pnum=pnum, show_name=False, **kwargs)
-    #pt.set_title('score = %.3f' % (score,))
-
-
 def show_single_match(ibs, qaid, daid_list, fm_list, fs_list, fm_norm_list=None, H_list=None, index=None, **kwargs):
     use_sameaxis_norm = ut.get_argflag('--shownorm')
     fs = fs_list[index]
@@ -658,6 +645,18 @@ def show_single_match(ibs, qaid, daid_list, fm_list, fs_list, fm_norm_list=None,
     H1 = H_list[index]
     #H1 = None  # uncomment to see warping
     show_constrained_chipmatch(ibs, qaid, daid, fm, fs=fs, H1=H1, fm_norm=fm_norm, **kwargs)
+
+
+def show_constrained_chipmatch(ibs, qaid, daid, fm, fs=None, fm_norm=None,
+                               H1=None, fnum=None, pnum=None, **kwargs):
+    if not ut.get_argflag('--homog'):
+        H1 = None
+    # viz function for compute_query_constrained_matches
+    from ibeis.viz import viz_matches
+    #import plottool as pt
+    viz_matches.show_matches2(ibs, qaid, daid, fm=fm, fs=fs, fm_norm=fm_norm,
+                              H1=H1, fnum=fnum, pnum=pnum, show_name=False, **kwargs)
+    #pt.set_title('score = %.3f' % (score,))
 
 
 def show_single_chipmatch(ibs, chipmatch, qaid, fnum):
