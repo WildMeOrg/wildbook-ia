@@ -95,10 +95,10 @@ def vsone_reranking(qreq_, qaid2_prior_chipmatch, verbose=False):
         >>> qaid2_chipmatch_VSONE = vsone_reranking(qreq_, qaid2_prior_chipmatch)
         >>> #qaid2_chipmatch = qaid2_chipmatch_VSONE
         >>> if ut.show_was_requested():
-        >>>     import plottool as pt
-        >>>     figtitle = ut.dict_str(rrvsone_cfgdict, newlines=False)
-        >>>     show_all_top_chipmatches(qreq_.ibs, qaid2_chipmatch_VSONE, figtitle=figtitle)
-        >>>     pt.show_if_requested()
+        ...     import plottool as pt
+        ...     figtitle = ut.dict_str(rrvsone_cfgdict, newlines=False)
+        ...     show_all_top_chipmatches(qreq_.ibs, qaid2_chipmatch_VSONE, figtitle=figtitle)
+        ...     pt.show_if_requested()
     """
     ibs = qreq_.ibs
     config = qreq_.qparams
@@ -247,9 +247,9 @@ def single_vsone_rerank(ibs, qaid, daid_list, priors=None, config={}):
         >>> daid_list, score_list, fm_list, fsv_list = reranktup
         >>> cm = hstypes.ChipMatch2.from_reranktup(reranktup, qaid, priors.H_list)
         >>> if ut.show_was_requested():
-        >>>     import plottool as pt
-        >>>     show_single_chipmatch(ibs, cm)
-        >>>     pt.show_if_requested()
+        ...     import plottool as pt
+        ...     show_single_chipmatch(ibs, cm)
+        ...     pt.show_if_requested()
         >>> print(score_list)
     """
     #print('==================')
@@ -274,12 +274,12 @@ def single_vsone_rerank(ibs, qaid, daid_list, priors=None, config={}):
         new_fs_list = []
         vecs1 = ibs.get_annot_vecs(qaid)
         _iter = zip(daid_list, vsone_fm_list, vsone_fs_list, prior_fm_list, prior_fs_list)
-        for daid, fm_A, fs_A, fm_B, prior_fsv in _iter:
+        for daid, fm_A, fs_A, fm_B, fs_B in _iter:
             vecs2 = ibs.get_annot_vecs(daid)
-            fm_both, fs_both = merge_match_lists(
-                vecs1, vecs2,  fm_A, fs_A, fm_B, prior_fsv)
-            new_fm_list.append(fm_both)
-            new_fs_list.append(fs_both)
+            fm_merged, fs_merged = merge_match_lists(
+                vecs1, vecs2,  fm_A, fs_A, fm_B, fs_B)
+            new_fm_list.append(fm_merged)
+            new_fs_list.append(fs_merged)
         fm_list = new_fm_list
         fs_list = new_fs_list
     else:
@@ -315,51 +315,53 @@ def single_vsone_rerank(ibs, qaid, daid_list, priors=None, config={}):
     return reranktup
 
 
-def merge_match_lists(vecs1, vecs2, fm_A, fs_A, fm_B, fs_B):
-    # Find relevant prior keys
-    # TODO: normalized lnbnn scores are very very low
-    # these need to be adjusted as well.
-
-    # These indicies were found in both vsone and prior
+def merge_match_lists(fm_A, fs_A,
+                      fm_B, fs_B,
+                      fsv_A_cols, fsv_B_cols):
+    """ combines feature matches from two matching algorithms """
+    # Flag rows found in both fmA and fmB
     flags_A, flags_B = vt.intersect2d_flags(fm_A, fm_B)
-    fm_both  = fm_A.compress(flags_A, axis=0)
-    fm_A_ = fm_A.compress(~flags_A, axis=0)
-    fm_B_ = fm_B.compress(~flags_B, axis=0)
+    # get the intersecting (both) and unique (only) matches
+    fm_both_AB  = fm_A.compress( flags_A, axis=0)
+    fm_only_A   = fm_A.compress(~flags_A, axis=0)
+    fm_only_B   = fm_B.compress(~flags_B, axis=0)
     #
-    fs_both_vsone = fs_A.compress(flags_A)
-    fs_both_prior = fs_B.compress(flags_B)
-    fs_only_vsone = fs_A.compress(~flags_A)
-    fs_only_prior = fs_B.compress(~flags_B)
+    fs_both_A = fs_A.compress( flags_A)
+    fs_both_B = fs_B.compress( flags_B)
+    fs_only_A = fs_A.compress(~flags_A)
+    fs_only_B = fs_B.compress(~flags_B)
 
+    offset1 = len(fm_both_AB)
+    offset2 = offset1 + len(fm_only_A)
+    offset3 = offset2 + len(fm_only_B)
     # Merge feature matches
-    fm_both = np.vstack([fm_both, fm_A_, fm_B_])
+    fm_merged = np.vstack([fm_both_AB, fm_only_A, fm_only_B])
     # Merge feature scores
-    offset1 = len(fs_both_vsone)
-    offset2 = offset1 + len(fm_A_)
-    offset3 = offset2 + len(fm_B_)
-    fsv_both_cols = ['local', 'global', 'regional']
-    fsv_both = np.full((len(fm_both), len(fsv_both_cols)), np.nan)
-    fsv_both[0:offset1, 0]       = fs_both_vsone
-    fsv_both[0:offset1, 1]       = fs_both_prior
-    fsv_both[offset1:offset2, 0] = fs_only_vsone
-    fsv_both[offset2:offset3, 1] = fs_only_prior
+    fsv_merged_cols = fsv_A_cols + fsv_B_cols
+    fsv_merged = np.full((len(fm_merged), len(fsv_merged_cols)), np.nan)
+    fsv_merged[0:offset1, 0]       = fs_both_A
+    fsv_merged[0:offset1, 1]       = fs_both_B
+    fsv_merged[offset1:offset2, 0] = fs_only_A
+    fsv_merged[offset2:offset3, 1] = fs_only_B
+    fs_merged = np.nan_to_num(fsv_merged).max(axis=1)
+    return fm_merged, fs_merged
 
-    # find cosine angle between matching vectors
-    vecs1_m = vecs1.take(fm_both.T[0], axis=0)
-    vecs2_m = vecs2.take(fm_both.T[1], axis=0)
-    # TODO: Param
-    cos_power = 3.0
-    fs_region = scoring.sift_selectivity_score(vecs1_m, vecs2_m, cos_power)
-    fsv_both[:, 2] = fs_region
+#def
+#    # find cosine angle between matching vectors
+#    vecs1_m = vecs1.take(fm_merged.T[0], axis=0)
+#    vecs2_m = vecs2.take(fm_merged.T[1], axis=0)
+#    # TODO: Param
+#    cos_power = 3.0
+#    fs_region = scoring.sift_selectivity_score(vecs1_m, vecs2_m, cos_power)
+#    fsv_merged[:, 2] = fs_region
 
     # NEED TO MERGE THESE INTO A SINGLE SCORE
     # A USING LINEAR COMBINATION?
-    #nan_weight = ~np.isnan(fsv_both)
+    #nan_weight = ~np.isnan(fsv_merged)
     # for now simply take the maximum of the 3 scores
     # TODO: can experiment with trying np.nanmin so each
     # keypoint gets the worst non-nan score
-    fs_both = np.nan_to_num(fsv_both).max(axis=1)
-    return fm_both, fs_both
+    fs_merged = np.nan_to_num(fsv_merged).max(axis=1)
 
 
 def quick_vsone_flann(ibs, qvecs):
@@ -385,7 +387,6 @@ def compute_query_constrained_matches(ibs, qaid, daid_list, H_list, config):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> import numpy.linalg as npl
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> ibs, qreq_, qaid, daid_list, priors = testdata_matching()
         >>> config = qreq_.qparams
@@ -395,12 +396,12 @@ def compute_query_constrained_matches(ibs, qaid, daid_list, H_list, config):
         >>> print('depth_profile(fm_SCR_list) = ' + str(ut.depth_profile(fm_SCR_list)))
         >>> print('daid_list = ' + str(daid_list))
         >>> if ut.show_was_requested():
-        >>>     import plottool as pt
-        >>>     idx = ut.listfind(ibs.get_annot_nids(daid_list), ibs.get_annot_nids(qaid))
-        >>>     args = (ibs, qaid, daid_list, fm_SCR_list, fs_SCR_list, fm_norm_SCR_list, H_list)
-        >>>     show_single_match(*args, index=idx)
-        >>>     pt.set_title('unconstrained')
-        >>>     pt.show_if_requested()
+        ...     import plottool as pt
+        ...     idx = ut.listfind(ibs.get_annot_nids(daid_list), ibs.get_annot_nids(qaid))
+        ...     args = (ibs, qaid, daid_list, fm_SCR_list, fs_SCR_list, fm_norm_SCR_list, H_list)
+        ...     show_single_match(*args, index=idx)
+        ...     pt.set_title('unconstrained')
+        ...     pt.show_if_requested()
     """
     scr_ratio_thresh     = config.get('scr_ratio_thresh', .7)
     scr_K                = config.get('scr_K', 7)
@@ -454,7 +455,6 @@ def compute_query_unconstrained_matches(ibs, qaid, daid_list, config):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> import numpy.linalg as npl
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> ibs, qreq_, qaid, daid_list, priors = testdata_matching()
         >>> config = qreq_.qparams
@@ -465,12 +465,12 @@ def compute_query_unconstrained_matches(ibs, qaid, daid_list, config):
         >>> print('depth_profile(fm_norm_RAT_list) = ' + str(ut.depth_profile(fm_norm_RAT_list)))
         >>> print('daid_list = ' + str(daid_list))
         >>> if ut.show_was_requested():
-        >>>     import plottool as pt
-        >>>     idx = ut.listfind(ibs.get_annot_nids(daid_list), ibs.get_annot_nids(qaid))
-        >>>     args = (ibs, qaid, daid_list, fm_RAT_list, fs_RAT_list, fm_norm_RAT_list, H_list)
-        >>>     show_single_match(*args, index=idx)
-        >>>     pt.set_title('unconstrained')
-        >>>     pt.show_if_requested()
+        ...     import plottool as pt
+        ...     idx = ut.listfind(ibs.get_annot_nids(daid_list), ibs.get_annot_nids(qaid))
+        ...     args = (ibs, qaid, daid_list, fm_RAT_list, fs_RAT_list, fm_norm_RAT_list, H_list)
+        ...     show_single_match(*args, index=idx)
+        ...     pt.set_title('unconstrained')
+        ...     pt.show_if_requested()
     """
     unc_ratio_thresh = config.get('unc_ratio_thresh', .625)
     # query info
