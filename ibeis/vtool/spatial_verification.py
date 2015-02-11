@@ -486,13 +486,14 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
         >>> result = ut.list_str(homogtup, precision=3)
         >>> print(result)
         (
-            np.array([0, 1, 2, 3, 4, 5, 6, 7, 8]),
+            np.array([0, 1, 2, 3, 4, 5, 6, 7, 8], dtype=np.np.int64),
             (np.array([   4.365,    5.284,    3.294,   13.049,  114.46 ,   48.971,
-                        17.655,   25.825,    3.819]), None, None),
+                        17.655,   25.825,    3.819], dtype=np.float64), None, None),
             np.array([[  5.634e-01,  -2.962e-02,   4.428e+00],
                       [ -4.209e-03,   5.579e-01,   2.536e+00],
-                      [ -7.448e-05,  -2.120e-04,   6.139e-01]]),
+                      [ -7.448e-05,  -2.120e-04,   6.139e-01]], dtype=np.float64),
         )
+
     """
     fm_affine = fm.take(aff_inliers, axis=0)
 

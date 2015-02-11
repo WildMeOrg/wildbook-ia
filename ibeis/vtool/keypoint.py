@@ -709,7 +709,7 @@ def transform_kpts_xys(H, kpts):
         >>> result = ut.numpy_str(xy_t, precision=3)
         >>> print(result)
         np.array([[ 2.979,  2.982,  2.984,  2.984,  2.985],
-                  [ 2.574,  2.482,  2.516,  2.5  ,  2.508]])
+                  [ 2.574,  2.482,  2.516,  2.5  ,  2.508]], dtype=np.float64)
 
     Ignore::
         %pylab qt4
@@ -1373,7 +1373,7 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
                   [ 387.563,  378.93 ,  126.389,  292.391],
                   [ 419.246,  176.668,  400.175,  167.411],
                   [ 174.269,  274.289,  281.03 ,   33.521],
-                  [  54.083,  269.645,   94.711,  277.706]])
+                  [  54.083,  269.645,   94.711,  277.706]], dtype=np.float64)
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -1399,7 +1399,7 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
         >>> print(result)
         np.array([[  0.   ,  16.125,  10.44 ],
                   [  7.616,  13.153,   3.   ],
-                  [  4.   ,  12.166,   6.708]])
+                  [  4.   ,  12.166,   6.708]], dtype=np.float64)
     """
     DEBUG = True
     if DEBUG:

@@ -76,9 +76,9 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
         >>> result = ut.list_str(assigntup, precision=3)
         >>> print(result)
         (
-            np.array([0, 1, 2]),
+            np.array([0, 1, 2], dtype=np.int32),
             np.array([2, 0, 2], dtype=np.int32),
-            np.array([1, 1, 1], dtype=np.int32),
+            np.array([1, 1, 0], dtype=np.int32),
             np.array([ 0.4,  0.3,  0.8], dtype=np.float32),
             np.array([ 0.8,  0.5,  0.9], dtype=np.float32),
         )
@@ -88,6 +88,7 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
     assigns spatially constrained vsone match using results of nearest
     neighbors.
     """
+    index_dtype = fx2_to_fx1.dtype
     # Find spatial errors of keypoints under current homography (kpts1 mapped into image2 space)
     fx2_to_xyerr_sqrd = ktool.get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1)
     fx2_to_xyerr = np.sqrt(fx2_to_xyerr_sqrd)
@@ -103,7 +104,7 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
 
     fx2_to_hasmatch = [pos is not None for pos in fx2_to_fx1_norm_col]
     # IMAGE 2 Matching Features
-    fx2_match = np.where(fx2_to_hasmatch)[0]
+    fx2_match = np.where(fx2_to_hasmatch)[0].astype(index_dtype)
     match_col_list = np.array(ut.list_take(fx2_to_fx1_match_col, fx2_match), dtype=fx2_match.dtype)
     norm_col_list = np.array(ut.list_take(fx2_to_fx1_norm_col, fx2_match), dtype=fx2_match.dtype)
 
@@ -156,8 +157,8 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist):
             np.array([0, 1, 2, 3, 4, 5], dtype=np.int32),
             np.array([  77,  116,  122, 1075,  530,   45], dtype=np.int32),
             np.array([971, 120, 128, 692,  45, 530], dtype=np.int32),
-            np.array([ 0.059,  0.021,  0.039,  0.15 ,  0.227,  0.216]),
-            np.array([ 0.239,  0.241,  0.248,  0.151,  0.244,  0.236]),
+            np.array([ 0.059,  0.021,  0.039,  0.15 ,  0.227,  0.216], dtype=np.float64),
+            np.array([ 0.239,  0.241,  0.248,  0.151,  0.244,  0.236], dtype=np.float64),
         )
     """
     fx2_match = np.arange(len(fx2_to_fx1), dtype=fx2_to_fx1.dtype)
