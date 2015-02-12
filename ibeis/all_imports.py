@@ -53,18 +53,12 @@ if six.PY2:
 import psutil
 # Qt
 import sip
-try:
-    from guitool import __PYQT__
-    from guitool.__PYQT__ import QtCore, QtGui
-    from guitool.__PYQT__.QtCore import Qt
-except ImportError:
-    print("[all_imports Qt] Cannot import GUI modules, X server probably not running")
+from guitool import __PYQT__
+from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__.QtCore import Qt
 # Matplotlib
-try:
-    from plottool import __MPL_INIT__
-    __MPL_INIT__.init_matplotlib()
-except ImportError:
-    print("[all_imports Matplotlib] Cannot import GUI modules, X server probably not running")
+from plottool import __MPL_INIT__
+__MPL_INIT__.init_matplotlib()
 #mpl.use('Qt4Agg')  # pyinstaller hack
 import matplotlib
 import matplotlib as mpl
@@ -99,12 +93,8 @@ import utool as ut
 import detecttools
 import vtool
 import vtool as vt
-try:
-    import plottool
-    import guitool
-except ImportError:
-    print("[all_imports Tools] Cannot import GUI modules, X server probably not running")
-
+import plottool
+import guitool
 
 import pyrf
 import pyhesaff
@@ -125,17 +115,14 @@ from vtool import spatial_verification as sverif
 from vtool.tests import grabdata
 
 # PlotTool
-try:
-    import plottool
-    import plottool as pt
-    from plottool import plot_helpers as ph
-    from plottool import draw_func2 as df2
-    from plottool import interact_helpers as ih
-    from plottool import viz_keypoints
-    from plottool import viz_image2
-    from plottool import fig_presenter
-except ImportError:
-    print("[all_imports PlotTool] Cannot import GUI modules, X server probably not running")
+import plottool
+import plottool as pt
+from plottool import plot_helpers as ph
+from plottool import draw_func2 as df2
+from plottool import interact_helpers as ih
+from plottool import viz_keypoints
+from plottool import viz_image2
+from plottool import fig_presenter
 
 # IBEIS
 import ibeis
