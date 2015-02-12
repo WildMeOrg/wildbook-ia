@@ -30,9 +30,8 @@ def ensure_qtapp():
     if parent_qapp is None:  # if not in qtconsole
         if not QUIET:
             print('[guitool] Init new QApplication')
-        print('QAPP INIT')
-        QAPP = QtGui.QApplication(sys.argv, GUIenabled=False)
-        print('QAPP = %r' % QAPP)
+        QAPP = QtGui.QApplication(sys.argv)
+        #print('QAPP = %r' % QAPP)
         assert QAPP is not None
         IS_ROOT_WINDOW = True
     else:
@@ -47,13 +46,8 @@ def ensure_qtapp():
         pass
     return QAPP, IS_ROOT_WINDOW
 
-try:
-    init_qtapp = ensure_qtapp
-    ensure_qapp = ensure_qtapp
-except Exception as e:
-    print(e)
-    print("CAUGHT EXCEPTION")
-    sys.exit(0)
+init_qtapp = ensure_qtapp
+ensure_qapp = ensure_qtapp
 
 
 def activate_qwindow(qwin):
