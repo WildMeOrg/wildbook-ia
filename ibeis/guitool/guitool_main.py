@@ -46,8 +46,13 @@ def ensure_qtapp():
         pass
     return QAPP, IS_ROOT_WINDOW
 
-init_qtapp = ensure_qtapp
-ensure_qapp = ensure_qtapp
+try:
+    init_qtapp = ensure_qtapp
+    ensure_qapp = ensure_qtapp
+except Exception as e:
+    print(e)
+    print("CAUGHT EXCEPTION")
+    sys.exit(0)
 
 
 def activate_qwindow(qwin):
