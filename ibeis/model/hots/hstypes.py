@@ -216,28 +216,13 @@ class ChipMatch2(object):
     # Alternative Cosntructors
 
     @classmethod
-    def from_chipmatch_old(cls, chipmatch_old):
-        (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = chipmatch_old
-        aid_list = list(six.iterkeys(aid2_fm_))
-        qaid         = None
-        daid_list    = aid_list
-        fm_list      = ut.dict_take(aid2_fm_, aid_list)
-        fsv_list     = ut.dict_take(aid2_fsv_, aid_list)
-        fk_list      = ut.dict_take(aid2_fk_, aid_list)
-        score_list   = (None if aid2_score_ is None or len(aid2_score_) == 0
-                           else ut.dict_take(aid2_score_, aid_list))
-        H_list       = (None if aid2_H_ is None else
-                        ut.dict_take(aid2_H_, aid_list))
-        fsv_col_lbls = None
-        cm = ChipMatch2(qaid, daid_list, fm_list, fsv_list, fk_list, score_list, H_list, fsv_col_lbls)
-        return cm
-
-    @classmethod
-    def from_reranktup(cls, reranktup, qaid=None, H_list=None):
-        daid_list, score_list, fm_list, fsv_list = reranktup
-        fk_list = [np.ones(fm.shape[0]) for fm in fm_list]
-        fsv_col_lbls = None
-        cm = ChipMatch2(qaid, daid_list, fm_list, fsv_list, fk_list, score_list, H_list, fsv_col_lbls)
+    def from_prior(cls, prior_cm, fm_list, fs_list, H_list=None, fsv_col_lbls=None):
+        from vtool import matching
+        qaid = prior_cm.qaid
+        daid_list = prior_cm.daid_list
+        fsv_list = matching.ensure_fsv_list(fs_list)
+        score_list = [fsv.prod(axis=1).sum() for fsv in fsv_list]
+        cm = ChipMatch2(qaid, daid_list, fm_list, fsv_list, None, score_list, H_list, fsv_col_lbls)
         return cm
 
     # Standard Contstructor
@@ -248,7 +233,11 @@ class ChipMatch2(object):
         cm.daid_list    = daid_list
         cm.fm_list      = fm_list
         cm.fsv_list     = fsv_list
-        cm.fk_list      = fk_list
+        if fk_list is None:
+            cm.fk_list = [np.zeros(fm.shape[0]) for fm in cm.fm_list]
+        else:
+            cm.fk_list      = fk_list
+
         cm.score_list   = score_list
         cm.H_list       = H_list
         cm.fsv_col_lbls = fsv_col_lbls
@@ -256,8 +245,46 @@ class ChipMatch2(object):
         cm.daid2_idx    = (None if cm.daid_list is None else
                            {daid: idx for idx, daid in enumerate(cm.daid_list)})
 
-    # NEW CHIPMATCH2 FUNCTIONALITY
-    def foo(cm):
+    def shortlist_subset(cm, top_aids):
+        """ returns a new chipmatch with only the requested daids """
+        qaid         = cm.qaid
+        idx_list     = ut.dict_take(cm.daid2_idx, top_aids)
+        daid_list    = ut.list_take(cm.daid_list, idx_list)
+        fm_list      = ut.list_take(cm.fm_list, idx_list)
+        fsv_list     = ut.list_take(cm.fsv_list, idx_list)
+        fk_list      = ut.list_take(cm.fk_list, idx_list)
+        score_list   = ut.list_take(cm.score_list, idx_list)
+        H_list       = ut.list_take(cm.H_list, idx_list)
+        fsv_col_lbls = cm.fsv_col_lbls
+        cm_subset = ChipMatch2(qaid, daid_list, fm_list, fsv_list, fk_list,
+                               score_list, H_list, fsv_col_lbls)
+        return cm_subset
+
+    def tokwargs(cm):
+        """
+        Can be unpacked and passed as kwargs
+        **cm.tokwargs()
+        """
+        import collections
+        class KwargsWrapper(collections.Mapping):
+            """
+            Allows an arbitrary object attributes to be passed as a **kwargs
+            argument
+            """
+            def __init__(self, obj):
+                self.obj = obj
+
+            def __getitem__(self, key):
+                return self.obj.__dict__[key]
+
+            def __iter__(self):
+                return iter(self.obj.__dict__)
+
+            def __len__(self):
+                return len(self.obj.__dict__)
+        return KwargsWrapper(cm)
+
+    def get_cvs_str(cm, numtop=6, ibs=None):
         """
         Notes:
         Very weird that it got a score
@@ -266,35 +293,95 @@ class ChipMatch2(object):
             [72, 79, 0, 17, 6, 60, 15, 36, 63]
             [72, 79, 0, 17, 6, 60, 15, 36, 63]
             [72, 79, 0, 17, 6, 60, 15, 36, 63]
-            [0.06041515612851823, 0.05315687383011199, 0.04921009205690737, 0.04074150879574148, 0.01662558605384169, 0, 0, 0, 0]
+            [0.060, 0.053, 0.0497, 0.040, 0.016, 0, 0, 0, 0]
             [7, 40, 41, 86, 103, 88, 8, 101, 35]
 
         makes very little sense
         """
         sortx = ut.list_argsort(cm.score_list)[::-1]
-        daid_sorted  = ut.list_take(cm.daid_list, sortx)
-        fm_sorted    = ut.list_take(cm.fm_list, sortx)
-        fsv_sorted   = ut.list_take(cm.fsv_list, sortx)
-        fk_sorted    = ut.list_take(cm.fk_list, sortx)
-        score_sorted = ut.list_take(cm.score_list, sortx)
+        column_list = [
+            ut.list_take(cm.daid_list,  sortx),
+            ut.list_take(cm.score_list, sortx),
+            ut.lmap(str, ut.depth_profile(ut.list_take(cm.fm_list,  sortx))),
+            ut.lmap(str, ut.depth_profile(ut.list_take(cm.fsv_list, sortx))),
+        ]
+        column_lbls = ['daid', 'score', 'fm_depth', 'fsv_depth']
+        if ibs is not None:
+            column_list.insert(1, ibs.get_annot_nids(ut.list_take(cm.daid_list,  sortx)))
+            column_lbls.insert(1, 'dnid')
+            qnid = ibs.get_annot_nids(cm.qaid)
+        else:
+            qnid = '?'
+        # Clip to the top results
+        if numtop is not None:
+            column_list = [ut.listclip(col, numtop) for col in column_list]
+        # hard case for python text parsing
+        # better know about quoted hash symbols
+        header = ut.codeblock(
+            '''
+            # qaid = {qaid}
+            # qnid = {qnid}
+            # fsv_col_lbls = {fsv_col_lbls}
+            '''
+        ).format(qaid=cm.qaid, qnid=qnid, fsv_col_lbls=cm.fsv_col_lbls)
+
+        csv_str = ut.make_csv_table(column_list, column_lbls, header, comma_repl=';')
+        return csv_str
+
+    def print_csv(cm, *args, **kwargs):
+        print(cm.get_cvs_str(*args, **kwargs))
+        #daid_sorted  = ut.list_take(cm.daid_list, sortx)
+        #fm_sorted    = ut.list_take(cm.fm_list, sortx)
+        #fsv_sorted   = ut.list_take(cm.fsv_list, sortx)
+        #fk_sorted    = ut.list_take(cm.fk_list, sortx)
+        #score_sorted = ut.list_take(cm.score_list, sortx)
         #H_sorted     = ut.list_take(cm.H_list, sortx)
 
-        print(list(map(len, fm_sorted)))
-        print(list(map(len, fsv_sorted)))
-        print(list(map(len, fk_sorted)))
-        print(score_sorted)
-        print(daid_sorted)
+        #print(list(map(len, fm_sorted)))
+        #print(ut.numpy_str(np.array(list(map(len, fsv_sorted))), precision=3))
+        #print(ut.numpy_str(np.array(score_sorted), precision=3))
+        ##print(list(map(len, fk_sorted)))
+        ##print(score_sorted)
+        #print(daid_sorted)
 
     # SIMULATE OLD CHIPMATCHES UNTIL TRANSFER IS COMPLETE
     # TRY NOT TO USE THESE AS THEY WILL BE MUCH SLOWER THAN
     # NORMAL.
+
+    @classmethod
+    def from_chipmatch_old(cls, chipmatch_old, qaid=None, fsv_col_lbls=None):
+        (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = chipmatch_old
+        aid_list = list(six.iterkeys(aid2_fm_))
+        daid_list    = aid_list
+        fm_list      = ut.dict_take(aid2_fm_, aid_list)
+        fsv_list     = ut.dict_take(aid2_fsv_, aid_list)
+        fk_list      = ut.dict_take(aid2_fk_, aid_list)
+        score_list   = (None if aid2_score_ is None or len(aid2_score_) == 0
+                           else ut.dict_take(aid2_score_, aid_list))
+        H_list       = (None if aid2_H_ is None else
+                        ut.dict_take(aid2_H_, aid_list))
+        fsv_col_lbls = fsv_col_lbls
+        cm = ChipMatch2(qaid, daid_list, fm_list, fsv_list, fk_list, score_list, H_list, fsv_col_lbls)
+        return cm
+
+    def to_oldstyle_chipmatch(cm):
+        aid2_fm    = dict(zip(cm.daid_list, cm.fm_list))
+        aid2_fsv   = dict(zip(cm.daid_list, cm.fsv_list))
+        aid2_fk    = dict(zip(cm.daid_list, cm.fk_list))
+        aid2_score = dict(zip(cm.daid_list, cm.score_list))
+        aid2_H     = dict(zip(cm.daid_list, cm.H_list))
+        chipmatch = ChipMatch(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
+        return chipmatch
 
     def __iter__(cm):
         for field in cm._fields:
             yield getattr(cm, field)
 
     def __getitem__(cm, index):
-        return getattr(cm, cm._fields[index])
+        if isinstance(index, six.string_types):
+            return cm.__dict__[index]
+        else:
+            return getattr(cm, cm._fields[index])
 
     def _asdict(cm):
         return ut.odict(
