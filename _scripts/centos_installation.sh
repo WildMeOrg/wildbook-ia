@@ -233,7 +233,13 @@ sudo pip27 install ipython
 sudo pip27 install tornado
 sudo pip27 install matplotlib
 sudo pip27 install scikit-learn
-
+sudo pip27 install statsmodels
+sudo pip27 install flask
+sudo pip27 install simplejson
+sudo pip27 install 
+sudo pip27 install 
+sudo pip27 install 
+sudo pip27 install 
 
 # Configuration of pyqt4 and sip
 # MAYBE Dont use virtualenv?
@@ -252,8 +258,8 @@ sudo mkdir /data/ibeis/raw
 sudo mkdir /data/ibeis/logs
 
 # Make symlink to work directory
-ln -s /data/ibeis/work /opt/work
-ln -s /data/ibeis /opt/data
+sudo ln -s /data/ibeis/work /opt/work
+sudo ln -s /data/ibeis /opt/data
 
 # Clone IBEIS
 cd code
