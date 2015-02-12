@@ -31,7 +31,7 @@ def ensure_qtapp():
         if not QUIET:
             print('[guitool] Init new QApplication')
         QAPP = QtGui.QApplication(sys.argv, GUIenabled=False)
-        #print('QAPP = %r' % QAPP)
+        print('QAPP = %r' % QAPP)
         assert QAPP is not None
         IS_ROOT_WINDOW = True
     else:
