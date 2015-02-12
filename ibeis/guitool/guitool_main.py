@@ -30,6 +30,7 @@ def ensure_qtapp():
     if parent_qapp is None:  # if not in qtconsole
         if not QUIET:
             print('[guitool] Init new QApplication')
+        print('QAPP INIT')
         QAPP = QtGui.QApplication(sys.argv, GUIenabled=False)
         print('QAPP = %r' % QAPP)
         assert QAPP is not None
