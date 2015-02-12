@@ -245,7 +245,7 @@ for nametup, repo_url in TPL_MODULES_AND_REPOS:
             raise ex
         print('found %s=%r' % (nametup, module,))
     except ImportError:
-        assert repo_url is not None, ('FATAL ERROR: Need to manually install %s' % nametup)
+        assert repo_url is not None, ('FATAL ERROR: Need to manually install %s' % (nametup, ) )
         print('!!! NEED TO BUILD %s=%r' % (nametup, repo_url,))
         TPL_REPO_URLS.append(repo_url)
 
