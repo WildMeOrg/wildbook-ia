@@ -37,7 +37,7 @@ except Exception as ex:
         raise
 
 profile = ut.profile
-#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[sver]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[sver]', DEBUG=False)
 
 """
 #if CYTH
@@ -49,6 +49,45 @@ cdef np.float64_t TAU
 
 SV_DTYPE = np.float64
 TAU = 2 * np.pi  # tauday.org
+
+
+def build_affine_lstsqrs_Mx6(xy1_mn, xy2_mn):
+    """
+    CURRENTLY NOT WORKING
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.spatial_verification import *  # NOQA
+        >>> import vtool.tests.dummy as dummy
+        >>> kpts1, kpts2 = dummy.get_dummy_kpts_pair()
+        >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
+        >>> xy2_mn = ktool.get_xys(kpts2).astype(np.float64)
+        >>> Mx6 = build_affine_lstsqrs_Mx6(xy1_mn, xy2_mn)
+        >>> print(ut.numpy_str(Mx6))
+        >>> result = ut.hashstr(Mx6)
+        >>> print(result)
+
+    Ignore;
+        (U, S, V) = npl.svd(Mx6, full_matrices=True, compute_uv=True)
+        a = V[-6]  # Hack for Cython.wraparound(False)
+        a.reshape(2, 3)
+        A = np.vstack((a[0:3], a[3:6], (0, 0, 1)))
+    """
+    x1_mn = xy1_mn[0]
+    y1_mn = xy1_mn[1]
+    x2_mn = xy2_mn[0]
+    y2_mn = xy2_mn[1]
+    num_pts = x1_mn.shape[0]
+    Mx6 = np.empty((2 * num_pts, 6), dtype=SV_DTYPE)
+    for ix in range(num_pts):  # Loop over inliers
+        # Concatenate all 2x9 matrices into an Mx6 matrix
+        x1 = x1_mn[ix]
+        x2 = x2_mn[ix]
+        y1 = y1_mn[ix]
+        y2 = y2_mn[ix]
+        Mx6[ix * 2]     = (x1, y1,  1,  0,  0,  0)
+        Mx6[ix * 2 + 1] = ( 0,  0,  0, x2, y2,  1)
+    return Mx6
 
 
 @profile
@@ -70,6 +109,16 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
         >>> result = ut.hashstr(Mx9)
         >>> print(result)
         f@2l62+2!ppow8yw
+
+    Ignore:
+        http://docs.opencv.org/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html#findhomography
+        cv2.findHomography(xy1_mn.T, xy2_mn.T)
+        cv2.findHomography(xy1_mn.T, xy1_mn.T)
+
+    References:
+        http://dip.sun.ac.za/~stefan/TW793/attach/notes/homography_estimation.pdf
+        http://szeliski.org/Book/drafts/SzeliskiBook_20100903_draft.pdf Page 317
+        http://vision.ece.ucsb.edu/~zuliani/Research/RANSAC/docs/RANSAC4Dummies.pdf page 53
 
     Cyth:
         #CYTH_RETURNS np.ndarray[np.float64_t, ndim=2]
@@ -124,6 +173,56 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     return Mx9
 
 
+def try_svd(M):
+    try:
+        USV = npl.svd(M, full_matrices=True, compute_uv=True)
+    except MemoryError as ex:
+        ut.printex(ex, '[sver] Caught MemErr during full SVD. Trying sparse SVD.')
+        M_sparse = sps.lil_matrix(M)
+        USV = spsl.svds(M_sparse)
+    except npl.LinAlgError as ex:
+        ut.printex(ex, '[sver] svd did not converge')
+        raise
+    except Exception as ex:
+        ut.printex(ex, '[sver] svd error')
+        raise
+    return USV
+
+
+@profile
+def compute_affine(xy1_mn, xy2_mn):
+    """
+    Args:
+        xy1_mn (ndarray[ndim=2]): xy points in image1
+        xy2_mn (ndarray[ndim=2]): corresponding xy points in image 2
+
+    Returns:
+        ndarray[shape=(3,3)]: A - affine matrix
+
+    CommandLine:
+        python -m vtool.spatial_verification --test-compute_affine
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.spatial_verification import *  # NOQA
+        >>> import vtool.tests.dummy as dummy
+        >>> import vtool.keypoint as ktool
+        >>> kpts1, kpts2 = dummy.get_dummy_kpts_pair()
+        >>> xy1_mn = ktool.get_xys(kpts1)
+        >>> xy2_mn = ktool.get_xys(kpts2)
+        >>> A = compute_affine(xy1_mn, xy1_mn)
+        >>> result =str(A)
+        >>> result = np.array_str(A, precision=2)
+        >>> print(result)
+    """
+    # Solve for the nullspace of the Mx6 matrix (solves least squares)
+    Mx6 = build_affine_lstsqrs_Mx6(xy1_mn, xy2_mn)
+    U, S, V = try_svd(Mx6)
+    a = V[5]  # Hack for Cython.wraparound(False)
+    A = np.vstack((a[0:3], a[3:6], (0, 0, 1)))
+    return A
+
+
 @profile
 def compute_homog(xy1_mn, xy2_mn):
     """
@@ -169,18 +268,7 @@ def compute_homog(xy1_mn, xy2_mn):
     # Solve for the nullspace of the Mx9 matrix (solves least squares)
     #Mx9 = build_lstsqrs_Mx9_cyth(xy1_mn, xy2_mn)  # NOQA  # TODO: re-enable
     Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
-    try:
-        (U, S, V) = npl.svd(Mx9, full_matrices=True, compute_uv=True)
-    except MemoryError as ex:
-        print('[sver] Caught MemErr %r during full SVD. Trying sparse SVD.' % (ex))
-        Mx9Sparse = sps.lil_matrix(Mx9)
-        (U, S, V) = spsl.svds(Mx9Sparse)
-    except npl.LinAlgError as ex:
-        print('[sver] svd did not converge: %r' % ex)
-        raise
-    except Exception as ex:
-        print('[sver] svd error: %r' % ex)
-        raise
+    U, S, V = try_svd(Mx9)
     # Rearange the nullspace into a homography
     #h = V[-1]  # v = V.H
     h = V[8]  # Hack for Cython.wraparound(False)
@@ -512,9 +600,22 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     xy2_man, T2 = ltool.whiten_xy_points(xy2_ma)
     # Compute homgraphy transform from chip1 -> chip2 using affine inliers
     H_prime = compute_homog(xy1_man, xy2_man)
+    #H_prime /= H_prime[2, 2]
+
+    # Different methods?
+    #H_prime = compute_affine(xy1_man, xy2_man)
+    #import cv2
+    #H_prime = cv2.findHomography(xy1_man.T, xy2_man.T)[0]
+    #H = compute_affine(xy1_ma, xy2_ma)
+    #print(H)
 
     # Then compute ax = b  [aka: x = npl.solve(a, b)]
     H = npl.solve(T2, H_prime).dot(T1)  # Unnormalize
+    H /= H[2, 2]
+
+    #H[2, 0:2] = 0  # cant do this
+
+    #ut.embed()
 
     # Transform all xy1 matches to xy2 space
     xy1_mt  = ktool.transform_kpts_xys(H, kpts1_m)

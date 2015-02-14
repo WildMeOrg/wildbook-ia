@@ -13,7 +13,8 @@ print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[cov]', DEBUG=Fals
 @profile
 #@ut.memprof
 def make_kpts_coverage_mask(kpts, chipsize, weights=None, cov_agg_mode=None,
-                            return_patch=False, patch=None, resize=False, **kwargs):
+                            return_patch=False, patch=None, resize=False,
+                            out=None, **kwargs):
     r"""
     Returns a intensity image denoting which pixels are covered by the input
     keypoints
@@ -63,6 +64,7 @@ def make_kpts_coverage_mask(kpts, chipsize, weights=None, cov_agg_mode=None,
     dstimg = warp_patch_onto_kpts(
         kpts, patch, chipshape,
         weights=weights,
+        out=out,
         **kwargs
     )
     # Smooth weight of influence
@@ -122,7 +124,7 @@ def warped_patch_generator(patch, dsize, affmat_list, weight_list, **kwargs):
 
 
 @profile
-def warp_patch_onto_kpts(kpts, patch, chipshape, weights=None, **kwargs):
+def warp_patch_onto_kpts(kpts, patch, chipshape, weights=None, out=None, **kwargs):
     r"""
     Overlays the source image onto a destination image in each keypoint location
 
@@ -234,9 +236,9 @@ def warp_patch_onto_kpts(kpts, patch, chipshape, weights=None, **kwargs):
         patch, dsize, affmat_list, weight_list, **kwargs)
     # Either max or sum
     if cov_agg_mode == 'max':
-        dstimg = vt.iter_reduce_ufunc(np.maximum, warped_patch_iter)
+        dstimg = vt.iter_reduce_ufunc(np.maximum, warped_patch_iter, out=out)
     elif cov_agg_mode == 'sum':
-        dstimg = vt.iter_reduce_ufunc(np.add, warped_patch_iter)
+        dstimg = vt.iter_reduce_ufunc(np.add, warped_patch_iter, out=out)
         # HACK FOR SUM: DO NOT DO THIS FOR MAX
         dstimg[dstimg > 1.0] = 1.0
     else:
@@ -279,7 +281,8 @@ def get_gaussian_weight_patch(gauss_shape=(19, 19), gauss_sigma_frac=.3, gauss_n
 def get_coverage_kpts_gridsearch_configs():
     varied_dict = {
         'cov_agg_mode'           : ['max', 'sum'],
-        'cov_blur_ksize'         : [(19, 19), (5, 5)],
+        #'cov_blur_ksize'         : [(19, 19), (5, 5)],
+        'cov_blur_ksize'         : [(5, 5)],
         'cov_blur_on'            : [True, False],
         'cov_blur_sigma'         : [5.0],
         'cov_remove_scale'       : [True],

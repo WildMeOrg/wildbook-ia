@@ -108,7 +108,10 @@ def imwrite_fallback(img_fpath, imgBGR):
 
 
 def imwrite(img_fpath, imgBGR, fallback=False):
-    #References: http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html
+    """
+    References:
+        http://docs.opencv.org/modules/highgui/doc/reading_and_writing_images_and_video.html
+    """
     try:
         cv2.imwrite(img_fpath, imgBGR)
     except Exception as ex:

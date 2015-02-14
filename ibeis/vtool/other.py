@@ -80,20 +80,54 @@ def ziptake(arr_list, indicies_list, axis=None):
     return [arr.take(indicies, axis=axis) for arr, indicies in zip(arr_list, indicies_list)]
 
 
-def iter_reduce_ufunc(ufunc, arr_iter, initial=None):
+def iter_reduce_ufunc(ufunc, arr_iter, out=None):
     """
     constant memory iteration and reduction
 
     applys ufunc from left to right over the input arrays
 
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arr_list = [
+        ...     np.array([0, 1, 2, 3, 8, 9]),
+        ...     np.array([4, 1, 2, 3, 4, 5]),
+        ...     np.array([0, 5, 2, 3, 4, 5]),
+        ...     np.array([1, 1, 6, 3, 4, 5]),
+        ...     np.array([0, 1, 2, 7, 4, 5])
+        ... ]
+        >>> memory = np.array([9, 9, 9, 9, 9, 9])
+        >>> gen_memory = memory.copy()
+        >>> def arr_gen():
+        ...     for arr in arr_list:
+        ...         gen_memory[:] = arr
+        ...         yield gen_memory
+        >>> print('memory = %r' % (memory,))
+        >>> print('gen_memory = %r' % (gen_memory,))
+        >>> ufunc = np.maximum
+        >>> res1 = iter_reduce_ufunc(ufunc, iter(arr_list), out=None)
+        >>> res2 = iter_reduce_ufunc(ufunc, iter(arr_list), out=memory)
+        >>> res3 = iter_reduce_ufunc(ufunc, arr_gen(), out=memory)
+        >>> print('res1       = %r' % (res1,))
+        >>> print('res2       = %r' % (res2,))
+        >>> print('res3       = %r' % (res3,))
+        >>> print('memory     = %r' % (memory,))
+        >>> print('gen_memory = %r' % (gen_memory,))
+        >>> assert np.all(res1 == res2)
+        >>> assert np.all(res2 == res3)
     """
-    if initial is None:
-        try:
-            out = next(arr_iter).copy()
-        except StopIteration:
-            return None
+    # Get first item in iterator
+    try:
+        initial = next(arr_iter)
+    except StopIteration:
+        return None
+    # Populate the outvariable if specified otherwise make a copy of the first
+    # item to be the output memory
+    if out is not None:
+        out[:] = initial
     else:
-        out = initial
+        out = initial.copy()
+    # Iterate and reduce
     for arr in arr_iter:
         ufunc(out, arr, out=out)
     return out
