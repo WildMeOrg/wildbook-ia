@@ -708,8 +708,11 @@ class QueryRequest(object):
                      for qaid, qauuid in zip(external_qaids, external_qauuids)]
         return qres_list
 
+import collections
 
-class QueryParams(object):
+
+# This object will behave like a dictionary with ** capability
+class QueryParams(collections.Mapping):
     """
     Structure to store static query pipeline parameters
     parses nested config structure into this flat one
@@ -773,11 +776,14 @@ class QueryParams(object):
         qparams.active_filter_list = active_filter_list
         qparams.filt2_stw          = filt2_stw
         qparams.flann_params       = cfg.flann_cfg.get_flann_params()
+        qparams.hesaff_params      = cfg._featweight_cfg._feat_cfg.get_hesaff_params()
         qparams.pipeline_root      = pipeline_root
         qparams.vsmany             = pipeline_root == 'vsmany'
         qparams.vsone              = pipeline_root == 'vsone'
         # Add custom strings to the mix as well
+        # TODO; Find better way to specify config strings
         qparams.featweight_cfgstr = cfg._featweight_cfg.get_cfgstr()
+        qparams.chip_cfgstr       = cfg._featweight_cfg._feat_cfg._chip_cfg.get_cfgstr()
         qparams.feat_cfgstr       = cfg._featweight_cfg._feat_cfg.get_cfgstr()
         qparams.nn_cfgstr         = cfg.nn_cfg.get_cfgstr()
         qparams.filt_cfgstr       = cfg.filt_cfg.get_cfgstr()
@@ -796,6 +802,8 @@ class QueryParams(object):
             filtkey_list = filtkey_list[:] + [hstypes.FiltKeys.HOMOGERR]
         return filtkey_list
 
+    # Dictionary like interface
+
     def get(qparams, key, *d):
         """ get a paramater value by string """
         ERROR_ON_DEFAULT = True
@@ -803,6 +811,15 @@ class QueryParams(object):
             return getattr(qparams, key)
         else:
             return getattr(qparams, key, *d)
+
+    def __getitem__(qparams, key):
+        return qparams.__dict__[key]
+
+    def __iter__(qparams):
+        return iter(qparams.__dict__)
+
+    def __len__(qparams):
+        return len(qparams.__dict__)
 
 
 def get_test_qreq():

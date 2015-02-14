@@ -314,7 +314,7 @@ def nearest_neighbors(qreq_, verbose=VERB_PIPELINE):
     # For each internal query annotation
     internal_qaids = qreq_.get_internal_qaids()
     # Find the nearest neighbors of each descriptor vector
-    qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids)
+    qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids, qreq_=qreq_)
     # Mark progress ane execute nearest indexer nearest neighbor code
     progkw = dict(freq=20, time_thresh=2.0)
     qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, **progkw)
@@ -970,8 +970,8 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, nnfilts):
         >>> #ut.assert_eq(len(fk.shape), 1, 'fk (feature rank) is 1D')
         >>> ut.assert_eq(fsv.shape[0], fm.shape[0], 'need same num rows')
         >>> ut.assert_eq(fsv.shape[1], len(qreq_.qparams.active_filter_list), 'should have col for every filter')
-        >>> assert np.all(fm.T[0] < ibs.get_annot_num_feats(daid))
-        >>> assert np.all(fm.T[1] < ibs.get_annot_num_feats(qaid))
+        >>> assert np.all(fm.T[0] < ibs.get_annot_num_feats(daid, qreq_=qreq_))
+        >>> assert np.all(fm.T[1] < ibs.get_annot_num_feats(qaid, qreq_=qreq_))
     """
     K = qreq_.qparams.K
     # Unpack neighbor ids, indicies, filter scores, and flags
@@ -1068,8 +1068,8 @@ def _spatial_verification(qreq_, qaid2_chipmatch, verbose=VERB_PIPELINE):
         topx2_aid, nRerank = get_prescore_shortlist(qreq_, qaid, chipmatch)
         daid2_fm = chipmatch[0]
         # Get information for sver, query keypoints, diaglen
-        kpts1 = qreq_.ibs.get_annot_kpts(qaid)
-        topx2_kpts = qreq_.ibs.get_annot_kpts(topx2_aid)
+        kpts1 = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
+        topx2_kpts = qreq_.ibs.get_annot_kpts(topx2_aid, qreq_=qreq_)
         topx2_dlen_sqrd = precompute_topx2_dlen_sqrd(
             qreq_, daid2_fm, topx2_aid, topx2_kpts, nRerank, use_chip_extent)
         chipmatchSV, daid2_svtup = _internal_sver(qreq_, kpts1, topx2_aid,
@@ -1244,8 +1244,8 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
         >>> chipmatch = qaid2_chipmatch[qaid]
         >>> topx2_aid, nRerank = get_prescore_shortlist(qreq_, qaid, chipmatch)
         >>> (aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H) = chipmatch
-        >>> kpts1 = qreq_.ibs.get_annot_kpts(qaid)
-        >>> topx2_kpts = qreq_.ibs.get_annot_kpts(topx2_aid)
+        >>> kpts1 = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
+        >>> topx2_kpts = qreq_.ibs.get_annot_kpts(topx2_aid, qreq_=qreq_)
         >>> use_chip_extent = False
         >>> topx2_dlen_sqrd = precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts, nRerank, use_chip_extent)
 
@@ -1253,9 +1253,9 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
     if use_chip_extent:
         #topx2_dlen_sqrd = [
         #    ((w ** 2) + (h ** 2))
-        #    for (w, h) in qreq_.ibs.get_annot_chipsizes(topx2_aid[:nRerank])
+        #    for (w, h) in qreq_.ibs.get_annot_chipsizes(topx2_aid[:nRerank], qreq_=qreq_)
         #]
-        topx2_dlen_sqrd = qreq_.ibs.get_annot_chip_dlen_sqrd(topx2_aid[:nRerank])
+        topx2_dlen_sqrd = qreq_.ibs.get_annot_chip_dlen_sqrd(topx2_aid[:nRerank], qreq_=qreq_)
         return topx2_dlen_sqrd
     else:
         # Use extent of matching keypoints

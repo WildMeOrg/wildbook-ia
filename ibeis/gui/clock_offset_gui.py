@@ -211,6 +211,7 @@ class ClockOffsetWidget(QtGui.QWidget):
         # Set the unixtimes with the new ones
         utimes = co_wgt.ibs.get_image_unixtime(co_wgt.gid_list)
         new_utimes = [time + offset for time in utimes]
+        # SHOULD WE BE USING image_timedelta_posix INSTEAD OF THIS?
         co_wgt.ibs.set_image_unixtime(co_wgt.gid_list, new_utimes)
         # Close
         close_figure(co_wgt.imfig)

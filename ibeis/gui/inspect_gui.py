@@ -9,7 +9,7 @@ from guitool import qtype, APIItemWidget, APIItemModel, FilterProxyModel, Change
 from guitool.__PYQT__ import QtGui, QtCore
 from ibeis import ibsfuncs
 from ibeis.dev import results_organizer
-from ibeis.viz import interact
+#from ibeis.viz import interact
 from ibeis.viz import viz_helpers as vh
 from plottool import fig_presenter
 from plottool import interact_helpers as ih
@@ -186,7 +186,9 @@ def show_match_at(qres_wgt, qtindex):
     model = qtindex.model()
     aid  = model.get_header_data('aid', qtindex)
     qaid = model.get_header_data('qaid', qtindex)
-    fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid, mode=1)
+    #fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid, mode=1)
+    match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs, aid, mode=1)
+    fig = match_interaction.fig
     fig_presenter.bring_to_front(fig)
 
 

@@ -37,7 +37,7 @@ class MatchInteraction(object):
         self.begin(*args, **kwargs)
 
     def begin(self, ibs, qres, aid=None, fnum=None,
-              figtitle='Inspect Query Result', same_fig=True, **kwargs):
+              figtitle='Inspect Query Result', same_fig=True, dodraw=True, **kwargs):
         r"""
         Args:
             ibs (IBEISController):  ibeis controller object
@@ -61,11 +61,8 @@ class MatchInteraction(object):
             >>> aid2 = 2
             >>> sel_fm = []
             >>> # execute function
-            >>> self  = MatchInteraction(ibs, qres, aid2, annot_mode=1)
-            >>> #if not ut.get_argflag('--noshow'):
-            >>> if ut.get_argflag('--show'):
-            >>>    execstr = df2.present()
-            >>>    exec(execstr)
+            >>> self  = MatchInteraction(ibs, qres, aid2, annot_mode=1, dodraw=False)
+            >>> pt.show_if_requested()
         """
         if fnum is None:
             fnum = pt.next_fnum()
@@ -111,7 +108,8 @@ class MatchInteraction(object):
 
         self.set_callbacks()
         # FIXME: this should probably not be called here
-        ph.draw()  # ph-> adjust stuff draw -> fig_presenter.draw -> all figures show
+        if dodraw:
+            ph.draw()  # ph-> adjust stuff draw -> fig_presenter.draw -> all figures show
 
     def chipmatch_view(self, pnum=(1, 1, 1), **kwargs_):
         """
@@ -262,7 +260,7 @@ class MatchInteraction(object):
         fnum = pt.next_fnum()
         fig = df2.figure(fnum=fnum, docla=True, doclf=True)
         ih.disconnect_callback(fig, 'button_press_event')
-        viz.show_sv(self.ibs, self.qres.qaid, aid2=aid, fnum=fnum)
+        viz.viz_sver.show_sver(self.ibs, self.qres.qaid, aid2=aid, fnum=fnum)
         viz.draw()
 
     # Callback
@@ -333,6 +331,11 @@ class MatchInteraction(object):
         viz_hough.show_probability_chip(self.ibs, self.aid, fnum=pt.next_fnum())
         viz.draw()
 
+    def dev_reload(self):
+        ih.disconnect_callback(self.fig, 'button_press_event')
+        self.rrr()
+        self.set_callbacks()
+
     def set_callbacks(self):
         """
         CommandLine:
@@ -355,8 +358,14 @@ class MatchInteraction(object):
             ('query last feature', self.query_last_feature),
             ('show each chip', self.show_each_chip),
             ('show each probchip', self.show_each_probchip),
+            ('show coverage', self.show_coverage),
             #('show each probchip', self.query_last_feature),
             ('cancel', lambda: print('cancel')), ]
+
+        if ut.is_developer():
+            opt2_callback += [
+                ('dev_reload', self.dev_reload)
+            ]
         guitool.connect_context_menu(self.fig.canvas, opt2_callback)
         ih.connect_callback(self.fig, 'button_press_event', self._click_matches_click)
 
@@ -382,10 +391,62 @@ class MatchInteraction(object):
     def query_last_feature(self):
         ibs      = self.ibs
         qaid     = self.qaid
-        viz.show_nearest_descriptors(ibs, qaid, self.last_state.last_fx, df2.next_fnum())
+        viz.show_nearest_descriptors(ibs, qaid, self.last_fx, df2.next_fnum())
         fig3 = df2.gcf()
         ih.connect_callback(fig3, 'button_press_event', self._click_matches_click)
-        df2.update()
+        viz.draw()
+        #df2.update()
+
+    def show_coverage(self, dodraw=True):
+        """
+
+        CommandLine:
+            python -m ibeis.viz.interact.interact_matches --test-show_coverage --show
+            python -m ibeis.viz.interact.interact_matches --test-show_coverage
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.viz.interact.interact_matches import *  # NOQA
+            >>> import ibeis
+            >>> # build test data
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]
+            >>> aid2 = 2
+            >>> sel_fm = []
+            >>> # execute function
+            >>> self  = MatchInteraction(ibs, qres, aid2, annot_mode=1, dodraw=False)
+            >>> self.show_coverage(dodraw=False)
+            >>> pt.show_if_requested()
+
+        """
+        from ibeis.model.hots import scoring
+        from ibeis.model.hots import hstypes
+        qres = self.qres
+        #print('\n\n\nreload!!!!')
+        #print('\n\n\nreload!!!!')
+        #print('\n\n\nreload!!!!')
+        #print('\n\n\nreload!!!!')
+        #self.rrr()
+
+        def from_qres(qres):
+            aid2_fm_    = qres.aid2_fm
+            aid2_fsv_   = qres.aid2_fsv
+            aid2_fk_    = qres.aid2_fk
+            aid2_score_ = qres.aid2_score
+            aid2_H_     = None
+            qaid        = qres.qaid
+            chipmatch_old = (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_)
+            fsv_col_lbls = qres.filtkey_list
+            cm = hstypes.ChipMatch2.from_chipmatch_old(chipmatch_old, qaid, fsv_col_lbls)
+            fs_list = [fsv.T[cm.fsv_col_lbls.index('lnbnn')] for fsv in cm.fsv_list]
+            cm.fs_list = fs_list
+            return cm
+        cm = from_qres(qres)
+        ibs = self.ibs
+        masks_list = scoring.get_masks(ibs, cm)
+        scoring.show_coverage_mask(ibs, cm, masks_list)
+        if dodraw:
+            viz.draw()
 
 
 if __name__ == '__main__':

@@ -82,7 +82,7 @@ def add_annot_chips_params_gen(ibs, aid_list, qreq_=None):
     try:
         # THIS DOESNT ACTUALLY COMPUTE ANYTHING!!!
         cfpath_list = get_annot_cfpath_list(ibs, aid_list)
-        chip_config_rowid = ibs.get_chip_config_rowid()
+        chip_config_rowid = ibs.get_chip_config_rowid(qreq_=qreq_)
         for cfpath, aid in zip(cfpath_list, aid_list):
             pil_chip = gtool.open_pil_image(cfpath)
             width, height = pil_chip.size

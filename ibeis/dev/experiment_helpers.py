@@ -238,7 +238,8 @@ def get_cfg_list(test_cfg_name_list, ibs=None):
             elif test_cfg_name.startswith('custom:'):
                 cfgstr_list = ':'.join(test_cfg_name.split(':')[1:]).split(',')
                 # parse out modifications to custom
-                cfgdict = ut.parse_cfgstr_list(cfgstr_list)
+                cfgdict = ut.parse_cfgstr_list(cfgstr_list, smartcast=True)
+                #ut.embed()
                 query_cfg = ibs.cfg.query_cfg.deepcopy()
                 query_cfg.update_query_cfg(**cfgdict)
                 cfg_list.append(query_cfg)

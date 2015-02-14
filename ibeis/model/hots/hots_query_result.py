@@ -716,6 +716,11 @@ class QueryResult(__OBJECT_BASE__):
         from ibeis.viz import viz_qres
         return viz_qres.show_qres_analysis(ibs, qres, *args, **kwargs)
 
+    def ishow_analysis(qres, ibs, *args, **kwargs):
+        print('[qres] show_analysis')
+        from ibeis.viz.interact import interact_qres
+        return interact_qres.ishow_analysis(ibs, qres, *args, **kwargs)
+
     def ishow_top(qres, ibs, *args, **kwargs):
         print('[qres] ishow_top')
         from ibeis.viz.interact import interact_qres

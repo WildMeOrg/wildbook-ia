@@ -367,7 +367,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
             print('Removing key from memcache')
             NEIGHBOR_CACHE[base_nnindexer.cfgstr] = None
             del NEIGHBOR_CACHE[base_nnindexer.cfgstr]
-        new_vecs_list = qreq_.ibs.get_annot_vecs(new_aid_list)
+        new_vecs_list = qreq_.ibs.get_annot_vecs(new_aid_list, qreq_=qreq_)
         new_fgws_list = get_fgweights_hack(qreq_, new_aid_list)
         base_nnindexer.add_support(new_aid_list, new_vecs_list, new_fgws_list, verbose=True)
         # FIXME: pointer issues
@@ -484,7 +484,7 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
     flann_params['checks'] = qreq_.qparams.checks
     # Get annot descriptors to index
     aid_list = daid_list
-    vecs_list = qreq_.ibs.get_annot_vecs(aid_list)
+    vecs_list = qreq_.ibs.get_annot_vecs(aid_list, qreq_=qreq_)
     fgws_list = get_fgweights_hack(qreq_, aid_list)
     try:
         nnindexer = new_neighbor_index(
@@ -662,7 +662,7 @@ def new_neighbor_index(aid_list, vecs_list, fgws_list, flann_params, cachedir,
         >>> flann_params = qreq_.qparams.flann_params
         >>> # Get annot descriptors to index
         >>> aid_list = daid_list
-        >>> vecs_list = qreq_.ibs.get_annot_vecs(aid_list)
+        >>> vecs_list = qreq_.ibs.get_annot_vecs(aid_list, qreq_=qreq_)
         >>> fgws_list = get_fgweights_hack(qreq_, aid_list)
         >>> # execute function
         >>> nnindexer = new_neighbor_index(aid_list, vecs_list, fgws_list, flann_params, cachedir, cfgstr, verbose=True)
@@ -762,9 +762,9 @@ class NeighborIndex(object):
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
             >>> nnindexer, qreq_, ibs = test_nnindexer()
             >>> new_aid_list = [2, 3, 4]
-            >>> qfx2_vec = ibs.get_annot_vecs(1)
-            >>> new_vecs_list = ibs.get_annot_vecs(new_aid_list)
-            >>> new_fgws_list = ibs.get_annot_fgweights(new_aid_list)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
+            >>> new_vecs_list = ibs.get_annot_vecs(new_aid_list, qreq_=qreq_)
+            >>> new_fgws_list = ibs.get_annot_fgweights(new_aid_list, qreq_=qreq_)
             >>> K = 2
             >>> (qfx2_idx1, qfx2_dist1) = nnindexer.knn(qfx2_vec, K)
             >>> nnindexer.add_support(new_aid_list, new_vecs_list, new_fgws_list)
@@ -932,7 +932,7 @@ class NeighborIndex(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
             >>> nnindexer, qreq_, ibs = test_nnindexer()
-            >>> qfx2_vec = ibs.get_annot_vecs(1)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
             >>> K = 2
             >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K)
             >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
@@ -1014,7 +1014,7 @@ class NeighborIndex(object):
             >>> dbname = 'testdb1'
             >>> ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, cfgdict=cfgdict)
             >>> nnindexer = qreq_.indexer
-            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids()[0])
+            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids()[0], qreq_=qreq_)
             >>> num_neighbors = 4
             >>> (qfx2_nnidx, qfx2_dist) = nnindexer.knn(qfx2_vec, num_neighbors)
             >>> qfx2_aid = nnindexer.get_nn_aids(qfx2_nnidx)

@@ -803,6 +803,9 @@ python dev.py -t custom:score_method=csum,prescore_method=csum --db GZ_ALL --sho
 python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662 --daid_list=425,342,678,233
 
 
+# More rerank vsone tests
+python -c "import utool as ut; ut.write_modscript_alias('Tbig.sh', 'dev.py', '--allgt  --db PZ_Master0')"
+sh Tbig.sh -t custom:rrvsone_on=True custom --noqcache
 
 
 # TODO: 

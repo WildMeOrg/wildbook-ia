@@ -596,8 +596,8 @@ Tgetter_pl_dependant_rowids_ = ut.codeblock(
         equivalent to get_{parent}_{leaf}_rowids_ except ensure is constrained
         to be False.
 
-        You basically save a stack frame by calling this, because
-        get_{parent}_{leaf}_rowids just calls this function if ensure is False
+        Also you save a stack frame because get_{parent}_{leaf}_rowids just
+        calls this function if ensure is False
 
         TemplateInfo:
             Tgetter_pl_dependant_rowids_

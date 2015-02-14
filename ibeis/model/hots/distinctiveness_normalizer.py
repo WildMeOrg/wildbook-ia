@@ -248,7 +248,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             >>> from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA
             >>> dstcnvs_normer, qreq_ = testdata_distinctiveness()
             >>> qaid = qreq_.get_external_qaids()[0]
-            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qaid)
+            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qaid, qreq_=qreq_)
             >>> default_dict = {'dcvs_power': .25, 'dcvs_K': 5, 'dcvs_clip_max': .5}
             >>> kwargs = ut.argparse_dict(default_dict)
             >>> qfx2_dstncvs = dstcnvs_normer.get_distinctiveness(qfx2_vec, **kwargs)
@@ -259,7 +259,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             >>>     # Show distinctivness on an animal and a corresponding graph
             >>>     import plottool as pt
             >>>     chip = qreq_.ibs.get_annot_chips(qaid)
-            >>>     qfx2_kpts = qreq_.ibs.get_annot_kpts(qaid)
+            >>>     qfx2_kpts = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
             >>>     show_chip_distinctiveness_plot(chip, qfx2_kpts, qfx2_dstncvs)
             >>>     #pt.figure(2)
             >>>     #pt.show_all_colormaps()
@@ -504,6 +504,7 @@ def test_single_annot_distinctiveness_params(ibs, aid):
 
     # Get info to find distinctivness of
     species_text = ibs.get_annot_species(aid)
+    # FIXME; qreq_ params for config rowid
     vecs = ibs.get_annot_vecs(aid)
     kpts = ibs.get_annot_kpts(aid)
     chip = ibs.get_annot_chips(aid)
@@ -604,6 +605,7 @@ def dev_train_distinctiveness(species=None):
             print('total num named annots = %r' % (sum(num_annots_list)))
             print('training distinctiveness using %d/%d singleton annots' % (len(aid_list_), len(aid_list)))
             # vec
+            # FIXME: qreq_ params for config rowid
             vecs_list = ibs.get_annot_vecs(aid_list_)
             num_vecs = sum(map(len, vecs_list))
             print('num_vecs = %r' % (num_vecs,))

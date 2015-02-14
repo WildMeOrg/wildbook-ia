@@ -30,6 +30,9 @@ def ensure_testing_data():
 
 
 def run_tests():
+    # starts logging for tests
+    import ibeis
+    ibeis._preload()
     # Build module list and run tests
     import sys
     ensure_testing_data()

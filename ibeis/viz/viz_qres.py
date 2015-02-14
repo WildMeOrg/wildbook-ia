@@ -3,18 +3,16 @@ from plottool import draw_func2 as df2
 import utool as ut  # NOQA
 import numpy as np
 from ibeis import ibsfuncs
-from . import viz_helpers as vh
-from . import viz_chip
-from . import viz_matches
-import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[viz_qres]')
+from ibeis.viz import viz_helpers as vh
+from ibeis.viz import viz_chip
+from ibeis.viz import viz_matches
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_qres]')
 
 
 DEFAULT_NTOP = 3
 
 
-@utool.indent_func
+@ut.indent_func
 @profile
 def show_qres_top(ibs, qres, **kwargs):
     """
@@ -36,7 +34,7 @@ def show_qres_top(ibs, qres, **kwargs):
                      **kwargs)
 
 
-@utool.indent_func
+@ut.indent_func
 @profile
 def show_qres_analysis(ibs, qres, **kwargs):
     """
@@ -88,7 +86,7 @@ def show_qres_analysis(ibs, qres, **kwargs):
         _gtaids = np.setdiff1d(_gtaids, top_aids)
         # Sort missed grountruth by score
         _gtscores = qres.get_aid_scores(_gtaids)
-        _gtaids = utool.sortedby(_gtaids, _gtscores, reverse=True)
+        _gtaids = ut.sortedby(_gtaids, _gtscores, reverse=True)
         if len(_gtaids) > 3:
             # Hack to not show too many unmatched groundtruths
             #_isexmp = ibs.get_annot_exemplar_flags(_gtaids)
@@ -99,13 +97,13 @@ def show_qres_analysis(ibs, qres, **kwargs):
                      figtitle=figtitle, show_query=show_query, **kwargs)
 
 
-@utool.indent_func
+@ut.indent_func
 def show_qres(ibs, qres, **kwargs):
     """
     Display Query Result Logic
 
     Defaults to: query chip, groundtruth matches, and top matches
-    python -c "import utool, ibeis; print(utool.auto_docstr('ibeis.viz.viz_qres', 'show_qres'))"
+    python -c "import ut, ibeis; print(ut.auto_docstr('ibeis.viz.viz_qres', 'show_qres'))"
     qres.ishow calls down into this
 
     Args:
@@ -127,11 +125,12 @@ def show_qres(ibs, qres, **kwargs):
     CommandLine:
         ./main.py --query 1 -y --db PZ_MTEST --noshow-qtres
 
-        python -m ibeis.viz.viz_qres --test-show_qres
+        python -m ibeis.viz.viz_qres --test-show_qres --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_qres import *  # NOQA
+        >>> import plottool as pt
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -140,6 +139,7 @@ def show_qres(ibs, qres, **kwargs):
         >>> fig = show_qres(ibs, qres, sidebyside=False, show_query=True, top_aids=3)
         >>> # verify results
         >>> fig.show()
+        >>> pt.show_if_requested()
 
     """
     annot_mode    = kwargs.get('annot_mode', 1) % 3  # this is toggled
@@ -176,7 +176,7 @@ def show_qres(ibs, qres, **kwargs):
     try:
         assert len(list(set(top_aids).intersection(set(gt_aids)))) == 0, 'gts should be missed.  not in top'
     except AssertionError as ex:
-        utool.printex(ex, keys=['top_aids', 'gt_aids'])
+        ut.printex(ex, keys=['top_aids', 'gt_aids'])
         raise
 
     printDBG(qres.get_inspect_str())
@@ -225,7 +225,7 @@ def show_qres(ibs, qres, **kwargs):
         print('[show_qres] * figtitle=%r' % (figtitle,))
         print('[show_qres] * max_nCols=%r' % (max_nCols,))
         print('[show_qres] * show_query=%r' % (show_query,))
-        print('[show_qres] * kwargs=%s' % (utool.dict_str(kwargs),))
+        print('[show_qres] * kwargs=%s' % (ut.dict_str(kwargs),))
 
     # HACK:
     _color_list = df2.distinct_colors(nTop)
@@ -330,5 +330,4 @@ def show_qres(ibs, qres, **kwargs):
     return fig
 
 if __name__ == '__main__':
-    print ("Utool dir: %r" % (dir(utool),))
-    utool.doctest_module()
+    ut.doctest_funcs()

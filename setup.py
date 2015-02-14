@@ -62,6 +62,7 @@ INSTALL_REQUIRES = [
     'scikit-learn >= 0.15.2',
     #'decorator',
     'lockfile >= 0.10.2',
+    'apipkg',
     #'objgraph',
     #'pycallgraph',
     #'gevent',

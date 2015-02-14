@@ -216,13 +216,18 @@ class ChipMatch2(object):
     # Alternative Cosntructors
 
     @classmethod
-    def from_prior(cls, prior_cm, fm_list, fs_list, H_list=None, fsv_col_lbls=None):
+    def from_unscored(cls, prior_cm, fm_list, fs_list, H_list=None, fsv_col_lbls=None):
         from vtool import matching
         qaid = prior_cm.qaid
         daid_list = prior_cm.daid_list
         fsv_list = matching.ensure_fsv_list(fs_list)
+        if fsv_col_lbls is None:
+            fsv_col_lbls = ['unknown']
+            #fsv_col_lbls = [str(count) for count in range(num_cols)]
+            #fsv_col_lbls
         score_list = [fsv.prod(axis=1).sum() for fsv in fsv_list]
         cm = ChipMatch2(qaid, daid_list, fm_list, fsv_list, None, score_list, H_list, fsv_col_lbls)
+        cm.fs_list = fs_list
         return cm
 
     # Standard Contstructor
@@ -233,17 +238,25 @@ class ChipMatch2(object):
         cm.daid_list    = daid_list
         cm.fm_list      = fm_list
         cm.fsv_list     = fsv_list
+        # Current hack, but this should remain.
+        # fsv should be persistant
+        # this is the combined scores
+        # there should also be coefficients
+        # and there should also be different types of scores
+        cm.fs_list      = None
         if fk_list is None:
             cm.fk_list = [np.zeros(fm.shape[0]) for fm in cm.fm_list]
         else:
-            cm.fk_list      = fk_list
-
+            cm.fk_list = fk_list
         cm.score_list   = score_list
         cm.H_list       = H_list
         cm.fsv_col_lbls = fsv_col_lbls
         # Metadata for backwards compatability
         cm.daid2_idx    = (None if cm.daid_list is None else
                            {daid: idx for idx, daid in enumerate(cm.daid_list)})
+
+    def get_num_feat_score_cols(cm):
+        return len(cm.fsv_col_lbls)
 
     def shortlist_subset(cm, top_aids):
         """ returns a new chipmatch with only the requested daids """

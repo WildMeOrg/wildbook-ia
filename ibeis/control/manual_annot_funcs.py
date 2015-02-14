@@ -607,7 +607,7 @@ def get_annot_exemplar_flags(ibs, aid_list):
 @register_ibs_method
 @getter_1to1
 def get_annot_feat_rowids(ibs, aid_list, ensure=False, eager=True, nInput=None, qreq_=None):
-    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput)
+    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
     fid_list = ibs.get_chip_fids(cid_list, ensure=ensure, eager=eager, nInput=nInput)
     return fid_list
 
@@ -986,7 +986,8 @@ def get_annot_images(ibs, aid_list):
 @ut.accepts_numpy
 @getter_1toM
 #@cache_getter(const.ANNOTATION_TABLE, 'kpts')
-def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None):
+def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
+                   qreq_=None):
     """
     Args:
         aid_list (list):
@@ -994,7 +995,7 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None):
     Returns:
         kpts_list (list): annotation descriptor keypoints
     """
-    fid_list  = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput)
+    fid_list  = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
     kpts_list = ibs.get_feat_kpts(fid_list, eager=eager, nInput=nInput)
     return kpts_list
 
@@ -1098,7 +1099,8 @@ def get_annot_notes(ibs, aid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None):
+def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None,
+                        qreq_=None):
     """
     Args:
         aid_list (list):
@@ -1126,7 +1128,7 @@ def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None):
 
     [1257, 920, 1342]
     """
-    fid_list = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, nInput=nInput)
+    fid_list = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, nInput=nInput, qreq_=qreq_)
     nFeats_list = ibs.get_num_feats(fid_list)
     return nFeats_list
 
@@ -1393,12 +1395,13 @@ def get_annot_visual_uuids(ibs, aid_list):
 
 @register_ibs_method
 @getter_1toM
-def get_annot_vecs(ibs, aid_list, ensure=True, eager=True, nInput=None):
+def get_annot_vecs(ibs, aid_list, ensure=True, eager=True, nInput=None,
+                   qreq_=None):
     """
     Returns:
         vecs_list (list): annotation descriptor vectors
     """
-    fid_list  = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput)
+    fid_list  = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
     vecs_list = ibs.get_feat_vecs(fid_list, eager=eager, nInput=nInput)
     return vecs_list
 

@@ -89,10 +89,16 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
 
 
 def set_logdir(log_dir):
-    utool.ensuredir(log_dir)
+    from os.path import realpath, expanduser
+    log_dir = realpath(expanduser(log_dir))
+    utool.ensuredir(log_dir, verbose=True)
     utool.stop_logging()
     _ibeis_cache_write(LOGDIR_CACHEID, log_dir)
     utool.start_logging(appname=__APPNAME__)
+
+
+def get_logdir():
+    return _ibeis_cache_read(LOGDIR_CACHEID, default=ut.get_logging_dir(appname='ibeis'))
 
 
 def get_rawdir():

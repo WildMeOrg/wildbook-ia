@@ -30,6 +30,15 @@ TestFuncs:
     >>> # VsOne + VsMany
     python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show
 
+
+    >>> # Rerank Vsone Test Harness
+    python -c "import utool as ut; ut.write_modscript_alias('Tvs1RR.sh', 'dev.py', '--allgt  --db PZ_MTEST --index 1:40:2')"
+    sh Tvs1RR.sh -t custom:rrvsone_on=True custom custom:rrvsone_on=True
+    sh Tvs1RR.sh -t custom custom:rrvsone_on=True --print-scorediff-mat-stats
+    sh Tvs1RR.sh -t custom:rrvsone_on=True custom:rrvsone_on=True, --print-confusion-stats --print-scorediff-mat-stats
+
+    --print-scorediff-mat-stats --print-confusion-stats
+
 """
 from __future__ import absolute_import, division, print_function
 import six
@@ -194,7 +203,7 @@ def vsone_reranking(qreq_, qaid2_vsm_chipmatch, verbose=False):
     cm_shortlist = make_chipmatch_shortlist(qreq_, vsm_cm_list)
     # Execute vsone reranking
     _prog = functools.partial(ut.ProgressIter, nTotal=len(cm_shortlist),
-                              lbl='VSONE RERANKING', freq=1)
+                              lbl='VSONE RERANKING', freq=1, invert_rate=True)
     reranked_list = [
         single_vsone_rerank(ibs, prior_cm, config)
         for prior_cm in _prog(cm_shortlist)
@@ -224,11 +233,22 @@ def marge_matches_lists(fmfs_A, fmfs_B):
     return fmfs_merge
 
 
+def get_selectivity_score_list(ibs, qaid, daid_list, fm_list, cos_power):
+    vecs1 = ibs.get_annot_vecs(qaid)
+    vecs2_list = ibs.get_annot_vecs(daid_list)
+    vecs1_m_iter = (vecs1.take(fm.T[0], axis=0) for fm in fm_list)
+    vecs2_m_iter = (vecs2.take(fm.T[1], axis=0) for fm, vecs2 in zip(fm_list, vecs2_list))
+    # Rescore constrained using selectivity function
+    fs_list = [scoring.sift_selectivity_score(vecs1_m, vecs2_m, cos_power)
+                   for vecs1_m, vecs2_m in zip(vecs1_m_iter, vecs2_m_iter)]
+    return fs_list
+
+
 @profile
 def sver_fmfs_merge(ibs, qaid, daid_list, fmfs_merge, config={}):
     from vtool import spatial_verification as sver
     # params
-    xy_thresh    = config.get('xy_thresh') * 2
+    xy_thresh    = config.get('xy_thresh') * 1.5
     scale_thresh = config.get('scale_thresh') * 2
     ori_thresh   = config.get('ori_thresh') * 2
     min_nInliers = config.get('min_nInliers')
@@ -256,17 +276,6 @@ def sver_fmfs_merge(ibs, qaid, daid_list, fmfs_merge, config={}):
     return fmfs_merge_SV, H_list
 
 
-def get_selectivity_score_list(ibs, qaid, daid_list, fm_list, cos_power):
-    vecs1 = ibs.get_annot_vecs(qaid)
-    vecs2_list = ibs.get_annot_vecs(daid_list)
-    vecs1_m_iter = (vecs1.take(fm.T[0], axis=0) for fm in fm_list)
-    vecs2_m_iter = (vecs2.take(fm.T[1], axis=0) for fm, vecs2 in zip(fm_list, vecs2_list))
-    # Rescore constrained using selectivity function
-    fs_list = [scoring.sift_selectivity_score(vecs1_m, vecs2_m, cos_power)
-                   for vecs1_m, vecs2_m in zip(vecs1_m_iter, vecs2_m_iter)]
-    return fs_list
-
-
 @profile
 def refine_matches(ibs, prior_cm, config={}):
     """
@@ -277,14 +286,27 @@ def refine_matches(ibs, prior_cm, config={}):
         python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show --homog --sver_constrained&
         python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show --homog --sver_constrained --sver_unconstrained&
 
+        python dev.py -t custom:rrvsone_on=True --allgt --index 0:40 --db PZ_MTEST --print-confusion-stats --print-scorediff-mat-stats
+        python dev.py -t custom:rrvsone_on=True custom --allgt --index 0:40 --db PZ_MTEST --print-confusion-stats --print-scorediff-mat-stats
+
+        python dev.py -t custom:rrvsone_on=True,constrained_coeff=0 custom --qaid 12 --db PZ_MTEST \
+            --print-confusion-stats --print-scorediff-mat-stats --show --va
+
+        python dev.py -t custom:rrvsone_on=True,constrained_coeff=0,maskscore_mode=kpts --qaid 12 --db PZ_MTEST  \
+            --print-confusion-stats --print-scorediff-mat-stats --show --va
+
+        python dev.py -t custom:rrvsone_on=True,maskscore_mode=kpts --qaid 12 --db PZ_MTEST \
+                --print-confusion-stats --print-scorediff-mat-stats --show --va
+
+        use_kptscov_scoring
+
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> ibs, qreq_, prior_cm = testdata_matching()
         >>> config = qreq_.qparams
-        >>> fm_list, fs_list, H_list = refine_matches(ibs, prior_cm, config)
-        >>> cm = hstypes.ChipMatch2.from_prior(prior_cm, fm_list, fs_list, H_list)
-        >>> cm.print_csv(ibs=ibs)
+        >>> unscored_cm = refine_matches(ibs, prior_cm, config)
+        >>> unscored_cm.print_csv(ibs=ibs)
         >>> prior_cm.print_csv(ibs=ibs)
         >>> if ut.show_was_requested():
         ...     import plottool as pt
@@ -292,6 +314,10 @@ def refine_matches(ibs, prior_cm, config={}):
         ...     pt.set_figtitle(qreq_.qparams.query_cfgstr)
         ...     pt.show_if_requested()
     """
+    if ibs.get_annot_num_feats(prior_cm.qaid) == 0:
+        num_daids = len(prior_cm.daid_list)
+        return (ut.alloc_lists(num_daids), ut.alloc_lists(num_daids), ut.alloc_lists(num_daids))
+
     prior_coeff         = config.get('prior_coeff')
     unconstrained_coeff = config.get('unconstrained_coeff')
     constrained_coeff   = config.get('constrained_coeff')
@@ -345,11 +371,14 @@ def refine_matches(ibs, prior_cm, config={}):
         fmfs_merge, H_list = sver_fmfs_merge(ibs, qaid, daid_list, fmfs_merge, config)
 
     coeffs = np.array(col_coeff_list)
+    assert np.isclose(coeffs.sum(), 1.0), 'must sum to 1 coeffs = %r' % (coeffs)
     # merge different match types
     fm_list, fsv_list = fmfs_merge
     # apply linear combination
-    fs_list = [(np.nan_to_num(fsv) * coeffs[None, :]).sum(axis=1) for fsv in fsv_list]
-    return fm_list, fs_list, H_list
+    with ut.EmbedOnException():
+        fs_list = [(np.nan_to_num(fsv) * coeffs[None, :]).sum(axis=1) for fsv in fsv_list]
+    unscored_cm = hstypes.ChipMatch2.from_unscored(prior_cm, fm_list, fs_list, H_list)
+    return unscored_cm
 
 
 @profile
@@ -374,23 +403,30 @@ def single_vsone_rerank(ibs, prior_cm, config={}):
         >>> print(rerank_cm.score_list)
     """
 
-    use_gridcov_scoring = config.get('use_gridcov_scoring')
-    use_kptscov_scoring = config.get('use_kptscov_scoring')
+    maskscore_mode = config.get('maskscore_mode')
 
     #print('==================')
-    fm_list, fs_list, H_list = refine_matches(ibs, prior_cm, config)
-    qaid      = prior_cm.qaid
-    daid_list = prior_cm.daid_list
+    #fm_list, fs_list, H_list
+    unscored_cm = refine_matches(ibs, prior_cm, config)
+    fm_list   = unscored_cm.fm_list
+    fs_list   = unscored_cm.fs_list
+    fsv_list  = unscored_cm.fsv_list
+    H_list    = unscored_cm.H_list
+    qaid      = unscored_cm.qaid
+    daid_list = unscored_cm.daid_list
 
-    if use_gridcov_scoring:
+    #qaid      = prior_cm.qaid
+    #daid_list = prior_cm.daid_list
+
+    if maskscore_mode == 'grid':
         cov_score_list = scoring.compute_grid_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config=config)
-    elif use_kptscov_scoring:
+    elif maskscore_mode == 'kpts':
         cov_score_list = scoring.compute_kpts_coverage_score(ibs, qaid, daid_list, fm_list, fs_list, config=config)
     else:
-        raise AssertionError('must choose either grid or kpts coverage')
+        raise AssertionError('must choose either grid or kpts coverage maskscore_mode=%r' % (maskscore_mode,))
 
-    #NAME_SCORING = True
-    NAME_SCORING = False
+    NAME_SCORING = True
+    #NAME_SCORING = False
     if NAME_SCORING:
         # Keep only the best annotation per name
         # FIXME: There may be a problem here
@@ -425,24 +461,29 @@ def compute_query_constrained_matches(ibs, qaid, daid_list, H_list, config):
         python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show
         python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show --shownorm
         python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show --shownorm --homog
+        python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show --homog
+        python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show --homog --index 2
 
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> ibs, qreq_, prior_cm = testdata_matching()
         >>> config = qreq_.qparams
+        >>> #ut.embed()
+        >>> print(config.query_cfgstr)
         >>> qaid, daid_list, H_list = ut.dict_take(prior_cm, ['qaid', 'daid_list', 'H_list'])
         >>> match_results = compute_query_constrained_matches(ibs, qaid, daid_list, H_list, config)
         >>> fm_SCR_list, fs_SCR_list, fm_norm_SCR_list = match_results
         >>> if ut.show_was_requested():
         ...     import plottool as pt
         ...     idx = ut.listfind(ibs.get_annot_nids(daid_list), ibs.get_annot_nids(qaid))
+        ...     index = ut.get_argval('--index', int, idx)
         ...     args = (ibs, qaid, daid_list, fm_SCR_list, fs_SCR_list, fm_norm_SCR_list, H_list)
-        ...     show_single_match(*args, index=idx)
+        ...     show_single_match(*args, index=index)
         ...     pt.set_title('unconstrained')
         ...     pt.show_if_requested()
     """
-    scr_ratio_thresh     = config.get('scr_ratio_thresh', .7)
+    scr_ratio_thresh     = config.get('scr_ratio_thresh', .1)
     scr_K                = config.get('scr_K', 7)
     scr_match_xy_thresh  = config.get('scr_match_xy_thresh', .05)
     scr_norm_xy_min      = config.get('scr_norm_xy_min', 0.1)
@@ -466,7 +507,7 @@ def compute_query_constrained_matches(ibs, qaid, daid_list, H_list, config):
         'fm_dtype'         : hstypes.FM_DTYPE,
         'fs_dtype'         : hstypes.FS_DTYPE,
     }
-    #print('scr_kwargs = ' + ut.dict_str(scr_kwargs))
+    print('scr_kwargs = ' + ut.dict_str(scr_kwargs))
     # Homographys in H_list map image1 space into image2 space
     scrtup_list = [
         matching.spatially_constrained_ratio_match(
@@ -494,6 +535,7 @@ def compute_query_unconstrained_matches(ibs, qaid, daid_list, config):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> ibs, qreq_, prior_cm = testdata_matching()
+        >>> config = qreq_.qparams
         >>> qaid, daid_list, H_list = ut.dict_take(prior_cm, ['qaid', 'daid_list', 'H_list'])
         >>> match_results = compute_query_unconstrained_matches(ibs, qaid, daid_list, config)
         >>> fm_RAT_list, fs_RAT_list, fm_norm_RAT_list = match_results
@@ -544,8 +586,15 @@ def testdata_post_vsmany_sver():
     dbname = ut.get_argval('--db', str, 'PZ_MTEST')
     cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum', sver_weighting=True)
     rrvsone_cfgdict = dict(Config.RerankVsOneConfig().parse_items())
-    rrvsone_cfgdict = ut.util_arg.argparse_dict(rrvsone_cfgdict)
+    #rrvsone_cfgdict = ut.util_arg.argparse_dict(rrvsone_cfgdict)
     cfgdict.update(rrvsone_cfgdict)
+    cfgdict.update(dict(Config.FeatureConfig().parse_items()))
+    default_cfgdict = cfgdict.copy()
+    cfgdict = ut.util_arg.argparse_dict(cfgdict)
+    for key in cfgdict:
+        if cfgdict[key] != default_cfgdict[key]:
+            print('[NONDEFAULT] cfgdict[%r] = %r' % (key, cfgdict[key]))
+
     cfgdict['rrvsone_on'] = True
     qaid = ut.get_argval('--qaid', int, 1)
     daid_list = ut.get_argval('--daid_list', list, None)

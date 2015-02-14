@@ -639,25 +639,38 @@ class RerankVsOneConfig(ConfigBase):
             PI('nAnnotPerName', 2, 'nApN='),
             # matching types
             PI('prior_coeff', .6, 'prior_coeff='),
-            PI('unconstrained_coeff', .3, 'unc_coeff='),
-            PI('constrained_coeff',   .1, 'scr_coeff='),
+            PI('unconstrained_coeff', .4, 'unc_coeff='),
+            PI('constrained_coeff',   0.0, 'scr_coeff='),
+            # matching svers
             PI('sver_unconstrained',  False, 'sver_unc='),
             PI('sver_constrained',  False, 'sver_scr='),
             # unconstrained matching
             PI('unc_ratio_thresh', .625, 'uncRat>'),
             # spatially constrained matching
-            PI('scr_match_xy_thresh', .05, 'xy>'),
+            PI('scr_match_xy_thresh', .15, 'xy>'),
             PI('scr_norm_xy_min', 0.1, ''),
             PI('scr_norm_xy_max', 1.0, ''),
-            PI('scr_ratio_thresh', .7, 'scrRat>'),
+            PI('scr_ratio_thresh', .95, 'scrRat>'),
             PI('scr_K', 7, 'scK'),
+            # MASK SCORING
+            PI('maskscore_mode', 'grid', 'cov='),
             # grid scoring
-            PI('use_gridcov_scoring', True),
-            PI('grid_scale_factor', .2, 'sf'),
+            #PI('grid_scale_factor', .2, 'sf'),
+            PI('grid_scale_factor', .1, 'sf'),
             PI('grid_steps', 3, 'stps'),
             PI('grid_sigma', 1.6, 'sigma'),
-            # grid scoring
-            PI('use_kptscov_scoring', False),
+            # kpts scoring
+            PI('cov_agg_mode' , 'max'),
+            PI('cov_blur_ksize' , (5, 5)),
+            PI('cov_blur_on' , True),
+            PI('cov_blur_sigma' , 5.0),
+            PI('cov_remove_scale' , True),
+            PI('cov_remove_shape' , True),
+            PI('cov_scale_factor' , .3),
+            PI('cov_size_penalty_frac' , .1),
+            PI('cov_size_penalty_on' , True),
+            PI('cov_size_penalty_power' , .5),
+            # TODO kpts scoring
             # distinctiveness
             PI('dcvs_K', 5, 'dcvsK'),
             PI('dcvs_clip_min', .2, 'mn'),
@@ -1019,6 +1032,7 @@ class FeatureConfig(ConfigBase):
             (float_t, 'scale_min', -1.0),
             (float_t, 'scale_max', -1.0),
             (bool_t,  'rotation_invariance', False),
+            (float_t, 'ori_maxima_thresh', .8),
         ]
 
         for type_, name, default, doc in feat_cfg._iterparams():
@@ -1095,6 +1109,7 @@ class FeatureConfig(ConfigBase):
                 'scale_min',
                 'scale_max',
                 'rotation_invariance',
+                'ori_maxima_thresh',
             ])
 
             def _gen():

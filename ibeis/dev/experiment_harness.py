@@ -111,41 +111,62 @@ def get_config_result_info(ibs, qaids, daids):
             gf_aid = None
             gt_raw_score = None
             gf_raw_score = None
-            score_diff = score_factor = score_logfactor = score_expdiff = None
+            scorediff = scorefactor = scorelogfactor = scoreexpdiff = None
         else:
             gt_aid = sorted_aids[gt_rank][0]
             gf_aid = sorted_aids[gf_rank][0]
             gt_raw_score = sorted_nscores[gt_rank]
             gf_raw_score = sorted_nscores[gf_rank]
             # different comparison methods
-            score_diff      = gt_raw_score - gf_raw_score
-            score_factor    = gt_raw_score / gf_raw_score
-            score_logfactor = np.log(gt_raw_score) / np.log(gf_raw_score)
-            score_expdiff   = np.exp(gt_raw_score) - np.log(gf_raw_score)
+            scorediff      = gt_raw_score - gf_raw_score
+            scorefactor    = gt_raw_score / gf_raw_score
+            scorelogfactor = np.log(gt_raw_score) / np.log(gf_raw_score)
+            scoreexpdiff   = np.exp(gt_raw_score) - np.log(gf_raw_score)
             # TEST SCORE COMPARISON METHODS
             #truescore  = np.random.rand(4)
             #falsescore = np.random.rand(4)
             #score_diff      = truescore - falsescore
-            #score_factor    = truescore / falsescore
-            #score_logfactor = np.log(truescore) / np.log(falsescore)
-            #score_expdiff   = np.exp(truescore) - np.exp(falsescore)
-            #for x in [score_diff, score_factor, score_logfactor, score_expdiff]:
+            #scorefactor    = truescore / falsescore
+            #scorelogfactor = np.log(truescore) / np.log(falsescore)
+            #scoreexpdiff   = np.exp(truescore) - np.exp(falsescore)
+            #for x in [score_diff, scorefactor, scorelogfactor, scoreexpdiff]:
             #    print(x.argsort())
 
-        qresinfotup = gt_rank, gf_rank, gt_aid, gf_aid, gt_raw_score, gf_raw_score, score_diff, score_factor, score_logfactor, score_expdiff
-        return qresinfotup
+        qresinfo_dict = dict(
+            bestranks=gt_rank,
+            next_bestranks=gf_rank,
+            # TODO remove prev dup entries
+            gt_rank=gt_rank,
+            gf_rank=gf_rank,
+            gt_aid=gt_aid,
+            gf_aid=gf_aid,
+            gt_raw_score=gt_raw_score,
+            gf_raw_score=gf_raw_score,
+            scorediff=scorediff,
+            scorefactor=scorefactor,
+            scorelogfactor=scorelogfactor,
+            scoreexpdiff=scoreexpdiff
+        )
+
+        return qresinfo_dict
     #ibs.get_aids_and_scores()
 
-    qx2_qresinfotup = [get_qres_name_result_info(qres) for qres in qx2_qres]
+    qx2_qresinfo = [get_qres_name_result_info(qres) for qres in qx2_qres]
 
-    qx2_bestranks      = ut.get_list_column(qx2_qresinfotup, 0)
-    qx2_next_bestranks = ut.get_list_column(qx2_qresinfotup, 1)
-    qx2_gt_raw_score   = ut.get_list_column(qx2_qresinfotup, 4)
-    qx2_gf_raw_score   = ut.get_list_column(qx2_qresinfotup, 5)
-    qx2_scorediff      = ut.get_list_column(qx2_qresinfotup, 6)
-    qx2_scorefactor    = ut.get_list_column(qx2_qresinfotup, 7)
-    qx2_scorelogfactor = ut.get_list_column(qx2_qresinfotup, 8)
-    qx2_scoreexpdiff   = ut.get_list_column(qx2_qresinfotup, 9)
+    cfgres_info = ut.dict_stack(qx2_qresinfo, 'qx2_')
+    keys = qx2_qresinfo[0].keys()
+    for key in keys:
+        'qx2_' + key
+        ut.get_list_column(qx2_qresinfo, key)
+
+    #qx2_bestranks      = ut.get_list_column(qx2_qresinfotup, 0)
+    #qx2_next_bestranks = ut.get_list_column(qx2_qresinfotup, 1)
+    #qx2_gt_raw_score   = ut.get_list_column(qx2_qresinfotup, 4)
+    #qx2_gf_raw_score   = ut.get_list_column(qx2_qresinfotup, 5)
+    #qx2_scorediff      = ut.get_list_column(qx2_qresinfotup, 6)
+    #qx2_scorefactor    = ut.get_list_column(qx2_qresinfotup, 7)
+    #qx2_scorelogfactor = ut.get_list_column(qx2_qresinfotup, 8)
+    #qx2_scoreexpdiff   = ut.get_list_column(qx2_qresinfotup, 9)
 
     #qx2_gtranks = [qaid2_qres[qaid].get_aid_ranks(gt_aids)
     #               for qaid, gt_aids in zip(qaids, qx2_gtaids)]
@@ -164,28 +185,30 @@ def get_config_result_info(ibs, qaids, daids):
     #qx2_bestscores = []
     #qx2_bestscores_gf = []
 
-    qx2_avepercision = [qaid2_qres[qaid].get_average_percision(ibs=ibs, gt_aids=gt_aids) for
-                        (qaid, gt_aids) in zip(qaids, qx2_gtaids)]
+    qx2_avepercision = np.array(
+        [qaid2_qres[qaid].get_average_percision(ibs=ibs, gt_aids=gt_aids) for
+         (qaid, gt_aids) in zip(qaids, qx2_gtaids)])
+    cfgres_info['qx2_avepercision'] = qx2_avepercision
 
     # Compute mAP score  # TODO: use mAP score
     # (Actually map score doesn't make much sense if using name scoring
-    qx2_avepercision = np.array(qx2_avepercision)
     mAP = qx2_avepercision[~np.isnan(qx2_avepercision)].mean()  # NOQA
 
-    qx2_bestranks = ut.replace_nones(qx2_bestranks, -1)
+    #qx2_bestranks = ut.replace_nones(qx2_bestranks, -1)
 
-    cfgres_info = qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision
-    cfgres_info = {
-        'qx2_bestranks'      : qx2_bestranks,
-        'qx2_next_bestranks' : qx2_next_bestranks,
-        'qx2_avepercision'   : qx2_avepercision,
-        'qx2_gt_raw_score'   : qx2_gt_raw_score,
-        'qx2_gf_raw_score'   : qx2_gf_raw_score,
-        'qx2_scorediff'      : qx2_scorediff,
-        'qx2_scorefactor'    : qx2_scorefactor,
-        'qx2_scorelogfactor' : qx2_scorelogfactor,
-        'qx2_scoreexpdiff'   : qx2_scoreexpdiff,
-    }
+    #cfgres_info = qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision
+    #cfgres_info = {
+    #    'qx2_bestranks'      : qx2_bestranks,
+    #    'qx2_next_bestranks' : qx2_next_bestranks,
+    #    'qx2_avepercision'   : qx2_avepercision,
+    #    'qx2_gt_raw_score'   : qx2_gt_raw_score,
+    #    'qx2_gf_raw_score'   : qx2_gf_raw_score,
+    #    'qx2_scorediff'      : qx2_scorediff,
+    #    'qx2_scorefactor'    : qx2_scorefactor,
+    #    'qx2_scorelogfactor' : qx2_scorelogfactor,
+    #    'qx2_scoreexpdiff'   : qx2_scoreexpdiff,
+    #}
+    cfgres_info['qx2_bestranks'] = ut.replace_nones(cfgres_info['qx2_bestranks'] , -1)
     return cfgres_info
 
 

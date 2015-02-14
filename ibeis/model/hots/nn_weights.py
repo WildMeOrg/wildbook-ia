@@ -196,7 +196,7 @@ def cos_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
     # Database feature index to chip index
     for qaid in six.iterkeys(qaid2_nns):
         (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
-        qfx2_qvec = qreq_.ibs.get_annot_vecs(qaid)[np.newaxis, :, :]
+        qfx2_qvec = qreq_.ibs.get_annot_vecs(qaid, qreq_=qreq_)[np.newaxis, :, :]
         # database forground weights
         qfx2_dvec = qreq_.indexer.get_nn_vecs(qfx2_idx.T[0:K])
         # Component-wise dot product + selectivity function
@@ -232,7 +232,7 @@ def fg_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
         # database forground weights
         qfx2_dfgw = qreq_.indexer.get_nn_fgws(qfx2_idx.T[0:K].T)
         # query forground weights
-        qfx2_qfgw = qreq_.ibs.get_annot_fgweights([qaid], ensure=False)[0]
+        qfx2_qfgw = qreq_.ibs.get_annot_fgweights([qaid], ensure=False, qreq_=qreq_)[0]
         # feature match forground weight
         qfx2_fgvote_weight = np.sqrt(qfx2_qfgw[:, None] * qfx2_dfgw)
         qaid2_fgvote_weight[qaid] = qfx2_fgvote_weight
@@ -255,7 +255,7 @@ def distinctiveness_match_weighter(qreq_):
     dstcnvs_normer = qreq_.dstcnvs_normer
     assert dstcnvs_normer is not None
     qaid_list = qreq_.get_external_qaids()
-    vecs_list = qreq_.ibs.get_annot_vecs(qaid_list)
+    vecs_list = qreq_.ibs.get_annot_vecs(qaid_list, qreq_=qreq_)
     dstcvs_list = []
     for vecs in vecs_list:
         qfx2_vec = vecs
@@ -591,7 +591,7 @@ def gravity_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
     raise NotImplementedError('have not finished gv weighting')
     #qfx2_nnkpts = qreq_.indexer.get_nn_kpts(qfx2_nnidx)
     #qfx2_nnori = ktool.get_oris(qfx2_nnkpts)
-    #qfx2_kpts  = qreq_.ibs.get_annot_kpts(qaid)  # FIXME: Highly inefficient
+    #qfx2_kpts  = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)  # FIXME: Highly inefficient
     #qfx2_oris  = ktool.get_oris(qfx2_kpts)
     ## Get the orientation distance
     #qfx2_oridist = vt.rowwise_oridist(qfx2_nnori, qfx2_oris)

@@ -2,32 +2,31 @@
 TODO: Rename to ibeis/init/commands.py
 """
 from __future__ import absolute_import, division, print_function
-import utool
-import utool as ut  # NOQA
+import utool as ut
 import sys
 from ibeis import constants
 from ibeis import params
 from ibeis import ibsfuncs
 from ibeis.dev import sysres
 from os.path import join
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[commands]')
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[commands]')
 
 
 def vdq(dbdir):
     """view directory and quit"""
     _ibsdb = constants.PATH_NAMES._ibsdb
-    utool.util_cplat.view_directory(join(dbdir, _ibsdb))
+    ut.util_cplat.view_directory(join(dbdir, _ibsdb))
     sys.exit(1)
 
 
 def vdd(ibs):
     " view data dir "
-    utool.util_cplat.view_directory(ibs.dbdir)
+    ut.util_cplat.view_directory(ibs.dbdir)
 
 
 def vwd():
     """ view work dir """
-    utool.util_cplat.view_directory(sysres.get_workdir())
+    ut.util_cplat.view_directory(sysres.get_workdir())
 
 
 def preload_convert_hsdb(dbdir):
@@ -40,18 +39,22 @@ def preload_commands(dbdir, **kwargs):
     """ Preload commands work with command line arguments and global caches """
     #print('[main_cmd] preload_commands')
     if params.args.dump_argv:
-        print(utool.dict_str(vars(params.args), sorted_=False))
+        print(ut.dict_str(vars(params.args), sorted_=False))
     if params.args.dump_global_cache:
-        utool.global_cache_dump()  # debug command, dumps to stdout
+        ut.global_cache_dump()  # debug command, dumps to stdout
     if params.args.set_workdir is not None:
         sysres.set_workdir(params.args.set_workdir)
     if params.args.get_workdir:
         print(' Current work dir = %s' % sysres.get_workdir())
     if params.args.logdir is not None:
         sysres.set_logdir(params.args.logdir)
-    if utool.get_argflag('--vwd'):
+    if params.args.get_logdir:
+        print(' Current log dir = %s' % (sysres.get_logdir(),))
+    if params.args.view_logdir:
+        ut.view_directory(sysres.get_logdir())
+    if ut.get_argflag('--vwd'):
         vwd()
-    if utool.get_argflag('--vdq'):
+    if ut.get_argflag('--vdq'):
         print('got arg --vdq')
         vdq(dbdir)
     if kwargs.get('delete_ibsdir', False):
@@ -65,7 +68,7 @@ def preload_commands(dbdir, **kwargs):
 
 def postload_commands(ibs, back):
     """ Postload commands deal with a specific ibeis database """
-    if utool.NOT_QUIET:
+    if ut.NOT_QUIET:
         print('[main_cmd] postload_commands')
     if params.args.view_database_directory:
         print('got arg --vdd')
@@ -80,7 +83,7 @@ def postload_commands(ibs, back):
         ibs.update_query_cfg(**cfgdict)
         #print(ibs.cfg.query_cfg.get_cfgstr())
     if params.args.edit_notes:
-        utool.editfile(ibs.get_dbnotes_fpath(ensure=True))
+        ut.editfile(ibs.get_dbnotes_fpath(ensure=True))
     if params.args.delete_cache:
         ibs.delete_cache()
     if params.args.delete_cache_complete:

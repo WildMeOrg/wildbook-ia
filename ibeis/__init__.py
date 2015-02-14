@@ -52,6 +52,28 @@ def import_subs():
     from ibeis import web
     from ibeis import gui
 
+#class _VizProxy(object):
+#    def __init__(self):
+#        pass
+
+#    def getattr(self, key):
+#        import ibeis.viz as viz
+#        return getattr(viz, key)
+
+#    def setattr(self, key, val):
+#        import ibeis.viz as viz
+#        return getattr(viz, key, val)
+
+
+#viz = _VizProxy
+#import apipkg
+#apipkg.initpkg(__name__, {
+#    'viz': {
+#        'clone': "ibeis.viz",
+#    }
+#}
+#)
+
 # Utool generated init makeinit.py
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[ibeis]')
 

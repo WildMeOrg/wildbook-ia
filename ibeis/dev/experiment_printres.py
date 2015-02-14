@@ -1,5 +1,8 @@
 """
 displays results from experiment_harness
+
+TODO:
+    ishow_qres_analysis
 """
 from __future__ import absolute_import, division, print_function
 import itertools
@@ -14,7 +17,7 @@ from itertools import chain
 from os.path import join, dirname, split, basename, splitext
 from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
-from six.moves import map, range
+from six.moves import map, range, input  # NOQA
 import vtool as vt
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[expt_report]')
 
@@ -65,9 +68,11 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats --print-scorediff-mat-stats
 
         python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats
+        python dev.py --db PZ_MTEST --allgt --noqcache --qaid4 -t custom:rrvsone_on=True --print-confusion-stats
 
     """
 
+    # cfgx2_cfgresinfo is a list of dicts of lists
     # Parse result info out of the lists
     cfgx2_bestranks      = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_bestranks')
     cfgx2_nextbestranks  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_next_bestranks')
@@ -79,6 +84,7 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     cfgx2_scorefactor    = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorefactor')
     cfgx2_scorelogfactor = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorelogfactor')
     cfgx2_scoreexpdiff   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scoreexpdiff')
+    cfgx2_gt_raw_score   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
 
     column_lbls = [ut.remove_chars(ut.remove_vowels(lbl), [' ', ','])
                    for lbl in cfgx2_lbl]
@@ -97,7 +103,8 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     #--------------------
     # Print Best Results
     rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
-    rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
+    #rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
+    gt_raw_score_mat = np.vstack(cfgx2_gt_raw_score).T
 
     # Set invalid ranks to the worse possible rank
     worst_possible_rank = max(9001, len(daids) + len(qaids) + 1)
@@ -376,6 +383,26 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     #------------
 
     @utool.argv_flag_dec
+    def print_gtscore():
+        # Prints best ranks
+        print('-------------')
+        print('gtscore_mat: %s' % testnameid)
+        print(' nRows=%r, nCols=%r' % lbld_mat.shape)
+        header = (' labled rank matrix: rows=queries, cols=cfgs:')
+        #print('\n'.join(qx2_lbl))
+        print('\n'.join(cfgx2_lbl))
+        #column_list = [row.tolist() for row in lbld_mat[1:].T[1:]]
+        column_list = gt_raw_score_mat.T
+        print(ut.make_csv_table(column_list, row_lbls=qaids,
+                                column_lbls=column_lbls, header=header,
+                                transpose=False,
+                                use_lbl_width=len(cfgx2_lbl) < 5))
+        print('[harn]-------------')
+    print_gtscore()
+
+    #------------
+
+    @utool.argv_flag_dec
     def print_best_rankmat():
         # Prints best ranks
         print('-------------')
@@ -441,7 +468,7 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         #with utool.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
         #print(lbld_mat)
         print('[harn]-------------')
-    print_scorediff_mat()
+    print_scorediff_mat(alias_flags=['--sdm'])
 
     #------------
     def jagged_stats_info(arr, lbl, col_lbls):
@@ -467,7 +494,9 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
             #pos_scorediff_mat = vt.zipcompress(scorediffs_mat, istrue_list)
             #neg_scorediff_mat = vt.zipcompress(scorediffs_mat, isfalse_list)
 
-            score_comparison_mats = [scorediffs_mat, scorefactor_mat, scorelogfactor_mat, scoreexpdiff_mat]
+            #score_comparison_mats = [scorediffs_mat, scorefactor_mat, scorelogfactor_mat, scoreexpdiff_mat]
+            #score_comparison_mats = [scorediffs_mat]
+            score_comparison_mats = [scorediffs_mat, scorefactor_mat]
             # Get the variable names from the stack!
             score_comparison_lbls = list(map(ut.get_varname_from_stack, score_comparison_mats))
 
@@ -511,7 +540,7 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         #print(neg_scorediff_selstr)
         #ut.embed()
         print('[harn]-------------')
-    print_scorediff_mat_stats()
+    print_scorediff_mat_stats(alias_flags=['--sdms'])
 
     @utool.argv_flag_dec
     def print_confusion_stats():
@@ -551,7 +580,7 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         print(fn_rawscore_statstr)
 
         print('[harn]-------------')
-    print_confusion_stats()
+    print_confusion_stats(alias_flags=['--cs'])
 
     @utool.argv_flag_dec
     def print_diffmat():
@@ -667,7 +696,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         return qres
 
     #DELETE              = False
-    USE_FIGCACHE = ut.get_argflag('--use-figcache')
+    #USE_FIGCACHE = ut.get_argflag('--use-figcache')
     DUMP_QANNOT         = DUMP_EXTRA
     DUMP_QANNOT_DUMP_GT = DUMP_EXTRA
     DUMP_TOP_CONTEXT    = DUMP_EXTRA
@@ -738,6 +767,10 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             if (count in skip_list) or (SKIP_TO and count < SKIP_TO):
                 continue
             (r, c) = rctup
+            if SHOW:
+                fnum = c
+            else:
+                fnum = 1
             # Get row and column index
             qaid      = qaids[r]
             query_cfg = cfg_list[c]
@@ -774,19 +807,40 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             # Show Figure
             # try to shorten query labels a bit
             query_lbl = query_lbl.replace(' ', '').replace('\'', '')
-            qres.show(ibs, 'analysis', figtitle=query_lbl, **show_kwargs)
+            #qres.show(ibs, 'analysis', figtitle=query_lbl, fnum=fnum, **show_kwargs)
+            """
+            CommandLine:
+                python dev.py -t custom:rrvsone_on=True,constrained_coeff=0 custom --qaid 12 --db PZ_MTEST --show --va
+                python dev.py -t custom:rrvsone_on=True,constrained_coeff=.3 custom --qaid 12 --db PZ_MTEST --show --va --noqcache
+                python dev.py -t custom:rrvsone_on=True custom --qaid 4 --db PZ_MTEST --show --va --noqcache
+
+                python dev.py -t custom:rrvsone_on=True,grid_scale_factor=1 custom --qaid 12 --db PZ_MTEST --show --va --noqcache
+                python dev.py -t custom:rrvsone_on=True,grid_scale_factor=1,grid_steps=1 custom --qaid 12 --db PZ_MTEST --show --va --noqcache
+
+            """
+            print('showing')
+            if SHOW:
+                qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, **show_kwargs)
+                #qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, **show_kwargs)
+            else:
+                qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, **show_kwargs)
+            print('done showing')
 
             # Adjust subplots
-            df2.adjust_subplots_safe()
+            #df2.adjust_subplots_safe()
 
             if SHOW:
                 print('[DRAW_RESULT] df2.present()')
-                #exec(df2.present(), globals(), locals())
-                execstr = df2.present()
-                print(execstr)
-                six.exec_(execstr, globals(), locals())
-
-            fpath_orig = ph.dump_figure(figdir, **dumpkw)
+                # Draw only once we finish drawing all configs (columns) for
+                # this row (query)
+                if c == len(sel_cols) - 1:
+                    #execstr = df2.present()  # NOQA
+                    input('press to continue...')
+                    #six.exec_(execstr, globals(), locals())
+                    #exec(df2.present(), globals(), locals())
+                #print(execstr)
+            # Saving will close the figure
+            fpath_orig = ph.dump_figure(figdir, reset=not SHOW, **dumpkw)
             append_copy_task(fpath_orig)
 
             print('[harn] drawing extra plots')

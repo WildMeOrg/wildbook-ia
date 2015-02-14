@@ -38,7 +38,7 @@ STRIP_DOCSTR   = False
 STRIP_LONGDESC = False  # True
 STRIP_EXAMPLE  = False  # True
 STRIP_COMMENTS = False
-USE_SHORTNAMES = True
+USE_ALIASES = True
 USE_FUNCTYPE_HEADERS = False  # True
 
 
@@ -55,6 +55,7 @@ WITH_API_CACHE = True
 
 const.PROBCHIP_TABLE = 'probchips'
 
+# defines which tables to generate
 TBLNAME_LIST = [
     #const.ANNOTATION_TABLE,
     #const.CHIP_TABLE,
@@ -122,6 +123,7 @@ depends_map = {
 }
 
 # shortened tablenames
+# Maps full table names to short table names
 tablename2_tbl = {
     const.ANNOTATION_TABLE     : SHORTNAMES.ANNOT,
     const.CHIP_TABLE           : SHORTNAMES.CHIP,
@@ -161,9 +163,8 @@ func_aliases = {
 
 # mapping to variable names in const
 tbl2_tablename = ut.invert_dict(tablename2_tbl)
-tbl2_TABLE = {key: ut.get_varname_from_locals(val, const.__dict__)
-              for key, val in six.iteritems(tbl2_tablename)}
-
+#tbl2_TABLE = {key: ut.get_varname_from_locals(val, const.__dict__)
+#              for key, val in six.iteritems(tbl2_tablename)}
 # Lets just use strings in autogened files for now: TODO: use constant vars
 # later
 #tbl2_TABLE = {key: '\'%s\'' % (val,) for key, val in six.iteritems(tbl2_tablename)}
@@ -202,7 +203,7 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
     if STRIP_COMMENTS:
         func_code = ut.strip_line_comments(func_code)
     if flagskw.get('strip_docstr', STRIP_DOCSTR):
-        # HACKY: might not always work. newline HACK away dumb blank line
+        # HACKY: might not always remove docstr correctly. newline HACK away dumb blank line
         func_code = ut.regex_replace('""".*"""\n    ', '', func_code)
     else:
         if STRIP_LONGDESC:
@@ -233,21 +234,20 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
             func_code = '\n'.join(new_lines)
         if STRIP_EXAMPLE:
             func_code = ut.regex_replace('Example.*"""', '"""', func_code)
-    if USE_SHORTNAMES:
+    if USE_ALIASES:
         # Execute search and replaces without changing strings
         func_code = ut.replace_nonquoted_text(func_code,
                                               variable_aliases.keys(),
                                               variable_aliases.values())
     # add decorators
     # HACK IN API_CACHE decorators
-    if func_type == '2_Native.getter_col':
-        if flagskw.get('with_api_cache', WITH_API_CACHE):
+    with_api_cache = flagskw.get('with_api_cache', WITH_API_CACHE)
+    if with_api_cache:
+        if func_type == '2_Native.getter_col':
             func_code = '@accessor_decors.cache_getter({TABLE}, {COLNAME})\n'.format(**fmtdict) + func_code
-    if func_type == '2_Native.deleter':
-        if flagskw.get('with_api_cache', WITH_API_CACHE):
+        if func_type == '2_Native.deleter':
             func_code = '@accessor_decors.cache_invalidator({TABLE})\n'.format(**fmtdict) + func_code
-    if func_type == '2_Native.setter':
-        if flagskw.get('with_api_cache', WITH_API_CACHE):
+        if func_type == '2_Native.setter':
             func_code = '@accessor_decors.cache_invalidator({TABLE}, {COLNAME}, native_rowids=True)\n'.format(**fmtdict) + func_code
     # Need to register all function with ibs
     if flagskw.get('with_decor', WITH_DECOR):
@@ -596,6 +596,16 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
 
     def set_col(col, COLNAME):
         fmtdict['COLNAME'] = COLNAME
+        #print(col)
+        #if col == 'feature_num_feats':
+        #    ut.embed()
+        #ut.embed()
+        # <HACK>
+        # For getting column names into the shortname format
+        # feature is actually features which is why this doesnt work
+        # </HACK>
+        col = col.replace('feature', 'feat')
+
         fmtdict['col'] = col
 
     def set_multicol(multicol, MULTICOLNAMES):
@@ -618,6 +628,11 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         """
         Filters, formats, and organizes functions as they are added
         applys hacks
+
+
+        func_type = '2_Native.setter'
+        func_code_fmtstr = Tdef.Tsetter_native_column
+
         """
         #if func_type.find('add') < 0:
         #    return
@@ -640,7 +655,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
             #
             #
             # <HACKS>
-            print(tablename)
+            #print(tablename)
             if tablename == const.ANNOTATION_TABLE:
                 func_code = func_code.replace('ENABLE_DOCTEST', 'DISABLE_DOCTEST')
             elif tablename == const.FEATURE_WEIGHT_TABLE:
@@ -809,6 +824,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
             if with_setters and  tablename not in readonly_set:
                 # Setter template: columns
                 if with_native:
+                    #ut.embed()
                     append_func('2_Native.setter', Tdef.Tsetter_native_column)
             constant_list.append(COLNAME + ' = \'%s\'' % (colname,))
             append_constant(COLNAME, colname)
@@ -866,14 +882,16 @@ def get_autogen_text(
 def main(ibs, verbose=None):
     """
     CommandLine:
-        python -c "import utool as ut; ut.write_to('Tgen.sh', 'python -m ibeis.control.template_generator $@')"
+        python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.control.template_generator')"
 
-        Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True
-        Tgen.sh --tbls annotations --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
+        sh Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True
+        sh Tgen.sh --tbls annotations --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
 
-        Tgen.sh --key featweight
-        Tgen.sh --key annot --onlyfn
-        Tgen.sh --key featweight --onlyfn
+        sh Tgen.sh --key featweight
+        sh Tgen.sh --key annot --onlyfn
+        sh Tgen.sh --key featweight --onlyfn
+        sh Tgen.sh --key chip --onlyfn
+        sh Tgen.sh --key feat --onlyfn
 
         python -m ibeis.control.template_generator
         python -m ibeis.control.template_generator --dump-autogen-controller
@@ -883,7 +901,8 @@ def main(ibs, verbose=None):
     """
     print('TEMPLAT_GENERATOR MAIN')
     # Parse command line args
-    onlyfuncname = ut.get_argflag(('--onlyfuncname', '--onlyfn'))
+    onlyfuncname = ut.get_argflag(('--onlyfuncname', '--onlyfn'),
+                                  help_='if specified only prints the function signatures')
     dowrite = ut.get_argflag(('-w', '--write', '--dump-autogen-controller'))
     autogen_key = ut.get_argval(('--key',), type_=str, default='default')
 
@@ -896,10 +915,11 @@ def main(ibs, verbose=None):
         if autogen_key in tbl2_tablename:
             default_tblname_list = [tbl2_tablename[autogen_key], ]
         else:
-            raise AssertionError('unknown autogen_key=%r' % (autogen_key,))
+            raise AssertionError('unknown autogen_key=%r. known tables are %r' %
+                                 (autogen_key, list(tbl2_tablename.keys())))
 
     tblname_list = ut.get_argval(('--autogen-tables', '--tbls'), type_=list, default=default_tblname_list)
-    print(tblname_list)
+    #print(tblname_list)
     # Parse dictionary flag list
     template_flags = ut.get_argval(('--Tcfg', '--template-config'), type_=list, default=[])
 

@@ -519,7 +519,7 @@ def get_image_uuids(ibs, gid_list):
         >>> ibs = ibeis.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()
         >>> # execute function
-        >>> image_uuid_list = get_image_uuids(ibs, gid_list)
+        >>> image_uuid_list = ibs.get_image_uuids(gid_list)
         >>> # verify results
         >>> result = ut.list_str(image_uuid_list)
         >>> print(result)
@@ -613,7 +613,10 @@ def get_image_paths(ibs, gid_list):
         >>> new_gids = ibs.add_images([new_gpath], auto_localize=False)
         >>> new_gpath_list = get_image_paths(ibs, new_gids)
         >>> # verify results
+        >>> assert new_gpath == new_gpath_list[0]
         >>> result = str(new_gpath_list)
+        >>> # clean up the database!
+        >>> ibs.delete_images(new_gids)
         >>> print(result)
         """
     ut.assert_all_not_None(gid_list, 'gid_list', key_list=['gid_list'])

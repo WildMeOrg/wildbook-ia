@@ -50,13 +50,18 @@ def add_feat_params_gen(ibs, cid_list, qreq_=None, nInput=None):
     """
     if nInput is None:
         nInput = len(cid_list)
-    # Get config from IBEIS controller
-    feat_cfg          = ibs.cfg.feat_cfg
-    hesaff_params     = feat_cfg.get_hesaff_params()
+    if qreq_ is not None:
+        # Get config from qreq_ object
+        hesaff_params   = qreq_.qparams.hesaff_params
+        feat_cfgstr     = qreq_.qparams.feat_cfgstr
+    else:
+        # Get config from IBEIS controller
+        hesaff_params   = ibs.cfg.feat_cfg.get_hesaff_params()
+        feat_cfgstr     = ibs.cfg.feat_cfg.get_cfgstr()
     feat_config_rowid = ibs.get_feat_config_rowid()
     cfpath_list       = ibs.get_chip_paths(cid_list)
     if ut.VERBOSE:
-        print('[preproc_feat] cfgstr = %s' % feat_cfg.get_cfgstr())
+        print('[preproc_feat] cfgstr = %s' % feat_cfgstr)
     if USE_OPENMP:
         # Use Avi's openmp parallelization
         featgen_mp = gen_feat_openmp(cid_list, cfpath_list, hesaff_params)
@@ -103,6 +108,7 @@ def generate_feat_properties(ibs, cid_list, qreq_=None, nInput=None):
     if nInput is None:
         nInput = len(cid_list)
     # Get config from IBEIS controller
+    # TODO: qreq_
     feat_cfg          = ibs.cfg.feat_cfg
     hesaff_params     = feat_cfg.get_hesaff_params()
     cfpath_list       = ibs.get_chip_paths(cid_list)
