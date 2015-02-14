@@ -33,6 +33,9 @@ GNOME3_SIZES = {
     'mpl_toolbar_y':  0,
 }
 
+for key in GNOME3_SIZES:
+    GNOME3_SIZES[key] += 5
+
 
 def ensure_app_is_running():
     #print('[screeninfo] Ensuring that qtapp is running')

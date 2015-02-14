@@ -244,11 +244,11 @@ def present(*args, **kwargs):
     """
     if '--noshow' not in sys.argv:
         #print('[fig_presenter] Presenting figures...')
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            all_figures_tile(*args, **kwargs)
-            all_figures_show()
-            all_figures_bring_to_front()
+        #with warnings.catch_warnings():
+        #    warnings.simplefilter("ignore")
+        all_figures_tile(*args, **kwargs)
+        all_figures_show()
+        all_figures_bring_to_front()
         # Return an exec string
     execstr = ut.ipython_execstr()
     execstr += textwrap.dedent('''

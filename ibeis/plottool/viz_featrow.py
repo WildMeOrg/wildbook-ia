@@ -1,56 +1,39 @@
 from __future__ import absolute_import, division, print_function
-# UTool
-import utool
-# Drawtool
+import utool as ut  # NOQA
 import six
 import plottool.draw_func2 as df2
 from plottool import plot_helpers as ph
 from plottool import custom_constants
 from plottool import custom_figure
-#(print, print_, printDBG, rrr, profile) = utool.inject(
+#(print, print_, printDBG, rrr, profile) = ut.inject(
 #    __name__, '[viz_featrow]', DEBUG=False)
-utool.noinject(__name__, '[viz_featrow]')
+ut.noinject(__name__, '[viz_featrow]')
 
 
-#@utool.indent_func
+def precisionstr(c='E', pr=2):
+    return '%.' + str(pr) + c
+
+
+def formatdist(val):
+    pr = 3
+    if val > 1000:
+        return precisionstr('E', pr) % val
+    elif val > .01 or val == 0:
+        return precisionstr('f', pr) % val
+    else:
+        return precisionstr('e', pr) % val
+
+
+#@ut.indent_func
 def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
-                  aid=None, info='', type_=None):
+                  origsift=None,
+                  aid=None, info='', type_=None, shape_labels=False):
     """
     draw_feat_row
 
-    Args:
-        chip (?):
-        fx (?):
-        kp (?):
-        sift (?):
-        fnum (?):
-        nRows (?):
-        nCols (?):
-        px (?):
-        prevsift (None):
-        aid (None): Not necessary this is not IBEIS, but is used as a label
-        info (str):
-        type_ (None):
-
-    Returns:
-        int : subplot index
-
-    Example:
-        >>> from plottool.viz_featrow import *  # NOQA
-        >>> chip = '?'
-        >>> fx = '?'
-        >>> kp = '?'
-        >>> sift = '?'
-        >>> fnum = '?'
-        >>> nRows = '?'
-        >>> nCols = '?'
-        >>> px = '?'
-        >>> prevsift = None
-        >>> aid = None
-        >>> info = ''
-        >>> type_ = None
-        >>> result = draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift, aid, info, type_)
-        >>> print(result)
+    SeeAlso:
+        ibeis.viz.viz_nearest_descriptors
+        ~/code/ibeis/ibeis/viz/viz_nearest_descriptors.py
     """
 
     pnum_ = df2.get_pnum_func(nRows, nCols, base=1)
@@ -66,17 +49,22 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
     ph.set_plotdat(ax, 'viztype', 'unwarped')
     ph.set_plotdat(ax, 'aid', aid)
     ph.set_plotdat(ax, 'fx', fx)
-    unwarped_lbl = 'affine feature invV =\n' + shape_str + '\n' + ori_str
-    custom_figure.set_xlabel(unwarped_lbl, ax)
+    if shape_labels:
+        unwarped_lbl = 'affine feature invV =\n' + shape_str + '\n' + ori_str
+        custom_figure.set_xlabel(unwarped_lbl, ax)
 
     # Draw the warped selected feature
     ax = _draw_patch(fnum=fnum, pnum=pnum_(px + 2), warped=True)
     ph.set_plotdat(ax, 'viztype', 'warped')
     ph.set_plotdat(ax, 'aid', aid)
     ph.set_plotdat(ax, 'fx', fx)
-    warped_lbl = ('warped feature\n' +
-                  'fx=%r scale=%.1f\n' +
-                  '%s' + info) % (fx, scale, xy_str)
+    if shape_labels:
+        warped_lbl = ('warped feature\n' +
+                      'fx=%r scale=%.1f\n' +
+                      '%s') % (fx, scale, xy_str)
+    else:
+        warped_lbl = ''
+    warped_lbl += info
     custom_figure.set_xlabel(warped_lbl, ax)
 
     border_color = {None: None,
@@ -92,14 +80,27 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
         custom_figure.figure(fnum=fnum, pnum=pnum)
         df2.draw_keypoint_gradient_orientations(chip, kp, sift=sift)
     else:
-        sigtitle = '' if px != 3 else 'sift histogram'
+        sigtitle =  'sift histogram' if (px % 3) == 0 else ''
         ax = df2.plot_sift_signature(sift, sigtitle, fnum=fnum, pnum=pnum)
         ax._hs_viztype = 'histogram'
-        if prevsift is not None:
-            #dist_list = ['L1', 'L2', 'hist_isect', 'emd']
-            #dist_list = ['L2', 'hist_isect']
-            dist_list = ['L2']
-            distmap = utool.compute_distances(sift, prevsift, dist_list)
-            dist_str = ', '.join(['(%s, %.2E)' % (key, val) for key, val in six.iteritems(distmap)])
-            custom_figure.set_xlabel(dist_str)
+    #dist_list = ['L1', 'L2', 'hist_isect', 'emd']
+    #dist_list = ['L2', 'hist_isect']
+    #dist_list = ['L2']
+    #dist_list = ['bar_L2_sift', 'cos_sift']
+    dist_list = ['L2_sift', 'bar_cos_sift']
+    dist_str_list = []
+    if origsift is not None:
+        distmap_orig = ut.compute_distances(sift, origsift, dist_list)
+        dist_str_list.append(
+            'query_dist: ' + ', '.join(['(%s, %s)' % (key, formatdist(val))
+                                        for key, val in six.iteritems(distmap_orig)])
+        )
+    if prevsift is not None:
+        distmap_prev = ut.compute_distances(sift, prevsift, dist_list)
+        dist_str_list.append(
+            'prev_dist: ' + ', '.join(['(%s, %s)' % (key, formatdist(val))
+                                       for key, val in six.iteritems(distmap_prev)])
+        )
+    dist_str = '\n'.join(dist_str_list)
+    custom_figure.set_xlabel(dist_str)
     return px + nCols

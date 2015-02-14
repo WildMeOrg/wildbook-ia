@@ -32,6 +32,7 @@ from plottool import fig_presenter
 #from plottool.fig_presenter import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
 import vtool.patch as ptool
 import vtool.image as gtool
+import vtool as vt  # NOQA
 
 DEBUG = False
 # Try not injecting into plotting things
@@ -254,7 +255,7 @@ def rotate_plot(theta=TAU / 8, ax=None):
     """
     if ax is None:
         ax = gca()
-    import vtool as vt
+    #import vtool as vt
     xy, width, height = get_axis_xy_width_height(ax)
     bbox = [xy[0], xy[1], width, height]
     M = mpl.transforms.Affine2D(vt.rotation_around_bbox_mat3x3(theta, bbox))
@@ -1262,7 +1263,11 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
         printDBG(' * scale_factor=%r' % (scale_factor,))
         printDBG(' * offset=%r' % (offset,))
         printDBG(' * drawing kpts.shape=%r' % (kpts.shape,))
-    assert len(kpts) > 0, 'len(kpts) < 0'
+    try:
+        assert len(kpts) > 0, 'len(kpts) < 0'
+    except AssertionError as ex:
+        ut.printex(ex)
+        return
     ax = gca()
     if color_list is not None:
         ell_color = color_list
@@ -1954,6 +1959,42 @@ def stack_square_images(img_list):
 
 
 def stack_images(img1, img2, vert=None, modifysize=False):
+    r"""
+    Args:
+        img1 (ndarray[uint8_t, ndim=2]):  image data
+        img2 (ndarray[uint8_t, ndim=2]):  image data
+        vert (None):
+        modifysize (bool):
+
+    Returns:
+        tuple: (imgB, woff, hoff)
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-stack_images --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> # build test data
+        >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
+        >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+        >>> vert = None
+        >>> modifysize = False
+        >>> # execute function
+        >>> (imgB, woff, hoff) = stack_images(img1, img2, vert, modifysize)
+        >>> # verify results
+        >>> result = str((imgB.shape, woff, hoff))
+        >>> print(result)
+        >>> if ut.show_was_requested():
+        >>>     import plottool as pt
+        >>>     imshow(imgB)
+        >>>     wh1 = img1.shape[0:2][::-1]
+        >>>     wh2 = img2.shape[0:2][::-1]
+        >>>     draw_bbox((0, 0) + wh1, bbox_color=(1, 0, 0))
+        >>>     draw_bbox((woff, hoff) + wh2, bbox_color=(0, 1, 0))
+        >>>     pt.show_if_requested()
+        ((762, 512, 3), 0, 250)
+    """
     # TODO: move this to the same place I'm doing the color gradient
     nChannels = gtool.get_num_channels(img1)
     nChannels2 = gtool.get_num_channels(img2)

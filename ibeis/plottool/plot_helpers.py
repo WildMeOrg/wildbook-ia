@@ -18,7 +18,8 @@ def draw():
     fig_presenter.draw()
 
 
-def dump_figure(dumpdir, subdir=None, quality=False, overwrite=False, verbose=2):
+def dump_figure(dumpdir, subdir=None, quality=False, overwrite=False, verbose=2,
+                   reset=True):
     """ Dumps figure to disk based on the figurename """
     if quality is True:
         custom_constants.FIGSIZE = custom_constants.golden_wh2(14)
@@ -38,12 +39,13 @@ def dump_figure(dumpdir, subdir=None, quality=False, overwrite=False, verbose=2)
         fpath = join(fpath, subdir)
         ut.ensurepath(fpath)
     fpath_clean = custom_figure.save_figure(fpath=fpath, usetitle=True, overwrite=overwrite, verbose=verbose)
-    try:
-        fig_presenter.reset()
-    except Exception as ex:
-        if ut.VERBOSE:
-            ut.prinex(ex)
-        pass
+    if reset:
+        try:
+            fig_presenter.reset()
+        except Exception as ex:
+            if ut.VERBOSE:
+                ut.prinex(ex)
+            pass
     return fpath_clean
 
 
