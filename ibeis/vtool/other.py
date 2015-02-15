@@ -98,7 +98,7 @@ def iter_reduce_ufunc(ufunc, arr_iter, out=None):
         ... ]
         >>> memory = np.array([9, 9, 9, 9, 9, 9])
         >>> gen_memory = memory.copy()
-        >>> def arr_gen():
+        >>> def arr_gen(arr_list, gen_memory):
         ...     for arr in arr_list:
         ...         gen_memory[:] = arr
         ...         yield gen_memory
@@ -107,7 +107,7 @@ def iter_reduce_ufunc(ufunc, arr_iter, out=None):
         >>> ufunc = np.maximum
         >>> res1 = iter_reduce_ufunc(ufunc, iter(arr_list), out=None)
         >>> res2 = iter_reduce_ufunc(ufunc, iter(arr_list), out=memory)
-        >>> res3 = iter_reduce_ufunc(ufunc, arr_gen(), out=memory)
+        >>> res3 = iter_reduce_ufunc(ufunc, arr_gen(arr_list, gen_memory), out=memory)
         >>> print('res1       = %r' % (res1,))
         >>> print('res2       = %r' % (res2,))
         >>> print('res3       = %r' % (res3,))

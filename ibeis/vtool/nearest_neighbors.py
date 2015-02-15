@@ -19,20 +19,25 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
 
 
     CommandLine:
-        python -m vtool.nearest_neighbors --test-ann_flann_once
+        python -m vtool.nearest_neighbors --test-ann_flann_once:0
 
-    Example1:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from vtool.nearest_neighbors import *  # NOQA
         >>> np.random.seed(1)
-        >>> dpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
-        >>> qpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
+        >>> dpts = np.random.randint(0, 255, (5, 128)).astype(np.uint8)
+        >>> qpts = np.random.randint(0, 255, (5, 128)).astype(np.uint8)
         >>> qx2_dx, qx2_dist = ann_flann_once(dpts, qpts, 2)
-        >>> result = utool.hashstr(repr((qx2_dx, qx2_dist)))
+        >>> result = utool.list_str((qx2_dx.T, qx2_dist.T), precision=2)
         >>> print(result)
-        8zdwd&q0mu+ez4gp
+        (
+            np.array([[3, 3, 3, 3, 0],
+                      [2, 0, 1, 4, 4]], dtype=np.int32),
+            np.array([[ 1037329.,  1235876.,  1168550.,  1286435.,  1075507.],
+                      [ 1038324.,  1243690.,  1304896.,  1320598.,  1369036.]], dtype=np.float32),
+        )
 
-    Example2:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> # Test upper bounds on sift descriptors
         >>> from vtool.nearest_neighbors import *  # NOQA
@@ -68,7 +73,7 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
         >>> print(result)
         8zdwd&q0mu+ez4gp
 
-     Example:
+     Example2:
         >>> # Build theoretically maximally distant vectors
         >>> b = 512
         >>> D = 128

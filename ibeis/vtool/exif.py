@@ -5,10 +5,10 @@ import six
 from PIL.ExifTags import TAGS, GPSTAGS
 from PIL import Image
 #from utool import util_progress
-import utool
+import utool as ut
 from utool import util_time
 from vtool import image as gtool
-(print, print_, printDBG, rrr, profile) = utool.inject(
+(print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[exif]', DEBUG=False)
 
 
@@ -46,7 +46,7 @@ def get_exif_dict(pil_img):
     except (IndexError, AttributeError, OverflowError):
         exif_dict = {}
     except Exception as ex:
-        utool.printex(ex, 'get_exif_dict failed in an unexpected way')
+        ut.printex(ex, 'get_exif_dict failed in an unexpected way')
         raise
     return exif_dict
 

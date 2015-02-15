@@ -171,7 +171,7 @@ def iceil(num, dtype=np.int32):
         ndarray or scalar:
 
     CommandLine:
-        python -m utool.util_alg --test-iceil
+        python -m vtool.math --test-iceil
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -187,9 +187,9 @@ def iceil(num, dtype=np.int32):
         >>> from utool.util_alg import *  # NOQA
         >>> import vtool as vt
         >>> num = [1.5, 2.9]
-        >>> result = repr(vt.iceil(num))
+        >>> result = ut.numpy_str(vt.iceil(num))
         >>> print(result)
-        array([2, 3], dtype=int32)
+        np.array([2, 3], dtype=np.int32)
     """
     return np.ceil(num).astype(dtype)
 

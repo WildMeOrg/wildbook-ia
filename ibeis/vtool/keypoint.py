@@ -613,13 +613,13 @@ def transform_kpts(kpts, M):
         >>> # execute function
         >>> kpts = transform_kpts(kpts, M)
         >>> # verify results
-        >>> result = kpts_repr(kpts)
+        >>> result = ut.numpy_str(kpts, precision=3)
         >>> print(result)
-        array([[ 200.  ,  450.  ,   52.17,    1.06,  241.5 ,   -0.  ],
-               [ 290.  ,  540.  ,   23.55,  -27.56,  241.5 ,   -0.  ],
-               [ 300.  ,  600.  ,  122.17,  242.36,  105.29,   -0.  ],
-               [ 310.  ,  600.  ,  133.56,  309.9 ,  141.04,   -0.  ],
-               [ 320.  ,  630.  ,  160.53,  194.6 ,  117.35,   -0.  ]])
+        np.array([[ 200.   ,  450.   ,   52.166,    1.056,  241.499,    0.   ],
+                  [ 290.   ,  540.   ,   23.551,  -27.559,  241.499,    0.   ],
+                  [ 300.   ,  600.   ,  122.166,  242.357,  105.287,    0.   ],
+                  [ 310.   ,  600.   ,  133.556,  309.899,  141.041,    0.   ],
+                  [ 320.   ,  630.   ,  160.527,  194.6  ,  117.354,    0.   ]], dtype=np.float64)
 
     IGNORE:
         >>> # HOW DO WE KEEP SHAPE AFTER HOMOGRAPHY?
@@ -742,13 +742,11 @@ def get_invVR_mats_sqrd_scale(invVR_mats):
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> np.random.seed(0)
-        >>> invVR_mats = np.random.rand(1000, 3, 3).astype(np.float64)
+        >>> invVR_mats = np.random.rand(7, 3, 3).astype(np.float64)
         >>> det_arr = get_invVR_mats_sqrd_scale(invVR_mats)
-        >>> result = (ut.hashstr(det_arr))
+        >>> result = ut.numpy_str(det_arr, precision=2)
         >>> print(result)
-        ry07!8e8v8!9h!50
-
-    1i468l@838vatv@4
+        np.array([-0.16, -0.09, -0.34,  0.59, -0.2 ,  0.18,  0.06], dtype=np.float64)
 
     #CYTH_INLINE
     #CYTH_RETURNS np.ndarray[np.float64_t, ndim=1]
@@ -892,16 +890,17 @@ def get_invVR_mats_xys(invVR_mats):
 def get_invVR_mats_oris(invVR_mats):
     r""" extracts orientation from matrix encoding
 
+    CommandLine:
+        python -m vtool.keypoint --test-get_invVR_mats_oris
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> np.random.seed(0)
-        >>> invVR_mats = np.random.rand(1000, 2, 2).astype(np.float64)
+        >>> invVR_mats = np.random.rand(7, 2, 2).astype(np.float64)
         >>> output = get_invVR_mats_oris(invVR_mats)
-        >>> result = (ut.hashstr(output))
-        >>> print(result)
-        mcoxq8!3ml5bj9rx
+        >>> result = ut.numpy_str(output, precision=2)
+        np.array([ 5.37,  5.29,  5.9 ,  5.26,  4.74,  5.6 ,  4.9 ], dtype=np.float64)
 
     Cyth:
         #CYTH_INLINE
