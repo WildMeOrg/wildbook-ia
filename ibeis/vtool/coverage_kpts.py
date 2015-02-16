@@ -12,9 +12,25 @@ print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[cov]', DEBUG=Fals
 
 @profile
 #@ut.memprof
-def make_kpts_coverage_mask(kpts, chipsize, weights=None, cov_agg_mode=None,
-                            return_patch=False, patch=None, resize=False,
-                            out=None, **kwargs):
+def make_kpts_coverage_mask(
+        kpts, chipsize,
+        weights=None,
+        return_patch=False,
+        patch=None,
+        resize=False,
+        out=None,
+        cov_blur_on=True,
+        cov_blur_ksize=(17, 17),
+        cov_blur_sigma=5.0,
+        cov_gauss_shape=(19, 19),
+        cov_gauss_sigma_frac=.3,
+        cov_scale_factor=.2,
+        cov_agg_mode='max',
+        cov_remove_shape=False,
+        cov_remove_scale=False,
+        cov_size_penalty_on=True,
+        cov_size_penalty_power=.5,
+        cov_size_penalty_frac=.1):
     r"""
     Returns a intensity image denoting which pixels are covered by the input
     keypoints
@@ -52,12 +68,7 @@ def make_kpts_coverage_mask(kpts, chipsize, weights=None, cov_agg_mode=None,
         >>>     show_coverage_map(chip, mask, patch, kpts)
         >>>     pt.show_if_requested()
     """
-    cov_blur_on      = kwargs.get('cov_blur_on', True)
-    cov_blur_ksize   = kwargs.get('cov_blur_ksize', (17, 17))
-    cov_blur_sigma   = kwargs.get('cov_blur_sigma', 5.0)
     if patch is None:
-        cov_gauss_shape      = kwargs.get('cov_gauss_shape', (19, 19))
-        cov_gauss_sigma_frac = kwargs.get('cov_gauss_sigma_frac', .3)
         patch = get_gaussian_weight_patch(cov_gauss_shape, cov_gauss_sigma_frac)
     chipshape = chipsize[::-1]
     # Warp patches onto a scaled image
@@ -65,7 +76,13 @@ def make_kpts_coverage_mask(kpts, chipsize, weights=None, cov_agg_mode=None,
         kpts, patch, chipshape,
         weights=weights,
         out=out,
-        **kwargs
+        cov_scale_factor=cov_scale_factor,
+        cov_agg_mode=cov_agg_mode,
+        cov_remove_shape=cov_remove_shape,
+        cov_remove_scale=cov_remove_scale,
+        cov_size_penalty_on=cov_size_penalty_on,
+        cov_size_penalty_power=cov_size_penalty_power,
+        cov_size_penalty_frac=cov_size_penalty_frac
     )
     # Smooth weight of influence
     if cov_blur_on:
@@ -81,50 +98,18 @@ def make_kpts_coverage_mask(kpts, chipsize, weights=None, cov_agg_mode=None,
         return dstimg
 
 
-def warped_patch_generator(patch, dsize, affmat_list, weight_list, **kwargs):
-    """
-    generator that warps the patches (like gaussian) onto an image with dsize using constant memory.
-
-    output must be used or copied on every iteration otherwise the next output will clobber the previous
-
-    References:
-        http://docs.opencv.org/modules/imgproc/doc/geometric_transformations.html#warpaffine
-    """
-    cov_size_penalty_on    = kwargs.get('cov_size_penalty_on', True)
-    cov_size_penalty_power = kwargs.get('cov_size_penalty_power', .5)
-    cov_size_penalty_frac  = kwargs.get('cov_size_penalty_frac', .1)
-    shape = dsize[::-1]
-    #warpAffine is weird. If the shape of the dst is the same as src we can
-    #use the dst outvar. I dont know why it needs that.  It seems that this
-    #will not operate in place even if a destination array is passed in when
-    #src.shape != dst.shape.
-    patch_h, patch_w = patch.shape
-    # If we pad the patch we can use dst
-    padded_patch = np.zeros(shape, dtype=np.float32)
-    # Prealloc output,
-    warped = np.zeros(shape, dtype=np.float32)
-    prepad_h, prepad_w = patch.shape[0:2]
-    # each score is spread across its contributing pixels
-    for (M, weight) in zip(affmat_list, weight_list):
-        # inplace weighting of the patch
-        np.multiply(patch, weight, out=padded_patch[:prepad_h, :prepad_w] )
-        # inplace warping of the padded_patch
-        cv2.warpAffine(padded_patch, M, dsize, dst=warped,
-                       flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT,
-                       borderValue=0)
-        if cov_size_penalty_on:
-            # TODO: size penalty should be based of splitting number of
-            # bins in a keypoint over the region that it covers
-            total_weight = (warped.sum() ** cov_size_penalty_power) * cov_size_penalty_frac
-            if total_weight > 1:
-                # Whatever the size of the keypoint is it should
-                # contribute a total of 1 score
-                np.divide(warped, total_weight, out=warped)
-        yield warped
-
-
 @profile
-def warp_patch_onto_kpts(kpts, patch, chipshape, weights=None, out=None, **kwargs):
+def warp_patch_onto_kpts(
+        kpts, patch, chipshape,
+        weights=None,
+        out=None,
+        cov_scale_factor=.2,
+        cov_agg_mode='max',
+        cov_remove_shape=False,
+        cov_remove_scale=False,
+        cov_size_penalty_on=True,
+        cov_size_penalty_power=.5,
+        cov_size_penalty_frac=.1):
     r"""
     Overlays the source image onto a destination image in each keypoint location
 
@@ -186,8 +171,6 @@ def warp_patch_onto_kpts(kpts, patch, chipshape, weights=None, out=None, **kwarg
         >>>     pt.show_if_requested()
     """
     import vtool as vt
-    cov_scale_factor = kwargs.get('cov_scale_factor', .2)
-    cov_agg_mode = kwargs.get('cov_agg_mode', 'max')
     #if len(kpts) == 0:
     #    return None
     chip_scale_h = int(np.ceil(chipshape[0] * cov_scale_factor))
@@ -202,8 +185,6 @@ def warp_patch_onto_kpts(kpts, patch, chipshape, weights=None, out=None, **kwarg
     patch_shape = patch.shape
     # Scale keypoints into destination image
     # <HACK>
-    cov_remove_shape = kwargs.get('cov_remove_shape', False)
-    cov_remove_scale = kwargs.get('cov_remove_scale', False)
     if cov_remove_shape:
         # disregard affine information in keypoints
         # i still dont understand why we are trying this
@@ -233,7 +214,10 @@ def warp_patch_onto_kpts(kpts, patch, chipshape, weights=None, out=None, **kwarg
     weight_list = weights
     # For each keypoint warp a gaussian scaled by the feature score into the image
     warped_patch_iter = warped_patch_generator(
-        patch, dsize, affmat_list, weight_list, **kwargs)
+        patch, dsize, affmat_list, weight_list,
+        cov_size_penalty_on=cov_size_penalty_on,
+        cov_size_penalty_power=cov_size_penalty_power,
+        cov_size_penalty_frac=cov_size_penalty_frac)
     # Either max or sum
     if cov_agg_mode == 'max':
         dstimg = vt.iter_reduce_ufunc(np.maximum, warped_patch_iter, out=out)
@@ -244,6 +228,49 @@ def warp_patch_onto_kpts(kpts, patch, chipshape, weights=None, out=None, **kwarg
     else:
         raise AssertionError('Unknown cov_agg_mode=%r' % (cov_agg_mode,))
     return dstimg
+
+
+def warped_patch_generator(
+        patch, dsize, affmat_list, weight_list,
+        cov_size_penalty_on=True,
+        cov_size_penalty_power=.5,
+        cov_size_penalty_frac=.1):
+    """
+    generator that warps the patches (like gaussian) onto an image with dsize using constant memory.
+
+    output must be used or copied on every iteration otherwise the next output will clobber the previous
+
+    References:
+        http://docs.opencv.org/modules/imgproc/doc/geometric_transformations.html#warpaffine
+    """
+    shape = dsize[::-1]
+    #warpAffine is weird. If the shape of the dst is the same as src we can
+    #use the dst outvar. I dont know why it needs that.  It seems that this
+    #will not operate in place even if a destination array is passed in when
+    #src.shape != dst.shape.
+    patch_h, patch_w = patch.shape
+    # If we pad the patch we can use dst
+    padded_patch = np.zeros(shape, dtype=np.float32)
+    # Prealloc output,
+    warped = np.zeros(shape, dtype=np.float32)
+    prepad_h, prepad_w = patch.shape[0:2]
+    # each score is spread across its contributing pixels
+    for (M, weight) in zip(affmat_list, weight_list):
+        # inplace weighting of the patch
+        np.multiply(patch, weight, out=padded_patch[:prepad_h, :prepad_w] )
+        # inplace warping of the padded_patch
+        cv2.warpAffine(padded_patch, M, dsize, dst=warped,
+                       flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT,
+                       borderValue=0)
+        if cov_size_penalty_on:
+            # TODO: size penalty should be based of splitting number of
+            # bins in a keypoint over the region that it covers
+            total_weight = (warped.sum() ** cov_size_penalty_power) * cov_size_penalty_frac
+            if total_weight > 1:
+                # Whatever the size of the keypoint is it should
+                # contribute a total of 1 score
+                np.divide(warped, total_weight, out=warped)
+        yield warped
 
 
 def get_gaussian_weight_patch(gauss_shape=(19, 19), gauss_sigma_frac=.3, gauss_norm_01=True):
@@ -339,15 +366,12 @@ def gridsearch_kpts_coverage_mask():
     #    imgmask_list = [
     #        255 * (mask / mask.max()) for mask in imgmask_list
     #    ]
-
-    fnum = 1
+    fnum = pt.next_fnum()
     ut.interact_gridsearch_result_images(
         pt.imshow, cfgdict_list, cfglbl_list,
         imgmask_list, fnum=fnum, figtitle='coverage image', unpack=False,
         max_plots=25)
-
     pt.iup()
-    #pt.show_if_requested()
 
 
 def testdata_coverage(fname=None):
