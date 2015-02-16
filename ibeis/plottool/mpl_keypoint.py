@@ -149,16 +149,16 @@ def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
 
 def _draw_pts(ax, _xs, _ys, pts_size, pts_color, pts_alpha=None):
     ptskw = dict(c=pts_color, s=(2 * pts_size), marker='o', edgecolor='none')
-    OLD_WAY = True
+    OLD_WAY = False
     #if pts_alpha is not None:
     #    ptskw['alpha'] = pts_alpha
     if OLD_WAY:
-        print(ut.dict_str(ptskw))
+        #print(ut.dict_str(ptskw))
         ax.scatter(_xs, _ys, **ptskw)
         # FIXME: THIS MIGHT CAUSE ISSUES: UNEXPECTED CALL
         #ax.autoscale(enable=False)
     else:
-        pts_patches = [mpl.patches.Circle((x, y), radius=pts_size, fill=True)
+        pts_patches = [mpl.patches.Circle((x, y), radius=(pts_size / 2), fill=True)
                        for x, y in zip(_xs, _ys)]
         #print(pts_color)
         return pts_patches
