@@ -98,3 +98,5 @@ ibeis/model/hots/smk/csmk/
 failed_doctests.txt
 failed_shelltests.txt
 _page
+
+T*.sh
