@@ -583,7 +583,6 @@ def testdata_post_vsmany_sver():
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
     """
     from ibeis.model import Config
-    dbname = ut.get_argval('--db', str, 'PZ_MTEST')
     cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum', sver_weighting=True)
     rrvsone_cfgdict = dict(Config.RerankVsOneConfig().parse_items())
     #rrvsone_cfgdict = ut.util_arg.argparse_dict(rrvsone_cfgdict)
@@ -594,15 +593,18 @@ def testdata_post_vsmany_sver():
     for key in cfgdict:
         if cfgdict[key] != default_cfgdict[key]:
             print('[NONDEFAULT] cfgdict[%r] = %r' % (key, cfgdict[key]))
-
     cfgdict['rrvsone_on'] = True
-    qaid = ut.get_argval('--qaid', int, 1)
-    daid_list = ut.get_argval('--daid_list', list, None)
+    #qaid      = ut.get_argval('--qaid', int, 1)
+    #daid_list = ut.get_argval('--daid_list', list, None)
+    #daid_list = 'all' if daid_list is None else daid_list
+    #qaid_list = [qaid]
     #ut.embed()
-    daid_list = 'all' if daid_list is None else daid_list
-    qaid_list = [qaid]
-    # VSMANY TO GET HOMOG
-    ibs, qreq_ = plh.get_pipeline_testdata(dbname, cfgdict=cfgdict, qaid_list=qaid_list, daid_list=daid_list)
+    # Get pipeline testdata for this configuration
+    ibs, qreq_ = plh.get_pipeline_testdata(
+        cfgdict=cfgdict, qaid_list=[1], daid_list='all', defaultdb='PZ_MTEST', cmdline_ok=True)
+    qaid_list = qreq_.get_external_qaids().tolist()
+    qaid = qaid_list[0]
+    #daid_list = qreq_.get_external_daids().tolist()
     if len(ibs.get_annot_groundtruth(qaid)) == 0:
         print('WARNING: qaid=%r has no groundtruth' % (qaid,))
     locals_ = plh.testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')

@@ -1525,6 +1525,7 @@ def chipmatch_to_resdict(qreq_, qaid2_chipmatch, verbose=VERB_PIPELINE):
             prob_list = normalizer.normalize_score_list(score_list)
             daid2_prob = dict(zip(six.iterkeys(daid2_score), prob_list))
             qres.aid2_prob = daid2_prob
+        qres.aid2_H = daid2_H
         # Populate query result fields
         qres.aid2_score = daid2_score
         # Populate query result metadata (things like k+1th neighbor)

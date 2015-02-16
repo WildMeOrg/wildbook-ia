@@ -682,11 +682,14 @@ python dev.py --db PZ_MTEST -t sver_new best --allgt
 python dev.py --db GZ_ALL -t sver_new best --allgt
 
 
-# CLEARNING QUERY RESULT CACHE
+# DELETE / CLEAN / CLEAR QUERY RESULT CACHE
 python dev.py --db PZ_MTEST --delete-qres-cache
 python dev.py --db PZ_Master0 --delete-qres-cache
 python dev.py --db GZ_ALL --delete-qres-cache
 python dev.py --db Oxford --delete-qres-cache
+
+# DELETE / CLEAN / CLEAR ALL CACHE
+python dev.py --db PZ_MTEST --delete-cache
 
 
 #RECENT DEBUGGING

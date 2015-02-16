@@ -1,8 +1,5 @@
 """
 displays results from experiment_harness
-
-TODO:
-    ishow_qres_analysis
 """
 from __future__ import absolute_import, division, print_function
 import itertools

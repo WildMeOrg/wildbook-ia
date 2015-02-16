@@ -1,3 +1,9 @@
+"""
+TODO:
+optional symetric and asymmetric search
+
+"""
+
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import vtool as vt
@@ -48,12 +54,9 @@ def get_kpts_distinctiveness(ibs, aid_list, config={}):
     normer_list = [distinctiveness_normalizer.request_species_distinctiveness_normalizer(species)
                    for species in species_text_list]
 
-    dcvs_kw = {
-        'dcvs_K'        : config.get('dcvs_K', 5),
-        'dcvs_power'    : config.get('dcvs_power', 1),
-        'dcvs_min_clip' : config.get('dcvs_min_clip', .2),
-        'dcvs_max_clip' : config.get('dcvs_max_clip', .3),
-    }
+    from ibeis.model import Config
+
+    dcvs_kw = Config.DCVS_DEFAULT.updated_cfgdict(config)
 
     # Reduce to get results
     dstncvs_groups = [
@@ -185,30 +188,6 @@ def general_coverage_mask_generator(make_mask_func, ibs, qaid, fm_list, fs_list,
         yield weight_mask_m, weight_mask
 
 
-def show_coverage_mask(ibs, cm, masks_list, fnum=None):
-    import plottool as pt
-    from ibeis import viz
-    if fnum is None:
-        fnum = pt.next_fnum()
-    index = 0
-    weight_mask_m, weight_mask = masks_list[0]
-    stacked_weights, woff, hoff = pt.stack_images(weight_mask_m, weight_mask)
-    #pt.imshow(255 * ut.norm_zero_one(stacked_weights), pnum=(1, 2, 1))
-    wh1 = weight_mask_m.shape[0:2][::-1]
-    wh2 = weight_mask.shape[0:2][::-1]
-    score_list = list(score_masks(masks_list))
-    daid, fm, fs = cm.daid_list[index], cm.fm_list[index], cm.fs_list[index]
-    qaid = cm.qaid
-    pt.figure(fnum=fnum, pnum=(1, 2, 1))
-    # Draw image with bbox
-    pt.imshow(255 * (stacked_weights), fnum=fnum, pnum=(1, 2, 1))
-    pt.draw_bbox((   0,    0) + wh1, bbox_color=(0, 0, 1))
-    pt.draw_bbox((woff, hoff) + wh2, bbox_color=(0, 0, 1))
-    # Draw matches
-    viz.viz_matches.show_matches2(ibs, qaid, daid, fm, fs, draw_pts=False, draw_lines=True, draw_ell=False, fnum=fnum, pnum=(1, 2, 2))
-    pt.set_figtitle('score=%.4f' % (score_list[index],))
-
-
 def get_masks(ibs, cm, config={}):
     r"""
 
@@ -247,7 +226,7 @@ def get_masks(ibs, cm, config={}):
     #if config is None:
     #    config =
     #print(config.maskscore_mode)
-    qaid = cm.qaid
+    qaid    = cm.qaid
     fm_list = cm.fm_list
     fs_list = cm.fs_list
     maskscore_mode = config.get('maskscore_mode', 'grid')
@@ -257,14 +236,40 @@ def get_masks(ibs, cm, config={}):
         'kpts': coverage_kpts.make_kpts_coverage_mask
     }[maskscore_mode]
 
+    # Hack to make kwargs happy
     cov_cfg = ut.filter_valid_kwargs(make_mask_func, config)
 
-    masks_iter = general_coverage_mask_generator(make_mask_func, ibs, qaid, fm_list, fs_list, config, cov_cfg)
-    masks_list = [(weight_mask_m.copy(), weight_mask) for weight_mask_m, weight_mask  in masks_iter]
+    with ut.embed_on_exception_context:
+        masks_iter = general_coverage_mask_generator(make_mask_func, ibs, qaid, fm_list, fs_list, config, cov_cfg)
+        # copy weight mask as it comes back if you want to see them
+        masks_list = [(weight_mask_m.copy(), weight_mask) for weight_mask_m, weight_mask  in masks_iter]
     #if ut.DEBUG2:
     #    score_list = list(score_masks(masks_list))
     #    assert score_list == list(general_coverage_score_generator(make_mask_func, ibs, qaid, fm_list, fs_list, config, cov_cfg))
     return masks_list
+
+
+def show_coverage_mask(ibs, cm, masks_list, index=0, fnum=None):
+    import plottool as pt
+    from ibeis import viz
+    if fnum is None:
+        fnum = pt.next_fnum()
+    weight_mask_m, weight_mask = masks_list[index]
+    stacked_weights, woff, hoff = pt.stack_images(weight_mask_m, weight_mask)
+    #pt.imshow(255 * ut.norm_zero_one(stacked_weights), pnum=(1, 2, 1))
+    wh1 = weight_mask_m.shape[0:2][::-1]
+    wh2 = weight_mask.shape[0:2][::-1]
+    score_list = list(score_masks(masks_list))
+    daid, fm, fs = cm.daid_list[index], cm.fm_list[index], cm.fs_list[index]
+    qaid = cm.qaid
+    pt.figure(fnum=fnum, pnum=(1, 2, 1))
+    # Draw image with bbox
+    pt.imshow(255 * (stacked_weights), fnum=fnum, pnum=(1, 2, 1))
+    pt.draw_bbox((   0,    0) + wh1, bbox_color=(0, 0, 1))
+    pt.draw_bbox((woff, hoff) + wh2, bbox_color=(0, 0, 1))
+    # Draw matches
+    viz.viz_matches.show_matches2(ibs, qaid, daid, fm, fs, draw_pts=False, draw_lines=True, draw_ell=False, fnum=fnum, pnum=(1, 2, 2))
+    pt.set_figtitle('score=%.4f' % (score_list[index],))
 
 
 def testdata_scoring():

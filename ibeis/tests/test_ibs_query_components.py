@@ -11,7 +11,6 @@ import utool
 from plottool import draw_func2 as df2
 #IBEIS
 from ibeis import viz
-from ibeis.viz import interact
 from ibeis.model.hots import query_helpers
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[TEST_QUERY_COMP]')
@@ -59,9 +58,7 @@ def TEST_QUERY_COMP(ibs):
         print(lbl)
         fnum = df2.next_fnum()
         df2.figure(fnum=fnum, doclf=True)
-        #viz_matches.show_matches(ibs, qres, aid2, fnum=fnum, in_image=True)
-        #viz.show_qres(ibs, qres, fnum=fnum, top_aids=top_aids, ensure=False)
-        interact.ishow_qres(ibs, qres, fnum=fnum, top_aids=top_aids, ensure=False)
+        qres.ishow_top(ibs,  fnum=fnum, top_aids=top_aids, ensure=False)
         df2.set_figtitle(lbl)
         df2.adjust_subplots_safe(top=.8)
 

@@ -201,7 +201,7 @@ class MainWindowBackend(QtCore.QObject):
         #kwargs['show_query'] = True
         kwargs['in_image'] = False
         if ut.get_argflag(('--show-mplres',)):
-            interact.ishow_qres(back.ibs, qres, **kwargs)
+            qres.ishow_top(back.ibs, **kwargs)
 
         #interact.ishow_matches(back.ibs, qres, **kwargs)
         # HACK SHOW QT RESULTS

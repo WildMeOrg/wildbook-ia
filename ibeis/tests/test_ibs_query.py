@@ -1,17 +1,27 @@
 #!/usr/bin/env python2.7
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-# Python
-import multiprocessing
-# Tools
 import utool
+import utool as ut
 from plottool import draw_func2 as df2
-#IBEIS
-from ibeis.viz import interact
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_QUERY]')
 
 
 def TEST_QUERY(ibs):
+    r"""
+    CommandLine:
+        python -m ibeis.tests.test_ibs_query --test-TEST_QUERY
+        python -m ibeis.tests.test_ibs_query --test-TEST_QUERY --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.tests.test_ibs_query import *  # NOQA
+        >>> import plottool as pt
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> TEST_QUERY(ibs)
+        >>> pt.show_if_requested()
+    """
     print('[TEST_QUERY]')
     daid_list = ibs.get_valid_aids()
     print('[TEST_QUERY] len(daid_list)=%r' % (len(daid_list)))
@@ -37,28 +47,38 @@ def TEST_QUERY(ibs):
         utool.printex(ex, key_list=list(locals().keys()))
         raise
 
-    for qaid in qaid_list:
-        qres  = qres_dict[qaid]
-        top_aids = qres.get_top_aids()
-        #top_aids = utool.safe_slice(top_aids, 3)
-        aid2 = top_aids[0]
-        fnum = df2.next_fnum()
-        df2.figure(fnum=fnum, doclf=True)
-        #viz_matches.show_matches(ibs, qres, aid2, fnum=fnum, in_image=True)
-        #viz.show_qres(ibs, qres, fnum=fnum, top_aids=top_aids, ensure=False)
-        interact.ishow_qres(ibs, qres, fnum=fnum, top_aids=top_aids,
-                            ensure=False, annot_mode=1)
-        df2.set_figtitle('Query Result')
-        df2.adjust_subplots_safe(top=.8)
+    if ut.show_was_requested():
+        for qaid in qaid_list:
+            qres  = qres_dict[qaid]
+            top_aids = qres.get_top_aids()
+            #top_aids = utool.safe_slice(top_aids, 3)
+            aid2 = top_aids[0]
+            fnum = df2.next_fnum()
+            df2.figure(fnum=fnum, doclf=True)
+            qres.ishow_top(ibs, fnum=fnum, top_aids=top_aids, ensure=False, annot_mode=1)
+            df2.set_figtitle('Query Result')
+            df2.adjust_subplots_safe(top=.8)
     return locals()
 
 
 if __name__ == '__main__':
-    multiprocessing.freeze_support()  # For windows
-    import ibeis
-    main_locals = ibeis.main(defaultdb='testdb1', gui=False)
-    ibs = main_locals['ibs']
-    test_locals = utool.run_test(TEST_QUERY, ibs)
-    execstr = utool.execstr_dict(test_locals, 'test_locals')
-    exec(execstr)
-    exec(utool.ipython_execstr())
+    """
+    CommandLine:
+        python -m ibeis.tests.test_ibs_query
+        python -m ibeis.tests.test_ibs_query --allexamples
+        python -m ibeis.tests.test_ibs_query --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    nPass, nTotal, failed_cmd_list = ut.doctest_funcs()
+    if nTotal == 0:
+        # OLD MAIN
+        multiprocessing.freeze_support()  # For windows
+        import ibeis
+        main_locals = ibeis.main(defaultdb='testdb1', gui=False)
+        ibs = main_locals['ibs']
+        test_locals = utool.run_test(TEST_QUERY, ibs)
+        execstr = utool.execstr_dict(test_locals, 'test_locals')
+        exec(execstr)
+        exec(utool.ipython_execstr())

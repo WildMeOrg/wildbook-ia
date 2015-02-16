@@ -273,19 +273,18 @@ def localize_images(ibs, gid_list_=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> import ibeis
-        >>> from os.path import relpath
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> gpath_list  = [ut.grab_test_imgpath('carl.jpg')]
+        >>> gpath_list  = [ut.unixpath(ut.grab_test_imgpath('carl.jpg'))]
         >>> gid_list_   = ibs.add_images(gpath_list, auto_localize=False)
         >>> gpath_list2 = ibs.get_image_paths(gid_list_)
-        >>> assert gpath_list == gpath_list2, 'should not move when autolocalize is False'
+        >>> ut.assert_eq(gpath_list, gpath_list2, 'should not move when autolocalize is False')
         >>> # execute function
         >>> result = localize_images(ibs, gid_list_)
         >>> gpath_list3 = ibs.get_image_paths(gid_list_)
-        >>> assert gpath_list3 != gpath_list2
+        >>> assert gpath_list3 != gpath_list2, 'should now be different'
         >>> gpath3 = gpath_list3[0]
-        >>> rel_gpath3 = relpath(gpath3, ibs.get_workdir())
+        >>> rel_gpath3 = ut.relpath_unix(gpath3, ibs.get_workdir())
         >>> result = rel_gpath3
         >>> print(result)
         >>> # Clean things up
@@ -609,11 +608,11 @@ def get_image_paths(ibs, gid_list):
         >>> #gid_list = ibs.get_valid_gids()
         >>> # execute function
         >>> #gpath_list = get_image_paths(ibs, gid_list)
-        >>> new_gpath = ut.grab_test_imgpath('carl.jpg')
+        >>> new_gpath = ut.unixpath(ut.grab_test_imgpath('carl.jpg'))
         >>> new_gids = ibs.add_images([new_gpath], auto_localize=False)
         >>> new_gpath_list = get_image_paths(ibs, new_gids)
         >>> # verify results
-        >>> assert new_gpath == new_gpath_list[0]
+        >>> ut.assert_eq(new_gpath, new_gpath_list[0])
         >>> result = str(new_gpath_list)
         >>> # clean up the database!
         >>> ibs.delete_images(new_gids)

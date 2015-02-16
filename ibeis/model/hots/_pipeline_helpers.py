@@ -74,21 +74,39 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
     return locals()
 
 
-def get_pipeline_testdata(dbname=None, cfgdict={}, qaid_list=None,
-                          daid_list=None):
+def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
+                          daid_list=None, defaultdb='testdb1', cmdline_ok=True):
     """
+    Gets testdata for pipeline defined by tests / and or command line
+
+    Args:
+        cmdline_ok : if false does not check command line
+
+    CommandLine:
+        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> import ibeis  # NOQA
         >>> from ibeis.model.hots import _pipeline_helpers as plh
         >>> cfgdict = dict(pipeline_root='vsone', codename='vsone')
         >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict)
+        >>> print(qreq_.get_external_daids())
+        >>> print(qreq_.get_external_qaids())
         >>> print(qreq_.qparams.query_cfgstr)
     """
     import ibeis
     from ibeis.model.hots import query_request
-    if dbname is None:
-        dbname = ut.get_argval('--db', str, 'testdb1')
+    # Allow commandline specification if paramaters are not specified in tests
+    if cfgdict is None:
+        cfgdict = {}
+    if cmdline_ok:
+        #if dbname is None:
+        #if qaid_list is None:
+        #if daid_list is None or daid_list == 'all':
+        dbname = ut.get_argval('--db', str, defaultdb)
+        qaid_list = ut.get_argval(('--qaid_list', '--qaid'), list, qaid_list)
+        daid_list = ut.get_argval('--daid_list', list, daid_list)
     ibs = ibeis.opendb(dbname)
     if qaid_list is None:
         if dbname == 'testdb1':

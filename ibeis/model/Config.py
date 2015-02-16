@@ -18,11 +18,13 @@ ConfigBase = ut.Pref
 
 class ParamInfo(object):
     """ small class for individual paramater information """
-    def __init__(pi, varname, default, shortprefix=ut.NoParam, type_=ut.NoParam):
+    def __init__(pi, varname, default, shortprefix=ut.NoParam, type_=ut.NoParam, varyvals=[]):
         pi.varname = varname
         pi.default = default
         pi.shortprefix = shortprefix
         pi.type_ = type(default) if type_ is ut.NoParam else type_
+        # for gridsearch
+        pi.varyvals = varyvals
 
     def get_itemstr(pi, cfg):
         varstr = str(getattr(cfg,  pi.varname))
@@ -31,6 +33,31 @@ class ParamInfo(object):
         else:
             itemstr =  pi.varname + '=' + varstr
         return itemstr
+
+
+class ParamInfoList(object):
+    """ small class for ut.Pref-less configurations """
+    def __init__(self, name, param_info_list):
+        self.name = name
+        self.param_info_list = param_info_list
+
+    def aslist(self):
+        return self.param_info_list
+
+    def updated_cfgdict(self, dict_):
+        return {pi.varname: dict_.get(pi.varname, pi.default) for pi in self.param_info_list}
+
+    def get_varydict(self):
+        """ for gridsearch """
+        return {pi.varname: pi.varyvals for pi in self.param_info_list}
+
+
+DCVS_DEFAULT = ParamInfoList('distinctivness', [
+    ParamInfo('dcvs_power', 1.0, 'p',    varyvals=[.5, 1.0, 1.5, 2.0]),
+    ParamInfo('dcvs_min_clip', .2, 'mn', varyvals=[.2, .02, .03][0:1]),
+    ParamInfo('dcvs_max_clip', .5, 'mx', varyvals=[.05, .3, .4, .45, .5, 1.0][1:4]),
+    ParamInfo('dcvs_K', 5, 'dcvsK',      varyvals=[5, 7, 15][0:1]),
+])
 
 
 def parse_config_items(cfg):
@@ -631,52 +658,48 @@ class RerankVsOneConfig(ConfigBase):
     def get_param_info_list(rrvsone_cfg):
         # new way to try and specify config options.
         # not sure if i like it yet
-        PI = ParamInfo
         param_info_list = [
-            PI('rrvsone_on', False, ''),
+            ParamInfo('rrvsone_on', False, ''),
             # shortlist params
-            PI('nNameShortlistVsone', 5, 'nNm='),
-            PI('nAnnotPerName', 2, 'nApN='),
+            ParamInfo('nNameShortlistVsone', 5, 'nNm='),
+            ParamInfo('nAnnotPerName', 2, 'nApN='),
             # matching types
-            PI('prior_coeff', .6, 'prior_coeff='),
-            PI('unconstrained_coeff', .4, 'unc_coeff='),
-            PI('constrained_coeff',   0.0, 'scr_coeff='),
+            ParamInfo('prior_coeff', .6, 'prior_coeff='),
+            ParamInfo('unconstrained_coeff', .4, 'unc_coeff='),
+            ParamInfo('constrained_coeff',   0.0, 'scr_coeff='),
             # matching svers
-            PI('sver_unconstrained',  False, 'sver_unc='),
-            PI('sver_constrained',  False, 'sver_scr='),
+            ParamInfo('sver_unconstrained',  False, 'sver_unc='),
+            ParamInfo('sver_constrained',  False, 'sver_scr='),
             # unconstrained matching
-            PI('unc_ratio_thresh', .625, 'uncRat>'),
+            ParamInfo('unc_ratio_thresh', .625, 'uncRat>'),
             # spatially constrained matching
-            PI('scr_match_xy_thresh', .15, 'xy>'),
-            PI('scr_norm_xy_min', 0.1, ''),
-            PI('scr_norm_xy_max', 1.0, ''),
-            PI('scr_ratio_thresh', .95, 'scrRat>'),
-            PI('scr_K', 7, 'scK'),
+            ParamInfo('scr_match_xy_thresh', .15, 'xy>'),
+            ParamInfo('scr_norm_xy_min', 0.1, ''),
+            ParamInfo('scr_norm_xy_max', 1.0, ''),
+            ParamInfo('scr_ratio_thresh', .95, 'scrRat>'),
+            ParamInfo('scr_K', 7, 'scK'),
             # MASK SCORING
-            PI('maskscore_mode', 'grid', 'cov='),
+            ParamInfo('maskscore_mode', 'grid', 'cov='),
             # grid scoring
-            #PI('grid_scale_factor', .2, 'sf'),
-            PI('grid_scale_factor', .1, 'sf'),
-            PI('grid_steps', 3, 'stps'),
-            PI('grid_sigma', 1.6, 'sigma'),
+            #ParamInfo('grid_scale_factor', .2, 'sf'),
+            ParamInfo('grid_scale_factor', .1, 'sf'),
+            ParamInfo('grid_steps', 3, 'stps'),
+            ParamInfo('grid_sigma', 1.6, 'sigma'),
             # kpts scoring
-            PI('cov_agg_mode' , 'max'),
-            PI('cov_blur_ksize' , (5, 5)),
-            PI('cov_blur_on' , True),
-            PI('cov_blur_sigma' , 5.0),
-            PI('cov_remove_scale' , True),
-            PI('cov_remove_shape' , True),
-            PI('cov_scale_factor' , .3),
-            PI('cov_size_penalty_frac' , .1),
-            PI('cov_size_penalty_on' , True),
-            PI('cov_size_penalty_power' , .5),
+            ParamInfo('cov_agg_mode' , 'max'),
+            ParamInfo('cov_blur_ksize' , (5, 5)),
+            ParamInfo('cov_blur_on' , True),
+            ParamInfo('cov_blur_sigma' , 5.0),
+            ParamInfo('cov_remove_scale' , True),
+            ParamInfo('cov_remove_shape' , True),
+            ParamInfo('cov_scale_factor' , .3),
+            ParamInfo('cov_size_penalty_frac' , .1),
+            ParamInfo('cov_size_penalty_on' , True),
+            ParamInfo('cov_size_penalty_power' , .5),
             # TODO kpts scoring
             # distinctiveness
-            PI('dcvs_K', 5, 'dcvsK'),
-            PI('dcvs_clip_min', .2, 'mn'),
-            PI('dcvs_clip_max', .3, 'mx'),
-            PI('dcvs_power', 1, 'p'),
-        ]
+        ] + DCVS_DEFAULT.aslist()
+
         return param_info_list
 
     def get_constraint_func():
@@ -1285,8 +1308,7 @@ def default_vsone_cfg(ibs, **kwargs):
     kwargs['pipeline_root'] = 'vsone'
     ut.dict_update_newkeys(kwargs, {
         'lnbnn_weight': 0.0,
-        'checks': 256,
-        'K': 1,
+        'checks': 256, 'K': 1,
         'Knorm': 1,
         'ratio_weight': 1.0,
         'ratio_thresh': .6666  # 1.5,

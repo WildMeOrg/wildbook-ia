@@ -228,7 +228,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             dstcnvs_normer.rebuild(cachedir)
             dstcnvs_normer.save_flann(cachedir)
 
-    def get_distinctiveness(dstcnvs_normer, qfx2_vec, **kwargs):
+    def get_distinctiveness(dstcnvs_normer, qfx2_vec, dcvs_K=2, dcvs_power=1.0, dcvs_max_clip=1.0, dcvs_min_clip=0.0):
         r"""
         Args:
             qfx2_vec (ndarray):  mapping from query feature index to vec
@@ -249,7 +249,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             >>> dstcnvs_normer, qreq_ = testdata_distinctiveness()
             >>> qaid = qreq_.get_external_qaids()[0]
             >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qaid, qreq_=qreq_)
-            >>> default_dict = {'dcvs_power': .25, 'dcvs_K': 5, 'dcvs_clip_max': .5}
+            >>> default_dict = {'dcvs_power': .25, 'dcvs_K': 5, 'dcvs_max_clip': .5}
             >>> kwargs = ut.argparse_dict(default_dict)
             >>> qfx2_dstncvs = dstcnvs_normer.get_distinctiveness(qfx2_vec, **kwargs)
             >>> ut.assert_eq(len(qfx2_dstncvs.shape), 1)
@@ -269,7 +269,6 @@ class DistinctivnessNormalizer(ut.Cachable):
             %s/\(^ *\)\(.*\)/\1>>> \2/c
 
         """
-        dcvs_K = kwargs.get('dcvs_K', 2)
         assert dcvs_K > 0 and dcvs_K < len(dstcnvs_normer.vecs), 'dcvs_K=%r' % (dcvs_K,)
         if len(qfx2_vec) == 0:
             (qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.empty_neighbors(0, dcvs_K)
@@ -279,15 +278,48 @@ class DistinctivnessNormalizer(ut.Cachable):
                 qfx2_vec, dcvs_K, checks=dstcnvs_normer.checks, cores=dstcnvs_normer.cores)
             # Ensure that distance returned are between 0 and 1
             #qfx2_dist = qfx2_dist / (dstcnvs_normer.max_distance ** 2)
-            qfx2_dist = np.sqrt(qfx2_dist_sqrd.astype(np.float64)) / 724.0
+            qfx2_dist = np.sqrt(qfx2_dist_sqrd.astype(np.float64)) / hstypes.VEC_PSEUDO_MAX_DISTANCE
             #qfx2_dist32 = np.sqrt(np.divide(qfx2_dist_sqrd, dstcnvs_normer.max_distance_sqrd))
             #qfx2_dist =
             #qfx2_dist = np.sqrt(qfx2_dist) / dstcnvs_normer.max_distance
         if dcvs_K == 1:
             qfx2_dist = qfx2_dist[:, None]
         norm_dist = qfx2_dist.T[dcvs_K - 1].T
-        qfx2_dstncvs = compute_distinctiveness_from_dist(norm_dist, **kwargs)
+        qfx2_dstncvs = compute_distinctiveness_from_dist(norm_dist, dcvs_power, dcvs_max_clip, dcvs_min_clip)
         return qfx2_dstncvs
+
+
+def compute_distinctiveness_from_dist(norm_dist, dcvs_power, dcvs_max_clip, dcvs_min_clip):
+    """
+    Compute distinctiveness from distance to dcvs_K+1 nearest neighbor
+
+    Ignore:
+        norm_dist = np.random.rand(1000)
+
+        import numexpr
+
+        %timeit np.divide(norm_dist, dcvs_max_clip)
+        %timeit numexpr.evaluate('norm_dist / dcvs_max_clip', local_dict=dict(norm_dist=norm_dist, dcvs_max_clip=dcvs_max_clip))
+        wd_cliped = np.divide(norm_dist, dcvs_max_clip)
+
+        %timeit numexpr.evaluate('wd_cliped > 1.0', local_dict=locals())
+        %timeit np.greater(wd_cliped, 1.0)
+
+        %timeit np.power(wd_cliped, dcvs_power)
+        %timeit numexpr.evaluate('wd_cliped ** dcvs_power', local_dict=locals())
+
+        %timeit
+    """
+    # expondent to augment distinctiveness scores.
+    # clip the distinctiveness at this fraction
+    clip_range = dcvs_max_clip - dcvs_min_clip
+    # apply distinctivness normalization
+    _tmp = np.clip(norm_dist, dcvs_min_clip, dcvs_max_clip)
+    np.subtract(_tmp, dcvs_min_clip, out=_tmp)
+    np.divide(_tmp, clip_range, out=_tmp)
+    np.power(_tmp, dcvs_power, out=_tmp)
+    dstncvs = _tmp
+    return dstncvs
 
 
 def show_chip_distinctiveness_plot(chip, kpts, dstncvs, fnum=1, pnum=None):
@@ -318,45 +350,6 @@ def show_chip_distinctiveness_plot(chip, kpts, dstncvs, fnum=1, pnum=None):
                   ell=ell, ell_alpha=.3, pts=not ell)
     pt.plt.sca(ax)
     #pt.figure(fnum, pnum=pnum)
-
-
-def compute_distinctiveness_from_dist(norm_dist, **kwargs):
-    """
-    Compute distinctiveness from distance to dcvs_K+1 nearest neighbor
-
-    Ignore:
-        norm_dist = np.random.rand(1000)
-
-        import numexpr
-
-        %timeit np.divide(norm_dist, dcvs_clip_max)
-        %timeit numexpr.evaluate('norm_dist / dcvs_clip_max', local_dict=dict(norm_dist=norm_dist, dcvs_clip_max=dcvs_clip_max))
-        wd_cliped = np.divide(norm_dist, dcvs_clip_max)
-
-        %timeit numexpr.evaluate('wd_cliped > 1.0', local_dict=locals())
-        %timeit np.greater(wd_cliped, 1.0)
-
-        %timeit np.power(wd_cliped, dcvs_power)
-        %timeit numexpr.evaluate('wd_cliped ** dcvs_power', local_dict=locals())
-
-        %timeit
-    """
-    # TODO: paramaterize
-    # expondent to augment distinctiveness scores.
-    dcvs_power = kwargs.get('dcvs_power', 1.0)
-    dcvs_clip_max = kwargs.get('dcvs_clip_max', .3)
-    dcvs_clip_min = kwargs.get('dcvs_clip_min', 0.2)
-    # clip the distinctiveness at this fraction
-    #dcvs_clip_max = kwargs.get('dcvs_clip_max', .2)
-    #dcvs_clip_max = kwargs.get('dcvs_clip_max', .4)
-    clip_range = dcvs_clip_max - dcvs_clip_min
-    # apply distinctivness normalization
-    _tmp = np.clip(norm_dist, dcvs_clip_min, dcvs_clip_max)
-    np.subtract(_tmp, dcvs_clip_min, out=_tmp)
-    np.divide(_tmp, clip_range, out=_tmp)
-    np.power(_tmp, dcvs_power, out=_tmp)
-    dstncvs = _tmp
-    return dstncvs
 
 
 def download_baseline_distinctiveness_normalizer(cachedir, species):
@@ -495,6 +488,7 @@ def test_single_annot_distinctiveness_params(ibs, aid):
     ####
     # HACK IN ABILITY TO SET CONFIG
     from ibeis.dev.main_commands import postload_commands
+    from ibeis.model import Config
     postload_commands(ibs, None)
 
     import plottool as pt
@@ -513,14 +507,7 @@ def test_single_annot_distinctiveness_params(ibs, aid):
     # TODO: use slicing to control the params being varied
     # Use GridSearch class to modify paramaters as you go.
 
-    varied_dict = {
-        # TODO rename to dcvs_K
-        'dcvs_power': [.5, 1.0, 1.5, 2.0][:],
-        'dcvs_clip_max': [.05, .3, .4, .45, .5, 1.0][1:4],
-        'dcvs_clip_min': [.2, .02, .03][0:1],
-        'dcvs_K': [5, 7, 15][0:1],
-        # Going with dcvs_K=5, dcvs_power=1, min=.2, max=.3
-    }
+    varied_dict = Config.DCVS_DEFAULT.get_varydict()
 
     print('Varied Dict: ')
     print(ut.dict_str(varied_dict))

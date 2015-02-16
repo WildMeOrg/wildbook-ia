@@ -39,7 +39,6 @@ from plottool import draw_func2 as df2
 # IBEIS
 from ibeis.dev import main_helpers
 from ibeis.dev import dbinfo
-from ibeis.viz import interact
 from ibeis.dev import experiment_configs
 from ibeis.dev import experiment_harness
 from ibeis.dev import results_all
@@ -395,11 +394,7 @@ def gvcomp(ibs, qaid_list, daid_list):
         allres = results_all.get_allres(ibs, qaid_list)
         for qaid in qaid_list:
             qres = allres.get_qres(qaid)
-            interact.ishow_qres(ibs, qres,
-                                annot_mode=2,
-                                in_image=True,
-                                figtitle='Qaid=%r %s' % (qres.qaid, qres.cfgstr)
-                                )
+            qres.ishow_top(ibs, annot_mode=2, in_image=True, figtitle='Qaid=%r %s' % (qres.qaid, qres.cfgstr))
         return allres
     ibs_GV = ibs
     ibs_RI = ibs.clone_handle(nogravity_hack=True)

@@ -27,19 +27,6 @@ def TIME_QUERY(ibs):
     with utool.Timer('timing all vs all query'):
         qres_dict = ibs._query_chips4(qaid_list, daid_list, **querykw)
 
-    #for qaid in qaid_list:
-    #    qres  = qres_dict[qaid]
-    #    top_aids = qres.get_top_aids(ibs)
-    #    top_aids = utool.safe_slice(top_aids, 3)
-    #    aid2 = top_aids[0]
-    #    fnum = df2.next_fnum()
-    #    df2.figure(fnum=fnum, doclf=True)
-    #    #viz_matches.show_matches(ibs, qres, aid2, fnum=fnum, in_image=True)
-    #    #viz.show_qres(ibs, qres, fnum=fnum, top_aids=top_aids, ensure=False)
-    #    interact.ishow_qres(ibs, qres, fnum=fnum, top_aids=top_aids,
-    #                        ensure=False, annot_mode=1)
-    #    df2.set_figtitle('Query Result')
-    #    df2.adjust_subplots_safe(top=.8)
     print('[/TIME_QUERY]')
     return locals()
 

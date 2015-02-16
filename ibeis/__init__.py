@@ -7,11 +7,23 @@ TODO: LAZY IMPORTS?
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
 import utool
+import utool as ut
 import sys
 
 __version__ = '0.1.0.dev1'
 
 utool.noinject(__name__, '[ibeis.__init__]', DEBUG=False)
+
+
+if ut.is_developer():
+    standard_visualization_functions = [
+        'show_image',
+        'show_chip',
+        'show_chipmatch',
+        'show_chipmatches',
+        'show_vocabulary',
+        #'show_vocabulary',
+    ]
 
 
 # If we dont initialize plottool before <something>

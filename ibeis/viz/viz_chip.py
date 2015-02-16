@@ -10,7 +10,8 @@ from ibeis.viz import viz_image
 
 
 @utool.indent_func
-def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
+def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
+                weight_label=None, weights=None, **kwargs):
     """ Driver function to show chips
 
         Args:
@@ -59,10 +60,18 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
         if 'color' not in kwargs:
             #from ibeis.model.preproc import preproc_featweight
             #featweights = preproc_featweight.compute_fgweights(ibs, [aid])[0]
-            if ibs.has_species_detector(ibs.get_annot_species_texts(aid)):
-                featweights = ibs.get_annot_fgweights([aid], ensure=True)[0]
-                color = df2.scores_to_color(featweights, cmap_='hot', reverse_cmap=False)
+            if weights is None and ibs.has_species_detector(ibs.get_annot_species_texts(aid)):
+                weight_label = 'fg_weights'
+                weights = ibs.get_annot_fgweights([aid], ensure=True)[0]
+            if weights is not None:
+                cmap_ = 'hot'
+                #if weight_label == 'dstncvs':
+                #    cmap_ = 'rainbow'
+                color = df2.scores_to_color(weights, cmap_=cmap_, reverse_cmap=False)
                 kwargs['color'] = color
+                kwargs['ell_color'] = color
+                kwargs['pts_color'] = color
+
         kpts_ = vh.get_kpts(ibs, aid, in_image, **kwargs)
         try:
             del kwargs['kpts']
@@ -78,11 +87,12 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='', **kwargs):
         annotekw = viz_image.get_annot_annotations(ibs, aid_list, sel_aids=[aid])
         viz_image2.draw_image_overlay(ax, **annotekw)
 
-    if 'featweights' in vars() and 'color' in kwargs:
-        # HACK HACK HACK
-        if len(featweights) > 0:
-            cb = df2.colorbar(featweights, kwargs['color'])
-            cb.set_label('fg_weights')
+    #if 'featweights' in vars() and 'color' in kwargs:
+    if weights is not None and weight_label is not None:
+        ## HACK HACK HACK
+        if len(weights) > 0:
+            cb = df2.colorbar(weights, kwargs['color'])
+            cb.set_label(weight_label)
 
 
 if __name__ == '__main__':

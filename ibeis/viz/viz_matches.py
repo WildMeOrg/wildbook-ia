@@ -13,6 +13,7 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
     """
     TODO: use this as the main function.
     Have the qres version be a wrapper
+    Integrate ChipMatch2
     """
     in_image = kwargs.get('in_image', False)
     draw_fmatches = kwargs.get('draw_fmatches', True)
