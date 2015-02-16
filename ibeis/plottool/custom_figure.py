@@ -4,6 +4,7 @@ import utool as ut
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import warnings
+import functools
 from plottool.custom_constants import FIGSIZE, DPI, FONTS
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[customfig]')
 ut.noinject(__name__, '[customfig]')
@@ -14,6 +15,8 @@ def customize_figure(fig, docla):
     #    fig.user_stat_list = []
     #    fig.user_notes = []
     fig.df2_closed = False
+    fig.pt_save = functools.partial(save_figure, fig=fig)
+    fig.pt_save_and_view = lambda *args, **kwargs: ut.startfile(fig.pt_save(*args, **kwargs))
 
 
 def gcf():
