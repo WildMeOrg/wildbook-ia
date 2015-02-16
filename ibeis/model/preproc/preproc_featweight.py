@@ -171,7 +171,7 @@ def compute_fgweights(ibs, aid_list, qreq_=None):
     if ut.DEBUG2:
         from PIL import Image
         probchip_size_list = [Image.open(fpath).size for fpath in probchip_fpath_list]
-        chipsize_list = ibs.get_annot_chipsizes(aid_list)
+        chipsize_list = ibs.get_annot_chip_sizes(aid_list)
         assert chipsize_list == probchip_size_list, 'probably need to clear chip or probchip cache'
 
     kpts_list = ibs.get_annot_kpts(aid_list)

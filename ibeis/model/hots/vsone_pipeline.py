@@ -254,7 +254,7 @@ def sver_fmfs_merge(qreq_, qaid, daid_list, fmfs_merge, config={}):
     fm_list, fsv_list = fmfs_merge
     kpts1 = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
     kpts2_list = qreq_.ibs.get_annot_kpts(daid_list, qreq_=qreq_)
-    chip2_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlen_sqrd(daid_list, qreq_=qreq_)  # chip diagonal length
+    chip2_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(daid_list, qreq_=qreq_)  # chip diagonal length
     res_list = []
     #
     # homog_inliers
@@ -482,7 +482,7 @@ def compute_query_constrained_matches(qreq_, qaid, daid_list, H_list, config):
     # database info
     vecs2_list = qreq_.ibs.get_annot_vecs(daid_list, qreq_=qreq_)
     kpts2_list = qreq_.ibs.get_annot_kpts(daid_list, qreq_=qreq_)
-    chip2_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlen_sqrd(daid_list, qreq_=qreq_)  # chip diagonal length
+    chip2_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(daid_list, qreq_=qreq_)  # chip diagonal length
     # build flann for query vectors
     flann = quick_vsone_flann(qreq_.ibs.get_flann_cachedir(), vecs1)
     # match database chips to query chip

@@ -114,7 +114,7 @@ def general_coverage_mask_generator(make_mask_func, qreq_, unscored_cm, config, 
     # Distinctivness and foreground weight
     weights = get_annot_kpts_basline_weights(qreq_, [qaid], config)[0]
     # Denominator weight mask
-    chipsize    = qreq_.ibs.get_annot_chipsizes(qaid, qreq_=qreq_)
+    chipsize    = qreq_.ibs.get_annot_chip_sizes(qaid, qreq_=qreq_)
     qkpts       = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
     weight_mask = make_mask_func(qkpts, chipsize, weights, resize=False, **cov_cfg)
     # Prealloc data for loop
@@ -235,7 +235,7 @@ def show_annot_weights(qreq_, aid, config={}):
     """
     #import plottool as pt
     fnum = 1
-    chipsize = qreq_.ibs.get_annot_chipsizes(aid, qreq_=qreq_)
+    chipsize = qreq_.ibs.get_annot_chip_sizes(aid, qreq_=qreq_)
     chip  = qreq_.ibs.get_annot_chips(aid, qreq_=qreq_)
     qkpts = qreq_.ibs.get_annot_kpts(aid, qreq_=qreq_)
     weights = get_annot_kpts_basline_weights(qreq_, [aid], config)[0]

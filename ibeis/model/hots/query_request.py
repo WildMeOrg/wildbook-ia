@@ -525,8 +525,8 @@ class QueryRequest(object):
     #def get_annot_kpts(qreq_, aids):
     #    return qreq_.ibs.get_annot_kpts(aids)
 
-    #def get_annot_chipsizes(qreq_, aids):
-    #    return qreq_.ibs.get_annot_chipsizes(qreq_, aids)
+    #def get_annot_chip_sizes(qreq_, aids):
+    #    return qreq_.ibs.get_annot_chip_sizes(qreq_, aids)
 
     # --- Lazy Loading ---
 

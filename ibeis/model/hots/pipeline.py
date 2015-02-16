@@ -1253,9 +1253,9 @@ def precompute_topx2_dlen_sqrd(qreq_, aid2_fm, topx2_aid, topx2_kpts,
     if use_chip_extent:
         #topx2_dlen_sqrd = [
         #    ((w ** 2) + (h ** 2))
-        #    for (w, h) in qreq_.ibs.get_annot_chipsizes(topx2_aid[:nRerank], qreq_=qreq_)
+        #    for (w, h) in qreq_.ibs.get_annot_chip_sizes(topx2_aid[:nRerank], qreq_=qreq_)
         #]
-        topx2_dlen_sqrd = qreq_.ibs.get_annot_chip_dlen_sqrd(topx2_aid[:nRerank], qreq_=qreq_)
+        topx2_dlen_sqrd = qreq_.ibs.get_annot_chip_dlensqrd(topx2_aid[:nRerank], qreq_=qreq_)
         return topx2_dlen_sqrd
     else:
         # Use extent of matching keypoints

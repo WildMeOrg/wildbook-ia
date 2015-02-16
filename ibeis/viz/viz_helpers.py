@@ -40,7 +40,7 @@ def get_annot_kpts_in_imgspace(ibs, aid_list, **kwargs):
     bbox_list   = ibs.get_annot_bboxes(aid_list)
     theta_list  = ibs.get_annot_thetas(aid_list)
     try:
-        chipsz_list = ibs.get_annot_chipsizes(aid_list, ensure=ensure)
+        chipsz_list = ibs.get_annot_chip_sizes(aid_list, ensure=ensure)
     except AssertionError as ex:
         utool.printex(ex, '[!ibs.get_annot_kpts_in_imgspace]')
         print('[!ibs.get_annot_kpts_in_imgspace] aid_list = %r' % (aid_list,))

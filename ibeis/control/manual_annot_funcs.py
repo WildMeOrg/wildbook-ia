@@ -1777,7 +1777,7 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, qreq_=None):
     thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize, qreq_=qreq_)
     #print(thumb_gpaths)
     chip_paths = ibs.get_annot_chip_fpaths(aid_list, ensure=True, qreq_=qreq_)
-    chipsize_list = ibs.get_annot_chipsizes(aid_list, ensure=False, qreq_=qreq_)
+    chipsize_list = ibs.get_annot_chip_sizes(aid_list, ensure=False, qreq_=qreq_)
     thumbtup_list = [
         (thumb_path, chip_path, chipsize, [], [])
         for (thumb_path, chip_path, chipsize) in
@@ -1800,7 +1800,7 @@ def get_annot_chips(ibs, aid_list, ensure=True, qreq_=None):
 @register_ibs_method
 @getter_1to1
 #@cache_getter(const.ANNOTATION_TABLE, 'chipsizes')
-def get_annot_chipsizes(ibs, aid_list, ensure=True, qreq_=None):
+def get_annot_chip_sizes(ibs, aid_list, ensure=True, qreq_=None):
     """
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -1811,7 +1811,7 @@ def get_annot_chipsizes(ibs, aid_list, ensure=True, qreq_=None):
         list: chipsz_list - the (width, height) of computed annotation chips.
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_chipsizes
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_chip_sizes
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1822,7 +1822,7 @@ def get_annot_chipsizes(ibs, aid_list, ensure=True, qreq_=None):
         >>> aid_list = ibs.get_valid_aids()[0:3]
         >>> ensure = True
         >>> # execute function
-        >>> chipsz_list = get_annot_chipsizes(ibs, aid_list, ensure)
+        >>> chipsz_list = get_annot_chip_sizes(ibs, aid_list, ensure)
         >>> # verify results
         >>> result = str(chipsz_list)
         >>> print(result)
@@ -1834,7 +1834,7 @@ def get_annot_chipsizes(ibs, aid_list, ensure=True, qreq_=None):
 
 
 @register_ibs_method
-def get_annot_chip_dlen_sqrd(ibs, aid_list, qreq_=None):
+def get_annot_chip_dlensqrd(ibs, aid_list, qreq_=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -1844,7 +1844,7 @@ def get_annot_chip_dlen_sqrd(ibs, aid_list, qreq_=None):
         list: topx2_dlen_sqrd
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_chip_dlen_sqrd
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_chip_dlensqrd
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1855,7 +1855,7 @@ def get_annot_chip_dlen_sqrd(ibs, aid_list, qreq_=None):
         >>> aid_list = ibs.get_valid_aids()
         >>> qreq_ = None
         >>> # execute function
-        >>> topx2_dlen_sqrd = ibs.get_annot_chip_dlen_sqrd(aid_list, qreq_=qreq_)
+        >>> topx2_dlen_sqrd = ibs.get_annot_chip_dlensqrd(aid_list, qreq_=qreq_)
         >>> # verify results
         >>> result = str(topx2_dlen_sqrd)
         >>> print(result)
@@ -1863,7 +1863,7 @@ def get_annot_chip_dlen_sqrd(ibs, aid_list, qreq_=None):
     """
     topx2_dlen_sqrd = [
         ((w ** 2) + (h ** 2))
-        for (w, h) in ibs.get_annot_chipsizes(aid_list, qreq_=qreq_)
+        for (w, h) in ibs.get_annot_chip_sizes(aid_list, qreq_=qreq_)
     ]
     return topx2_dlen_sqrd
 
