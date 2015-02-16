@@ -39,6 +39,9 @@ except Exception as ex:
 profile = ut.profile
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[sver]', DEBUG=False)
 
+
+VERBOSE_SVER = ut.get_argflag('--verb-sver')
+
 """
 #if CYTH
 #ctypedef np.float64_t SV_DTYPE
@@ -691,10 +694,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         tuple(numpy.ndarray, tuple(numpy.ndarray, NoneType, NoneType), numpy.ndarray, numpy.ndarray, tuple(numpy.ndarray*3), numpy.ndarray)
 
     """
-    if ut.VERYVERBOSE:
-        print('[sver] Starting spatial verification')
     if len(fm) == 0:
-        if ut.VERYVERBOSE:
+        if VERBOSE_SVER:
             print('[sver] Cannot verify with no matches')
         svtup = None
         return svtup
@@ -711,7 +712,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh)
     # Return if there are not enough inliers to compute homography
     if len(aff_inliers) < min_nInliers:
-        if ut.VERYVERBOSE:
+        if VERBOSE_SVER:
             print('[sver] Failed spatial verification len(aff_inliers) = %r' %
                   (len(aff_inliers),))
         svtup = None
@@ -733,8 +734,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
             print('SUPER_STRICT is on. Reraising')
             raise
         return None
-    if ut.VERYVERBOSE:
-        print('[sver] Finished spatial verification.')
+    if VERBOSE_SVER:
+        print('[sver] Succesfully finished spatial verification.')
     if returnAff:
         svtup = (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff)
         return svtup
