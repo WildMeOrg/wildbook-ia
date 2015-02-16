@@ -3,12 +3,10 @@ from six.moves import map
 from guitool.__PYQT__ import QtCore, QtGui  # NOQA
 from guitool.__PYQT__.QtCore import Qt
 from os.path import split
-# UTool
 import platform
-import utool
 from utool import util_cache, util_path
 import utool as ut
-ut.noinject(__name__, '[guitool.delegates]', DEBUG=False)
+ut.noinject(__name__, '[guitool.dialogs]', DEBUG=False)
 
 
 SELDIR_CACHEID = 'guitool_selected_directory'
@@ -62,7 +60,7 @@ def user_option(parent=None, msg='msg', title='user_option',
         >>> result = str(reply)
         >>> print(result)
     """
-    if utool.VERBOSE:
+    if ut.VERBOSE:
         print('[*guitools] user_option:\n %r: %s' % (title, msg))
     # Recall decision
     cache_id = title + msg
@@ -233,7 +231,7 @@ def msgbox(msg, title='msgbox'):
 
 def popup_menu(widget, pos, opt2_callback):
     menu = QtGui.QMenu(widget)
-    actions = [menu.addAction(opt, func) for (opt, func) in opt2_callback]
+    actions = [menu.addAction(opt, ut.tracefunc(func)) for (opt, func) in opt2_callback]
     selection = menu.exec_(widget.mapToGlobal(pos))
     return selection, actions
     #pos=QtGui.QCursor.pos()
