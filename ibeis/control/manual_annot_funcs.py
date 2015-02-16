@@ -32,6 +32,10 @@ SPECIES_ROWID       = 'species_rowid'
 ANNOT_EXEMPLAR_FLAG = 'annot_exemplar_flag'
 
 
+# ==========
+# IDERS
+# ==========
+
 # TODO CACHE THIS AND FIND WHAT IT SHOULD INVALIDATE IT
 # ADD ANNOTS, DELETE ANNOTS ANYTHING ELSE?
 @register_ibs_method
@@ -43,6 +47,129 @@ def _get_all_aids(ibs):
     """
     all_aids = ibs.db.get_all_rowids(const.ANNOTATION_TABLE)
     return all_aids
+
+
+@register_ibs_method
+def get_num_annotations(ibs, **kwargs):
+    """ Number of valid annotations """
+    aid_list = ibs.get_valid_aids(**kwargs)
+    return len(aid_list)
+
+
+@register_ibs_method
+@ider
+def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
+                   viewpoint='no-filter', is_exemplar=None, species=None,
+                   is_known=None):
+    """
+    Note: The viewpoint value cannot be None as a default because None is used as a
+          filtering value
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        eid (None):
+        include_only_gid_list (list): if specified filters annots not in these gids
+        viewpoint (str):
+        is_exemplar (bool): if specified filters annots to either be or not be exemplars
+        species (None):
+        is_known (None):
+
+    Returns:
+        list: aid_list - a list of valid ANNOTATION unique ids
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_valid_aids
+
+    Ignore:
+        ibs.print_annotation_table()
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis import constants as const
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> eid = 1
+        >>> ibs.delete_all_encounters()
+        >>> ibs.compute_encounters()
+        >>> include_only_gid_list = None
+        >>> viewpoint = 'no-filter'
+        >>> is_exemplar = None
+        >>> species = const.Species.ZEB_PLAIN
+        >>> is_known = False
+        >>> # execute function
+        >>> aid_list = get_valid_aids(ibs, eid, include_only_gid_list, viewpoint, is_exemplar, species, is_known)
+        >>> ut.assert_eq(ibs.get_annot_names(aid_list), [const.UNKNOWN] * 2, 'bad name')
+        >>> ut.assert_eq(ibs.get_annot_species(aid_list), [const.Species.ZEB_PLAIN] * 2, 'bad species')
+        >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [False] * 2, 'bad exemplar')
+        >>> # verify results
+        >>> result = str(aid_list)
+        >>> print(result)
+        [1, 4]
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis import constants as const
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> aid_list1 = get_valid_aids(ibs, is_exemplar=True)
+        >>> aid_list2 = get_valid_aids(ibs, is_exemplar=False)
+        >>> intersect_aids = set(aid_list1).intersection(aid_list2)
+        >>> ut.assert_eq(len(aid_list1), 9)
+        >>> ut.assert_eq(len(aid_list2), 4)
+        >>> ut.assert_eq(len(intersect_aids), 0)
+    """
+    # getting encounter aid
+    if eid is None:
+        if is_exemplar is not None:
+            # Optimization Hack
+            aid_list = ibs.db.get_all_rowids_where(const.ANNOTATION_TABLE, 'annot_exemplar_flag=?', (is_exemplar,))
+        else:
+            aid_list = ibs._get_all_aids()
+    else:
+        # HACK: Check to see if you want the
+        # exemplar "encounter" (image group)
+        enctext = ibs.get_encounter_enctext(eid)
+        if enctext == const.EXEMPLAR_ENCTEXT:
+            is_exemplar = True
+        aid_list = ibs.get_encounter_aids(eid)
+        if is_exemplar is True:
+            # corresponding unoptimized hack for is_exemplar
+            flag_list = ibs.get_annot_exemplar_flags(aid_list)
+            aid_list  = ut.filter_items(aid_list, flag_list)
+        elif is_exemplar is False:
+            flag_list = ibs.get_annot_exemplar_flags(aid_list)
+            aid_list  = ut.filterfalse_items(aid_list, flag_list)
+    # -- valid aid filtering --
+    if include_only_gid_list is not None:
+        gid_list     = ibs.get_annot_gids(aid_list)
+        is_valid_gid = [gid in include_only_gid_list for gid in gid_list]
+        aid_list     = ut.filter_items(aid_list, is_valid_gid)
+    if viewpoint != 'no-filter':
+        viewpoint_list     = ibs.get_annot_viewpoints(aid_list)
+        is_valid_viewpoint = [viewpoint == flag for flag in viewpoint_list]
+        aid_list           = ut.filter_items(aid_list, is_valid_viewpoint)
+    if species is not None:
+        species_rowid      = ibs.get_species_rowids_from_text(species)
+        species_rowid_list = ibs.get_annot_species_rowids(aid_list)
+        is_valid_species   = [sid == species_rowid for sid in species_rowid_list]
+        aid_list           = ut.filter_items(aid_list, is_valid_species)
+    if is_known is not None:
+        is_unknown_list = ibs.is_aid_unknown(aid_list)
+        if is_known is True:
+            aid_list = ut.filterfalse_items(aid_list, is_unknown_list)
+        elif is_known is False:
+            aid_list = ut.filter_items(aid_list, is_unknown_list)
+    return aid_list
+
+
+# ==========
+# ADDERS
+# ==========
 
 
 @register_ibs_method
@@ -287,6 +414,11 @@ def get_annot_rows(ibs, aid_list):
     return rows_list
 
 
+# ==========
+# DELETERS
+# ==========
+
+
 @register_ibs_method
 @deleter
 def delete_annot_nids(ibs, aid_list):
@@ -318,6 +450,11 @@ def delete_annots(ibs, aid_list):
     from ibeis.model.preproc import preproc_annot
     preproc_annot.on_delete(ibs, aid_list)
     ibs.db.delete_rowids(const.ANNOTATION_TABLE, aid_list)
+
+
+# ==========
+# GETTERS
+# ==========
 
 
 @register_ibs_method
@@ -378,177 +515,6 @@ def get_annot_bboxes(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
-def get_annot_chip_fpaths(ibs, aid_list, ensure=True):
-    """
-    Returns the cached chip uri based off of the current
-    configuration.
-
-    Returns:
-        chip_fpath_list (list): cfpaths defined by ANNOTATIONs
-    """
-    #ut.assert_all_not_None(aid_list, 'aid_list')
-    #assert all([aid is not None for aid in aid_list])
-    #from ibeis.model.preproc import preproc_chip
-    #cfpath_list = preproc_chip.get_annot_cfpath_list(ibs, aid_list)
-    cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure)
-    chip_fpath_list = ibs.get_chip_paths(cid_list)
-    return chip_fpath_list
-
-
-@register_ibs_method
-@getter_1to1
-@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, 'chip_rowid')
-def get_annot_chip_rowids(ibs, aid_list, ensure=True, all_configs=False,
-                          eager=True, nInput=None, qreq_=None):
-    # TODO: DEPRICATE IN FAVOR OF AUTOGENERATED METHOD
-    # get_annot_chip_rowids. THEN ALIAS THAT TO THIS
-    # FIXME:
-    if ensure:
-        try:
-            if ut.DEBUG2:
-                assert ut.list_issubset(aid_list, ibs.get_valid_aids()), 'invalid aids'
-            ibs.add_annot_chips(aid_list)
-        except AssertionError as ex:
-            ut.printex(ex, '[!ibs.get_annot_chip_rowids]')
-            print('[!ibs.get_annot_chip_rowids] aid_list = %r' % (aid_list,))
-            raise
-    if all_configs:
-        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-        cid_list = ibs.dbcache.get(const.CHIP_TABLE, ('chip_rowid',), aid_list,
-                                   id_colname='annot_rowid', eager=eager,
-                                   nInput=nInput)
-    else:
-        chip_config_rowid = ibs.get_chip_config_rowid()
-        #print(chip_config_rowid)
-        where_clause = 'annot_rowid=? AND config_rowid=?'
-        params_iter = ((aid, chip_config_rowid) for aid in aid_list)
-        cid_list = ibs.dbcache.get_where(const.CHIP_TABLE,  ('chip_rowid',),
-                                         params_iter, where_clause,
-                                         eager=eager, nInput=nInput)
-    if ensure:
-        try:
-            cid_list = list(cid_list)
-            ut.assert_all_not_None(cid_list, 'cid_list')
-        except AssertionError as ex:
-            valid_cids = ibs.get_valid_cids()  # NOQA
-            ut.printex(ex, 'Ensured cids returned None!',
-                          key_list=['aid_list', 'cid_list', 'valid_cids'])
-            raise
-    return cid_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None):
-    """
-    just constructs the path. does not compute it. that is done by
-    api_thumb_delegate
-    """
-    if thumbsize is None:
-        thumbsize = ibs.cfg.other_cfg.thumb_size
-    thumb_dpath = ibs.thumb_dpath
-    thumb_suffix = '_' + str(thumbsize) + const.CHIP_THUMB_SUFFIX
-    annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)
-    thumbpath_list = [join(thumb_dpath, const.__STR__(uuid) + thumb_suffix)
-                      for uuid in annot_uuid_list]
-    return thumbpath_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None):
-    """ get chip thumb info
-
-    Args:
-        aid_list  (list):
-        thumbsize (int):
-
-    Returns:
-        list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_chip_thumbtup
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> thumbsize = 128
-        >>> result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)
-        >>> print(result)
-    """
-    #import numpy as np
-    #isiterable = isinstance(aid_list, (list, tuple, np.ndarray))
-    #if not isiterable:
-    #   aid_list = [aid_list]
-    # HACK TO MAKE CHIPS COMPUTE
-    #cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)  # NOQA
-    #thumbsize = 256
-    if thumbsize is None:
-        thumbsize = ibs.cfg.other_cfg.thumb_size
-    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize)
-    #print(thumb_gpaths)
-    chip_paths = ibs.get_annot_chip_fpaths(aid_list, ensure=True)
-    chipsize_list = ibs.get_annot_chipsizes(aid_list, ensure=False)
-    thumbtup_list = [
-        (thumb_path, chip_path, chipsize, [], [])
-        for (thumb_path, chip_path, chipsize) in
-        zip(thumb_gpaths, chip_paths, chipsize_list,)
-    ]
-    #if not isiterable:
-    #    return thumbtup_list[0]
-    return thumbtup_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_chips(ibs, aid_list, ensure=True):
-    ut.assert_all_not_None(aid_list, 'aid_list')
-    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure)
-    chip_list = ibs.get_chips(cid_list, ensure=ensure)
-    return chip_list
-
-
-@register_ibs_method
-@getter_1to1
-#@cache_getter(const.ANNOTATION_TABLE, 'chipsizes')
-def get_annot_chipsizes(ibs, aid_list, ensure=True):
-    """
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid_list (int):  list of annotation ids
-        ensure (bool):  eager evaluation if True
-
-    Returns:
-        list: chipsz_list - the (width, height) of computed annotation chips.
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_chipsizes
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[0:3]
-        >>> ensure = True
-        >>> # execute function
-        >>> chipsz_list = get_annot_chipsizes(ibs, aid_list, ensure)
-        >>> # verify results
-        >>> result = str(chipsz_list)
-        >>> print(result)
-        [(545, 372), (603, 336), (520, 390)]
-    """
-    cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure)
-    chipsz_list = ibs.get_chip_sizes(cid_list)
-    return chipsz_list
-
-
-@register_ibs_method
 def get_annot_class_labels(ibs, aid_list):
     """
     Returns:
@@ -602,14 +568,6 @@ def get_annot_exemplar_flags(ibs, aid_list):
     """
     annot_exemplar_flag_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_exemplar_flag',), aid_list)
     return annot_exemplar_flag_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_feat_rowids(ibs, aid_list, ensure=False, eager=True, nInput=None, qreq_=None):
-    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
-    fid_list = ibs.get_chip_fids(cid_list, ensure=ensure, eager=eager, nInput=nInput)
-    return fid_list
 
 
 @register_ibs_method
@@ -873,6 +831,389 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix=''):
 
 @register_ibs_method
 @getter_1to1
+def get_annot_thetas(ibs, aid_list):
+    """
+    Returns:
+        theta_list (list): a list of floats describing the angles of each chip
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_thetas
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('NAUT_test')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> result = get_annot_thetas(ibs, aid_list)
+        >>> print(result)
+        [2.75742, 0.792917, 2.53605, 2.67795, 0.946773, 2.56729]
+    """
+    theta_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_theta',), aid_list)
+    return theta_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_uuids(ibs, aid_list):
+    """
+    Returns:
+        list: annot_uuid_list a list of image uuids by aid
+    """
+    annot_uuid_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_uuid',), aid_list)
+    return annot_uuid_list
+
+
+@register_ibs_method
+@getter_1to1
+#@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID)
+def get_annot_semantic_uuids(ibs, aid_list):
+    """ annot_semantic_uuid_list <- annot.annot_semantic_uuid[aid_list]
+
+    gets data from the "native" column "annot_semantic_uuid" in the "annot" table
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: annot_semantic_uuid_list
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_semantic_uuids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
+        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> aid_list = ibs._get_all_aids()[0:1]
+        >>> annot_semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
+        >>> assert len(aid_list) == len(annot_semantic_uuid_list)
+        >>> result = annot_semantic_uuid_list
+        [UUID('215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6')]
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_SEMANTIC_UUID,)
+    annot_semantic_uuid_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
+    return annot_semantic_uuid_list
+
+
+@register_ibs_method
+@getter_1to1
+@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, ANNOT_VISUAL_UUID, native_rowids=True)
+def get_annot_visual_uuids(ibs, aid_list):
+    """ annot_visual_uuid_list <- annot.annot_visual_uuid[aid_list]
+
+    gets data from the "native" column "annot_visual_uuid" in the "annot" table
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: annot_visual_uuid_list
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_visual_uuids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
+        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> aid_list = ibs._get_all_aids()[0:1]
+        >>> annot_visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
+        >>> assert len(aid_list) == len(annot_visual_uuid_list)
+        >>> result = annot_visual_uuid_list
+        [UUID('8687dcb6-1f1f-fdd3-8b72-8f36f9f41905')]
+
+        [UUID('76de0416-7c92-e1b3-4a17-25df32e9c2b4')]
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_VISUAL_UUID,)
+    annot_visual_uuid_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
+    return annot_visual_uuid_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_verts(ibs, aid_list):
+    """
+    Returns:
+        vert_list (list): the vertices that form the polygon of each chip
+    """
+    from ibeis.model.preproc import preproc_annot
+    vertstr_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_verts',), aid_list)
+    vert_list = preproc_annot.postget_annot_verts(vertstr_list)
+    return vert_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_viewpoints(ibs, aid_list):
+    """
+    Returns:
+        viewpoint_list (list): the viewpoint (in radians) for the annotation
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_viewpoints
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[::3]
+        >>> result = get_annot_viewpoints(ibs, aid_list)
+        >>> print(result)
+        [None, None, None, None, None]
+    """
+    #from ibeis.model.preproc import preproc_annot
+    viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_viewpoint',), aid_list)
+    viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
+    return viewpoint_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_notes(ibs, aid_list):
+    """
+    Returns:
+        annotation_notes_list (list): a list of annotation notes
+    """
+    annotation_notes_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_NOTE,), aid_list)
+    return annotation_notes_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
+                              daid_list=None):
+    """
+    Returns:
+        list_ (list): number of other chips with the same name
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth:0
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth:1
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> noself = True
+        >>> result = get_annot_num_groundtruth(ibs, aid_list, noself=noself)
+        >>> print(result)
+        [0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0]
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> noself = False
+        >>> result = get_annot_num_groundtruth(ibs, aid_list, noself=noself)
+        >>> print(result)
+        [1, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1]
+
+    """
+    # TODO: Optimize
+    groundtruth_list = ibs.get_annot_groundtruth(aid_list,
+                                                 is_exemplar=is_exemplar,
+                                                 noself=noself,
+                                                 daid_list=daid_list)
+    nGt_list = list(map(len, groundtruth_list))
+    return nGt_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_num_verts(ibs, aid_list):
+    """
+    Returns:
+        nVerts_list (list): the number of vertices that form the polygon of each chip
+    """
+    nVerts_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_NUM_VERTS,), aid_list)
+    return nVerts_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_parent_aid(ibs, aid_list):
+    """
+    Returns:
+        list_ (list): a list of parent (in terms of parts) annotation rowids.
+    """
+    annot_parent_rowid_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_PARENT_ROWID,), aid_list)
+    return annot_parent_rowid_list
+
+
+@register_ibs_method
+@ut.accepts_numpy
+@getter_1to1
+def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
+    """
+    Returns:
+        list_ (list): the name id of each annotation.
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> import ibeis
+        >>> import numpy as np
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> distinguish_unknowns = True
+        >>> nid_arr1 = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns))
+        >>> nid_arr2 = np.array(ibs.get_annot_name_rowids(aid_list, False))
+        >>> assert ibs.UNKNOWN_LBLANNOT_ROWID == 0
+        >>> assert np.all(nid_arr1[np.where(ibs.UNKNOWN_LBLANNOT_ROWID == nid_arr2)[0]] < 0)
+    """
+    id_iter = aid_list
+    colnames = (NAME_ROWID,)
+    nid_list_ = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
+
+    ## OLD LBLANNOT WAY
+    ## Get all the annotation lblannot relationships
+    ## filter out only the ones which specify names
+    #alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
+    #lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
+    ## Get a single nid from the list of lblannot_rowids of type INDIVIDUAL
+    ## TODO: get index of highest confidence name
+    #nid_list_ = [lblannot_rowids[0] if len(lblannot_rowids) > 0 else ibs.UNKNOWN_LBLANNOT_ROWID for
+    #             lblannot_rowids in lblannot_rowids_list]
+
+    if distinguish_unknowns:
+        from ibeis.model.preproc import preproc_annot
+        nid_list = preproc_annot.distinguish_unknown_nids(ibs, aid_list, nid_list_)
+        #nid_list = [-aid if nid == ibs.UNKNOWN_LBLANNOT_ROWID else nid
+        #            for nid, aid in zip(nid_list_, aid_list)]
+    else:
+        nid_list = nid_list_
+    return nid_list
+
+
+@register_ibs_method
+def get_annot_nids(ibs, aid_list, distinguish_unknowns=True):
+    """ alias """
+    return ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=distinguish_unknowns)
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_names(ibs, aid_list):
+    """ alias """
+    return ibs.get_annot_name_texts(aid_list)
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_name_texts(ibs, aid_list):
+    """
+    Args:
+        aid_list (list):
+
+    Returns:
+        list or strs: name_list. e.g: ['fred', 'sue', ...]
+             for each annotation identifying the individual
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[::2]
+        >>> result = get_annot_name_texts(ibs, aid_list)
+        >>> print(result)
+        ['____', u'easy', u'hard', u'jeff', '____', '____', u'zebra']
+    """
+    nid_list = ibs.get_annot_name_rowids(aid_list)
+    name_list = ibs.get_name_texts(nid_list)
+    #name_list = ibs.get_annot_lblannot_value_of_lbltype(aid_list, const.INDIVIDUAL_KEY, ibs.get_name_texts)
+    return name_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_species(ibs, aid_list):
+    """ alias"""
+    return ibs.get_annot_species_texts(aid_list)
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_species_texts(ibs, aid_list):
+    """
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list : species_list - a list of strings ['plains_zebra',
+        'grevys_zebra', ...] for each annotation
+        identifying the species
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_species_texts
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[1::3]
+        >>> result = get_annot_species_texts(ibs, aid_list)
+        >>> print(result)
+        [u'zebra_plains', u'zebra_plains', '____', u'bear_polar']
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> species_list = get_annot_species_texts(ibs, aid_list)
+        >>> result = set(species_list)
+        >>> print(result)
+        set([u'zebra_plains'])
+    """
+    species_rowid_list = ibs.get_annot_species_rowids(aid_list)
+    speceis_text_list  = ibs.get_species_texts(species_rowid_list)
+    #speceis_text_list = ibs.get_annot_lblannot_value_of_lbltype(
+    #    aid_list, const.SPECIES_KEY, ibs.get_species)
+    return speceis_text_list
+
+
+@register_ibs_method
+@ut.accepts_numpy
+@getter_1to1
+@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, SPECIES_ROWID, native_rowids=True)
+def get_annot_species_rowids(ibs, aid_list):
+    """
+    species_rowid_list <- annot.species_rowid[aid_list]
+
+    gets data from the "native" column "species_rowid" in the "annot" table
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: species_rowid_list
+    """
+
+    id_iter = aid_list
+    colnames = (SPECIES_ROWID,)
+    species_rowid_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
+    return species_rowid_list
+
+
+@register_ibs_method
+@getter_1to1
 def get_annot_image_names(ibs, aid_list):
     """
     Args:
@@ -983,585 +1324,105 @@ def get_annot_images(ibs, aid_list):
 
 
 @register_ibs_method
-@ut.accepts_numpy
-@getter_1toM
-#@cache_getter(const.ANNOTATION_TABLE, 'kpts')
-def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
-                   qreq_=None):
+def get_annot_visual_uuid_info(ibs, aid_list):
     """
+    Returns annotation UUID that is unique for the visual qualities
+    of the annoation. does not include name ore species information.
+
+    get_annot_visual_uuid_info
+
     Args:
         aid_list (list):
 
     Returns:
-        kpts_list (list): annotation descriptor keypoints
-    """
-    fid_list  = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
-    kpts_list = ibs.get_feat_kpts(fid_list, eager=eager, nInput=nInput)
-    return kpts_list
+        tuple: visual_infotup (image_uuid_list, verts_list, theta_list)
 
-
-@register_ibs_method
-@ut.accepts_numpy
-@getter_1to1
-def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
-    """
-    Returns:
-        list_ (list): the name id of each annotation.
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_visual_uuid_info
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
         >>> import ibeis
-        >>> import numpy as np
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> distinguish_unknowns = True
-        >>> nid_arr1 = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns))
-        >>> nid_arr2 = np.array(ibs.get_annot_name_rowids(aid_list, False))
-        >>> assert ibs.UNKNOWN_LBLANNOT_ROWID == 0
-        >>> assert np.all(nid_arr1[np.where(ibs.UNKNOWN_LBLANNOT_ROWID == nid_arr2)[0]] < 0)
+        >>> aid_list = ibs.get_valid_aids()[0:2]
+        >>> visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
+        >>> result = str(list(zip(*visual_infotup))[0])
+        >>> print(result)
+        (UUID('66ec193a-1619-b3b6-216d-1784b4833b61'), ((0, 0), (1047, 0), (1047, 715), (0, 715)), 0.0)
     """
-    id_iter = aid_list
-    colnames = (NAME_ROWID,)
-    nid_list_ = ibs.db.get(
-        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
+    image_uuid_list = ibs.get_annot_image_uuids(aid_list)
+    verts_list      = ibs.get_annot_verts(aid_list)
+    theta_list      = ibs.get_annot_thetas(aid_list)
+    #visual_info_iter = zip(image_uuid_list, verts_list, theta_list, view_list)
+    #visual_info_list = list(visual_info_iter)
+    visual_infotup = (image_uuid_list, verts_list, theta_list)
+    return visual_infotup
 
-    ## OLD LBLANNOT WAY
-    ## Get all the annotation lblannot relationships
-    ## filter out only the ones which specify names
-    #alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
-    #lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
-    ## Get a single nid from the list of lblannot_rowids of type INDIVIDUAL
-    ## TODO: get index of highest confidence name
-    #nid_list_ = [lblannot_rowids[0] if len(lblannot_rowids) > 0 else ibs.UNKNOWN_LBLANNOT_ROWID for
-    #             lblannot_rowids in lblannot_rowids_list]
 
-    if distinguish_unknowns:
-        from ibeis.model.preproc import preproc_annot
-        nid_list = preproc_annot.distinguish_unknown_nids(ibs, aid_list, nid_list_)
-        #nid_list = [-aid if nid == ibs.UNKNOWN_LBLANNOT_ROWID else nid
-        #            for nid, aid in zip(nid_list_, aid_list)]
+@register_ibs_method
+def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
+    """
+    Args:
+        aid_list (list):
+        _visual_infotup (tuple) : internal use only
+
+    Returns:
+        tuple:  semantic_infotup (image_uuid_list, verts_list, theta_list, view_list, name_list, species_list)
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_semantic_uuid_info
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:2]
+        >>> semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list)
+        >>> result = str(list(zip(*semantic_infotup))[1])
+        >>> print(result)
+        (UUID('d8903434-942f-e0f5-d6c2-0dcbe3137bf7'), ((0, 0), (1035, 0), (1035, 576), (0, 576)), 0.0, None, u'easy', u'zebra_plains')
+
+    """
+    # Semantic info depends on visual info
+    if _visual_infotup is None:
+        visual_infotup = get_annot_visual_uuid_info(ibs, aid_list)
     else:
-        nid_list = nid_list_
-    return nid_list
+        visual_infotup = _visual_infotup
+    image_uuid_list, verts_list, theta_list = visual_infotup
+    # It is visual info augmented with name and species
+    view_list       = ibs.get_annot_viewpoints(aid_list)
+    name_list       = ibs.get_annot_names(aid_list)
+    species_list    = ibs.get_annot_species_texts(aid_list)
+    semantic_infotup = (image_uuid_list, verts_list, theta_list, view_list,
+                        name_list, species_list)
+    return semantic_infotup
 
 
 @register_ibs_method
-def get_annot_nids(ibs, aid_list, distinguish_unknowns=True):
-    """ alias """
-    return ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=distinguish_unknowns)
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_names(ibs, aid_list):
-    """ alias """
-    return ibs.get_annot_name_texts(aid_list)
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_name_texts(ibs, aid_list):
-    """
-    Args:
-        aid_list (list):
-
-    Returns:
-        list or strs: name_list. e.g: ['fred', 'sue', ...]
-             for each annotation identifying the individual
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[::2]
-        >>> result = get_annot_name_texts(ibs, aid_list)
-        >>> print(result)
-        ['____', u'easy', u'hard', u'jeff', '____', '____', u'zebra']
-    """
-    nid_list = ibs.get_annot_name_rowids(aid_list)
-    name_list = ibs.get_name_texts(nid_list)
-    #name_list = ibs.get_annot_lblannot_value_of_lbltype(aid_list, const.INDIVIDUAL_KEY, ibs.get_name_texts)
-    return name_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_notes(ibs, aid_list):
-    """
-    Returns:
-        annotation_notes_list (list): a list of annotation notes
-    """
-    annotation_notes_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_NOTE,), aid_list)
-    return annotation_notes_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None,
-                        qreq_=None):
-    """
-    Args:
-        aid_list (list):
-
-    Returns:
-        nFeats_list (list): num descriptors per annotation
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_feats
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> # this test might fail on different machines due to
-        >>> # determenism bugs in hesaff maybe? or maybe jpeg...
-        >>> # in which case its hopeless
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[0:3]
-        >>> nFeats_list = get_annot_num_feats(ibs, aid_list, ensure=True)
-        >>> assert len(nFeats_list) == 3
-        >>> ut.assert_inbounds(nFeats_list[0], 1256, 1258)
-        >>> ut.assert_inbounds(nFeats_list[1],  910,  921)
-        >>> ut.assert_inbounds(nFeats_list[2], 1340, 1343)
-
-    [1257, 920, 1342]
-    """
-    fid_list = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, nInput=nInput, qreq_=qreq_)
-    nFeats_list = ibs.get_num_feats(fid_list)
-    return nFeats_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
-                              daid_list=None):
-    """
-    Returns:
-        list_ (list): number of other chips with the same name
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth:0
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth:1
-
-    Example1:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> noself = True
-        >>> result = get_annot_num_groundtruth(ibs, aid_list, noself=noself)
-        >>> print(result)
-        [0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0]
-
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> noself = False
-        >>> result = get_annot_num_groundtruth(ibs, aid_list, noself=noself)
-        >>> print(result)
-        [1, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1]
-
-    """
-    # TODO: Optimize
-    groundtruth_list = ibs.get_annot_groundtruth(aid_list,
-                                                 is_exemplar=is_exemplar,
-                                                 noself=noself,
-                                                 daid_list=daid_list)
-    nGt_list = list(map(len, groundtruth_list))
-    return nGt_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_num_verts(ibs, aid_list):
-    """
-    Returns:
-        nVerts_list (list): the number of vertices that form the polygon of each chip
-    """
-    nVerts_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_NUM_VERTS,), aid_list)
-    return nVerts_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_parent_aid(ibs, aid_list):
-    """
-    Returns:
-        list_ (list): a list of parent (in terms of parts) annotation rowids.
-    """
-    annot_parent_rowid_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_PARENT_ROWID,), aid_list)
-    return annot_parent_rowid_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_probchip_fpaths(ibs, aid_list):
-    """
-    Returns paths to probability images.
-    """
-    # FIXME: this is implemented very poorly. Caches not robust. IE they are
-    # never invalidated. Not all config information is passed through
-    from ibeis.model.preproc import preproc_probchip
-    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list)
-    return probchip_fpath_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_species(ibs, aid_list):
-    """ alias"""
-    return ibs.get_annot_species_texts(aid_list)
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_species_texts(ibs, aid_list):
-    """
-
-    Args:
-        aid_list (list):
-
-    Returns:
-        list : species_list - a list of strings ['plains_zebra',
-        'grevys_zebra', ...] for each annotation
-        identifying the species
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_species_texts
-
-    Example1:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[1::3]
-        >>> result = get_annot_species_texts(ibs, aid_list)
-        >>> print(result)
-        [u'zebra_plains', u'zebra_plains', '____', u'bear_polar']
-
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> species_list = get_annot_species_texts(ibs, aid_list)
-        >>> result = set(species_list)
-        >>> print(result)
-        set([u'zebra_plains'])
-    """
-    species_rowid_list = ibs.get_annot_species_rowids(aid_list)
-    speceis_text_list  = ibs.get_species_texts(species_rowid_list)
-    #speceis_text_list = ibs.get_annot_lblannot_value_of_lbltype(
-    #    aid_list, const.SPECIES_KEY, ibs.get_species)
-    return speceis_text_list
-
-
-@register_ibs_method
-@ut.accepts_numpy
-@getter_1to1
-@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, SPECIES_ROWID, native_rowids=True)
-def get_annot_species_rowids(ibs, aid_list):
-    """
-    species_rowid_list <- annot.species_rowid[aid_list]
-
-    gets data from the "native" column "species_rowid" in the "annot" table
-
-    Args:
-        aid_list (list):
-
-    Returns:
-        list: species_rowid_list
-    """
-
-    id_iter = aid_list
-    colnames = (SPECIES_ROWID,)
-    species_rowid_list = ibs.db.get(
-        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
-    return species_rowid_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_thetas(ibs, aid_list):
-    """
-    Returns:
-        theta_list (list): a list of floats describing the angles of each chip
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_thetas
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('NAUT_test')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> result = get_annot_thetas(ibs, aid_list)
-        >>> print(result)
-        [2.75742, 0.792917, 2.53605, 2.67795, 0.946773, 2.56729]
-    """
-    theta_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_theta',), aid_list)
-    return theta_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_uuids(ibs, aid_list):
-    """
-    Returns:
-        list: annot_uuid_list a list of image uuids by aid
-    """
-    annot_uuid_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_uuid',), aid_list)
-    return annot_uuid_list
-
-
-@register_ibs_method
-@getter_1to1
-#@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID)
-def get_annot_semantic_uuids(ibs, aid_list):
-    """ annot_semantic_uuid_list <- annot.annot_semantic_uuid[aid_list]
-
-    gets data from the "native" column "annot_semantic_uuid" in the "annot" table
-
-    Args:
-        aid_list (list):
-
-    Returns:
-        list: annot_semantic_uuid_list
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_semantic_uuids
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
-        >>> aid_list = ibs._get_all_aids()[0:1]
-        >>> annot_semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
-        >>> assert len(aid_list) == len(annot_semantic_uuid_list)
-        >>> result = annot_semantic_uuid_list
-        [UUID('215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6')]
-    """
-    id_iter = aid_list
-    colnames = (ANNOT_SEMANTIC_UUID,)
-    annot_semantic_uuid_list = ibs.db.get(
-        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
-    return annot_semantic_uuid_list
-
-
-@register_ibs_method
-@getter_1to1
-@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, ANNOT_VISUAL_UUID, native_rowids=True)
-def get_annot_visual_uuids(ibs, aid_list):
-    """ annot_visual_uuid_list <- annot.annot_visual_uuid[aid_list]
-
-    gets data from the "native" column "annot_visual_uuid" in the "annot" table
-
-    Args:
-        aid_list (list):
-
-    Returns:
-        list: annot_visual_uuid_list
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_visual_uuids
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
-        >>> aid_list = ibs._get_all_aids()[0:1]
-        >>> annot_visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
-        >>> assert len(aid_list) == len(annot_visual_uuid_list)
-        >>> result = annot_visual_uuid_list
-        [UUID('8687dcb6-1f1f-fdd3-8b72-8f36f9f41905')]
-
-        [UUID('76de0416-7c92-e1b3-4a17-25df32e9c2b4')]
-    """
-    id_iter = aid_list
-    colnames = (ANNOT_VISUAL_UUID,)
-    annot_visual_uuid_list = ibs.db.get(
-        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
-    return annot_visual_uuid_list
-
-
-@register_ibs_method
-@getter_1toM
-def get_annot_vecs(ibs, aid_list, ensure=True, eager=True, nInput=None,
-                   qreq_=None):
-    """
-    Returns:
-        vecs_list (list): annotation descriptor vectors
-    """
-    fid_list  = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
-    vecs_list = ibs.get_feat_vecs(fid_list, eager=eager, nInput=nInput)
-    return vecs_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_verts(ibs, aid_list):
-    """
-    Returns:
-        vert_list (list): the vertices that form the polygon of each chip
-    """
+@accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID, native_rowids=True)
+def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
+    """ Updater for semantic uuids """
     from ibeis.model.preproc import preproc_annot
-    vertstr_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_verts',), aid_list)
-    vert_list = preproc_annot.postget_annot_verts(vertstr_list)
-    return vert_list
+    semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list, _visual_infotup)
+    annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
+    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list)
 
 
 @register_ibs_method
-@getter_1to1
-def get_annot_viewpoints(ibs, aid_list):
-    """
-    Returns:
-        viewpoint_list (list): the viewpoint (in radians) for the annotation
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_viewpoints
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[::3]
-        >>> result = get_annot_viewpoints(ibs, aid_list)
-        >>> print(result)
-        [None, None, None, None, None]
-    """
-    #from ibeis.model.preproc import preproc_annot
-    viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_viewpoint',), aid_list)
-    viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
-    return viewpoint_list
+@accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, ANNOT_VISUAL_UUID, native_rowids=True)
+def update_annot_visual_uuids(ibs, aid_list):
+    """ Updater for visual uuids """
+    from ibeis.model.preproc import preproc_annot
+    visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
+    annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
+    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list)
+    # If visual uuids are changes semantic ones are also changed
+    ibs.update_annot_semantic_uuids(aid_list, _visual_infotup=visual_infotup)
 
 
-@register_ibs_method
-def get_num_annotations(ibs, **kwargs):
-    """ Number of valid annotations """
-    aid_list = ibs.get_valid_aids(**kwargs)
-    return len(aid_list)
-
-
-@register_ibs_method
-@ider
-def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
-                   viewpoint='no-filter', is_exemplar=None, species=None,
-                   is_known=None):
-    """
-    Note: The viewpoint value cannot be None as a default because None is used as a
-          filtering value
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        eid (None):
-        include_only_gid_list (list): if specified filters annots not in these gids
-        viewpoint (str):
-        is_exemplar (bool): if specified filters annots to either be or not be exemplars
-        species (None):
-        is_known (None):
-
-    Returns:
-        list: aid_list - a list of valid ANNOTATION unique ids
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_valid_aids
-
-    Ignore:
-        ibs.print_annotation_table()
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis import constants as const
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> eid = 1
-        >>> ibs.delete_all_encounters()
-        >>> ibs.compute_encounters()
-        >>> include_only_gid_list = None
-        >>> viewpoint = 'no-filter'
-        >>> is_exemplar = None
-        >>> species = const.Species.ZEB_PLAIN
-        >>> is_known = False
-        >>> # execute function
-        >>> aid_list = get_valid_aids(ibs, eid, include_only_gid_list, viewpoint, is_exemplar, species, is_known)
-        >>> ut.assert_eq(ibs.get_annot_names(aid_list), [const.UNKNOWN] * 2, 'bad name')
-        >>> ut.assert_eq(ibs.get_annot_species(aid_list), [const.Species.ZEB_PLAIN] * 2, 'bad species')
-        >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [False] * 2, 'bad exemplar')
-        >>> # verify results
-        >>> result = str(aid_list)
-        >>> print(result)
-        [1, 4]
-
-    Example1:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> from ibeis import constants as const
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> # execute function
-        >>> aid_list1 = get_valid_aids(ibs, is_exemplar=True)
-        >>> aid_list2 = get_valid_aids(ibs, is_exemplar=False)
-        >>> intersect_aids = set(aid_list1).intersection(aid_list2)
-        >>> ut.assert_eq(len(aid_list1), 9)
-        >>> ut.assert_eq(len(aid_list2), 4)
-        >>> ut.assert_eq(len(intersect_aids), 0)
-    """
-    # getting encounter aid
-    if eid is None:
-        if is_exemplar is not None:
-            # Optimization Hack
-            aid_list = ibs.db.get_all_rowids_where(const.ANNOTATION_TABLE, 'annot_exemplar_flag=?', (is_exemplar,))
-        else:
-            aid_list = ibs._get_all_aids()
-    else:
-        # HACK: Check to see if you want the
-        # exemplar "encounter" (image group)
-        enctext = ibs.get_encounter_enctext(eid)
-        if enctext == const.EXEMPLAR_ENCTEXT:
-            is_exemplar = True
-        aid_list = ibs.get_encounter_aids(eid)
-        if is_exemplar is True:
-            # corresponding unoptimized hack for is_exemplar
-            flag_list = ibs.get_annot_exemplar_flags(aid_list)
-            aid_list  = ut.filter_items(aid_list, flag_list)
-        elif is_exemplar is False:
-            flag_list = ibs.get_annot_exemplar_flags(aid_list)
-            aid_list  = ut.filterfalse_items(aid_list, flag_list)
-    # -- valid aid filtering --
-    if include_only_gid_list is not None:
-        gid_list     = ibs.get_annot_gids(aid_list)
-        is_valid_gid = [gid in include_only_gid_list for gid in gid_list]
-        aid_list     = ut.filter_items(aid_list, is_valid_gid)
-    if viewpoint != 'no-filter':
-        viewpoint_list     = ibs.get_annot_viewpoints(aid_list)
-        is_valid_viewpoint = [viewpoint == flag for flag in viewpoint_list]
-        aid_list           = ut.filter_items(aid_list, is_valid_viewpoint)
-    if species is not None:
-        species_rowid      = ibs.get_species_rowids_from_text(species)
-        species_rowid_list = ibs.get_annot_species_rowids(aid_list)
-        is_valid_species   = [sid == species_rowid for sid in species_rowid_list]
-        aid_list           = ut.filter_items(aid_list, is_valid_species)
-    if is_known is not None:
-        is_unknown_list = ibs.is_aid_unknown(aid_list)
-        if is_known is True:
-            aid_list = ut.filterfalse_items(aid_list, is_unknown_list)
-        elif is_known is False:
-            aid_list = ut.filter_items(aid_list, is_unknown_list)
-    return aid_list
-
+#### SETTERS ###
 
 @register_ibs_method
 @setter
@@ -1690,24 +1551,6 @@ def set_annot_names(ibs, aid_list, name_list):
 
 @register_ibs_method
 @setter
-def set_annot_notes(ibs, aid_list, notes_list):
-    """ Sets annotation notes """
-    id_iter = ((aid,) for aid in aid_list)
-    val_iter = ((notes,) for notes in notes_list)
-    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_NOTE,), val_iter, id_iter)
-
-
-@register_ibs_method
-@setter
-def set_annot_parent_rowid(ibs, aid_list, parent_aid_list):
-    """ Sets the annotation's parent aid """
-    id_iter = ((aid,) for aid in aid_list)
-    val_iter = ((parent_aid,) for parent_aid in parent_aid_list)
-    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_PARENT_ROWID,), val_iter, id_iter)
-
-
-@register_ibs_method
-@setter
 def set_annot_species(ibs, aid_list, species_text_list):
     """
     Sets species/speciesids of a list of annotations.
@@ -1738,6 +1581,24 @@ def set_annot_species_rowids(ibs, aid_list, species_rowid_list):
     id_iter = aid_list
     colnames = (SPECIES_ROWID,)
     ibs.db.set(const.ANNOTATION_TABLE, colnames, species_rowid_list, id_iter)
+
+
+@register_ibs_method
+@setter
+def set_annot_notes(ibs, aid_list, notes_list):
+    """ Sets annotation notes """
+    id_iter = ((aid,) for aid in aid_list)
+    val_iter = ((notes,) for notes in notes_list)
+    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_NOTE,), val_iter, id_iter)
+
+
+@register_ibs_method
+@setter
+def set_annot_parent_rowid(ibs, aid_list, parent_aid_list):
+    """ Sets the annotation's parent aid """
+    id_iter = ((aid,) for aid in aid_list)
+    val_iter = ((parent_aid,) for parent_aid in parent_aid_list)
+    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_PARENT_ROWID,), val_iter, id_iter)
 
 
 @register_ibs_method
@@ -1797,114 +1658,190 @@ def set_annot_viewpoint(ibs, aid_list, viewpoint_list, convert_radians=False):
     ibs.update_annot_visual_uuids(aid_list)
 
 
+##### EXTERNAL ACCESSORS ####
+
+#### ANNOT CHIP FUNCS ###
+
 @register_ibs_method
-def get_annot_visual_uuid_info(ibs, aid_list):
+@getter_1to1
+def get_annot_chip_fpaths(ibs, aid_list, ensure=True, qreq_=None):
     """
-    Returns annotation UUID that is unique for the visual qualities
-    of the annoation. does not include name ore species information.
-
-    get_annot_visual_uuid_info
-
-    Args:
-        aid_list (list):
+    Returns the cached chip uri based off of the current
+    configuration.
 
     Returns:
-        tuple: visual_infotup (image_uuid_list, verts_list, theta_list)
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_visual_uuid_info
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[0:2]
-        >>> visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
-        >>> result = str(list(zip(*visual_infotup))[0])
-        >>> print(result)
-        (UUID('66ec193a-1619-b3b6-216d-1784b4833b61'), ((0, 0), (1047, 0), (1047, 715), (0, 715)), 0.0)
+        chip_fpath_list (list): cfpaths defined by ANNOTATIONs
     """
-    image_uuid_list = ibs.get_annot_image_uuids(aid_list)
-    verts_list      = ibs.get_annot_verts(aid_list)
-    theta_list      = ibs.get_annot_thetas(aid_list)
-    #visual_info_iter = zip(image_uuid_list, verts_list, theta_list, view_list)
-    #visual_info_list = list(visual_info_iter)
-    visual_infotup = (image_uuid_list, verts_list, theta_list)
-    return visual_infotup
+    #ut.assert_all_not_None(aid_list, 'aid_list')
+    #assert all([aid is not None for aid in aid_list])
+    #from ibeis.model.preproc import preproc_chip
+    #cfpath_list = preproc_chip.get_annot_cfpath_list(ibs, aid_list)
+    cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, qreq_=qreq_)
+    chip_fpath_list = ibs.get_chip_paths(cid_list)
+    return chip_fpath_list
 
 
 @register_ibs_method
-def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
-    """
-    Args:
-        aid_list (list):
-        _visual_infotup (tuple) : internal use only
-
-    Returns:
-        tuple:  semantic_infotup (image_uuid_list, verts_list, theta_list, view_list, name_list, species_list)
-
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_semantic_uuid_info
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.preproc.preproc_annot import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[0:2]
-        >>> semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list)
-        >>> result = str(list(zip(*semantic_infotup))[1])
-        >>> print(result)
-        (UUID('d8903434-942f-e0f5-d6c2-0dcbe3137bf7'), ((0, 0), (1035, 0), (1035, 576), (0, 576)), 0.0, None, u'easy', u'zebra_plains')
-
-    """
-    # Semantic info depends on visual info
-    if _visual_infotup is None:
-        visual_infotup = get_annot_visual_uuid_info(ibs, aid_list)
+@getter_1to1
+@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, 'chip_rowid')
+def get_annot_chip_rowids(ibs, aid_list, ensure=True, all_configs=False,
+                          eager=True, nInput=None, qreq_=None):
+    # TODO: DEPRICATE IN FAVOR OF AUTOGENERATED METHOD
+    # get_annot_chip_rowids. THEN ALIAS THAT TO THIS
+    # FIXME:
+    if ensure:
+        try:
+            if ut.DEBUG2:
+                assert ut.list_issubset(aid_list, ibs.get_valid_aids()), 'invalid aids'
+            ibs.add_annot_chips(aid_list)
+        except AssertionError as ex:
+            ut.printex(ex, '[!ibs.get_annot_chip_rowids]')
+            print('[!ibs.get_annot_chip_rowids] aid_list = %r' % (aid_list,))
+            raise
+    if all_configs:
+        # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+        cid_list = ibs.dbcache.get(const.CHIP_TABLE, ('chip_rowid',), aid_list,
+                                   id_colname='annot_rowid', eager=eager,
+                                   nInput=nInput)
     else:
-        visual_infotup = _visual_infotup
-    image_uuid_list, verts_list, theta_list = visual_infotup
-    # It is visual info augmented with name and species
-    view_list       = ibs.get_annot_viewpoints(aid_list)
-    name_list       = ibs.get_annot_names(aid_list)
-    species_list    = ibs.get_annot_species_texts(aid_list)
-    semantic_infotup = (image_uuid_list, verts_list, theta_list, view_list,
-                        name_list, species_list)
-    return semantic_infotup
+        chip_config_rowid = ibs.get_chip_config_rowid()
+        #print(chip_config_rowid)
+        where_clause = 'annot_rowid=? AND config_rowid=?'
+        params_iter = ((aid, chip_config_rowid) for aid in aid_list)
+        cid_list = ibs.dbcache.get_where(const.CHIP_TABLE,  ('chip_rowid',),
+                                         params_iter, where_clause,
+                                         eager=eager, nInput=nInput)
+    if ensure:
+        try:
+            cid_list = list(cid_list)
+            ut.assert_all_not_None(cid_list, 'cid_list')
+        except AssertionError as ex:
+            valid_cids = ibs.get_valid_cids()  # NOQA
+            ut.printex(ex, 'Ensured cids returned None!',
+                          key_list=['aid_list', 'cid_list', 'valid_cids'])
+            raise
+    return cid_list
 
 
 @register_ibs_method
-@accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID, native_rowids=True)
-def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
-    """ Updater for semantic uuids """
-    from ibeis.model.preproc import preproc_annot
-    semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list, _visual_infotup)
-    annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
-    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list)
+@getter_1to1
+def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, qreq_=None):
+    """
+    just constructs the path. does not compute it. that is done by
+    api_thumb_delegate
+    """
+    if thumbsize is None:
+        thumbsize = ibs.cfg.other_cfg.thumb_size
+    thumb_dpath = ibs.thumb_dpath
+    thumb_suffix = '_' + str(thumbsize) + const.CHIP_THUMB_SUFFIX
+    annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)
+    thumbpath_list = [join(thumb_dpath, const.__STR__(uuid) + thumb_suffix)
+                      for uuid in annot_uuid_list]
+    return thumbpath_list
 
 
 @register_ibs_method
-@accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, ANNOT_VISUAL_UUID, native_rowids=True)
-def update_annot_visual_uuids(ibs, aid_list):
-    """ Updater for visual uuids """
-    from ibeis.model.preproc import preproc_annot
-    visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
-    annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
-    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list)
-    # If visual uuids are changes semantic ones are also changed
-    ibs.update_annot_semantic_uuids(aid_list, _visual_infotup=visual_infotup)
+@getter_1to1
+def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, qreq_=None):
+    """ get chip thumb info
+
+    Args:
+        aid_list  (list):
+        thumbsize (int):
+
+    Returns:
+        list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_chip_thumbtup
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> thumbsize = 128
+        >>> result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)
+        >>> print(result)
+    """
+    #import numpy as np
+    #isiterable = isinstance(aid_list, (list, tuple, np.ndarray))
+    #if not isiterable:
+    #   aid_list = [aid_list]
+    # HACK TO MAKE CHIPS COMPUTE
+    #cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)  # NOQA
+    #thumbsize = 256
+    if thumbsize is None:
+        thumbsize = ibs.cfg.other_cfg.thumb_size
+    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize, qreq_=qreq_)
+    #print(thumb_gpaths)
+    chip_paths = ibs.get_annot_chip_fpaths(aid_list, ensure=True, qreq_=qreq_)
+    chipsize_list = ibs.get_annot_chipsizes(aid_list, ensure=False, qreq_=qreq_)
+    thumbtup_list = [
+        (thumb_path, chip_path, chipsize, [], [])
+        for (thumb_path, chip_path, chipsize) in
+        zip(thumb_gpaths, chip_paths, chipsize_list,)
+    ]
+    #if not isiterable:
+    #    return thumbtup_list[0]
+    return thumbtup_list
 
 
 @register_ibs_method
-def get_annot_chip_dlen_sqrd(ibs, aid_list):
+@getter_1to1
+def get_annot_chips(ibs, aid_list, ensure=True, qreq_=None):
+    ut.assert_all_not_None(aid_list, 'aid_list')
+    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, qreq_=qreq_)
+    chip_list = ibs.get_chips(cid_list, ensure=ensure)
+    return chip_list
+
+
+@register_ibs_method
+@getter_1to1
+#@cache_getter(const.ANNOTATION_TABLE, 'chipsizes')
+def get_annot_chipsizes(ibs, aid_list, ensure=True, qreq_=None):
+    """
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+        ensure (bool):  eager evaluation if True
+
+    Returns:
+        list: chipsz_list - the (width, height) of computed annotation chips.
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_chipsizes
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:3]
+        >>> ensure = True
+        >>> # execute function
+        >>> chipsz_list = get_annot_chipsizes(ibs, aid_list, ensure)
+        >>> # verify results
+        >>> result = str(chipsz_list)
+        >>> print(result)
+        [(545, 372), (603, 336), (520, 390)]
+    """
+    cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, qreq_=qreq_)
+    chipsz_list = ibs.get_chip_sizes(cid_list)
+    return chipsz_list
+
+
+@register_ibs_method
+def get_annot_chip_dlen_sqrd(ibs, aid_list, qreq_=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
         aid_list (list):
 
     Returns:
-        ndarray: topx2_dlen_sqrd
+        list: topx2_dlen_sqrd
 
     CommandLine:
         python -m ibeis.control.manual_annot_funcs --test-get_annot_chip_dlen_sqrd
@@ -1916,18 +1853,116 @@ def get_annot_chip_dlen_sqrd(ibs, aid_list):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
+        >>> qreq_ = None
         >>> # execute function
-        >>> topx2_dlen_sqrd = ibs.get_annot_chip_dlen_sqrd(aid_list)
+        >>> topx2_dlen_sqrd = ibs.get_annot_chip_dlen_sqrd(aid_list, qreq_=qreq_)
         >>> # verify results
         >>> result = str(topx2_dlen_sqrd)
         >>> print(result)
+        [435409, 476505, 422500, 422500, 422500, 437924, 405000, 405000, 447805, 420953, 405008, 406265, 512674]
     """
     topx2_dlen_sqrd = [
         ((w ** 2) + (h ** 2))
-        for (w, h) in ibs.get_annot_chipsizes(aid_list)
+        for (w, h) in ibs.get_annot_chipsizes(aid_list, qreq_=qreq_)
     ]
     return topx2_dlen_sqrd
 
+#### ANNOT FEAT FUNCS ###
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_feat_rowids(ibs, aid_list, ensure=False, eager=True, nInput=None, qreq_=None):
+    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
+    fid_list = ibs.get_chip_fids(cid_list, ensure=ensure, eager=eager, nInput=nInput)
+    return fid_list
+
+
+@register_ibs_method
+@ut.accepts_numpy
+@getter_1toM
+#@cache_getter(const.ANNOTATION_TABLE, 'kpts')
+def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
+                   qreq_=None):
+    """
+    Args:
+        aid_list (list):
+
+    Returns:
+        kpts_list (list): annotation descriptor keypoints
+    """
+    fid_list  = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
+    kpts_list = ibs.get_feat_kpts(fid_list, eager=eager, nInput=nInput)
+    return kpts_list
+
+
+@register_ibs_method
+@getter_1toM
+def get_annot_vecs(ibs, aid_list, ensure=True, eager=True, nInput=None,
+                   qreq_=None):
+    """
+    Returns:
+        vecs_list (list): annotation descriptor vectors
+    """
+    fid_list  = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
+    vecs_list = ibs.get_feat_vecs(fid_list, eager=eager, nInput=nInput)
+    return vecs_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None,
+                        qreq_=None):
+    """
+    Args:
+        aid_list (list):
+
+    Returns:
+        nFeats_list (list): num descriptors per annotation
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_feats
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> # this test might fail on different machines due to
+        >>> # determenism bugs in hesaff maybe? or maybe jpeg...
+        >>> # in which case its hopeless
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:3]
+        >>> nFeats_list = get_annot_num_feats(ibs, aid_list, ensure=True)
+        >>> assert len(nFeats_list) == 3
+        >>> ut.assert_inbounds(nFeats_list[0], 1256, 1258)
+        >>> ut.assert_inbounds(nFeats_list[1],  910,  921)
+        >>> ut.assert_inbounds(nFeats_list[2], 1340, 1343)
+
+    [1257, 920, 1342]
+    """
+    fid_list = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, nInput=nInput, qreq_=qreq_)
+    nFeats_list = ibs.get_num_feats(fid_list)
+    return nFeats_list
+
+
+# PROBCHIP
+
+@register_ibs_method
+@getter_1to1
+def get_annot_probchip_fpaths(ibs, aid_list, qreq_=None):
+    """
+    Returns paths to probability images.
+    """
+    # FIXME: this is implemented very poorly. Caches not robust. IE they are
+    # never invalidated. Not all config information is passed through
+    from ibeis.model.preproc import preproc_probchip
+    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, qreq_=qreq_)
+    return probchip_fpath_list
+
+
+#==========
+# Testdata
+#==========
 
 def testdata_annot():
     import ibeis

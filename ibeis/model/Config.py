@@ -16,50 +16,6 @@ from utool._internal.meta_util_six import get_funcname
 ConfigBase = ut.Pref
 
 
-class ParamInfo(object):
-    """ small class for individual paramater information """
-    def __init__(pi, varname, default, shortprefix=ut.NoParam, type_=ut.NoParam, varyvals=[]):
-        pi.varname = varname
-        pi.default = default
-        pi.shortprefix = shortprefix
-        pi.type_ = type(default) if type_ is ut.NoParam else type_
-        # for gridsearch
-        pi.varyvals = varyvals
-
-    def get_itemstr(pi, cfg):
-        varstr = str(getattr(cfg,  pi.varname))
-        if pi.shortprefix is not ut.NoParam:
-            itemstr = pi.shortprefix + varstr
-        else:
-            itemstr =  pi.varname + '=' + varstr
-        return itemstr
-
-
-class ParamInfoList(object):
-    """ small class for ut.Pref-less configurations """
-    def __init__(self, name, param_info_list):
-        self.name = name
-        self.param_info_list = param_info_list
-
-    def aslist(self):
-        return self.param_info_list
-
-    def updated_cfgdict(self, dict_):
-        return {pi.varname: dict_.get(pi.varname, pi.default) for pi in self.param_info_list}
-
-    def get_varydict(self):
-        """ for gridsearch """
-        return {pi.varname: pi.varyvals for pi in self.param_info_list}
-
-
-DCVS_DEFAULT = ParamInfoList('distinctivness', [
-    ParamInfo('dcvs_power', 1.0, 'p',    varyvals=[.5, 1.0, 1.5, 2.0]),
-    ParamInfo('dcvs_min_clip', .2, 'mn', varyvals=[.2, .02, .03][0:1]),
-    ParamInfo('dcvs_max_clip', .5, 'mx', varyvals=[.05, .3, .4, .45, .5, 1.0][1:4]),
-    ParamInfo('dcvs_K', 5, 'dcvsK',      varyvals=[5, 7, 15][0:1]),
-])
-
-
 def parse_config_items(cfg):
     """
     Recursively extracts key, val pairs from Config objects
@@ -656,50 +612,22 @@ class RerankVsOneConfig(ConfigBase):
         return 'RRVsOne'
 
     def get_param_info_list(rrvsone_cfg):
+        from ibeis.model.hots import distinctiveness_normalizer
+        from ibeis.model.hots import vsone_pipeline
         # new way to try and specify config options.
         # not sure if i like it yet
-        param_info_list = [
-            ParamInfo('rrvsone_on', False, ''),
-            # shortlist params
-            ParamInfo('nNameShortlistVsone', 5, 'nNm='),
-            ParamInfo('nAnnotPerName', 2, 'nApN='),
-            # matching types
-            ParamInfo('prior_coeff', .6, 'prior_coeff='),
-            ParamInfo('unconstrained_coeff', .4, 'unc_coeff='),
-            ParamInfo('constrained_coeff',   0.0, 'scr_coeff='),
-            # matching svers
-            ParamInfo('sver_unconstrained',  False, 'sver_unc='),
-            ParamInfo('sver_constrained',  False, 'sver_scr='),
-            # unconstrained matching
-            ParamInfo('unc_ratio_thresh', .625, 'uncRat>'),
-            # spatially constrained matching
-            ParamInfo('scr_match_xy_thresh', .15, 'xy>'),
-            ParamInfo('scr_norm_xy_min', 0.1, ''),
-            ParamInfo('scr_norm_xy_max', 1.0, ''),
-            ParamInfo('scr_ratio_thresh', .95, 'scrRat>'),
-            ParamInfo('scr_K', 7, 'scK'),
-            # MASK SCORING
-            ParamInfo('maskscore_mode', 'grid', 'cov='),
-            # grid scoring
-            #ParamInfo('grid_scale_factor', .2, 'sf'),
-            ParamInfo('grid_scale_factor', .1, 'sf'),
-            ParamInfo('grid_steps', 3, 'stps'),
-            ParamInfo('grid_sigma', 1.6, 'sigma'),
-            # kpts scoring
-            ParamInfo('cov_agg_mode' , 'max'),
-            ParamInfo('cov_blur_ksize' , (5, 5)),
-            ParamInfo('cov_blur_on' , True),
-            ParamInfo('cov_blur_sigma' , 5.0),
-            ParamInfo('cov_remove_scale' , True),
-            ParamInfo('cov_remove_shape' , True),
-            ParamInfo('cov_scale_factor' , .3),
-            ParamInfo('cov_size_penalty_frac' , .1),
-            ParamInfo('cov_size_penalty_on' , True),
-            ParamInfo('cov_size_penalty_power' , .5),
-            # TODO kpts scoring
-            # distinctiveness
-        ] + DCVS_DEFAULT.aslist()
-
+        param_info_list = ut.flatten([
+            [
+                ut.ParamInfo('rrvsone_on', False, ''),
+            ],
+            vsone_pipeline.SHORTLIST_DEFAULTS.aslist(),
+            vsone_pipeline.COEFF_DEFAULTS.aslist(),
+            vsone_pipeline.UNC_DEFAULTS.aslist(),
+            vsone_pipeline.SCR_DEFAULTS.aslist(),
+            vsone_pipeline.COVKPTS_DEFAULT.aslist(),
+            vsone_pipeline.COVGRID_DEFAULT.aslist(),
+            distinctiveness_normalizer.DCVS_DEFAULT.aslist(),
+        ])
         return param_info_list
 
     def get_constraint_func():
@@ -1357,12 +1285,10 @@ def load_named_config(cfgname, dpath, use_config_cache=False):
 
 def _default_config(cfg, cfgname=None, new=True):
     """ hack 12-30-2014 """
-    if not ut.QUIET:
+    if ut.VERBOSE:
         print('[Config] building default config')
     if cfgname is None:
         cfgname = cfg.z_cfgname
-    if ut.VERYVERBOSE:
-        print('[config] default_query_cfg()')
     if new:
         fpath = cfg.get_fpath()
         cfg = GenericConfig(cfgname, fpath=fpath)

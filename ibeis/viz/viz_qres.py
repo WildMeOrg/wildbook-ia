@@ -138,7 +138,7 @@ def show_qres(ibs, qres, **kwargs):
         >>> # execute function
         >>> fig = show_qres(ibs, qres, sidebyside=False, show_query=True, top_aids=3)
         >>> # verify results
-        >>> fig.show()
+        >>> #fig.show()
         >>> pt.show_if_requested()
 
     """
@@ -154,7 +154,7 @@ def show_qres(ibs, qres, **kwargs):
     sidebyside    = kwargs.get('sidebyside', True)
     name_scoring  = kwargs.get('name_scoring', False)
 
-    fnum = df2.kwargs_fnum(kwargs)
+    fnum = df2.ensure_fnum(kwargs.get('fnum', None))
 
     if make_figtitle is True:
         figtitle = qres.make_title(pack=True)

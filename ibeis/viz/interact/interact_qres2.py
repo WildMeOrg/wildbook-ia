@@ -172,7 +172,6 @@ class Interact_QueryResult(object):
         # Get index relative to the page
         px = index - self.start_index
         pnum = self.pnum_(px)
-        #fnum = df2.kwargs_fnum(kwargs)
         #printDBG('[inter] starting %s interaction' % type_)
         # Setup figure
         fnum = self.fnum

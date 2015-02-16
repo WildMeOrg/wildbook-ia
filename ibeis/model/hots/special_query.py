@@ -685,7 +685,11 @@ def get_new_qres_distinctiveness(qres_vsone, qres_vsmany, top_aids, filtkey):
         # Get the distinctiveness score from the neighborhood
         # around each query point in the vsmany query result
         norm_sqared_dist = qres_vsmany.qfx2_dist.T[-1].take(qfx_vsone)
-        dstncvs = distinctiveness_normalizer.compute_distinctiveness_from_dist(norm_sqared_dist)
+        norm_dist = np.sqrt(norm_sqared_dist)
+        # FIXME: params not used
+        # but this is probably depricated anyway
+        dcvs_power, dcvs_max_clip, dcvs_min_clip = 1.0, 1.0, 0.0
+        dstncvs = distinctiveness_normalizer.compute_distinctiveness_from_dist(norm_dist, dcvs_power, dcvs_max_clip, dcvs_min_clip)
         # Copy new scores to the new fsv vector
         new_fsv_vsone.T[-1].T[:] = dstncvs  #
         newfsv_list.append(new_fsv_vsone)
@@ -743,7 +747,7 @@ def get_extern_distinctiveness(qreq_, qres, **kwargs):
     daid_list = list(six.iterkeys(qres.aid2_fsv))
     # Find subset of features to get distinctivness of
     qfxs_list = [qres.aid2_fm[daid].T[0] for daid in daid_list]
-    query_vecs = qreq_.ibs.get_annot_vecs(qres.qaid)
+    query_vecs = qreq_.ibs.get_annot_vecs(qres.qaid, qreq_=qreq_)
     # there might be duplicate feature indexes in the list of feature index
     # lists. We can use to perform neighbor lookup more efficiently by only
     # performing a single query per feature index. Utool does the mapping for us

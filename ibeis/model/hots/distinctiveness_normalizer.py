@@ -21,6 +21,14 @@ from ibeis.model.hots import hstypes
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[distinctnorm]', DEBUG=False)
 
 
+DCVS_DEFAULT = ut.ParamInfoList('distinctivness', [
+    ut.ParamInfo('dcvs_power', 1.0, 'p',    varyvals=[.5, 1.0, 1.5, 2.0]),
+    ut.ParamInfo('dcvs_min_clip', .2, 'mn', varyvals=[.2, .02, .03][0:1]),
+    ut.ParamInfo('dcvs_max_clip', .5, 'mx', varyvals=[.05, .3, .4, .45, .5, 1.0][1:4]),
+    ut.ParamInfo('dcvs_K', 5, 'dcvsK',      varyvals=[5, 7, 15][0:1]),
+])
+
+
 DISTINCTIVENESS_NORMALIZER_CACHE = {}
 BASELINE_DISTINCTIVNESS_URLS = {
     # TODO: Populate

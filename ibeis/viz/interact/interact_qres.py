@@ -65,7 +65,8 @@ def ishow_qres(ibs, qres, analysis=False, **kwargs):
         >>> fig = ishow_qres(ibs, qres, analysis)
         >>> pt.show_if_requested()
     """
-    fnum = df2.kwargs_fnum(kwargs)
+    fnum = df2.ensure_fnum(kwargs.get('fnum', None))
+
     fig = ih.begin_interaction('qres', fnum)
     # Result Interaction
     printDBG('[ishow_qres] starting interaction')

@@ -51,6 +51,7 @@ def parse_args():
         parser2.add_flag(('--quiet'), help='turns down verbosity')
         parser2.add_flag(('--silent'), help='turns off verbosity')
         parser2.add_flag(('--print-inject-order'), help='shows import order of any module registered with utool')
+        parser2.add_flag(('--debug-print'), help='shows where each injected print statement happens')
 
     def behavior_argparse(parser2):
         # Program behavior

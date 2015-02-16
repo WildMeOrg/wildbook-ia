@@ -1473,7 +1473,7 @@ def chipmatch_to_resdict(qreq_, qaid2_chipmatch, verbose=VERB_PIPELINE):
         >>> num_filtkeys = len(qres.filtkey_list)
         >>> ut.assert_eq(num_filtkeys, qres.aid2_fsv[2].shape[1])
         >>> ut.assert_eq(num_filtkeys, 4)
-        >>> ut.assert_inbounds(qres.aid2_fsv[2].shape[0], 105, 120)
+        >>> ut.assert_inbounds(qres.aid2_fsv[2].shape[0], 105, 150)
         >>> assert np.all(qres.aid2_fs[2] == qres.aid2_fsv[2].prod(axis=1)), 'math is broken'
 
     """

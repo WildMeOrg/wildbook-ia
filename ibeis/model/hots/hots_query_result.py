@@ -189,6 +189,7 @@ class QueryResult(__OBJECT_BASE__):
         qres.aid2_fsv = None  # feat_scorevec_list
         qres.aid2_fk = None   # feat_rank_list
         qres.aid2_score = None  # annotation score
+        qres.aid2_H = None  # annotation score
         qres.aid2_prob = None   # annotation normalized score
         qres.filtkey_list = None   # list of filter keys for each dimension in fsv
         qres.metadata = None  # messy (meta information of query)
@@ -247,6 +248,8 @@ class QueryResult(__OBJECT_BASE__):
             #print('[qr] qres.load() fpath=%r' % (split(fpath)[1],))
             with open(fpath, 'rb') as file_:
                 loaded_dict = cPickle.load(file_)
+                if 'aid2_H' not in loaded_dict:
+                    raise hsexcept.HotsCacheMissError('old qres error')
                 qres.__dict__.update(loaded_dict)
             #if not isinstance(qres.metadata, dict):
             #    print('[qr] loading old result format')
@@ -284,6 +287,7 @@ class QueryResult(__OBJECT_BASE__):
             msg = '... qres cache miss: %r' % (split(fpath)[1],)
             if verbose:
                 print(msg)
+            raise
         except Exception as ex:
             utool.printex(ex, 'unknown exception while loading query result')
             raise

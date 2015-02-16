@@ -74,7 +74,7 @@ class MatchInteraction(object):
         """
         self.ibs = ibs
         self.cm = cm
-        self.fnum = pt.next_fnum() if fnum is None else fnum
+        self.fnum = pt.ensure_fnum(fnum)
         # Unpack Args
         if aid2 is None:
             cm.sortself()

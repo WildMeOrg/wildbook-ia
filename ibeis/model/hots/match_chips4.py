@@ -190,6 +190,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True):
     """
     #print('[q1] execute_query_and_save_L1()')
     if use_cache:
+        if ut.VERBOSE:
+            print('[mc4] cache-query is on')
         if ut.DEBUG2:
             # sanity check
             qreq_.assert_self(ibs)

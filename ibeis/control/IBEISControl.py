@@ -187,10 +187,11 @@ class IBEISController(object):
         ibs._init_sql()
         ibs._init_config()
         wb_target = params.args.wildbook_target
-        if wb_target is None:
-            print('[ibs.__init__] Default Wildbook target: %s' % (const.WILDBOOK_TARGET, ))
-        else:
-            print('[ibs.__init__] Custom Wildbook target: %s' % (wb_target, ))
+        if ut.VERBOSE and not ut.QUIET:
+            if wb_target is None:
+                print('[ibs.__init__] Default Wildbook target: %s' % (const.WILDBOOK_TARGET, ))
+            else:
+                print('[ibs.__init__] Custom Wildbook target: %s' % (wb_target, ))
 
     def reset_table_cache(ibs):
         ibs.table_cache = accessor_decors.init_tablecache()
@@ -367,7 +368,8 @@ class IBEISController(object):
             ibs.db,
             ibs.db_version_expected,
             DB_SCHEMA,
-            autogenerate=params.args.dump_autogen_schema
+            autogenerate=params.args.dump_autogen_schema,
+            verbose=ut.VERBOSE,
         )
 
     #@ut.indent_func
@@ -386,7 +388,8 @@ class IBEISController(object):
             ibs.dbcache_version_expected,
             DBCACHE_SCHEMA,
             dobackup=False,  # Everything in dbcache can be regenerated.
-            autogenerate=params.args.dump_autogen_schema
+            autogenerate=params.args.dump_autogen_schema,
+            verbose=ut.VERBOSE,
         )
 
     def _close_sqldbcache(ibs):

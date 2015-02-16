@@ -7,6 +7,10 @@ import utool as ut
 print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[_plh]', DEBUG=False)
 
 
+VERB_PIPELINE = ut.get_argflag(('--verb-pipeline', '--verb-pipe')) or ut.VERYVERBOSE
+VERB_TESTDATA = ut.get_argflag('--verb-testdata') or ut.VERYVERBOSE
+
+
 def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
     r"""
     convinience: runs pipeline for tests
@@ -100,13 +104,26 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
     # Allow commandline specification if paramaters are not specified in tests
     if cfgdict is None:
         cfgdict = {}
+
     if cmdline_ok:
-        #if dbname is None:
-        #if qaid_list is None:
-        #if daid_list is None or daid_list == 'all':
+        from ibeis.model import Config
+        # Allow specification of db and qaids/daids
+        if dbname is not None:
+            defaultdb = dbname
         dbname = ut.get_argval('--db', str, defaultdb)
         qaid_list = ut.get_argval(('--qaid_list', '--qaid'), list, qaid_list)
         daid_list = ut.get_argval('--daid_list', list, daid_list)
+        #if 'codename' not in cfgdict:
+        # Allow commond line specification of all query params
+        default_cfgdict = dict(Config.parse_config_items(Config.QueryConfig()))
+        default_cfgdict.update(cfgdict)
+        _orig_cfgdict = cfgdict
+        force_keys = set(list(_orig_cfgdict.keys()))
+        cfgdict = ut.util_arg.argparse_dict(default_cfgdict, verbose=not
+                                            ut.QUIET, only_specified=True,
+                                            force_keys=force_keys)
+        if VERB_PIPELINE or VERB_TESTDATA:
+            print('[plh] cfgdict = ' + ut.dict_str(cfgdict))
     ibs = ibeis.opendb(dbname)
     if qaid_list is None:
         if dbname == 'testdb1':
@@ -124,6 +141,7 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
     elif daid_list == 'all':
         daid_list = ibs.get_valid_aids()
     ibs = ibeis.test_main(db=dbname)
+
     if 'with_metadata' not in cfgdict:
         cfgdict['with_metadata'] = True
     qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)

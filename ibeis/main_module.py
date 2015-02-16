@@ -71,16 +71,18 @@ def _init_gui():
 
 
 #@profile
-def _init_ibeis(dbdir=None, verbose=True, use_cache=True):
-    import utool
+def _init_ibeis(dbdir=None, verbose=None, use_cache=True):
+    import utool as ut
     from ibeis import params
     from ibeis.control import IBEISControl
-    if verbose and not utool.QUIET:
+    if verbose is None:
+        verbose = ut.VERBOSE
+    if verbose and not ut.QUIET:
         print('[main] _init_ibeis()')
     # Use command line dbdir unless user specifies it
     if dbdir is None:
         ibs = None
-        utool.printWARN('[main!] WARNING args.dbdir is None')
+        ut.printWARN('[main!] WARNING args.dbdir is None')
     else:
         ibs = IBEISControl.request_IBEISController(dbdir=dbdir, use_cache=use_cache)
         if params.args.webapp:

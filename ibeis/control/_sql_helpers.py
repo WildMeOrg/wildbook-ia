@@ -116,7 +116,8 @@ def database_backup(db_dir, db_fname, backup_dir, max_keep=60, manual=True):
 
 @profile
 def ensure_correct_version(ibs, db, version_expected, schema_spec,
-                           dobackup=True, autogenerate=False):
+                           dobackup=True, autogenerate=False,
+                           verbose=ut.NOT_QUIET):
     """
     FIXME: AN SQL HELPER FUNCTION SHOULD BE AGNOSTIC TO CONTROLER OBJECTS
 
@@ -124,7 +125,7 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
 
     Args:
         ibs (IBEISController):
-        db (?):
+        db (SQLController):
         version_expected (str): version you want to be at
         schema_spec (module): schema module
         dobackup (bool):
@@ -144,10 +145,6 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
     Args:
         schema_spec (module): module of schema specifications
     """
-
-    def printQUIET(msg):
-        if NOT_QUIET:
-            print(msg)
 
     want_base_version = version_expected == const.BASE_DATABASE_VERSION
     if want_base_version:
@@ -181,27 +178,30 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
                 # Since this is a new database, we do not have to worry about backinng up the
                 # current database.  The subsequent update functions (if needed) will handle
                 # this for us.
-                printQUIET('[_SQL] New database and a current schema found')
+                if verbose:
+                    print('[_SQL] New database and a current schema found')
                 schema_spec.UPDATE_CURRENT(db, ibs=ibs)
                 db.set_db_version(schema_spec.VERSION_CURRENT)
-                printQUIET('[_SQL] Database version updated (skipped) to %r ' % (schema_spec.VERSION_CURRENT))
+                if verbose:
+                    print('[_SQL] Database version updated (skipped) to %r ' % (schema_spec.VERSION_CURRENT))
             else:
-                printQUIET('[_SQL] Current database is not compatible, updating incrementally...')
+                print('[_SQL] Current database is not compatible, updating incrementally...')
         else:
-            printQUIET('[_SQL] New database but current version not exported, updating incrementally...')
+            print('[_SQL] New database but current version not exported, updating incrementally...')
     #+--------------------------------------
     # INCREMENTAL UPDATE TO EXPECTED VERSION
     #+--------------------------------------
     # Check version again for sanity's sake, update if exported current is behind expected
     version = db.get_db_version()
-    printQUIET('[_SQL.%s] Database version: %r | Expected version: %r ' %
-               (ut.get_caller_name(), version, version_expected))
+    if verbose:
+        print('[_SQL.%s] Database version: %r | Expected version: %r ' %
+                (ut.get_caller_name(), version, version_expected))
     if version < version_expected:
-        printQUIET('[_SQL] Database version behind, updating...')
+        print('[_SQL] Database version behind, updating...')
         update_schema_version(ibs, db, db_versions, version, version_expected,
                               dobackup=dobackup)
         db.set_db_version(version_expected)
-        printQUIET('[_SQL] Database version updated (incrementally) to %r' %
+        print('[_SQL] Database version updated (incrementally) to %r' %
                    (version_expected))
     elif version > version_expected:
         msg = (('[_SQL] ERROR: '

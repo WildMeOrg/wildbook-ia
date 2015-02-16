@@ -118,8 +118,8 @@ class _OldStyleChipMatchSimulator(object):
         aid2_fm    = dict(zip(cm.daid_list, cm.fm_list))
         aid2_fsv   = dict(zip(cm.daid_list, cm.fsv_list))
         aid2_fk    = dict(zip(cm.daid_list, cm.fk_list))
-        aid2_score = dict(zip(cm.daid_list, cm.score_list))
-        aid2_H     = dict(zip(cm.daid_list, cm.H_list))
+        aid2_score = {} if cm.score_list is None else dict(zip(cm.daid_list, cm.score_list))
+        aid2_H     = None if cm.H_list is None else dict(zip(cm.daid_list, cm.H_list))
         chipmatch  = hstypes.ChipMatch(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
         return chipmatch
 
@@ -176,7 +176,7 @@ def test_from_qres(qres):
         >>> from ibeis.model.hots.chip_match import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]
+        >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict(), verbose=True)[1]
         >>> cm = ChipMatch2.from_qres(qres)
         >>> cm.print_csv(ibs=ibs)
     """
