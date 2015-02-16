@@ -107,87 +107,98 @@ if DOELSE:
     from plottool import custom_figure
     from plottool import plots
     from plottool import draw_func2
-    from plottool.plot_helpers import (SIFT_OR_VECFIELD, draw, dump_figure,
-                                       get_bbox_centers, get_plotdat,
-                                       get_square_row_cols, kp_info,
-                                       set_plotdat,)
-    from plottool.fig_presenter import (SLEEP_TIME, all_figures_bring_to_front,
-                                        all_figures_show,
-                                        all_figures_tight_layout,
-                                        all_figures_tile, bring_to_front,
-                                        close_all_figures, close_figure,
-                                        get_all_figures, get_all_qt4_wins,
-                                        get_all_windows, get_fig, get_geometry,
-                                        get_main_win_base, iup, iupdate,
-                                        present, register_qt4_win, reset,
-                                        set_geometry, show, unregister_qt4_win,
-                                        update,)
-    from plottool.custom_constants import (BLACK, BLUE, DARK_BLUE, DARK_GREEN,
-                                           DARK_ORANGE, DARK_RED, DARK_YELLOW,
-                                           DEEP_PINK, DPI, FALSE_RED, FIGSIZE,
-                                           FIGSIZE_BIGGER, FIGSIZE_GOLD,
-                                           FIGSIZE_HUGE, FIGSIZE_MED,
-                                           FIGSIZE_SQUARE, FONTS, FontProp,
-                                           GRAY, GREEN, LARGE, LIGHT_BLUE, MED,
-                                           ORANGE, PHI, PHI_denom, PHI_numer,
-                                           PINK, PURPLE, RED, SMALL, SMALLER,
-                                           SMALLEST, TRUE_BLUE, TRUE_GREEN,
-                                           UNKNOWN_PURP, WHITE, YELLOW,
-                                           golden_wh, golden_wh2,)
-    from plottool.custom_figure import (cla, clf, customize_figure, figure,
-                                        gca, gcf, get_ax,
-                                        prepare_figure_for_save,
-                                        prepare_figure_fpath, sanatize_img_ext,
-                                        sanatize_img_fname, save_figure,
-                                        set_figtitle, set_ticks, set_title,
-                                        set_xlabel, set_xticks, set_ylabel,
-                                        set_yticks, split,)
-    from plottool.plots import (estimate_pdf, get_good_logyscale_kwargs,
-                                plot_densities, plot_pdf, plot_probabilities,
-                                plot_probs, plot_sorted_scores, plot_stems,
-                                set_logyscale_from_data,)
-    from plottool.draw_func2 import (BASE_FNUM, DARKEN, DEBUG, LEGEND_LOCATION,
-                                     LineCollection, SAFE_POS, TMP_mevent,
-                                     absolute_lbl, add_alpha, adjust_subplots,
-                                     adjust_subplots_safe,
-                                     adjust_subplots_xlabels,
-                                     adjust_subplots_xylabels,
-                                     ax_absolute_text, ax_relative_text,
-                                     axes_bottom_button_bar, color_orimag,
-                                     colorbar, customize_colormap,
-                                     dark_background, distinct_colors,
-                                     draw_bbox, draw_border, draw_boxedX,
-                                     draw_keypoint_gradient_orientations,
-                                     draw_keypoint_patch, draw_kpts2,
-                                     draw_lines2, draw_stems, draw_text,
-                                     draw_vector_field, ensure_divider,
-                                     execstr_global, fig_relative_text,
-                                     get_axis_xy_width_height,
-                                     get_binary_svm_cmap, get_pnum_func,
-                                     imshow, imshow_null, kwargs_fnum,
-                                     label_to_colors, legend, lighten_rgb,
-                                     lowerright_text, make_axes_locatable,
-                                     make_bbox_positioners, next_fnum,
-                                     phantom_legend_label, plot, plot2,
-                                     plotWidget, plot_bars, plot_fmatch,
-                                     plot_hist, plot_histpdf,
-                                     plot_sift_signature, pnum_generator,
-                                     remove_patches, reverse_colormap,
-                                     scores_to_cmap, scores_to_color,
-                                     show_all_colormaps, show_chipmatch2,
-                                     show_histogram, show_signature,
-                                     small_xticks, small_yticks, space_xticks,
-                                     space_yticks, stack_image_list,
-                                     stack_image_recurse, stack_images,
-                                     stack_square_images, to_base255,
-                                     unique_rows, upperleft_text,
-                                     upperright_text, variation_trunctate,
-                                     width_from,)
+    from plottool.plot_helpers import (SIFT_OR_VECFIELD, draw, dump_figure, 
+                                       get_bbox_centers, get_plotdat, 
+                                       get_square_row_cols, kp_info, 
+                                       set_plotdat,) 
+    from plottool.fig_presenter import (Qt, SLEEP_TIME, 
+                                        all_figures_bring_to_front, 
+                                        all_figures_show, 
+                                        all_figures_tight_layout, 
+                                        all_figures_tile, bring_to_front, 
+                                        close_all_figures, close_figure, 
+                                        get_all_figures, get_all_qt4_wins, 
+                                        get_all_windows, get_fig, get_geometry, 
+                                        get_main_win_base, iup, iupdate, 
+                                        present, register_qt4_win, reset, 
+                                        set_geometry, show, unregister_qt4_win, 
+                                        update,) 
+    from plottool.custom_constants import (BLACK, BLUE, DARK_BLUE, DARK_GREEN, 
+                                           DARK_ORANGE, DARK_RED, DARK_YELLOW, 
+                                           DEEP_PINK, DPI, FALSE_RED, FIGSIZE, 
+                                           FIGSIZE_BIGGER, FIGSIZE_GOLD, 
+                                           FIGSIZE_HUGE, FIGSIZE_MED, 
+                                           FIGSIZE_SQUARE, FONTS, FontProp, 
+                                           GRAY, GREEN, LARGE, LIGHT_BLUE, MED, 
+                                           ORANGE, PHI, PHI_denom, PHI_numer, 
+                                           PINK, PURPLE, RED, SMALL, SMALLER, 
+                                           SMALLEST, TRUE_BLUE, TRUE_GREEN, 
+                                           UNKNOWN_PURP, WHITE, YELLOW, 
+                                           golden_wh, golden_wh2,) 
+    from plottool.custom_figure import (cla, clf, customize_figure, 
+                                        customize_fontprop, figure, gca, gcf, 
+                                        get_ax, prepare_figure_for_save, 
+                                        prepare_figure_fpath, sanatize_img_ext, 
+                                        sanatize_img_fname, save_figure, 
+                                        set_figtitle, set_ticks, set_title, 
+                                        set_xlabel, set_xticks, set_ylabel, 
+                                        set_yticks, split,) 
+    from plottool.plots import (colorline, estimate_pdf, 
+                                get_good_logyscale_kwargs, interval_stats_plot, 
+                                plot_densities, plot_pdf, plot_probabilities, 
+                                plot_probs, plot_sorted_scores, plot_stems, 
+                                set_logyscale_from_data,) 
+    from plottool.draw_func2 import (BASE_FNUM, DARKEN, DEBUG, LEGEND_LOCATION, 
+                                     LineCollection, SAFE_POS, TAU, TMP_mevent, 
+                                     absolute_lbl, add_alpha, adjust_subplots, 
+                                     adjust_subplots_safe, 
+                                     adjust_subplots_xlabels, 
+                                     adjust_subplots_xylabels, 
+                                     append_phantom_legend_label, 
+                                     ax_absolute_text, ax_relative_text, 
+                                     axes_bottom_button_bar, color_orimag, 
+                                     color_orimag_colorbar, colorbar, 
+                                     customize_colormap, dark_background, 
+                                     distinct_colors, draw_bbox, draw_border, 
+                                     draw_boxedX, 
+                                     draw_keypoint_gradient_orientations, 
+                                     draw_keypoint_patch, draw_kpts2, 
+                                     draw_lines2, draw_stems, draw_text, 
+                                     draw_vector_field, ensure_divider, 
+                                     ensure_fnum, execstr_global, 
+                                     fig_relative_text, 
+                                     get_axis_xy_width_height, 
+                                     get_binary_svm_cmap, 
+                                     get_orientation_color, get_pnum_func, 
+                                     imshow, imshow_null, label_to_colors, 
+                                     legend, lighten_rgb, lowerright_text, 
+                                     make_axes_locatable, 
+                                     make_bbox_positioners, 
+                                     make_ori_legend_img, make_pnum_nextgen, 
+                                     next_fnum, param_plot_iterator, plot, 
+                                     plot2, plotWidget, plot_bars, plot_fmatch, 
+                                     plot_hist, plot_histpdf, 
+                                     plot_sift_signature, plot_surface3d, 
+                                     pnum_generator, print_valid_cmaps, 
+                                     remove_patches, reverse_colormap, 
+                                     rotate_plot, scores_to_cmap, 
+                                     scores_to_color, show_all_colormaps, 
+                                     show_chipmatch2, show_histogram, 
+                                     show_if_requested, 
+                                     show_phantom_legend_labels, 
+                                     show_signature, show_was_requested, 
+                                     small_xticks, small_yticks, space_xticks, 
+                                     space_yticks, stack_image_list, 
+                                     stack_image_recurse, stack_images, 
+                                     stack_square_images, to_base255, 
+                                     unique_rows, upperleft_text, 
+                                     upperright_text, variation_trunctate, 
+                                     width_from,) 
     import utool
     print, print_, printDBG, rrr, profile = utool.inject(
         __name__, '[plottool]')
-
-
+    
+    
     def reassign_submodule_attributes(verbose=True):
         """
         why reloading all the modules doesnt do this I don't know
@@ -214,8 +225,8 @@ if DOELSE:
                     continue
                 seen_.add(attr)
                 setattr(plottool, attr, getattr(submod, attr))
-
-
+    
+    
     def reload_subs(verbose=True):
         """ Reloads plottool and submodules """
         rrr(verbose=verbose)

@@ -126,14 +126,6 @@ def make_pnum_nextgen(nRows=1, nCols=1, base=0):
     return pnum_next
 
 
-def kwargs_fnum(kwargs):
-    fnum = kwargs.get('fnum', None)
-    if fnum is None:
-        fnum = next_fnum()
-        kwargs['fnum'] = fnum
-    return fnum
-
-
 BASE_FNUM = 9001
 
 
@@ -143,6 +135,12 @@ def next_fnum(new_base=None):
         BASE_FNUM = new_base
     BASE_FNUM += 1
     return BASE_FNUM
+
+
+def ensure_fnum(fnum):
+    if fnum is None:
+        return next_fnum()
+    return fnum
 
 
 def execstr_global():
