@@ -80,7 +80,7 @@ class MatchInteraction(object):
             cm.sortself()
             index = 0
         else:
-            index = cm.aid2_idx[aid2]
+            index = cm.daid2_idx[aid2]
         self.qaid = self.cm.qaid
         self.daid = self.cm.daid_list
         self.daid = self.cm.daid_list[index]

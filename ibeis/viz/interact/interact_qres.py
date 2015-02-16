@@ -42,7 +42,7 @@ def ishow_analysis(ibs, qres, **kwargs):
     return ishow_qres(ibs, qres, analysis=True, **kwargs)
 
 
-def ishow_qres(ibs, qres, analysis=False, **kwargs):
+def ishow_qres(ibs, qres, analysis=False, dodraw=True, **kwargs):
     """
     Displays query chip, groundtruth matches, and top matches
     TODO: make this a class
@@ -62,10 +62,11 @@ def ishow_qres(ibs, qres, analysis=False, **kwargs):
         >>> ibs = ibeis.opendb('testdb1')
         >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]
         >>> analysis = False
-        >>> fig = ishow_qres(ibs, qres, analysis)
+        >>> fig = ishow_qres(ibs, qres, analysis, dodraw=False)
         >>> pt.show_if_requested()
     """
     fnum = df2.ensure_fnum(kwargs.get('fnum', None))
+    kwargs['fnum'] = fnum
 
     fig = ih.begin_interaction('qres', fnum)
     # Result Interaction
@@ -132,7 +133,8 @@ def ishow_qres(ibs, qres, analysis=False, **kwargs):
         fig = _analysis_view()
     else:
         fig = _top_matches_view()
-    ph.draw()
+    if dodraw:
+        ph.draw()
     ih.connect_callback(fig, 'button_press_event', _on_match_click)
     printDBG('[ishow_qres] Finished')
     return fig

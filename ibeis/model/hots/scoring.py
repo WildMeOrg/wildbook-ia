@@ -12,6 +12,7 @@ from vtool import coverage_kpts
 from vtool import coverage_grid
 from ibeis.model.hots import hstypes
 from ibeis.model.hots import distinctiveness_normalizer
+from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 from six.moves import zip, range  # NOQA
 #profile = ut.profile
 print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[scoring]', DEBUG=False)
@@ -86,7 +87,7 @@ def compute_coverage_score(qreq_, unscored_cm, config={}):
     Example0:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.scoring import *  # NOQA
-        >>> qreq_, unscored_cm = testdata_scoring()
+        >>> qreq_, unscored_cm = plh.testdata_scoring()
         >>> config = qreq_.qparams
         >>> score_list = compute_coverage_score(qreq_, unscored_cm)
         >>> result = ut.list_str(score_list, precision=3)
@@ -138,8 +139,9 @@ def general_coverage_mask_generator(make_mask_func, qreq_, unscored_cm, config, 
         yield weight_mask_m, weight_mask
 
 
-def get_masks(ibs, cm, config={}):
+def get_masks(qreq_, cm, config={}):
     r"""
+    testing function
 
     CommandLine:
         # SHOW THE BASELINE AND MATCHING MASKS
@@ -153,20 +155,21 @@ def get_masks(ibs, cm, config={}):
         python -m ibeis.model.hots.scoring --test-get_masks --qaid 86\
             --maskscore_mode=grid --show --prior_coeff=.5 --unconstrained_coeff=0 --constrained_coeff=.5 --grid_scale_factor=.5
 
+        python -m ibeis.model.hots.scoring --test-get_masks --show --db PZ_MTEST --aid 1
+
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.scoring import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> qreq_, unscored_cm = testdata_scoring()
+        >>> qreq_, unscored_cm = plh.testdata_scoring()
         >>> cm = unscored_cm
-        >>> ibs = qreq_.ibs
         >>> config = qreq_.qparams
         >>> # execute function
-        >>> masks_list = get_masks(ibs, cm, config)
+        >>> masks_list = get_masks(qreq_, cm, config)
         >>> if ut.show_was_requested():
         ...     import plottool as pt
-        ...     show_coverage_mask(ibs, cm, masks_list)
+        ...     show_coverage_mask(qreq_, cm, masks_list)
         ...     pt.show_if_requested()
     """
     #if config is None:
@@ -176,13 +179,13 @@ def get_masks(ibs, cm, config={}):
     fm_list = cm.fm_list
     fs_list = cm.fs_list
     make_mask_func, cov_cfg = get_mask_func(config)
-    masks_iter = general_coverage_mask_generator(make_mask_func, ibs, qaid, fm_list, fs_list, config, cov_cfg)
+    masks_iter = general_coverage_mask_generator(make_mask_func, qreq_, qaid, fm_list, fs_list, config, cov_cfg)
     # copy weight mask as it comes back if you want to see them
     masks_list = [(weight_mask_m.copy(), weight_mask) for weight_mask_m, weight_mask  in masks_iter]
     return masks_list
 
 
-def show_coverage_mask(ibs, cm, masks_list, index=0, fnum=None):
+def show_coverage_mask(qreq_, cm, masks_list, index=0, fnum=None):
     import plottool as pt
     from ibeis import viz
     fnum = pt.ensure_fnum(fnum)
@@ -200,16 +203,8 @@ def show_coverage_mask(ibs, cm, masks_list, index=0, fnum=None):
     pt.draw_bbox((   0,    0) + wh1, bbox_color=(0, 0, 1))
     pt.draw_bbox((woff, hoff) + wh2, bbox_color=(0, 0, 1))
     # Draw matches
-    viz.viz_matches.show_matches2(ibs, qaid, daid, fm, fs, draw_pts=False, draw_lines=True, draw_ell=False, fnum=fnum, pnum=(1, 2, 2))
+    viz.viz_matches.show_matches2(qreq_.ibs, qaid, daid, fm, fs, draw_pts=False, draw_lines=True, draw_ell=False, fnum=fnum, pnum=(1, 2, 2))
     pt.set_figtitle('score=%.4f' % (score_list[index],))
-
-
-def testdata_scoring():
-    from ibeis.model.hots import vsone_pipeline
-    ibs, qreq_, prior_cm = vsone_pipeline.testdata_matching()
-    config = qreq_.qparams
-    unscored_cm = vsone_pipeline.refine_matches(ibs, prior_cm, config)
-    return qreq_, unscored_cm
 
 
 def show_annot_weights(qreq_, aid, config={}):

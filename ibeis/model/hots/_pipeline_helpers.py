@@ -149,6 +149,60 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
     return ibs, qreq_
 
 
+#+--- OTHER TESTDATA FUNCS ---
+
+
+def testdata_post_vsmany_sver():
+    """
+        >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
+    """
+    #from ibeis.model import Config
+    cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum', sver_weighting=True)
+    #rrvsone_cfgdict = dict(Config.RerankVsOneConfig().parse_items())
+    #cfgdict.update(rrvsone_cfgdict)
+    #cfgdict.update(dict(Config.FeatureConfig().parse_items()))
+    #default_cfgdict = cfgdict.copy()
+    #cfgdict = ut.util_arg.argparse_dict(cfgdict)
+    #for key in cfgdict:
+    #    if cfgdict[key] != default_cfgdict[key]:
+    #        print('[NONDEFAULT] cfgdict[%r] = %r' % (key, cfgdict[key]))
+    cfgdict['rrvsone_on'] = True
+    # Get pipeline testdata for this configuration
+    ibs, qreq_ = get_pipeline_testdata(
+        cfgdict=cfgdict, qaid_list=[1], daid_list='all', defaultdb='PZ_MTEST', cmdline_ok=True)
+    qaid_list = qreq_.get_external_qaids().tolist()
+    qaid = qaid_list[0]
+    #daid_list = qreq_.get_external_daids().tolist()
+    if len(ibs.get_annot_groundtruth(qaid)) == 0:
+        print('WARNING: qaid=%r has no groundtruth' % (qaid,))
+    locals_ = testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')
+    qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
+    return ibs, qreq_, qaid2_chipmatch, qaid_list
+
+
+def testdata_scoring():
+    from ibeis.model.hots import vsone_pipeline
+    ibs, qreq_, prior_cm = testdata_matching()
+    config = qreq_.qparams
+    unscored_cm = vsone_pipeline.refine_matches(qreq_, prior_cm, config)
+    return qreq_, unscored_cm
+
+
+def testdata_matching():
+    """
+        >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
+    """
+    from ibeis.model.hots import vsone_pipeline
+    ibs, qreq_, qaid2_chipmatch, qaid_list  = testdata_post_vsmany_sver()
+    vsm_cm_list   = vsone_pipeline.prepare_vsmany_chipmatch(qreq_, qaid2_chipmatch)
+    prior_cm_list = vsone_pipeline.make_chipmatch_shortlist(qreq_, vsm_cm_list)
+    prior_cm      = prior_cm_list[0]
+    return ibs, qreq_, prior_cm
+
+
+#L_______
+
+
 def print_nearest_neighbor_assignments(qvecs_list, nns_list):
     nQAnnots = len(qvecs_list)
     nTotalDesc = sum(map(len, qvecs_list))

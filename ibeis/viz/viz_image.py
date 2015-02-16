@@ -65,7 +65,7 @@ def show_image(ibs, gid, sel_aids=[], fnum=None,
         python -m ibeis.viz.viz_image --test-show_image --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.viz.viz_image import *  # NOQA
         >>> import ibeis
         >>> # build test data

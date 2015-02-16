@@ -74,7 +74,7 @@ def show_post_vsmany_vser():
         >>> show_post_vsmany_vser()
     """
     import plottool as pt
-    ibs, qreq_, qaid2_vsm_chipmatch, qaid_list  = testdata_post_vsmany_sver()
+    ibs, qreq_, qaid2_vsm_chipmatch, qaid_list  = plh.testdata_post_vsmany_sver()
     # HACK TO PRESCORE
     ibs = qreq_.ibs
     vsm_cm_list = prepare_vsmany_chipmatch(qreq_, qaid2_vsm_chipmatch)
@@ -94,7 +94,7 @@ def prepare_vsmany_chipmatch(qreq_, qaid2_vsm_chipmatch):
 
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-        >>> ibs, qreq_, qaid2_vsm_chipmatch, qaid_list  = testdata_post_vsmany_sver()
+        >>> ibs, qreq_, qaid2_vsm_chipmatch, qaid_list  = plh.testdata_post_vsmany_sver()
         >>> vsm_cm_list = prepare_vsmany_chipmatch(qreq_, qaid2_vsm_chipmatch)
 
     """
@@ -133,7 +133,7 @@ def make_chipmatch_shortlist(qreq_, cm_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-        >>> ibs, qreq_, qaid2_vsm_chipmatch, qaid_list  = testdata_post_vsmany_sver()
+        >>> ibs, qreq_, qaid2_vsm_chipmatch, qaid_list  = plh.testdata_post_vsmany_sver()
         >>> vsm_cm_list = prepare_vsmany_chipmatch(qreq_, qaid2_vsm_chipmatch)
         >>> cm_list = vsm_cm_list
         >>> cm_shortlist = make_chipmatch_shortlist(qreq_, cm_list)
@@ -184,7 +184,7 @@ def vsone_reranking(qreq_, qaid2_vsm_chipmatch, verbose=False):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-        >>> ibs, qreq_, qaid2_vsm_chipmatch, qaid_list  = testdata_post_vsmany_sver()
+        >>> ibs, qreq_, qaid2_vsm_chipmatch, qaid_list  = plh.testdata_post_vsmany_sver()
         >>> # qaid2_vsm_chipmatch = ut.dict_subset(qaid2_vsm_chipmatch, [6])
         >>> qaid2_chipmatch_VSONE = vsone_reranking(qreq_, qaid2_vsm_chipmatch)
         >>> #qaid2_chipmatch = qaid2_chipmatch_VSONE
@@ -301,7 +301,7 @@ def refine_matches(qreq_, prior_cm, config={}):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-        >>> ibs, qreq_, prior_cm = testdata_matching()
+        >>> ibs, qreq_, prior_cm = plh.testdata_matching()
         >>> config = qreq_.qparams
         >>> unscored_cm = refine_matches(qreq_, prior_cm, config)
         >>> unscored_cm.print_csv(ibs=ibs)
@@ -391,7 +391,7 @@ def single_vsone_rerank(qreq_, prior_cm, config={}):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-        >>> ibs, qreq_, prior_cm = testdata_matching()
+        >>> ibs, qreq_, prior_cm = plh.testdata_matching()
         >>> config = qreq_.qparams
         >>> rerank_cm = single_vsone_rerank(qreq_, prior_cm, config)
         >>> if ut.show_was_requested():
@@ -454,7 +454,7 @@ def compute_query_constrained_matches(qreq_, qaid, daid_list, H_list, config):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-        >>> ibs, qreq_, prior_cm = testdata_matching()
+        >>> ibs, qreq_, prior_cm = plh.testdata_matching()
         >>> config = qreq_.qparams
         >>> #ut.embed()
         >>> print(config.query_cfgstr)
@@ -521,7 +521,7 @@ def compute_query_unconstrained_matches(qreq_, qaid, daid_list, config):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-        >>> ibs, qreq_, prior_cm = testdata_matching()
+        >>> ibs, qreq_, prior_cm = plh.testdata_matching()
         >>> config = qreq_.qparams
         >>> qaid, daid_list, H_list = ut.dict_take(prior_cm, ['qaid', 'daid_list', 'H_list'])
         >>> match_results = compute_query_unconstrained_matches(qreq_, qaid, daid_list, config)
@@ -558,55 +558,6 @@ def compute_query_unconstrained_matches(qreq_, qaid, daid_list, config):
     fm_norm_RAT_list = ut.get_list_column(scrtup_list, 2)
     match_results = fm_RAT_list, fs_RAT_list, fm_norm_RAT_list
     return match_results
-
-
-# -----------------------------
-# TESTDATA
-# -----------------------------
-
-
-def testdata_post_vsmany_sver():
-    """
-        >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-    """
-    #from ibeis.model import Config
-    cfgdict = dict(dupvote_weight=1.0, prescore_method='nsum', score_method='nsum', sver_weighting=True)
-    #rrvsone_cfgdict = dict(Config.RerankVsOneConfig().parse_items())
-    #cfgdict.update(rrvsone_cfgdict)
-    #cfgdict.update(dict(Config.FeatureConfig().parse_items()))
-    #default_cfgdict = cfgdict.copy()
-    #cfgdict = ut.util_arg.argparse_dict(cfgdict)
-    #for key in cfgdict:
-    #    if cfgdict[key] != default_cfgdict[key]:
-    #        print('[NONDEFAULT] cfgdict[%r] = %r' % (key, cfgdict[key]))
-    cfgdict['rrvsone_on'] = True
-    #qaid      = ut.get_argval('--qaid', int, 1)
-    #daid_list = ut.get_argval('--daid_list', list, None)
-    #daid_list = 'all' if daid_list is None else daid_list
-    #qaid_list = [qaid]
-    #ut.embed()
-    # Get pipeline testdata for this configuration
-    ibs, qreq_ = plh.get_pipeline_testdata(
-        cfgdict=cfgdict, qaid_list=[1], daid_list='all', defaultdb='PZ_MTEST', cmdline_ok=True)
-    qaid_list = qreq_.get_external_qaids().tolist()
-    qaid = qaid_list[0]
-    #daid_list = qreq_.get_external_daids().tolist()
-    if len(ibs.get_annot_groundtruth(qaid)) == 0:
-        print('WARNING: qaid=%r has no groundtruth' % (qaid,))
-    locals_ = plh.testrun_pipeline_upto(qreq_, 'chipmatch_to_resdict')
-    qaid2_chipmatch = locals_['qaid2_chipmatch_SVER']
-    return ibs, qreq_, qaid2_chipmatch, qaid_list
-
-
-def testdata_matching():
-    """
-        >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-    """
-    ibs, qreq_, qaid2_chipmatch, qaid_list  = testdata_post_vsmany_sver()
-    vsm_cm_list   = prepare_vsmany_chipmatch(qreq_, qaid2_chipmatch)
-    prior_cm_list = make_chipmatch_shortlist(qreq_, vsm_cm_list)
-    prior_cm      = prior_cm_list[0]
-    return ibs, qreq_, prior_cm
 
 
 # -----------------------------
@@ -675,7 +626,7 @@ def gridsearch_constrained_matches():
     # Make configuration for every parameter setting
     cfgdict_list, cfglbl_list = SCR_DEFAULTS.get_gridsearch_input(defaultslice=slice(0, 10))
     #fname = None  # 'easy1.png'
-    ibs, qreq_, prior_cm = testdata_matching()
+    ibs, qreq_, prior_cm = plh.testdata_matching()
     qaid      = prior_cm.qaid
     daid_list = prior_cm.daid_list
     H_list    = prior_cm.H_list
