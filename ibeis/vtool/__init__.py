@@ -148,8 +148,9 @@ if DOELSE:
                             convert_degrees, get_exif_dict, get_exif_dict2, 
                             get_exif_tagids, get_exist, get_lat_lon, 
                             get_lat_lon2, get_unixtime, 
-                            make_exif_dict_human_readable, read_all_exif_tags, 
-                            read_exif, read_exif_tags, read_one_exif_tag,) 
+                            make_exif_dict_human_readable, parse_exif_unixtime, 
+                            read_all_exif_tags, read_exif, read_exif_tags, 
+                            read_one_exif_tag,) 
     from vtool.keypoint import (GRAVITY_THETA, KPTS_DTYPE, LOC_DIMS, ORI_DIM, 
                                 SCAX_DIM, SCAY_DIM, SHAPE_DIMS, SKEW_DIM, XDIM, 
                                 YDIM, augment_2x2_with_translation, cast_split, 

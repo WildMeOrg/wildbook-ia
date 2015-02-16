@@ -8,6 +8,14 @@ from vtool import coverage_kpts
 print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[covgrid]', DEBUG=False)
 
 
+# TODO: integrate more
+COVGRID_DEFAULT = ut.ParamInfoList('coverage_grid', [
+    ut.ParamInfo('grid_scale_factor', .1, 'sf'),
+    ut.ParamInfo('grid_steps', 3, 'stps'),
+    ut.ParamInfo('grid_sigma', 1.6, 'sigma'),
+])
+
+
 def make_grid_coverage_mask(kpts, chipsize, weights, grid_scale_factor=.3,
                             grid_steps=1, resize=False, out=None, grid_sigma=1.6):
     r"""

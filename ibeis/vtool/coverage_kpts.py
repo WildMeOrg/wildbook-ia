@@ -10,6 +10,21 @@ from vtool import keypoint as ktool
 print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[cov]', DEBUG=False)
 
 
+# TODO: integrate more
+COVKPTS_DEFAULT = ut.ParamInfoList('coverage_kpts', [
+    ut.ParamInfo('cov_agg_mode' , 'max'),
+    ut.ParamInfo('cov_blur_ksize' , (5, 5)),
+    ut.ParamInfo('cov_blur_on' , True),
+    ut.ParamInfo('cov_blur_sigma' , 5.0),
+    ut.ParamInfo('cov_remove_scale' , True),
+    ut.ParamInfo('cov_remove_shape' , True),
+    ut.ParamInfo('cov_scale_factor' , .3),
+    ut.ParamInfo('cov_size_penalty_frac' , .1),
+    ut.ParamInfo('cov_size_penalty_on' , True),
+    ut.ParamInfo('cov_size_penalty_power' , .5),
+])
+
+
 @profile
 #@ut.memprof
 def make_kpts_coverage_mask(
