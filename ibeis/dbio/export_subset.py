@@ -454,7 +454,7 @@ def export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list, n
     return image_td
 
 
-def export_annot_transfer_data(ibs_src, aid_list, config_rowid_list, species_rowid_list):
+def export_annot_transfer_data(ibs_src, aid_list, config_rowid_list, nid_list, species_rowid_list):
     if aid_list is None or len(aid_list) == 0:
         return None
     # Get annotation parents
@@ -885,8 +885,8 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
     return gid_list
 
 
-def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, config_rowid_list,
-                               nid_list, species_rowid_list):
+def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, nid_list,
+                               species_rowid_list, config_rowid_list):
     parent_gid_list = [parent_gid] * len(annot_td.annot_uuid_list)
     name_rowid_list = [
         const.UNKNOWN_NAME_ROWID

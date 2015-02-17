@@ -81,10 +81,13 @@ class MatchInteraction(object):
         self.fnum = pt.ensure_fnum(fnum)
         # Unpack Args
         if aid2 is None:
-            cm.sortself()
             index = 0
+            cm.sortself()
+            self.rank = index
         else:
             index = cm.daid2_idx[aid2]
+            # TODO: rank?
+            self.rank = None
         self.qaid  = self.cm.qaid
         self.daid  = self.cm.daid_list[index]
         self.fm    = self.cm.fm_list[index]
@@ -254,6 +257,10 @@ class MatchInteraction(object):
             qres = self.qres
             tup = viz.viz_matches.show_matches(ibs, qres, aid, **show_matches_kw)
         else:
+            #show_matches_kw['score'] = self.score
+            show_matches_kw['rawscore'] = self.score
+            #ut.embed()
+            show_matches_kw['aid2_raw_rank'] = self.rank
             tup = viz.viz_matches.show_matches2(ibs, self.qaid, self.daid, self.fm, self.fs, **show_matches_kw)
 
         ax, xywh1, xywh2 = tup

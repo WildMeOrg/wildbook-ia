@@ -2403,16 +2403,19 @@ def export_testset_for_chuck(ibs, min_num_annots):
         python -m ibeis.ibsfuncs --test-export_testset_for_chuck --dbdir
         /raid/work2/Turk/GZ_Master --min-num-annots 500_DOCTEST
 
+
+        python -m ibeis.ibsfuncs --test-export_testset_for_chuck --db GIR_Tanya --min-num-annots 100
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> dbdir = ut.get_argval(('--dbdir',), type_=str, default='testdb1')
+        >>> #dbdir = ut.get_argval(('--dbdir',), type_=str, default='testdb1')
         >>> min_num_annots = ut.get_argval(('--min-num-annots',), type_=int, default=500)
         >>> #ibs = ibeis.opendb('testdb1')
         >>> #ibs = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
-        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> ibs = ibeis.opendb()  # dbdir=dbdir)
         >>> #ibs = ibeis.opendb(dbdir='/raid/work2/Turk/GZ_Master')
         >>> print(ibs.get_dbinfo_str())
         >>> #ibs = ibeis.opendb('testdb1')
@@ -2495,6 +2498,48 @@ def export_testset_for_chuck(ibs, min_num_annots):
         import plottool as pt
         ibeis.viz.viz_name.show_name(ibs, sorted_nids[0])
         pt.update()
+
+
+def export_subdatabase_all_annots_new(ibs):
+    """
+    Exports a set with some number of annotations that has good demo examples.
+    multiple annotations per name and large time variation within names.
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-export_subdatabase_all_annots_new --db GIR_Tanya
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb()
+        >>> print(ibs.get_dbinfo_str())
+        >>> result = export_subdatabase_all_annots_new(ibs)
+        >>> # verify results
+        >>> print(result)
+
+    min_num_annots = 500
+    """
+    aid_list = ibs.get_valid_aids()
+    gid_list = list(set(ibs.get_annot_gids(aid_list)))
+
+    from ibeis.dbio import export_subset
+
+    def new_nonconflicting_dbpath(ibs):
+        dpath, dbname = split(ibs.get_dbdir())
+        base_fmtstr = dbname + '_demo' + 'all_annots' + '_export%d'
+        new_dbpath = ut.get_nonconflicting_path(base_fmtstr, dpath)
+        return new_dbpath
+
+    #ut.embed()
+
+    dbpath = new_nonconflicting_dbpath(ibs)
+    ibs_dst = ibeis.opendb(dbdir=dbpath, allow_newdir=True)
+    ibs_src = ibs
+    export_subset.merge_databases(ibs_src, ibs_dst, gid_list=gid_list)
 
 
 if __name__ == '__main__':

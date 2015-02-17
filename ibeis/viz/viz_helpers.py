@@ -228,7 +228,7 @@ def get_query_text(ibs, qres, aid2, truth, **kwargs):
     if kwargs.get('show_truth', False):
         truth_str = '*%s*' % get_truth_text(ibs, truth)
         text_list.append(truth_str)
-    if kwargs.get('show_rank', qres is not None):
+    if kwargs.get('show_rank', aid2_raw_rank is not None or qres is not None):
         try:
             #aid2_raw_rank = qres.get_aid_ranks([aid2])[0]
             aid2_rank = aid2_raw_rank + 1 if aid2_raw_rank is not None else None
@@ -238,13 +238,13 @@ def get_query_text(ibs, qres, aid2, truth, **kwargs):
             #utool.embed()
             raise
         text_list.append(rank_str)
-    if kwargs.get('show_rawscore', qres is not None):
+    if kwargs.get('show_rawscore', rawscore is not None or qres is not None):
         #rawscore = qres.get_aid_scores([aid2], rawscore=True)[0]
         rawscore_str = ('rawscore=' + utool.num_fmt(rawscore))
         if len(text_list) > 0:
             rawscore_str = '\n' + rawscore_str
         text_list.append(rawscore_str)
-    if kwargs.get('show_score', qres is not None):
+    if kwargs.get('show_score', score is not None or qres is not None):
         #score = qres.get_aid_scores([aid2])[0]
         score_str = ('score=' + utool.num_fmt(score))
         if len(text_list) > 0:
