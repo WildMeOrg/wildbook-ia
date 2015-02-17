@@ -534,6 +534,18 @@ def compute_and_write_chips_lazy(ibs, aid_list, qreq_=None):
     return cfpath_list
 
 
+# TODO
+#def read_chip_fpath(ibs, cid_list):
+#    """ T_ExternFileGetter """
+#    try:
+#        return readfunc(fpath)
+#    except IOError:
+#        if not exists(fpath):
+#            on_delete
+#    else:
+#        pass
+
+
 #-------------
 # Testing
 #-------------
