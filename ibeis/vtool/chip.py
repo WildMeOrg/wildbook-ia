@@ -55,6 +55,8 @@ def _get_chip_to_image_transform(bbox, chipsz, theta):
 def _extract_chip(gfpath, bbox, theta, new_size):
     """ Crops chip from image ; Rotates and scales;
 
+    ibs.show_annot_image(aid)[0].pt_save_and_view()
+
     Args:
         gfpath (str):
         bbox (tuple):  xywh
