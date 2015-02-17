@@ -2122,13 +2122,12 @@ def get_one_annot_per_name(ibs, col='rand'):
         def random_choice(aids):
             size = min(len(aids), 1)
             return np.random.choice(aids, size, replace=False).tolist()
-        aid_list = [random_choice(aids) if len(aids) > 0 else [] for aids in aids_list]
+        aid_list = [random_choice(aids)[0] if len(aids) > 0 else [] for aids in aids_list]
     else:
         aid_list = ut.get_list_column(aids_list, 0)
     allow_unnamed = True
     if not allow_unnamed:
         raise NotImplementedError('fixme')
-
     if col == 'rand':
         import random
         random.shuffle(aid_list)
