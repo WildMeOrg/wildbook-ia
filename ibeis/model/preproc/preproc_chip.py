@@ -19,6 +19,36 @@ import vtool.image as gtool
     __name__, '[preproc_chip]', DEBUG=False)
 
 
+# TODO in template version
+def read_chip_fpath(ibs, cid_list, **kwargs):
+    """ T_ExternFileGetter """
+    cfpath_list = ibs.get_chip_uris(cid_list, **kwargs)
+    # --- generalize params
+    rowid_list = cid_list
+    readfunc = gtool.imread
+    fpath_list = cfpath_list
+    # --- generalize func
+    """
+    # a missing external resource should delete its rowid from its native table
+    # it is the parents responcibility to recompute the desired child
+    # configuration.
+    """
+    data_list = ut.alloc_nones(len(fpath_list))
+    failed_index_list = []
+    for index, fpath in enumerate(fpath_list):
+        try:
+            data = readfunc(fpath)
+            data_list[index] = data
+        except IOError:
+            failed_index_list.append(index)
+    failed_rowids    = ut.list_take(rowid_list, failed_index_list)
+    failed_fpaths    = ut.list_take(fpath_list, failed_index_list)
+    exists_list      = [exists(fpath) for fpath in failed_fpaths]
+    missing_rowids   = ut.filter_items(failed_rowids, exists_list)  # NOQA
+    corrupted_rowids = ut.filterfalse_items(failed_rowids, exists_list)  # NOQA
+    # FINISHME
+
+
 #--------------------------
 # OLD FUNCTIONALITY TO DEPRICATE
 #--------------------------
@@ -295,7 +325,7 @@ def compute_and_write_chips(ibs, aid_list, qreq_=None):
     return cfpath_list
 
 
-def on_delete(ibs, cid_list, qreq_=None, verbose=True, strict=False):
+def on_delete(ibs, cid_list):
     r"""
     Cleans up chips on disk.  Called on delete from sql controller.
 
@@ -310,22 +340,15 @@ def on_delete(ibs, cid_list, qreq_=None, verbose=True, strict=False):
         >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)
         >>> assert len(ut.filter_Nones(cid_list)) == len(cid_list)
         >>> # Run test function
-        >>> qreq_ = None
-        >>> verbose = True
-        >>> strict = True
-        >>> nRemoved1 = preproc_chip.on_delete(ibs, cid_list, qreq_=qreq_, verbose=verbose, strict=strict)
+        >>> nRemoved1 = preproc_chip.on_delete(ibs, cid_list)
         >>> assert nRemoved1 == len(cid_list), 'nRemoved=%r, target=%r' % (nRemoved1,  len(cid_list))
-        >>> nRemoved2 = preproc_chip.on_delete(ibs, cid_list, qreq_=qreq_, verbose=verbose, strict=strict)
+        >>> nRemoved2 = preproc_chip.on_delete(ibs, cid_list)
         >>> assert nRemoved2 == 0, 'nRemoved=%r' % (nRemoved2,)
         >>> # We have done a bad thing at this point. SQL still thinks chips exist
         >>> cid_list2 = ibs.get_annot_chip_rowids(aid_list, ensure=False)
         >>> ibs.delete_chips(cid_list2)
     """
     chip_fpath_list = ibs.get_chip_uris(cid_list)
-    aid_list = ibs.get_chip_aids(cid_list)
-    gid_list = ibs.get_annot_gids(aid_list)
-    ibs.delete_image_thumbs(gid_list)
-    ibs.delete_annot_chip_thumbs(aid_list)
     nRemoved = ut.remove_existing_fpaths(chip_fpath_list, lbl='chips')
     return nRemoved
 
@@ -450,18 +473,6 @@ def format_aid_bbox_theta_gid_fnames(ibs, aid_list, fname_fmt, dpath):
     fpath_list = [None if fname is None else join(dpath, fname)
                    for fname in fname_iter]
     return fpath_list
-
-
-# TODO
-#def read_chip_fpath(ibs, cid_list):
-#    """ T_ExternFileGetter """
-#    try:
-#        return readfunc(fpath)
-#    except IOError:
-#        if not exists(fpath):
-#            on_delete
-#    else:
-#        pass
 
 
 #-------------

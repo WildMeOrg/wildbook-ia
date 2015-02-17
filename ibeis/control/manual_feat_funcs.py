@@ -179,10 +179,17 @@ def get_valid_fids(ibs, qreq_=None):
 @register_ibs_method
 @deleter
 @accessor_decors.cache_invalidator(const.FEATURE_TABLE)
-def delete_features(ibs, fid_list):
+def delete_features(ibs, fid_list, qreq_=None):
     """ deletes images from the database that belong to fids"""
+    from ibeis.model.preproc import preproc_feat
     if ut.VERBOSE:
         print('[ibs] deleting %d features' % len(fid_list))
+    # remove non-sql external dependeinces of these rowids
+    preproc_feat.on_delete(ibs, fid_list)
+    # remove dependants of these rowids
+    featweight_rowid_list = ut.filter_Nones(ibs.get_feat_featweight_rowids(fid_list, qreq_=qreq_, ensure=False))
+    ibs.delete_featweight(featweight_rowid_list)
+    # remove these rowids
     ibs.dbcache.delete_rowids(const.FEATURE_TABLE, fid_list)
 
 

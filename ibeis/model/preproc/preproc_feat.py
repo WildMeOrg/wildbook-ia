@@ -167,8 +167,10 @@ def generate_feats(cfpath_list, hesaff_params={}, cid_list=None, nInput=None, **
     return featgen
 
 
-def on_delete(ibs, gid_list, qreq_=None):
-    print('Warning: Not Implemented')
+def on_delete(ibs, fid_list):
+    # remove dependants of these rowids
+    # No external data to remove
+    return 0
 
 
 if __name__ == '__main__':

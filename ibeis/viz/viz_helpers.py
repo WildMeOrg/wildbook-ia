@@ -198,7 +198,7 @@ def get_annot_texts(ibs, aid_list, **kwargs):
 def get_image_titles(ibs, gid_list):
     gname_list = ibs.get_image_gnames(gid_list)
     title_list = [
-        'gid=%r gname=%r' % (gid, str(gname))
+        'gname=%r, gid=%r ' % (str(gname), gid)
         for gid, gname in zip(gid_list, gname_list)
     ]
     return title_list

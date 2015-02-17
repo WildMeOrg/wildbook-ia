@@ -286,7 +286,7 @@ Tdeleter_native_tbl = ut.codeblock(
     # STARTBLOCK
     # REM @deleter
     # REM @cache_invalidator({TABLE})
-    def delete_{tbl}({self}, {tbl}_rowid_list):
+    def delete_{tbl}({self}, {tbl}_rowid_list, qreq_=None):
         """ {tbl}.delete({tbl}_rowid_list)
 
         delete {tbl} rows
@@ -310,7 +310,7 @@ Tdeleter_native_tbl = ut.codeblock(
         if ut.VERBOSE:
             print('[{self}] deleting %d {tbl} rows' % len({tbl}_rowid_list))
         # Prepare: Delete externally stored data (if any)
-        preproc_{tbl}.on_delete({self}, {tbl}_rowid_list)
+        preproc_{tbl}.on_delete({self}, {tbl}_rowid_list, qreq_=qreq_)
         # Finalize: Delete self
         {self}.{dbself}.delete_rowids({TABLE}, {tbl}_rowid_list)
     # ENDBLOCK

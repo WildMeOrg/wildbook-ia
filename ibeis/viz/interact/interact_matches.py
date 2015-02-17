@@ -85,11 +85,14 @@ class MatchInteraction(object):
             index = 0
         else:
             index = cm.daid2_idx[aid2]
-        self.qaid = self.cm.qaid
-        self.daid = self.cm.daid_list
-        self.daid = self.cm.daid_list[index]
-        self.fm = cm.fm_list[index]
-        self.H1 = None if cm.H_list is None else cm.H_list[index]
+        self.qaid  = self.cm.qaid
+        self.daid  = self.cm.daid_list[index]
+        self.fm    = self.cm.fm_list[index]
+        self.fk    = self.cm.fk_list[index]
+        self.fsv   = self.cm.fsv_list[index]
+        self.fs    = None if self.cm.fs_list is None else self.cm.fs_list[index]
+        self.score = None if self.cm.score_list is None else self.cm.score_list[index]
+        self.H1    = None if self.cm.H_list is None else cm.H_list[index]
         # Read properties
         self.rchip1, self.rchip2 = ibs.get_annot_chips([self.qaid, self.daid])
         # Begin Interaction
@@ -224,7 +227,6 @@ class MatchInteraction(object):
             >>> pt.show_if_requested()
         """
         ibs      = self.ibs
-        qres     = self.qres
         aid      = self.daid
         qaid     = self.qaid
         fnum     = self.fnum
@@ -237,7 +239,6 @@ class MatchInteraction(object):
         draw_lines = mode == 2
         annote_ptr[0] = (annote_ptr[0] + 1) % 3
         df2.figure(fnum=fnum, docla=True, doclf=True)
-        # TODO RENAME This to remove qres and rectify with show_matches
         show_matches_kw = self.kwargs.copy()
         show_matches_kw.update(
             dict(fnum=fnum, pnum=pnum, draw_lines=draw_lines, draw_ell=draw_ell,
@@ -247,7 +248,14 @@ class MatchInteraction(object):
         if self.use_homog:
             show_matches_kw['H1'] = self.H1
 
-        tup = viz.viz_matches.show_matches(ibs, qres, aid, **show_matches_kw)
+        # TODO RENAME This to remove qres and rectify with show_matches
+        OLD = False
+        if OLD:
+            qres = self.qres
+            tup = viz.viz_matches.show_matches(ibs, qres, aid, **show_matches_kw)
+        else:
+            tup = viz.viz_matches.show_matches2(ibs, self.qaid, self.daid, self.fm, self.fs, **show_matches_kw)
+
         ax, xywh1, xywh2 = tup
         xywh2_ptr[0] = xywh2
 
@@ -274,7 +282,7 @@ class MatchInteraction(object):
             >>> pt.show_if_requested()
         """
         ibs        = self.ibs
-        qres       = self.qres
+        #qres       = self.qres
         qaid       = self.qaid
         aid        = self.daid
         fnum       = self.fnum
@@ -288,16 +296,20 @@ class MatchInteraction(object):
         print('+--- SELECT --- ')
         print('qaid=%r, daid=%r' % (qaid, aid))
         print('... selecting mx-th=%r feature match' % mx)
-        print('qres.filtkey_list = %r' % (qres.filtkey_list,))
-        fsv = qres.aid2_fsv[aid]
-        fs  = qres.aid2_fs[aid]
+        #print('qres.filtkey_list = %r' % (qres.filtkey_list,))
+        #fsv = qres.aid2_fsv[aid]
+        #fs  = qres.aid2_fs[aid]
+        fm  = self.fm
+        fsv = self.fsv
+        fk  = self.fk
+        fs  = self.fs
         print('score stats:')
         print(ut.get_stats_str(fsv, axis=0, newlines=True))
         print('fsv[mx] = %r' % (fsv[mx],))
         print('fs[mx] = %r' % (fs[mx],))
         """
         # test feature weights of actual chips
-        fx1, fx2 = qres.aid2_fm[aid][mx]
+        fx1, fx2 = fm[mx]
         daid = aid
         ibs.get_annot_fgweights([daid])[0][fx2]
         ibs.get_annot_fgweights([qaid])[0][fx1]
@@ -306,14 +318,11 @@ class MatchInteraction(object):
         # Get info for the select_ith_match plot
         annote_ptr[0] = 1
         # Get the mx-th feature match
-        aid1, aid2 = qaid, aid
-        fx1, fx2 = qres.aid2_fm[aid2][mx]
-
-        # Older info
-        fscore2  = qres.aid2_fs[aid2][mx]
-        fk2      = qres.aid2_fk[aid2][mx]
-        kpts1, kpts2 = ibs.get_annot_kpts([aid1, aid2])
-        desc1, desc2 = ibs.get_annot_vecs([aid1, aid2])
+        fx1, fx2 = fm[mx]
+        fscore2  = fs[mx]
+        fk2      = fk[mx]
+        kpts1, kpts2 = ibs.get_annot_kpts([self.qaid, self.daid])
+        desc1, desc2 = ibs.get_annot_vecs([self.qaid, self.daid])
         kp1, kp2     = kpts1[fx1], kpts2[fx2]
         sift1, sift2 = desc1[fx1], desc2[fx2]
         info1 = '\nquery'
@@ -321,8 +330,8 @@ class MatchInteraction(object):
         #last_state.last_fx = fx1
         self.last_fx = fx1
         # Extracted keypoints to draw
-        extracted_list = [(rchip1, kp1, sift1, fx1, aid1, info1),
-                          (rchip2, kp2, sift2, fx2, aid2, info2)]
+        extracted_list = [(rchip1, kp1, sift1, fx1, self.qaid, info1),
+                          (rchip2, kp2, sift2, fx2, self.daid, info2)]
         # Normalizng Keypoint
         #if hasattr(qres, 'filt2_meta') and 'lnbnn' in qres.filt2_meta:
         #    qfx2_norm = qres.filt2_meta['lnbnn']

@@ -295,10 +295,8 @@ def generate_featweight_properties(ibs, fid_list, qreq_=None):
 
 
 def on_delete(ibs, featweight_rowid_list):
-    #print('Warning: Not Implemented')
-    #print('TODO: Delete probability chips, or should that be its own preproc?')
-    # It should be its own
-    pass
+    # no external data to remove
+    return 0
 
 if __name__ == '__main__':
     """

@@ -2048,7 +2048,7 @@ def get_annot_groundfalse_sample(ibs, aid_list, per_name=1, seed=False):
 
 @__injectable
 def get_annot_groundtruth_sample(ibs, aid_list, per_name=1, isexemplar=True):
-    """
+    r"""
     get_annot_groundtruth_sample
 
     Args:
@@ -2058,8 +2058,9 @@ def get_annot_groundtruth_sample(ibs, aid_list, per_name=1, isexemplar=True):
 
     CommandLine:
         python -m ibeis.ibsfuncs --test-get_annot_groundtruth_sample --verbose-class
+        python -m ibeis.ibsfuncs --test-get_annot_groundtruth_sample:1
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
@@ -2069,6 +2070,16 @@ def get_annot_groundtruth_sample(ibs, aid_list, per_name=1, isexemplar=True):
         >>> result = get_annot_groundtruth_sample(ibs, aid_list, per_name)
         >>> print(result)
         [[], [2], [6], [], [], [], []]
+
+    Example2:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> ibs = ibeis.opendb(ut.get_argval('--db', str, 'testdb1'))
+        >>> aid_list = ibs.get_valid_aids()
+        >>> per_name = 1
+        >>> result = get_annot_groundtruth_sample(ibs, aid_list, per_name)
+        >>> print(result)
     """
     all_trues_list = ibs.get_annot_groundtruth(aid_list, noself=True, is_exemplar=isexemplar)
     def random_choice(aids):
@@ -2076,6 +2087,34 @@ def get_annot_groundtruth_sample(ibs, aid_list, per_name=1, isexemplar=True):
         return np.random.choice(aids, size, replace=False).tolist()
     sample_trues_list = [random_choice(aids) if len(aids) > 0 else [] for aids in all_trues_list]
     return sample_trues_list
+
+
+def get_one_annot_per_name(ibs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_one_annot_per_name --db PZ_Master0
+        python -m ibeis.ibsfuncs --test-get_one_annot_per_name --db PZ_MTEST
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(ut.get_argval('--db', str, 'testdb1'))
+        >>> result = get_one_annot_per_name(ibs)
+        >>> # verify results
+        >>> print(result)
+    """
+    nid_list = ibs.get_valid_nids()
+    aids_list = ibs.get_name_aids(nid_list)
+    num_annots_list = list(map(len, aids_list))
+    aids_list = ut.sortedby(aids_list, num_annots_list, reverse=True)
+    aid_list = ut.get_list_column(aids_list, 0)
+    # Keep only a certain number of annots for distinctiveness mapping
+    #aid_list_ = ut.listclip(aid_list, max_annots)
+    return aid_list
 
 
 @__injectable

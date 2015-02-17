@@ -8,6 +8,7 @@ sh Tgen.sh --key chip
 
 """
 from __future__ import absolute_import, division, print_function
+import numpy as np  # NOQA
 import six  # NOQA
 import functools
 from os.path import join
@@ -355,7 +356,7 @@ def delete_annot_chip_thumbs(ibs, aid_list, quiet=False):
 @register_ibs_method
 @deleter
 def delete_annot_chips(ibs, aid_list, qreq_=None):
-    """ Clears annotation data but does not remove the annotation """
+    """ Clears annotation data (does not remove the annotation) """
     _cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False, qreq_=qreq_)
     cid_list = ut.filter_Nones(_cid_list)
     ibs.delete_chips(cid_list)
@@ -410,13 +411,15 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE, qreq_=None):
     from ibeis.model.preproc import preproc_chip
     if verbose:
         print('[ibs] deleting %d annotation-chips' % len(cid_list))
-    # Delete chip-images from disk
-    #preproc_chip.delete_chips(ibs, cid_list, verbose=verbose)
-    preproc_chip.on_delete(ibs, cid_list, verbose=verbose)
-    # Delete chip features from sql
-    _fid_list = ibs.get_chip_fids(cid_list, ensure=False, qreq_=qreq_)
-    fid_list = ut.filter_Nones(_fid_list)
-    ibs.delete_features(fid_list)
+    # Delete sql-external (on-disk) information
+    preproc_chip.on_delete(ibs, cid_list)
+    # Delete sql-dependencies
+    fid_list = ut.filter_Nones(ibs.get_chip_fids(cid_list, qreq_=qreq_, ensure=False))
+    aid_list = ibs.get_chip_aids(cid_list)
+    gid_list = ibs.get_annot_gids(aid_list)
+    ibs.delete_image_thumbs(gid_list)
+    ibs.delete_annot_chip_thumbs(aid_list)
+    ibs.delete_features(fid_list, qreq_=qreq_)
     # Delete chips from sql
     ibs.dbcache.delete_rowids(const.CHIP_TABLE, cid_list)
 

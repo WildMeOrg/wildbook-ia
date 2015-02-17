@@ -12,6 +12,7 @@ import utool
 import vtool as vt
 import utool as ut
 import numpy as np
+from six.moves import map
 #import vtool as vt
 import six  # NOQA
 from ibeis import constants as const
@@ -594,7 +595,7 @@ def dev_train_distinctiveness(species=None):
             max_annots = 975
             nid_list = ibs.get_valid_nids()
             aids_list = ibs.get_name_aids(nid_list)
-            num_annots_list = map(len, aids_list)
+            num_annots_list = list(map(len, aids_list))
             aids_list = ut.sortedby(aids_list, num_annots_list, reverse=True)
             aid_list = ut.get_list_column(aids_list, 0)
             # Keep only a certain number of annots for distinctiveness mapping
@@ -604,7 +605,7 @@ def dev_train_distinctiveness(species=None):
             # vec
             # FIXME: qreq_ params for config rowid
             vecs_list = ibs.get_annot_vecs(aid_list_)
-            num_vecs = sum(map(len, vecs_list))
+            num_vecs = sum(list(map(len, vecs_list)))
             print('num_vecs = %r' % (num_vecs,))
             vecs = np.vstack(vecs_list)
             print('vecs size = %r' % (ut.get_object_size_str(vecs),))
