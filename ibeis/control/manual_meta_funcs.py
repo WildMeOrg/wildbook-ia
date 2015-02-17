@@ -60,7 +60,9 @@ def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_l
     loc_zip_list = [ _valid_zip(_zip) for _zip in loc_zip_list]
 
     if uuid_list is None:
-        uuid_list = [uuid.uuid4() for _ in range(len(tag_list))]
+        contrib_rowid_list = ibs.get_contributor_rowid_from_tag(tag_list)
+        uuid_list = ibs.get_contributor_uuid(contrib_rowid_list)
+        uuid_list = [ uuid.uuid4() if uuid_ is None else uuid_ for uuid_ in uuid_list ]
 
     colnames = ['contributor_uuid', 'contributor_tag', 'contributor_name_first',
                 'contributor_name_last', 'contributor_location_city',
@@ -179,12 +181,23 @@ def ensure_encounter_configs_populated(ibs):
 
 @register_ibs_method
 @getter_1to1
-def get_contributor_rowid_from_uuid(ibs, tag_list):
+def get_contributor_rowid_from_uuid(ibs, uuid_list):
     """
     Returns:
         contrib_rowid_list (list):  a contributor """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    contrib_rowid_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_rowid',), tag_list, id_colname='contributor_uuid')
+    contrib_rowid_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_rowid',), uuid_list, id_colname='contributor_uuid')
+    return contrib_rowid_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_contributor_rowid_from_tag(ibs, tag_list):
+    """
+    Returns:
+        contrib_rowid_list (list):  a contributor """
+    # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+    contrib_rowid_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_rowid',), tag_list, id_colname='contributor_tag')
     return contrib_rowid_list
 
 
