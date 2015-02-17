@@ -75,10 +75,10 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
     truth_color = vh.get_truth_color(truth)
     # Build title
 
-    #qaid          = kwargs.get('qaid', None)
-    #score         = kwargs.get('score', None)
-    #rawscore      = kwargs.get('rawscore', None)
-    #aid2_raw_rank = kwargs.get('aid2_raw_rank', None)
+    #score         = kwargs.pop('score', None)
+    #rawscore      = kwargs.pop('rawscore', None)
+    #aid2_raw_rank = kwargs.pop('aid2_raw_rank', None)
+    print(kwargs)
     title = vh.get_query_text(ibs, None, aid2, truth, qaid=aid1, **kwargs)
     # Build xlbl
     ax = df2.gca()
