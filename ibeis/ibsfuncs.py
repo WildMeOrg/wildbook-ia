@@ -418,7 +418,7 @@ def check_annot_consistency(ibs, aid_list=None):
     unique_gids = list(set(annot_gid_list))
     print('num_unique_images=%r / %r' % (len(unique_gids), len(annot_gid_list)))
     cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
-    cfpath_list = ibs.get_chip_paths(cid_list)
+    cfpath_list = ibs.get_chip_uris(cid_list)
     valid_chip_list = [None if cfpath is None else exists(cfpath) for cfpath in cfpath_list]
     invalid_list = [flag is False for flag in valid_chip_list]
     invalid_cids = ut.filter_items(cid_list, invalid_list)

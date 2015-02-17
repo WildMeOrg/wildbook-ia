@@ -1677,7 +1677,7 @@ def get_annot_chip_fpaths(ibs, aid_list, ensure=True, qreq_=None):
     #from ibeis.model.preproc import preproc_chip
     #cfpath_list = preproc_chip.get_annot_cfpath_list(ibs, aid_list)
     cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, qreq_=qreq_)
-    chip_fpath_list = ibs.get_chip_paths(cid_list)
+    chip_fpath_list = ibs.get_chip_uris(cid_list)
     return chip_fpath_list
 
 

@@ -91,7 +91,7 @@ def TIME_GEN_PREPROC_FEAT(ibs):
 
     aid_list = ibs.get_valid_aids()
     cid_list = ibs.get_annot_chip_rowids(aid_list)
-    cfpath_list = ibs.get_chip_paths(cid_list)
+    cfpath_list = ibs.get_chip_uris(cid_list)
 
     # STABILITY
 

@@ -48,7 +48,9 @@ from ibeis.control import manual_lblimage_funcs  # NOQA
 from ibeis.control import manual_image_funcs  # NOQA
 from ibeis.control import manual_annot_funcs  # NOQA
 from ibeis.control import manual_name_species_funcs  # NOQA
-from ibeis.control import manual_dependant_funcs  # NOQA
+#from ibeis.control import manual_dependant_funcs  # NOQA
+#from ibeis.control import manual_chip_funcs  # NOQA
+#from ibeis.control import manual_feat_funcs  # NOQA
 
 
 # Shiny new way to inject external functions
@@ -63,7 +65,9 @@ autogenmodname_list = [
     'manual_image_funcs',
     'manual_annot_funcs',
     'manual_name_species_funcs',
-    'manual_dependant_funcs',
+    #'manual_dependant_funcs',
+    'manual_chip_funcs',
+    'manual_feat_funcs',
 ]
 
 

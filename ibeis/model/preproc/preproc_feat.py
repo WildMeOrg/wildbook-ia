@@ -59,7 +59,7 @@ def add_feat_params_gen(ibs, cid_list, qreq_=None, nInput=None):
         hesaff_params   = ibs.cfg.feat_cfg.get_hesaff_params()
         feat_cfgstr     = ibs.cfg.feat_cfg.get_cfgstr()
     feat_config_rowid = ibs.get_feat_config_rowid()
-    cfpath_list       = ibs.get_chip_paths(cid_list)
+    cfpath_list       = ibs.get_chip_uris(cid_list)
     if ut.VERBOSE:
         print('[preproc_feat] cfgstr = %s' % feat_cfgstr)
     if USE_OPENMP:
@@ -111,7 +111,7 @@ def generate_feat_properties(ibs, cid_list, qreq_=None, nInput=None):
     # TODO: qreq_
     feat_cfg          = ibs.cfg.feat_cfg
     hesaff_params     = feat_cfg.get_hesaff_params()
-    cfpath_list       = ibs.get_chip_paths(cid_list)
+    cfpath_list       = ibs.get_chip_uris(cid_list)
     if ut.VERBOSE:
         print('[preproc_feat] cfgstr = %s' % feat_cfg.get_cfgstr())
     if USE_OPENMP:

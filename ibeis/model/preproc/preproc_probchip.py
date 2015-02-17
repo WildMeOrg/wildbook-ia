@@ -15,6 +15,7 @@ TODO:
 from __future__ import absolute_import, division, print_function
 from six.moves import zip
 from ibeis.model.preproc import preproc_chip
+from ibeis.model.detect import randomforest
 from os.path import join, splitext
 import utool  # NOQA
 import utool as ut
@@ -156,17 +157,9 @@ def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None, species=None):
     ibs.probchipdir = get_probchip_cachedir(ibs)
     cachedir = get_probchip_cachedir(ibs)
     ut.ensuredir(cachedir)
-    #grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, qreq_)
-    #annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)
-    #for aids, species in zip(grouped_aids, unique_species):
-    #probchip_fname_iter = (None if auuid is None else probchip_fname_fmt % auuid
-    #                       for auuid in annot_uuid_list)
-    ##probchip_fname_iter = (None if auuid is None else probchip_fname_fmt % (aid, auuid) for (aid, auuid) in
-    #                       #zip(aid_list, annot_uuid_list))
-    ##probchip_fpath_list = [None if fname is None else join(cachedir, fname)
-    #                       #for fname in probchip_fname_iter]
     probchip_fname_fmt = get_probchip_fname_fmt(ibs, qreq_=qreq_, species=species)
-    probchip_fpath_list = preproc_chip.format_aid_bbox_theta_gid_fnames(ibs, aid_list, probchip_fname_fmt, cachedir)
+    probchip_fpath_list = preproc_chip.format_aid_bbox_theta_gid_fnames(
+        ibs, aid_list, probchip_fname_fmt, cachedir)
     return probchip_fpath_list
 
 
@@ -186,9 +179,8 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
         #probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)
     """
     # Get probchip dest information (output path)
-    from ibeis.model.detect import randomforest
     grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, qreq_)
-    cachedir   = get_probchip_cachedir(ibs)
+    cachedir = get_probchip_cachedir(ibs)
     ut.ensuredir(cachedir)
 
     probchip_fpath_list_ = []
@@ -201,15 +193,14 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
         if len(aids) == 0:
             continue
         probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, species=species)
-        cfpath_list  = ibs.get_annot_chip_fpaths(aids)
-        # Ensure that all chips are computed
-        preproc_chip.compute_and_write_chips_lazy(ibs, aids, qreq_=qreq_)
+        cfpath_list  = ibs.get_annot_chip_fpaths(aids, ensure=True, qreq_=qreq_)
         config = {
             # 'scale_list': [1.0],
             'output_gpath_list': probchip_fpath_list,
             'mode': 1,
         }
-        results_list = list(randomforest.detect_gpath_list_with_species(ibs, cfpath_list, species, **config))  # NOQA
+        iter_ = randomforest.detect_gpath_list_with_species(ibs, cfpath_list, species, **config)
+        results_list = list(iter_)  # NOQA
         probchip_fpath_list_.extend(probchip_fpath_list)
     if ut.VERBOSE:
         print('[preproc_probchip] Done computing probability images')
@@ -219,8 +210,6 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, ibeis.model.preproc.preproc_probchip; utool.doctest_funcs(ibeis.model.preproc.preproc_probchip, allexamples=True)"
-        python -c "import utool, ibeis.model.preproc.preproc_probchip; utool.doctest_funcs(ibeis.model.preproc.preproc_probchip)"
         python -m ibeis.model.preproc.preproc_probchip
         python -m ibeis.model.preproc.preproc_probchip --allexamples
         python -m ibeis.model.preproc.preproc_probchip --allexamples --serial --noface --nosrc

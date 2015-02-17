@@ -35,8 +35,7 @@ Theader_ibeiscontrol = ut.codeblock(
     from ibeis import constants as const
     # REM dont circular import
     # REM from ibeis.control.IBEISControl import IBEISController
-    import utool  # NOQA
-    import utool as ut  # NOQA
+    import utool as ut
     from ibeis.control.controller_inject import make_ibs_register_decorator
     from ibeis.control import accessor_decors
     print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_{autogen_key}]')
@@ -99,9 +98,9 @@ Tadder_pl_dependant = ut.codeblock(
         # Find leaf rowids that need to be computed
         {leaf}_rowid_list = get_{parent}_{leaf}_rowids_({self}, {parent}_rowid_list, qreq_=qreq_)
         # Get corresponding "dirty" parent rowids
-        dirty_{parent}_rowid_list = utool.get_dirty_items({parent}_rowid_list, {leaf}_rowid_list)
+        dirty_{parent}_rowid_list = ut.get_dirty_items({parent}_rowid_list, {leaf}_rowid_list)
         if len(dirty_{parent}_rowid_list) > 0:
-            if utool.VERBOSE:
+            if ut.VERBOSE:
                 print('[{self}] adding %d / %d {leaf}' % (len(dirty_{parent}_rowid_list), len({parent}_rowid_list)))
             # Dependant columns do not need true from_superkey getters.
             # We can use the Tgetter_pl_dependant_rowids_ instead
@@ -269,7 +268,7 @@ Tdeleter_rl_depenant = ut.codeblock(
             >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[::3]
             >>> {self}.delete_{root}_{leaf}({root}_rowid_list, qreq_=qreq_)
         """
-        if utool.VERBOSE:
+        if ut.VERBOSE:
             print('[{self}] deleting %d {root}s leaf nodes' % len({root}_rowid_list))
         # Delete any dependants
         _{leaf}_rowid_list = {self}.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_=qreq_, ensure=False)
@@ -307,7 +306,7 @@ Tdeleter_native_tbl = ut.codeblock(
             >>> {self}.delete_{tbl}({tbl}_rowid_list)
         """
         from ibeis.model.preproc import preproc_{tbl}
-        if utool.VERBOSE:
+        if ut.VERBOSE:
             print('[{self}] deleting %d {tbl} rows' % len({tbl}_rowid_list))
         # Prepare: Delete externally stored data (if any)
         preproc_{tbl}.on_delete({self}, {tbl}_rowid_list)
@@ -760,7 +759,7 @@ Tdeleter_table_relation = ut.codeblock(
         Deletes the relationship between an {tbl} row and a label
         """
         {relation}_rowids_list = {self}.get_{tbl}_{relation}_rowids({tbl}_rowid_list)
-        {relation}_rowid_list = utool.flatten({relation}_rowids_list)
+        {relation}_rowid_list = ut.flatten({relation}_rowids_list)
         {self}.{dbself}.delete_rowids({RELATION_TABLE}, {relation}_rowid_list)
     # ENDBLOCK
     '''

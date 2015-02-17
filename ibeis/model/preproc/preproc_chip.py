@@ -78,10 +78,6 @@ def add_annot_chips_params_gen(ibs, aid_list, qreq_=None):
         Found 2 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_chip.py':
         preproc_chip.py :  69 |def add_annot_chips_params_gen(ibs, aid_list, qreq_=None):
         preproc_chip.py :  86 |        >>> params_iter = add_annot_chips_params_gen(ibs, aid_list)
-        ====================
-        ====================
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\control\\manual_dependant_funcs.py':
-        Found 2 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_chip.py':
 
     computes chips if they do not exist.
     generates values for add_annot_chips sqlcommands
@@ -150,14 +146,6 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE):
         ----------------------
         Found 1 line(s) in 'code\\ibeis\\ibeis\\tests\\test_delete_chips.py':
         test_delete_chips.py : 21 |    ibs.delete_chips(cid)
-        ====================
-        ====================
-        Found 4 line(s) in 'code\\ibeis\\ibeis\\ibsfuncs.py':
-        Found 3 line(s) in 'code\\ibeis\\ibeis\\control\\manual_dependant_funcs.py':
-        Found 2 line(s) in 'code\\ibeis\\ibeis\\dev\\duct_tape.py':
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\dev\\main_commands.py':
-        Found 4 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_chip.py':
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\tests\\test_delete_chips.py':
 
     DEPRICATE
 
@@ -232,7 +220,7 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
         >>> print(result)
         [1434, 2274, 12]
     """
-    cfpath_list = ibs.get_chip_paths(cid_list)
+    cfpath_list = ibs.get_chip_uris(cid_list)
     try:
         if ensure:
             try:
@@ -255,7 +243,7 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
         ibs.delete_annot_chips(bad_aids)
         # Try readding things
         new_cid_list = ibs.add_annot_chips(aid_list)
-        cfpath_list = ibs.get_chip_paths(new_cid_list)
+        cfpath_list = ibs.get_chip_uris(new_cid_list)
         chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
     return chip_list
 
@@ -316,52 +304,12 @@ def on_delete(ibs, cid_list, qreq_=None, verbose=True, strict=False):
     Cleans up chips on disk.  Called on delete from sql controller.
 
     Ignore::
-        ----------------------
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\control\\DB_SCHEMA.py':
-        DB_SCHEMA.py : 471 |            #preproc_annot.on_delete(ibs, toremove_aids)
-        ----------------------
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\control\\manual_annot_funcs.py':
-        manual_annot_funcs.py :  450 |    preproc_annot.on_delete(ibs, aid_list)
-        ----------------------
         Found 1 line(s) in 'code\\ibeis\\ibeis\\control\\manual_dependant_funcs.py':
         manual_dependant_funcs.py : 138 |    preproc_chip.on_delete(ibs, cid_list, verbose=verbose)
         ----------------------
         Found 1 line(s) in 'code\\ibeis\\ibeis\\control\\template_definitions.py':
         template_definitions.py : 312 |        preproc_{tbl}.on_delete({self}, {tbl}_rowid_list)
         ----------------------
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\control\\_autogen_annot_funcs.py':
-        _autogen_annot_funcs.py :  95 |    preproc_annot.on_delete(ibs, aid_list)
-        ----------------------
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\control\\_autogen_featweight_funcs.py':
-        _autogen_featweight_funcs.py : 206 |    preproc_featweight.on_delete(ibs, featweight_rowid_list)
-        ----------------------
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_annot.py':
-        preproc_annot.py : 198 |def on_delete(ibs, aid_list):
-        ----------------------
-        Found 11 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_chip.py':
-        preproc_chip.py : 182 |    on_delete(ibs, cid_list, qreq_=None, verbose=verbose, strict=False)
-        preproc_chip.py : 226 |        >>> preproc_chip.on_delete(ibs, cid_list)
-        preproc_chip.py : 313 |def on_delete(ibs, cid_list, qreq_=None, verbose=True, strict=False):
-        preproc_chip.py : 318 |        python -m ibeis.model.preproc.preproc_chip --test-on_delete
-        preproc_chip.py : 332 |        >>> nRemoved1 = preproc_chip.on_delete(ibs, cid_list, qreq_=qreq_, verbose=verbose, strict=strict)
-        preproc_chip.py : 334 |        >>> nRemoved2 = preproc_chip.on_delete(ibs, cid_list, qreq_=qreq_, verbose=verbose, strict=strict)
-        preproc_chip.py : 353 |    #    print('[preproc_chip.on_delete] requesting delete of %d chips' % (nTotal,))
-        preproc_chip.py : 355 |    #        print('[preproc_chip.on_delete] trying to delete %d/%d non None chips ' % (nValid, nTotal))
-        preproc_chip.py : 356 |    #    print('[preproc_chip.on_delete] %d/%d exist and need to be deleted' % (nExist, nValid))
-        preproc_chip.py : 365 |    #        print('[preproc_chip.on_delete] !!! cannot remove: %r ' % cfpath)
-        preproc_chip.py : 619 |#            on_delete
-        ----------------------
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_feat.py':
-        preproc_feat.py : 169 |def on_delete(ibs, gid_list, qreq_=None):
-        ----------------------
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_featweight.py':
-        preproc_featweight.py : 296 |def on_delete(ibs, featweight_rowid_list):
-        ----------------------
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_image.py':
-        preproc_image.py : 163 |def on_delete(ibs, featweight_rowid_list, qreq_=None):
-        ----------------------
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_residual.py':
-        preproc_residual.py : 11 |def on_delete(ibs, featweight_rowid_list):
 
     CommandLine:
         python -m ibeis.model.preproc.preproc_chip --test-on_delete
@@ -386,14 +334,14 @@ def on_delete(ibs, cid_list, qreq_=None, verbose=True, strict=False):
         >>> cid_list2 = ibs.get_annot_chip_rowids(aid_list, ensure=False)
         >>> ibs.delete_chips(cid_list2)
     """
-    chip_fpath_list = ibs.get_chip_paths(cid_list)
+    chip_fpath_list = ibs.get_chip_uris(cid_list)
     aid_list = ibs.get_chip_aids(cid_list)
     gid_list = ibs.get_annot_gids(aid_list)
     ibs.delete_image_thumbs(gid_list)
     ibs.delete_annot_chip_thumbs(aid_list)
     nRemoved = ut.remove_existing_fpaths(chip_fpath_list, lbl='chips')
     #cid_list_ = ut.filter_Nones(cid_list)
-    #chip_fpath_list = ibs.get_chip_paths(cid_list_)
+    #chip_fpath_list = ibs.get_chip_uris(cid_list_)
     #exists_list = list(map(exists, chip_fpath_list))
     #if verbose:
     #    nTotal = len(cid_list)
@@ -591,12 +539,8 @@ def format_aid_bbox_theta_gid_fnames(ibs, aid_list, fname_fmt, dpath):
 
 # Parallelizable Worker
 def gen_chip(tup):
-    """Parallel worker. Crops chip out of an image, applies filters, etc
-
-    Ignore::
-        Found 2 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_chip.py':
-        preproc_chip.py : 583 |def gen_chip(tup):
-        preproc_chip.py : 647 |    chip_async_iter = ut.util_parallel.generate(gen_chip, arg_list)
+    r"""
+    Parallel worker. Crops chip out of an image, applies filters, etc
 
     Args:
         tup (tuple): (cfpath, gfpath, bbox, theta, new_size, filter_list)
@@ -624,20 +568,6 @@ def compute_and_write_chips(ibs, aid_list):
         manual_dependant_funcs.py :  72 |            preproc_chip.compute_and_write_chips(ibs, aid_list)
         manual_dependant_funcs.py :  73 |            #preproc_chip.compute_and_write_chips_lazy(ibs, aid_list)
         ----------------------
-        Found 9 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_chip.py':
-        preproc_chip.py :  61 |            compute_and_write_chips_lazy(ibs, aid_list)
-        preproc_chip.py : 175 |        >>> compute_and_write_chips_lazy(ibs, aid_list)
-        preproc_chip.py : 296 |        compute_and_write_chips(ibs, aid_list)
-        preproc_chip.py : 373 |        >>> compute_and_write_chips_lazy(ibs, aid_list)
-        preproc_chip.py : 618 |def compute_and_write_chips(ibs, aid_list):
-        preproc_chip.py : 632 |        >>> compute_and_write_chips(ibs, aid_list)
-        preproc_chip.py : 673 |def compute_and_write_chips_lazy(ibs, aid_list, qreq_=None):
-        preproc_chip.py : 688 |        print('[preproc_chip] compute_and_write_chips_lazy')
-        preproc_chip.py : 696 |    compute_and_write_chips(ibs, invalid_aids)
-        ----------------------
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_probchip.py':
-        preproc_probchip.py : 205 |        preproc_chip.compute_and_write_chips_lazy(ibs, aids, qreq_=qreq_)
-        ----------------------
         Found 1 line(s) in 'code\\ibeis\\ibeis\\tests\\test_ibs_chip_compute.py':
         test_ibs_chip_compute.py : 16 |    preproc_chip.compute_and_write_chips(ibs, aid_list)
 
@@ -656,7 +586,7 @@ def compute_and_write_chips(ibs, aid_list):
     """
     ut.ensuredir(ibs.chipdir)
     # Get chip configuration information
-    chip_sqrt_area = ibs.cfg.chip_cfg['chip_sqrt_area']
+    chip_sqrt_area = ibs.cfg.chip_cfg.chip_sqrt_area
     filter_list = ctool.get_filter_list(ibs.cfg.chip_cfg.to_dict())
     # Get chip dest information (output path)
     cfpath_list = get_annot_cfpath_list(ibs, aid_list)
@@ -695,28 +625,6 @@ def compute_and_write_chips(ibs, aid_list):
 #@ut.indent_func
 def compute_and_write_chips_lazy(ibs, aid_list, qreq_=None):
     r"""Spanws compute chip procesess if a chip does not exist on disk
-
-    Ignore::
-        ----------------------
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\control\\manual_dependant_funcs.py':
-        manual_dependant_funcs.py :  73 |            #preproc_chip.compute_and_write_chips_lazy(ibs, aid_list)
-        ----------------------
-        Found 12 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_chip.py':
-        preproc_chip.py :  61 |            compute_and_write_chips_lazy(ibs, aid_list)
-        preproc_chip.py : 175 |        >>> compute_and_write_chips_lazy(ibs, aid_list)
-        preproc_chip.py : 373 |        >>> compute_and_write_chips_lazy(ibs, aid_list)
-        preproc_chip.py : 624 |        manual_dependant_funcs.py :  73 |            #preproc_chip.compute_and_write_chips_lazy(ibs, aid_list)
-        preproc_chip.py : 627 |        preproc_chip.py :  61 |            compute_and_write_chips_lazy(ibs, aid_list)
-        preproc_chip.py : 628 |        preproc_chip.py : 175 |        >>> compute_and_write_chips_lazy(ibs, aid_list)
-        preproc_chip.py : 630 |        preproc_chip.py : 373 |        >>> compute_and_write_chips_lazy(ibs, aid_list)
-        preproc_chip.py : 633 |        preproc_chip.py : 673 |def compute_and_write_chips_lazy(ibs, aid_list, qreq_=None):
-        preproc_chip.py : 634 |        preproc_chip.py : 688 |        print('[preproc_chip] compute_and_write_chips_lazy')
-        preproc_chip.py : 638 |        preproc_probchip.py : 205 |        preproc_chip.compute_and_write_chips_lazy(ibs, aids, qreq_=qreq_)
-        preproc_chip.py : 695 |def compute_and_write_chips_lazy(ibs, aid_list, qreq_=None):
-        preproc_chip.py : 710 |        print('[preproc_chip] compute_and_write_chips_lazy')
-        ----------------------
-        Found 1 line(s) in 'code\\ibeis\\ibeis\\model\\preproc\\preproc_probchip.py':
-        preproc_probchip.py : 205 |        preproc_chip.compute_and_write_chips_lazy(ibs, aids, qreq_=qreq_)
 
     This is regardless of if it exists in the SQL database
 

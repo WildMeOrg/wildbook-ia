@@ -890,7 +890,9 @@ def main(ibs, verbose=None):
         sh Tgen.sh --key featweight
         sh Tgen.sh --key annot --onlyfn
         sh Tgen.sh --key featweight --onlyfn
-        sh Tgen.sh --key chip --onlyfn
+        sh Tgen.sh --key chip --onlyfn --Tcfg with_setters=False
+        sh Tgen.sh --key chip --Tcfg with_setters=False
+        sh Tgen.sh --key chip --Tcfg with_setters=False with_getters=False with_adders=True
         sh Tgen.sh --key feat --onlyfn
 
         python -m ibeis.control.template_generator

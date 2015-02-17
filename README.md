@@ -808,6 +808,7 @@ python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog 
 
 # More rerank vsone tests
 python -c "import utool as ut; ut.write_modscript_alias('Tbig.sh', 'dev.py', '--allgt  --db PZ_Master0')"
+sh Tbig.sh -t custom:rrvsone_on=True custom 
 sh Tbig.sh -t custom:rrvsone_on=True custom --noqcache
 sh Tbig.sh -t custom:rrvsone_on=True custom --index 0:500
 sh Tbig.sh -t custom:rrvsone_on=True custom --index 500:1000
@@ -834,7 +835,7 @@ sh Tbig.sh -t custom:rrvsone_on=True custom --index 2000:2721
 #---------------
 # Caveats / Things we are not currently doing
 
-* No orientation invariance, gravity vector is always assumed
+* FIXED: No orientation invariance, gravity vector is always assumed
 * We do not add or remove points from kdtrees. They are always rebuilt
 * Feature weights are never recomputed unless the database cache is deleted
 

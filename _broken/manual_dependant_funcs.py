@@ -224,9 +224,8 @@ def get_chip_fids(ibs, cid_list, ensure=True, eager=True, nInput=None, qreq_=Non
 
 @register_ibs_method
 @getter_1to1
-def get_chip_paths(ibs, cid_list):
+def get_chip_uris(ibs, cid_list):
     """
-    # FIXME: rename to get_chip_uris
 
     Returns:
         chip_fpath_list (list): a list of chip paths by their aid
