@@ -774,6 +774,7 @@ class QueryParams(collections.Mapping):
             if val[1] is not None and not isinstance(val[1], (float, int)):
                 val[1] = float(val[1])
         qparams.active_filter_list = active_filter_list
+        qparams.chip_cfg_dict      = cfg._featweight_cfg._feat_cfg._chip_cfg
         qparams.filt2_stw          = filt2_stw
         qparams.flann_params       = cfg.flann_cfg.get_flann_params()
         qparams.hesaff_params      = cfg._featweight_cfg._feat_cfg.get_hesaff_params()

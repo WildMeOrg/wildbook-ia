@@ -537,6 +537,9 @@ class IBEISController(object):
             list_ (list): ibs internal directory """
         return ibs._ibsdb
 
+    def get_chipdir(ibs):
+        return ibs.chipdir
+
     def get_fig_dir(ibs):
         """
         Returns:

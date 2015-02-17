@@ -16,10 +16,11 @@ def ensure_testing_data():
             ut.delete(join(workdir, 'testdb1'))
             ut.delete(join(workdir, 'PZ_MTEST'))
             ut.delete(join(workdir, 'NAUT_test'))
-            print('Reset testdata please rerun script without reset flag')
+            #print('Reset testdata please rerun script without reset flag')
+            print('Reset testdata')
         else:
             print('Not reseting...')
-        sys.exit(0)
+            sys.exit(0)
 
     if not ut.checkpath(join(workdir, 'testdb1')):
         ut.cmd('sh reset_dbs.sh')

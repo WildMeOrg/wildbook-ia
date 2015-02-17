@@ -44,7 +44,8 @@ Theader_ibeiscontrol = ut.codeblock(
     CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-    def get_autogen_testdata():
+    # REM def get_autogen_testdata():
+    def testdata_ibs():
         import ibeis
         ibs = ibeis.opendb('testdb1')
         qreq_ = None
@@ -85,7 +86,7 @@ Tadder_pl_dependant = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {parent}_rowid_list = {self}._get_all_{parent}_rowids()[::3]
             >>> {leaf}_rowid_list = {self}.add_{parent}_{leaf}s({parent}_rowid_list, qreq_=qreq_)
             >>> assert len({leaf}_rowid_list) == len({parent}_rowid_list)
@@ -171,7 +172,7 @@ Tadder_rl_dependant = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[::3]
             >>> {leaf}_rowid_list = {self}.add_{root}_{leaf}s({root}_rowid_list, qreq_=qreq_)
             >>> assert len({leaf}_rowid_list) == len({root}_rowid_list)
@@ -211,7 +212,7 @@ Tcfg_rowid_getter = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {leaf}_cfg_rowid = {self}.get_{leaf}_config_rowid()
         """
         if qreq_ is not None:
@@ -264,7 +265,7 @@ Tdeleter_rl_depenant = ut.codeblock(
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[::3]
             >>> {self}.delete_{root}_{leaf}({root}_rowid_list, qreq_=qreq_)
         """
@@ -301,7 +302,7 @@ Tdeleter_native_tbl = ut.codeblock(
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()[::3]
             >>> {self}.delete_{tbl}({tbl}_rowid_list)
         """
@@ -339,7 +340,7 @@ Tider_all_rowids = ut.codeblock(
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {self}._get_all_{tbl}_rowids()
         """
         all_{tbl}_rowids = {self}.{dbself}.get_all_rowids({TABLE})
@@ -418,7 +419,7 @@ Tgetter_rl_pclines_dependant_multicolumn = ut.codeblock(
             leaf = {leaf}
 
         Example:
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {root}_rowid_list = {self}._get_all_{root}_rowids()
             >>> {multicol}_list = {self}.get_{root}_{multicol}s({root}_rowid_list, qreq_=qreq_)
             >>> assert len({multicol}_list) == len({root}_rowid_list)
@@ -454,7 +455,7 @@ Tgetter_native_multicolumn = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()
             >>> ensure = False
             >>> {multicol}_list = {self}.get_{tbl}_{multicol}s({tbl}_rowid_list, eager=eager)
@@ -521,7 +522,7 @@ Tgetter_table_column = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()
             >>> eager = True
             >>> {tbl}_{col}_list = {self}.get_{tbl}_{col}s({tbl}_rowid_list, eager=eager)
@@ -558,7 +559,7 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {root}_rowid_list = {self}._get_all_{root}_rowids()
             >>> {leaf}_rowid_list1 = {self}.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_, ensure=False)
             >>> {leaf}_rowid_list2 = {self}.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_, ensure=True)
@@ -637,7 +638,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
 
         Timeit:
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> # Test to see if there is any overhead to injected vs native functions
             >>> %timeit get_{parent}_{leaf}_rowids({self}, {parent}_rowid_list)
             >>> %timeit {self}.get_{parent}_{leaf}_rowids({parent}_rowid_list)
@@ -645,7 +646,7 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {parent}_rowid_list = {self}._get_all_{parent}_rowids()
             >>> ensure = False
             >>> {leaf}_rowid_list = {self}.get_{parent}_{leaf}_rowids({parent}_rowid_list, qreq_, ensure)
@@ -654,7 +655,8 @@ Tgetter_pl_dependant_rowids = ut.codeblock(
         if ensure:
             {leaf}_rowid_list = add_{parent}_{leaf}s({self}, {parent}_rowid_list, qreq_=qreq_)
         else:
-            {leaf}_rowid_list = get_{parent}_{leaf}_rowids_({self}, {parent}_rowid_list, qreq_=qreq_)
+            {leaf}_rowid_list = get_{parent}_{leaf}_rowids_(
+                {self}, {parent}_rowid_list, qreq_=qreq_, eager=eager, nInput=nInput)
         return {leaf}_rowid_list
     # ENDBLOCK
     ''')
@@ -734,7 +736,7 @@ Tsetter_native_multicolumn = ut.codeblock(
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
-            >>> {self}, qreq_ = get_autogen_testdata()
+            >>> {self}, qreq_ = testdata_ibs()
             >>> {multicol}_list = get_{tbl}_{multicol}s({self}, {tbl}_rowid_list)
         """
         id_iter = {tbl}_rowid_list

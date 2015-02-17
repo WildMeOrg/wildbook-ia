@@ -740,7 +740,7 @@ def delete_all_features(ibs):
 def delete_all_chips(ibs):
     print('[ibs] delete_all_chips')
     ut.ensuredir(ibs.chipdir)
-    all_cids = ibs._get_all_cids()
+    all_cids = ibs._get_all_chip_rowids()
     ibs.delete_chips(all_cids)
     ut.delete(ibs.chipdir)
     ut.ensuredir(ibs.chipdir)
