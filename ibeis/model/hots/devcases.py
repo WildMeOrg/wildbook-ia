@@ -446,6 +446,14 @@ def get_gzall_small_test():
     return vuuid_list, ignore_vuuids
 
 
+def get_pz_master_testcase():
+    aid_uuid_list = [
+        (7944, UUID('b315d75f-a54f-5abf-18e5-7e353c113876'), 'small chip area.  fgweights should not be dialated here')
+        (8490, UUID('316571aa-f675-ea1a-2674-0cb9a0f00426'), 'had corrupted chip')
+    ]
+    aid_uuid_list
+
+
 def load_gztest(ibs):
     r"""
     CommandLine:

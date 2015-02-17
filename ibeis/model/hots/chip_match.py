@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
 import six
-ut.noinject('[chip_match]')
+print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[chip_match]', DEBUG=False)
 
 
 class _DefaultDictProxy(object):
@@ -39,7 +39,11 @@ class _DefaultDictProxy(object):
         raise NotImplementedError()
 
     def get(self, key, default=None):
-        raise NotImplementedError()
+        try:
+            return self[key]
+        except KeyError:
+            return default
+        #raise NotImplementedError()
 
     def __contains__(self, key):
         return key in self.key2_idx
@@ -100,12 +104,16 @@ class _OldStyleChipMatchSimulator(object):
     @classmethod
     def from_chipmatch_old(cls, chipmatch_old, qaid=None, fsv_col_lbls=None):
         (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = chipmatch_old
+        assert len(aid2_fsv_) == len(aid2_fm_), 'bad old chipmatch'
+        assert len(aid2_fk_) == len(aid2_fm_), 'bad old chipmatch'
+        assert aid2_score_ is None or len(aid2_score_) == 0 or len(aid2_score_) == len(aid2_fm_), 'bad old chipmatch'
+        assert aid2_H_ is None or len(aid2_H_) == len(aid2_fm_), 'bad old chipmatch'
         aid_list = list(six.iterkeys(aid2_fm_))
         daid_list    = aid_list
         fm_list      = ut.dict_take(aid2_fm_, aid_list)
         fsv_list     = ut.dict_take(aid2_fsv_, aid_list)
         fk_list      = ut.dict_take(aid2_fk_, aid_list)
-        score_list   = (None if aid2_score_ is None or len(aid2_score_) == 0
+        score_list   = (None if aid2_score_ is None or (len(aid2_score_) == 0 and len(daid_list) > 0)
                            else ut.dict_take(aid2_score_, aid_list))
         H_list       = (None if aid2_H_ is None else
                         ut.dict_take(aid2_H_, aid_list))
@@ -158,10 +166,16 @@ class _OldStyleChipMatchSimulator(object):
     def aid2_score(cm):
         return {} if cm.score_list is None else _DefaultDictProxy(cm.daid2_idx, cm.daid_list, cm.score_list)
 
+    # qres compatibility
+
     @property
     def filtkey_list(cm):
         """ for compatibility with qres """
         return cm.fsv_col_lbls
+
+    @property
+    def aid2_fs(cm):
+        return _DefaultDictProxy(cm.daid2_idx, cm.daid_list, cm.fsv_list)
 
 #import six
 
@@ -228,6 +242,12 @@ class ChipMatch2(_OldStyleChipMatchSimulator):
 
     def __init__(cm, qaid=None, daid_list=None, fm_list=None, fsv_list=None, fk_list=None,
                  score_list=None, H_list=None, fsv_col_lbls=None):
+        assert daid_list is not None, 'must give daids'
+        assert fm_list is None or len(fm_list) == len(daid_list), 'incompatable data'
+        assert fsv_list is None or len(fsv_list) == len(daid_list), 'incompatable data'
+        assert fk_list is None or len(fk_list) == len(daid_list), 'incompatable data'
+        assert H_list is None or len(H_list) == len(daid_list), 'incompatable data'
+        assert score_list is None or len(score_list) == len(daid_list), 'incompatable data'
         cm.qaid         = qaid
         cm.daid_list    = daid_list
         cm.fm_list      = fm_list
@@ -283,7 +303,10 @@ class ChipMatch2(_OldStyleChipMatchSimulator):
                                score_list, H_list, fsv_col_lbls)
         return cm_subset
 
-    def get_cvs_str(cm, numtop=6, ibs=None):
+    def get_property_string():
+        pass
+
+    def get_cvs_str(cm,  numtop=6, ibs=None, sort=True):
         """
         Notes:
         Very weird that it got a score
@@ -297,7 +320,10 @@ class ChipMatch2(_OldStyleChipMatchSimulator):
 
         makes very little sense
         """
-        sortx = ut.list_argsort(cm.score_list, reverse=True)
+        if not sort:
+            sortx = list(range(len(cm.score_list)))
+        else:
+            sortx = ut.list_argsort(cm.score_list, reverse=True)
         column_list = [
             ut.list_take(cm.daid_list,  sortx),
             ut.list_take(cm.score_list, sortx),
@@ -326,6 +352,29 @@ class ChipMatch2(_OldStyleChipMatchSimulator):
 
         csv_str = ut.make_csv_table(column_list, column_lbls, header, comma_repl=';')
         return csv_str
+
+    def get_rawinfostr(cm):
+        def varinfo(var):
+            import utool as ut
+            if var is None:
+                return None
+            return ut.depth_profile(var)
+        str_list = []
+        append = str_list.append
+        append('cm.qaid = %r' % (cm.qaid,))
+        append('cm.fsv_col_lbls = %r' % (varinfo(cm.fsv_col_lbls),))
+        append('len(cm.daid2_idx) = %r' % (len(cm.daid2_idx),))
+        append('depth(cm.daid_list) = %r' % (varinfo(cm.daid_list),))
+        append('depth(cm.score_list) = %r' % (varinfo(cm.score_list),))
+        append('depth(cm.fs_list) = %r' % (varinfo(cm.fs_list),))
+        append('depth(cm.fm_list) = %r' % (varinfo(cm.fm_list),))
+        append('depth(cm.fsv_list) = %r' % (varinfo(cm.fsv_list),))
+        append('depth(cm.H_list) = %r' % (varinfo(cm.H_list),))
+        infostr = '\n'.join(ut.align_lines(str_list, '='))
+        return infostr
+
+    def print_rawinfostr(cm):
+        print(cm.get_rawinfostr())
 
     def print_csv(cm, *args, **kwargs):
         print(cm.get_cvs_str(*args, **kwargs))

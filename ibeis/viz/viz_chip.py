@@ -14,28 +14,28 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
                 weight_label=None, weights=None, **kwargs):
     """ Driver function to show chips
 
-        Args:
-            ibs (IBEISController):
-            aid (int): annotation rowid
-            in_image (bool): displays annotation with the context of its source image
-            annote (bool): enables overlay annoations
-            title_suffix (str):
+    Args:
+        ibs (IBEISController):
+        aid (int): annotation rowid
+        in_image (bool): displays annotation with the context of its source image
+        annote (bool): enables overlay annoations
+        title_suffix (str):
 
-        Keywords:
-            color (3/4-tuple, ndarray, or str): colors for keypoints
+    Keywords:
+        color (3/4-tuple, ndarray, or str): colors for keypoints
 
-        Example:
-            >>> from plottool.viz_keypoints import _annotate_kpts
-            >>> from ibeis.viz.viz_chip import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('PZ_Mothers')
-            >>> aid = ibs.get_valid_aids()[0]
-            >>> in_image = False
-            >>> annote = True
-            >>> kpts = ibs.get_annot_kpts(aid)
-            >>> color = np.array([df2.ORANGE] * len(kpts))
-            >>> kwargs = {'kpts': kpts, 'color': color}
-            >>> show_chip(ibs, aid, in_image=in_image, annote=annote, **kwargs)
+    Example:
+        >>> from plottool.viz_keypoints import _annotate_kpts
+        >>> from ibeis.viz.viz_chip import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_Mothers')
+        >>> aid = ibs.get_valid_aids()[0]
+        >>> in_image = False
+        >>> annote = True
+        >>> kpts = ibs.get_annot_kpts(aid)
+        >>> color = np.array([df2.ORANGE] * len(kpts))
+        >>> kwargs = {'kpts': kpts, 'color': color}
+        >>> show_chip(ibs, aid, in_image=in_image, annote=annote, **kwargs)
 
     """
     # python -c "import utool; utool.print_auto_docstr('ibeis.viz.viz_chip', 'show_chip')
@@ -93,6 +93,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         if len(weights) > 0:
             cb = df2.colorbar(weights, kwargs['color'])
             cb.set_label(weight_label)
+    return fig, ax
 
 
 if __name__ == '__main__':

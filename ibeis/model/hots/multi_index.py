@@ -36,7 +36,7 @@ def group_daids_for_indexing_by_name(ibs, daid_list, num_indexers=8,
     aidgroup_list, invalid_aids = tup
     largest_groupsize = max(map(len, aidgroup_list))
     num_bins = min(largest_groupsize, num_indexers)
-    if verbose:
+    if verbose or ut.VERYVERBOSE:
         print('[mindex] num_indexers = %d ' % (num_indexers,))
         print('[mindex] largest_groupsize = %d ' % (largest_groupsize,))
         print('[mindex] num_bins = %d ' % (num_bins,))

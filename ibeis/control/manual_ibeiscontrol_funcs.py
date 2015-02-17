@@ -208,6 +208,21 @@ def get_feat_kpts_distinctiveness(ibs, fid_list, dstncvs_normer=None, species_ro
     return dstncvs_list
 
 
+@register_ibs_method
+def show_annot(ibs, aid, *args, **kwargs):
+    """ viz helper see ibeis.viz.viz_chip.show_chip """
+    from ibeis.viz import viz_chip
+    return viz_chip.show_chip(ibs, aid, *args, **kwargs)
+
+
+@register_ibs_method
+def show_annot_image(ibs, aid, *args, **kwargs):
+    """ viz helper see ibeis.viz.viz_chip.show_chip """
+    from ibeis.viz import viz_image
+    gid = ibs.get_annot_gids(aid)
+    return viz_image.show_image(ibs, gid, *args, **kwargs)
+
+
 if __name__ == '__main__':
     """
     CommandLine:

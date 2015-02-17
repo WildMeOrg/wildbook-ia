@@ -427,16 +427,16 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True, verbo
     nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
     # neighbor memory cache
     if use_memcache and NEIGHBOR_CACHE.has_key(nnindex_cfgstr):  # NOQA (has_key is for a lru cache)
-        if veryverbose:
+        if veryverbose or ut.VERYVERBOSE:
             print('... nnindex memcache hit: cfgstr=%s' % (nnindex_cfgstr,))
         nnindexer = NEIGHBOR_CACHE[nnindex_cfgstr]
     else:
-        if veryverbose:
+        if veryverbose or ut.VERYVERBOSE:
             print('... nnindex memcache miss: cfgstr=%s' % (nnindex_cfgstr,))
         # Write to inverse uuid
         nnindexer = request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr, verbose)
         # Write to memcache
-        if ut.VERBOSE:
+        if ut.VERBOSE or ut.VERYVERBOSE:
             print('[disk] Wrote to memcache=%r' % (nnindex_cfgstr,))
         NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
     return nnindexer
@@ -778,7 +778,7 @@ class NeighborIndex(object):
         new_idx2_vec, new_idx2_ax, new_idx2_fx = \
                 invert_index(new_vecs_list, new_ax_list)
         nNewVecs = len(new_idx2_vec)
-        if verbose:
+        if verbose or ut.VERYVERBOSE:
             print('[nnindex] Adding %d vecs from %d annots to nnindex with %d vecs and %d annots' %
                   (nNewVecs, nNewAnnots, nVecs, nAnnots))
         new_idx2_fgw = np.hstack(new_fgws_list)
@@ -841,8 +841,8 @@ class NeighborIndex(object):
         """ indexes all vectors with FLANN. """
         num_vecs = nnindexer.num_indexed
         notify_num = 1E6
-        if verbose or (not ut.QUIET and num_vecs > notify_num):
-            print('...building kdtree over %d points (this may take a sec).' % num_vecs)
+        if ut.VERYVERBOSE or verbose or (not ut.QUIET and num_vecs > notify_num):
+            print('[nnindex] ...building kdtree over %d points (this may take a sec).' % num_vecs)
         idx2_vec = nnindexer.idx2_vec
         flann_params = nnindexer.flann_params
         nnindexer.flann.build_index(idx2_vec, **flann_params)
@@ -851,8 +851,8 @@ class NeighborIndex(object):
 
     def save(nnindexer, cachedir, verbose=True):
         flann_fpath = nnindexer.get_fpath(cachedir)
-        if verbose:
-            print('flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=5))
+        if ut.VERYVERBOSE or verbose:
+            print('[nnindex] flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=5))
         nnindexer.flann.save_index(flann_fpath)
 
     def load(nnindexer, cachedir, verbose=True):
@@ -866,7 +866,7 @@ class NeighborIndex(object):
             except Exception as ex:
                 ut.printex(ex, '... cannot load nnindex flann', iswarning=True)
         return load_success
-        if ut.VERBOSE:
+        if ut.VERYVERBOSE or ut.VERBOSE:
             print('[nnindex] load_success = %r' % (load_success,))
         #flann = nntool.flann_cache(idx2_vec, verbose=verbose, **flannkw)
 
@@ -1080,7 +1080,7 @@ def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
     except MemoryError as ex:
         ut.printex(ex, 'cannot build inverted index', '[!memerror]')
         raise
-    if verbose:
+    if ut.VERYVERBOSE or verbose:
         print('[nnindex] stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
             nVecs=len(idx2_vec), nAnnots=len(ax_list)))
     return idx2_vec, idx2_ax, idx2_fx

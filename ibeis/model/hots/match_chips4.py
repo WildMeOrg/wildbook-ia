@@ -131,13 +131,14 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
             # Try and load directly from a big cache
             try:
                 qaid2_qres = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
+            except IOError:
+                print('... qaid2_qres bigcache miss')
+            else:
                 print('... qaid2_qres bigcache hit')
                 if return_request:
                     return qaid2_qres, qreq_
                 else:
                     return qaid2_qres
-            except IOError:
-                print('... qaid2_qres bigcache miss')
     # ------------
     # Execute query request
     qaid2_qres = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=verbose)
@@ -199,6 +200,9 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True):
         qaid2_qres_hit = pipeline.try_load_resdict(qreq_, verbose=verbose)
         if len(qaid2_qres_hit) == len(qreq_.get_external_qaids()):
             return qaid2_qres_hit
+        else:
+            if len(qaid2_qres_hit) > 0 and not ut.QUIET:
+                print('... partial qres cache hit %d/%d' % (len(qaid2_qres_hit), len(qreq_.get_external_qaids())))
         cachehit_qaids = list(six.iterkeys(qaid2_qres_hit))
         # mask queries that have already been executed
         qreq_.set_external_qaid_mask(cachehit_qaids)

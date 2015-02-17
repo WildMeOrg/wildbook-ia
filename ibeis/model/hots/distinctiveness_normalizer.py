@@ -279,7 +279,9 @@ class DistinctivnessNormalizer(ut.Cachable):
         """
         assert dcvs_K > 0 and dcvs_K < len(dstcnvs_normer.vecs), 'dcvs_K=%r' % (dcvs_K,)
         if len(qfx2_vec) == 0:
-            (qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.empty_neighbors(0, dcvs_K)
+            #(qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.empty_neighbors(0, dcvs_K)
+            qfx2_idx  = np.empty((0, dcvs_K), dtype=np.int32)
+            qfx2_dist = np.empty((0, dcvs_K), dtype=np.float64)
         else:
             # perform nearest neighbors
             (qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.flann.nn_index(

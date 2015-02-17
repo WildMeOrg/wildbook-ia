@@ -933,6 +933,9 @@ class FeatureConfig(ConfigBase):
     """
     Feature configuration object.
 
+    CommandLine:
+        python -m ibeis.model.Config --test-FeatureConfig
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model import Config  # NOQA
@@ -945,8 +948,8 @@ class FeatureConfig(ConfigBase):
     _FEAT(hesaff+sift_nScal=3,thrsh=5.33,edggn=10.00,nIter=16,cnvrg=0.05,intlS=1.60)_CHIP(sz450)
     """
     def __init__(feat_cfg, **kwargs):
-        import numpy as np
-        import ctypes as C
+        #import numpy as np
+        #import ctypes as C
         # Features depend on chips
         super(FeatureConfig, feat_cfg).__init__(name='feat_cfg')
         feat_cfg._chip_cfg = ChipConfig(**kwargs)
@@ -955,52 +958,62 @@ class FeatureConfig(ConfigBase):
         #feat_cfg.scale_min = 0  # 0  # 30 # TODO: Put in pref types here
         #feat_cfg.scale_max = 9001  # 9001 # 80
         # Inlineish copy of pyhesaff.hesaff_types_parms
-        PY2 = True
-        if PY2:
-            int_t = C.c_int
-        else:
-            raise NotImplementedError('PY3')
-        bool_t    = C.c_bool
-        float_t   = C.c_float
-        feat_cfg._param_list = [
-            (int_t,   'numberOfScales', 3, 'number of scale per octave'),
-            (float_t, 'threshold', 16.0 / 3.0, 'noise dependent threshold on the response (sensitivity)'),
-            (float_t, 'edgeEigenValueRatio', 10.0, 'ratio of the eigenvalues'),
-            (int_t,   'border', 5, 'number of pixels ignored at the border of image'),
-            # Affine Shape Params
-            (int_t,   'maxIterations', 16, 'number of affine shape interations'),
-            (float_t, 'convergenceThreshold', 0.05, 'maximum deviation from isotropic shape at convergence'),
-            (int_t,   'smmWindowSize', 19, 'width and height of the SMM (second moment matrix) mask'),
-            (float_t, 'mrSize', 3.0 * np.sqrt(3.0), 'size of the measurement region (as multiple of the feature scale)'),
-            # SIFT params
-            (int_t,   'spatialBins', 4),
-            (int_t,   'orientationBins', 8),
-            (float_t, 'maxBinValue', 0.2),
-            # Shared params
-            (float_t, 'initialSigma', 1.6, 'amount of smoothing applied to the initial level of first octave'),
-            (int_t,   'patchSize', 41, 'width and height of the patch'),
-            # My params
-            (float_t, 'scale_min', -1.0),
-            (float_t, 'scale_max', -1.0),
-            (bool_t,  'rotation_invariance', False),
-            (float_t, 'ori_maxima_thresh', .8),
-        ]
+        #PY2 = True
+        #if PY2:
+        #    int_t = C.c_int
+        #else:
+        #    raise NotImplementedError('PY3')
+        #bool_t    = C.c_bool
+        #float_t   = C.c_float
+        #feat_cfg._param_list = [
+        #    (int_t,   'numberOfScales', 3, 'number of scale per octave'),
+        #    (float_t, 'threshold', 16.0 / 3.0, 'noise dependent threshold on the response (sensitivity)'),
+        #    (float_t, 'edgeEigenValueRatio', 10.0, 'ratio of the eigenvalues'),
+        #    (int_t,   'border', 5, 'number of pixels ignored at the border of image'),
+        #    # Affine Shape Params
+        #    (int_t,   'maxIterations', 16, 'number of affine shape interations'),
+        #    (float_t, 'convergenceThreshold', 0.05, 'maximum deviation from isotropic shape at convergence'),
+        #    (int_t,   'smmWindowSize', 19, 'width and height of the SMM (second moment matrix) mask'),
+        #    (float_t, 'mrSize', 3.0 * np.sqrt(3.0), 'size of the measurement region (as multiple of the feature scale)'),
+        #    # SIFT params
+        #    (int_t,   'spatialBins', 4),
+        #    (int_t,   'orientationBins', 8),
+        #    (float_t, 'maxBinValue', 0.2),
+        #    # Shared params
+        #    (float_t, 'initialSigma', 1.6, 'amount of smoothing applied to the initial level of first octave'),
+        #    (int_t,   'patchSize', 41, 'width and height of the patch'),
+        #    # My params
+        #    (float_t, 'scale_min', -1.0),
+        #    (float_t, 'scale_max', -1.0),
+        #    (bool_t,  'rotation_invariance', False),
+        #    (float_t, 'ori_maxima_thresh', .8),
+        #]
+        import pyhesaff
+        feat_cfg._param_list = list(six.iteritems(pyhesaff.get_hesaff_default_params()))
 
         for type_, name, default, doc in feat_cfg._iterparams():
             setattr(feat_cfg, name, default)
+
+        #feat_cfg.affine_invariance = False  # 9001 # 80
+        #feat_cfg.rotation_invariance = True  # 9001 # 80
 
         feat_cfg.use_adaptive_scale = False  # 9001 # 80
         feat_cfg.nogravity_hack = False  # 9001 # 80
         feat_cfg.update(**kwargs)
 
     def _iterparams(feat_cfg):
-        for tup in feat_cfg._param_list:
-            if len(tup) == 4:
-                type_, name, default, doc = tup
-            else:
-                type_, name, default = tup
-                doc = None
+        """ DEPRICATE """
+        for name, default in feat_cfg._param_list:
+            type_ = None
+            doc = None
             yield (type_, name, default, doc)
+        #for tup in feat_cfg._param_list:
+        #    if len(tup) == 4:
+        #        type_, name, default, doc = tup
+        #    else:
+        #        type_, name, default = tup
+        #        doc = None
+        #    yield (type_, name, default, doc)
 
     def get_hesaff_params(feat_cfg):
         dict_args = {
@@ -1039,29 +1052,28 @@ class FeatureConfig(ConfigBase):
             ignore = []
             #ignore = set(['whiten', 'scale_min', 'scale_max', 'use_adaptive_scale',
             #              'nogravity_hack', 'feat_type'])
-            ignore_if_default = set([
-                'numberOfScales',
-                'threshold',
-                'edgeEigenValueRatio',
-                'border',
-                'maxIterations',
-                'convergenceThreshold',
-
-                'smmWindowSize',
-                'mrSize',
-
-                'spatialBins',
-                'orientationBins',
-
-                'maxBinValue',
-                'initialSigma',
-                'patchSize',
-
-                'scale_min',
-                'scale_max',
-                'rotation_invariance',
-                'ori_maxima_thresh',
-            ])
+            import pyhesaff
+            ignore_if_default = set(pyhesaff.get_hesaff_default_params().keys())
+            #ignore_if_default = set([
+            #    'numberOfScales',
+            #    'threshold',
+            #    'edgeEigenValueRatio',
+            #    'border',
+            #    'maxIterations',
+            #    'convergenceThreshold',
+            #    'smmWindowSize',
+            #    'mrSize',
+            #    'spatialBins',
+            #    'orientationBins',
+            #    'maxBinValue',
+            #    'initialSigma',
+            #    'patchSize',
+            #    'scale_min',
+            #    'scale_max',
+            #    'rotation_invariance',
+            #    'ori_maxima_thresh',
+            #    'affine_invariance',
+            #])
 
             def _gen():
                 for param in feat_cfg._iterparams():

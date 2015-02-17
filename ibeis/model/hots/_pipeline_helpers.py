@@ -79,7 +79,8 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
 
 
 def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
-                          daid_list=None, defaultdb='testdb1', cmdline_ok=True):
+                          daid_list=None, defaultdb='testdb1', cmdline_ok=True,
+                          preload=True):
     """
     Gets testdata for pipeline defined by tests / and or command line
 
@@ -145,7 +146,8 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
     if 'with_metadata' not in cfgdict:
         cfgdict['with_metadata'] = True
     qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
-    qreq_.lazy_load()
+    if preload:
+        qreq_.lazy_load()
     return ibs, qreq_
 
 

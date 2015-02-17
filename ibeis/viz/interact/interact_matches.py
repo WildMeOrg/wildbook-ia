@@ -64,8 +64,12 @@ class MatchInteraction(object):
 
     def init_old(self, ibs, qres, *args, **kwargs):
         """ old begin function for working with qres objects """
-        self.qres = qres
-        cm = hstypes.ChipMatch2.from_qres(self.qres)
+        if not isinstance(qres, hstypes.ChipMatch2):
+            self.qres = qres
+            cm = hstypes.ChipMatch2.from_qres(self.qres)
+        else:
+            cm = qres
+            self.qres = qres
         self.init_new(ibs, cm, *args, **kwargs)
 
     def init_new(self, ibs, cm, aid2=None, fnum=None, figtitle='Inspect Query Result', same_fig=True, **kwargs):

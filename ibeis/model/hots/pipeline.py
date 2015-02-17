@@ -1653,13 +1653,15 @@ def try_load_resdict(qreq_, force_miss=False, verbose=VERB_PIPELINE):
     #cachemiss_qaids = []
     # TODO: could prefiler paths that don't exist
     for qaid, qauuid in zip(qaids, qauuids):
+        qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
         try:
-            qres = hots_query_result.QueryResult(qaid, qauuid, cfgstr, daids)
             qres.load(qresdir, force_miss=force_miss, verbose=verbose)  # 77.4 % time
-            qaid2_qres_hit[qaid] = qres  # cache hit
-        except (hsexcept.HotsCacheMissError, hsexcept.HotsNeedsRecomputeError):
-            pass
+        except (hsexcept.HotsCacheMissError, hsexcept.HotsNeedsRecomputeError) as ex:
+            if ut.VERYVERBOSE:
+                ut.printex(ex, iswarning=True)
             #cachemiss_qaids.append(qaid)  # cache miss
+        else:
+            qaid2_qres_hit[qaid] = qres  # cache hit
     return qaid2_qres_hit  # , cachemiss_qaids
 
 

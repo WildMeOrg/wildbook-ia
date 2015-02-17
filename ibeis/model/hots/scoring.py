@@ -82,14 +82,14 @@ def compute_coverage_score(qreq_, unscored_cm, config={}):
     """
     CommandLine:
         python -m ibeis.model.hots.scoring --test-compute_coverage_score:0
-        python -m ibeis.model.hots.scoring --test-compute_coverage_score:1
 
     Example0:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.scoring import *  # NOQA
         >>> qreq_, unscored_cm = plh.testdata_scoring()
         >>> config = qreq_.qparams
         >>> score_list = compute_coverage_score(qreq_, unscored_cm)
+        >>> ut.assert_inbounds(np.array(score_list), 0, 1, eq=True)
         >>> result = ut.list_str(score_list, precision=3)
         >>> print(result)
     """
@@ -172,14 +172,8 @@ def get_masks(qreq_, cm, config={}):
         ...     show_coverage_mask(qreq_, cm, masks_list)
         ...     pt.show_if_requested()
     """
-    #if config is None:
-    #    config =
-    #print(config.maskscore_mode)
-    qaid    = cm.qaid
-    fm_list = cm.fm_list
-    fs_list = cm.fs_list
     make_mask_func, cov_cfg = get_mask_func(config)
-    masks_iter = general_coverage_mask_generator(make_mask_func, qreq_, qaid, fm_list, fs_list, config, cov_cfg)
+    masks_iter = general_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg)
     # copy weight mask as it comes back if you want to see them
     masks_list = [(weight_mask_m.copy(), weight_mask) for weight_mask_m, weight_mask  in masks_iter]
     return masks_list
