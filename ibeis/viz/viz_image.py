@@ -46,9 +46,9 @@ def get_annot_annotations(ibs, aid_list, sel_aids=[], draw_lbls=True):
 
 def drive_test_script(ibs):
     r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid_list (int):  list of annotation ids
+    Test script where we drive around and take pictures of animals
+    both in a given database and not in a given databse to make sure
+    the system works.
 
     CommandLine:
         python -m ibeis.viz.viz_image --test-drive_test_script
@@ -56,12 +56,16 @@ def drive_test_script(ibs):
         python -m ibeis.viz.viz_image --test-drive_test_script --db GIR_Tanya --show
         python -m ibeis.viz.viz_image --test-drive_test_script --db GIR_Master0 --show
         python -m ibeis.viz.viz_image --test-drive_test_script --db PZ_Master0 --show
+        python -m ibeis.viz.viz_image --test-drive_test_script --db PZ_FlankHack --show
+
+        python -m ibeis.viz.viz_image --test-drive_test_script --db PZ_FlankHack --show
+        python -m ibeis.viz.viz_image --test-drive_test_script --dbdir /raid/work2/Turk/GIR_Master --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_image import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(ut.get_argval('--db', str, 'testdb1'))
+        >>> ibs = ibeis.opendb()
         >>> drive_test_script(ibs)
     """
     aid_list = ibs.get_one_annot_per_name()
@@ -72,8 +76,8 @@ def drive_test_script(ibs):
     guuid_list = ibs.get_image_uuids(gid_list)
     print('Running with annot_visual_uuid_list = %s' % (ut.list_str(zip(aid_list, avuuid_list))))
     print('Running with image_uuid_list = %s' % (ut.list_str(zip(gid_list, guuid_list))))
-    for gid in ut.ProgressIter(gid_list, lbl='image '):
-        print('\ngid = %r' % (gid,))
+    for gid, aid in ut.ProgressIter(zip(gid_list, aid_list), lbl='progress '):
+        print('\ngid, aid, nid = %r, %r, %r' % (gid, aid, ibs.get_annot_nids(aid),))
         show_image(ibs, gid, annote=False, rich_title=True)
         pt.show_if_requested()
 

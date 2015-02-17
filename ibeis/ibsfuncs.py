@@ -2098,23 +2098,30 @@ def get_one_annot_per_name(ibs):
     CommandLine:
         python -m ibeis.ibsfuncs --test-get_one_annot_per_name --db PZ_Master0
         python -m ibeis.ibsfuncs --test-get_one_annot_per_name --db PZ_MTEST
+        python -m ibeis.ibsfuncs --test-get_one_annot_per_name --dbdir /raid/work2/Turk/GIR_Master
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(ut.get_argval('--db', str, 'testdb1'))
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> result = get_one_annot_per_name(ibs)
         >>> # verify results
         >>> print(result)
     """
-    nid_list = ibs.get_valid_nids()
-    aids_list = ibs.get_name_aids(nid_list)
-    num_annots_list = list(map(len, aids_list))
-    aids_list = ut.sortedby(aids_list, num_annots_list, reverse=True)
-    aid_list = ut.get_list_column(aids_list, 0)
+    #nid_list = ibs.get_valid_nids()
+    #aids_list = ibs.get_name_aids(nid_list)
+    #num_annots_list = list(map(len, aids_list))
+    #aids_list = ut.sortedby(aids_list, num_annots_list, reverse=True)
+    #aid_list = ut.get_list_column(aids_list, 0)
     # Keep only a certain number of annots for distinctiveness mapping
     #aid_list_ = ut.listclip(aid_list, max_annots)
+    aid_list_ = ibs.get_valid_aids()
+    aids_list, nid_list = ibs.group_annots_by_name(aid_list_, distinguish_unknowns=True)
+    aid_list = ut.get_list_column(aids_list, 0)
+    allow_unnamed = True
+    if not allow_unnamed:
+        pass
     return aid_list
 
 
