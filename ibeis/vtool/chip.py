@@ -53,7 +53,48 @@ def _get_chip_to_image_transform(bbox, chipsz, theta):
 
 @profile
 def _extract_chip(gfpath, bbox, theta, new_size):
-    """ Crops chip from image ; Rotates and scales; """
+    """ Crops chip from image ; Rotates and scales;
+
+    Args:
+        gfpath (str):
+        bbox (tuple):  xywh
+        theta (float):
+        new_size (tuple): wy
+
+    Returns:
+        ndarray: chipBGR
+
+    Ignore::
+        gfpath, bbox, theta, new_size = (u'/media/raid/work/PZ_Master0/_ibsdb/images/99cf5f7f-8f74-6046-ac72-4df05ad7ee33.jpg', (2267, 1694, 1070, 630), 0.0, (586, 345))
+
+
+        In [129]: ibs.get_annot_visual_uuids(aid)
+        Out[129]: UUID('316571aa-f675-ea1a-2674-0cb9a0f00426')
+
+        In [130]: aid
+        Out[130]: 8490
+
+        gid=15897
+        guuid = ibs.get_image_uuids(gid)
+        UUID('99cf5f7f-8f74-6046-ac72-4df05ad7ee33')
+
+    CommandLine:
+        python -m vtool.chip --test-_extract_chip
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.chip import *  # NOQA
+        >>> # build test data
+        >>> gfpath = '/media/raid/work/PZ_Master0/_ibsdb/images/99cf5f7f-8f74-6046-ac72-4df05ad7ee33.jpg'
+        >>> bbox = (2267, 1694, 1070, 630)
+        >>> theta = 0.0
+        >>> new_size = (586, 345)
+        >>> # execute function
+        >>> chipBGR = _extract_chip(gfpath, bbox, theta, new_size)
+        >>> # verify results
+        >>> result = str(chipBGR)
+        >>> print(result)
+    """
     imgBGR = gtool.imread(gfpath)  # Read parent image
     M = _get_image_to_chip_transform(bbox, new_size, theta)  # Build transformation
     chipBGR = gtool.warpAffine(imgBGR, M, new_size)  # Rotate and scale
@@ -87,7 +128,16 @@ def get_scaled_sizes_with_area(target_area, size_list):
 
 @profile
 def compute_chip(gfpath, bbox, theta, new_size, filter_list=[]):
-    """ Extracts a chip and applies filters """
+    """ Extracts a chip and applies filters
+
+    gfpath, bbox, theta, new_size, filter_list = ('/media/raid/work/PZ_Master0/_ibsdb/chips/chip_aid=8490_bbox=(2267,1694,1070,630)_theta=0.0tau_gid=15897_CHIP(sz450).png',
+     u'/media/raid/work/PZ_Master0/_ibsdb/images/99cf5f7f-8f74-6046-ac72-4df05ad7ee33.jpg',
+     (2267, 1694, 1070, 630),
+     0.0,
+     (586, 345),
+     [])
+
+    """
     chipBGR = _extract_chip(gfpath, bbox, theta, new_size)
     chipBGR = _filter_chip(chipBGR, filter_list)
     return chipBGR
