@@ -74,7 +74,7 @@ def drive_test_script(ibs):
     print('Running with image_uuid_list = %s' % (ut.list_str(zip(gid_list, guuid_list))))
     for gid in ut.ProgressIter(gid_list, lbl='image '):
         print('\ngid = %r' % (gid,))
-        show_image(ibs, gid, annot=False, rich_title=True)
+        show_image(ibs, gid, annote=False, rich_title=True)
         pt.show_if_requested()
 
 
