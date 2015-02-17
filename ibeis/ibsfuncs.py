@@ -2089,6 +2089,7 @@ def get_annot_groundtruth_sample(ibs, aid_list, per_name=1, isexemplar=True):
     return sample_trues_list
 
 
+@__injectable
 def get_one_annot_per_name(ibs):
     r"""
     Args:

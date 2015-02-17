@@ -44,6 +44,40 @@ def get_annot_annotations(ibs, aid_list, sel_aids=[], draw_lbls=True):
     return annotekw
 
 
+def drive_test_script(ibs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+
+    CommandLine:
+        python -m ibeis.viz.viz_image --test-drive_test_script
+        python -m ibeis.viz.viz_image --test-drive_test_script --db PZ_MTEST --show
+        python -m ibeis.viz.viz_image --test-drive_test_script --db GIR_Tanya --show
+        python -m ibeis.viz.viz_image --test-drive_test_script --db GIR_Master0 --show
+        python -m ibeis.viz.viz_image --test-drive_test_script --db PZ_Master0 --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_image import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(ut.get_argval('--db', str, 'testdb1'))
+        >>> drive_test_script(ibs)
+    """
+    aid_list = ibs.get_one_annot_per_name()
+    print('Running with (annot) aid_list = %r' % (aid_list))
+    gid_list = ibs.get_annot_gids(aid_list)
+    print('Running with (image) gid_list = %r' % (gid_list))
+    avuuid_list = ibs.get_annot_visual_uuids(aid_list)
+    guuid_list = ibs.get_image_uuids(gid_list)
+    print('Running with annot_visual_uuid_list = %s' % (ut.list_str(zip(aid_list, avuuid_list))))
+    print('Running with image_uuid_list = %s' % (ut.list_str(zip(gid_list, guuid_list))))
+    for gid in ut.ProgressIter(gid_list, lbl='image '):
+        print('\ngid = %r' % (gid,))
+        show_image(ibs, gid, annot=False, rich_title=True)
+        pt.show_if_requested()
+
+
 @ut.indent_func
 def show_image(ibs, gid, sel_aids=[], fnum=None,
                annote=True, draw_lbls=True, rich_title=False, **kwargs):
@@ -68,8 +102,9 @@ def show_image(ibs, gid, sel_aids=[], fnum=None,
         python -m ibeis.viz.viz_image --test-show_image --show --db PZ_MTEST --aid 10
 
         python -m ibeis.ibsfuncs --test-get_one_annot_per_name --db PZ_MTEST
-        python -m ibeis.viz.viz_image --test-show_image --show --db PZ_MTEST --aid 91 --no-annot --rich-title
 
+        python -m ibeis.viz.viz_image --test-show_image --show --db PZ_MTEST --aid 91 --no-annot --rich-title
+        python -m ibeis.viz.viz_image --test-show_image --show --db GIR_Tanya --aid 1 --no-annot --rich-title
 
     Example:
         >>> # ENABLE_DOCTEST
