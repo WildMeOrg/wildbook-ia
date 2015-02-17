@@ -2090,7 +2090,7 @@ def get_annot_groundtruth_sample(ibs, aid_list, per_name=1, isexemplar=True):
 
 
 @__injectable
-def get_one_annot_per_name(ibs):
+def get_one_annot_per_name(ibs, col='rand'):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -2118,10 +2118,20 @@ def get_one_annot_per_name(ibs):
     #aid_list_ = ut.listclip(aid_list, max_annots)
     aid_list_ = ibs.get_valid_aids()
     aids_list, nid_list = ibs.group_annots_by_name(aid_list_, distinguish_unknowns=True)
-    aid_list = ut.get_list_column(aids_list, 0)
+    if col == 'rand':
+        def random_choice(aids):
+            size = min(len(aids), 1)
+            return np.random.choice(aids, size, replace=False).tolist()
+        aid_list = [random_choice(aids) if len(aids) > 0 else [] for aids in aids_list]
+    else:
+        aid_list = ut.get_list_column(aids_list, 0)
     allow_unnamed = True
     if not allow_unnamed:
-        pass
+        raise NotImplementedError('fixme')
+
+    if col == 'rand':
+        import random
+        random.shuffle(aid_list)
     return aid_list
 
 
