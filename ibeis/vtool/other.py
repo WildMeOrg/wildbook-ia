@@ -137,6 +137,12 @@ def clipnorm(arr, min_, max_, out=None):
     """
     normalizes arr to the range 0 to 1 using min_ and max_ as clipping bounds
     """
+    if max_ == 1 and min_ == 0:
+        if out is not None:
+            out[:] = arr
+        else:
+            out = arr.copy()
+        return out
     out_args = tuple() if out is None else (out,)
     arr_ = np.subtract(arr, min_, *out_args)
     arr_ = np.divide(arr_, max_ - min_, *out_args)
