@@ -39,12 +39,19 @@ def score_chipmatch_csum(qaid, chipmatch, qreq_):
         >>> (aid_list, score_list) = score_chipmatch_csum(qaid, chipmatch, qreq_)
         >>> print(aid_list, score_list)
     """
-    (aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H) = chipmatch
-    aid2_fs = {aid: fsv.prod(axis=1) for aid, fsv in six.iteritems(aid2_fsv)}
-    aid_list = list(six.iterkeys(aid2_fs))
-    fs_list = ut.dict_take(aid2_fs, aid_list)
-    #fs_list  = list(six.itervalues(aid2_fs))
-    score_list = [np.sum(fs) for fs in fs_list]
+    #(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H) = chipmatch
+    aid2_fsv = chipmatch.aid2_fsv
+    if False:
+        aid2_fs = {aid: fsv.prod(axis=1) for aid, fsv in six.iteritems(aid2_fsv)}
+        aid_list = list(six.iterkeys(aid2_fs))
+        fs_list = ut.dict_take(aid2_fs, aid_list)
+        #fs_list  = list(six.itervalues(aid2_fs))
+        score_list = [np.sum(fs) for fs in fs_list]
+    else:
+        aid_list = list(six.iterkeys(aid2_fsv))
+        fsv_list = ut.dict_take(aid2_fsv, aid_list)
+        fs_list = [fsv.prod(axis=1) for fsv in fsv_list]
+        score_list = [np.sum(fs) for fs in fs_list]
     return (aid_list, score_list)
     #aid2_score = {aid: np.sum(fs) for (aid, fs) in six.iteritems(aid2_fs)}
     #return aid2_score
@@ -77,49 +84,86 @@ def score_chipmatch_nsum(qaid, chipmatch, qreq_):
         >>> print(aid_list, score_list)
     """
     # FIXME:
-    (nid_list, nsum_list) = score_chipmatch_true_nsum(qaid, chipmatch, qreq_)
     # for now apply a hack to return aid scores
     # TODO: rectify this code with code in name scoring
     # TODO: should be another version of nsum where each feature gets a single vote
-    aid2_csum = dict(zip(*score_chipmatch_csum(qaid, chipmatch, qreq_)))
-    aids_list = qreq_.ibs.get_name_aids(nid_list, enable_unknown_fix=True)
-    aid2_nscore = {}
-    daids = np.intersect1d(list(six.iterkeys(aid2_csum)),
-                           qreq_.get_external_daids())
-    for nid, nsum, aids in zip(nid_list, nsum_list, aids_list):
-        aids_ = np.intersect1d(aids, daids)
-        if len(aids_) == 1:
-            aid2_nscore[aids_[0]] = nsum
-        elif len(aids_) > 1:
-            csum_arr = np.array([aid2_csum[aid] for aid in aids_])
-            sortx = csum_arr.argsort()[::-1]
-            # Give the best scoring annotation the score
-            aid2_nscore[aids_[sortx[0]]] = nsum
-            # All other annotations receive 0 score
-            for aid in aids_[sortx[1:]]:
-                aid2_nscore[aid] = 0
-        else:
-            print('warning in voting rules nsum')
-    aid_list = list(six.iterkeys(aid2_nscore))
-    score_list = ut.dict_take(aid2_nscore, aid_list)
+    NEW_WAY = True
+    if NEW_WAY:
+        aid_list, nscore_list = score_chipmatch_true_nsum(qaid, chipmatch, qreq_, True)
+        return aid_list, nscore_list
+    else:
+        (nid_list, nsum_list) = score_chipmatch_true_nsum(qaid, chipmatch, qreq_, False)
+        aid2_csum = dict(zip(*score_chipmatch_csum(qaid, chipmatch, qreq_)))
+        aids_list = qreq_.ibs.get_name_aids(nid_list, enable_unknown_fix=True)
+        aid2_nscore = {}
+        daids = np.intersect1d(list(six.iterkeys(aid2_csum)),
+                               qreq_.get_external_daids())
+        for nid, nsum, aids in zip(nid_list, nsum_list, aids_list):
+            aids_ = np.intersect1d(aids, daids)
+            if len(aids_) == 1:
+                aid2_nscore[aids_[0]] = nsum
+            elif len(aids_) > 1:
+                csum_arr = np.array([aid2_csum[aid] for aid in aids_])
+                # No something else in the old way is wrong.
+                # just use new way it seems better.
+                #BAD?: sortx = csum_arr.argsort()[::-1]
+                #sortx = csum_arr.argsort()
+                sortx = csum_arr.argsort()[::-1]
+                # Give the best scoring annotation the score
+                aid2_nscore[aids_[sortx[0]]] = nsum
+                # All other annotations receive 0 score
+                for aid in aids_[sortx[1:]]:
+                    aid2_nscore[aid] = 0
+            else:
+                print('warning in voting rules nsum')
+        aid_list = list(six.iterkeys(aid2_nscore))
+        score_list = ut.dict_take(aid2_nscore, aid_list)
     #score_list = list(six.itervalues(aid2_nscore))
     return (aid_list, score_list)
     #raise NotImplementedError('nsum')
 
 
-def score_chipmatch_true_nsum(qaid, chipmatch, qreq_):
+def score_chipmatch_true_nsum(qaid, chipmatch, qreq_, return_wrt_aids=False):
+    """
+    Sums scores over all annots with those names.
+    Dupvote weighting should be on to combat double counting
+    """
     # Nonhacky version of name scoring
     #(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H) = chipmatch
     aid2_fsv = chipmatch.aid2_fsv
-    aid2_fs = {aid: fsv.prod(axis=1) for aid, fsv in six.iteritems(aid2_fsv)}
-    aid_list = list(six.iterkeys(aid2_fs))
-    annot_score_list = np.array([fs.sum() for fs in six.itervalues(aid2_fs)])
-    annot_nid_list = np.array(qreq_.ibs.get_annot_name_rowids(aid_list))
-    unique_nids, groupxs = vtool.group_indicies(annot_nid_list)
-    grouped_scores = vtool.apply_grouping(annot_score_list, groupxs)
-    nid_list = unique_nids
-    score_list = [scores.sum() for scores in grouped_scores]
-    return nid_list, score_list
+    NEW_WAY = True
+    if NEW_WAY:
+        # New version
+        aid_list = list(six.iterkeys(aid2_fsv))
+        fsv_list = ut.dict_take(aid2_fsv, aid_list)
+        #fs_list = [fsv.prod(axis=1) if fsv.shape[1] > 1 else fsv.T[0] for fsv in fsv_list]
+        fs_list = [fsv.prod(axis=1) for fsv in fsv_list]
+        annot_score_list = np.array([fs.sum() for fs in fs_list])
+        annot_nid_list = np.array(qreq_.ibs.get_annot_name_rowids(aid_list))
+        nid_list, groupxs = vtool.group_indicies(annot_nid_list)
+        grouped_scores = vtool.apply_grouping(annot_score_list, groupxs)
+    else:
+        aid2_fs = {aid: fsv.prod(axis=1) for aid, fsv in six.iteritems(aid2_fsv)}
+        aid_list = list(six.iterkeys(aid2_fs))
+        annot_score_list = np.array([fs.sum() for fs in six.itervalues(aid2_fs)])
+        annot_nid_list = np.array(qreq_.ibs.get_annot_name_rowids(aid_list))
+        nid_list, groupxs = vtool.group_indicies(annot_nid_list)
+        grouped_scores = vtool.apply_grouping(annot_score_list, groupxs)
+    if return_wrt_aids:
+        def indicator_array(size, pos, value):
+            """ creates zero array and places value at pos """
+            arr = np.zeros(size)
+            arr[pos] = value
+            return arr
+        grouped_nscores = [indicator_array(scores.size, scores.argmax(), scores.sum()) for scores in grouped_scores]
+        nscore_list = vtool.clustering2.invert_apply_grouping(grouped_nscores, groupxs)
+        #nscore_list = ut.flatten(grouped_nscores)
+        return aid_list, nscore_list
+    else:
+        score_list = [scores.sum() for scores in grouped_scores]
+        return nid_list, score_list
+        #score_list = [scores.sum() for scores in grouped_scores]
+        #return nid_list, score_list
 
 
 def score_chipmatch_nunique(ibs, qaid, chipmatch, qreq):

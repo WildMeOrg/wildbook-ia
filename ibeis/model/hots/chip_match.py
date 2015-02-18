@@ -233,7 +233,9 @@ class ChipMatch2(_OldStyleChipMatchSimulator):
             fsv_col_lbls = ['unknown']
             #fsv_col_lbls = [str(count) for count in range(num_cols)]
             #fsv_col_lbls
-        score_list = [fsv.prod(axis=1).sum() for fsv in fsv_list]
+        #score_list = [fsv.prod(axis=1).sum() for fsv in fsv_list]
+        score_list = [-1 for fsv in fsv_list]
+        #fsv.prod(axis=1).sum() for fsv in fsv_list]
         cm = ChipMatch2(qaid, daid_list, fm_list, fsv_list, None, score_list, H_list, fsv_col_lbls)
         cm.fs_list = fs_list
         return cm

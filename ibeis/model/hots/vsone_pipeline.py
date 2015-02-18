@@ -87,8 +87,8 @@ def show_post_vsmany_vser():
 
 def get_normalized_score_column(fsv, colx, min_, max_, power):
     fs = fsv.T[colx].T.copy()
-    fs = vt.clipnorm(fs, min_, max_, out=fs)
-    fs = np.power(fs, power, out=fs)
+    fs = fs if min_ == 0 and max_ == 1 else vt.clipnorm(fs, min_, max_, out=fs)
+    fs = fs if power == 1 else np.power(fs, power, out=fs)
     return fs
 
 
@@ -202,14 +202,12 @@ def vsone_reranking(qreq_, qaid2_vsm_chipmatch, verbose=False):
         ...     show_all_top_chipmatches(qreq_.ibs, qaid2_chipmatch_VSONE, figtitle=figtitle)
         ...     pt.show_if_requested()
     """
-    #ut.embed()
-    #with ut.embed_on_exception_context:
-    #ut.embed()
     config = qreq_.qparams
     # Get vsmany chipmatches into input format
     vsm_cm_list = prepare_vsmany_chipmatch(qreq_, qaid2_vsm_chipmatch)
     # Filter down to a shortlist
     cm_shortlist = make_chipmatch_shortlist(qreq_, vsm_cm_list)
+    #return {cm.qaid: cm.to_oldstyle_chipmatch() for cm in cm_shortlist }
     # Execute vsone reranking
     _prog = functools.partial(ut.ProgressIter, nTotal=len(cm_shortlist),
                               lbl='VSONE RERANKING', freq=1)
@@ -329,6 +327,9 @@ def refine_matches(qreq_, prior_cm, config={}):
         ...     pt.set_figtitle(qreq_.qparams.query_cfgstr)
         ...     pt.show_if_requested()
     """
+    # THIS CAUSES THE ISSUE
+    #prior_cm.fs_list = prior_cm.fsv_list
+    #return prior_cm
     if qreq_.ibs.get_annot_num_feats(prior_cm.qaid, qreq_=qreq_) == 0:
         num_daids = len(prior_cm.daid_list)
         empty_unscored_cm = chip_match.ChipMatch2.from_unscored(
@@ -419,7 +420,6 @@ def single_vsone_rerank(qreq_, prior_cm, config={}):
         >>> print(rerank_cm.score_list)
     """
     #print('==================')
-    #fm_list, fs_list, H_list
     unscored_cm = refine_matches(qreq_, prior_cm, config)
 
     if qreq_.qparams.use_coverage_scoring:
@@ -427,11 +427,12 @@ def single_vsone_rerank(qreq_, prior_cm, config={}):
         score_list_ = cov_score_list
     else:
         from ibeis.model.hots import voting_rules2 as vr2
-        _daids, _nscores = vr2.score_chipmatch_nsum(unscored_cm.qaid, unscored_cm.to_oldstyle_chipmatch(), qreq_)
-        ut.embed()
-        name_score_list = ut.list_take(_nscores, ut.dict_take(unscored_cm.daid2_idx, _daids))
-        score_list_ = name_score_list
+        #_daids, _nscores = vr2.score_chipmatch_nsum(unscored_cm.qaid, unscored_cm.to_oldstyle_chipmatch(), qreq_)
         #ut.embed()
+        _daids, _nscores = vr2.score_chipmatch_nsum(unscored_cm.qaid, unscored_cm, qreq_)
+        idx_list = ut.dict_take(unscored_cm.daid2_idx, _daids)
+        name_score_list = ut.list_take(_nscores, idx_list)
+        score_list_ = name_score_list
         pass
 
     fm_list   = unscored_cm.fm_list
@@ -511,7 +512,6 @@ def compute_query_unconstrained_matches(qreq_, qaid, daid_list, config):
         matching.unconstrained_ratio_match(
             flann, dvecs, **rat_kwargs)
         for dvecs in dvecs_list]
-    # return matches and scores
     fm_RAT_list = ut.get_list_column(scrtup_list, 0)
     fs_RAT_list = ut.get_list_column(scrtup_list, 1)
     fm_norm_RAT_list = ut.get_list_column(scrtup_list, 2)
@@ -579,7 +579,6 @@ def compute_query_constrained_matches(qreq_, qaid, daid_list, H_list, config):
             flann, vecs2, kpts1, kpts2, H, chip2_dlen_sqrd, **scr_kwargs)
         for vecs2, kpts2, chip2_dlen_sqrd, H in
         zip(vecs2_list, kpts2_list, chip2_dlen_sqrd_list, H_list)]
-    # return matches and scores
     fm_SCR_list = ut.get_list_column(scrtup_list, 0)
     fs_SCR_list = ut.get_list_column(scrtup_list, 1)
     fm_norm_SCR_list = ut.get_list_column(scrtup_list, 2)

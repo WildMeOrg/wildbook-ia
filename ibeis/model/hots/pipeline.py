@@ -146,9 +146,6 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
 
     """
     # Load data for nearest neighbors
-    #if qreq_.qparams.pipeline_root == 'vsone':
-    #    ut.embed()
-
     if verbose:
         assert ibs is qreq_.ibs
         print('\n\n[hs] +--- STARTING HOTSPOTTER PIPELINE ---')
@@ -250,7 +247,6 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
                 'qres.qfx2_dist = ' + ut.get_object_size_str(qres.qfx2_dist),
             ]
             print('\n'.join(msg_list))
-            #ut.embed()
     # </HACK>
 
     if VERB_PIPELINE:
@@ -834,12 +830,10 @@ def build_chipmatches(qreq_, qaid2_nns, qaid2_nnvalid0, qaid2_nnfilts, qaid2_nnf
         # these dict keys are external daids
         chipmatch_ = hstypes.new_chipmatch(with_homog=False)
         (daid2_fm, daid2_fsv, daid2_fk, aid2_score, daid2_H) = chipmatch_
-        #ut.embed()
         # External daids are internal qaids in vsone
         for extern_daid in intern_qaid_iter:
             #print(extern_daid)
             #if extern_daid == 2:
-            #    ut.embed()
             valid_match_tup = _get_sparse_matchinfo(extern_daid)
             if True:
                 # debug
@@ -1497,7 +1491,6 @@ def chipmatch_to_resdict(qreq_, qaid2_chipmatch, verbose=VERB_PIPELINE):
         #if chipmatch is not None:
         aid2_fm, aid2_fsv, aid2_fk, aid2_score, daid2_H = chipmatch
         qres.aid2_fm = aid2_fm
-        #ut.embed()
         # HACK IN SCORE VECTORS
         qres.aid2_fsv = aid2_fsv
         # FIXME: This score is not valid. We have different code
