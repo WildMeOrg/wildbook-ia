@@ -10,20 +10,20 @@ print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[covgrid]', DEBUG=
 
 # TODO: integrate more
 COVGRID_DEFAULT = ut.ParamInfoList('coverage_grid', [
-    ut.ParamInfo('grid_scale_factor', .1, 'sf'),
-    ut.ParamInfo('grid_steps', 3, 'stps'),
-    ut.ParamInfo('grid_sigma', 1.6, 'sigma'),
+    ut.ParamInfo('pxl_per_bin', 10, 'ppb', varyvals=[20, 5, 1]),
+    ut.ParamInfo('grid_steps', 3, 'stps', varyvals=[1, 3, 7]),
+    ut.ParamInfo('grid_sigma', 1.6, 'sigma', varyvals=[1.0, 1.6]),
 ])
 
 
-def make_grid_coverage_mask(kpts, chipsize, weights, grid_scale_factor=.3,
+def make_grid_coverage_mask(kpts, chipsize, weights, pxl_per_bin=4,
                             grid_steps=1, resize=False, out=None, grid_sigma=1.6):
     r"""
     Args:
         kpts (ndarray[float32_t, ndim=2]):  keypoint
         chipsize (tuple):  width, height
         weights (ndarray[float32_t, ndim=1]):
-        grid_scale_factor (float):
+        pxl_per_bin (float):
         grid_steps (int):
 
     Returns:
@@ -38,10 +38,10 @@ def make_grid_coverage_mask(kpts, chipsize, weights, grid_scale_factor=.3,
         >>> import vtool as vt
         >>> # build test data
         >>> kpts, chipsize, weights = coverage_kpts.testdata_coverage('easy1.png')
-        >>> grid_scale_factor = 0.3
+        >>> pxl_per_bin = 4
         >>> grid_steps = 2
         >>> # execute function
-        >>> weightgrid = make_grid_coverage_mask(kpts, chipsize, weights, grid_scale_factor, grid_steps)
+        >>> weightgrid = make_grid_coverage_mask(kpts, chipsize, weights, pxl_per_bin, grid_steps)
         >>> # verify result
         >>> result = str(weightgrid)
         >>> print(result)
@@ -49,7 +49,7 @@ def make_grid_coverage_mask(kpts, chipsize, weights, grid_scale_factor=.3,
     import vtool as vt
     coverage_gridtup = sparse_grid_coverage(
         kpts, chipsize, weights,
-        grid_scale_factor=grid_scale_factor,
+        pxl_per_bin=pxl_per_bin,
         grid_steps=grid_steps,
         grid_sigma=grid_sigma
     )
@@ -85,7 +85,52 @@ def make_grid_coverage_mask(kpts, chipsize, weights, grid_scale_factor=.3,
     return weightgrid
 
 
-def sparse_grid_coverage(kpts, chipsize, weights, grid_scale_factor=.3, grid_steps=1, grid_sigma=1.6):
+def get_subbin_xy_neighbors(subbin_index00, grid_steps, num_cols, num_rows):
+    """ Generate all neighbor of a bin
+    subbin_index00 = left and up subbin index
+    """
+    subbin_index00 = np.floor(subbin_index00).astype(np.int32)
+    subbin_x0, subbin_y0 = subbin_index00
+    step_list = np.arange(1 - grid_steps, grid_steps + 1)
+    offset_list = [
+        # broadcast to the shape we will add too
+        np.array([xoff, yoff])[:, None]
+        for xoff, yoff in list(ut.iprod(step_list, step_list))]
+    neighbor_subbin_index_list = [
+        np.add(subbin_index00, offset)
+        for offset in offset_list
+    ]
+    # Concatenate all subbin indexes into one array for faster vectorized op
+    neighbor_bin_indicies = np.dstack(neighbor_subbin_index_list).T
+
+    # Clip with no wrapparound
+    min_val = np.array([0, 0])
+    max_val = np.array([num_cols - 1, num_rows - 1])
+
+    np.clip(neighbor_bin_indicies,
+            min_val[None, None, :],
+            max_val[None, None, :],
+            out=neighbor_bin_indicies)
+    return neighbor_bin_indicies
+
+
+def compute_subbin_to_bins_dist(neighbor_bin_centers, subbin_xy_arr):
+    _tmp = np.subtract(neighbor_bin_centers, subbin_xy_arr.T[None, :])
+    neighbor_subbin_sqrddist_arr = np.power(_tmp, 2, out=_tmp).sum(axis=2)
+    return neighbor_subbin_sqrddist_arr
+
+
+def weighted_gaussian_falloff(neighbor_subbin_sqrddist_arr, weights, grid_sigma):
+    import vtool as vt
+    _gaussweights = vt.gauss_func1d_unnormalized(neighbor_subbin_sqrddist_arr, grid_sigma)
+    # If uncommented next line ensure each column sums to 1
+    #np.divide(_gaussweights, _gaussweights.sum(axis=0)[None, :], out=_gaussweights)
+    # Scale initial weights by the gaussian falloff
+    neighbor_bin_weights = np.multiply(_gaussweights, weights[None, :])
+    return neighbor_bin_weights
+
+
+def sparse_grid_coverage(kpts, chipsize, weights, pxl_per_bin=.3, grid_steps=1, grid_sigma=1.6):
     r"""
     Args:
         kpts (ndarray[float32_t, ndim=2]):  keypoint
@@ -99,62 +144,23 @@ def sparse_grid_coverage(kpts, chipsize, weights, grid_scale_factor=.3, grid_ste
         >>> # DISABLE_DOCTEST
         >>> from vtool.coverage_grid import *  # NOQA
         >>> kpts, chipsize, weights = coverage_kpts.testdata_coverage()
-        >>> grid_scale_factor = .3
+        >>> chipsize = (chipsize[0] + 50, chipsize[1])
+        >>> pxl_per_bin = 3
         >>> grid_steps = 2
         >>> grid_sigma = 1.6
-        >>> coverage_gridtup = sparse_grid_coverage(kpts, chipsize, weights, grid_scale_factor, grid_steps, grid_sigma)
+        >>> coverage_gridtup = sparse_grid_coverage(kpts, chipsize, weights, pxl_per_bin, grid_steps, grid_sigma)
         >>> if ut.show_was_requested():
         >>>     import plottool as pt
         >>>     show_coverage_grid(*coverage_gridtup)
         >>>     pt.show_if_requested()
     """
     import vtool as vt
-
-    def get_subbin_xy_neighbors(subbin_index00, grid_steps, num_cols, num_rows):
-        """ Generate all neighbor of a bin
-        subbin_index00 = left and up subbin index
-        """
-        subbin_index00 = np.floor(subbin_index00).astype(np.int32)
-        subbin_x0, subbin_y0 = subbin_index00
-        step_list = np.arange(1 - grid_steps, grid_steps + 1)
-        offset_list = [
-            # broadcast to the shape we will add too
-            np.array([xoff, yoff])[:, None]
-            for xoff, yoff in list(ut.iprod(step_list, step_list))]
-        neighbor_subbin_index_list = [
-            np.add(subbin_index00, offset)
-            for offset in offset_list
-        ]
-        # Concatenate all subbin indexes into one array for faster vectorized op
-        neighbor_bin_indicies = np.dstack(neighbor_subbin_index_list).T
-
-        # Clip with no wrapparound
-        min_val = np.array([0, 0])
-        max_val = np.array([num_cols - 1, num_rows - 1])
-
-        np.clip(neighbor_bin_indicies,
-                min_val[None, None, :],
-                max_val[None, None, :],
-                out=neighbor_bin_indicies)
-        return neighbor_bin_indicies
-
-    def compute_subbin_to_bins_dist(neighbor_bin_centers, subbin_xy_arr):
-        _tmp = np.subtract(neighbor_bin_centers, subbin_xy_arr.T[None, :])
-        neighbor_subbin_sqrddist_arr = np.power(_tmp, 2, out=_tmp).sum(axis=2)
-        return neighbor_subbin_sqrddist_arr
-
-    def weighted_gaussian_falloff(neighbor_subbin_sqrddist_arr, weights, grid_sigma):
-        _gaussweights = vt.gauss_func1d_unnormalized(neighbor_subbin_sqrddist_arr, grid_sigma)
-        # Each column sums to 1
-        np.divide(_gaussweights, _gaussweights.sum(axis=0)[None, :], out=_gaussweights)
-        # Scale initial weights by the gaussian falloff
-        neighbor_bin_weights = np.multiply(_gaussweights, weights[None, :])
-        return neighbor_bin_weights
-
     # Compute grid size and stride
     chip_w, chip_h = chipsize
-    num_rows = max(vt.iround(grid_scale_factor * chip_h), 1)
-    num_cols = max(vt.iround(grid_scale_factor * chip_w), 1)
+    # find enough rows to fit pxl_per_bin pixels into a grid dimension
+    num_rows = max(vt.iround(chip_h / pxl_per_bin), 1)
+    num_cols = max(vt.iround(chip_w / pxl_per_bin), 1)
+    # stride is roughly equal in each direction, depending on rounding errors
     chipstride = np.array((chip_w / num_cols, chip_h / num_rows))
     # Find keypoint subbin locations relative to edge
     xy_arr = vt.get_xys(kpts)
@@ -252,18 +258,19 @@ def show_coverage_grid(num_rows, num_cols, subbin_xy_arr,
 
 
 def get_coverage_grid_gridsearch_configs():
-    varied_dict = {
-        'grid_scale_factor': [.05, .3, 1.0],
-        'grid_steps': [1, 3, 7],
-        'grid_sigma': [1.0, 1.6],
-    }
-    slice_dict = {
-        'grid_scale_factor' : slice(0, 3),
-        'grid_steps'        : slice(0, 3),
-        'grid_sigma'        : slice(0, 3),
-    }
+    #varied_dict = {
+    #    'pxl_per_bin': [.05, .3, 1.0],
+    #    'grid_steps': [1, 3, 7],
+    #    'grid_sigma': [1.0, 1.6],
+    #}
+    #slice_dict = {
+    #    'pxl_per_bin' : slice(0, 3),
+    #    'grid_steps'        : slice(0, 3),
+    #    'grid_sigma'        : slice(0, 3),
+    #}
+    cfgdict_list, cfglbl_list = COVGRID_DEFAULT.get_gridsearch_input()
     # Make configuration for every parameter setting
-    cfgdict_list, cfglbl_list = ut.make_constrained_cfg_and_lbl_list(varied_dict, slice_dict=slice_dict)
+    #cfgdict_list, cfglbl_list = ut.make_constrained_cfg_and_lbl_list(varied_dict, slice_dict=slice_dict)
     return cfgdict_list, cfglbl_list
 
 

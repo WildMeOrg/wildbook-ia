@@ -240,7 +240,8 @@ def gauss_func1d(x, mu=0.0, sigma=1.0):
 
 def gauss_func1d_unnormalized(x, sigma=1.0):
     """
-    faster version with no normalization
+    faster version of gauss_func1d with no normalization. So the maximum point
+    will have a value of 1.0
 
     Example:
         >>> # DISABLE_DOCTEST

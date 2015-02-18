@@ -598,8 +598,8 @@ def apply_grouping(items, groupxs):
 def invert_apply_grouping(grouped_items, groupxs):
     r"""
     Args:
-        grouped_items (?):
-        groupxs (?):
+        grouped_items (list): of lists
+        groupxs (list): of lists
 
     Returns:
         list: items
@@ -608,7 +608,7 @@ def invert_apply_grouping(grouped_items, groupxs):
         python -m vtool.clustering2 --test-invert_apply_grouping
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
         >>> # build test data
         >>> grouped_items = [[8, 5, 6], [1, 5, 8, 7], [5, 3, 0, 9]]
@@ -619,9 +619,20 @@ def invert_apply_grouping(grouped_items, groupxs):
         >>> # verify results
         >>> print(result)
         [1, 8, 5, 5, 8, 6, 7, 5, 3, 0, 9]
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> grouped_items, groupxs = [], []
+        >>> result = invert_apply_grouping(grouped_items, groupxs)
+        >>> print(result)
+        []
     """
+    if len(grouped_items) == 0:
+        assert len(groupxs) == 0, 'inconsistant'
+        return []
     maxval = max(map(max, groupxs))
-    items = ut.alloc_nones(maxval + 1)  # np.full((maxval + 1,), None)
+    items = [None] * (maxval + 1)  # np.full((maxval + 1,), None)
     for itemgroup, xs in zip(grouped_items, groupxs):
         for item, x in zip(itemgroup, xs):
             items[x] = item
@@ -665,6 +676,8 @@ def groupby_dict(items, idx2_groupid):
 def double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy=False):
     """
     Takes corresponding lists as input and builds a double mapping.
+
+    DEPRICATE
 
     Args:
         inner_key_list (list): each value_i is a scalar key.
