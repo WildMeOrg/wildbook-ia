@@ -118,6 +118,14 @@ def set_plotdat(ax, key, val):
     _plotdat[key] = val
 
 
+def get_plotdat_dict(ax):
+    """ sets internal property to a matplotlib axis """
+    if '_plotdat' not in ax.__dict__:
+        ax.__dict__['_plotdat'] = {}
+    plotdat_dict = ax.__dict__['_plotdat']
+    return plotdat_dict
+
+
 def get_bbox_centers(bbox_list):
     bbox_centers = np.array([np.array([x + (w / 2), y + (h / 2)])
                              for (x, y, w, h) in bbox_list])
