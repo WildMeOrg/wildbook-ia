@@ -620,6 +620,7 @@ class RerankVsOneConfig(ConfigBase):
             [
                 ut.ParamInfo('rrvsone_on', False, ''),
             ],
+            vsone_pipeline.OTHER_RRVSONE_PARAMS.aslist(),
             vsone_pipeline.SHORTLIST_DEFAULTS.aslist(),
             vsone_pipeline.COEFF_DEFAULTS.aslist(),
             vsone_pipeline.UNC_DEFAULTS.aslist(),

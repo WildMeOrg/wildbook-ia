@@ -34,15 +34,15 @@ DUMP_PROBCHIP = True
 DUMP_REGCHIP = True
 
 
-def get_diffmat_str(rank_mat, qaids, nCfg):
+def get_diffmat_str(rank_mat, qaids, nConfig):
     # Find rows which scored differently over the various configs
     row2_aid = np.array(qaids)
     diff_rows = np.where([not np.all(row == row[0]) for row in rank_mat])[0]
     diff_aids = row2_aid[diff_rows]
     diff_rank = rank_mat[diff_rows]
     diff_mat = np.vstack((diff_aids, diff_rank.T)).T
-    col_lbls = list(chain(['qaid'], map(lambda x: 'cfg%d_rank' % x, range(nCfg))))
-    col_types  = list(chain([int], [int] * nCfg))
+    col_lbls = list(chain(['qaid'], map(lambda x: 'cfg%d_rank' % x, range(nConfig))))
+    col_types  = list(chain([int], [int] * nConfig))
     header = 'diffmat'
     diff_matstr = utool.numpy_to_csv(diff_mat, col_lbls, header, col_types)
     return diff_matstr
@@ -92,10 +92,10 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     scoreexpdiff_mat   = np.array(ut.replace_nones(cfgx2_scoreexpdiff, np.nan))
 
     print(' --- PRINT RESULTS ---')
-    #X_LIST = [1, 5]  # Num of ranks less than to score
     X_LIST = [1]  # Num of ranks less than to score
+    #X_LIST = [1, 5]  # Num of ranks less than to score
 
-    nCfg = len(cfg_list)
+    nConfig = len(cfg_list)
     nQuery = len(qaids)
     #--------------------
     # Print Best Results
@@ -113,24 +113,21 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     isfalse_list = [~istrue for istrue in istrue_list]
 
     # Label the rank matrix:
-    _colxs = np.arange(nCfg)
+    _colxs = np.arange(nConfig)
     lbld_mat = utool.debug_vstack([_colxs, rank_mat])
 
     _rowxs = np.arange(nQuery + 1).reshape(nQuery + 1, 1) - 1
     lbld_mat = np.hstack([_rowxs, lbld_mat])
     #------------
     # Build row lbls
-    qx2_lbl = []
-    for qx in range(nQuery):
-        qaid = qaids[qx]
-        lbl = 'qx=%d) q%s ' % (qx, ibsfuncs.aidstr(qaid, ibs=ibs, notes=True))
-        qx2_lbl.append(lbl)
-    qx2_lbl = np.array(qx2_lbl)
+    qx2_lbl = np.array([
+        'qx=%d) q%s ' % (qx, ibsfuncs.aidstr(qaids[qx], ibs=ibs, notes=True))
+        for qx in range(nQuery)])
     #------------
     # Build col lbls (this info is passed in)
     #if cfgx2_lbl is None:
     #    cfgx2_lbl = []
-    #    for cfgx in range(nCfg):
+    #    for cfgx in range(nConfig):
     #        test_cfgstr  = cfg_list[cfgx].get_cfgstr()
     #        cfg_lbl = 'cfgx=(%3d) %s' % (cfgx, test_cfgstr)
     #        cfgx2_lbl.append(cfg_lbl)
@@ -281,21 +278,17 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     #------------
     # Build Colscore
     # Build a dictionary mapping X (as in #ranks < X) to a list of cfg scores
-    nLessX_dict = {int(X): np.zeros(nCfg) for X in X_LIST}
-    for cfgx in range(nCfg):
-        ranks = rank_mat[:, cfgx]
-        for X in X_LIST:
-            #nLessX_ = sum(np.bitwise_and(ranks < X, ranks >= 0))
-            # Ranks less than 0 are invalid
-            nLessX_ = sum(np.logical_and(ranks < X, ranks >= 0))
-            nLessX_dict[int(X)][cfgx] = nLessX_
+    nLessX_dict = {int(X): np.zeros(nConfig) for X in X_LIST}
+    for X in X_LIST:
+        lessX_ = np.logical_and(np.less(rank_mat, X), np.greater_equal(rank_mat, 0))
+        nLessX_dict[int(X)] = lessX_.sum(axis=0)
 
     @utool.argv_flag_dec_true
     def print_colscore():
         print('==================')
         print('[harn] Scores per Config: %s' % testnameid)
         print('==================')
-        #for cfgx in range(nCfg):
+        #for cfgx in range(nConfig):
         #    print('[score] %s' % (cfgx2_lbl[cfgx]))
         #    for X in X_LIST:
         #        nLessX_ = nLessX_dict[int(X)][cfgx]
@@ -371,7 +364,7 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
             #indent('\n'.join(cfgstr_list), '    ')
             print(best_rankscore)
             print(best_rankcfg)
-        print('[cfg*]  %d cfg(s) are the best of %d total cfgs' % (len(intersected), nCfg))
+        print('[cfg*]  %d cfg(s) are the best of %d total cfgs' % (len(intersected), nConfig))
         print(eh.format_cfgstr_list(intersected))
 
         print('--- /Best Configurations ---')
@@ -585,7 +578,7 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         # score differences over configs
         print('-------------')
         print('Diffmat: %s' % testnameid)
-        diff_matstr = get_diffmat_str(rank_mat, qaids, nCfg)
+        diff_matstr = get_diffmat_str(rank_mat, qaids, nConfig)
         print(diff_matstr)
         print('[harn]-------------')
     print_diffmat()

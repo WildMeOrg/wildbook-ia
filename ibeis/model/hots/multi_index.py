@@ -10,6 +10,7 @@ import numpy as np
 import utool as ut
 import vtool as vt
 from ibeis.model.hots import neighbor_index
+from ibeis.model.hots import hstypes
 (print, print_, printDBG, rrr_, profile) = ut.inject(__name__, '[multi_index]', DEBUG=False)
 
 
@@ -610,7 +611,7 @@ class MultiNeighborIndex(object):
             >>> print(result)
         """
         #qfx2_fgw = -np.ones(qfx2_imx.shape, dtype=np.float32)
-        qfx2_fgw = np.empty(qfx2_imx.shape, dtype=np.float32)
+        qfx2_fgw = np.empty(qfx2_imx.shape, dtype=hstypes.FS_DTYPE)
         for nnindexer, idxs, mask in mxer.iter_subindexers(qfx2_imx):
             qfx2_fgw[mask] = nnindexer.get_nn_fgws(idxs)
         return qfx2_fgw

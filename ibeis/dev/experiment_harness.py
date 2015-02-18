@@ -294,6 +294,9 @@ def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
             #    mark_prog(cfgx + 1, nCfg)
             #    print(query_cfg.get_cfgstr())
             #cfglbl = cfgx2_lbl[cfgx]
+            print('+----')
+            print(query_cfg.get_cfgstr())
+            print('L____')
             ibs.set_query_cfg(query_cfg)
             # Set data to the current config
             #nPrevQueries = nQuery * cfgx  # number of pervious queries

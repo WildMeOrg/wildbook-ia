@@ -110,7 +110,7 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
         if len(qfx2_valid0) == 0:
             # hack for empty query features (should never happen, but it
             # inevitably will)
-            qaid2_dupvote_weight[qaid] = np.empty((0, K), dtype=np.float32)
+            qaid2_dupvote_weight[qaid] = np.empty((0, K), dtype=hstypes.FS_DTYPE)
             continue
         (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
         qfx2_topidx = qfx2_idx.T[0:K].T
@@ -125,7 +125,7 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
         qfx2_isnondup = np.array([ut.flag_unique_items(topnids) for topnids in qfx2_topnid])
         # set invalids to be duplicates as well (for testing)
         qfx2_isnondup[qfx2_invalid0] = False
-        qfx2_dupvote_weight = (qfx2_isnondup.astype(np.float32) * (1 - 1E-7)) + 1E-7
+        qfx2_dupvote_weight = (qfx2_isnondup.astype(hstypes.FS_DTYPE) * (1 - 1E-7)) + 1E-7
         qaid2_dupvote_weight[qaid] = qfx2_dupvote_weight
     return qaid2_dupvote_weight
 
@@ -137,8 +137,8 @@ def componentwise_uint8_dot(qfx2_qvec, qfx2_dvec):
     BUT THESE ARE SIFT DESCRIPTORS WHICH USE THE SMALL UINT8 TRICK
     DIVIDE BY 512**2 instead
     """
-    arr1 = qfx2_qvec.astype(np.float32)
-    arr2 = qfx2_dvec.astype(np.float32)
+    arr1 = qfx2_qvec.astype(hstypes.FS_DTYPE)
+    arr2 = qfx2_dvec.astype(hstypes.FS_DTYPE)
     cosangle = vt.componentwise_dot(arr1, arr2) / hstypes.PSEUDO_UINT8_MAX_SQRD
     return cosangle
 

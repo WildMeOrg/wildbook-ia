@@ -810,24 +810,31 @@ python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --homog 
 python -c "import utool as ut; ut.write_modscript_alias('Tbig.sh', 'dev.py', '--allgt  --db PZ_Master0')"
 sh Tbig.sh -t custom:rrvsone_on=True custom 
 sh Tbig.sh -t custom:rrvsone_on=True custom --noqcache
-sh Tbig.sh -t custom:rrvsone_on=True custom --index 0:500
-sh Tbig.sh -t custom:rrvsone_on=True custom --index 500:1000
-sh Tbig.sh -t custom:rrvsone_on=True custom --index 1000:1500
-sh Tbig.sh -t custom:rrvsone_on=True custom --index 1500:2000
-sh Tbig.sh -t custom:rrvsone_on=True custom --index 2000:2010
-sh Tbig.sh -t custom:rrvsone_on=True custom --index 2005:2008
-sh Tbig.sh -t custom:rrvsone_on=True custom --index 2000:2001
-sh Tbig.sh -t custom:rrvsone_on=True custom --index 2000:2500
-sh Tbig.sh -t custom:rrvsone_on=True custom --index 2000:2265
-sh Tbig.sh -t custom:rrvsone_on=True custom --index 2265:2270
-sh Tbig.sh -t custom:rrvsone_on=True custom --index 2270:2721
-sh Tbig.sh -t custom:rrvsone_on=True custom --index 2500:2721
-sh Tbig.sh -t custom:rrvsone_on=True custom --index 2000:2721
 
 
 # TODO: 
 # static lnbnn, normonly, and count test
 # combinme vsone and vsmany matches in vsone rr 
+
+
+
+# Sanity Check 
+# Make sure vsmany and onevsone are exactly the same
+python dev.py --allgt -t custom custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200 --print-confusion-stats --noqcache
+
+# We are different than lnbnn still, but that is because vsonerr strips out
+# dupvote and fgweight Turn those off in custom. 
+# Doing this gets close
+python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200 --print-confusion-stats 
+# Remmbering to turn them on in both instance gets even closer BUT STILL NOT THERE!
+python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 40:60
+
+# Single bad case why
+python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache
+
+--noqcache
+
+python dev.py --allgt -t custom custom:rrvsone_on=True
 
 
 ```

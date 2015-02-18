@@ -38,8 +38,8 @@ INDEX_TYPE = np.int32
 #INTEGER_TYPE = np.int64
 INTEGER_TYPE = np.int32
 
-#FLOAT_TYPE = np.float64
-FLOAT_TYPE = np.float32
+FLOAT_TYPE = np.float64
+#FLOAT_TYPE = np.float32
 
 VEC_DIM = 128
 

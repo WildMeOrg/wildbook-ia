@@ -220,8 +220,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     # or just not do that and use some good pipeline framework
     if qreq_.qparams.rrvsone_on:
         # VSONE RERANKING
-        qaid2_chipmatch_VSONERR_ = vsone_reranking(qreq_, qaid2_chipmatch_SVER_, verbose=verbose)
-        qaid2_chipmatch_ = qaid2_chipmatch_VSONERR_
+        qaid2_chipmatch_ = vsone_reranking(qreq_, qaid2_chipmatch_SVER_, verbose=verbose)
     else:
         qaid2_chipmatch_ = qaid2_chipmatch_SVER_
 

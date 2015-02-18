@@ -109,7 +109,8 @@ def score_chipmatch_nsum(qaid, chipmatch, qreq_):
 
 def score_chipmatch_true_nsum(qaid, chipmatch, qreq_):
     # Nonhacky version of name scoring
-    (aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H) = chipmatch
+    #(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H) = chipmatch
+    aid2_fsv = chipmatch.aid2_fsv
     aid2_fs = {aid: fsv.prod(axis=1) for aid, fsv in six.iteritems(aid2_fsv)}
     aid_list = list(six.iterkeys(aid2_fs))
     annot_score_list = np.array([fs.sum() for fs in six.itervalues(aid2_fs)])
