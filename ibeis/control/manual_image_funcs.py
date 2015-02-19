@@ -914,7 +914,7 @@ def get_image_aids(ibs, gid_list):
         pair_list = ibs.db.connection.execute(opstr).fetchall()
         aidscol = np.array(ut.get_list_column(pair_list, 0))
         gidscol = np.array(ut.get_list_column(pair_list, 1))
-        unique_gids, groupx = vt.group_indicies(gidscol)
+        unique_gids, groupx = vt.group_indices(gidscol)
         grouped_aids_ = vt.apply_grouping(aidscol, groupx)
         #aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]
         structured_aids_list = [arr.tolist() for arr in grouped_aids_]

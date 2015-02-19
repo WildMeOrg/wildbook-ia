@@ -397,7 +397,7 @@ def compute_negentropy_names(aids_list, daid2_label):
     label_list = list(daid2_label.values())
     lblindex_list = np.array(ut.tuples_to_unique_scalars(label_list))
     #daid2_lblindex = dict(zip(daid_list, lblindex_list))
-    unique_lblindexes, groupxs = clustertool.group_indicies(lblindex_list)
+    unique_lblindexes, groupxs = clustertool.group_indices(lblindex_list)
     daid_list = np.array(daid2_label.keys())
     daids_list = [daid_list.take(xs) for xs in groupxs]
 
@@ -434,7 +434,7 @@ def compute_negentropy_names(aids_list, daid2_label):
     # --- \Pr(\name \given \lbl) ---
     # get names for each unique label
     nid_list = np.array([label_list[xs[0]][0] for xs in groupxs])
-    unique_nids, groupxs_ = clustertool.group_indicies(nid_list)
+    unique_nids, groupxs_ = clustertool.group_indices(nid_list)
     # (nNames, nWords)
     # add a little wiggle room
     eps = 1E-9
@@ -471,7 +471,7 @@ def compute_idf_label1(aids_list, daid2_label):
     # Computes our novel label idf weight
     lblindex_list = np.array(ut.tuples_to_unique_scalars(daid2_label.values()))
     #daid2_lblindex = dict(zip(daid_list, lblindex_list))
-    unique_lblindexes, groupxs = clustertool.group_indicies(lblindex_list)
+    unique_lblindexes, groupxs = clustertool.group_indices(lblindex_list)
     daid_list = np.array(daid2_label.keys())
     daids_list = [daid_list.take(xs) for xs in groupxs]
     daid2_wxs = ut.ddict(list)
@@ -677,14 +677,14 @@ def compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_dflags, wx2_aids, wx2_idf,
     flat_wxs  = np.fromiter(ut.iflatten(wxs_perword), hstypes.INDEX_TYPE, count)
 
     # Group flat indexes by annotation id
-    unique_aids, annot_groupxs = clustertool.group_indicies(flat_aids)
+    unique_aids, annot_groupxs = clustertool.group_indices(flat_aids)
 
     # Wxs and Txs grouped by annotation id
     wxs_perannot = clustertool.apply_grouping_iter(flat_wxs, annot_groupxs)
     txs_perannot = clustertool.apply_grouping_iter(flat_txs, annot_groupxs)
 
     # Group by word inside each annotation group
-    wxsubgrouping_perannot = [clustertool.group_indicies(wxs)
+    wxsubgrouping_perannot = [clustertool.group_indices(wxs)
                               for wxs in wxs_perannot]
     word_groupxs_perannot = (groupxs for wxs, groupxs in wxsubgrouping_perannot)
     txs_perword_perannot = [clustertool.apply_grouping(txs, groupxs)

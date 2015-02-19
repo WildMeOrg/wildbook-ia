@@ -226,8 +226,8 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
                 >>> all_nids_t = ut.search_stack_for_localvar('all_nids_t')
                 >>> # Find index in daids of correct matches
                 >>> qres = qres_vsone
-                >>> correct_indicies = np.where(np.array(all_nids_t) == qnid_t)[0]
-                >>> correct_aids2 = ut.list_take(daids, correct_indicies)
+                >>> correct_indices = np.where(np.array(all_nids_t) == qnid_t)[0]
+                >>> correct_aids2 = ut.list_take(daids, correct_indices)
                 >>> qaid = qres.qaid
                 >>> aid = correct_aids2[0]
                 >>> # Report visual uuid for inclusion or exclusion in script
@@ -254,7 +254,7 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
                 >>> match_interaction = match_interaction_good
                 >>> self = match_interaction
                 >>> self.select_ith_match(mx)
-                >>> #impossible_to_match = len(correct_indicies) > 0
+                >>> #impossible_to_match = len(correct_indices) > 0
                 """
                 y = """
                 >>> from ibeis.model.preproc import preproc_probchip

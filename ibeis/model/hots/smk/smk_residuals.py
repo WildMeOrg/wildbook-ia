@@ -91,7 +91,7 @@ def compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list):
     """
     #assert len(idxs_list) == len(rvecs_list)
     # group members of each word by aid, we will collapse these groups
-    grouptup_list = [clustertool.group_indicies(aids) for aids in aids_list]
+    grouptup_list = [clustertool.group_indices(aids) for aids in aids_list]
     # Agg aids
     aggaids_list = [tup[0] for tup in grouptup_list]
     groupxs_list = [tup[1] for tup in grouptup_list]

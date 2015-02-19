@@ -204,11 +204,11 @@ class QueryRequest(object):
         qreq_.indexer = None
         qreq_.internal_daids_mask = None
         qreq_.metadata = {}
-        # Find indicies to remove
+        # Find indices to remove
         delete_flags = vt.get_covered_mask(qreq_.internal_daids, remove_daids)
         delete_indices = np.where(delete_flags)[0]
         assert len(delete_indices) == len(remove_daids), 'requested removal of nonexistant daids'
-        # Remove indicies
+        # Remove indices
         qreq_.internal_daids = np.delete(qreq_.internal_daids, delete_indices)
 
     @profile

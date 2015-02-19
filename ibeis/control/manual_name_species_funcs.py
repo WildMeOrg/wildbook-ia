@@ -332,7 +332,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
             pair_list = ibs.db.connection.execute(opstr).fetchall()
             aids = np.array(ut.get_list_column(pair_list, 0))
             nids = np.array(ut.get_list_column(pair_list, 1))
-            unique_nids, groupx = vt.group_indicies(nids)
+            unique_nids, groupx = vt.group_indices(nids)
             grouped_aids_ = vt.apply_grouping(aids, groupx)
             aids_list5 = [sorted(arr.tolist()) for arr in grouped_aids_]
 
@@ -410,7 +410,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         pair_list = ibs.db.connection.execute(opstr).fetchall()
         aids = np.array(ut.get_list_column(pair_list, 0))
         nids = np.array(ut.get_list_column(pair_list, 1))
-        unique_nids, groupx = vt.group_indicies(nids)
+        unique_nids, groupx = vt.group_indices(nids)
         grouped_aids_ = vt.apply_grouping(aids, groupx)
         grouped_aids = [arr.tolist() for arr in grouped_aids_]
 
@@ -467,7 +467,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         pair_list = ibs.db.connection.execute(opstr).fetchall()
         aidscol = np.array(ut.get_list_column(pair_list, 0))
         nidscol = np.array(ut.get_list_column(pair_list, 1))
-        unique_nids, groupx = vt.group_indicies(nidscol)
+        unique_nids, groupx = vt.group_indices(nidscol)
         grouped_aids_ = vt.apply_grouping(aidscol, groupx)
         #aids_list = [sorted(arr.tolist()) for arr in grouped_aids_]
         structured_aids_list = [arr.tolist() for arr in grouped_aids_]

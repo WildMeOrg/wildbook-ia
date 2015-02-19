@@ -769,23 +769,25 @@ VALID_VERSIONS = utool.odict([
 ])
 
 
-def test_dbschema():
+def test_db_schema():
     """
-    test_dbschema
+    test_db_schema
 
     CommandLine:
-        python -m ibeis.control.DB_SCHEMA --test-test_dbschema
-        python -m ibeis.control.DB_SCHEMA --test-test_dbschema -n=-1
-        python -m ibeis.control.DB_SCHEMA --test-test_dbschema -n=0
-        python -m ibeis.control.DB_SCHEMA --test-test_dbschema -n=1
+        python -m ibeis.control.DB_SCHEMA --test-test_db_schema
+        python -m ibeis.control.DB_SCHEMA --test-test_db_schema -n=-1
+        python -m ibeis.control.DB_SCHEMA --test-test_db_schema -n=0
+        python -m ibeis.control.DB_SCHEMA --test-test_db_schema -n=1
         python -m ibeis.control.DB_SCHEMA --force-incremental-db-update
-        python -m ibeis.control.DB_SCHEMA --test-test_dbschema --dump-autogen-schema
-        python -m ibeis.control.DB_SCHEMA --test-test_dbschema --force-incremental-db-update --dump-autogen-schema
+        python -m ibeis.control.DB_SCHEMA --test-test_db_schema --dump-autogen-schema
+        python -m ibeis.control.DB_SCHEMA --test-test_db_schema --force-incremental-db-update --dump-autogen-schema
+        python -m ibeis.control.DB_SCHEMA --test-test_db_schema --force-incremental-db-update
+
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.DB_SCHEMA import *  # NOQA
-        >>> test_dbschema()
+        >>> test_db_schema()
     """
     from ibeis.control import DB_SCHEMA
     from ibeis.control import _sql_helpers
@@ -793,7 +795,8 @@ def test_dbschema():
     autogenerate = params.args.dump_autogen_schema
     n = utool.get_argval('-n', int, default=-1)
     db = _sql_helpers.get_nth_test_schema_version(DB_SCHEMA, n=n, autogenerate=autogenerate)
-    autogen_str = db.get_schema_current_autogeneration_str()
+    autogen_cmd = 'python -m ibeis.control.DB_SCHEMA --test-test_db_schema --force-incremental-db-update --dump-autogen-schema'
+    autogen_str = db.get_schema_current_autogeneration_str(autogen_cmd)
     print(autogen_str)
     print(' Run with --dump-autogen-schema to autogenerate latest schema version')
 

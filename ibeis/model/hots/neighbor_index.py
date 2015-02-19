@@ -679,7 +679,7 @@ def new_neighbor_index(aid_list, vecs_list, fgws_list, flann_params, cachedir,
 @profile
 def prepare_index_data(aid_list, vecs_list, fgws_list, verbose=True):
     """
-    flattens vecs_list and builds a reverse index from the flattened indicies
+    flattens vecs_list and builds a reverse index from the flattened indices
     (idx) to the original aids and fxs
     """
     # Check input
@@ -911,7 +911,7 @@ class NeighborIndex(object):
     #@profile
     def knn(nnindexer, qfx2_vec, K):
         """
-        Returns the indicies and squared distance to the nearest K neighbors.
+        Returns the indices and squared distance to the nearest K neighbors.
         The distance is noramlized between zero and one using
         VEC_PSEUDO_MAX_DISTANCE = (np.sqrt(2) * VEC_PSEUDO_MAX)
 
@@ -994,7 +994,7 @@ class NeighborIndex(object):
         return nnindexer.idx2_vec.take(qfx2_nnidx, axis=0)
 
     def get_nn_axs(nnindexer, qfx2_nnidx):
-        """ gets matching internal annotation indicies """
+        """ gets matching internal annotation indices """
         return nnindexer.idx2_ax.take(qfx2_nnidx)
 
     @profile

@@ -92,7 +92,7 @@ def score_chipmatch_nsum(qaid, cmtup_old, qreq_):
     fs_list = [fsv.prod(axis=1) for fsv in fsv_list]
     annot_score_list = np.array([fs.sum() for fs in fs_list])
     annot_nid_list = np.array(qreq_.ibs.get_annot_name_rowids(aid_list))
-    nid_list, groupxs = vt.group_indicies(annot_nid_list)
+    nid_list, groupxs = vt.group_indices(annot_nid_list)
     grouped_scores = vt.apply_grouping(annot_score_list, groupxs)
     def indicator_array(size, pos, value):
         """ creates zero array and places value at pos """

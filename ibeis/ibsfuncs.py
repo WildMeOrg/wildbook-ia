@@ -1834,7 +1834,7 @@ def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True):
     """
     import vtool as vt
     nid_list = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=distinguish_unknowns))
-    unique_nids, groupxs_list = vt.group_indicies(nid_list)
+    unique_nids, groupxs_list = vt.group_indices(nid_list)
     grouped_aids_ = vt.apply_grouping(np.array(aid_list), groupxs_list)
     return grouped_aids_, unique_nids
 

@@ -38,29 +38,29 @@ class ANNOTATION_Interaction2(object):
         )
         df2.update()
 
-    def commit_callback(self, unchanged_indicies, deleted_indicies, changed_indicies, changed_annottups, new_annottups):
+    def commit_callback(self, unchanged_indices, deleted_indices, changed_indices, changed_annottups, new_annottups):
         """
         TODO: Rename to commit_callback
         Callback from interact_annotations to ibs for when data is modified
         """
         print('[interact_annot2] enter commit_callback')
         print('[interact_annot2] nUnchanged=%d, nDelete=%d, nChanged=%d, nNew=%d' %
-              (len(unchanged_indicies), len(deleted_indicies), len(changed_indicies), len(new_annottups)))
+              (len(unchanged_indices), len(deleted_indices), len(changed_indices), len(new_annottups)))
         rows_updated = False
         # Delete annotations
-        if len(deleted_indicies) > 0:
+        if len(deleted_indices) > 0:
             rows_updated = True
-            deleted_aids = [self.aid_list[del_index] for del_index in deleted_indicies]
-            print('[interact_annot2] deleted_indexes: %r' % (deleted_indicies,))
+            deleted_aids = [self.aid_list[del_index] for del_index in deleted_indices]
+            print('[interact_annot2] deleted_indexes: %r' % (deleted_indices,))
             print('[interact_annot2] deleted_aids: %r' % (deleted_aids,))
             self.ibs.delete_annots(deleted_aids)
         # Set/Change annotations
         if len(changed_annottups) > 0:
-            changed_aid  = [self.aid_list[index] for index in changed_indicies]
+            changed_aid  = [self.aid_list[index] for index in changed_indices]
             bbox_list1    = [bbox for (bbox, t, s) in changed_annottups]
             theta_list1   = [t    for (bbox, t, s) in changed_annottups]
             species_list1 = [s    for (bbox, t, s) in changed_annottups]
-            print('[interact_annot2] changed_indexes: %r' % (changed_indicies,))
+            print('[interact_annot2] changed_indexes: %r' % (changed_indices,))
             print('[interact_annot2] changed_aid: %r' % (changed_aid,))
             self.ibs.set_annot_species(changed_aid, species_list1)
             self.ibs.set_annot_thetas(changed_aid, theta_list1, delete_thumbs=False)

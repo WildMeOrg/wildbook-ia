@@ -472,8 +472,8 @@ class MultiNeighborIndex(object):
 
     def iter_subindexers(mxer, qfx2_imx):
         """
-        generates subindexers, indicies, and maskss within them
-        that partially correspond to indicies in qfx2_imx that belong
+        generates subindexers, indices, and maskss within them
+        that partially correspond to indices in qfx2_imx that belong
         to that subindexer
 
         Args:

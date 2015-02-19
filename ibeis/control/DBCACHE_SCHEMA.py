@@ -133,7 +133,8 @@ def test_dbcache_schema():
         >>> test_dbcache_schema()
 
     CommandLine:
-        python -m ibeis.control.DBCACHE_SCHEMA
+        python -m ibeis.control.DBCACHE_SCHEMA --test-test_dbcache_schema
+        python -m ibeis.control.DBCACHE_SCHEMA --test-test_dbcache_schema --dump-autogen-schema
         python -m ibeis.control.DBCACHE_SCHEMA --force-incremental-db-update
 
     """
@@ -143,7 +144,8 @@ def test_dbcache_schema():
     autogenerate = params.args.dump_autogen_schema
     n = utool.get_argval('-n', int, default=-1)
     dbcache = _sql_helpers.get_nth_test_schema_version(DBCACHE_SCHEMA, n=n, autogenerate=autogenerate)
-    autogen_str = dbcache.get_schema_current_autogeneration_str()
+    autogen_cmd = 'python -m ibeis.control.DBCACHE_SCHEMA --force-incremental-db-update --test-test_dbcache_schema --dump-autogen-schema'
+    autogen_str = dbcache.get_schema_current_autogeneration_str(autogen_cmd)
     print(autogen_str)
     print(' Run with --dump-autogen-schema to autogenerate latest schema version')
 

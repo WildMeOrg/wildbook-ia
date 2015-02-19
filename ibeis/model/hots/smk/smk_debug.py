@@ -484,7 +484,7 @@ def check_wx2_rvecs(wx2_rvecs, verbose=True):
 
 def check_wx2_idxs(wx2_idxs, nWords):
     wx_list = list(wx2_idxs.keys())
-    missing_vals, missing_indicies, duplicate_items = ut.debug_consec_list(wx_list)
+    missing_vals, missing_indices, duplicate_items = ut.debug_consec_list(wx_list)
     empty_wxs = [wx for wx, idxs in six.iteritems(wx2_idxs) if len(idxs) == 0]
     print('[smk_debug] num indexes with no support: %r' % len(missing_vals))
     print('[smk_debug] num indexes with empty idxs: %r' % len(empty_wxs))

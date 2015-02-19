@@ -964,7 +964,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, nnfilts):
         >>> assert np.all(fm.T[1] < ibs.get_annot_num_feats(qaid, qreq_=qreq_))
     """
     K = qreq_.qparams.K
-    # Unpack neighbor ids, indicies, filter scores, and flags
+    # Unpack neighbor ids, indices, filter scores, and flags
     qfx2_nnidx = qfx2_idx.T[0:K].T
     qfx2_daid = qreq_.indexer.get_nn_aids(qfx2_nnidx)
     qfx2_dfx = qreq_.indexer.get_nn_featxs(qfx2_nnidx)
@@ -1328,7 +1328,7 @@ def hack_fix_dupvote_weights(qreq_, qaid2_chipmatchSV):
         dw_list = np.array([fsv.T[dupvotex] for fsv in fsv_list])
         fk_list = np.array(list(six.itervalues(daid2_fk)))
         dnid_list = np.array(qreq_.ibs.get_annot_nids(list(daid_list)))
-        unique_nids, nid_groupx = vt.group_indicies(dnid_list)
+        unique_nids, nid_groupx = vt.group_indices(dnid_list)
         grouped_fm = vt.apply_grouping(fm_list, nid_groupx)
         grouped_dw = vt.apply_grouping(dw_list, nid_groupx)
         grouped_fk = vt.apply_grouping(fk_list, nid_groupx)
@@ -1375,7 +1375,7 @@ def hack_fix_dupvote_weights(qreq_, qaid2_chipmatchSV):
                 #    pass
                 #for idx in zip(fk_group, fsv_group, idxs
                 #       pass
-            #unique_indicies = vt.group_indicies(flat_qfxs)
+            #unique_indices = vt.group_indices(flat_qfxs)
             #idx2_groupid = flat_qfxs
             pass
         num_reweighted_list.append(num_reweighted)

@@ -181,7 +181,7 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, qreq_=None, **kwargs):
     fid_list = np.array(ibs.get_annot_feat_rowids(aid_list, ensure=True, eager=True, nInput=None, qreq_=qreq_))
     species_rowid_list = np.array(ibs.get_annot_species_rowids(aid_list))
     # Compute distinctivness separately for each species
-    unique_sids, groupxs = vt.group_indicies(species_rowid_list)
+    unique_sids, groupxs = vt.group_indices(species_rowid_list)
     fids_groups          = vt.apply_grouping(fid_list, groupxs)
     species_text_list    = ibs.get_species_texts(unique_sids)
     # Map distinctivness computation

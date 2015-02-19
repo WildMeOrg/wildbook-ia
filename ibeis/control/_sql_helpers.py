@@ -16,7 +16,7 @@ from ibeis import constants as const
 # Helper Functions
 # =======================
 PRINT_SQL = utool.get_argflag(('--print-sql', '--verbose-sql'))
-AUTODUMP = utool.get_argflag('--auto-dump')
+#AUTODUMP = utool.get_argflag('--auto-dump')
 NOT_QUIET = not (utool.QUIET or utool.get_argflag('--quiet-sql'))
 
 
@@ -218,7 +218,11 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
         # Auto-generate the version skip schema file
         schema_spec_dir, schema_spec_filename = split(schema_spec.__file__)
         schema_spec_filename = splitext(schema_spec_filename)[0]
-        db.dump_schema_current_autogeneration(schema_spec_dir, '%s_CURRENT.py' % schema_spec_filename)
+        # HACK TO GET AUTOGEN COMMAND
+        # FIXME: Make this autogen command a bit more sane
+        # and not completely coupled with ibeis
+        autogen_cmd = 'python -m ibeis.control.%s --test-test_%s --force-incremental-db-update --dump-autogen-schema' % (schema_spec_filename, schema_spec_filename.lower())
+        db.dump_schema_current_autogeneration(schema_spec_dir, '%s_CURRENT.py' % schema_spec_filename, autogen_cmd)
 
 
 @profile

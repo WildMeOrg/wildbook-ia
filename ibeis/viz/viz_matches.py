@@ -161,7 +161,7 @@ def show_matches(ibs, qres, aid2, sel_fm=[], **kwargs):
         ibs (IBEISController):
         qres (QueryResult):  object of feature correspondences and scores
         aid2 (int): result annotation id
-        sel_fm (list): selected features match indicies
+        sel_fm (list): selected features match indices
 
     Kwargs:
         vert (bool)

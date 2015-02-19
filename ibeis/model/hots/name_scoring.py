@@ -55,7 +55,7 @@ def group_scores_by_name(ibs, aid_list, score_list):
     aid_list  = np.array(aid_list)
     nid_list  = np.array(ibs.get_annot_name_rowids(aid_list))
     # Group scores by name
-    unique_nids, groupxs = vt.group_indicies(nid_list)
+    unique_nids, groupxs = vt.group_indices(nid_list)
     grouped_scores = np.array(vt.apply_grouping(score_arr, groupxs))
     grouped_aids   = np.array(vt.apply_grouping(aid_list, groupxs))
     # Build representative score per group
