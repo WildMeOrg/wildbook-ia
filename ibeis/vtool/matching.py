@@ -39,9 +39,9 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
 
     Returns:
         tuple: assigntup(
-            fx2_match, - matching feature indicies in image 2
-            fx1_match, - matching feature indicies in image 1
-            fx1_norm,  - normmalizing indicies in image 1
+            fx2_match, - matching feature indices in image 2
+            fx1_match, - matching feature indices in image 1
+            fx1_norm,  - normmalizing indices in image 1
             match_dist, - descriptor distances between fx2_match and fx1_match
             norm_dist, - descriptor distances between fx2_match and fx1_norm
             )
@@ -97,8 +97,8 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
     # Find matches and normalizers that satisfy spatial constraints
     fx2_to_valid_match      = ut.inbounds(fx2_to_xyerr_norm, 0.0, match_xy_thresh, eq=True)
     fx2_to_valid_normalizer = ut.inbounds(fx2_to_xyerr_norm, *norm_xy_bounds, eq=True)
-    fx2_to_fx1_match_col = ut.find_first_true_indicies(fx2_to_valid_match)
-    fx2_to_fx1_norm_col  = ut.find_next_true_indicies(fx2_to_valid_normalizer, fx2_to_fx1_match_col)
+    fx2_to_fx1_match_col = ut.find_first_true_indices(fx2_to_valid_match)
+    fx2_to_fx1_norm_col  = ut.find_next_true_indices(fx2_to_valid_normalizer, fx2_to_fx1_match_col)
 
     assert fx2_to_fx1_match_col != fx2_to_fx1_norm_col, 'normlizers are matches!'
 
@@ -223,11 +223,11 @@ def ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist,
     matches. Generalized to accept any match or normalizer not just K=1 and K=2.
 
     Args:
-        fx2_to_fx1 (ndarray): nearest neighbor indicies (from flann)
+        fx2_to_fx1 (ndarray): nearest neighbor indices (from flann)
         fx2_to_dist (ndarray): nearest neighbor distances (from flann)
         ratio_thresh (float):
         match_col (int or ndarray): column of matching indices
-        norm_col (int or ndarray): column of normalizng indicies
+        norm_col (int or ndarray): column of normalizng indices
 
     Returns:
         tuple: (fm_RAT, fs_RAT, fm_norm_RAT)

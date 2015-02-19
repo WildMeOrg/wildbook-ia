@@ -54,15 +54,15 @@ def make_grid_coverage_mask(kpts, chipsize, weights, pxl_per_bin=4,
         grid_sigma=grid_sigma
     )
     gridshape = coverage_gridtup[0:2]
-    neighbor_bin_weights, neighbor_bin_indicies = coverage_gridtup[-2:]
-    oldshape_indicies = neighbor_bin_indicies.shape
-    newshape_indicies = (np.prod(oldshape_indicies[0:2]), oldshape_indicies[2])
-    neighbor_bin_indicies =  neighbor_bin_indicies.reshape(newshape_indicies).T
+    neighbor_bin_weights, neighbor_bin_indices = coverage_gridtup[-2:]
+    oldshape_indices = neighbor_bin_indices.shape
+    newshape_indices = (np.prod(oldshape_indices[0:2]), oldshape_indices[2])
+    neighbor_bin_indices =  neighbor_bin_indices.reshape(newshape_indices).T
     neighbor_bin_weights = neighbor_bin_weights.flatten()
     # Get flat indexing into gridbin
-    neighbor_bin_flat_indicies = np.ravel_multi_index(neighbor_bin_indicies, gridshape)
+    neighbor_bin_flat_indices = np.ravel_multi_index(neighbor_bin_indices, gridshape)
     # Group by bins with weight
-    unique_flatxs, grouped_flatxs = vt.group_indicies(neighbor_bin_flat_indicies)
+    unique_flatxs, grouped_flatxs = vt.group_indices(neighbor_bin_flat_indices)
     grouped_weights = vt.apply_grouping(neighbor_bin_weights, grouped_flatxs)
     # FIXME: boundary cases are not handled right because their vote is split
     # into the same bin and is fighting with itself durring the max
@@ -101,17 +101,17 @@ def get_subbin_xy_neighbors(subbin_index00, grid_steps, num_cols, num_rows):
         for offset in offset_list
     ]
     # Concatenate all subbin indexes into one array for faster vectorized op
-    neighbor_bin_indicies = np.dstack(neighbor_subbin_index_list).T
+    neighbor_bin_indices = np.dstack(neighbor_subbin_index_list).T
 
     # Clip with no wrapparound
     min_val = np.array([0, 0])
     max_val = np.array([num_cols - 1, num_rows - 1])
 
-    np.clip(neighbor_bin_indicies,
+    np.clip(neighbor_bin_indices,
             min_val[None, None, :],
             max_val[None, None, :],
-            out=neighbor_bin_indicies)
-    return neighbor_bin_indicies
+            out=neighbor_bin_indices)
+    return neighbor_bin_indices
 
 
 def compute_subbin_to_bins_dist(neighbor_bin_centers, subbin_xy_arr):
@@ -167,19 +167,19 @@ def sparse_grid_coverage(kpts, chipsize, weights, pxl_per_bin=.3, grid_steps=1, 
     subbin_xy_arr = np.divide(xy_arr, chipstride[:, None])
     # Find subbin locations relative to center
     frac_subbin_index = np.subtract(subbin_xy_arr, .5)
-    neighbor_bin_xy_indicies = get_subbin_xy_neighbors(frac_subbin_index, grid_steps, num_cols, num_rows)
+    neighbor_bin_xy_indices = get_subbin_xy_neighbors(frac_subbin_index, grid_steps, num_cols, num_rows)
     # Find center
-    neighbor_bin_centers = np.add(neighbor_bin_xy_indicies, .5)
+    neighbor_bin_centers = np.add(neighbor_bin_xy_indices, .5)
     # compute distance to neighbor
     neighbor_subbin_sqrddist_arr = compute_subbin_to_bins_dist(neighbor_bin_centers, subbin_xy_arr)
     # scale weights using guassia falloff
     neighbor_bin_weights = weighted_gaussian_falloff(neighbor_subbin_sqrddist_arr, weights, grid_sigma)
     # convert to rowcol
-    neighbor_bin_indicies = neighbor_bin_rc_indicies = neighbor_bin_xy_indicies[:, :, ::-1]  # NOQA
+    neighbor_bin_indices = neighbor_bin_rc_indices = neighbor_bin_xy_indices[:, :, ::-1]  # NOQA
 
     coverage_gridtup = (
         num_rows, num_cols, subbin_xy_arr, neighbor_bin_centers,
-        neighbor_bin_weights, neighbor_bin_indicies)
+        neighbor_bin_weights, neighbor_bin_indices)
     return coverage_gridtup
 
 
@@ -188,7 +188,7 @@ def sparse_grid_coverage(kpts, chipsize, weights, pxl_per_bin=.3, grid_steps=1, 
 
 def show_coverage_grid(num_rows, num_cols, subbin_xy_arr,
                        neighbor_bin_centers, neighbor_bin_weights,
-                       neighbor_bin_indicies, fnum=None, pnum=None):
+                       neighbor_bin_indices, fnum=None, pnum=None):
     """
     visualizes the voting scheme on the grid. (not a mask, and no max)
     """

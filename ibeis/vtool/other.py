@@ -9,7 +9,7 @@ from six.moves import zip, range  # NOQA
 def index_partition(item_list, part1_items):
     """
     returns two lists. The first are the indecies of items in item_list that
-    are in part1_items. the second is the indicies in item_list that are not
+    are in part1_items. the second is the indices in item_list that are not
     in part1_items. items in part1_items that are not in item_list are
     ignored
 
@@ -76,8 +76,8 @@ def zipcompress(arr_list, flags_list, axis=None):
     return [np.compress(flags, arr, axis=axis) for arr, flags in zip(arr_list, flags_list)]
 
 
-def ziptake(arr_list, indicies_list, axis=None):
-    return [arr.take(indicies, axis=axis) for arr, indicies in zip(arr_list, indicies_list)]
+def ziptake(arr_list, indices_list, axis=None):
+    return [arr.take(indices, axis=axis) for arr, indices in zip(arr_list, indices_list)]
 
 
 def iter_reduce_ufunc(ufunc, arr_iter, out=None):
@@ -178,7 +178,7 @@ def componentwise_dot(arr1, arr2):
     return cosangle
 
 
-def intersect2d_indicies(A, B):
+def intersect2d_indices(A, B):
     r"""
     Args:
         A (ndarray[ndims=2]):
@@ -188,7 +188,7 @@ def intersect2d_indicies(A, B):
         tuple: (ax_list, bx_list)
 
     CommandLine:
-        python -m vtool.other --test-intersect2d_indicies
+        python -m vtool.other --test-intersect2d_indices
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -197,7 +197,7 @@ def intersect2d_indicies(A, B):
         >>> A = np.array([[ 158,  171], [ 542,  297], [ 955, 1113], [ 255, 1254], [ 976, 1255], [ 170, 1265]])
         >>> B = np.array([[ 117,  211], [ 158,  171], [ 255, 1254], [ 309,  328], [ 447, 1148], [ 750,  357], [ 976, 1255]])
         >>> # execute function
-        >>> (ax_list, bx_list) = intersect2d_indicies(A, B)
+        >>> (ax_list, bx_list) = intersect2d_indices(A, B)
         >>> # verify results
         >>> result = str((ax_list, bx_list))
         >>> print(result)
@@ -268,7 +268,7 @@ def intersect2d_structured_numpy(A, B, assume_unique=False):
     return A_, B_, C_
 
 
-def intersect2d_numpy(A, B, assume_unique=False, return_indicies=False):
+def intersect2d_numpy(A, B, assume_unique=False, return_indices=False):
     """
     References::
         http://stackoverflow.com/questions/8317022/get-intersecting-rows-across-two-2d-numpy-arrays/8317155#8317155
@@ -294,7 +294,7 @@ def intersect2d_numpy(A, B, assume_unique=False, return_indicies=False):
         ...                [ 22,  32, 103, 116, 188, 199, 217, 254]]).T
         >>> assume_unique = False
         >>> # execute function
-        >>> C, Ax, Bx = intersect2d_numpy(A, B, return_indicies=True)
+        >>> C, Ax, Bx = intersect2d_numpy(A, B, return_indices=True)
         >>> # verify results
         >>> result = str((C.T, Ax, Bx))
         >>> print(result)
@@ -306,7 +306,7 @@ def intersect2d_numpy(A, B, assume_unique=False, return_indicies=False):
         >>> from vtool.other import *  # NOQA
         >>> A = np.array([[1, 2, 3], [1, 1, 1]])
         >>> B = np.array([[1, 2, 3], [1, 2, 14]])
-        >>> C, Ax, Bx = intersect2d_numpy(A, B, return_indicies=True)
+        >>> C, Ax, Bx = intersect2d_numpy(A, B, return_indices=True)
         >>> result = str((C, Ax, Bx))
         >>> print(result)
         (array([[1, 2, 3]]), array([0]), array([0]))
@@ -315,7 +315,7 @@ def intersect2d_numpy(A, B, assume_unique=False, return_indicies=False):
     A_, B_, C_ = intersect2d_structured_numpy(A, B, assume_unique)
     # This last bit is optional if you're okay with "C" being a structured array...
     C = C_.view(A.dtype).reshape(-1, ncols)
-    if return_indicies:
+    if return_indices:
         ax_list = np.flatnonzero(flag_intersection(A_, C_))
         bx_list = np.flatnonzero(flag_intersection(B_, C_))
         return C, ax_list, bx_list

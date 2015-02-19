@@ -182,15 +182,15 @@ def test_pyflann_add_point():
     print(_build_params)
 
     print('NN_Index')
-    indicies1, dists1 = flann.nn_index(qpts, num_neighbors=num_neighbors)
-    print(utool.hz_str('indicies1, dists1 = ', indicies1,  dists1))
+    indices1, dists1 = flann.nn_index(qpts, num_neighbors=num_neighbors)
+    print(utool.hz_str('indices1, dists1 = ', indices1,  dists1))
 
     print('Adding points')
     flann.add_points(newpts, rebuild_threshold=2)
 
     print('NN_Index')
-    indicies2, dists2 = flann.nn_index(qpts, num_neighbors=num_neighbors)
-    print(utool.hz_str('indicies2, dists2 = ', indicies2,  dists2))
+    indices2, dists2 = flann.nn_index(qpts, num_neighbors=num_neighbors)
+    print(utool.hz_str('indices2, dists2 = ', indices2,  dists2))
 
 
 def test_pyflann_searches():
@@ -210,21 +210,21 @@ def test_pyflann_searches():
 
         print('NN_OnTheFly')
         # build nn_index on the fly
-        indicies1, dists1 = flann.nn(pts, qpts, num_neighbors, algorithm='hierarchical')
-        print(utool.hz_str('indicies1, dists1 = ', indicies1,  dists1))
+        indices1, dists1 = flann.nn(pts, qpts, num_neighbors, algorithm='hierarchical')
+        print(utool.hz_str('indices1, dists1 = ', indices1,  dists1))
 
         _build_params = flann.build_index(pts, algorithm='kmeans')
         del _build_params
 
         print('NN_Index')
-        indicies2, dists2 = flann.nn_index(qpts, num_neighbors=num_neighbors)
-        print(utool.hz_str('indicies2, dists2 = ', indicies2,  dists2))
+        indices2, dists2 = flann.nn_index(qpts, num_neighbors=num_neighbors)
+        print(utool.hz_str('indices2, dists2 = ', indices2,  dists2))
 
         # this can only be called on one query point at a time
         # because the output size is unknown
         print('NN_Radius, radius=%r' % (radius,))
-        indicies3, dists3  = flann.nn_radius(pts[0], radius)
-        print('indicies3 = %r ' % (indicies3,))
+        indices3, dists3  = flann.nn_radius(pts[0], radius)
+        print('indices3 = %r ' % (indices3,))
         print('dists3 = %r ' % (dists3,))
 
         assert np.all(dists3 < radius)
@@ -308,7 +308,7 @@ def test_pyflann_io():
 
     # Find the closest few points to num_neighbors
     print('Find nn_index nearest neighbors')
-    indicies1, dists1 = flann.nn_index(qpts, num_neighbors=num_neighbors)
+    indices1, dists1 = flann.nn_index(qpts, num_neighbors=num_neighbors)
 
     # Save the data to disk
     print('Save the data to the disk')
@@ -323,12 +323,12 @@ def test_pyflann_io():
     print('Reload the data')
     flann2 = pyflann.FLANN()
     flann2.load_index('test_pyflann_index.flann', pts2)
-    indicies2, dists2 = flann2.nn_index(qpts, num_neighbors=num_neighbors)
-    #print(utool.hz_str('indicies2, dists2 = ', indicies2,  dists2))
+    indices2, dists2 = flann2.nn_index(qpts, num_neighbors=num_neighbors)
+    #print(utool.hz_str('indices2, dists2 = ', indices2,  dists2))
 
     print('Find the same nearest neighbors?')
 
-    if np.all(indicies1 == indicies2) and np.all(dists1 == dists2):
+    if np.all(indices1 == indices2) and np.all(dists1 == dists2):
         print('...data is the same! SUCCESS!')
     else:
         raise AssertionError('...data is the different! FAILURE!')
