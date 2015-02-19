@@ -230,7 +230,7 @@ def invert_index(vecs_list, ax_list):
         print('[hsnbrx] stacking descriptors from %d annotations'
                 % len(ax_list))
     try:
-        idx2_vec, idx2_ax, idx2_fx = nntool.invertable_stack(vecs_list, ax_list)
+        idx2_vec, idx2_ax, idx2_fx = nntool.invertible_stack(vecs_list, ax_list)
         assert idx2_vec.shape[0] == idx2_ax.shape[0]
         assert idx2_vec.shape[0] == idx2_fx.shape[0]
     except MemoryError as ex:

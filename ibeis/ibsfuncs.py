@@ -1033,8 +1033,8 @@ def get_match_truth(ibs, aid1, aid2):
     return truth
 
 
-# Use new invertable flatten functions
-_invertable_flatten = ut.invertable_flatten2
+# Use new invertible flatten functions
+_invertible_flatten = ut.invertible_flatten2
 _unflatten = ut.unflatten2
 
 
@@ -1069,7 +1069,7 @@ def unflat_map(method, unflat_rowids, **kwargs):
     """
     #ut.assert_unflat_level(unflat_rowids, level=1, basetype=(int, uuid.UUID))
     # First flatten the list, and remember the original dimensions
-    flat_rowids, reverse_list = _invertable_flatten(unflat_rowids)
+    flat_rowids, reverse_list = _invertible_flatten(unflat_rowids)
     # Then preform the lookup / implicit mapping
     flat_vals = method(flat_rowids, **kwargs)
     # Then _unflatten the results to the original input dimensions
@@ -1081,7 +1081,7 @@ def unflat_multimap(method_list, unflat_rowids, **kwargs):
     """ unflat_map, but allows multiple methods
     """
     # First flatten the list, and remember the original dimensions
-    flat_rowids, reverse_list = _invertable_flatten(unflat_rowids)
+    flat_rowids, reverse_list = _invertible_flatten(unflat_rowids)
     # Then preform the lookup / implicit mapping
     flat_vals_list = [method(flat_rowids, **kwargs) for method in method_list]
     # Then _unflatten the results to the original input dimensions
@@ -1104,7 +1104,7 @@ def _make_unflat_getter_func(flat_getter):
     # Create new function
     def unflat_getter(self, unflat_rowids, *args, **kwargs):
         # First flatten the list
-        flat_rowids, reverse_list = _invertable_flatten(unflat_rowids)
+        flat_rowids, reverse_list = _invertible_flatten(unflat_rowids)
         # Then preform the lookup
         flat_vals = func(self, flat_rowids, *args, **kwargs)
         # Then _unflatten the list

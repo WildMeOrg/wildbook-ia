@@ -275,7 +275,7 @@ def index_data_annots(annots_df, daids, words, qparams, with_internals=True,
                                    appname='smk')
     _vecs_list = annots_df['vecs'][daids]
     _label_list = annots_df['labels'][daids]
-    idx2_dvec, idx2_daid, idx2_dfx = nntool.invertable_stack(_vecs_list, daids)
+    idx2_dvec, idx2_daid, idx2_dfx = nntool.invertible_stack(_vecs_list, daids)
 
     # TODO:
     # Need to individually cache residual vectors.

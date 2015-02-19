@@ -34,13 +34,13 @@ ibeis.ensure_pz_mtest()
 #tvecs_list = ibs.get_annot_vecs(taids)
 #tkpts_list = ibs.get_annot_kpts(taids)
 
-#orig_idx2_vec, orig_idx2_ax, orig_idx2_fx = vtool.nearest_neighbors.invertable_stack(tvecs_list, taids)
+#orig_idx2_vec, orig_idx2_ax, orig_idx2_fx = vtool.nearest_neighbors.invertible_stack(tvecs_list, taids)
 #annots_df = pd.concat([vecs_col, kpts_col], axis=1)
 #annots_df
 
 #idx2_vec = np.vstack(annots_df['vecs'].values)
 ##idx2_ax =
-#idx2_vec, idx2_ax, idx2_fx = vtool.nearest_neighbors.invertable_stack(tvecs_list, taids)
+#idx2_vec, idx2_ax, idx2_fx = vtool.nearest_neighbors.invertible_stack(tvecs_list, taids)
 
 
 #labels, words = vtool.clustering2.cached_akmeans(tvec_list, 1000, 30)
@@ -97,7 +97,7 @@ def index_data_annots(annots_df, daids, words):
     flann_params = {}
     wordflann = vtool.nearest_neighbors.flann_cache(words, flann_params=flann_params)
     ax2_aid = np.array(daids)
-    idx2_vec, idx2_ax, idx2_fx = nntool.invertable_stack(vecs_list, np.arange(len(ax2_aid)))
+    idx2_vec, idx2_ax, idx2_fx = nntool.invertible_stack(vecs_list, np.arange(len(ax2_aid)))
     invindex = InvertedIndex(words, wordflann, idx2_vec, idx2_ax, idx2_fx, ax2_aid)
     invindex.compute_internals()
     return invindex
