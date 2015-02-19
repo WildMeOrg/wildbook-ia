@@ -23,12 +23,17 @@ class AbstractInteraction(object):
         self.scope = []
 
     def append_button(self, text, divider=None, rect=None, callback=None,
-                      size='9%', **kwargs):
+                      size='9%', location='bottom', ax=None, **kwargs):
         """ Adds a button to the current page """
-        if divider is not None:
-            new_ax = divider.append_axes('bottom', size=size, pad=.05)
+
         if rect is not None:
             new_ax = df2.plt.axes(rect)
+        if rect is None and divider is None:
+            if ax is None:
+                ax = df2.gca()
+            divider = df2.ensure_divider(ax)
+        if divider is not None:
+            new_ax = divider.append_axes(location, size=size, pad=.05)
         new_but = mpl.widgets.Button(new_ax, text)
         if callback is not None:
             new_but.on_clicked(callback)
