@@ -2,7 +2,7 @@
 controller functions for contributors, versions, configs, and other metadata
 """
 from __future__ import absolute_import, division, print_function
-import uuid
+#import uuid
 import six  # NOQA
 #from os.path import join
 import functools
@@ -60,9 +60,13 @@ def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_l
     loc_zip_list = [ _valid_zip(_zip) for _zip in loc_zip_list]
 
     if uuid_list is None:
-        contrib_rowid_list = ibs.get_contributor_rowid_from_tag(tag_list)
-        uuid_list = ibs.get_contributor_uuid(contrib_rowid_list)
-        uuid_list = [ uuid.uuid4() if uuid_ is None else uuid_ for uuid_ in uuid_list ]
+        #contrib_rowid_list = ibs.get_contributor_rowid_from_tag(tag_list)
+        #uuid_list = ibs.get_contributor_uuid(contrib_rowid_list)
+        #uuid_list = ibs.get_contributor_uuid(contrib_rowid_list)
+        #uuid_list = [ uuid.uuid4() if uuid_ is None else uuid_ for uuid_ in uuid_list ]
+        # DETERMENISTIC UUIDS
+        zero_uuid = ut.get_zero_uuid()
+        uuid_list = [ut.augment_uuid(zero_uuid, tag) for tag in tag_list]
 
     colnames = ['contributor_uuid', 'contributor_tag', 'contributor_name_first',
                 'contributor_name_last', 'contributor_location_city',
@@ -73,6 +77,7 @@ def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_l
                       loc_country_list, loc_zip_list, notes_list)
 
     get_rowid_from_superkey = ibs.get_contributor_rowid_from_uuid
+    #get_rowid_from_superkey = ibs.get_contributor_rowid_from_tag  # ?? is tag a superkey?
     contrib_id_list = ibs.db.add_cleanly(const.CONTRIBUTOR_TABLE, colnames, params_iter, get_rowid_from_superkey)
     return contrib_id_list
 
