@@ -51,6 +51,7 @@ cdef np.float64_t TAU
 """
 
 SV_DTYPE = np.float64
+INDEX_DTYPE = np.int32
 TAU = 2 * np.pi  # tauday.org
 
 
@@ -614,24 +615,21 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
 
     # Then compute ax = b  [aka: x = npl.solve(a, b)]
     H = npl.solve(T2, H_prime).dot(T1)  # Unnormalize
+    # homographies that only differ by a scale factor are equivalent
     H /= H[2, 2]
-
-    #H[2, 0:2] = 0  # cant do this
-
-    #ut.embed()
 
     # Transform all xy1 matches to xy2 space
     xy1_mt  = ktool.transform_kpts_xys(H, kpts1_m)
     xy2_m   = ktool.get_xys(kpts2_m)
 
     # --- Find (Squared) Homography Distance Error ---
-    # You cannot test for scale or orientation easilly here because
+    # You cannot test for scale or orientation easily here because
     # you no longer have an ellipse? (maybe, probably have a conic) when using a
     # projective transformation
     xy_err = dtool.L2_sqrd(xy1_mt.T, xy2_m.T)
     homog_errors = (xy_err, None, None)
     # Estimate final inliers
-    homog_inliers = np.where(xy_err < xy_thresh_sqrd)[0]
+    homog_inliers = np.where(xy_err < xy_thresh_sqrd)[0].astype(INDEX_DTYPE)
     return homog_inliers, homog_errors, H
 
 

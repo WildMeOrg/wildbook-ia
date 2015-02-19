@@ -609,17 +609,17 @@ def transform_kpts(kpts, M):
         >>> import vtool as vt
         >>> # build test data
         >>> kpts = vt.dummy.get_dummy_kpts()
-        >>> M = np.array([[10, 0, 0], [10, 10, 0], [0, 0, 1]])
+        >>> M = np.array([[10, 0, 0], [10, 10, 0], [0, 0, 1]], dtype=np.float64)
         >>> # execute function
         >>> kpts = transform_kpts(kpts, M)
         >>> # verify results
         >>> result = ut.numpy_str(kpts, precision=3)
         >>> print(result)
-        np.array([[ 200.   ,  450.   ,   52.166,    1.056,  241.499,    0.   ],
-                  [ 290.   ,  540.   ,   23.551,  -27.559,  241.499,    0.   ],
-                  [ 300.   ,  600.   ,  122.166,  242.357,  105.287,    0.   ],
-                  [ 310.   ,  600.   ,  133.556,  309.899,  141.041,    0.   ],
-                  [ 320.   ,  630.   ,  160.527,  194.6  ,  117.354,    0.   ]], dtype=np.float64)
+        np.array([[ 200.   ,  450.   ,   52.166,    1.056,  241.499,   -0.   ],
+                  [ 290.   ,  540.   ,   23.551,  -27.559,  241.499,   -0.   ],
+                  [ 300.   ,  600.   ,  122.166,  242.357,  105.287,   -0.   ],
+                  [ 310.   ,  600.   ,  133.556,  309.899,  141.041,   -0.   ],
+                  [ 320.   ,  630.   ,  160.527,  194.6  ,  117.354,   -0.   ]], dtype=np.float64)
 
     IGNORE:
         >>> # HOW DO WE KEEP SHAPE AFTER HOMOGRAPHY?
@@ -677,6 +677,7 @@ def transform_kpts(kpts, M):
         #raise
         # We can approximate it very very roughly
         MinvVR_mats3x3 = np.divide(MinvVR_mats3x3, MinvVR_mats3x3[:, None, None, 2, 2])  # 2.6 us
+        raise
         #MinvVR_mats3x3 / MinvVR_mats3x3[:, None, None, 2, :]
     kpts_ = flatten_invV_mats_to_kpts(MinvVR_mats3x3)
     return kpts_

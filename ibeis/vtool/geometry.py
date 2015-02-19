@@ -2,9 +2,8 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import zip
 import numpy as np
-import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[geom]', DEBUG=False)
+import utool as ut
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[geom]', DEBUG=False)
 
 
 def bboxes_from_vert_list(verts_list, castint=False):
