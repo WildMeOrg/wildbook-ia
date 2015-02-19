@@ -214,7 +214,7 @@ class APIItemModel(API_MODEL_BASE):
     def _update_rows(model, rebuild_structure=True):
         """
         Uses the current ider and col_sort_index to create
-        row_indicies
+        row_indices
         """
         if VERBOSE:
             print('[APIItemModel] +-----------')

@@ -34,19 +34,19 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
 
     def __init__(model, col_data_list=None, col_name_list=None, niceheader_list=None,
                  col_type_list=None, col_edit_list=None,
-                 display_indicies=False, col_sort_index=None,
+                 display_indices=False, col_sort_index=None,
                  parent=None, *args):
         super(ColumnListItemModel, model).__init__()
         model.sortcolumn = None
         model.sortreverse = False
-        model.display_indicies = False  # FIXME: Broken
+        model.display_indices = False  # FIXME: Broken
         model._change_data(col_data_list, col_name_list, niceheader_list,
-                           col_type_list, col_edit_list, display_indicies,
+                           col_type_list, col_edit_list, display_indices,
                            col_sort_index)
 
     def _change_data(model, col_data_list=None, col_name_list=None,
                      niceheader_list=None, col_type_list=None,
-                     col_edit_list=None, display_indicies=False,
+                     col_edit_list=None, display_indices=False,
                      col_sort_index=None):
         model.layoutAboutToBeChanged.emit()
         if col_name_list is None:
@@ -62,10 +62,10 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
         model._change_headers(col_name_list, niceheader_list)
         # Is editable
         model._change_editable(col_edit_list)
-        # Make internal indicies
+        # Make internal indices
         model.set_sorting(col_sort_index)
-        model.display_indicies = display_indicies
-        model._change_row_indicies()
+        model.display_indices = display_indices
+        model._change_row_indices()
         # Make sure the user didn't do anything bad
         model._assert_feasibility()
         model.layoutChanged.emit()
@@ -96,13 +96,13 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
             model.col_type_list = qtype.infer_coltype(model.col_data_list)
         #print('[model] new col_type_list = %r' % (model.col_type_list,))
 
-    def _change_row_indicies(model):
+    def _change_row_indices(model):
         """  Non-Qt Helper """
         if model.sortcolumn is not None:
             print('using: sortcolumn=%r' % model.sortcolumn)
             column_data = model.col_data_list[model.sortcolumn]
-            indicies = list(range(len(column_data)))
-            model.row_sortx = utool.sortedby(indicies, column_data,
+            indices = list(range(len(column_data)))
+            model.row_sortx = utool.sortedby(indices, column_data,
                                              reverse=model.sortreverse)
         elif len(model.col_data_list) > 0:
             model.row_sortx = list(range(len(model.col_data_list[0])))
@@ -252,7 +252,7 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
         """ Qt Override """
         model.layoutAboutToBeChanged.emit()
         model.set_sorting(column, order)
-        model._change_row_indicies()
+        model._change_row_indices()
         model.layoutChanged.emit()
 
     def flags(model, index):
@@ -271,7 +271,7 @@ class ColumnListTableWidget(QtGui.QWidget):
     """ ColumnList Table Main Widget """
     def __init__(cltw, col_data_list=None, col_name_list=None,
                  niceheader_list=None, col_type_list=None,
-                 col_edit_list=None, display_indicies=False,
+                 col_edit_list=None, display_indices=False,
                  col_sort_index=None, parent=None):
         QtGui.QWidget.__init__(cltw, parent)
         # Create vertical layout for the table to go into
@@ -285,12 +285,12 @@ class ColumnListTableWidget(QtGui.QWidget):
         # Make sure we don't call a childs method
         ColumnListTableWidget.change_data(cltw, col_data_list, col_name_list,
                                           niceheader_list, col_type_list,
-                                          col_edit_list, display_indicies,
+                                          col_edit_list, display_indices,
                                           col_sort_index)
 
     def change_data(cltw, col_data_list=None, col_name_list=None,
                     niceheader_list=None, col_type_list=None,
-                    col_edit_list=None, display_indicies=False,
+                    col_edit_list=None, display_indices=False,
                     col_sort_index=None):
         """
         Checks for deligates
@@ -309,7 +309,7 @@ class ColumnListTableWidget(QtGui.QWidget):
             print('cltw.change_data: None')
         cltw.model._change_data(col_data_list, col_name_list, niceheader_list,
                                 col_type_list, col_edit_list,
-                                display_indicies, col_sort_index)
+                                display_indices, col_sort_index)
         # Set persistant editability after data is changed
         for column in marked_columns:
             cltw.set_column_persistant_editor(column)
