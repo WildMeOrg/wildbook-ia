@@ -101,14 +101,14 @@ def prepare_vsmany_chipmatch(qreq_, qaid2_vsm_chipmatch):
         >>> vsm_cm_list = prepare_vsmany_chipmatch(qreq_, qaid2_vsm_chipmatch)
 
     """
-    # Hack: populate aid2 score field in chipmatch using prescore
+    # Hack: populate aid2 score field in cmtup_old using prescore
     for qaid, chipmatch_VSMANY in six.iteritems(qaid2_vsm_chipmatch):
         daid_list, prescore_list = scoring.score_chipmatch_nsum(qaid, chipmatch_VSMANY, qreq_)
         ut.dict_assign(chipmatch_VSMANY.aid2_score, daid_list, prescore_list)
     vsmany_filtkey_list = qreq_.qparams.get_postsver_filtkey_list()
     # convert to chipmatch2
     vsm_cm_list = [
-        chip_match.ChipMatch2.from_chipmatch_old(chipmatch_VSMANY, qaid=qaid, fsv_col_lbls=vsmany_filtkey_list)
+        chip_match.ChipMatch2.from_cmtup_old(chipmatch_VSMANY, qaid=qaid, fsv_col_lbls=vsmany_filtkey_list)
         for qaid, chipmatch_VSMANY in six.iteritems(qaid2_vsm_chipmatch)
     ]
     # grab normalized lnbnn scores
@@ -842,27 +842,27 @@ def show_matches(ibs, qaid, daid, fm, fs=None, fm_norm=None,
     #pt.set_title('score = %.3f' % (score,))
 
 
-def show_ranked_matches(ibs, chipmatch, qaid=None, fnum=None):
+def show_ranked_matches(ibs, cmtup_old, qaid=None, fnum=None):
     import plottool as pt
     if fnum is None:
         fnum = pt.next_fnum()
     if qaid is None:
-        qaid = chipmatch.qaid
+        qaid = cmtup_old.qaid
     CLIP_TOP = 6
-    daid_list     = list(six.iterkeys(chipmatch.aid2_fm))
-    score_list    = ut.dict_take(chipmatch.aid2_score, daid_list)
+    daid_list     = list(six.iterkeys(cmtup_old.aid2_fm))
+    score_list    = ut.dict_take(cmtup_old.aid2_score, daid_list)
     top_daid_list = ut.listclip(ut.sortedby(daid_list, score_list, reverse=True), CLIP_TOP)
     nRows, nCols  = pt.get_square_row_cols(len(top_daid_list), fix=True)
     next_pnum     = pt.make_pnum_nextgen(nRows, nCols)
     for daid in top_daid_list:
-        fm    = chipmatch.aid2_fm[daid]
-        fsv   = chipmatch.aid2_fsv[daid]
+        fm    = cmtup_old.aid2_fm[daid]
+        fsv   = cmtup_old.aid2_fsv[daid]
         fs    = fsv.prod(axis=1)
-        H1 = chipmatch.aid2_H[daid]
+        H1 = cmtup_old.aid2_H[daid]
         pnum = next_pnum()
         #with ut.EmbedOnException():
         show_matches(ibs, qaid, daid, fm=fm, fs=fs, H1=H1, fnum=fnum, pnum=pnum)
-        score = chipmatch.aid2_score[daid]
+        score = cmtup_old.aid2_score[daid]
         pt.set_title('score = %.3f' % (score,))
 
 
@@ -874,10 +874,10 @@ def show_all_ranked_matches(ibs, qaid2_chipmatch, fnum_offset=0, figtitle=''):
         # hack newstyle back to oldstyle
         qaid2_chipmatch = {cm.qaid: cm.to_cmtup_old() for cm in qaid2_chipmatch}
 
-    for fnum_, (qaid, chipmatch) in enumerate(six.iteritems(qaid2_chipmatch)):
+    for fnum_, (qaid, cmtup_old) in enumerate(six.iteritems(qaid2_chipmatch)):
         #cm.foo()
         fnum = fnum_ + fnum_offset
-        show_ranked_matches(ibs, chipmatch, qaid, fnum)
+        show_ranked_matches(ibs, cmtup_old, qaid, fnum)
         #pt.figure(fnum=fnum, doclf=True, docla=True)
         pt.set_figtitle('qaid=%r %s' % (qaid, figtitle))
 

@@ -163,7 +163,7 @@ def match_kernel_L2(qindex, invindex, qparams, withinfo=True):
     # Unpack
     (daid2_totalscore, common_wxs, scores_list, daids_list)  = retL1
     if withinfo:
-        # Build up chipmatch if requested TODO: Only build for a shortlist
+        # Build up cmtup_old if requested TODO: Only build for a shortlist
         daid2_chipmatch = build_daid2_chipmatch3(qindex, invindex, common_wxs, scores_list, daids_list)
     else:
         daid2_chipmatch = None
@@ -404,7 +404,7 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     Builds explicit chipmatches that the rest of the pipeline plays nice with
 
     Notation:
-        An explicit chipmatch is a tuple (fm, fs, fk) feature_matches,
+        An explicit cmtup_old is a tuple (fm, fs, fk) feature_matches,
         feature_scores, and feature_ranks.
 
         Let N be the number of matches
@@ -446,7 +446,7 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     """
     # FIXME: move groupby to vtool
     if utool.VERBOSE:
-        print('[smk_core] build chipmatch')
+        print('[smk_core] build cmtup_old')
 
     wx2_dfxs  = invindex.wx2_fxs
     daid2_sccw = invindex.daid2_sccw

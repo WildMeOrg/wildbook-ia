@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
+from operator import xor
 import six
 from ibeis.model.hots import hstypes
 from collections import namedtuple, defaultdict
@@ -10,7 +11,7 @@ print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[chip_match]', DEB
 ChipMatchOldTup = namedtuple('ChipMatchOldTup', ('aid2_fm', 'aid2_fsv', 'aid2_fk', 'aid2_score', 'aid2_H'))
 
 
-def fix_cmtup_old(chipmatch_):
+def fix_cmtup_old(cmtup_old_):
     r"""
     removes matches without enough support
     enforces type and shape of arrays
@@ -27,7 +28,7 @@ def fix_cmtup_old(chipmatch_):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.chip_match import *  # NOQA
         >>> # build test data
-        >>> chipmatch_ = (
+        >>> cmtup_old_ = (
         ...    {1: [(0, 0), (1, 1)], 2: [(0, 0), (1, 1), (2, 2)]},
         ...    {1: [    .5,     .7], 2: [    .2,     .4,     .6]},
         ...    {1: [     1,      1], 2: [     1,      1,      1]},
@@ -35,9 +36,9 @@ def fix_cmtup_old(chipmatch_):
         ...    None,
         ...    )
         >>> # execute function
-        >>> chipmatch = fix_cmtup_old(chipmatch_)
+        >>> cmtup_old = fix_cmtup_old(cmtup_old_)
         >>> # verify results
-        >>> result = ut.dict_str(chipmatch._asdict(), precision=2)
+        >>> result = ut.dict_str(cmtup_old._asdict(), precision=2)
         >>> print(result)
         {
             'aid2_fm': {
@@ -57,7 +58,7 @@ def fix_cmtup_old(chipmatch_):
 
 
     """
-    (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = chipmatch_
+    (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = cmtup_old_
     minMatches = 2  # TODO: paramaterize
     # FIXME: This is slow
     fm_dtype  = hstypes.FM_DTYPE
@@ -83,19 +84,19 @@ def fix_cmtup_old(chipmatch_):
     # Ensure shape
     #for aid, fm in six.iteritems(aid2_fm_):
     #    fm.shape = (fm.size // 2, 2)
-    chipmatch = ChipMatchOldTup(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
-    return chipmatch
+    cmtup_old = ChipMatchOldTup(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
+    return cmtup_old
 
 
 def new_cmtup_old(with_homog=False, with_score=True):
-    """ returns new chipmatch for a single qaid """
+    """ returns new cmtup_old for a single qaid """
     aid2_fm = defaultdict(list)
     aid2_fsv = defaultdict(list)
     aid2_fk = defaultdict(list)
     aid2_score = dict() if with_score else None
     aid2_H = dict() if with_homog else None
-    chipmatch = ChipMatchOldTup(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
-    return chipmatch
+    cmtup_old = ChipMatchOldTup(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
+    return cmtup_old
 
 
 class _DefaultDictProxy(object):
@@ -195,12 +196,12 @@ class _OldStyleChipMatchSimulator(object):
     _oldfields = ('aid2_fm', 'aid2_fsv', 'aid2_fk', 'aid2_score', 'aid2_H')
 
     @classmethod
-    def from_chipmatch_old(cls, chipmatch_old, qaid=None, fsv_col_lbls=None):
-        (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = chipmatch_old
-        assert len(aid2_fsv_) == len(aid2_fm_), 'bad old chipmatch'
-        assert len(aid2_fk_) == len(aid2_fm_), 'bad old chipmatch'
-        assert aid2_score_ is None or len(aid2_score_) == 0 or len(aid2_score_) == len(aid2_fm_), 'bad old chipmatch'
-        assert aid2_H_ is None or len(aid2_H_) == len(aid2_fm_), 'bad old chipmatch'
+    def from_cmtup_old(cls, cmtup_old, qaid=None, fsv_col_lbls=None):
+        (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = cmtup_old
+        assert len(aid2_fsv_) == len(aid2_fm_), 'bad old cmtup_old'
+        assert len(aid2_fk_) == len(aid2_fm_), 'bad old cmtup_old'
+        assert aid2_score_ is None or len(aid2_score_) == 0 or len(aid2_score_) == len(aid2_fm_), 'bad old cmtup_old'
+        assert aid2_H_ is None or len(aid2_H_) == len(aid2_fm_), 'bad old cmtup_old'
         aid_list = list(six.iterkeys(aid2_fm_))
         daid_list    = aid_list
         fm_list      = ut.dict_take(aid2_fm_, aid_list)
@@ -220,8 +221,8 @@ class _OldStyleChipMatchSimulator(object):
         aid2_fk    = dict(zip(cm.daid_list, cm.fk_list))
         aid2_score = {} if cm.score_list is None else dict(zip(cm.daid_list, cm.score_list))
         aid2_H     = None if cm.H_list is None else dict(zip(cm.daid_list, cm.H_list))
-        chipmatch  = ChipMatchOldTup(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
-        return chipmatch
+        cmtup_old  = ChipMatchOldTup(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
+        return cmtup_old
 
     def __iter__(cm):
         for field in cm._oldfields:
@@ -308,9 +309,9 @@ class ChipMatch2(_OldStyleChipMatchSimulator):
         aid2_score_ = qres.aid2_score
         aid2_H_     = qres.aid2_H
         qaid        = qres.qaid
-        chipmatch_old = (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_)
+        cmtup_old = (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_)
         fsv_col_lbls = qres.filtkey_list
-        cm = ChipMatch2.from_chipmatch_old(chipmatch_old, qaid, fsv_col_lbls)
+        cm = ChipMatch2.from_cmtup_old(cmtup_old, qaid, fsv_col_lbls)
         fs_list = [fsv.T[cm.fsv_col_lbls.index('lnbnn')] for fsv in cm.fsv_list]
         cm.fs_list = fs_list
         return cm
@@ -361,6 +362,23 @@ class ChipMatch2(_OldStyleChipMatchSimulator):
         # and there should also be different types of scores
         cm.fs_list = None
 
+    def get_fs(self, idx=None, colx=None, daid=None, col=None):
+        assert xor(idx is None, daid is None)
+        assert xor(colx is None or col is None)
+        if daid is not None:
+            idx = self.daid2_idx[daid]
+        if col is not None:
+            colx = self.fsv_col_lbls.index(col)
+        fs = self.fsv_list[idx][colx]
+        return fs
+
+    def get_fs_list(self, colx=None, col=None):
+        assert xor(colx is None or col is None)
+        if col is not None:
+            colx = self.fsv_col_lbls.index(col)
+        fs_list = [fsv.T[colx].T for fsv in self.fsv_list]
+        return fs_list
+
     def _update_daid_index(cm):
         cm.daid2_idx = (None if cm.daid_list is None else
                         {daid: idx for idx, daid in enumerate(cm.daid_list)})
@@ -383,7 +401,7 @@ class ChipMatch2(_OldStyleChipMatchSimulator):
         return len(cm.fsv_col_lbls)
 
     def shortlist_subset(cm, top_aids):
-        """ returns a new chipmatch with only the requested daids """
+        """ returns a new cmtup_old with only the requested daids """
         qaid         = cm.qaid
         idx_list     = ut.dict_take(cm.daid2_idx, top_aids)
         daid_list    = ut.list_take(cm.daid_list, idx_list)

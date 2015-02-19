@@ -126,8 +126,8 @@ def data_index_integrity(ibs, qreq):
 #    qaid2_chipmatch_FILT = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq)
 #    qaid2_ranked_list = {}
 #    qaid2_ranked_scores = {}
-#    for qaid, chipmatch in six.iteritems(qaid2_chipmatch_FILT):
-#        (aid2_fm, aid2_fs, aid2_fk) = chipmatch
+#    for qaid, cmtup_old in six.iteritems(qaid2_chipmatch_FILT):
+#        (aid2_fm, aid2_fs, aid2_fk) = cmtup_old
 #        #aid2_nMatches = {aid: fs.sum() for (aid, fs) in six.iteritems(aid2_fs)}
 #        aid2_nMatches = {aid: len(fm) for (aid, fm) in six.iteritems(aid2_fs)}
 #        nMatches_list = np.array(aid2_nMatches.values())

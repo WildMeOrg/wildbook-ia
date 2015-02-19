@@ -62,6 +62,17 @@ def empty_query(ibs, qaids):
     return qaid2_qres, qreq_
 
 
+def submit_query_request_nocache(ibs, qreq_, verbose=pipeline.VERB_PIPELINE):
+    assert len(qreq_.get_external_qaids()) > 0, ' no current query aids'
+    if len(qreq_.get_external_daids()) == 0:
+        print('[mc4] WARNING no daids... returning empty query')
+        qaid2_qres, qreq_ = empty_query(ibs, qreq_.get_external_qaids())
+        return qaid2_qres
+    save_qcache = False
+    qaid2_qres = execute_query(ibs, qreq_, verbose, save_qcache)
+    return qaid2_qres
+
+
 #@profile
 def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                          use_bigcache=None, return_request=False,
@@ -209,13 +220,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True):
         if ut.VERBOSE:
             print('[mc4] cache-query is off')
         qaid2_qres_hit = {}
-    # Execute and save cachemiss queries
-    if qreq_.qparams.vsone:
-        # break vsone queries into multiple queries - one for each external qaid
-        qaid2_qres = execute_vsone_query(ibs, qreq_, verbose, save_qcache)
-    else:
-        qaid2_qres = execute_nonvsone_query(ibs, qreq_, verbose, save_qcache)
-    # Cache save only misses
+    qaid2_qres = execute_query(ibs, qreq_, verbose, save_qcache)
     if ut.DEBUG2:
         # sanity check
         qreq_.assert_self(ibs)
@@ -224,6 +229,19 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True):
         qaid2_qres.update(qaid2_qres_hit)
     qreq_.set_external_qaid_mask(None)  # undo state changes
     return qaid2_qres
+
+
+def execute_query(ibs, qreq_, verbose, save_qcache):
+    # Execute and save cachemiss queries
+    if qreq_.qparams.vsone:
+        # break vsone queries into multiple queries - one for each external qaid
+        qaid2_qres = execute_vsone_query(ibs, qreq_, verbose, save_qcache)
+    else:
+        qaid2_qres = execute_nonvsone_query(ibs, qreq_, verbose, save_qcache)
+    return qaid2_qres
+
+
+# TODO split both vsone and vsmany queries into chunks
 
 
 def execute_nonvsone_query(ibs, qreq_, verbose, save_qcache):

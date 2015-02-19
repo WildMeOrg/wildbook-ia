@@ -267,16 +267,16 @@ def assert_qaid2_chipmatch(qreq_, qaid2_chipmatch):
 
     assert external_qaids == list(qaid2_chipmatch.keys()), 'bad external qaids'
     # Loop over internal qaids
-    for qaid, chipmatch in qaid2_chipmatch.iteritems():
-        (daid2_fm, daid2_fsv, daid2_fk, daid2_score, daid2_H) = chipmatch
-        assert len(daid2_fm) == len(daid2_fsv), 'bad chipmatch'
-        assert len(daid2_fm) == len(daid2_fk), 'bad chipmatch'
-        assert daid2_H is None or len(daid2_fm) == len(daid2_H), 'bad chipmatch'
+    for qaid, cmtup_old in qaid2_chipmatch.iteritems():
+        (daid2_fm, daid2_fsv, daid2_fk, daid2_score, daid2_H) = cmtup_old
+        assert len(daid2_fm) == len(daid2_fsv), 'bad cmtup_old'
+        assert len(daid2_fm) == len(daid2_fk), 'bad cmtup_old'
+        assert daid2_H is None or len(daid2_fm) == len(daid2_H), 'bad cmtup_old'
         daid_list = list(daid2_fm.keys())
         nFeats1 = qreq_.ibs.get_annot_num_feats(qaid, qreq_=qreq_)
         nFeats2_list = np.array(qreq_.ibs.get_annot_num_feats(daid_list, qreq_=qreq_))
         try:
-            assert ut.list_issubset(daid_list, external_daids), 'chipmatch must be subset of daids'
+            assert ut.list_issubset(daid_list, external_daids), 'cmtup_old must be subset of daids'
         except AssertionError as ex:
             ut.printex(ex, keys=['daid_list', 'external_daids'])
             raise

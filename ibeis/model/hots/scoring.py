@@ -26,18 +26,18 @@ def get_chipmatch_testdata(**kwargs):
     # Run first four pipeline steps
     locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
     qaid2_chipmatch = locals_['qaid2_chipmatch_FILT']
-    # Get a single chipmatch
+    # Get a single cmtup_old
     qaid = six.next(six.iterkeys(qaid2_chipmatch))
-    chipmatch = qaid2_chipmatch[qaid]
-    return ibs, qreq_, qaid, chipmatch
+    cmtup_old = qaid2_chipmatch[qaid]
+    return ibs, qreq_, qaid, cmtup_old
 
 
-def score_chipmatch_csum(qaid, chipmatch, qreq_):
+def score_chipmatch_csum(qaid, cmtup_old, qreq_):
     """
     score_chipmatch_csum
 
     Args:
-        chipmatch (tuple):
+        cmtup_old (tuple):
 
     Returns:
         tuple: aid_list, score_list
@@ -45,11 +45,11 @@ def score_chipmatch_csum(qaid, chipmatch, qreq_):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.scoring import *  # NOQA
-        >>> ibs, qreq_, qaid, chipmatch = get_chipmatch_testdata()
-        >>> (aid_list, score_list) = score_chipmatch_csum(qaid, chipmatch, qreq_)
+        >>> ibs, qreq_, qaid, cmtup_old = get_chipmatch_testdata()
+        >>> (aid_list, score_list) = score_chipmatch_csum(qaid, cmtup_old, qreq_)
         >>> print(aid_list, score_list)
     """
-    aid2_fsv = chipmatch.aid2_fsv
+    aid2_fsv = cmtup_old.aid2_fsv
     aid_list = list(six.iterkeys(aid2_fsv))
     fsv_list = ut.dict_take(aid2_fsv, aid_list)
     fs_list = [fsv.prod(axis=1) for fsv in fsv_list]
@@ -57,12 +57,12 @@ def score_chipmatch_csum(qaid, chipmatch, qreq_):
     return (aid_list, score_list)
 
 
-def score_chipmatch_nsum(qaid, chipmatch, qreq_):
+def score_chipmatch_nsum(qaid, cmtup_old, qreq_):
     """
     score_chipmatch_nsum
 
     Args:
-        chipmatch (tuple):
+        cmtup_old (tuple):
 
     Returns:
         dict: nid2_score
@@ -79,13 +79,13 @@ def score_chipmatch_nsum(qaid, chipmatch, qreq_):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.scoring import *  # NOQA
-        >>> ibs, qreq_, qaid, chipmatch = get_chipmatch_testdata()
-        >>> (aid_list, score_list) = score_chipmatch_nsum(qaid, chipmatch, qreq_)
+        >>> ibs, qreq_, qaid, cmtup_old = get_chipmatch_testdata()
+        >>> (aid_list, score_list) = score_chipmatch_nsum(qaid, cmtup_old, qreq_)
         >>> print(aid_list, score_list)
     """
     # TODO: rectify this code with code in name scoring
     # TODO: should be another version of nsum where each feature gets a single vote
-    aid2_fsv = chipmatch.aid2_fsv
+    aid2_fsv = cmtup_old.aid2_fsv
     aid_list = list(six.iterkeys(aid2_fsv))
     fsv_list = ut.dict_take(aid2_fsv, aid_list)
     #fs_list = [fsv.prod(axis=1) if fsv.shape[1] > 1 else fsv.T[0] for fsv in fsv_list]

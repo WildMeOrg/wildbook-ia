@@ -659,21 +659,21 @@ def check_daid2_chipmatch(daid2_chipmatch, verbose=True):
     #    fk_list = [_[2] for _ in cmtup]
     #    assert len(fm_list) == len(fs_list)
     #    assert len(fk_list) == len(fs_list)
-    #    chipmatch = (np.vstack(fm_list), np.hstack(fs_list), np.hstack(fk_list))
-    #    assert len(chipmatch[0]) == len(chipmatch[1])
-    #    assert len(chipmatch[2]) == len(chipmatch[1])
-    #    return chipmatch
+    #    cmtup_old = (np.vstack(fm_list), np.hstack(fs_list), np.hstack(fk_list))
+    #    assert len(cmtup_old[0]) == len(cmtup_old[1])
+    #    assert len(cmtup_old[2]) == len(cmtup_old[1])
+    #    return cmtup_old
     ##daid2_chipmatch = {}
     ##for daid, cmtup in six.iteritems(daid2_chipmatch_):
     ##    daid2_chipmatch[daid] = concat_chipmatch(cmtup)
     featmatches = 0
     daid2_fm, daid2_fs, daid2_fk = daid2_chipmatch
     for daid in six.iterkeys(daid2_fm):
-        chipmatch = (daid2_fm[daid], daid2_fs[daid], daid2_fk[daid])
+        cmtup_old = (daid2_fm[daid], daid2_fs[daid], daid2_fk[daid])
         try:
-            assert len(chipmatch) == 3, (
-                'chipmatch = %r' % (chipmatch.shape,))
-            (fm, fs, fk) = chipmatch
+            assert len(cmtup_old) == 3, (
+                'cmtup_old = %r' % (cmtup_old.shape,))
+            (fm, fs, fk) = cmtup_old
             featmatches += len(fm)
             assert len(fm) == len(fs), (
                 'fm.shape = %r, fs.shape=%r' % (fm.shape, fs.shape))
@@ -683,7 +683,7 @@ def check_daid2_chipmatch(daid2_chipmatch, verbose=True):
         except AssertionError as ex:
             ut.printex(ex, keys=[
                 'daid',
-                'chipmatch',
+                'cmtup_old',
             ])
             raise
     print('[smk_debug] checked %d featmatches in %d chipmatches' % (featmatches, len(daid2_chipmatch)))
@@ -1074,15 +1074,15 @@ def main():
         print('L================')
         #ut.embed()
     #print(qres.aid2_fs)
-    #daid2_totalscore, chipmatch = smk_index.query_inverted_index(annots_df, qaid, invindex)
+    #daid2_totalscore, cmtup_old = smk_index.query_inverted_index(annots_df, qaid, invindex)
     ## Pack into QueryResult
-    #qaid2_chipmatch = {qaid: chipmatch}
+    #qaid2_chipmatch = {qaid: cmtup_old}
     #qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, {}, qreq_)
     ## Show match
     #daid2_totalscore.sort(axis=1, ascending=False)
     #print(daid2_totalscore)
 
-    #daid2_totalscore2, chipmatch = query_inverted_index(annots_df, daids[0], invindex)
+    #daid2_totalscore2, cmtup_old = query_inverted_index(annots_df, daids[0], invindex)
     #print(daid2_totalscore2)
     #display_info(ibs, invindex, annots_df)
     print('finished main')

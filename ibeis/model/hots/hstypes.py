@@ -112,7 +112,7 @@ class FiltKeys(object):
 WEIGHT_FILTERS = [FiltKeys.FG, FiltKeys.DISTINCTIVENESS, FiltKeys.HOMOGERR]
 
 
-# Replace old chipmatch with ducktype
+# Replace old cmtup_old with ducktype
 # Keep this turned off for now until we actually start using it
 
 
