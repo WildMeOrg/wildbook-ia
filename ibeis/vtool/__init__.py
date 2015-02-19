@@ -232,7 +232,7 @@ if DOELSE:
                                          get_flann_fpath, get_flann_params, 
                                          get_flann_params_cfgstr, 
                                          get_kdtree_flann_params, 
-                                         invertable_stack, tune_flann,) 
+                                         invertible_stack, tune_flann,) 
     from vtool.clustering2 import (CLUSTERS_FNAME, akmeans, akmeans_iterations, 
                                    akmeans_plusplus_init, apply_grouping, 
                                    apply_grouping_iter, apply_grouping_iter2, 

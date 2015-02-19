@@ -472,7 +472,7 @@ def tune_flann(dpts,
     return tuned_params
 
 
-def invertable_stack(vecs_list, label_list):
+def invertible_stack(vecs_list, label_list):
     """
     Stacks descriptors into a flat structure and returns inverse mapping from
     flat database descriptor indexes (dx) to annotation ids (label) and feature
@@ -497,7 +497,7 @@ def invertable_stack(vecs_list, label_list):
         ...     np.array([[5, 3], [2, 30], [1, 1]], dtype=DESC_TYPE),
         ...     np.array([[3, 3], [42, 42], [2, 6]], dtype=DESC_TYPE),
         ...     ]
-        >>> idx2_vec, idx2_label, idx2_fx = invertable_stack(vecs_list, label_list)
+        >>> idx2_vec, idx2_label, idx2_fx = invertible_stack(vecs_list, label_list)
         >>> print(repr(idx2_vec.T))
         array([[ 0,  0,  5,  2,  1,  5,  2,  1,  3, 42,  2],
                [ 0,  1,  3, 30,  1,  3, 30,  1,  3, 42,  6]], dtype=uint8)
@@ -545,11 +545,11 @@ def invertable_stack(vecs_list, label_list):
 #        if not cyth.WITH_CYTH:
 #            raise ImportError('no cyth')
 #        import vtool._nearest_neighbors_cyth
-#        _invertable_stack_cyth = vtool._nearest_neighbors_cyth._invertable_stack_cyth
-#        invertable_stack_cyth = vtool._nearest_neighbors_cyth._invertable_stack_cyth
+#        _invertible_stack_cyth = vtool._nearest_neighbors_cyth._invertible_stack_cyth
+#        invertible_stack_cyth = vtool._nearest_neighbors_cyth._invertible_stack_cyth
 #        CYTHONIZED = True
 #    except ImportError:
-#        invertable_stack_cyth = invertable_stack
+#        invertible_stack_cyth = invertible_stack
 #        CYTHONIZED = False
 #    # </AUTOGEN_CYTH>
 #    pass
