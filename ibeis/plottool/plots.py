@@ -289,7 +289,7 @@ def plot_sorted_scores(scores_list,
     if logscale:
         set_logyscale_from_data(sorted_scores)
 
-    df2.set_xlabel('sorted score indicies')
+    df2.set_xlabel('sorted score indices')
     df2.set_ylabel('score values')
     df2.dark_background()
     df2.set_title(figtitle)

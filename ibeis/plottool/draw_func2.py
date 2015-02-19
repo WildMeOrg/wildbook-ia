@@ -934,7 +934,7 @@ def customize_colormap(data, base_colormap):
     sm.set_clim(-.5, range_ + 0.5)
     #colorbar = plt.colorbar(sm)
 
-    #missing_ixs = find_nonconsec_indicies(unique_scalars, bounds)
+    #missing_ixs = find_nonconsec_indices(unique_scalars, bounds)
     #sel_bounds = np.array([x for ix, x in enumerate(bounds) if ix not in missing_ixs])
 
     #ticks = sel_bounds + .5
@@ -1120,7 +1120,7 @@ def colorbar(scalars, colors, custom=False, lbl=None):
     # This line alone removes data
     # axis.set_ticks([0, .5, 1])
     if custom:
-        #missing_ixs = ut.find_nonconsec_indicies(unique_scalars, bounds)
+        #missing_ixs = ut.find_nonconsec_indices(unique_scalars, bounds)
         #sel_bounds = np.array([x for ix, x in enumerate(bounds) if ix not in missing_ixs])
         #ticks = sel_bounds + .5 - (sel_bounds.min())
         #ticklabels = sel_bounds

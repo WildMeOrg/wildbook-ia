@@ -361,7 +361,7 @@ class ANNOTATIONInteraction(object):
             species_list = ['' for _ in range(len(bbox_list))]
         assert len(bbox_list) == len(theta_list), 'inconconsitent data1'
         assert len(bbox_list) == len(species_list), 'inconconsitent data2'
-        self.original_indicies     = list(range(len(bbox_list)))
+        self.original_indices     = list(range(len(bbox_list)))
         self.original_bbox_list    = bbox_list
         self.original_theta_list   = theta_list
         self.original_species_list = species_list
@@ -1027,7 +1027,7 @@ class ANNOTATIONInteraction(object):
             MIN_W = 5
             MIN_H = 5
             """
-            Depends on hardcoded indicies, which is inelegant, but
+            Depends on hardcoded indices, which is inelegant, but
             we're already depending on those for the FUDGE_FACTORS
             array above
             1----2
@@ -1152,7 +1152,7 @@ class ANNOTATIONInteraction(object):
 
         def get_annottup_list():
             annottup_list = []
-            indicies_list = []
+            indices_list = []
             #theta_list = []
             for poly in six.itervalues(self.polys):
                 assert poly is not None
@@ -1161,36 +1161,36 @@ class ANNOTATIONInteraction(object):
                 theta   = poly.theta
                 species = poly.species_tag.get_text()
                 annottup = (bbox, theta, species)
-                indicies_list.append(index)
+                indices_list.append(index)
                 annottup_list.append(annottup)
-            return indicies_list, annottup_list
+            return indices_list, annottup_list
 
         def send_back_annotations():
             #point_list = self.load_points()
             #theta_list = self.theta_list
             #new_bboxes = verts_to_bbox(point_list)
             print('[interact_annot] send_back_annotations')
-            indicies_list, annottup_list = get_annottup_list()
-            # Delete if index is in original_indicies but no in indicies_list
-            deleted_indicies   = list(set(self.original_indicies) - set(indicies_list))
-            changed_indicies   = []
-            unchanged_indicies = []  # sanity check
+            indices_list, annottup_list = get_annottup_list()
+            # Delete if index is in original_indices but no in indices_list
+            deleted_indices   = list(set(self.original_indices) - set(indices_list))
+            changed_indices   = []
+            unchanged_indices = []  # sanity check
             changed_annottups  = []
             new_annottups      = []
             original_annottup_list = list(zip(self.original_bbox_list,
                                               self.original_theta_list,
                                               self.original_species_list))
-            for index, annottup in zip(indicies_list, annottup_list):
+            for index, annottup in zip(indices_list, annottup_list):
                 # If the index is not in the originals then it is new
-                if index not in self.original_indicies:
+                if index not in self.original_indices:
                     new_annottups.append(annottup)
                 else:
                     if annottup not in original_annottup_list:
                         changed_annottups.append(annottup)
-                        changed_indicies.append(index)
+                        changed_indices.append(index)
                     else:
-                        unchanged_indicies.append(index)
-            self.commit_callback(unchanged_indicies, deleted_indicies, changed_indicies, changed_annottups, new_annottups)
+                        unchanged_indices.append(index)
+            self.commit_callback(unchanged_indices, deleted_indices, changed_indices, changed_annottups, new_annottups)
 
         if self.commit_callback is not None:
             send_back_annotations()
