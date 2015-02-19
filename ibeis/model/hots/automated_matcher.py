@@ -148,6 +148,39 @@ def generate_incremental_queries(ibs, qaid_list, incinfo=None):
 
 # ---- QUERY ----
 
+def load_or_make_qreq(ibs, qreq_vsmany_, qaid_chunk):
+    if qreq_vsmany_ is None:
+        # FIXME: allow for multiple species or make a nicer way of ensuring that
+        # there is only one species here
+        species_text_set = set(ibs.get_annot_species_texts(qaid_chunk))
+        assert len(species_text_set) == 1, 'query chunk has more than one species'
+        species_text = list(species_text_set)[0]
+        # controller based exemplars
+        daid_list = ibs.get_valid_aids(is_exemplar=True, species=species_text)
+        num_names = len(set(ibs.get_annot_nids(daid_list)))
+        # TODO: choose vsmany K every time
+        # need to be able to update qreq_.qparams
+        vsmany_cfgdict = dict(
+            K=special_query.choose_vsmany_K(num_names, qaid_chunk, daid_list),
+            Knorm=3,
+            index_method='multi',
+            pipeline_root='vsmany',
+            return_expanded_nns=True
+        )
+        # Create New qreq
+        qreq_vsmany_ = ibs.new_query_request(qaid_chunk, daid_list, cfgdict=vsmany_cfgdict)
+    else:
+        # set new query aids
+        qreq_vsmany_.set_internal_qaids(qaid_chunk)
+        # state based exemplars
+        daid_list = qreq_vsmany_.get_external_daids()
+        # Force indexer reloading if background process is completed we might
+        # get a shiny new indexer.
+        force = neighbor_index.check_background_process()
+        qreq_vsmany_.load_indexer(force=force)
+    return qreq_vsmany_
+
+
 @profile
 def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
     """
@@ -170,25 +203,16 @@ def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
     """
     # Use either state-based exemplars or controller based exemplars
     qreq_vsmany_ = incinfo.get('qreq_vsmany_', None)
-    if qreq_vsmany_ is not None:
-        # state based exemplars
-        qreq_vsmany_.set_internal_qaids(qaid_chunk)
-        daid_list = qreq_vsmany_.get_external_daids()
-        # Force indexer reloading if background process is completed we might
-        # get a shiny new indexer.
-        force = neighbor_index.check_background_process()
-        qreq_vsmany_.load_indexer(force=force)
-    else:
-        # FIXME: allow for multiple species or make a nicer way of ensuring that
-        # there is only one species here
-        species_text_set = set(ibs.get_annot_species_texts(qaid_chunk))
-        assert len(species_text_set) == 1, 'query chunk has more than one species'
-        species_text = list(species_text_set)[0]
-        # controller based exemplars
-        daid_list = ibs.get_valid_aids(is_exemplar=True, species=species_text)
     # Execute actual queries
-    qaid2_qres, qreq_, qreq_vsmany_ = special_query.query_vsone_verified(
-        ibs, qaid_chunk, daid_list, qreq_vsmany__=qreq_vsmany_, incinfo=incinfo)
+    qreq_vsmany_ = load_or_make_qreq(ibs, qreq_vsmany_, qaid_chunk)
+    USE_SPECIAL_QUERY = False
+    if USE_SPECIAL_QUERY:
+        qaid2_qres, qreq_, qreq_vsmany_ = special_query.query_vsone_verified(
+            ibs, qaid_chunk, qreq_vsmany_.get_external_daids(), qreq_vsmany__=qreq_vsmany_, incinfo=incinfo)
+    else:
+        qreq_ = qreq_vsmany_
+        qaid2_qres = ibs._query_chips4(
+            None, None, qreq_=qreq_, use_cache=False, save_qcache=False)
     if USE_STATEFULNESS and qreq_vsmany_ is not None:
         if incinfo.get('qreq_vsmany_', None) is None:
             incinfo['qreq_vsmany_'] = qreq_vsmany_
@@ -196,6 +220,8 @@ def generate_subquery_steps(ibs, qaid_chunk, incinfo=None):
             assert incinfo.get('qreq_vsmany_') is qreq_vsmany_, 'bad statefulness'
     #try_decision_callback = incinfo.get('try_decision_callback', None)
     for qaid, qres in six.iteritems(qaid2_qres):
+        if qres is None:
+            qres = qreq_.make_empty_query_result(qaid)
         item = [ibs, qres, qreq_, incinfo]
         yield item
 

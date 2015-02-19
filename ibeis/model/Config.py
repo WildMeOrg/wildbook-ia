@@ -949,47 +949,12 @@ class FeatureConfig(ConfigBase):
     _FEAT(hesaff+sift_nScal=3,thrsh=5.33,edggn=10.00,nIter=16,cnvrg=0.05,intlS=1.60)_CHIP(sz450)
     """
     def __init__(feat_cfg, **kwargs):
-        #import numpy as np
-        #import ctypes as C
         # Features depend on chips
+        import pyhesaff
         super(FeatureConfig, feat_cfg).__init__(name='feat_cfg')
         feat_cfg._chip_cfg = ChipConfig(**kwargs)
         feat_cfg.feat_type = 'hesaff+sift'
         feat_cfg.whiten = False
-        #feat_cfg.scale_min = 0  # 0  # 30 # TODO: Put in pref types here
-        #feat_cfg.scale_max = 9001  # 9001 # 80
-        # Inlineish copy of pyhesaff.hesaff_types_parms
-        #PY2 = True
-        #if PY2:
-        #    int_t = C.c_int
-        #else:
-        #    raise NotImplementedError('PY3')
-        #bool_t    = C.c_bool
-        #float_t   = C.c_float
-        #feat_cfg._param_list = [
-        #    (int_t,   'numberOfScales', 3, 'number of scale per octave'),
-        #    (float_t, 'threshold', 16.0 / 3.0, 'noise dependent threshold on the response (sensitivity)'),
-        #    (float_t, 'edgeEigenValueRatio', 10.0, 'ratio of the eigenvalues'),
-        #    (int_t,   'border', 5, 'number of pixels ignored at the border of image'),
-        #    # Affine Shape Params
-        #    (int_t,   'maxIterations', 16, 'number of affine shape interations'),
-        #    (float_t, 'convergenceThreshold', 0.05, 'maximum deviation from isotropic shape at convergence'),
-        #    (int_t,   'smmWindowSize', 19, 'width and height of the SMM (second moment matrix) mask'),
-        #    (float_t, 'mrSize', 3.0 * np.sqrt(3.0), 'size of the measurement region (as multiple of the feature scale)'),
-        #    # SIFT params
-        #    (int_t,   'spatialBins', 4),
-        #    (int_t,   'orientationBins', 8),
-        #    (float_t, 'maxBinValue', 0.2),
-        #    # Shared params
-        #    (float_t, 'initialSigma', 1.6, 'amount of smoothing applied to the initial level of first octave'),
-        #    (int_t,   'patchSize', 41, 'width and height of the patch'),
-        #    # My params
-        #    (float_t, 'scale_min', -1.0),
-        #    (float_t, 'scale_max', -1.0),
-        #    (bool_t,  'rotation_invariance', False),
-        #    (float_t, 'ori_maxima_thresh', .8),
-        #]
-        import pyhesaff
         feat_cfg._param_list = list(six.iteritems(pyhesaff.get_hesaff_default_params()))
 
         for type_, name, default, doc in feat_cfg._iterparams():
@@ -1008,34 +973,15 @@ class FeatureConfig(ConfigBase):
             type_ = None
             doc = None
             yield (type_, name, default, doc)
-        #for tup in feat_cfg._param_list:
-        #    if len(tup) == 4:
-        #        type_, name, default, doc = tup
-        #    else:
-        #        type_, name, default = tup
-        #        doc = None
-        #    yield (type_, name, default, doc)
 
     def get_hesaff_params(feat_cfg):
         dict_args = {
             name: feat_cfg[name]
             for type_, name, default, doc in feat_cfg._iterparams()
         }
-        #dict_args = {
-        #    'scale_min': feat_cfg.scale_min,
-        #    'scale_max': feat_cfg.scale_max,
-        #    'use_adaptive_scale': feat_cfg.use_adaptive_scale,
-        #    'nogravity_hack': feat_cfg.nogravity_hack,
-        #}
         return dict_args
 
     def get_cfgstr_list(feat_cfg, **kwargs):
-        #if feat_cfg._chip_cfg is None:
-        #    raise Exception('Chip config is required')
-        #if feat_cfg.scale_min < 0:
-        #    feat_cfg.scale_min = None
-        #if feat_cfg.scale_max < 0:
-        #    feat_cfg.scale_max = None
         if kwargs.get('use_feat', True):
             feat_cfgstrs = ['_FEAT(']
             feat_cfgstrs += [feat_cfg.feat_type]
@@ -1051,31 +997,8 @@ class FeatureConfig(ConfigBase):
                 #'whiten':
             }
             ignore = []
-            #ignore = set(['whiten', 'scale_min', 'scale_max', 'use_adaptive_scale',
-            #              'nogravity_hack', 'feat_type'])
             import pyhesaff
             ignore_if_default = set(pyhesaff.get_hesaff_default_params().keys())
-            #ignore_if_default = set([
-            #    'numberOfScales',
-            #    'threshold',
-            #    'edgeEigenValueRatio',
-            #    'border',
-            #    'maxIterations',
-            #    'convergenceThreshold',
-            #    'smmWindowSize',
-            #    'mrSize',
-            #    'spatialBins',
-            #    'orientationBins',
-            #    'maxBinValue',
-            #    'initialSigma',
-            #    'patchSize',
-            #    'scale_min',
-            #    'scale_max',
-            #    'rotation_invariance',
-            #    'ori_maxima_thresh',
-            #    'affine_invariance',
-            #])
-
             def _gen():
                 for param in feat_cfg._iterparams():
                     # a parameter is a type, name, default value, and docstring
@@ -1148,7 +1071,7 @@ class DetectionConfig(ConfigBase):
     """
     def __init__(detect_cfg, **kwargs):
         super(DetectionConfig, detect_cfg).__init__(name='detect_cfg')
-        detect_cfg.species     = const.Species.ZEB_GREVY
+        detect_cfg.species_text     = const.Species.ZEB_GREVY
         detect_cfg.detector    = 'rf'
         # detect_cfg.scale_list  = '1.3, 1.2, 1.1, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1'
         # detect_cfg.scale_list  = '1.15, 1.0, 0.85, 0.7, 0.55, 0.4, 0.25, 0.10'
@@ -1160,7 +1083,7 @@ class DetectionConfig(ConfigBase):
     def get_cfgstr_list(detect_cfg):
         cfgstrs = ['_DETECT(',
                    detect_cfg.detector,
-                   ',', detect_cfg.species,
+                   ',', detect_cfg.species_text,
                    ',sz=%d' % (detect_cfg.detectimg_sqrt_area,),
                    ')']
         return cfgstrs
@@ -1314,7 +1237,7 @@ def _default_config(cfg, cfgname=None, new=True):
     _default_named_config(cfg, cfgname)
     #if len(species_list) == 1:
     #    # try to be intelligent about the default speceis
-    #    cfg.detect_cfg.species = species_list[0]
+    #    cfg.detect_cfg.species_text = species_list[0]
     return cfg
 
 
@@ -1326,9 +1249,9 @@ def _default_named_config(cfg, cfgname):
     """
     Species = const.Species
     if cfgname == 'cfg':
-        cfg.detect_cfg.species = 'none'
+        cfg.detect_cfg.species_text = 'none'
     elif cfgname == Species.ZEB_PLAIN:
-        cfg.detect_cfg.species = cfgname
+        cfg.detect_cfg.species_text = cfgname
         #speedup': 46.90769958496094,
         cfg.query_cfg.flann_cfg.algorithm = 'kdtree'
         cfg.query_cfg.flann_cfg.trees = 8
@@ -1349,13 +1272,13 @@ def _default_named_config(cfg, cfgname):
         #'target_precision': 0.9800000190734863,
 
     elif cfgname == Species.ZEB_GREVY:
-        cfg.detect_cfg.species = cfgname
+        cfg.detect_cfg.species_text = cfgname
         #speedup': 224.7425994873047,
         cfg.query_cfg.flann_cfg.algorithm = 'kdtree'
         cfg.query_cfg.flann_cfg.trees = 4
         cfg.query_cfg.nn_cfg.checks = 896
     elif cfgname == Species.GIRAFFE:
-        cfg.detect_cfg.species = cfgname
+        cfg.detect_cfg.species_text = cfgname
         cfg.query_cfg.flann_cfg.algorithm = 'kdtree'
         cfg.query_cfg.flann_cfg.trees = 8
         cfg.query_cfg.nn_cfg.checks = 316

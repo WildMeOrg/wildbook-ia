@@ -180,10 +180,12 @@ class Species(object):
     CHEETAH       = 'cheetah'
     TIGER         = 'tiger'
     HYENA         = 'hyena'
+    NAUT          = 'nautilus'
     UNKNOWN       = UNKNOWN
 
 # TODO: allow for custom species
-SpeciesTuple = namedtuple('SpeciesTuple', ('species_text', 'species_code', 'species_nice'))
+SpeciesTupleProperties = ('species_text', 'species_code', 'species_nice')
+SpeciesTuple = namedtuple('SpeciesTuple', SpeciesTupleProperties)
 
 SPECIES_TUPS = [
     SpeciesTuple(Species.ZEB_PLAIN,          'PZ', 'Zebra (Plains)'),
@@ -203,9 +205,11 @@ SPECIES_TUPS = [
     SpeciesTuple(Species.CHEETAH,          'CHTH', 'Cheetah'),
     SpeciesTuple(Species.SEALS_SPOTTED,   'SEAL1', 'Seal (spotted)'),
     SpeciesTuple(Species.SEALS_RINGED,    'SEAL2', 'Seal (Siamaa Ringed)'),
+    SpeciesTuple(Species.NAUT,             'NAUT', 'Nautilus'),
     SpeciesTuple(Species.UNKNOWN,       'UNKNOWN', 'Unknown'),
 ]
 
+# FIXME: infer this
 SPECIES_WITH_DETECTORS = (
     Species.ZEB_GREVY,
     Species.ZEB_PLAIN,
@@ -215,6 +219,9 @@ SPECIES_WITH_DETECTORS = (
 
 SPECIES_CODE_TO_TEXT = {
     tup.species_code: tup.species_text for tup in SPECIES_TUPS
+}
+SPECIES_TEXT_TO_CODE = {
+    tup.species_text: tup.species_code for tup in SPECIES_TUPS
 }
 
 VALID_SPECIES = [tup.species_text for tup in SPECIES_TUPS]
@@ -226,6 +233,15 @@ INTRA_ENC_KEY = 'intra_encounter'
 
 HARD_NOTE_TAG = '<HARDCASE>'
 WILDBOOK_TARGET = 'prod'
+
+
+def get_species_code(species_text_):
+    " functions should not be in const """
+    species_text = species_text_.lower()
+    if species_text == 'none':
+        species_text = Species.UNKNOWN
+    species_code = SPECIES_TEXT_TO_CODE.get(species_text, species_text)
+    return species_code
 
 
 class ZIPPED_URLS(object):

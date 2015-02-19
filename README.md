@@ -843,6 +843,26 @@ python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_
 python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache --va --show
 
 
+python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache --db PZ_Master0
+
+python dev.py --allgt -t \
+    custom:fg_weight=0.0,dupvote_weight=0.0 \
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 \
+    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 \
+  --print-confusion-stats --print-gtscore --db PZ_MTEST
+
+
+python dev.py --allgt -t \
+    custom:fg_weight=0.0,dupvote_weight=0.0 \
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 \
+    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=2,nNameShortlistVsone=20,fg_weight=0.0,dupvote_weight=0.0 \
+    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=2,nNameShortlistVsone=20,fg_weight=0.0,dupvote_weight=0.0 \
+   --db PZ_MTEST --index 30:60
+
+python dev.py --allgt -t custom --db PZ_Master0 --va --show
+
+
+
 --noqcache
 
 python dev.py --allgt -t custom custom:rrvsone_on=True

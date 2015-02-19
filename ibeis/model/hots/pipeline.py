@@ -57,18 +57,15 @@ from vtool import spatial_verification as sver
 from ibeis.model.hots import name_scoring
 from ibeis.model.hots import hots_query_result
 from ibeis.model.hots import hstypes
+from ibeis.model.hots import chip_match
 #from ibeis.model.hots import coverage_kpts
 from ibeis.model.hots import nn_weights
-from ibeis.model.hots import voting_rules2 as vr2
+from ibeis.model.hots import scoring
 from ibeis.model.hots import exceptions as hsexcept
 from ibeis.model.hots import _pipeline_helpers as plh
 import utool as ut
 #profile = ut.profile
 print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[pipeline]', DEBUG=False)
-
-
-# TODO: chimatch should really be an object that moves through the pipeline
-ChipMatch = hstypes.ChipMatch
 
 
 #=================
@@ -828,7 +825,7 @@ def build_chipmatches(qreq_, qaid2_nns, qaid2_nnvalid0, qaid2_nnfilts, qaid2_nnf
         assert len(external_qaids) == 1, 'vsone can only accept one external qaid'
         extern_qaid = external_qaids[0]
         # these dict keys are external daids
-        chipmatch_ = hstypes.new_chipmatch(with_homog=False)
+        chipmatch_ = chip_match.new_cmtup_old(with_homog=False)
         (daid2_fm, daid2_fsv, daid2_fk, aid2_score, daid2_H) = chipmatch_
         # External daids are internal qaids in vsone
         for extern_daid in intern_qaid_iter:
@@ -846,7 +843,7 @@ def build_chipmatches(qreq_, qaid2_nns, qaid2_nnvalid0, qaid2_nnfilts, qaid2_nnf
             daid2_fsv[extern_daid] = fsv
             daid2_fk[extern_daid] = fk
         # Vsone finalization
-        chipmatch = hstypes.fix_chipmatch(chipmatch_)
+        chipmatch = chip_match.fix_cmtup_old(chipmatch_)
         # build vsone dict output
         qaid2_chipmatch = {extern_qaid: chipmatch}
     else:
@@ -870,13 +867,13 @@ def append_chipmatch_vsone_nonagg(valid_match_tup):
     fm = np.vstack((valid_dfx, valid_qfx)).T
     fm.shape = (fm.size / 2, 2)
     fsv = valid_scorevec
-    fk = valid_rank.tolist()
+    fk  = valid_rank.tolist()
     return (fm, fsv, fk, None, None)
 
 
 def append_chipmatch_vsmany_nonagg(valid_match_tup):
     # NEW WAY OF DOING THINGS
-    chipmatch = hstypes.new_chipmatch(with_homog=False)
+    chipmatch = chip_match.new_cmtup_old(with_homog=False)
     aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H = chipmatch
     # TODO: Sorting the valid lists by aid might help the speed of this
     # code. Also, consolidating fm, fsv, and fk into one vector will reduce
@@ -888,7 +885,7 @@ def append_chipmatch_vsmany_nonagg(valid_match_tup):
         aid2_fm[daid].append(fm)
         aid2_fsv[daid].append(fsv)
         aid2_fk[daid].append(fk)
-    chipmatch = hstypes.fix_chipmatch(chipmatch)
+    chipmatch = chip_match.fix_cmtup_old(chipmatch)
     return chipmatch
 
 
@@ -1093,7 +1090,7 @@ def _internal_sver(qreq_, kpts1, topx2_aid, topx2_kpts, topx2_dlen_sqrd,
     # unpack chipmatch
     (daid2_fm, daid2_fsv, daid2_fk, daid2_score, daid2_H) = chipmatch
     # Precompute sver chipmatch
-    chipmatchSV_ = hstypes.new_chipmatch(with_homog=True)
+    chipmatchSV_ = chip_match.new_cmtup_old(with_homog=True)
     (daid2_fm_V, daid2_fsv_V, daid2_fk_V, daid2_score_V, daid2_H_V) = chipmatchSV_
     # dbg info (can remove if there is a speed issue)
     daid2_svtup = {} if qreq_.qparams.with_metadata else None
@@ -1105,7 +1102,7 @@ def _internal_sver(qreq_, kpts1, topx2_aid, topx2_kpts, topx2_dlen_sqrd,
             continue
         dlen_sqrd2 = topx2_dlen_sqrd[topx]
         kpts2 = topx2_kpts[topx]
-        fsv    = daid2_fsv[daid]
+        fsv   = daid2_fsv[daid]
         fk    = daid2_fk[daid]
         try:
             # Compute homography from chip2 to chip1
@@ -1143,7 +1140,7 @@ def _internal_sver(qreq_, kpts1, topx2_aid, topx2_kpts, topx2_dlen_sqrd,
             daid2_fk_V[daid]  = fk_SV
             daid2_H_V[daid]   = H
             #nFeatMatchSVAff += len(aff_inliers)
-    chipmatchSV = hstypes.fix_chipmatch(chipmatchSV_)
+    chipmatchSV = chip_match.fix_cmtup_old(chipmatchSV_)
     return chipmatchSV, daid2_svtup
 
 
@@ -1580,24 +1577,11 @@ def score_chipmatch(qreq_, qaid, chipmatch, score_method):
         >>> score_method = qreq_.qparams.score_method
         >>> daid2_score_post = score_chipmatch(qreq_, qaid, chipmatch, score_method)
     """
-    # HACK: Im not even sure if the 'w' suffix is correctly handled anymore
-    if score_method.find('w') == len(score_method) - 1:
-        score_method = score_method[:-1]
     # Choose the appropriate scoring mechanism
     if score_method == 'csum':
-        (aid_list, score_list) = vr2.score_chipmatch_csum(qaid, chipmatch, qreq_)
+        (aid_list, score_list) = scoring.score_chipmatch_csum(qaid, chipmatch, qreq_)
     elif score_method == 'nsum':
-        (aid_list, score_list) = vr2.score_chipmatch_nsum(qaid, chipmatch, qreq_)
-    #elif score_method == 'pl':
-    #    daid2_score, nid2_score = vr2.score_chipmatch_PL(qaid, chipmatch, qreq_)
-    #elif score_method == 'borda':
-    #    daid2_score, nid2_score = vr2.score_chipmatch_pos(qaid, chipmatch, qreq_, 'borda')
-    #elif score_method == 'topk':
-    #    daid2_score, nid2_score = vr2.score_chipmatch_pos(qaid, chipmatch, qreq_, 'topk')
-    #elif score_method.startswith('coverage'):
-    #    # Method num is at the end of coverage
-    #    method = int(score_method.replace('coverage', '0'))
-    #    daid2_score = coverage_kpts.score_chipmatch_coverage(qaid, chipmatch, qreq_, method=method)
+        (aid_list, score_list) = scoring.score_chipmatch_nsum(qaid, chipmatch, qreq_)
     else:
         raise Exception('[hs] unknown scoring method:' + score_method)
 

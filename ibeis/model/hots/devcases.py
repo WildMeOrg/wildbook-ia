@@ -64,6 +64,7 @@ def myquery():
         >>> pt.show_if_requested()
     """
     from ibeis.model.hots import special_query  # NOQA
+    from ibeis.model.hots import distinctiveness_normalizer  # NOQA
     from ibeis import viz  # NOQA
     import plottool as pt
     index = ut.get_argval('--index', int, 0)
@@ -105,54 +106,9 @@ def myquery():
         return qres_copy, tp_score, tn_score
 
     #[.01, .1, .2, .5, .6, .7, .8, .9, 1.0]),
-    FiltKeys = hstypes.FiltKeys
-    grid_basis = [
-        #ut.DimensionBasis('p', np.linspace(1, 100.0, 50)),
-        ut.DimensionBasis(
-            'p',
-            # higher seems better but effect flattens out
-            # current_best = 73
-            # This seems to imply that anything with a distinctivness less than
-            # .9 is not relevant
-            #[73.0]
-            [.5, 1.0, 2]
-            #[1, 20, 73]
-        ),
-        ut.DimensionBasis(
-            # the score seems to significantly drop off when k>2
-            # but then has a spike at k=8
-            # best is k=2
-            'K',
-            [2]
-            #[2, 3, 4, 5, 7, 8, 9, 16],
-        ),
-        #ut.DimensionBasis('dcvs_clip_max', ),
-        #ut.DimensionBasis('dcvs_clip_max', np.linspace(.01, .11, 100)),
-        ut.DimensionBasis(
-            'dcvs_clip_max',
-            # THERE IS A VERY CLEAR SPIKE AT .09
-            [.09],
-            #[.09, 1.0],
-            #np.linspace(.05, .15, 10),
-        ),
-        #ut.DimensionBasis(FiltKeys.FG + '_power', ),
-        ut.DimensionBasis(
-            FiltKeys.FG + '_power',
-            # the forground power seems to be very influential in scoring
-            # it seems higher is better but effect flattens out
-            # the reason it seems to be better is because it zeros out weights
-            [.1, 1.0, 2.0]
-            #np.linspace(.01, 30.0, 10)
-        ),
-        ut.DimensionBasis(
-            FiltKeys.HOMOGERR + '_power',
-            # current_best = 2.5
-            #[2.5]
-            [.1, 1.0, 2.0]
-            #np.linspace(.1, 10, 5)
-            #np.linspace(.1, 10, 30)
-        ),
-    ]
+    #FiltKeys = hstypes.FiltKeys
+    # FIXME: Use other way of doing gridsearch
+    grid_basis = distinctiveness_normalizer.DCVS_DEFAULT.get_grid_basis()
     gridsearch = ut.GridSearch(grid_basis, label='qvuuid=%r' % (qvuuid,))
     print('Begin Grid Search')
     for cfgdict in ut.ProgressIter(gridsearch, lbl='GridSearch'):
@@ -171,7 +127,7 @@ def myquery():
         filtkey = hstypes.FiltKeys.DISTINCTIVENESS
         newfsv_list, newscore_aids = special_query.get_extern_distinctiveness(qreq_, qres_copy, **cfgdict)
         ut.embed()
-        def make_new_chipmatch(qres_copy):
+        def make_cm_very_old_tuple(qres_copy):
             assert ut.listfind(qres_copy.filtkey_list, filtkey) is None
             weight_filters = hstypes.WEIGHT_FILTERS
             weight_filtxs, nonweight_filtxs = special_query.index_partition(qres_copy.filtkey_list, weight_filters)
@@ -229,7 +185,7 @@ def myquery():
     #qres_orig.ishow_top(ibs, fnum=pt.next_fnum())
 
     # Text Informatio
-    param_lbl = 'p'
+    param_lbl = 'dcvs_power'
     param_stats_str = gridsearch.get_dimension_stats_str(param_lbl)
     print(param_stats_str)
 

@@ -329,7 +329,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         def get_working_species_set():
             """ hack to make only species with detectors show up """
             # TODO: allow for custom user-define species
-            RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = True
+            RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = not ut.get_argflag('--allspecies')
             if RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS:
                 working_species_tups = [
                     (species_tup.species_nice, species_tup.species_text)
@@ -593,7 +593,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #else:
             #    enctext = ibswgt.ibs.get_encounter_enctext(eid)
             ibswgt.back.select_eid(eid)
-            ibswgt.species_combo.setDefault(ibswgt.ibs.cfg.detect_cfg.species)
+            ibswgt.species_combo.setDefault(ibswgt.ibs.cfg.detect_cfg.species_text)
             #text_list = [
             #    'Identify Mode: Within-Encounter (%s vs. %s)' % (enctext, enctext),
             #    'Identify Mode: Exemplars (%s vs. %s)' % (enctext, const.EXEMPLAR_ENCTEXT)]

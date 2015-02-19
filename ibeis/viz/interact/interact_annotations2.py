@@ -29,7 +29,7 @@ class ANNOTATION_Interaction2(object):
             theta_list=theta_list,
             species_list=species_list,
             commit_callback=self.commit_callback,
-            default_species=self.ibs.cfg.detect_cfg.species,
+            default_species=self.ibs.cfg.detect_cfg.species_text,
             next_callback=next_callback,
             prev_callback=prev_callback,
             fnum=12,

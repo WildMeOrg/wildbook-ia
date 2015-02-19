@@ -529,7 +529,6 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         #print(scorediff_selstr)
         #print(pos_scorediff_selstr)
         #print(neg_scorediff_selstr)
-        #ut.embed()
         print('[harn]-------------')
     print_scorediff_mat_stats(alias_flags=['--sdms'])
 
@@ -826,7 +825,9 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
                 # this row (query)
                 if c == len(sel_cols) - 1:
                     #execstr = df2.present()  # NOQA
-                    input('press to continue...')
+                    ans = input('press to continue...')
+                    if ans == 'cmd':
+                        ut.embed()
                     #six.exec_(execstr, globals(), locals())
                     #exec(df2.present(), globals(), locals())
                 #print(execstr)

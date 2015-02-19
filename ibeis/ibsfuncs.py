@@ -1631,11 +1631,50 @@ def make_enctext_list(eid_list, enc_cfgstr):
 
 
 @__injectable
-def make_next_name(ibs, num=None, str_format=2):
+def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text=None):
     """ Creates a number of names which are not in the database, but does not
-    add them """
-    def _abbreviate(string):
-        return ''.join([ letter for letter in string.title() if letter.isupper() ])
+    add them
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        num (None):
+        str_format (int): either 1 or 2
+
+    Returns:
+        str: next_name
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-make_next_name
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs1 = ibeis.opendb('testdb1')
+        >>> ibs2 = ibeis.opendb('PZ_MTEST')
+        >>> ibs3 = ibeis.opendb('NAUT_test')
+        >>> #ibs5 = ibeis.opendb('GIR_Tanya')
+        >>> num = None
+        >>> str_format = 2
+        >>> # execute function
+        >>> next_name1 = make_next_name(ibs1, num, str_format)
+        >>> next_name2 = make_next_name(ibs2, num, str_format)
+        >>> next_name3 = make_next_name(ibs3, num, str_format)
+        >>> next_name4 = make_next_name(ibs1, num, str_format, const.Species.ZEB_GREVY)
+        >>> name_list = [next_name1, next_name2, next_name3, next_name4]
+        >>> # verify results
+        >>> # FIXME: nautiluses are not working right
+        >>> result = str(name_list)
+        >>> print(result)
+        ['IBEIS_UNKNOWN_0008', 'IBEIS_PZ_0042', 'IBEIS_GZ_0004', 'IBEIS_GZ_0008']
+
+    """
+    if species_text is None:
+        # TODO: optionally specify qreq_ or qparams?
+        species_text  = ibs.cfg.detect_cfg.species_text
+    if location_text is None:
+        location_text = ibs.cfg.other_cfg.location_for_names
     base_index = len(ibs._get_all_known_name_rowids()) + 1  # ibs.get_num_names()
     if str_format == 1:
         userid = ut.get_user_name()
@@ -1645,15 +1684,8 @@ def make_next_name(ibs, num=None, str_format=2):
         timestamp_prefix = ''
         name_prefix = timestamp_prefix + timestamp + timestamp_suffix + userid + '_'
     elif str_format == 2:
-        locateion_text = ibs.cfg.other_cfg.location_for_names
-        species_text = ibs.cfg.detect_cfg.species
-        if species_text == 'none':
-            species_short = 'UNKNOWN'
-        else:
-            species_short = _abbreviate(species_text)
-            # Temporary fix
-            species_short = species_short[::-1]
-        name_prefix = locateion_text + '_' + species_short + '_'
+        species_code = const.get_species_code(species_text)
+        name_prefix = location_text + '_' + species_code + '_'
     else:
         raise ValueError('Invalid str_format supplied')
     if num is None:

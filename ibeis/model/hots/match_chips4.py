@@ -58,8 +58,6 @@ def empty_query(ibs, qaids):
     daids = []
     qreq_ = ibs.new_query_request(qaids, daids)
     qres_list = qreq_.make_empty_query_results()
-    for qres in qres_list:
-        qres.aid2_score = {}
     qaid2_qres = dict(zip(qaids, qres_list))
     return qaid2_qres, qreq_
 
@@ -123,6 +121,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                      len(qaid_list) > MIN_BIGCACHE_BUNDLE)
     if (use_bigcache_ or save_qcache) and len(qaid_list) > MIN_BIGCACHE_BUNDLE:
         bc_dpath = ibs.bigcachedir
+        # TODO: SYSTEM : semantic should only be used if name scoring is on
         qhashid = ibs.get_annot_hashid_semantic_uuid(qaid_list, prefix='Q')
         dhashid = ibs.get_annot_hashid_semantic_uuid(daid_list, prefix='D')
         bc_fname = ''.join((ibs.get_dbname(), '_QRESMAP', qhashid, dhashid))

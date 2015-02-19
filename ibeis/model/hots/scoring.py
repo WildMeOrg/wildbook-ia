@@ -5,6 +5,7 @@ optional symetric and asymmetric search
 """
 
 from __future__ import absolute_import, division, print_function
+import six
 import numpy as np
 import vtool as vt
 import utool as ut
@@ -16,6 +17,91 @@ from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 from six.moves import zip, range  # NOQA
 #profile = ut.profile
 print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[scoring]', DEBUG=False)
+
+
+def get_chipmatch_testdata(**kwargs):
+    from ibeis.model.hots import pipeline
+    cfgdict = {'dupvote_weight': 1.0}
+    ibs, qreq_ = pipeline.get_pipeline_testdata('testdb1', cfgdict)
+    # Run first four pipeline steps
+    locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
+    qaid2_chipmatch = locals_['qaid2_chipmatch_FILT']
+    # Get a single chipmatch
+    qaid = six.next(six.iterkeys(qaid2_chipmatch))
+    chipmatch = qaid2_chipmatch[qaid]
+    return ibs, qreq_, qaid, chipmatch
+
+
+def score_chipmatch_csum(qaid, chipmatch, qreq_):
+    """
+    score_chipmatch_csum
+
+    Args:
+        chipmatch (tuple):
+
+    Returns:
+        tuple: aid_list, score_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.scoring import *  # NOQA
+        >>> ibs, qreq_, qaid, chipmatch = get_chipmatch_testdata()
+        >>> (aid_list, score_list) = score_chipmatch_csum(qaid, chipmatch, qreq_)
+        >>> print(aid_list, score_list)
+    """
+    aid2_fsv = chipmatch.aid2_fsv
+    aid_list = list(six.iterkeys(aid2_fsv))
+    fsv_list = ut.dict_take(aid2_fsv, aid_list)
+    fs_list = [fsv.prod(axis=1) for fsv in fsv_list]
+    score_list = [np.sum(fs) for fs in fs_list]
+    return (aid_list, score_list)
+
+
+def score_chipmatch_nsum(qaid, chipmatch, qreq_):
+    """
+    score_chipmatch_nsum
+
+    Args:
+        chipmatch (tuple):
+
+    Returns:
+        dict: nid2_score
+
+    CommandLine:
+        python dev.py -t custom:score_method=csum,prescore_method=csum --db GZ_ALL --show --va -w --qaid 1032 --noqcache
+
+        python dev.py -t nsum_nosv --db GZ_ALL --allgt --noqcache
+        python dev.py -t nsum --db GZ_ALL --show --va -w --qaid 1032 --noqcache
+        python dev.py -t nsum_nosv --db GZ_ALL --show --va -w --qaid 1032 --noqcache
+        qaid=1032_res_gooc+f4msr4ouy9t_quuid=c4f78a6d.npz
+        qaid=1032_res_5ujbs8h&%vw1olnx_quuid=c4f78a6d.npz
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.scoring import *  # NOQA
+        >>> ibs, qreq_, qaid, chipmatch = get_chipmatch_testdata()
+        >>> (aid_list, score_list) = score_chipmatch_nsum(qaid, chipmatch, qreq_)
+        >>> print(aid_list, score_list)
+    """
+    # TODO: rectify this code with code in name scoring
+    # TODO: should be another version of nsum where each feature gets a single vote
+    aid2_fsv = chipmatch.aid2_fsv
+    aid_list = list(six.iterkeys(aid2_fsv))
+    fsv_list = ut.dict_take(aid2_fsv, aid_list)
+    #fs_list = [fsv.prod(axis=1) if fsv.shape[1] > 1 else fsv.T[0] for fsv in fsv_list]
+    fs_list = [fsv.prod(axis=1) for fsv in fsv_list]
+    annot_score_list = np.array([fs.sum() for fs in fs_list])
+    annot_nid_list = np.array(qreq_.ibs.get_annot_name_rowids(aid_list))
+    nid_list, groupxs = vt.group_indicies(annot_nid_list)
+    grouped_scores = vt.apply_grouping(annot_score_list, groupxs)
+    def indicator_array(size, pos, value):
+        """ creates zero array and places value at pos """
+        arr = np.zeros(size)
+        arr[pos] = value
+        return arr
+    grouped_nscores = [indicator_array(scores.size, scores.argmax(), scores.sum()) for scores in grouped_scores]
+    nscore_list = vt.clustering2.invert_apply_grouping(grouped_nscores, groupxs)
+    return aid_list, nscore_list
 
 
 #### FEATURE WEIGHTS ####

@@ -384,9 +384,10 @@ def choose_vsmany_K(num_names, qaids, daids):
     else:
         K  = K_max
 
-    if len(ut.intersect_ordered(qaids, daids)) > 0:
-        # if self is in query bump k
-        K += 1
+    with ut.embed_on_exception_context:
+        if len(ut.intersect_ordered(qaids, daids)) > 0:
+            # if self is in query bump k
+            K += 1
     return K
 
 

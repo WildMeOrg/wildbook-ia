@@ -117,7 +117,7 @@ def show_image(ibs, gid, sel_aids=[], fnum=None,
         >>> # build test data
         >>> ibs = ibeis.opendb(ut.get_argval('--db', str, 'testdb1'))
         >>> #gid = ibs.get_valid_gids()[0]
-        >>> gid = ut.get_argval('--gid', int, 0)
+        >>> gid = ut.get_argval('--gid', int, 1)
         >>> aid = ut.get_argval('--aid', int, None)
         >>> if aid is not None:
         >>>    gid = ibs.get_annot_gids(aid)

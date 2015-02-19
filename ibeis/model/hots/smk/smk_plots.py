@@ -668,9 +668,9 @@ def main():
 
     # HACK
     if ibs.get_dbname().startswith('GZ_'):
-        ibs.cfg.detect_cfg.species = 'zebra_grevys'
+        ibs.cfg.detect_cfg.species_text = 'zebra_grevys'
     else:
-        ibs.cfg.detect_cfg.species = 'zebra_plains'
+        ibs.cfg.detect_cfg.species_text = 'zebra_plains'
 
     # Define the plots you want
 

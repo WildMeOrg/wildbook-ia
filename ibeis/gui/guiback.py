@@ -225,7 +225,7 @@ class MainWindowBackend(QtCore.QObject):
         back.run_detection_on_images(gid_list, refresh=refresh, **kwargs)
 
     def run_detection_on_images(back, gid_list, refresh=True, **kwargs):
-        species = back.ibs.cfg.detect_cfg.species
+        species = back.ibs.cfg.detect_cfg.species_text
         back.ibs.detect_random_forest(gid_list, species)
         if refresh:
             back.front.update_tables([gh.IMAGE_TABLE])
@@ -561,7 +561,7 @@ class MainWindowBackend(QtCore.QObject):
             gid_list = back.ibs.get_valid_gids()
         else:
             gid_list = back.ibs.get_valid_gids(eid=eid)
-        species = back.ibs.cfg.detect_cfg.species
+        species = back.ibs.cfg.detect_cfg.species_text
         if species == 'none':
             species = None
         print("[train_rf_with_encounter] Training Random Forest trees with enc=%r and species=%r" % (eid, species, ))
@@ -645,7 +645,7 @@ class MainWindowBackend(QtCore.QObject):
         ibs = back.ibs
         eid = back.get_selected_eid()
         aid_list = back.ibs.get_valid_aids(eid=eid)
-        species_list = [ibs.cfg.detect_cfg.species] * len(aid_list)
+        species_list = [ibs.cfg.detect_cfg.species_text] * len(aid_list)
         ibs.set_annot_species(aid_list, species_list)
         if refresh:
             back.front.update_tables([gh.ANNOTATION_TABLE])
@@ -664,17 +664,17 @@ class MainWindowBackend(QtCore.QObject):
             cfgname = species
         ibs._load_named_config(cfgname)
         #ibs.cfg.save()
-        #ibs.cfg.detect_cfg.species = value
+        #ibs.cfg.detect_cfg.species_text = value
 
     def get_selected_species(back):
-        return back.ibs.cfg.detect_cfg.species
+        return back.ibs.cfg.detect_cfg.species_text
 
     @blocking_slot()
     def change_query_mode(back, index, value):
         print('[back] change_query_mode(%r, %r)' % (index, value))
         back.query_mode = value
         #ibs = back.ibs
-        #ibs.cfg.detect_cfg.species = value
+        #ibs.cfg.detect_cfg.species_text = value
         #ibs.cfg.save()
 
     @blocking_slot()
@@ -683,7 +683,7 @@ class MainWindowBackend(QtCore.QObject):
         eid = back._eidfromkw(kwargs)
         ibs = back.ibs
         gid_list = ibsfuncs.get_empty_gids(ibs, eid=eid)
-        species = ibs.cfg.detect_cfg.species
+        species = ibs.cfg.detect_cfg.species_text
         # Construct message
         msg_fmtstr_list = ['You are about to run detection...']
         fmtdict = dict()

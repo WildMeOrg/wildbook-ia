@@ -19,7 +19,6 @@ from ibeis.model.hots import pipeline
 from ibeis.model.hots import precision_recall
 from ibeis.model.hots import query_helpers
 from ibeis.model.hots import query_request
-from ibeis.model.hots import voting_rules2
 from ibeis.model.hots import _pipeline_helpers
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(
@@ -43,7 +42,6 @@ def reload_subs(verbose=True):
     getattr(precision_recall, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(query_helpers, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(query_request, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(voting_rules2, 'rrr', lambda verbose: None)(verbose=verbose)
     rrr(verbose=verbose)
 rrrr = reload_subs
 
@@ -62,7 +60,6 @@ IMPORT_TUPLES = [
     ('precision_recall', None, False),
     ('query_helpers', None, False),
     ('query_request', None, False),
-    ('voting_rules2', None, False),
     ('_pipeline_helpers', None, False),
 ]
 """
@@ -79,7 +76,6 @@ Regen Command:
 #from . import pipeline
 #from . import query_helpers
 #from . import query_request
-#from . import voting_rules2
 
 
 #import utool
@@ -96,7 +92,6 @@ Regen Command:
 #    getattr(pipeline, 'rrr', lambda: None)()
 #    getattr(query_helpers, 'rrr', lambda: None)()
 #    getattr(query_request, 'rrr', lambda: None)()
-#    getattr(voting_rules2, 'rrr', lambda: None)()
 #    rrr()
 
 

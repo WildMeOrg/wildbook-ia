@@ -2,7 +2,100 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
 import six
+from ibeis.model.hots import hstypes
+from collections import namedtuple, defaultdict
 print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[chip_match]', DEBUG=False)
+
+
+ChipMatchOldTup = namedtuple('ChipMatchOldTup', ('aid2_fm', 'aid2_fsv', 'aid2_fk', 'aid2_score', 'aid2_H'))
+
+
+def fix_cmtup_old(chipmatch_):
+    r"""
+    removes matches without enough support
+    enforces type and shape of arrays
+
+    CommandLine:
+        python -m ibeis.model.hots.chip_match --test-fix_cmtup_old
+
+    Note:
+        difference between windows and linux:
+        windows in on python32 and linux is python64
+        therefore we get dtype=np.int32 printing on linux but not on windows
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.chip_match import *  # NOQA
+        >>> # build test data
+        >>> chipmatch_ = (
+        ...    {1: [(0, 0), (1, 1)], 2: [(0, 0), (1, 1), (2, 2)]},
+        ...    {1: [    .5,     .7], 2: [    .2,     .4,     .6]},
+        ...    {1: [     1,      1], 2: [     1,      1,      1]},
+        ...    None,
+        ...    None,
+        ...    )
+        >>> # execute function
+        >>> chipmatch = fix_cmtup_old(chipmatch_)
+        >>> # verify results
+        >>> result = ut.dict_str(chipmatch._asdict(), precision=2)
+        >>> print(result)
+        {
+            'aid2_fm': {
+                2: np.array([[0, 0],
+                             [1, 1],
+                             [2, 2]], dtype=np.int32),
+            },
+            'aid2_fsv': {
+                2: np.array([ 0.2,  0.4,  0.6], dtype=np.float64),
+            },
+            'aid2_fk': {
+                2: np.array([1, 1, 1], dtype=np.int16),
+            },
+            'aid2_score': {},
+            'aid2_H': None,
+        }
+
+
+    """
+    (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = chipmatch_
+    minMatches = 2  # TODO: paramaterize
+    # FIXME: This is slow
+    fm_dtype  = hstypes.FM_DTYPE
+    fsv_dtype = hstypes.FS_DTYPE
+    fk_dtype  = hstypes.FK_DTYPE
+    # Mark valid chipmatches
+    aid_list_     = list(six.iterkeys(aid2_fm_))
+    fm_list_      = list(six.itervalues(aid2_fm_))
+    isvalid_list_ = [len(fm) > minMatches for fm in fm_list_]
+    # Filter invalid chipmatches
+    aid_list   = ut.filter_items(aid_list_, isvalid_list_)
+    fm_list    = ut.filter_items(fm_list_, isvalid_list_)
+    fsv_list   = ut.dict_take(aid2_fsv_, aid_list)
+    fk_list    = ut.dict_take(aid2_fk_, aid_list)
+    score_list = None if aid2_score_ is None or len(aid2_score_) == 0 else ut.dict_take(aid2_score_, aid_list)
+    H_list     = None if aid2_H_ is None else ut.dict_take(aid2_H_, aid_list)
+    # Convert to numpy an dictionary format
+    aid2_fm    = {aid: np.array(fm, fm_dtype) for aid, fm in zip(aid_list, fm_list)}
+    aid2_fsv   = {aid: np.array(fsv, fsv_dtype) for aid, fsv in zip(aid_list, fsv_list)}
+    aid2_fk    = {aid: np.array(fk, fk_dtype) for aid, fk in zip(aid_list, fk_list)}
+    aid2_score = {} if score_list is None else {aid: score for aid, score in zip(aid_list, score_list)}
+    aid2_H     = None if H_list is None else {aid: H for aid, H in zip(aid_list, H_list)}
+    # Ensure shape
+    #for aid, fm in six.iteritems(aid2_fm_):
+    #    fm.shape = (fm.size // 2, 2)
+    chipmatch = ChipMatchOldTup(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
+    return chipmatch
+
+
+def new_cmtup_old(with_homog=False, with_score=True):
+    """ returns new chipmatch for a single qaid """
+    aid2_fm = defaultdict(list)
+    aid2_fsv = defaultdict(list)
+    aid2_fk = defaultdict(list)
+    aid2_score = dict() if with_score else None
+    aid2_H = dict() if with_homog else None
+    chipmatch = ChipMatchOldTup(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
+    return chipmatch
 
 
 class _DefaultDictProxy(object):
@@ -121,14 +214,13 @@ class _OldStyleChipMatchSimulator(object):
         cm = ChipMatch2(qaid, daid_list, fm_list, fsv_list, fk_list, score_list, H_list, fsv_col_lbls)
         return cm
 
-    def to_oldstyle_chipmatch(cm):
-        from ibeis.model.hots import hstypes
+    def to_cmtup_old(cm):
         aid2_fm    = dict(zip(cm.daid_list, cm.fm_list))
         aid2_fsv   = dict(zip(cm.daid_list, cm.fsv_list))
         aid2_fk    = dict(zip(cm.daid_list, cm.fk_list))
         aid2_score = {} if cm.score_list is None else dict(zip(cm.daid_list, cm.score_list))
         aid2_H     = None if cm.H_list is None else dict(zip(cm.daid_list, cm.H_list))
-        chipmatch  = hstypes.ChipMatch(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
+        chipmatch  = ChipMatchOldTup(aid2_fm, aid2_fsv, aid2_fk, aid2_score, aid2_H)
         return chipmatch
 
     def __iter__(cm):
@@ -200,7 +292,7 @@ def test_from_qres(qres):
 @six.add_metaclass(ut.ReloadingMetaclass)
 class ChipMatch2(_OldStyleChipMatchSimulator):
     """
-    behaves as as the ChipMatch named tuple until we
+    behaves as as the ChipMatchOldTup named tuple until we
     completely replace the old structure
     """
 

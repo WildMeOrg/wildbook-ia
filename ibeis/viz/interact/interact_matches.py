@@ -23,7 +23,7 @@ from plottool import interact_helpers as ih
 from plottool import plot_helpers as ph
 from ibeis import viz
 from ibeis.model.hots import scoring
-from ibeis.model.hots import hstypes
+from ibeis.model.hots import chip_match
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_hough
 from ibeis.viz import viz_chip
@@ -34,9 +34,15 @@ from ibeis.viz.interact.interact_chip import ishow_chip
 
 def testdata_match_interact(**kwargs):
     """
+    CommandLine:
+        python -m ibeis.viz.interact.interact_matches --test-testdata_match_interact --show
+
+    Example:
         >>> from ibeis.viz.interact.interact_matches import *  # NOQA
+        >>> import plottool as pt
         >>> kwargs = {}
         >>> self = testdata_match_interact(**kwargs)
+        >>> pt.show_if_requested()
     """
     import ibeis
     ibs = ibeis.opendb('testdb1')
@@ -64,9 +70,9 @@ class MatchInteraction(object):
 
     def init_old(self, ibs, qres, *args, **kwargs):
         """ old begin function for working with qres objects """
-        if not isinstance(qres, hstypes.ChipMatch2):
+        if not isinstance(qres, chip_match.ChipMatch2):
             self.qres = qres
-            cm = hstypes.ChipMatch2.from_qres(self.qres)
+            cm = chip_match.ChipMatch2.from_qres(self.qres)
         else:
             cm = qres
             self.qres = qres
@@ -149,10 +155,12 @@ class MatchInteraction(object):
             ('show coverage', self.show_coverage),
             #('show each probchip', self.query_last_feature),
         ]
+        opt2_callback.append(('name_interaction', self.name_interaction))
         if self.H1 is not None:
             opt2_callback.append(('Toggle homog', self.toggle_homog))
         if ut.is_developer():
             opt2_callback.append(('dev_reload', self.dev_reload))
+            opt2_callback.append(('dev_embed', self.dev_embed))
         opt2_callback.append(('cancel', lambda: print('cancel')))
         guitool.connect_context_menu(self.fig.canvas, opt2_callback)
         ih.connect_callback(self.fig, 'button_press_event', self._click_matches_click)
@@ -451,6 +459,16 @@ class MatchInteraction(object):
         ih.disconnect_callback(self.fig, 'button_press_event')
         self.rrr()
         self.set_callbacks()
+
+    def dev_embed(self):
+        ut.embed()
+
+    def name_interaction(self):
+        from ibeis.viz.interact import interact_name
+        aid1 = self.qaid  # 14
+        aid2 = self.daid  # 5546
+        self = interact_name.MatchVerificationInteraction(self.ibs, aid1, aid2)
+        #ut.embed()
 
     def toggle_vert(self):
         self.vert = not self.vert
