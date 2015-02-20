@@ -115,6 +115,7 @@ def reset_testdbs():
     if argdict['reset_all']:
         delete_larger_testdbs()
     delete_testdbs()
+    ensure_smaller_testingdbs()
     ensure_larger_testing_dbs()
     workdir = ibeis.sysres.get_workdir()
     TESTDB1 = join(workdir, 'testdb1')
