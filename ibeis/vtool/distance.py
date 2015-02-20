@@ -11,14 +11,26 @@ TAU = 2 * np.pi  # References: tauday.com
 
 @profile
 def ori_distance(ori1, ori2):
-    """ Returns how far off determinants are from one another
-    >>> from vtool.linalg import *  # NOQA
-    >>> np.random.seed(53)
-    >>> ori1 = (np.random.rand(10) * TAU) - np.pi
-    >>> ori2 = (np.random.rand(10) * TAU) - np.pi
-    >>> output = ut.hashstr(ut.hashstr(ori_distance(ori1, ori2)))
-    >>> print(ut.hashstr(output))
-    !755pt!alrfgshiu
+    r""" Returns how far off determinants are from one another
+
+    CommandLine:
+        python -m vtool.distance --test-ori_distance
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> np.random.seed(0)
+        >>> ori1 = (np.random.rand(10) * TAU) - np.pi
+        >>> ori2 = (np.random.rand(10) * TAU) - np.pi
+        >>> dist_ = ori_distance(ori1, ori2)
+        >>> result = ut.numpy_str(ori1, precision=1)
+        >>> result += '\n' + ut.numpy_str(ori2, precision=1)
+        >>> result += '\n' + ut.numpy_str(dist_, precision=1)
+        >>> print(result)
+        np.array([ 0.3,  1.4,  0.6,  0.3, -0.5,  0.9, -0.4,  2.5,  2.9, -0.7], dtype=np.float64)
+        np.array([ 1.8,  0.2,  0.4,  2.7, -2.7, -2.6, -3. ,  2.1,  1.7,  2.3], dtype=np.float64)
+        np.array([ 1.5,  1.2,  0.2,  2.4,  2.2,  2.8,  2.6,  0.4,  1.2,  3.1], dtype=np.float64)
+
 
     Cyth:
         #if CYTH
