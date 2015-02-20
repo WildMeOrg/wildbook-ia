@@ -30,6 +30,7 @@ IMAGE_ROWID         = 'image_rowid'
 NAME_ROWID          = 'name_rowid'
 SPECIES_ROWID       = 'species_rowid'
 ANNOT_EXEMPLAR_FLAG = 'annot_exemplar_flag'
+ANNOT_QUALITY       = 'annot_quality'
 
 
 # ==========
@@ -965,7 +966,7 @@ def get_annot_yaws(ibs, aid_list):
         back side  - 0.75 tau radians
 
     SeeAlso:
-        ibies.const.VIEWPOINT_YAW_RADIANS
+        ibies.const.VIEWTEXT_TO_YAW_RADIANS
 
     Returns:
         yaw_list (list): the yaw (in radians) for the annotation
@@ -1005,7 +1006,7 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
         back side  - 0.75 tau radians
 
     SeeAlso:
-        ibies.const.VIEWPOINT_YAW_RADIANS
+        ibies.const.VIEWTEXT_TO_YAW_RADIANS
 
     References;
         http://upload.wikimedia.org/wikipedia/commons/7/7e/Rollpitchyawplain.png
@@ -1704,11 +1705,77 @@ def get_annot_probchip_fpaths(ibs, aid_list, qreq_=None):
     return probchip_fpath_list
 
 
+# ---
+# NEW
+# ---
+
+@register_ibs_method
+@accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_QUALITY)
+def get_annot_qualities(ibs, aid_list, eager=True):
+    """ annot_quality_list <- annot.annot_quality[aid_list]
+
+    gets data from the "native" column "annot_quality" in the "annot" table
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: annot_quality_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = annot_quality
+        tbl = annot
+
+    SeeALso:
+        ibeis.const.QUALITY_INT_TO_TEXT
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> aid_list = ibs._get_all_aids()
+        >>> eager = True
+        >>> annot_quality_list = ibs.get_annot_qualities(aid_list, eager=eager)
+        >>> print('annot_quality_list = %r' % (annot_quality_list,))
+        >>> assert len(aid_list) == len(annot_quality_list)
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_QUALITY,)
+    annot_quality_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager)
+    return annot_quality_list
+
+
+@register_ibs_method
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, ANNOT_QUALITY, native_rowids=True)
+def set_annot_qualities(ibs, aid_list, annot_quality_list):
+    """ annot_quality_list -> annot.annot_quality[aid_list]
+
+    A quality is an integer representing the following types:
+
+    Args:
+        aid_list
+        annot_quality_list
+
+    SeeALso:
+        ibeis.const.QUALITY_INT_TO_TEXT
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = annot
+        col = annot_quality
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_QUALITY,)
+    ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_quality_list, id_iter)
+
+
 #==========
 # Testdata
 #==========
 
-def testdata_annot():
+def testdata_ibs():
     import ibeis
     ibs = ibeis.opendb('testdb1')
     qreq_ = None

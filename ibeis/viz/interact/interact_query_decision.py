@@ -1,7 +1,9 @@
 from __future__ import absolute_import, division, print_function
+import six
 import utool
 import utool as ut
 import ibeis
+from ibeis import constants as const
 from plottool import interact_helpers as ih
 from plottool import draw_func2 as df2
 from ibeis.viz.interact import interact_matches  # NOQA
@@ -27,6 +29,7 @@ def test_QueryVerificationInteraction():
     """
     CommandLine:
         python -m ibeis.viz.interact.interact_query_decision --test-test_QueryVerificationInteraction
+        ./main.py  --eid 2 --inc-query --yes
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -37,7 +40,7 @@ def test_QueryVerificationInteraction():
         >>> # verify results
         >>> print(result)
     """
-    ibs = ibeis.opendb('testdb1')
+    ibs = ibeis.opendb(defaultdb='testdb1')
     valid_aids = ibs.get_valid_aids()
     qaids = valid_aids[0:1]
     daids = valid_aids[1:]
@@ -357,17 +360,32 @@ class QueryVerificationInteraction(AbstractInteraction):
                 if event.button == 3:   # right-click
                     import guitool
                     ibs = self.ibs
-                    def set_angle_func(key):
+                    def set_yaw_func(key):
                         def _wrp():
-                            yaw = ibeis.const.VIEWPOINT_YAW_RADIANS[key]
-                            ibs.set_annot_yaw([aid], [yaw])
+                            yaw = const.VIEWTEXT_TO_YAW_RADIANS[key]
+                            ibs.set_annot_yaws([aid], [yaw])
                         return _wrp
-                    import six
+                    def set_quality_func(key):
+                        def _wrp():
+                            quality = const.QUALITY_TEXT_TO_INT[key]
+                            ibs.set_annot_yaws([aid], [quality])
+                        return _wrp
                     angle_callback_list = [
-                        ('Set Viewpoint: ' + key, set_angle_func(key))
-                        for key in six.iterkeys(ibeis.const.VIEWPOINT_YAW_RADIANS)
+                        ('Set Viewpoint: ' + key, set_yaw_func(key))
+                        for key in six.iterkeys(const.VIEWTEXT_TO_YAW_RADIANS)
                     ]
-                    guitool.popup_menu(self.fig.canvas, guitool.newQPoint(event.x, event.y), angle_callback_list)
+                    angle_callback_list += [
+                        ('Set Quality: ' + key, set_yaw_func(key))
+                        for key in six.iterkeys(const.QUALITY_TEXT_TO_INT)
+                    ]
+                    angle_callback_list += [
+
+
+                    ]
+                    height = self.fig.canvas.geometry().height()
+                    pt = guitool.newQPoint(event.x, height - event.y)
+                    print(pt)
+                    guitool.popup_menu(self.fig.canvas, pt, angle_callback_list)
                     #ibs.print_annotation_table()
                 print(ut.dict_str(event.__dict__))
 

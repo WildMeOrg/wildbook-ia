@@ -24,6 +24,7 @@ profile = utool.profile
 NAME_TABLE_v121   = const.NAME_TABLE_v121
 NAME_TABLE_v130   = const.NAME_TABLE_v130
 ANNOT_VISUAL_UUID = 'annot_visual_uuid'
+ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
 ANNOT_UUID        = 'annot_uuid'
 ANNOT_YAW         = 'annot_yaw'
 ANNOT_VIEWPOINT   = 'annot_viewpoint'
@@ -415,7 +416,7 @@ def post_1_2_1(db, ibs=None):
             image_uuid_list, verts_list, theta_list = visual_infotup
             # It is visual info augmented with name and species
             def get_annot_viewpoints(ibs, aid_list):
-                viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_viewpoint',), aid_list)
+                viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), aid_list)
                 viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
                 return viewpoint_list
             view_list       = get_annot_viewpoints(ibs, aid_list)
@@ -446,6 +447,11 @@ def post_1_2_1(db, ibs=None):
         update_annot_visual_uuids_v121(aid_list)
 
 
+def post_1_3_4(db, ibs=None):
+    if ibs is not None:
+        ibs.update_annot_visual_uuids(ibs.get_valid_aids())
+
+
 def pre_1_3_1(db, ibs=None):
     """
     need to ensure that visual uuid columns are unique before we add that
@@ -458,7 +464,38 @@ def pre_1_3_1(db, ibs=None):
         ibs._init_rowid_constants()
         ibs._init_config()
         aid_list = ibs.get_valid_aids()
-        ibs.update_annot_visual_uuids(aid_list)
+        def pre_1_3_1_update_visual_uuids(ibs, aid_list):
+            from ibeis.model.preproc import preproc_annot
+            def pre_1_3_1_get_annot_visual_uuid_info(ibs, aid_list):
+                image_uuid_list = ibs.get_annot_image_uuids(aid_list)
+                verts_list      = ibs.get_annot_verts(aid_list)
+                theta_list      = ibs.get_annot_thetas(aid_list)
+                visual_infotup = (image_uuid_list, verts_list, theta_list)
+                return visual_infotup
+            def pre_1_3_1_get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup):
+                image_uuid_list, verts_list, theta_list = visual_infotup
+                def get_annot_viewpoints(ibs, aid_list):
+                    viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), aid_list)
+                    viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
+                    return viewpoint_list
+                # It is visual info augmented with name and species
+                viewpoint_list  = get_annot_viewpoints(ibs, aid_list)
+                name_list       = ibs.get_annot_names(aid_list)
+                species_list    = ibs.get_annot_species_texts(aid_list)
+                semantic_infotup = (image_uuid_list, verts_list, theta_list, viewpoint_list,
+                                    name_list, species_list)
+                return semantic_infotup
+            visual_infotup = pre_1_3_1_get_annot_visual_uuid_info(ibs, aid_list)
+            annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
+            ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list)
+            # If visual uuids are changes semantic ones are also changed
+            # update semeantic pre 1_3_1
+            _visual_infotup = visual_infotup
+            semantic_infotup = pre_1_3_1_get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup)
+            annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
+            ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_SEMANTIC_UUID,), annot_semantic_uuid_list, aid_list)
+            pass
+        pre_1_3_1_update_visual_uuids(ibs, aid_list)
         #ibsfuncs.fix_remove_visual_dupliate_annotations(ibs)
         aid_list = ibs.get_valid_aids()
         visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
@@ -827,7 +864,7 @@ VALID_VERSIONS = utool.odict([
     ('1.3.1',    (pre_1_3_1,            update_1_3_1,       None                )),
     ('1.3.2',    (None,                 update_1_3_2,       None                )),
     ('1.3.3',    (None,                 update_1_3_3,       None                )),
-    ('1.3.4',    (None,                 update_1_3_4,       None                )),
+    ('1.3.4',    (None,                 update_1_3_4,       post_1_3_4          )),
 ])
 
 

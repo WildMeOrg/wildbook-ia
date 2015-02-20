@@ -93,6 +93,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
     @slot_(int)
     def _on_change(enc_tabwgt, index):
         """ Switch to the current encounter tab """
+        print('[encounter_tab_widget] _onchange(index=%r)' % (index,))
         if 0 <= index and index < len(enc_tabwgt.eid_list):
             eid = enc_tabwgt.eid_list[index]
             #if ut.VERBOSE:
@@ -103,12 +104,14 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
 
     @slot_(int)
     def _close_tab(enc_tabwgt, index):
+        print('[encounter_tab_widget] _close_tab(index=%r)' % (index,))
         if enc_tabwgt.eid_list[index] is not None:
             enc_tabwgt.eid_list.pop(index)
             enc_tabwgt.removeTab(index)
 
     @slot_()
     def _close_all_tabs(enc_tabwgt):
+        print('[encounter_tab_widget] _close_all_tabs()')
         while len(enc_tabwgt.eid_list) > 0:
             index = 0
             enc_tabwgt.eid_list.pop(index)
@@ -116,6 +119,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
 
     @slot_(int)
     def _close_tab_with_eid(enc_tabwgt, eid):
+        print('[encounter_tab_widget] _close_tab_with_eid(eid=%r)' % (eid))
         try:
             index = enc_tabwgt.eid_list.index(eid)
             enc_tabwgt._close_tab(index)
@@ -615,6 +619,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     #@checks_qt_error
     def _connect_signals_and_slots(ibswgt):
+        print('[newgui] _connect_signals_and_slots')
         for tblname in ibswgt.super_tblname_list:
             tblview = ibswgt.views[tblname]
             tblview.doubleClicked.connect(ibswgt.on_doubleclick)
@@ -635,12 +640,16 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         return index
 
     def set_table_tab(ibswgt, tblname):
+        print('[newgui] set_table_tab: %r ' % (tblname,))
         index = ibswgt.get_table_tab_index(tblname)
         ibswgt._tab_table_wgt.setCurrentIndex(index)
 
     def select_encounter_tab(ibswgt, eid):
-        if True:
-            prefix = ut.get_caller_name(range(1, 8))
+        if False:
+            prefix = ut.get_caller_name(range(0, 10))
+            prefix = prefix.replace('[wrp_noexectb]', 'w')
+            prefix = prefix.replace('[slot_wrapper]', 's')
+            prefix = prefix.replace('[X]', 'x')
         else:
             prefix = ''
         print(prefix + '[newgui] select_encounter_tab eid=%r' % (eid,))
@@ -653,8 +662,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
         When the rows are updated change the tab names
         """
+        print('[newgui] on_rows_updated: tblname=%12r nRows=%r ' % (tblname, nRows))
         #printDBG('Rows updated in tblname=%r, nRows=%r' % (str(tblname), nRows))
         if tblname == ENCOUNTER_TABLE:  # Hack
+            print('... tblname == ENCOUNTER_TABLE, ...hack return')
             return
         tblname = str(tblname)
         tblnice = gh.TABLE_NICE[tblname]
@@ -896,6 +907,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
         Double clicking anywhere in the GUI
         """
+        print('\n+--- DOUBLE CLICK ---')
         #printDBG('on_doubleclick')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)

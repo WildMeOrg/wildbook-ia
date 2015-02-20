@@ -391,7 +391,9 @@ class MatchVerificationInteraction(AbstractInteraction):
                     def context_func():
                         ibs.set_annot_exemplar_flags(aid, not is_exemplar)
                         self.show_page()
-                    guitool.popup_menu(self.fig.canvas, guitool.newQPoint(event.x, event.y), [
+                    height = self.fig.canvas.geometry().height()
+                    pt = guitool.newQPoint(event.x, height - event.y)
+                    guitool.popup_menu(self.fig.canvas, pt, [
                         ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
                     ])
                     #ibs.print_annotation_table()

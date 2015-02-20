@@ -1240,7 +1240,9 @@ class SQLDatabaseController(object):
             # Sometimes the metadata gets moved for some reason
             # Hack the information out of the constraints
             constraint_list = db.get_table_constraints(tablename)
-            assert len(constraint_list) == 1, 'INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 CONSTRAINT'
+            #with ut.embed_on_exception_context:
+            # it is ok to have more than one constriant now
+            #assert len(constraint_list) == 1, 'INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 CONSTRAINT: %r' % (constraint_list,)
             superkey_colnames_list = []
             if constraint_list is not None:
                 import parse

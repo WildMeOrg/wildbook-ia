@@ -10,13 +10,15 @@ import numpy as np
 from collections import namedtuple
 import math
 from os.path import join
+import utool as ut
+ut.noinject('[const]')
 
 
 TAU = 2 * math.pi
 
 
 # Mapping of semantic viewpoints to yaw angles
-VIEWPOINT_YAW_RADIANS = {
+VIEWTEXT_TO_YAW_RADIANS = {
     'right'      : 0.000 * TAU,
     'frontright' : 0.125 * TAU,
     'front'      : 0.250 * TAU,
@@ -26,6 +28,15 @@ VIEWPOINT_YAW_RADIANS = {
     'back'       : 0.750 * TAU,
     'backright'  : 0.875 * TAU,
 }
+
+
+QUALITY_INT_TO_TEXT = {
+    None: 'UNKNOWN',
+    0: 'junk',
+    1: 'ok',
+    2: 'good',
+}
+QUALITY_TEXT_TO_INT = ut.invert_dict(QUALITY_INT_TO_TEXT)
 
 
 class PATH_NAMES(object):

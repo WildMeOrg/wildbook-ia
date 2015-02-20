@@ -156,6 +156,9 @@ variable_aliases = {
 }
 
 
+PLURAL_FIX_LIST = [('bboxs',    'bboxes'),
+                   ('qualitys', 'qualities')]
+
 func_aliases = {
     #'get_feat_vec_lists': 'get_feat_vecs',
     #'get_feat_kpt_lists': 'get_feat_kpts',
@@ -653,7 +656,8 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
             double_tbl = single_tbl + '_' + single_tbl
             func_code = func_code.replace(double_tbl, single_tbl)
             # HACK for plural bbox
-            func_code = func_code.replace('bboxs', 'bboxes')
+            for bad_plural, good_plural in PLURAL_FIX_LIST:
+                func_code = func_code.replace(bad_plural, good_plural)
             # ENDHACK
             # parse out function name
             func_name = parse_first_func_name(func_code)

@@ -69,7 +69,7 @@ def preload_commands(dbdir, **kwargs):
 def postload_commands(ibs, back):
     """ Postload commands deal with a specific ibeis database """
     if ut.NOT_QUIET:
-        print('[main_cmd] postload_commands')
+        print('\n[main_cmd] postload_commands')
     if params.args.view_database_directory:
         print('got arg --vdd')
         vdd(ibs)
@@ -99,6 +99,8 @@ def postload_commands(ibs, back):
         ibs._overwrite_all_annot_species_to(params.args.set_all_species)
     if params.args.dump_schema:
         ibs.db.print_schema()
+
+    # Send commands to GUIBack
     if params.args.select_aid is not None:
         if back is not None:
             try:
@@ -114,6 +116,19 @@ def postload_commands(ibs, back):
         back.select_gid(params.args.select_gid)
     if params.args.select_nid is not None:
         back.select_nid(params.args.select_nid)
+
+    select_eid = ut.get_argval(('--select-eid', '--eid',), int, None)
+    if select_eid is not None:
+        print('\n+ --- CMD SELECT EID=%r ---' % (select_eid,))
+        # Whoa: this doesnt work. weird.
+        #back.select_eid(select_eid)
+        # This might be the root of gui problems
+        #back.front._change_enc(select_eid)
+        back.front.select_encounter_tab(select_eid)
+        print('L ___ CMD SELECT EID=%r ___\n' % (select_eid,))
+
+    if ut.get_argflag('--inc-query'):
+        back.incremental_query()
     if params.args.postload_exit:
         print('[main_cmd] postload exit')
         sys.exit(1)

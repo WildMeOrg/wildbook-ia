@@ -338,7 +338,7 @@ class MainWindowBackend(QtCore.QObject):
     def select_eid(back, eid=None, **kwargs):
         """ Table Click -> Result Table """
         eid = cast_from_qt(eid)
-        if True:
+        if False:
             prefix = ut.get_caller_name(range(1, 8))
         else:
             prefix = ''
