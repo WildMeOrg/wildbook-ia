@@ -172,15 +172,20 @@ class QueryVerificationInteraction(AbstractInteraction):
             'fnum': self.fnum,
             'pnum': (nRows, nCols, px),
             'nokpts': True,
-            'show_name': True,
             'show_gname': False,
-            'show_aidstr': False,
             'show_exemplar': False,
             'show_num_gt': False,
             'show_gname': False,
-            'enable_chip_title_prefix': False,
             'title_suffix': title_suf,
             # 'text_color': kwargs.get('color'),
+            ###
+            #'show_name': False,
+            #'show_aidstr': False,
+            #'enable_chip_title_prefix': False,
+            'enable_chip_title_prefix': ut.is_developer(),
+            'show_name': True,
+            'show_aidstr': True,
+            'show_yawtext': True,
         }
 
         viz_chip.show_chip(ibs, aid, **viz_chip_kw)

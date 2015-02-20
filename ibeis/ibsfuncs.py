@@ -2594,6 +2594,42 @@ def inspect_nonzero_yaws(ibs):
         pt.show_if_requested()
 
 
+def get_yaw_viewtexts(yaw_list):
+    r"""
+    Args:
+        yaw (?):
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_yaw_viewtexts
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> # build test data
+        >>> yaw_list = [0.0, 3.15, -.4, -8, .2, 4, 7, 20]
+        >>> # execute function
+        >>> text_list = get_yaw_viewtexts(yaw_list)
+        >>> result = ut.list_str(text_list)
+        >>> # verify results
+        >>> print(result)
+    """
+    import vtool as vt
+    import numpy as np
+    import six
+    stdlblyaw_list = list(six.iteritems(const.VIEWTEXT_TO_YAW_RADIANS))
+    stdlbl_list = ut.get_list_column(stdlblyaw_list, 0)
+    stdyaw_list = np.array(ut.get_list_column(stdlblyaw_list, 1))
+    textdists_list = [vt.ori_distance(stdyaw_list, yaw) for yaw in yaw_list]
+    index_list = [dists.argmin() for dists in textdists_list]
+    text_list = [stdlbl_list[index] for index in index_list]
+    errors = ['%.2f' % dists[index] for dists, index in zip(textdists_list, index_list)]
+    return list(zip(yaw_list, errors, text_list))
+    #return text_list
+
+
+#def get_quality_texts(
+
+
 if __name__ == '__main__':
     """
     CommandLine:

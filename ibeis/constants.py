@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function
 # import utool
 import six
 import numpy as np
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 import math
 from os.path import join
 import utool as ut
@@ -18,24 +18,24 @@ TAU = 2 * math.pi
 
 
 # Mapping of semantic viewpoints to yaw angles
-VIEWTEXT_TO_YAW_RADIANS = {
-    'right'      : 0.000 * TAU,
-    'frontright' : 0.125 * TAU,
-    'front'      : 0.250 * TAU,
-    'frontleft'  : 0.375 * TAU,
-    'left'       : 0.500 * TAU,
-    'backleft'   : 0.625 * TAU,
-    'back'       : 0.750 * TAU,
-    'backright'  : 0.875 * TAU,
-}
+VIEWTEXT_TO_YAW_RADIANS = OrderedDict([
+    ('right'      , 0.000 * TAU,),
+    ('frontright' , 0.125 * TAU,),
+    ('front'      , 0.250 * TAU,),
+    ('frontleft'  , 0.375 * TAU,),
+    ('left'       , 0.500 * TAU,),
+    ('backleft'   , 0.625 * TAU,),
+    ('back'       , 0.750 * TAU,),
+    ('backright'  , 0.875 * TAU,),
+])
 
 
-QUALITY_INT_TO_TEXT = {
-    None: 'UNKNOWN',
-    0: 'junk',
-    1: 'ok',
-    2: 'good',
-}
+QUALITY_INT_TO_TEXT = OrderedDict([
+    (2, 'good',),
+    (1, 'ok',),
+    (0, 'junk',),
+    (None, 'UNKNOWN',),
+])
 QUALITY_TEXT_TO_INT = ut.invert_dict(QUALITY_INT_TO_TEXT)
 
 

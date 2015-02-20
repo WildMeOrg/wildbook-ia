@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
+#from ibeis import constants as const
 from six.moves import zip
 import plottool.draw_func2 as df2
 from plottool import plot_helpers as ph
@@ -185,6 +186,16 @@ def get_annot_texts(ibs, aid_list, **kwargs):
         # allowed annotations
         nGt_list = ibs.get_annot_num_groundtruth(aid_list)
         texts_list.append(['nGt=%r' % nGt for nGt in nGt_list])
+    if kwargs.get('show_quality_text', False):
+        yaws = ibs.get_annot_yaws(aid_list)
+        yawtext_list = ibsfuncs.get_yaw_viewtexts(yaws)
+        texts_list.append(list(map(lambda text: 'yaw=%s' % text, yawtext_list)))
+    if kwargs.get('show_yawtext', False):
+        # FIXME: This should be num_groundtruth with respect to the currently
+        # allowed annotations
+        yaws = ibs.get_annot_yaws(aid_list)
+        yawtext_list = ibsfuncs.get_yaw_viewtexts(yaws)
+        texts_list.append(list(map(lambda text: 'yaw=%s' % text, yawtext_list)))
     # zip them up to get a tuple for each chip and join the fields
     if len(texts_list) > 0:
         annotation_text_list = [', '.join(tup) for tup in zip(*texts_list)]
