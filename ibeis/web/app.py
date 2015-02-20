@@ -24,6 +24,7 @@ from datetime import date
 import random
 from os.path import join
 from ibeis.web.DBWEB_SCHEMA import VIEWPOINT_TABLE
+import ibeis.constants as const
 
 
 BROWSER = ut.get_argflag('--browser')
@@ -61,16 +62,16 @@ def turk(filename=''):
         finished = gid is None
         review = 'review' in request.args.keys()
         if not finished:
-            gpath = app.ibeis.get_image_paths(gid)
+            gpath = app.ibs.get_image_paths(gid)
             image = appfuncs.open_oriented_image(gpath)
             image_src = appfuncs.embed_image_html(image, filter_width=False)
             # Get annotations
-            width, height = app.ibeis.get_image_sizes(gid)
+            width, height = app.ibs.get_image_sizes(gid)
             scale_factor = 700.0 / float(width)
-            aid_list = app.ibeis.get_image_aids(gid)
-            annot_bbox_list = app.ibeis.get_annot_bboxes(aid_list)
-            annot_thetas_list = app.ibeis.get_annot_thetas(aid_list)
-            species_list = app.ibeis.get_annot_species_texts(aid_list)
+            aid_list = app.ibs.get_image_aids(gid)
+            annot_bbox_list = app.ibs.get_annot_bboxes(aid_list)
+            annot_thetas_list = app.ibs.get_annot_thetas(aid_list)
+            species_list = app.ibs.get_annot_species_texts(aid_list)
             # Get annotation bounding boxes
             annotation_list = []
             for annot_bbox, annot_theta, species in zip(annot_bbox_list, annot_thetas_list, species_list):
@@ -121,8 +122,8 @@ def turk(filename=''):
         review = 'review' in request.args.keys()
         finished = aid is None
         if not finished:
-            gid       = app.ibeis.get_annot_gids(aid)
-            gpath     = app.ibeis.get_annot_chip_fpaths(aid)
+            gid       = app.ibs.get_annot_gids(aid)
+            gpath     = app.ibs.get_annot_chip_fpaths(aid)
             image     = appfuncs.open_oriented_image(gpath)
             image_src = appfuncs.embed_image_html(image)
         else:
@@ -147,7 +148,33 @@ def turk(filename=''):
         viewpoint_rowid_list = appfuncs.get_viewpoint_rowids_where(app, where_clause=where_clause, params=[0.0])
         aid_list = appfuncs.get_viewpoint_aid(app, viewpoint_rowid_list)
         viewpoint_list = appfuncs.get_viewpoint_values_from_aids(app, aid_list, 'viewpoint_value_avg')
-        app.ibeis.set_annot_viewpoint(aid_list, viewpoint_list, input_is_degrees=True)
+        def convert_old_viewpoint_to_yaw(view_angle):
+            """ we initially had viewpoint coordinates inverted
+
+            Example:
+                >>> import math
+                >>> TAU = 2 * math.pi
+                >>> old_viewpoint_labels = [
+                >>>     ('left'       , 0.000 * TAU,),
+                >>>     ('frontleft'  , 0.125 * TAU,),
+                >>>     ('front'      , 0.250 * TAU,),
+                >>>     ('frontright' , 0.375 * TAU,),
+                >>>     ('right'       , 0.500 * TAU,),
+                >>>     ('backright'  , 0.625 * TAU,),
+                >>>     ('back'       , 0.750 * TAU,),
+                >>>     ('backleft'   , 0.875 * TAU,),
+                >>> ]
+                >>> fmtstr = 'old %15r %.2f -> new %15r %.2f'
+                >>> for lbl, angle in old_viewpoint_labels:
+                >>>     print(fmtstr % (lbl, angle, lbl, convert_old_viewpoint_to_yaw(angle)))
+            """
+            if view_angle is None:
+                return None
+            yaw = (-view_angle + (const.TAU / 2)) % const.TAU
+            return yaw
+        viewpoint_radians_list = [None if angle is None else ut.deg_to_rad(angle) for angle in viewpoint_list]
+        yaw_list = list(map(convert_old_viewpoint_to_yaw, viewpoint_radians_list))
+        app.ibs.set_annot_yaws(aid_list, yaw_list, input_is_degrees=False)
         count = len(aid_list)
         # Flagged aids
         where_clause = "viewpoint_value_2!=? AND viewpoint_value_avg=?"
@@ -211,16 +238,16 @@ def submit_detection():
         url = 'http://%s:%s/turk/detection.html?gid=%s&turk_id=%s&review=true' % (app.server_ip_address, app.port, gid, turk_id)
         import webbrowser
         webbrowser.open(url)
-    aid_list = app.ibeis.get_image_aids(gid)
+    aid_list = app.ibs.get_image_aids(gid)
     count = 1
     if request.form['detection-submit'].lower() == 'skip':
         count = -1
     appfuncs.set_review_count_from_gids(app, [gid], [count])
     if count == 1:
-        width, height = app.ibeis.get_image_sizes(gid)
+        width, height = app.ibs.get_image_sizes(gid)
         scale_factor = float(width) / 700.0
         # Get aids
-        app.ibeis.delete_annots(aid_list)
+        app.ibs.delete_annots(aid_list)
         annotation_list = json.loads(request.form['detection-annotations'])
         bbox_list = [
             (
@@ -240,11 +267,11 @@ def submit_detection():
             for annot in annotation_list
         ]
         print("[web] turk_id: %s, gid: %d, bbox_list: %r, species_list: %r" % (turk_id, gid, annotation_list, species_list))
-        aid_list_new = app.ibeis.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
-        app.ibeis.set_image_reviewed([gid], [1])
+        aid_list_new = app.ibs.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
+        app.ibs.set_image_reviewed([gid], [1])
         appfuncs.replace_aids(app, aid_list, aid_list_new)
     else:
-        app.ibeis.set_image_reviewed([gid], [0])
+        app.ibs.set_image_reviewed([gid], [0])
         viewpoint_rowids = appfuncs.get_viewpoint_rowids_from_aid(aid_list, app)
         app.db.delete_rowids(VIEWPOINT_TABLE, viewpoint_rowids)
     if 'refer' in request.args.keys() and request.args['refer'] == 'viewpoint':
@@ -283,7 +310,7 @@ def api(function=None):
     else:
         function = function.lower()
         if appfuncs.check_valid_function_name(function):
-            function = 'app.ibeis.%s' % function
+            function = 'app.ibs.%s' % function
             exists = True
             try:
                 func = eval(function)
@@ -330,7 +357,7 @@ def init_database(app, reset_db):
     app.dbweb_version_expected = '1.0.0'
     app.db = SQLDatabaseController(database_dir, database_filename)
     _sql_helpers.ensure_correct_version(
-        app.ibeis,
+        app.ibs,
         app.db,
         app.dbweb_version_expected,
         DBWEB_SCHEMA
@@ -390,16 +417,16 @@ def start_from_terminal():
     opts, args = parser.parse_args()
     app.round = opts.round
     print(app.round)
-    app.ibeis = ibeis.opendb(db=opts.db)
+    app.ibs = ibeis.opendb(db=opts.db)
     start_tornado(app, opts.port, database_init=appfuncs.database_init)
 
 
-def start_from_ibeis(ibeis, port=DEFAULT_PORT):
+def start_from_ibeis(ibs, port=DEFAULT_PORT):
     '''
     Parse command line options and start the server.
     '''
     from ibeis import params
-    dbname = ibeis.dbname
+    dbname = ibs.get_dbname()
     if dbname == "CHTA_Master":
         app.default_species = Species.CHEETAH
     elif dbname == "ELPH_Master":
@@ -417,7 +444,7 @@ def start_from_ibeis(ibeis, port=DEFAULT_PORT):
     else:
         app.default_species = None
     print("DEFAULT SPECIES: %r" % (app.default_species))
-    app.ibeis = ibeis
+    app.ibs = ibs
     app.round = params.args.round
     start_tornado(app, port, database_init=appfuncs.database_init)
 

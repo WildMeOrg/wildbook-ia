@@ -5,6 +5,7 @@ import cStringIO as StringIO
 from functools import partial
 import random
 from ibeis.web.DBWEB_SCHEMA import VIEWPOINT_TABLE, REVIEW_TABLE
+import ibeis.constants as const
 
 ORIENTATIONS = {   # used in apply_orientation
     2: (Image.FLIP_LEFT_RIGHT,),
@@ -196,6 +197,16 @@ def replace_aids(app, aid_list, aid_list_new):
 
 
 def database_init(app):
+    def convert_yaw_to_old_viewpoint(yaw):
+        """
+        we initially had viewpoint coordinates inverted
+        (this function is its own inverse)
+        """
+        if yaw is None:
+            return None
+        angle = (-yaw + (const.TAU / 2)) % const.TAU
+        return angle
+
     def rad_to_deg(radians):
         import numpy as np
         twopi = 2 * np.pi
@@ -204,39 +215,41 @@ def database_init(app):
 
     if app.round <= 1:
         # Detection Review
-        gid_list = app.ibeis.get_valid_gids()
-        image_reviewed_list = app.ibeis.get_image_reviewed(gid_list)
+        gid_list = app.ibs.get_valid_gids()
+        image_reviewed_list = app.ibs.get_image_reviewed(gid_list)
         if not all([image_reviewed == 0 for image_reviewed in image_reviewed_list]):
             print("WARNING: NOT ALL IMAGES ARE NOT-REVIEWED")
             raw_input("Enter to set to not-reviewed...")
-            app.ibeis.set_image_reviewed(gid_list, [0] * len(gid_list))
+            app.ibs.set_image_reviewed(gid_list, [0] * len(gid_list))
         # Viewpoint Annotation
-        aid_list = app.ibeis.get_valid_aids()
+        aid_list = app.ibs.get_valid_aids()
         # Grab ALL viewpoints
-        viewpoint_list = app.ibeis.get_annot_viewpoints(aid_list)
+        yaw_list = app.ibs.get_annot_yaws(aid_list)
+        viewpoint_list = list(map(convert_yaw_to_old_viewpoint, yaw_list))
         viewpoint_list = [-1 if viewpoint is None else rad_to_deg(viewpoint) for viewpoint in viewpoint_list]
         if not all([viewpoint is -1 for viewpoint in viewpoint_list]):
             print("WARNING: NOT ALL ANNOT THETAS ARE NULLED")
             raw_input("Enter to null annot thetas...")
-            app.ibeis.set_annot_viewpoint(aid_list, [None] * len(aid_list))
+            app.ibs.set_annot_viewpoint(aid_list, [None] * len(aid_list))
             # Grab ALL viewpoints
     elif app.round == 2:
         # Detection Review
-        gid_list = app.ibeis.get_valid_gids(reviewed=0)
-        aid_list = app.ibeis.get_valid_aids(viewpoint=None)
+        gid_list = app.ibs.get_valid_gids(reviewed=0)
+        aid_list = app.ibs.get_valid_aids(yaw=None)
     else:
-        gid_list = app.ibeis.get_valid_gids(reviewed=1)
-        aid_list = app.ibeis.get_valid_aids(include_only_gid_list=gid_list, viewpoint=None)
+        gid_list = app.ibs.get_valid_gids(reviewed=1)
+        aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list, yaw=None)
 
     # Detection Review
-    image_reviewed_list = app.ibeis.get_image_reviewed(gid_list)
+    image_reviewed_list = app.ibs.get_image_reviewed(gid_list)
     colnames = ('image_rowid', )
     params_iter = zip(gid_list)
     get_rowid_from_superkey = partial(get_review_rowids_from_gid, app=app)
     app.db.add_cleanly(REVIEW_TABLE, colnames, params_iter, get_rowid_from_superkey)
 
     # Viewpoint Annotation
-    viewpoint_list = app.ibeis.get_annot_viewpoints(aid_list)
+    yaw_list = app.ibs.get_annot_yaws(aid_list)
+    viewpoint_list = list(map(convert_yaw_to_old_viewpoint, yaw_list))
     viewpoint_list = [-1 if viewpoint is None else rad_to_deg(viewpoint) for viewpoint in viewpoint_list]
     # Add chips to temporary web viewpoint table
     colnames = ('annot_rowid', 'viewpoint_value_1')

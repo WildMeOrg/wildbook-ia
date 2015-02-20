@@ -17,7 +17,7 @@ def update_current(db, ibs=None):
         ('metadata_key',                 'TEXT'),
         ('metadata_value',               'TEXT'),
     ),
-        superkey_colnames=['metadata_key'],
+        superkey_colnames_list=[('metadata_key',)],
         docstr='''
         The table that stores permanently all of the metadata about the
         database (tables, etc)''')
@@ -27,7 +27,7 @@ def update_current(db, ibs=None):
         ('image_rowid',                  'INTEGER'),
         ('review_count',                 'INTEGER DEFAULT 0'),
     ),
-        superkey_colnames=['image_rowid'],
+        superkey_colnames_list=[('image_rowid',)],
         docstr='''
         SQLite table to store the web state for detection review''')
 
@@ -38,6 +38,6 @@ def update_current(db, ibs=None):
         ('viewpoint_value_2',            'INTEGER DEFAULT -1'),
         ('viewpoint_value_avg',          'INTEGER DEFAULT -1'),
     ),
-        superkey_colnames=['annot_rowid'],
+        superkey_colnames_list=[('annot_rowid',)],
         docstr='''
         SQLite table to store the web state for viewpoint turking''')

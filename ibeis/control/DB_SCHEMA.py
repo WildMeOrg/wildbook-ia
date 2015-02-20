@@ -757,8 +757,9 @@ def update_1_3_4(db, ibs=None):
     #    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), val_iter, id_iter)
     #    ibs.update_annot_visual_uuids(aid_list)
     print('executing update_1_3_4')
+    TAU = const.TAU
 
-    def convert_viewpoint_to_yaw(view_angle):
+    def convert_old_viewpoint_to_yaw(angle):
         """ we initially had viewpoint coordinates inverted
 
         Example:
@@ -769,17 +770,20 @@ def update_1_3_4(db, ibs=None):
             >>>     ('frontleft'  , 0.125 * TAU,),
             >>>     ('front'      , 0.250 * TAU,),
             >>>     ('frontright' , 0.375 * TAU,),
-            >>>     ('right'       , 0.500 * TAU,),
+            >>>     ('right'      , 0.500 * TAU,),
             >>>     ('backright'  , 0.625 * TAU,),
             >>>     ('back'       , 0.750 * TAU,),
             >>>     ('backleft'   , 0.875 * TAU,),
             >>> ]
             >>> for lbl, angle in old_viewpoint_labels:
-            >>>     print('old %15r %.2f -> new %15r %.2f' % (lbl, angle, lbl, convert_viewpoint_to_yaw(angle)))
+            >>>     yaw = convert_old_viewpoint_to_yaw(angle)
+            >>>     angle2 = convert_old_viewpoint_to_yaw(yaw)
+            >>>     print('old %15r %.2f -> new %15r %.2f' % (lbl, angle, lbl, yaw))
+            >>>     print('old %15r %.2f -> new %15r %.2f' % (lbl, yaw, lbl, angle2))
         """
-        if view_angle is None:
+        if angle is None:
             return None
-        yaw = (-view_angle + (const.TAU / 2)) % const.TAU
+        yaw = (-angle + (TAU / 2)) % TAU
         return yaw
 
     from ibeis.control import SQLDatabaseControl
@@ -798,7 +802,7 @@ def update_1_3_4(db, ibs=None):
         # Add a path to a file that will represent if a pixel belongs to the
         # object of interest within the annotation.
         #(None, 'annot_mask_fpath',       'STRING', None),
-        (ANNOT_VIEWPOINT, ANNOT_YAW,  'REAL', convert_viewpoint_to_yaw),
+        (ANNOT_VIEWPOINT, ANNOT_YAW,  'REAL', convert_old_viewpoint_to_yaw),
     ))
 
 # ========================

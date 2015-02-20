@@ -1014,8 +1014,7 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
     id_iter = ((aid,) for aid in aid_list)
     #yaw_list = [-1 if yaw is None else yaw for yaw in yaw_list]
     if input_is_degrees:
-        yaw_list = [-1 if yaw is None else ut.deg_to_rad(yaw)
-                          for yaw in yaw_list]
+        yaw_list = [-1 if yaw is None else ut.deg_to_rad(yaw) for yaw in yaw_list]
     #assert all([0.0 <= yaw < 2 * np.pi or yaw == -1.0 for yaw in yaw_list])
     val_iter = ((yaw, ) for yaw in yaw_list)
     ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_YAW,), val_iter, id_iter)
