@@ -21,10 +21,12 @@ import utool
 profile = utool.profile
 
 
-NAME_TABLE_v121     = const.NAME_TABLE_v121
-NAME_TABLE_v130     = const.NAME_TABLE_v130
-ANNOT_VISUAL_UUID   = 'annot_visual_uuid'
-ANNOT_UUID = 'annot_uuid'
+NAME_TABLE_v121   = const.NAME_TABLE_v121
+NAME_TABLE_v130   = const.NAME_TABLE_v130
+ANNOT_VISUAL_UUID = 'annot_visual_uuid'
+ANNOT_UUID        = 'annot_uuid'
+ANNOT_YAW         = 'annot_yaw'
+ANNOT_VIEWPOINT   = 'annot_viewpoint'
 
 
 # =======================
@@ -40,7 +42,6 @@ def update_1_0_0(db, ibs=None):
         ('image_uri',                    'TEXT NOT NULL'),
         ('image_ext',                    'TEXT NOT NULL'),
         ('image_original_name',          'TEXT NOT NULL'),  # We could parse this out of original_path
-        #('image_original_path',          'TEXT NOT NULL'),
         ('image_width',                  'INTEGER DEFAULT -1'),
         ('image_height',                 'INTEGER DEFAULT -1'),
         ('image_time_posix',             'INTEGER DEFAULT -1'),  # this should probably be UCT
@@ -397,7 +398,6 @@ def post_1_2_1(db, ibs=None):
         # Put new rowids back into annotation table
         db.set(ANNOTATION_TABLE, (NAME_ROWID,), name_rowids2, aid_list)
         db.set(ANNOTATION_TABLE, (SPECIES_ROWID,), species_rowid2, aid_list)
-        #ut.embed()
         # HACK TODO use actual SQL to fix and move to 1.2.0
 
         def get_annot_names_v121(aid_list):
@@ -414,7 +414,11 @@ def post_1_2_1(db, ibs=None):
             visual_infotup = _visual_infotup
             image_uuid_list, verts_list, theta_list = visual_infotup
             # It is visual info augmented with name and species
-            view_list       = ibs.get_annot_viewpoints(aid_list)
+            def get_annot_viewpoints(ibs, aid_list):
+                viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_viewpoint',), aid_list)
+                viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
+                return viewpoint_list
+            view_list       = get_annot_viewpoints(ibs, aid_list)
             name_list       = get_annot_names_v121(aid_list)
             species_list    = ibs.get_annot_species_texts(aid_list)
             semantic_infotup = (image_uuid_list, verts_list, theta_list, view_list,
@@ -548,7 +552,7 @@ def update_1_1_0(db, ibs=None):
     # Add viewpoint (radians) to annotations
     db.modify_table(const.ANNOTATION_TABLE, (
         # add column to v1.0.2 at index 11
-        (11, 'annot_viewpoint', 'REAL DEFAULT 0.0', None),
+        (11, ANNOT_VIEWPOINT, 'REAL DEFAULT 0.0', None),
     ))
 
     # Add contributor to configs
@@ -618,7 +622,6 @@ def update_1_2_0(db, ibs=None):
     )
     aid_before = db.get_all_rowids(const.ANNOTATION_TABLE)
     #import utool as ut
-    #ut.embed()
     db.modify_table(tablename, colmap_list)
     # Sanity check
     aid_after = db.get_all_rowids(const.ANNOTATION_TABLE)
@@ -738,6 +741,47 @@ def update_1_3_3(db, ibs=None):
 
 
 def update_1_3_4(db, ibs=None):
+    # OLD ANNOT VIEWPOINT FUNCS. Hopefully these are not needed
+    #def get_annot_viewpoints(ibs, aid_list):
+    #    viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), aid_list)
+    #    viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
+    #    return viewpoint_list
+    #def set_annot_viewpoint(ibs, aid_list, viewpoint_list, input_is_degrees=False):
+    #    id_iter = ((aid,) for aid in aid_list)
+    #    #viewpoint_list = [-1 if viewpoint is None else viewpoint for viewpoint in viewpoint_list]
+    #    if input_is_degrees:
+    #        viewpoint_list = [-1 if viewpoint is None else ut.deg_to_rad(viewpoint)
+    #                          for viewpoint in viewpoint_list]
+    #    #assert all([0.0 <= viewpoint < 2 * np.pi or viewpoint == -1.0 for viewpoint in viewpoint_list])
+    #    val_iter = ((viewpoint, ) for viewpoint in viewpoint_list)
+    #    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), val_iter, id_iter)
+    #    ibs.update_annot_visual_uuids(aid_list)
+    print('executing update_1_3_4')
+
+    def convert_viewpoint_to_yaw(view_angle):
+        """ we initially had viewpoint coordinates inverted
+
+        Example:
+            >>> import math
+            >>> TAU = 2 * math.pi
+            >>> old_viewpoint_labels = [
+            >>>     ('left'       , 0.000 * TAU,),
+            >>>     ('frontleft'  , 0.125 * TAU,),
+            >>>     ('front'      , 0.250 * TAU,),
+            >>>     ('frontright' , 0.375 * TAU,),
+            >>>     ('right'       , 0.500 * TAU,),
+            >>>     ('backright'  , 0.625 * TAU,),
+            >>>     ('back'       , 0.750 * TAU,),
+            >>>     ('backleft'   , 0.875 * TAU,),
+            >>> ]
+            >>> for lbl, angle in old_viewpoint_labels:
+            >>>     print('old %15r %.2f -> new %15r %.2f' % (lbl, angle, lbl, convert_viewpoint_to_yaw(angle)))
+        """
+        if view_angle is None:
+            return None
+        yaw = (-view_angle + (const.TAU / 2)) % const.TAU
+        return yaw
+
     from ibeis.control import SQLDatabaseControl
     assert isinstance(db,  SQLDatabaseControl.SQLDatabaseController)
 
@@ -753,7 +797,8 @@ def update_1_3_4(db, ibs=None):
         (None, 'annot_quality',          'INTEGER', None),
         # Add a path to a file that will represent if a pixel belongs to the
         # object of interest within the annotation.
-        (None, 'annot_mask_fpath',       'STRING', None),
+        #(None, 'annot_mask_fpath',       'STRING', None),
+        (ANNOT_VIEWPOINT, ANNOT_YAW,  'REAL', convert_viewpoint_to_yaw),
     ))
 
 # ========================

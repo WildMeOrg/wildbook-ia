@@ -297,7 +297,7 @@ class IBEISController(object):
         ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
         # duct_tape.fix_compname_configs(ibs)
         # duct_tape.remove_database_slag(ibs)
-        # duct_tape.fix_nulled_viewpoints(ibs)
+        # duct_tape.fix_nulled_yaws(ibs)
         lbltype_names    = const.KEY_DEFAULTS.keys()
         lbltype_defaults = const.KEY_DEFAULTS.values()
         lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
@@ -347,7 +347,7 @@ class IBEISController(object):
         #ibs.db_version_expected = '1.1.1'
         ibs.db_version_expected = '1.3.3'
         # TODO: add this functionality to SQLController
-        TESTING_NEW_SQL_VERSION = False
+        TESTING_NEW_SQL_VERSION = True
         if TESTING_NEW_SQL_VERSION:
             devdb_list = ['PZ_MTEST', 'testdb1', 'testdb0', 'emptydatabase']
             testing_newschmea = ut.is_developer() and ibs.get_dbname() in devdb_list
@@ -362,7 +362,7 @@ class IBEISController(object):
                 dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
                 ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
                 # Set testing schema version
-                ibs.db_version_expected = '1.3.3'
+                ibs.db_version_expected = '1.3.4'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
                                               text_factory=const.__STR__,
                                               inmemory=False)

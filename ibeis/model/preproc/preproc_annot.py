@@ -51,7 +51,7 @@ def generate_annot_properties(ibs, gid_list, bbox_list=None, theta_list=None,
                               species_list=None, nid_list=None, name_list=None,
                               detect_confidence_list=None, notes_list=None,
                               vert_list=None, annot_uuid_list=None,
-                              viewpoint_list=None, quiet_delete_thumbs=False):
+                              yaw_list=None, quiet_delete_thumbs=False):
     #annot_uuid_list = ibsfuncs.make_annotation_uuids(image_uuid_list, bbox_list,
     #                                                      theta_list, deterministic=False)
     image_uuid_list = ibs.get_image_uuids(gid_list)
@@ -104,8 +104,8 @@ def generate_annot_properties(ibs, gid_list, bbox_list=None, theta_list=None,
     #                                                      theta_list, deterministic=False)
     if annot_uuid_list is None:
         annot_uuid_list = [uuid.uuid4() for _ in range(len(image_uuid_list))]
-    if viewpoint_list is None:
-        viewpoint_list = [-1.0] * len(image_uuid_list)
+    if yaw_list is None:
+        yaw_list = [-1.0] * len(image_uuid_list)
     nVert_list = [len(verts) for verts in vert_list]
     vertstr_list = [const.__STR__(verts) for verts in vert_list]
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))

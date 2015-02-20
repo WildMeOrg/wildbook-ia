@@ -155,10 +155,10 @@ def enforce_unkonwn_name_is_explicit(ibs):
     # implicit
 
 
-def fix_nulled_viewpoints(ibs):
+def fix_nulled_yaws(ibs):
     aid_list = ibs.get_valid_aids()
-    viewpoint_list = ibs.get_annot_viewpoints(aid_list)
-    valid_list = [viewpoint == 0.0 for viewpoint in viewpoint_list]
+    yaw_list = ibs.get_annot_yaws(aid_list)
+    valid_list = [yaw == 0.0 for yaw in yaw_list]
     dirty_aid_list = utool.filter_items(aid_list, valid_list)
-    print("[duct_tape] Nulling %d annotation viewpoints" % len(dirty_aid_list))
-    ibs.set_annot_viewpoint(dirty_aid_list, [None] * len(dirty_aid_list))
+    print("[duct_tape] Nulling %d annotation yaws" % len(dirty_aid_list))
+    ibs.set_annot_yaw(dirty_aid_list, [None] * len(dirty_aid_list))

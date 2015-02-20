@@ -188,7 +188,8 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
                 'image_gps_lon', 'image_note',)
     # <DEBUG>
     if ut.VERBOSE:
-        uuid_list = [None if params_ is None else params_[0] for params_ in params_list]
+        uuid_colx = colnames.index('image_uuid')
+        uuid_list = [None if params_ is None else params_[uuid_colx] for params_ in params_list]
         gid_list_ = ibs.get_image_gids_from_uuid(uuid_list)
         valid_gids = ibs.get_valid_gids()
         valid_uuids = ibs.get_image_uuids(valid_gids)
@@ -196,6 +197,14 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
         print('[preadd] valid uuid / gid = ' + ut.indentjoin(zip(valid_uuids, valid_gids)))
     # </DEBUG>
     # Execute SQL Add
+    from distutils.version import LooseVersion
+
+    if LooseVersion(ibs.db.get_db_version()) >= LooseVersion('1.3.4'):
+        colnames = colnames + ('image_original_path', 'image_location_code')
+        params_list = [tuple(params) + (gpath, ibs.cfg.other_cfg.location_for_names)
+                        if params is not None else None
+                        for params, gpath in zip(params_list, gpath_list)]
+
     gid_list = ibs.db.add_cleanly(const.IMAGE_TABLE, colnames, params_list, ibs.get_image_gids_from_uuid)
 
     if ut.duplicates_exist(gid_list):

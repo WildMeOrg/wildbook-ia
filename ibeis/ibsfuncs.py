@@ -86,7 +86,7 @@ def refresh(ibs):
     ibs.rrr()
 
 
-def export_to_xml(ibs, offset=2829, enforce_viewpoint=True):
+def export_to_xml(ibs, offset=2829, enforce_yaw=True):
     target_size = 900
     information = {
         'database_name' : ibs.get_dbname()
@@ -100,7 +100,7 @@ def export_to_xml(ibs, offset=2829, enforce_viewpoint=True):
     gid_list = ibs.get_valid_gids(reviewed=1)
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
-        viewpointed = True
+        yawed = True
         aid_list = ibs.get_image_aids(gid)
         image_uri = ibs.get_image_uris(gid)
         image_path = ibs.get_image_paths(gid)
@@ -150,17 +150,17 @@ def export_to_xml(ibs, offset=2829, enforce_viewpoint=True):
                 #TODO: Change species_name to getter in IBEISControl once implemented
                 #species_name = 'grevys_zebra'
                 species_name = ibs.get_annot_species_texts(aid)
-                viewpoint = ibs.get_annot_viewpoints(aid)
+                yaw = ibs.get_annot_yaws(aid)
                 info = {}
-                if viewpoint != -1 and viewpoint is not None:
-                    info['pose'] = "%0.6f" % viewpoint
+                if yaw != -1 and yaw is not None:
+                    info['pose'] = "%0.6f" % yaw
                 else:
-                    viewpointed = False
+                    yawed = False
                     print("UNVIEWPOINTED: %d " % gid)
                 annotation.add_object(species_name, (xmax, xmin, ymax, ymin), **info)
             dst_annot = annotdir + out_name  + '.xml'
             # Write XML
-            if not enforce_viewpoint or viewpointed:
+            if not enforce_yaw or yawed:
                 print("Copying:\n%r\n%r\n%r\n\n" % (image_path, dst_img, (width, height), ))
                 xml_data = open(dst_annot, 'w')
                 xml_data.write(annotation.xml())
@@ -1514,7 +1514,7 @@ def print_annotation_table(ibs, verbosity=1, exclude_columns=[]):
     if verbosity < 4:
         exclude_columns += [
             'annot_xtl', 'annot_ytl', 'annot_width', 'annot_height',
-            'annot_theta', 'annot_viewpoint', 'annot_detect_confidence',
+            'annot_theta', 'annot_yaw', 'annot_detect_confidence',
             'annot_note', 'annot_parent_rowid']
     print('\n')
     print(ibs.db.get_table_csv(const.ANNOTATION_TABLE, exclude_columns=exclude_columns))
@@ -2574,14 +2574,14 @@ def export_subdatabase_all_annots_new(ibs):
     export_subset.merge_databases(ibs_src, ibs_dst, gid_list=gid_list)
 
 
-def inspect_nonzero_viewpoints(ibs):
+def inspect_nonzero_yaws(ibs):
     """
     python dev.py --dbdir /raid/work2/Turk/PZ_Master --cmd --show
     """
     from ibeis.viz import viz_chip
     import plottool as pt
     aids = ibs.get_valid_aids()
-    yaws = ibs.get_annot_viewpoints(aids)
+    yaws = ibs.get_annot_yaws(aids)
     isnone_list = [yaw is not None for yaw in yaws]
     aids = ut.filter_items(aids, isnone_list)
     yaws = ut.filter_items(yaws, isnone_list)

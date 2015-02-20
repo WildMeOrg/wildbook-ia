@@ -360,7 +360,7 @@ class QueryVerificationInteraction(AbstractInteraction):
                     def set_angle_func(key):
                         def _wrp():
                             yaw = ibeis.const.VIEWPOINT_YAW_RADIANS[key]
-                            ibs.set_annot_viewpoint([aid], [yaw])
+                            ibs.set_annot_yaw([aid], [yaw])
                         return _wrp
                     import six
                     angle_callback_list = [

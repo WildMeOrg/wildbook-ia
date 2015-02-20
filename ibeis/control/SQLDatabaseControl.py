@@ -745,14 +745,13 @@ class SQLDatabaseController(object):
                     del colname_list[index]
                     del coltype_list[index]
                     del colname_dict[src]
-                elif (len(src) > 0 and len(dst) > 0 and src != dst and
-                      (len(type_) == 0 or type_ == coltype_list[index])):
+                elif (len(src) > 0 and len(dst) > 0 and src != dst):
                     # Rename column
-                    if len(type_) == 0:
-                        type_ = coltype_list[index]
                     colname_list[index] = dst
-                    coltype_list[index] = type_
                     colname_dict[src] = dst
+                    # Check if type should change as well
+                    if ((type_ is None or len(type_) == 0) and type_ != coltype_list[index]):
+                        coltype_list[index] = type_
                 elif len(type_) > 0 and type_ != coltype_list[index]:
                     # Change column type
                     if len(dst) == 0:

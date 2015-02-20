@@ -22,7 +22,7 @@ ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
 ANNOT_THETA         = 'annot_theta'
 ANNOT_VERTS         = 'annot_verts'
 ANNOT_UUID          = 'annot_uuid'
-ANNOT_VIEWPOINT     = 'annot_viewpoint'
+ANNOT_YAW           = 'annot_yaw'
 ANNOT_VISUAL_UUID   = 'annot_visual_uuid'
 CONFIG_ROWID        = 'config_rowid'
 FEATWEIGHT_ROWID    = 'featweight_rowid'
@@ -59,17 +59,17 @@ def get_num_annotations(ibs, **kwargs):
 @register_ibs_method
 @ider
 def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
-                   viewpoint='no-filter', is_exemplar=None, species=None,
+                   yaw='no-filter', is_exemplar=None, species=None,
                    is_known=None):
     """
-    Note: The viewpoint value cannot be None as a default because None is used as a
+    Note: The yaw value cannot be None as a default because None is used as a
           filtering value
 
     Args:
         ibs (IBEISController):  ibeis controller object
         eid (None):
         include_only_gid_list (list): if specified filters annots not in these gids
-        viewpoint (str):
+        yaw (str):
         is_exemplar (bool): if specified filters annots to either be or not be exemplars
         species (None):
         is_known (None):
@@ -94,12 +94,12 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         >>> ibs.delete_all_encounters()
         >>> ibs.compute_encounters()
         >>> include_only_gid_list = None
-        >>> viewpoint = 'no-filter'
+        >>> yaw = 'no-filter'
         >>> is_exemplar = None
         >>> species = const.Species.ZEB_PLAIN
         >>> is_known = False
         >>> # execute function
-        >>> aid_list = get_valid_aids(ibs, eid, include_only_gid_list, viewpoint, is_exemplar, species, is_known)
+        >>> aid_list = get_valid_aids(ibs, eid, include_only_gid_list, yaw, is_exemplar, species, is_known)
         >>> ut.assert_eq(ibs.get_annot_names(aid_list), [const.UNKNOWN] * 2, 'bad name')
         >>> ut.assert_eq(ibs.get_annot_species(aid_list), [const.Species.ZEB_PLAIN] * 2, 'bad species')
         >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [False] * 2, 'bad exemplar')
@@ -149,10 +149,10 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         gid_list     = ibs.get_annot_gids(aid_list)
         is_valid_gid = [gid in include_only_gid_list for gid in gid_list]
         aid_list     = ut.filter_items(aid_list, is_valid_gid)
-    if viewpoint != 'no-filter':
-        viewpoint_list     = ibs.get_annot_viewpoints(aid_list)
-        is_valid_viewpoint = [viewpoint == flag for flag in viewpoint_list]
-        aid_list           = ut.filter_items(aid_list, is_valid_viewpoint)
+    if yaw != 'no-filter':
+        yaw_list     = ibs.get_annot_yaws(aid_list)
+        is_valid_yaw = [yaw == flag for flag in yaw_list]
+        aid_list           = ut.filter_items(aid_list, is_valid_yaw)
     if species is not None:
         species_rowid      = ibs.get_species_rowids_from_text(species)
         species_rowid_list = ibs.get_annot_species_rowids(aid_list)
@@ -177,7 +177,7 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
 def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                 species_list=None, nid_list=None, name_list=None,
                 detect_confidence_list=None, notes_list=None,
-                vert_list=None, annot_uuid_list=None, viewpoint_list=None,
+                vert_list=None, annot_uuid_list=None, yaw_list=None,
                 annot_visual_uuid_list=None, annot_semantic_uuid_list=None,
                 species_rowid_list=None, quiet_delete_thumbs=False,
                 prevent_visual_duplicates=True):
@@ -195,7 +195,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         notes_list               (list):
         vert_list                (list): alternative to bounding box
         annot_uuid_list          (list):
-        viewpoint_list           (list):
+        yaw_list           (list):
         annot_visual_uuid_list   (list):
         annot_semantic_uuid_list (list):
         quiet_delete_thumbs      (bool):
@@ -216,7 +216,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
        notes_list = None
        vert_list = None
        annot_uuid_list = None
-       viewpoint_list = None
+       yaw_list = None
        quiet_delete_thumbs = False
        prevent_visual_duplicates = False
 
@@ -291,6 +291,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         >>> print(result)
         [14, 15]
     """
+    #ut.embed()
     from ibeis.model.preproc import preproc_annot
     from vtool import geometry
     if ut.VERBOSE:
@@ -350,8 +351,8 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         print(ut.dict_str(locals()))
         return []
 
-    if viewpoint_list is None:
-        viewpoint_list = [-1.0] * len(gid_list)
+    if yaw_list is None:
+        yaw_list = [-1.0] * len(gid_list)
     nVert_list = [len(verts) for verts in vert_list]
     vertstr_list = [const.__STR__(verts) for verts in vert_list]
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
@@ -370,20 +371,20 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         visual_infotup = (image_uuid_list, vert_list, theta_list)
         annot_visual_uuid_list = preproc_annot.make_annot_visual_uuid(visual_infotup)
     if annot_semantic_uuid_list is None:
-        semantic_infotup = (image_uuid_list, vert_list, theta_list, viewpoint_list,
+        semantic_infotup = (image_uuid_list, vert_list, theta_list, yaw_list,
                             name_list, species_list)
         annot_semantic_uuid_list = preproc_annot.make_annot_semantic_uuid(semantic_infotup)
 
     # Define arguments to insert
     colnames = ('annot_uuid', 'image_rowid', 'annot_xtl', 'annot_ytl',
                 'annot_width', 'annot_height', 'annot_theta', 'annot_num_verts',
-                'annot_verts', 'annot_viewpoint', 'annot_detect_confidence',
+                'annot_verts', ANNOT_YAW, 'annot_detect_confidence',
                 'annot_note', 'name_rowid', 'species_rowid',
                 'annot_visual_uuid', 'annot_semantic_uuid')
 
     params_iter = list(zip(annot_uuid_list, gid_list, xtl_list, ytl_list,
                             width_list, height_list, theta_list, nVert_list,
-                            vertstr_list, viewpoint_list, detect_confidence_list,
+                            vertstr_list, yaw_list, detect_confidence_list,
                             notes_list, nid_list, species_rowid_list,
                            annot_visual_uuid_list, annot_semantic_uuid_list))
 
@@ -407,7 +408,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
 def get_annot_rows(ibs, aid_list):
     colnames = ('annot_uuid', 'image_rowid', 'annot_xtl', 'annot_ytl',
                 'annot_width', 'annot_height', 'annot_theta', 'annot_num_verts',
-                'annot_verts', 'annot_viewpoint', 'annot_detect_confidence',
+                'annot_verts', ANNOT_YAW, 'annot_detect_confidence',
                 'annot_note', 'name_rowid', 'species_rowid',
                 'annot_visual_uuid', 'annot_semantic_uuid')
     rows_list = ibs.db.get(const.ANNOTATION_TABLE, colnames, aid_list, unpack_scalars=False)
@@ -517,12 +518,15 @@ def get_annot_bboxes(ibs, aid_list):
 @register_ibs_method
 def get_annot_class_labels(ibs, aid_list):
     """
+    DEPRICATE?
+
     Returns:
-        list of tuples: identifying animal name and viewpoint
+        list of tuples: identifying animal name and view
     """
     name_list = ibs.get_annot_name_rowids(aid_list)
-    view_list = [0 for _ in name_list]
-    classlabel_list = list(zip(name_list, view_list))
+    # TODO: use yaw?
+    yaw_list = [0 for _ in name_list]
+    classlabel_list = list(zip(name_list, yaw_list))
     return classlabel_list
 
 
@@ -949,9 +953,50 @@ def get_annot_verts(ibs, aid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_annot_viewpoints(ibs, aid_list):
+def get_annot_yaws(ibs, aid_list):
     """
-    A viewpoint is the yaw of the annotation in radians
+    A yaw is the yaw of the annotation in radians
+    Viewpoint yaw is inverted. Will be fixed soon.
+
+    The following views have these angles of yaw:
+        left side  - 0.50 tau radians
+        front side - 0.25 tau radians
+        right side - 0.00 radians
+        back side  - 0.75 tau radians
+
+    SeeAlso:
+        ibies.const.VIEWPOINT_YAW_RADIANS
+
+    Returns:
+        yaw_list (list): the yaw (in radians) for the annotation
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_yaws
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[::3]
+        >>> result = get_annot_yaws(ibs, aid_list)
+        >>> print(result)
+        [None, None, None, None, None]
+    """
+    #from ibeis.model.preproc import preproc_annot
+    yaw_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aid_list)
+    yaw_list = [yaw if yaw >= 0.0 else None for yaw in yaw_list]
+    return yaw_list
+
+
+@register_ibs_method
+@setter
+def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
+    """
+    Sets the  yaw of a list of chips by aid
+
+    A yaw is the yaw of the annotation in radians
+    Viewpoint yaw is inverted. Will be fixed soon.
 
     The following views have these angles of yaw:
         left side  - 0.00 tau radians
@@ -962,26 +1007,19 @@ def get_annot_viewpoints(ibs, aid_list):
     SeeAlso:
         ibies.const.VIEWPOINT_YAW_RADIANS
 
-    Returns:
-        viewpoint_list (list): the viewpoint (in radians) for the annotation
+    References;
+        http://upload.wikimedia.org/wikipedia/commons/7/7e/Rollpitchyawplain.png
 
-    CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_viewpoints
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[::3]
-        >>> result = get_annot_viewpoints(ibs, aid_list)
-        >>> print(result)
-        [None, None, None, None, None]
     """
-    #from ibeis.model.preproc import preproc_annot
-    viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_viewpoint',), aid_list)
-    viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
-    return viewpoint_list
+    id_iter = ((aid,) for aid in aid_list)
+    #yaw_list = [-1 if yaw is None else yaw for yaw in yaw_list]
+    if input_is_degrees:
+        yaw_list = [-1 if yaw is None else ut.deg_to_rad(yaw)
+                          for yaw in yaw_list]
+    #assert all([0.0 <= yaw < 2 * np.pi or yaw == -1.0 for yaw in yaw_list])
+    val_iter = ((yaw, ) for yaw in yaw_list)
+    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_YAW,), val_iter, id_iter)
+    ibs.update_annot_visual_uuids(aid_list)
 
 
 @register_ibs_method
@@ -1363,7 +1401,7 @@ def get_annot_visual_uuid_info(ibs, aid_list):
     image_uuid_list = ibs.get_annot_image_uuids(aid_list)
     verts_list      = ibs.get_annot_verts(aid_list)
     theta_list      = ibs.get_annot_thetas(aid_list)
-    #visual_info_iter = zip(image_uuid_list, verts_list, theta_list, view_list)
+    #visual_info_iter = zip(image_uuid_list, verts_list, theta_list, yaw_list)
     #visual_info_list = list(visual_info_iter)
     visual_infotup = (image_uuid_list, verts_list, theta_list)
     return visual_infotup
@@ -1377,7 +1415,7 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
         _visual_infotup (tuple) : internal use only
 
     Returns:
-        tuple:  semantic_infotup (image_uuid_list, verts_list, theta_list, view_list, name_list, species_list)
+        tuple:  semantic_infotup (image_uuid_list, verts_list, theta_list, yaw_list, name_list, species_list)
 
     CommandLine:
         python -m ibeis.control.manual_annot_funcs --test-get_annot_semantic_uuid_info
@@ -1401,10 +1439,10 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
         visual_infotup = _visual_infotup
     image_uuid_list, verts_list, theta_list = visual_infotup
     # It is visual info augmented with name and species
-    view_list       = ibs.get_annot_viewpoints(aid_list)
+    yaw_list        = ibs.get_annot_yaws(aid_list)
     name_list       = ibs.get_annot_names(aid_list)
     species_list    = ibs.get_annot_species_texts(aid_list)
-    semantic_infotup = (image_uuid_list, verts_list, theta_list, view_list,
+    semantic_infotup = (image_uuid_list, verts_list, theta_list, yaw_list,
                         name_list, species_list)
     return semantic_infotup
 
@@ -1648,34 +1686,6 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
     ibs.db.set(const.ANNOTATION_TABLE, colnames, val_iter2, id_iter2, nInput=nInput)
     if delete_thumbs:
         ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
-    ibs.update_annot_visual_uuids(aid_list)
-
-
-@register_ibs_method
-@setter
-def set_annot_viewpoint(ibs, aid_list, viewpoint_list, input_is_degrees=False):
-    """ Sets the  viewpoint of a list of chips by aid
-
-    A viewpoint is the yaw of the annotation in radians
-
-    The following views have these angles of yaw:
-        left side  - 0.00 tau radians
-        front side - 0.25 tau radians
-        right side - 0.50 radians
-        back side  - 0.75 tau radians
-
-    SeeAlso:
-        ibies.const.VIEWPOINT_YAW_RADIANS
-
-    """
-    id_iter = ((aid,) for aid in aid_list)
-    #viewpoint_list = [-1 if viewpoint is None else viewpoint for viewpoint in viewpoint_list]
-    if input_is_degrees:
-        viewpoint_list = [-1 if viewpoint is None else ut.deg_to_rad(viewpoint)
-                          for viewpoint in viewpoint_list]
-    #assert all([0.0 <= viewpoint < 2 * np.pi or viewpoint == -1.0 for viewpoint in viewpoint_list])
-    val_iter = ((viewpoint, ) for viewpoint in viewpoint_list)
-    ibs.db.set(const.ANNOTATION_TABLE, ('annot_viewpoint',), val_iter, id_iter)
     ibs.update_annot_visual_uuids(aid_list)
 
 

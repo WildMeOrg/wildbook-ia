@@ -79,7 +79,7 @@ TABLE_COLNAMES = {
         'name',
         'exemplar',
         'species',  # <put back in
-        #'viewpoint',
+        #'yaw',
         #'rdconf',
         #'nGt',  # ## <put back in
         #'annotnotes',  # ## <put back in
@@ -147,7 +147,7 @@ TABLE_COLNAMES = {
 # the columns which are editable
 TABLE_EDITSET = {
     IMAGE_TABLE      : set(['reviewed', 'imgnotes']),
-    ANNOTATION_TABLE : set(['name', 'species', 'viewpoint', 'annotnotes', 'exemplar']),
+    ANNOTATION_TABLE : set(['name', 'species', 'yaw', 'annotnotes', 'exemplar']),
     NAME_TABLE       : set(['name', 'namenotes']),
     QRES_TABLE       : set(['name']),
     ENCOUNTER_TABLE  : set(['encounter_shipped_flag', 'encounter_processed_flag']),
@@ -200,7 +200,7 @@ COL_DEF = dict([
     ('rank',        (str,      'Rank')),  # needs to be a string for !Query
     ('unixtime',    (float,    'unixtime')),
     ('species',     (str,      'Species')),
-    ('viewpoint',   (str,      'Viewpoint')),
+    ('yaw',         (str,      'Yaws')),
     ('img_gname',   (str,      'Image Name')),
     ('annot_gname', (str,     'Source Image')),
     ('gdconf',      (str,      'Detection Confidence')),
@@ -329,7 +329,7 @@ def make_ibeis_headers_dict(ibs):
         'aid'                 : lambda aids: aids,
         'name'                : ibs.get_annot_names,
         'species'             : ibs.get_annot_species_texts,
-        'viewpoint'           : ibs.get_annot_viewpoints,
+        'yaw'           : ibs.get_annot_yaws,
         'annot_gname'         : ibs.get_annot_image_names,
         'nGt'                 : ibs.get_annot_num_groundtruth,
         'theta'               : partial_imap_1to1(ut.theta_str, ibs.get_annot_thetas),
@@ -347,7 +347,7 @@ def make_ibeis_headers_dict(ibs):
     setters[ANNOTATION_TABLE] = {
         'name'       : ibs.set_annot_names,
         'species'    : ibs.set_annot_species,
-        'viewpoint'  : ibs.set_annot_viewpoint,
+        'yaw'        : ibs.set_annot_yaws,
         'annotnotes' : ibs.set_annot_notes,
         'exemplar'   : ibs.set_annot_exemplar_flags,
     }
