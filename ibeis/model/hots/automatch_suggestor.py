@@ -47,7 +47,7 @@ def get_qres_name_choices(ibs, qres):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.system_suggestor import *  # NOQA
+        >>> from ibeis.model.hots.automatch_suggestor import *  # NOQA
         >>> import ibeis  # NOQA
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -93,7 +93,7 @@ def get_system_name_suggestion(ibs, choicetup):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.system_suggestor import *  # NOQA
+        >>> from ibeis.model.hots.automatch_suggestor import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -169,11 +169,11 @@ def get_system_exemplar_suggestion(ibs, qaid):
         ibsfuncs.prune_exemplars
 
     CommandLine:
-        python -m ibeis.model.hots.system_suggestor --test-get_system_exemplar_suggestion
+        python -m ibeis.model.hots.automatch_suggestor --test-get_system_exemplar_suggestion
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.system_suggestor import *  # NOQA
+        >>> from ibeis.model.hots.automatch_suggestor import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -240,11 +240,11 @@ def get_system_exemplar_suggestion(ibs, qaid):
 def exemplar_method2_randomness(qaid, other_exemplars):
     r"""
     CommandLine:
-        python -m ibeis.model.hots.system_suggestor --test-exemplar_method2_randomness
+        python -m ibeis.model.hots.automatch_suggestor --test-exemplar_method2_randomness
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.system_suggestor import *  # NOQA
+        >>> from ibeis.model.hots.automatch_suggestor import *  # NOQA
         >>> # build test data
         >>> random.seed(0)
         >>> qaid = 4
@@ -298,9 +298,9 @@ def exemplar_method1_distinctiveness(ibs, qaid, other_exemplars):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.model.hots.system_suggestor
-        python -m ibeis.model.hots.system_suggestor --allexamples
-        python -m ibeis.model.hots.system_suggestor --allexamples --noface --nosrc
+        python -m ibeis.model.hots.automatch_suggestor
+        python -m ibeis.model.hots.automatch_suggestor --allexamples
+        python -m ibeis.model.hots.automatch_suggestor --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

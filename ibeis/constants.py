@@ -48,6 +48,22 @@ class REL_PATHS(object):
     bigcache = join(cache, PATH_NAMES.bigcache)
     distinctdir = join(cache, PATH_NAMES.distinctdir)
 
+import math
+
+TAU = 2 * math.pi
+
+
+VIEWPOINT_YAW_RADIANS = {
+    'left'       : 0.000 * TAU,
+    'frontleft'  : 0.125 * TAU,
+    'front'      : 0.250 * TAU,
+    'frontright' : 0.375 * TAU,
+    'right'      : 0.500 * TAU,
+    'backright'  : 0.625 * TAU,
+    'back'       : 0.750 * TAU,
+    'backleft'   : 0.875 * TAU,
+}
+
 
 # TODO: Remove anything under this block completely
 

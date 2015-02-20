@@ -2574,6 +2574,26 @@ def export_subdatabase_all_annots_new(ibs):
     export_subset.merge_databases(ibs_src, ibs_dst, gid_list=gid_list)
 
 
+def inspect_nonzero_viewpoints(ibs):
+    """
+    python dev.py --dbdir /raid/work2/Turk/PZ_Master --cmd --show
+    """
+    from ibeis.viz import viz_chip
+    import plottool as pt
+    aids = ibs.get_valid_aids()
+    yaws = ibs.get_annot_viewpoints(aids)
+    isnone_list = [yaw is not None for yaw in yaws]
+    aids = ut.filter_items(aids, isnone_list)
+    yaws = ut.filter_items(yaws, isnone_list)
+    for aid, yaw in zip(aids, yaws):
+        print(yaw)
+        # We seem to be storing FULL paths in
+        # the probchip table
+        ibs.delete_annot_chips(aid)
+        viz_chip.show_chip(ibs, aid, annote=False)
+        pt.show_if_requested()
+
+
 if __name__ == '__main__':
     """
     CommandLine:

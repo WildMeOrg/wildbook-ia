@@ -4,6 +4,7 @@ import utool as ut
 
 
 def ensure_testing_data():
+    from ibeis.tests import reset_testdbs
     print('Making sure test data exists')
     import ibeis
     from os.path import join
@@ -13,9 +14,8 @@ def ensure_testing_data():
     RESET_TESTDATA = ut.get_argflag('--reset-testdata')
     if RESET_TESTDATA:
         if ut.are_you_sure('reseting testdata'):
-            ut.delete(join(workdir, 'testdb1'))
-            ut.delete(join(workdir, 'PZ_MTEST'))
-            ut.delete(join(workdir, 'NAUT_test'))
+            reset_testdbs.delete_testdbs()
+            reset_testdbs.delete_larger_testdbs()
             #print('Reset testdata please rerun script without reset flag')
             print('Reset testdata')
         else:

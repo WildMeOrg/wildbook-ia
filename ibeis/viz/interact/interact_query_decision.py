@@ -114,6 +114,7 @@ class QueryVerificationInteraction(AbstractInteraction):
         }
         self.fig = df2.figure(**figkw)
         ih.disconnect_callback(self.fig, 'button_press_event')
+        ih.connect_callback(self.fig, 'button_press_event', self.figure_clicked)
         # ih.connect_callback(self.fig, 'button_press_event', self.figure_clicked)
 
     def show_page(self, bring_to_front=False):
@@ -344,6 +345,31 @@ class QueryVerificationInteraction(AbstractInteraction):
         chosen_names = self.ibs.get_annot_names(chosen_aids)
         self.name_decision_callback(chosen_names)
         print('[interact_query_decision] sent name_decision_callback(chosen_names=%r)' % (chosen_names,))
+
+    def figure_clicked(self, event=None):
+        from ibeis.viz import viz_helpers as vh
+        ax = event.inaxes
+        if ih.clicked_inside_axis(event):
+            viztype = vh.get_ibsdat(ax, 'viztype')
+            if viztype == 'chip':
+                aid = vh.get_ibsdat(ax, 'aid')
+                print('... aid=%r' % aid)
+                if event.button == 3:   # right-click
+                    import guitool
+                    ibs = self.ibs
+                    def set_angle_func(key):
+                        def _wrp():
+                            yaw = ibeis.const.VIEWPOINT_YAW_RADIANS[key]
+                            ibs.set_annot_viewpoint([aid], [yaw])
+                        return _wrp
+                    import six
+                    angle_callback_list = [
+                        ('Set Viewpoint: ' + key, set_angle_func(key))
+                        for key in six.iterkeys(ibeis.const.VIEWPOINT_YAW_RADIANS)
+                    ]
+                    guitool.popup_menu(self.fig.canvas, guitool.newQPoint(event.x, event.y), angle_callback_list)
+                    #ibs.print_annotation_table()
+                print(ut.dict_str(event.__dict__))
 
 
 if __name__ == '__main__':

@@ -737,12 +737,24 @@ def update_1_3_3(db, ibs=None):
     ))
 
 
-#def update_1_3_4(db, ibs=None):
-#    TODO: Finishme
-#    db.modify_table(const.ENCOUNTER_TABLE, (
-#        (None, 'image_original_path',          'TEXT'),
-#    )
+def update_1_3_4(db, ibs=None):
+    from ibeis.control import SQLDatabaseControl
+    assert isinstance(db,  SQLDatabaseControl.SQLDatabaseController)
 
+    db.modify_table(const.IMAGE_TABLE, (
+        # Add original image path to image table for more data persistance and
+        # stewardship
+        (None, 'image_original_path',          'TEXT', None),
+        # Add image location as a simple workaround for not using the gps
+        (None, 'image_location_code',          'TEXT', None),
+    ))
+    db.modify_table(const.ANNOTATION_TABLE, (
+        # Add image quality as an integer to filter the database more easilly
+        (None, 'annot_quality',          'INTEGER', None),
+        # Add a path to a file that will represent if a pixel belongs to the
+        # object of interest within the annotation.
+        (None, 'annot_mask_fpath',       'STRING', None),
+    ))
 
 # ========================
 # Valid Versions & Mapping
@@ -766,6 +778,7 @@ VALID_VERSIONS = utool.odict([
     ('1.3.1',    (pre_1_3_1,            update_1_3_1,       None                )),
     ('1.3.2',    (None,                 update_1_3_2,       None                )),
     ('1.3.3',    (None,                 update_1_3_3,       None                )),
+    ('1.3.4',    (None,                 update_1_3_4,       None                )),
 ])
 
 

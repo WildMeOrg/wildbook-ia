@@ -669,7 +669,7 @@ class SQLDatabaseController(object):
         assert colmap_list is not None, 'must specify colmaplist'
         assert tablename is not None, 'must specify tablename'
         """
-        funciton to modify the schema - only columns that are being added, removed or changed need to be enumerated
+        function to modify the schema - only columns that are being added, removed or changed need to be enumerated
 
         Args:
            tablename (str): tablename

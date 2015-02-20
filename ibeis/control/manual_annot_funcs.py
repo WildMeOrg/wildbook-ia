@@ -951,6 +951,17 @@ def get_annot_verts(ibs, aid_list):
 @getter_1to1
 def get_annot_viewpoints(ibs, aid_list):
     """
+    A viewpoint is the yaw of the annotation in radians
+
+    The following views have these angles of yaw:
+        left side  - 0.00 tau radians
+        front side - 0.25 tau radians
+        right side - 0.50 radians
+        back side  - 0.75 tau radians
+
+    SeeAlso:
+        ibies.const.VIEWPOINT_YAW_RADIANS
+
     Returns:
         viewpoint_list (list): the viewpoint (in radians) for the annotation
 
@@ -1642,11 +1653,24 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
 
 @register_ibs_method
 @setter
-def set_annot_viewpoint(ibs, aid_list, viewpoint_list, convert_radians=False):
-    """ Sets the vertices [(x, y), ...] of a list of chips by aid """
+def set_annot_viewpoint(ibs, aid_list, viewpoint_list, input_is_degrees=False):
+    """ Sets the  viewpoint of a list of chips by aid
+
+    A viewpoint is the yaw of the annotation in radians
+
+    The following views have these angles of yaw:
+        left side  - 0.00 tau radians
+        front side - 0.25 tau radians
+        right side - 0.50 radians
+        back side  - 0.75 tau radians
+
+    SeeAlso:
+        ibies.const.VIEWPOINT_YAW_RADIANS
+
+    """
     id_iter = ((aid,) for aid in aid_list)
     #viewpoint_list = [-1 if viewpoint is None else viewpoint for viewpoint in viewpoint_list]
-    if convert_radians:
+    if input_is_degrees:
         viewpoint_list = [-1 if viewpoint is None else ut.deg_to_rad(viewpoint)
                           for viewpoint in viewpoint_list]
     #assert all([0.0 <= viewpoint < 2 * np.pi or viewpoint == -1.0 for viewpoint in viewpoint_list])

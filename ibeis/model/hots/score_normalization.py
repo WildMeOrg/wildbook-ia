@@ -193,46 +193,70 @@ class ScoreNormalizer(ut.Cachable):
 
     def add_support(normalizer, tp_scores, tn_scores, tp_labels, tn_labels):
         """
+
+        CommandLine:
+            python -m ibeis.model.hots.score_normalization --test-add_support --show
+
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.model.hots.score_normalization import *  # NOQA
             >>> # build test data
-            >>> tp_scores = [100]
-            >>> tn_scores = [10]
-            >>> tp_labels = [110]
-            >>> tn_labels = [10]
-            >>> # empty normalizer
-            >>> normalizer = ScoreNormalizer()
+            >>> normalizer = ScoreNormalizer('testnorm')
+            >>> tp_scores = [100, 100, 70, 60, 60, 60, 100]
+            >>> tn_scores = [10, 10, 20, 30, 30, 30, 10]
+            >>> tp_labels = list(map(ut.deterministic_uuid, [110, 110, 111, 112, 112, 112, 110]))
+            >>> tn_labels = list(map(ut.deterministic_uuid, [10, 10, 11, 12, 12, 12, 10]))
+            >>> # call test function
             >>> normalizer.add_support(tp_scores, tn_scores, tp_labels, tn_labels)
-            >>> normalizer.retrain()
             >>> # verify results
-            >>> normalizer.visualize()
-            >>> #--
+            >>> normalizer.retrain()
+            >>> if ut.show_was_requested():
+            >>>      normalizer.visualize()
             >>> # build test data
             >>> tp_scores = np.random.randint(100, size=100)
             >>> tn_scores = np.random.randint(50, size=100)
-            >>> tp_labels = np.arange(0, 100)
-            >>> tn_labels = np.arange(100, 200)
+            >>> tp_labels = list(map(ut.deterministic_uuid, np.arange(1000, 1100)))
+            >>> tn_labels = list(map(ut.deterministic_uuid, np.arange(2000, 2100)))
             >>> normalizer.add_support(tp_scores, tn_scores, tp_labels, tn_labels)
             >>> normalizer.retrain()
-            >>> normalizer.visualize()
+            >>> if ut.show_was_requested():
+            >>>     import plottool as pt
+            >>>     normalizer.visualize()
+            >>>     pt.show_if_requested()
         """
-        # Ensure input in list format
-        #(tp_scores, tn_scores, tp_labels, tn_labels) = list(
-        #    map(ut.ensure_iterable,
-        #        (tp_scores, tn_scores, tp_labels, tn_labels)))
-        # Assert that lengths are the same
-        assert ut.list_allsame(map(
-            len, (tp_scores, tn_scores, tp_labels, tn_labels))), ('unequal lengths')
+        # Initialize support if empty
         if normalizer.tp_support is None:
             normalizer.tp_support = np.array([])
             normalizer.tn_support = np.array([])
             normalizer.tp_labels = np.array([])
             normalizer.tn_label = np.array([])
-        normalizer.tp_support = np.append(normalizer.tp_support, tp_scores)
-        normalizer.tn_support = np.append(normalizer.tn_support, tn_scores)
-        normalizer.tp_labels  = np.append(normalizer.tp_labels, tp_labels)
-        normalizer.tn_label   = np.append(normalizer.tn_labels, tn_labels)
+
+        # Ensure that incoming data is unique w.r.t. data that already exists
+        def filter_seen_data(seen_labels, input_labels, input_data):
+            """
+            seen_labels, input_labels, input_data = normalizer.tp_labels, tp_labels, tp_scores
+            """
+            unique_labels, unique_indiceis = np.unique(input_labels,  return_index=True)
+            unique_data = np.array(input_data).take(unique_indiceis, axis=0)
+            isold_flags = np.in1d(unique_labels, seen_labels)
+            isnew_flags = np.logical_not(isold_flags, out=isold_flags)
+            filtered_labels = unique_labels.compress(isnew_flags)
+            filtered_data = unique_data.compress(isnew_flags)
+            return filtered_labels, filtered_data
+        filtered_tp_labels, filtered_tp_scores = filter_seen_data(normalizer.tp_labels, tp_labels, tp_scores)
+        filtered_tn_labels, filtered_tn_scores = filter_seen_data(normalizer.tn_labels, tn_labels, tn_scores)
+
+        # Ensure input in list format
+        assert ut.list_allsame(map(
+            len, (tp_scores, tn_scores, tp_labels, tn_labels))), ('unequal lengths')
+
+        if len(filtered_tp_scores) == 0:
+            return
+
+        normalizer.tp_support = np.append(normalizer.tp_support, filtered_tp_scores)
+        normalizer.tn_support = np.append(normalizer.tn_support, filtered_tn_scores)
+        normalizer.tp_labels  = np.append(normalizer.tp_labels, filtered_tp_labels)
+        normalizer.tn_label   = np.append(normalizer.tn_labels, filtered_tn_labels)
 
     def retrain(normalizer):
         tp_support = np.array(normalizer.tp_support)

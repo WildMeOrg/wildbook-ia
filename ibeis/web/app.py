@@ -147,7 +147,7 @@ def turk(filename=''):
         viewpoint_rowid_list = appfuncs.get_viewpoint_rowids_where(app, where_clause=where_clause, params=[0.0])
         aid_list = appfuncs.get_viewpoint_aid(app, viewpoint_rowid_list)
         viewpoint_list = appfuncs.get_viewpoint_values_from_aids(app, aid_list, 'viewpoint_value_avg')
-        app.ibeis.set_annot_viewpoint(aid_list, viewpoint_list, convert_radians=True)
+        app.ibeis.set_annot_viewpoint(aid_list, viewpoint_list, input_is_degrees=True)
         count = len(aid_list)
         # Flagged aids
         where_clause = "viewpoint_value_2!=? AND viewpoint_value_avg=?"
