@@ -449,6 +449,8 @@ def post_1_2_1(db, ibs=None):
 
 def post_1_3_4(db, ibs=None):
     if ibs is not None:
+        ibs._init_rowid_constants()
+        ibs._init_config()
         ibs.update_annot_visual_uuids(ibs.get_valid_aids())
 
 

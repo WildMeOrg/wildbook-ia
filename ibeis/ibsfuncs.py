@@ -2627,7 +2627,9 @@ def get_yaw_viewtexts(yaw_list):
     #return text_list
 
 
-#def get_quality_texts(
+def get_quality_texts(quality_list):
+    return ut.dict_take(const.QUALITY_INT_TO_TEXT, quality_list)
+
 
 
 if __name__ == '__main__':
