@@ -239,18 +239,28 @@ def popup_menu(widget, pos, opt2_callback):
     Returns:
         tuple: (selection, actions)
 
+    CommandLine:
+        python -m guitool.guitool_dialogs --test-popup_menu
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from guitool.guitool_dialogs import *  # NOQA
+        >>> import guitool
+        >>> import plottool as pt
+        >>> fig = pt.figure()
         >>> widget = fig.canvas
+        >>> def foo():
+        ...    print('bar')
+        >>> x, y = 10, 10
         >>> pos = guitool.newQPoint(event.x, fig.canvas.geometry().height() - event.y)
-        >>> opt2_callback = {'func': lambda : foo()}
+        >>> opt2_callback = {'func': foo}
         >>> (selection, actions) = popup_menu(widget, pos, opt2_callback)
         >>> result = str((selection, actions))
         >>> print(result)
     """
     menu = QtGui.QMenu(widget)
-    actions = [menu.addAction(opt, ut.tracefunc(func)) for (opt, func) in opt2_callback]
+    #actions = [menu.addAction(opt, ut.tracefunc(func)) for (opt, func) in opt2_callback]
+    actions = [menu.addAction(opt, func) for (opt, func) in opt2_callback]
     selection = menu.exec_(widget.mapToGlobal(pos))
     return selection, actions
     #pos=QtGui.QCursor.pos()
