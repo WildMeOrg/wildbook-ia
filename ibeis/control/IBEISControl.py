@@ -345,9 +345,9 @@ class IBEISController(object):
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
-        ibs.db_version_expected = '1.3.3'
+        ibs.db_version_expected = '1.3.4'
         # TODO: add this functionality to SQLController
-        TESTING_NEW_SQL_VERSION = True
+        TESTING_NEW_SQL_VERSION = False
         if TESTING_NEW_SQL_VERSION:
             devdb_list = ['PZ_MTEST', 'testdb1', 'testdb0', 'emptydatabase']
             testing_newschmea = ut.is_developer() and ibs.get_dbname() in devdb_list
