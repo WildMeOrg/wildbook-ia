@@ -1,6 +1,8 @@
 from __future__ import absolute_import, division, print_function
 from ibeis import viz
 import utool
+import six
+from ibeis import constants as const
 from plottool import draw_func2 as df2
 from plottool.viz_featrow import draw_feat_row
 from ibeis.viz import viz_helpers as vh
@@ -8,6 +10,43 @@ from plottool import interact_helpers as ih
 
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[interact_chip]', DEBUG=False)
+
+
+def show_annot_context_menu(ibs, aid,  qwin, pt, refresh_func=None):
+    import guitool
+    is_exemplar = ibs.get_annot_exemplar_flags(aid)
+
+    def toggle_exemplar_func():
+        ibs.set_annot_exemplar_flags(aid, not is_exemplar)
+        if refresh_func is not None:
+            refresh_func()
+    def set_yaw_func(key):
+        def _wrap_yaw():
+            yaw = const.VIEWTEXT_TO_YAW_RADIANS[key]
+            ibs.set_annot_yaws([aid], [yaw])
+            if refresh_func is not None:
+                refresh_func()
+        return _wrap_yaw
+    def set_quality_func(key):
+        def _wrp_qual():
+            quality = const.QUALITY_TEXT_TO_INT[key]
+            ibs.set_annot_qualities([aid], [quality])
+            if refresh_func is not None:
+                refresh_func()
+        return _wrp_qual
+    angle_callback_list = [
+        ('unset as exemplar' if is_exemplar else 'set as exemplar', toggle_exemplar_func),
+
+    ]
+    angle_callback_list += [
+        ('Set Viewpoint: ' + key, set_yaw_func(key))
+        for key in six.iterkeys(const.VIEWTEXT_TO_YAW_RADIANS)
+    ]
+    angle_callback_list += [
+        ('Set Quality: ' + key, set_quality_func(key))
+        for key in six.iterkeys(const.QUALITY_TEXT_TO_INT)
+    ]
+    guitool.popup_menu(qwin, pt, angle_callback_list)
 
 
 # CHIP INTERACTION 2

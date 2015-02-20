@@ -103,6 +103,7 @@ def get_vocab_words(ibs, taids=None, qreq_=None):
             taids = cfg.vocab_taids
 
     vocab_cfgstr = get_vocab_cfgstr(ibs, taids=taids, qreq_=qreq_)
+    raise NotImplementedError('no temp state!')
 
     if vocab_cfgstr not in ibs.temporary_state:
         nWords = cfg.nWords

@@ -2606,12 +2606,13 @@ def get_yaw_viewtexts(yaw_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> # build test data
-        >>> yaw_list = [0.0, 3.15, -.4, -8, .2, 4, 7, 20]
+        >>> yaw_list = [0.0, 3.15, -.4, -8, .2, 4, 7, 20, None]
         >>> # execute function
         >>> text_list = get_yaw_viewtexts(yaw_list)
-        >>> result = ut.list_str(text_list)
+        >>> result = str(text_list)
         >>> # verify results
         >>> print(result)
+        ['right', 'left', 'backright', 'back', 'right', 'backleft', 'frontright', 'frontright', None]
     """
     import vtool as vt
     import numpy as np
@@ -2619,17 +2620,50 @@ def get_yaw_viewtexts(yaw_list):
     stdlblyaw_list = list(six.iteritems(const.VIEWTEXT_TO_YAW_RADIANS))
     stdlbl_list = ut.get_list_column(stdlblyaw_list, 0)
     stdyaw_list = np.array(ut.get_list_column(stdlblyaw_list, 1))
-    textdists_list = [vt.ori_distance(stdyaw_list, yaw) for yaw in yaw_list]
-    index_list = [dists.argmin() for dists in textdists_list]
-    text_list = [stdlbl_list[index] for index in index_list]
-    errors = ['%.2f' % dists[index] for dists, index in zip(textdists_list, index_list)]
-    return list(zip(yaw_list, errors, text_list))
-    #return text_list
+    textdists_list = [None if yaw is None else vt.ori_distance(stdyaw_list, yaw) for yaw in yaw_list]
+    index_list = [None if dists is None else dists.argmin() for dists in textdists_list]
+    text_list = [None if index is None else stdlbl_list[index] for index in index_list]
+    #errors = ['%.2f' % dists[index] for dists, index in zip(textdists_list, index_list)]
+    #return list(zip(yaw_list, errors, text_list))
+    return text_list
 
 
 def get_quality_texts(quality_list):
+    r"""
+    Args:
+        quality_list (list of ints):
+
+    Returns:
+        str:
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_quality_texts
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> # build test data
+        >>> quality_list = [1, 2, 0, None]
+        >>> # execute function
+        >>> result = get_quality_texts(quality_list)
+        >>> # verify results
+        >>> print(result)
+        ['ok', 'good', 'junk', 'UNKNOWN']
+    """
     return ut.dict_take(const.QUALITY_INT_TO_TEXT, quality_list)
 
+
+def batch_rename_names_for_great_zebra_count(ibs):
+    """
+    python dev.py --db Feb-19-2015 --cmd
+    """
+    nid_list = ibs.get_valid_nids()
+    name_list = ibs.get_name_texts(nid_list)
+    new_name_list = [name.replace('IBEIS', 'MUGU') for name in name_list]
+    ibs.set_name_texts(nid_list, new_name_list)
+    print(ibs.get_name_texts(nid_list))
+    ibs.cfg.other_cfg.location_for_names = 'MUGU'
+    ibs.cfg.save()
 
 
 if __name__ == '__main__':

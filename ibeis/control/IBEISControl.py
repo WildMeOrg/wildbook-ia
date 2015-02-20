@@ -1086,19 +1086,19 @@ class IBEISController(object):
     # --- IDENTIFICATION ---
     #-----------------------
 
-    @default_decorator
-    def get_recognition_database_aids(ibs, eid=None, is_exemplar=True, species=None):
-        """
-        DEPRECATE or refactor
+    #@default_decorator
+    #def get_recognition_database_aids(ibs, eid=None, is_exemplar=True, species=None):
+    #    """
+    #    DEPRECATE or refactor
 
-        Returns:
-            daid_list (list): testing recognition database annotations
-        """
-        if 'daid_list' in ibs.temporary_state:
-            daid_list = ibs.temporary_state['daid_list']
-        else:
-            daid_list = ibs.get_valid_aids(eid=eid, species=species, is_exemplar=is_exemplar)
-        return daid_list
+    #    Returns:
+    #        daid_list (list): testing recognition database annotations
+    #    """
+    #    if 'daid_list' in ibs.temporary_state:
+    #        daid_list = ibs.temporary_state['daid_list']
+    #    else:
+    #        daid_list = ibs.get_valid_aids(eid=eid, species=species, is_exemplar=is_exemplar)
+    #    return daid_list
 
     @default_decorator
     def get_recognition_query_aids(ibs, is_known, species=None):

@@ -13,6 +13,7 @@ CommandLine:
 from __future__ import absolute_import, division, print_function
 import six
 import utool as ut
+from ibeis import constants as const
 from ibeis.model.hots import automated_oracle as ao
 from ibeis.model.hots import automated_helpers as ah
 from ibeis.model.hots import automated_params
@@ -147,7 +148,7 @@ def initialize_persistant_query_request(ibs, qaid_chunk):
     assert len(species_text_set) == 1, 'query chunk has more than one species'
     species_text = list(species_text_set)[0]
     # controller based exemplars
-    daid_list = ibs.get_valid_aids(is_exemplar=True, species=species_text)
+    daid_list = ibs.get_valid_aids(is_exemplar=True, species=species_text, is_known=True, nojunk=True)
     num_names = len(set(ibs.get_annot_nids(daid_list)))
     # TODO: choose vsmany K every time
     # need to be able to update qreq_.qparams
@@ -290,7 +291,6 @@ def run_until_name_decision_signal(ibs, qres, qreq_, incinfo=None):
         if incinfo.get('interactive', False):
             print('... asking user for input')
             if qreq_.normalizer is not None:
-                pass
                 VIZ_SCORE_NORM = False
                 #VIZ_SCORE_NORM = ut.is_developer()
                 if VIZ_SCORE_NORM:
@@ -322,13 +322,20 @@ def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
     print('--- Updating Exemplars ---')
     qaid = qres.get_qaid()
     #assert ibs.is_aid_unknown(qaid), 'animal is already known'
-    if chosen_names is None or len(chosen_names) == 0:
+    try_update_normalizer = False
+    was_junk = False
+    if chosen_names is None or len(chosen_names) == 0 or chosen_names == 'newname':
         newname = ibs.make_next_name()
         print('identifying qaid=%r as a new animal. newname=%r' % (qaid, newname))
         ibs.set_annot_names((qaid,), (newname,))
+    elif  chosen_names == 'junk':
+        print('setting query qaid=%r as a junk annotations')
+        ibs.set_annot_qualities((qaid,), (const.QUALITY_TEXT_TO_INT['junk'],))
+        was_junk = True
     elif len(chosen_names) == 1:
         print('identifying qaid=%r as name=%r' % (qaid, chosen_names,))
         ibs.set_annot_names((qaid,), chosen_names)
+        try_update_normalizer = True
     elif len(chosen_names) > 1:
         merge_name = chosen_names[0]
         other_names = chosen_names[1:]
@@ -338,12 +345,12 @@ def exec_name_decision_and_continue(chosen_names, ibs, qres, qreq_,
         ibs.set_annot_names((qaid,), (merge_name,))
     # STATE MAINTENANCE
     # TODO make sure update normalizer works
-    if qreq_.normalizer is not None:
+    if qreq_.normalizer is not None and try_update_normalizer:
         update_normalizer(ibs, qres, qreq_, chosen_names)
     # Do update callback so the name updates in the main GUI
     interactive = incinfo.get('interactive', False)
     update_callback = incinfo.get('update_callback', None)
-    if interactive and update_callback is not None:
+    if interactive and not was_junk and update_callback is not None:
         # Update callback repopulates the names tree
         update_callback()
     run_until_exemplar_decision_signal(ibs, qres, qreq_, incinfo=incinfo)

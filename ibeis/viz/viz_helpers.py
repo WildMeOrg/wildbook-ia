@@ -187,9 +187,8 @@ def get_annot_texts(ibs, aid_list, **kwargs):
         nGt_list = ibs.get_annot_num_groundtruth(aid_list)
         texts_list.append(['nGt=%r' % nGt for nGt in nGt_list])
     if kwargs.get('show_quality_text', False):
-        yaws = ibs.get_annot_yaws(aid_list)
-        yawtext_list = ibsfuncs.get_yaw_viewtexts(yaws)
-        texts_list.append(list(map(lambda text: 'yaw=%s' % text, yawtext_list)))
+        qualtext_list = ibsfuncs.get_quality_texts(ibs.get_annot_qualities(aid_list))
+        texts_list.append(list(map(lambda text: 'quality=%s' % text, qualtext_list)))
     if kwargs.get('show_yawtext', False):
         # FIXME: This should be num_groundtruth with respect to the currently
         # allowed annotations

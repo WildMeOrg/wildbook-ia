@@ -192,7 +192,7 @@ class IncQueryHarness(INC_LOOP_BASE):
     TODO: maybe abstract this into a interuptable loop harness
     """
     next_query_signal = guitool.signal_()
-    name_decision_signal = guitool.signal_(list)
+    name_decision_signal = guitool.signal_(object)
     exemplar_decision_signal = guitool.signal_(bool)
 
     def __init__(self):
@@ -347,7 +347,11 @@ class IncQueryHarness(INC_LOOP_BASE):
             pass
 
     #@guitool.slot_(list)
-    @QtCore.pyqtSlot(list)
+    #@QtCore.pyqtSlot(list)
+    # overloaded signatures
+    #@QtCore.pyqtSlot(str)
+    #@QtCore.pyqtSlot(list)
+    @QtCore.pyqtSlot(object)
     def name_decision_slot(self, chosen_names):
         """
         the name decision signal was emited

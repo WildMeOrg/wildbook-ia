@@ -34,6 +34,11 @@ import utool as ut
 VERBOSE = ut.VERBOSE
 
 
+class UserCancel(Exception):
+    def __init__(self, *args):
+        super(Exception, self).__init__(*args)
+
+
 def backreport(func):
     """
     reports errors on backend functions
@@ -42,6 +47,9 @@ def backreport(func):
     def backreport_wrapper(back, *args, **kwargs):
         try:
             result = func(back, *args, **kwargs)
+        except UserCancel as ex:
+            print('handling user cancel')
+            return None
         except Exception as ex:
             error_msg = "Error caught while performing function. \n %r" % ex
             guitool.msgbox(title="Error Catch!", msg=error_msg)
@@ -134,10 +142,25 @@ class MainWindowBackend(QtCore.QObject):
         fig_presenter.register_qt4_win(back.mainwin)
         # register self with the ibeis controller
         back.register_self()
+        back.set_query_mode(const.VS_EXEMPLARS_KEY)
         #back.incQuerySignal.connect(back.incremental_query_slot)
 
     #def __del__(back):
     #    back.cleanup()
+
+    def set_query_mode(back, new_mode):
+        if new_mode == 'toggle':
+            if back.query_mode == const.VS_EXEMPLARS_KEY:
+                back.query_mode = const.INTRA_ENC_KEY
+            else:
+                back.query_mode = const.VS_EXEMPLARS_KEY
+        else:
+            back.query_mode = new_mode
+        try:
+            back.mainwin.actionToggleQueryMode.setText('Toggle Query Mode currently: %s' % back.query_mode)
+        except Exception as ex:
+            ut.printex(ex)
+        #back.front.menuActions.
 
     def cleanup(back):
         if back.ibs is not None:
@@ -733,10 +756,10 @@ class MainWindowBackend(QtCore.QObject):
 
         if query_mode == const.VS_EXEMPLARS_KEY:
             print('[back] query_exemplars(species=%r) ' % (species))
-            daid_list = back.ibs.get_recognition_database_aids(is_exemplar=True, species=species)
+            daid_list = back.ibs.get_valid_aids(is_exemplar=True, species=species, nojunk=True)
         elif query_mode == const.INTRA_ENC_KEY:
             print('[back] query_encounter (eid=%r, species=%r)' % (eid, species))
-            daid_list = back.ibs.get_recognition_database_aids(eid=eid, species=species)
+            daid_list = back.ibs.get_valid_aids(eid=eid, species=species, nojunk=True)
         else:
             msg = ('Unknown query mode: %r' % (query_mode))
             print(msg)
@@ -785,7 +808,7 @@ class MainWindowBackend(QtCore.QObject):
         msg_fmtstr = '\n'.join(msg_fmtstr_list)
         msg_str = msg_fmtstr.format(**fmtdict)
         if not back.are_you_sure(use_msg=msg_str, title='Begin Identification'):
-            raise StopIteration
+            raise UserCancel
 
     @blocking_slot()
     def query(back, aid=None, refresh=True, query_mode=None, **kwargs):
@@ -809,7 +832,7 @@ class MainWindowBackend(QtCore.QObject):
         if len(daid_list) == 0:
             raise AssertionError('No exemplars set for this species')
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
-        if back.query_mode == const.INTRA_ENC_KEY:
+        if query_mode == const.INTRA_ENC_KEY:
             # HACK IN ENCOUNTER INFO
             for qres in six.itervalues(qaid2_qres):
                 qres.eid = eid
@@ -839,7 +862,7 @@ class MainWindowBackend(QtCore.QObject):
         back.confirm_query_dialog(daid_list, qaid_list)
         # Execute Query
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
-        if back.query_mode == const.INTRA_ENC_KEY:
+        if query_mode == const.INTRA_ENC_KEY:
             # HACK IN ENCOUNTER INFO
             for qres in six.itervalues(qaid2_qres):
                 qres.eid = eid
@@ -892,7 +915,7 @@ class MainWindowBackend(QtCore.QObject):
         species = back.get_selected_species()
         # daid list is computed inside the incremental query so there is
         # no need to specify it here
-        qaid_list = back.ibs.get_valid_aids(eid=eid, is_known=False, species=species)
+        qaid_list = back.ibs.get_valid_aids(eid=eid, is_known=False, species=species, nojunk=True)
         if any(back.ibs.get_annot_exemplar_flags(qaid_list)):
             raise AssertionError('Database is not clean. There are unknown animals with exemplar_flag=True')
         if len(qaid_list) == 0:
@@ -907,13 +930,10 @@ class MainWindowBackend(QtCore.QObject):
             back.user_info(msg=msg, title='Warning')
             return
 
-        try:
-            back.confirm_query_dialog(qaid_list=qaid_list)
-            #TODO fix names tree thingie
-            back.front.set_table_tab(NAMES_TREE)
-            iautomatch.exec_interactive_incremental_queries(back.ibs, qaid_list, back=back)
-        except StopIteration:
-            pass
+        back.confirm_query_dialog(qaid_list=qaid_list)
+        #TODO fix names tree thingie
+        back.front.set_table_tab(NAMES_TREE)
+        iautomatch.exec_interactive_incremental_queries(back.ibs, qaid_list, back=back)
 
     #@blocking_slot()
     #def compute_queries_vs_exemplar(back, **kwargs):

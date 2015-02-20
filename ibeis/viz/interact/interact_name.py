@@ -46,7 +46,11 @@ def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, **kwargs
 def testsdata_match_verification():
     r"""
     CommandLine:
+        main.py --eid 2
+
+    CommandLine:
         python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show
+        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db Feb-19-2015 --aid1 297 --aid2 267
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -59,9 +63,9 @@ def testsdata_match_verification():
     """
     from ibeis.viz.interact.interact_name import *  # NOQA
     import ibeis
-    ibs = ibeis.opendb('PZ_Master0')
-    aid1 = 14
-    aid2 = 5545
+    ibs = ibeis.opendb(defaultdb='PZ_Master0')
+    aid1 = ut.get_argval('--aid1', int, 14)
+    aid2 = ut.get_argval('--aid2', int, 5545)
     self = MatchVerificationInteraction(ibs, aid1, aid2, dodraw=False)
     if ut.show_was_requested():
         self.show_page()
@@ -73,6 +77,8 @@ class MatchVerificationInteraction(AbstractInteraction):
                  backend_callback=None, dodraw=True, **kwargs):
         if ut.VERBOSE:
             print('[matchver] __init__')
+        if ut.VERBOSE or ut.is_developer():
+            print('[matchver] __init__ aid1=%r, aid2=%r ' % (aid1, aid2))
         super(MatchVerificationInteraction, self).__init__(**kwargs)
         self.ibs = ibs
         self.aid1 = aid1
@@ -100,7 +106,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.nid1, self.nid2 = ibs.get_annot_name_rowids((aid1, aid2))
         self.name1, self.name2 = ibs.get_annot_names((aid1, aid2))
         # The other annotations that belong to these two names
-        self.gts_list  = ibs.get_annot_groundtruth((aid1, aid2), is_exemplar=True)
+        self.gts_list  = ibs.get_annot_groundtruth((aid1, aid2), is_exemplar=None)
         #self.gts_list = [sorted(set(gt + [aid])) for gt, aid in zip(groundtruth_list, (aid1, aid2))]
         # A flat list of all the aids we are looking at
         self.aid_list = ut.unique_ordered(ut.flatten(self.gts_list))
@@ -116,14 +122,23 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.gt1, self.gt2 = self.gts_list
         # Grid that will fit all the names we need to display
         MAX_COLS = 4
-        max_num_gt = max(map(len, self.gts_list))
+        max_num_gt = max(map(len, all_gt_list))
         self.nCols = max_num_gt
         self.nCols = min(max_num_gt, MAX_COLS)
-        self.nRows = len(self.gts_list)
+        self.nRows = len(all_gt_list)
+
+        if ut.VERBOSE or ut.is_developer():
+            print('[matchver] __init__ nid1=%r, nid2=%r ' % (self.nid1, self.nid2))
+            print('[matchver] __init__ all_gt_list=%r ' % (all_gt_list))
+            print('[matchver] __init__ self.gts_list=%r ' % (self.gts_list))
 
         if self.nid1 == self.nid2:
             self.nRows = 1
             self.gts_list = self.gts_list[0:1]  # remove redundant aids
+
+        if ut.VERBOSE or ut.is_developer():
+            print('[matchver] __init__ nid1=%r, nid2=%r ' % (self.nid1, self.nid2))
+            print('[matchver] __init__ self.gts_list=%r ' % (self.gts_list))
 
     def prepare_page(self):
         figkw = {'fnum': self.fnum,
@@ -143,7 +158,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         nCols = self.nCols
 
         # Distinct color for every unique name
-        nid_list = ibs.get_annot_name_rowids(self.aid_list)
+        nid_list = ibs.get_annot_name_rowids(self.all_aid_list)
         unique_nids = ut.unique_ordered(nid_list)
         unique_colors = df2.distinct_colors(len(unique_nids) + 2)
         self.nid2_color = dict(zip(unique_nids, unique_colors))
@@ -157,8 +172,14 @@ class MatchVerificationInteraction(AbstractInteraction):
             for colx, aid in enumerate(aid_list):
                 if colx >= self.nCols:
                     break
-                nid = ibs.get_annot_name_rowids(aid)
-                color = self.nid2_color[nid]
+                try:
+                    nid = ibs.get_annot_name_rowids(aid)
+                    color = self.nid2_color[nid]
+                except Exception as ex:
+                    ut.printex(ex)
+                    print('nid = %r' % (nid,))
+                    print('self.nid2_color = %s' % (ut.dict_str(self.nid2_color),))
+                    raise
                 if ibsfuncs.is_nid_unknown(ibs, [nid])[0]:
                     color = const.UNKNOWN_PURPLE_RGBA01
                 px = colx + offset
@@ -184,6 +205,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         print('%d %d %d' % (nRows, nCols, px))
         ibs = self.ibs
         nid = ibs.get_annot_name_rowids(aid)
+        annotation_unknown = ibs.is_nid_unknown([nid])[0]
         if aid in [self.aid1, self.aid2]:
             lw = 5
             import numpy as np
@@ -202,17 +224,27 @@ class MatchVerificationInteraction(AbstractInteraction):
             'show_num_gt': False,
             'text_color': text_color,
         }
+        if ut.is_developer():
+            enable_chip_title_prefix = True
+            viz_chip_kw.update(
+                {
+                    'enable_chip_title_prefix': enable_chip_title_prefix,
+                    'show_name': True,
+                    'show_aidstr': True,
+                    'show_yawtext': True,
+                    'show_quality_text': True,
+                }
+            )
+
         viz_chip.show_chip(ibs, aid, **viz_chip_kw)
         ax = df2.gca()
         df2.draw_border(ax, color=kwargs.get('color'), lw=lw)
-
         if kwargs.get('make_buttons', True):
             divider = df2.ensure_divider(ax)
             butkw = {
                 'divider': divider,
                 'size': '13%'
             }
-        annotation_unknown = ibs.is_nid_unknown([nid])[0]
         # Chip options
         flag = True
         if not annotation_unknown:
@@ -256,33 +288,41 @@ class MatchVerificationInteraction(AbstractInteraction):
         hl_slot, hr_slot = df2.make_bbox_positioners(y=.02, w=.16,
                                                      h=3 * ut.PHI_B ** 4,
                                                      xpad=.02, startx=0, stopx=1)
-
-        ibs = self.ibs
-        name1, name2 = self.name1, self.name2
-
-        nid_list = ibs.get_annot_name_rowids(self.aid_list)
-
         def next_rect(accum=[-1]):
             accum[0] += 1
             return hr_slot(accum[0])
 
+        ibs = self.ibs
+        name1, name2 = self.name1, self.name2
+        nid_list = ibs.get_annot_name_rowids(self.all_aid_list)
         is_unknown = ibs.is_nid_unknown(nid_list)
 
+        # option to remove all names only if at least one name exists
         if not all(is_unknown):
             self.append_button('remove all names', callback=self.unname_all,
                                rect=next_rect())
+
+        # option to merge all into a new name if all are unknown
         if all(is_unknown):
             self.append_button('merge all\n into a NEW NAME',
                                callback=self.merge_all_into_next_name, rect=next_rect())
+
+        # option dismiss all and give new names to all nonjunk images
         if any(is_unknown):
             self.append_button('dismiss all', callback=self.dismiss_all, rect=next_rect())
+
+        # merges all into the first name
         if not name1.startswith('____'):
-            self.append_button('join all\n into name2=%s' % name1, callback=self.merge_all_into_nid1, rect=next_rect())
-        if name1 != name2 and not name2.startswith('____') and \
-           not all([False]):
+            self.append_button('join all\n into name1=%s' % name1, callback=self.merge_all_into_nid1, rect=next_rect())
+
+        # merges all into the seoncd name
+        if name1 != name2 and not name2.startswith('____') and not all([False]):
             self.append_button('join all\n into name2=%s' % name2,
                                callback=self.merge_all_into_nid2, rect=next_rect())
-        self.append_button('confirm', callback=self.confirm, rect=hl_slot(0))
+
+        ###
+        #self.append_button('confirm', callback=self.confirm, rect=hl_slot(0))
+        self.append_button('close', callback=self.close_, rect=hl_slot(0))
         self.append_button('review', callback=self.review, rect=hl_slot(1))
         self.vsstr = ibsfuncs.vsstr(self.aid1, self.aid2)
         figtitle_fmt = '''
@@ -293,48 +333,31 @@ class MatchVerificationInteraction(AbstractInteraction):
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw
         df2.set_figtitle(figtitle)
 
-    def dismiss_all(self, event=None):
-        """ All annotations are given different new names """
-        # Delete all original names
-        ibs = self.ibs
-        # ibs.delete_annot_nids(self.aid_list)
-        # Get next name from the controller
-        nid_list = ibs.get_annot_name_rowids(self.aid_list)
-        is_unknown = ibsfuncs.is_nid_unknown(ibs, nid_list)
-        aid_list_filtered = ut.filter_items(self.aid_list, is_unknown)
-        next_names = ibsfuncs.make_next_name(ibs, num=len(aid_list_filtered))
-        # Readd the new names to all aids
-        ibs.set_annot_names(aid_list_filtered, next_names)
-        self.update_callback()
-        self.backend_callback()
-        self.show_page()
-
     def review(self, event=None):
         if self.qres_callback is not None:
             self.qres_callback()
         print('review pressed')
 
+    def close_(self, event=None):
+        self.close()
+
     def confirm(self, event=None):
-        ibs = self.ibs
         print('confirm')
         ans = guitool_dialogs.user_option(parent=self.fig.canvas, msg='Are you sure?', title='Confirmation',
                                           options=['Confirm'], use_cache=False)
         print('ans = %r' % ans)
-        if ans == 'Confirm':
-            alrids_list = ibs.get_annot_alrids_oftype(self.aid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY], configid=ibs.MANUAL_CONFIGID)
-            alrid_list = ut.flatten(alrids_list)
-            # For loop in list comprehension. There is no output. Should this
-            # just be a regular for loop? A timeit test might be nice.
-            ibs.set_alr_confidence(alrid_list, [1.0] * len(alrid_list))
-            #[ (ibs.set_alr_confidence(alrid, [1.0] * len(alrid)) if len(alrid) > 0 else None) for alrid in alrid_list ]
-            self.close()
-            #print(ut.dict_str(locals()))
+        #if ans == 'Confirm':
+        #    #alrids_list = ibs.get_annot_alrids_oftype(self.aid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY], configid=ibs.MANUAL_CONFIGID)
+        #    #alrid_list = ut.flatten(alrids_list)
+        #    #ibs.set_alr_confidence(alrid_list, [1.0] * len(alrid_list))
+        #    self.close()
+        #    #print(ut.dict_str(locals()))
         #ibs.print_alr_table()
         self.infer_data()
 
     def unname_all(self, event=None):
         print('remove name')
-        self.ibs.delete_annot_nids(self.aid_list)
+        self.ibs.delete_annot_nids(self.all_aid_list)
         self.show_page()
 
     def merge_all_into_nid1(self, event=None):
@@ -354,13 +377,34 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.show_page()
 
     def merge_all_into_next_name(self, event=None):
-        """ All the annotations are given the same new name """
+        """ All nonjunk annotations are given the SAME new name """
         # Delete all original names
-        self.ibs.delete_annot_nids(self.aid_list)
+        aid_list    = self.all_aid_list
+        self.ibs.delete_annot_nids(aid_list)
+        aid_list_filtered = ut.filterfalse_items(aid_list, self.ibs.get_annot_isjunk(aid_list))
         # Get next nagge from the controller
         next_name = ibsfuncs.make_next_name(self.ibs)
         # Readd the new names to all aids
-        self.ibs.set_annot_names(self.aid_list, [next_name] * len(self.aid_list))
+        print('Setting aids=%r to have name=%r' % (aid_list_filtered, next_name))
+        self.ibs.set_annot_names(aid_list_filtered, [next_name] * len(aid_list_filtered))
+        self.update_callback()
+        self.backend_callback()
+        self.show_page()
+
+    def dismiss_all(self, event=None):
+        """ All unknown nonjunk annotations are given DIFFERENT new names """
+        # Delete all original names
+        ibs = self.ibs
+        aid_list    = self.all_aid_list
+        # ibs.delete_annot_nids(aid_list)
+        # Get next name from the controller
+        nid_list    = ibs.get_annot_name_rowids(aid_list)
+        is_unknown  = ibsfuncs.is_nid_unknown(ibs, nid_list)
+        _aid_list_filtered = ut.filter_items(aid_list, is_unknown)
+        aid_list_filtered = ut.filterfalse_items(_aid_list_filtered, ibs.get_annot_isjunk(_aid_list_filtered))
+        next_names = ibsfuncs.make_next_name(ibs, num=len(aid_list_filtered))
+        # Readd the new names to all aids
+        ibs.set_annot_names(aid_list_filtered, next_names)
         self.update_callback()
         self.backend_callback()
         self.show_page()
@@ -386,16 +430,19 @@ class MatchVerificationInteraction(AbstractInteraction):
                 print('... aid=%r' % aid)
                 if event.button == 3:   # right-click
                     import guitool
-                    ibs = self.ibs
-                    is_exemplar = ibs.get_annot_exemplar_flags(aid)
-                    def context_func():
-                        ibs.set_annot_exemplar_flags(aid, not is_exemplar)
-                        self.show_page()
                     height = self.fig.canvas.geometry().height()
                     pt = guitool.newQPoint(event.x, height - event.y)
-                    guitool.popup_menu(self.fig.canvas, pt, [
-                        ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
-                    ])
+                    #ibs = self.ibs
+                    #is_exemplar = ibs.get_annot_exemplar_flags(aid)
+                    #def context_func():
+                    #    ibs.set_annot_exemplar_flags(aid, not is_exemplar)
+                    #    self.show_page()
+                    #guitool.popup_menu(self.fig.canvas, pt, [
+                    #    ('unset as exemplar' if is_exemplar else 'set as exemplar', context_func),
+                    #])
+                    from ibeis.viz.interact import interact_chip
+                    interact_chip.show_annot_context_menu(
+                        self.ibs, aid, self.fig.canvas, pt, refresh_func=self.show_page)
                     #ibs.print_annotation_table()
                 print(ut.dict_str(event.__dict__))
 

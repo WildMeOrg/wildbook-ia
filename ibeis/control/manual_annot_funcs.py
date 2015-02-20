@@ -61,7 +61,7 @@ def get_num_annotations(ibs, **kwargs):
 @ider
 def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
                    yaw='no-filter', is_exemplar=None, species=None,
-                   is_known=None):
+                   is_known=None, nojunk=False):
     """
     Note: The yaw value cannot be None as a default because None is used as a
           filtering value
@@ -165,6 +165,11 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
             aid_list = ut.filterfalse_items(aid_list, is_unknown_list)
         elif is_known is False:
             aid_list = ut.filter_items(aid_list, is_unknown_list)
+    if nojunk is True:
+        # remove junk annotations
+        quality_list = ibs.get_annot_qualities(aid_list)
+        isjunk_list = [quality == const.QUALITY_TEXT_TO_INT['junk'] for quality in quality_list]
+        aid_list = ut.filterfalse_items(aid_list, isjunk_list)
     return aid_list
 
 
@@ -1711,6 +1716,7 @@ def get_annot_probchip_fpaths(ibs, aid_list, qreq_=None):
 
 @register_ibs_method
 @accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_QUALITY)
+@getter_1to1
 def get_annot_qualities(ibs, aid_list, eager=True):
     """ annot_quality_list <- annot.annot_quality[aid_list]
 
@@ -1769,6 +1775,50 @@ def set_annot_qualities(ibs, aid_list, annot_quality_list):
     id_iter = aid_list
     colnames = (ANNOT_QUALITY,)
     ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_quality_list, id_iter)
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_quality_texts(ibs, aid_list):
+    quality_list = ibs.get_annot_qualities(aid_list)
+    quality_text_list = ut.dict_take(const.QUALITY_INT_TO_TEXT, quality_list)
+    return quality_text_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_isjunk(ibs, aid_list):
+    qual_list = ibs.get_annot_qualities(aid_list)
+    isjunk_list = [qual == const.QUALITY_TEXT_TO_INT['junk'] for qual in qual_list]
+    return isjunk_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_yaw_texts(ibs, aid_list):
+    yaw_list = ibs.get_annot_yaws(aid_list)
+    yaw_text_list = ibsfuncs.get_yaw_viewtexts(yaw_list)
+    return yaw_text_list
+
+
+@register_ibs_method
+def set_annot_quality_texts(ibs, aid_list, quality_text_list):
+    if not ut.isiterable(aid_list):
+        aid_list = [aid_list]
+    if isinstance(quality_text_list, six.string_types):
+        quality_text_list = [quality_text_list]
+    quality_list = ut.dict_take(const.QUALITY_TEXT_TO_INT, quality_text_list)
+    ibs.set_annot_qualities(aid_list, quality_list)
+
+
+@register_ibs_method
+def set_annot_yaw_texts(ibs, aid_list, yaw_text_list):
+    if not ut.isiterable(aid_list):
+        aid_list = [aid_list]
+    if isinstance(yaw_text_list, six.string_types):
+        yaw_text_list = [yaw_text_list]
+    yaw_list = ut.dict_take(const.VIEWTEXT_TO_YAW_RADIANS, yaw_text_list)
+    ibs.set_annot_yaws(aid_list, yaw_list)
 
 
 #==========

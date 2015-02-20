@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool
+import plottool as pt
 import plottool.draw_func2 as df2
 from plottool.viz_keypoints import _annotate_kpts
 from plottool import viz_image2
@@ -50,6 +51,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         chip_title_text = chip_text + title_suffix
     else:
         chip_title_text = title_suffix
+    chip_title_text = chip_title_text.strip('\n')
     # Draw chip
     fig, ax = df2.imshow(chip, **kwargs)
     # Populate axis user data
@@ -80,7 +82,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         _annotate_kpts(kpts_, **kwargs)
         df2.upperleft_text(chip_text, color=kwargs.get('text_color', None))
     if not kwargs.get('ntitle', False):
-        ax.set_title(chip_title_text)
+        pt.set_title(chip_title_text)
     if in_image:
         gid = ibs.get_annot_gids(aid)
         aid_list = ibs.get_image_aids(gid)
