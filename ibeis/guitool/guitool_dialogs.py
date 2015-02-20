@@ -230,6 +230,25 @@ def msgbox(msg, title='msgbox'):
 
 
 def popup_menu(widget, pos, opt2_callback):
+    r"""
+    Args:
+        widget (QWidget):
+        pos (QPoint):
+        opt2_callback (dict):
+
+    Returns:
+        tuple: (selection, actions)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.guitool_dialogs import *  # NOQA
+        >>> widget = fig.canvas
+        >>> pos = guitool.newQPoint(event.x, fig.canvas.geometry().height() - event.y)
+        >>> opt2_callback = {'func': lambda : foo()}
+        >>> (selection, actions) = popup_menu(widget, pos, opt2_callback)
+        >>> result = str((selection, actions))
+        >>> print(result)
+    """
     menu = QtGui.QMenu(widget)
     actions = [menu.addAction(opt, ut.tracefunc(func)) for (opt, func) in opt2_callback]
     selection = menu.exec_(widget.mapToGlobal(pos))

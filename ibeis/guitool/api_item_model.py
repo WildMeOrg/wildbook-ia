@@ -231,9 +231,9 @@ class APIItemModel(API_MODEL_BASE):
             return
         #old_root = model.root_node  # NOQA
         if rebuild_structure:
-            with utool.Timer('[%s] _update_rows: %r' %
-                             ('cyth' if _atn.CYTHONIZED else 'pyth',
-                              model.name,), newline=False):
+            #with utool.Timer('[%s] _update_rows: %r' %
+            #                 ('cyth' if _atn.CYTHONIZED else 'pyth',
+            #                  model.name,), newline=False):
                 model.root_node = _atn.build_internal_structure(model)
         #print('-----')
         #def lazy_update_rows():
@@ -247,7 +247,7 @@ class APIItemModel(API_MODEL_BASE):
             print('[APIItemModel] lazy_update_rows')
         model.level_index_list = []
         sort_index = 0 if model.col_sort_index is None else model.col_sort_index
-        print('sort_index=%r' % (sort_index,))
+        #print('[item_model] sort_index=%r' % (sort_index,))
         children = model.root_node.get_children()  # THIS IS THE LINE THAT TAKES FOREVER
         id_list = [child.get_id() for child in children]
         #print('ids_ generated')
