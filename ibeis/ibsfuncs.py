@@ -2655,7 +2655,7 @@ def get_quality_texts(quality_list):
 
 def batch_rename_names_for_great_zebra_count(ibs):
     """
-    python dev.py --db Feb-19-2015 --cmd
+    python dev.py --db PZ_MUGU_19 --cmd
     """
     nid_list = ibs.get_valid_nids()
     name_list = ibs.get_name_texts(nid_list)
