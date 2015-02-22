@@ -2666,6 +2666,29 @@ def batch_rename_names_for_great_zebra_count(ibs):
     ibs.cfg.save()
 
 
+def detect_false_positives(ibs):
+    """
+    TODO: this function should detect problems in the database
+    It should execute queries for annotations with groundtruth
+
+    then if the groundtruth is no in the top results it is given to the user who
+    should try and rectify the problem.
+
+    If the top ranked match is not a groundtruth then it is a true error or hard
+    case for the system. To prevent having to review this "hard case" again an
+    explicit negative link should be made between the offending annotation pair.
+
+    """
+    pass
+    #qaid_list = ibs.get_valid_aids(nojunk=True, isknown=True)
+    #qres_list = ibs.query_annots(qaid_list)
+    #for qres in qres_list:
+    #    top_aids = qres.get_top_aids(num=2)
+
+#def detect_false_negatives():
+#     pass
+
+
 if __name__ == '__main__':
     """
     CommandLine:

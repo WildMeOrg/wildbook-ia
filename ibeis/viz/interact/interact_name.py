@@ -47,10 +47,12 @@ def testsdata_match_verification():
     r"""
     CommandLine:
         main.py --eid 2
+        main.py --eid 13 --db PZ_MUGU_19
 
     CommandLine:
         python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show
-        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db Feb-19-2015 --aid1 297 --aid2 267
+        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MUGU_19 --aid1 297 --aid2 267
+        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MUGU_19 --aid1 159 --aid2 154
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -63,9 +65,12 @@ def testsdata_match_verification():
     """
     from ibeis.viz.interact.interact_name import *  # NOQA
     import ibeis
-    ibs = ibeis.opendb(defaultdb='PZ_Master0')
-    aid1 = ut.get_argval('--aid1', int, 14)
-    aid2 = ut.get_argval('--aid2', int, 5545)
+    #ibs = ibeis.opendb(defaultdb='PZ_Master0')
+    ibs = ibeis.opendb(defaultdb='testdb1')
+    #aid1 = ut.get_argval('--aid1', int, 14)
+    #aid2 = ut.get_argval('--aid2', int, 5545)
+    aid1 = ut.get_argval('--aid1', int, 1)
+    aid2 = ut.get_argval('--aid2', int, 2)
     self = MatchVerificationInteraction(ibs, aid1, aid2, dodraw=False)
     if ut.show_was_requested():
         self.show_page()
@@ -121,7 +126,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         # Original sets of groundtruth we are working with
         self.gt1, self.gt2 = self.gts_list
         # Grid that will fit all the names we need to display
-        MAX_COLS = 4
+        MAX_COLS = 3
         max_num_gt = max(map(len, all_gt_list))
         self.nCols = max_num_gt
         self.nCols = min(max_num_gt, MAX_COLS)
@@ -193,7 +198,8 @@ class MatchVerificationInteraction(AbstractInteraction):
                                        location='right', size='33%', ax=ax)
 
         self.show_hud()
-        df2.adjust_subplots_safe(top=0.85, hspace=0.03)
+        #df2.adjust_subplots_safe(top=0.85, hspace=0.03)
+        df2.adjust_subplots_safe(top=0.85, hspace=0.05)
         self.draw()
         self.show()
         if bring_to_front:
@@ -202,7 +208,7 @@ class MatchVerificationInteraction(AbstractInteraction):
 
     def plot_chip(self, aid, nRows, nCols, px, **kwargs):
         """ Plots an individual chip in a subaxis """
-        print('%d %d %d' % (nRows, nCols, px))
+        #print('[plot_chip] %d %d %d' % (nRows, nCols, px))
         ibs = self.ibs
         nid = ibs.get_annot_name_rowids(aid)
         annotation_unknown = ibs.is_nid_unknown([nid])[0]
@@ -444,7 +450,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                     interact_chip.show_annot_context_menu(
                         self.ibs, aid, self.fig.canvas, pt, refresh_func=self.show_page)
                     #ibs.print_annotation_table()
-                print(ut.dict_str(event.__dict__))
+                #print(ut.dict_str(event.__dict__))
 
 if __name__ == '__main__':
     """

@@ -269,6 +269,22 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     #@checks_qt_error
     def _init_components(ibswgt):
         """ Defines gui components """
+        def get_working_species_set():
+            """ hack to make only species with detectors show up """
+            # TODO: allow for custom user-define species
+            RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = not ut.get_argflag('--allspecies')
+            if RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS:
+                working_species_tups = [
+                    (species_tup.species_nice, species_tup.species_text)
+                    for species_tup in const.SPECIES_TUPS
+                    if species_tup.species_text in const.SPECIES_WITH_DETECTORS
+                ]
+            else:
+                working_species_tups = [
+                    (species_tup.species_nice, species_tup.species_text)
+                    for species_tup in const.SPECIES_TUPS
+                ]
+            return working_species_tups
         # Layout
         ibswgt.vlayout = QtGui.QVBoxLayout(ibswgt)
         ibswgt.hsplitter = guitool.newSplitter(ibswgt, Qt.Horizontal, verticalStretch=18)
@@ -307,45 +323,22 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         ibswgt.statusBar = QtGui.QHBoxLayout(ibswgt)
         _NEWLBL = functools.partial(guitool.newLabel, ibswgt)
-        ibswgt.statusLabel_list = [
-            _NEWLBL(''),
-            _NEWLBL('Status Bar'),
-            _NEWLBL(''),
-            _NEWLBL(''),
-        ]
-
-        ibswgt.buttonBars = []
         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
         _COMBO  = functools.partial(guitool.newComboBox, ibswgt)
-        #_SEP = lambda: None
+
+        primary_fontkw = dict(bold=True, pointSize=11)
+        secondary_fontkw = dict(bold=False, pointSize=9)
+        advanced_fontkw = dict(bold=False, pointSize=8, italic=True)
+
+        ibswgt.statusLabel_list = [
+            _NEWLBL('', fontkw=secondary_fontkw),
+            _NEWLBL('Status Bar', fontkw=secondary_fontkw),
+            _NEWLBL('', fontkw=secondary_fontkw),
+            _NEWLBL('', fontkw=secondary_fontkw),
+        ]
+        ibswgt.buttonBars = []
+
         back = ibswgt.back
-
-        #ibswgt.query_button = _NEWBUT('Run Identification',
-        #                              ibswgt.back.compute_queries,
-        #                              bgcolor=(150, 150, 255),
-        #                              fgcolor=(0, 0, 0))
-
-        ibswgt.inc_query_button = _NEWBUT('4) Identify',  # QUERY',
-                                          ibswgt.back.incremental_query,
-                                          bgcolor=(255, 150, 0),
-                                          fgcolor=(0, 0, 0))
-
-        def get_working_species_set():
-            """ hack to make only species with detectors show up """
-            # TODO: allow for custom user-define species
-            RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = not ut.get_argflag('--allspecies')
-            if RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS:
-                working_species_tups = [
-                    (species_tup.species_nice, species_tup.species_text)
-                    for species_tup in const.SPECIES_TUPS
-                    if species_tup.species_text in const.SPECIES_WITH_DETECTORS
-                ]
-            else:
-                working_species_tups = [
-                    (species_tup.species_nice, species_tup.species_text)
-                    for species_tup in const.SPECIES_TUPS
-                ]
-            return working_species_tups
 
         # TODO: update these options depending on ibs.get_species_with_detectors
         # when a controller is attached to the gui
@@ -355,23 +348,49 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ] + get_working_species_set()
         #list(zip(const.SPECIES_NICE, const.VALID_SPECIES))
         ibswgt.species_combo = _COMBO(detection_combo_box_options,
-                                      ibswgt.back.change_detection_species)
+                                      ibswgt.back.change_detection_species,
+                                      fontkw=primary_fontkw)
 
         ibswgt.reviewed_button = _NEWBUT('5) Complete',
                                          ibswgt.back.encounter_reviewed_all_images,
-                                         bgcolor=(0, 232, 211))
+                                         bgcolor=(0, 232, 211), fontkw=primary_fontkw)
 
         ibswgt.import_button = _NEWBUT('1) Import',  # Import Images\n(via files)',
                                        back.import_images_from_file,
-                                       bgcolor=(235, 200, 200),)
+                                       bgcolor=(235, 200, 200), fontkw=primary_fontkw)
 
         ibswgt.encounter_button = _NEWBUT('2) Group',  # Images into Encounters',
                                           ibswgt.back.compute_encounters,
-                                          bgcolor=(255, 255, 150))
+                                          bgcolor=(255, 255, 150), fontkw=primary_fontkw)
 
         ibswgt.detect_button = _NEWBUT('3) Detect',
                                        ibswgt.back.run_detection,
-                                       bgcolor=(150, 255, 150))
+                                       bgcolor=(150, 255, 150), fontkw=primary_fontkw)
+
+        from plottool import color_funcs
+        identify_color = (255, 150, 0)
+        ibswgt.inc_query_button = _NEWBUT('4) Identify',  # QUERY',
+                                          ibswgt.back.incremental_query,
+                                          bgcolor=identify_color,
+                                          fgcolor=(0, 0, 0), fontkw=primary_fontkw)
+
+        color_funcs.adjust_hsv_of_rgb255(identify_color, 0.01, -0.2, 0.0)
+
+        ibswgt.batch_unknown_intra_encounter_query_button = _NEWBUT(
+            'Intra Encounter',  # QUERY',
+            functools.partial(
+                back.compute_queries,
+                query_is_known=False, query_mode=const.INTRA_ENC_KEY),
+            bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, -0.01, -0.7, 0.0),
+            fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
+
+        ibswgt.batch_unknown_vsexemplar_query_button = _NEWBUT(
+            'Vs Exemplar',  # QUERY',
+            functools.partial(
+                back.compute_queries,
+                query_is_known=False, query_mode=const.VS_EXEMPLARS_KEY),
+            bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, 0.01, -0.7, 0.0),
+            fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
 
         #ibswgt.species_button = _NEWBUT('Update Encounter Species',
         #                                ibswgt.back.encounter_set_species,
@@ -399,50 +418,35 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
                 ibswgt.encounter_button,
 
-                _NEWLBL('Encounter: ', align='right', bold=True),
+                _NEWLBL('Encounter: ', align='right', fontkw=primary_fontkw),
 
                 ibswgt.detect_button,
 
                 ibswgt.inc_query_button,
 
-                #ibswgt.species_button,
-
                 ibswgt.reviewed_button,
 
             ],
             [
-                #_NEWBUT('Review Detections',
-                #        ibswgt.back.review_detections,
-                #        bgcolor=(170, 250, 170)),
-
-                #ibswgt.querydb_combo,
-
-                #ibswgt.query_button,
-
-                _NEWLBL('Species Selector: ', bold=True, align='right'),
+                _NEWLBL('Species Selector: ', align='right', fontkw=primary_fontkw),
 
                 ibswgt.species_combo,
 
                 _NEWLBL(''),
+
+                _NEWLBL('*Advanced Batch Identification: ', align='right', fontkw=advanced_fontkw),
+                ibswgt.batch_unknown_intra_encounter_query_button,
+                ibswgt.batch_unknown_vsexemplar_query_button,
+
                 _NEWLBL(''),
 
+            ],
+            #[
+            #    _NEWLBL(''),
+            #    _NEWLBL(''),
+            #    _NEWLBL(''),
 
-                #_NEWBUT('Identify\n(vs exemplar database)',
-                #        ibswgt.back.compute_queries_vs_exemplar,
-                #        bgcolor=(150, 150, 255),
-                #        fgcolor=(0, 0, 0)),
-
-                #_NEWBUT('Review Recognitions',
-                #        ibswgt.back.review_queries,
-                #        bgcolor=(170, 170, 250),
-                #        fgcolor=(0, 0, 0)),
-
-                # _SEP(),
-
-                #_NEWBUT('Delete Encounters', ibswgt.back.delete_all_encounters,
-                #        bgcolor=(255, 0, 0),
-                #        fgcolor=(0, 0, 0)),
-            ]
+            #]
         ]
 
     def _init_layout(ibswgt):

@@ -163,16 +163,34 @@ def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None, species=None):
     return probchip_fpath_list
 
 
-def compute_and_write_probchip(ibs, aid_list, qreq_=None):
+def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
     """ Computes probability chips using pyrf
 
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_probchip --test-compute_and_write_probchip:0
+        python -m ibeis.model.preproc.preproc_probchip --test-compute_and_write_probchip:1
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> qreq_ = None
-        >>> aid_list = ibs.get_valid_aids()
-        >>> compute_and_write_probchip(ibs, aid_list, qreq_)
+        >>> aid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, qreq_)
+        >>> result = ut.list_str(probchip_fpath_list_)
+        >>> print(result)
+
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qreq_ = None
+        >>> aid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
+        >>> probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, qreq_, lazy=False)
+        >>> result = ut.list_str(probchip_fpath_list_)
+        >>> print(result)
 
     Dev::
         #ibs.delete_annot_chips(aid_list)
@@ -194,13 +212,29 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None):
             continue
         probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, species=species)
         cfpath_list  = ibs.get_annot_chip_fpaths(aids, ensure=True, qreq_=qreq_)
+
+        if lazy:
+            # Filter out probchips that are already on disk
+            # pyrf used to do this, now we need to do it
+            # caching should be implicit due to using the visual_annot_uuid in
+            # the filename
+            from os.path import exists
+            exists_list = list(map(exists, probchip_fpath_list))
+            dirty_cfpath_list = ut.filterfalse_items(cfpath_list, exists_list)
+            dirty_probchip_fpath_list = ut.filterfalse_items(probchip_fpath_list, exists_list)
+        else:
+            # No filtering
+            dirty_cfpath_list  = cfpath_list
+            dirty_probchip_fpath_list = probchip_fpath_list
+
         config = {
             # 'scale_list': [1.0],
-            'output_gpath_list': probchip_fpath_list,
+            'output_gpath_list': dirty_probchip_fpath_list,
             'mode': 1,
         }
-        iter_ = randomforest.detect_gpath_list_with_species(ibs, cfpath_list, species, **config)
-        results_list = list(iter_)  # NOQA
+        probchip_generator = randomforest.detect_gpath_list_with_species(ibs, dirty_cfpath_list, species, **config)
+        # Evalutate genrator until completion
+        ut.evaluate_generator(probchip_generator)
         probchip_fpath_list_.extend(probchip_fpath_list)
     if ut.VERBOSE:
         print('[preproc_probchip] Done computing probability images')

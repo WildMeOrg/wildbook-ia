@@ -92,6 +92,7 @@ Tadder_pl_dependant = ut.codeblock(
             >>> assert len({leaf}_rowid_list) == len({parent}_rowid_list)
             >>> ut.assert_all_not_None({leaf}_rowid_list)
         """
+        ut.assert_all_not_None({parent}_rowid_list, ' {parent}_rowid_list')
         #REM raise NotImplementedError('this code is a stub, you must populate it')
         from ibeis.model.preproc import preproc_{leaf}
         # Get requested configuration id

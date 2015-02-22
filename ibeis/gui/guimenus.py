@@ -5,6 +5,7 @@ as well as their callbacks in guiback
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import functools
+from ibeis import constants as const
 from guitool.guitool_components import newMenu, newMenubar, msg_event
 ut.noinject(__name__, '[guimenus]', DEBUG=False)
 
@@ -195,6 +196,25 @@ def setup_batch_menu(mainwin, back):
         name='actionComputeIncremental_Queries',
         text='Compute Incremental Queries',
         slot_fn=back.incremental_query)
+    mainwin.menuBatch.addSeparator()  # ---------
+    mainwin.menuBatch.newAction(
+        name='actionBatchIntraEncounterQueries',
+        text='Compute Batch IntraEncounter Queries',
+        slot_fn=functools.partial(back.compute_queries, query_mode=const.INTRA_ENC_KEY))
+    mainwin.menuBatch.newAction(
+        name='actionBatchVsExemplarQueries',
+        text='Compute Batch VsExemplar Queries',
+        slot_fn=functools.partial(back.compute_queries, query_mode=const.VS_EXEMPLARS_KEY))
+    mainwin.menuBatch.addSeparator()  # ---------
+    mainwin.menuBatch.newAction(
+        name='actionBatchUnknownIntraEncounterQueries',
+        text='Compute Batch Unknown IntraEncounter Queries',
+        slot_fn=functools.partial(back.compute_queries, query_is_known=False, query_mode=const.INTRA_ENC_KEY))
+    mainwin.menuBatch.newAction(
+        name='actionBatchUnknownVsExemplarQueries',
+        text='Compute Batch Unknown VsExemplar Queries',
+        slot_fn=functools.partial(back.compute_queries, query_is_known=False, query_mode=const.VS_EXEMPLARS_KEY))
+
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionShipProcessedEncounters',

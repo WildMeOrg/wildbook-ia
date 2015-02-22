@@ -67,6 +67,7 @@ def add_annot_chips(ibs, aid_list, qreq_=None):
         >>> assert len(chip_rowid_list) == len(aid_list)
         >>> ut.assert_all_not_None(chip_rowid_list)
     """
+    ut.assert_all_not_None(aid_list, 'aid_list')
     from ibeis.model.preproc import preproc_chip
     # Get requested configuration id
     config_rowid = ibs.get_chip_config_rowid(qreq_=qreq_)

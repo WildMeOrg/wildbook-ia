@@ -4,6 +4,8 @@ development module storing my "development state"
 TODO:
     * figure out what packages I use have lisencing issues.
         - Reimplement them or work around them.
+
+    Excplitict Negative Matches between chips
 """
 from __future__ import absolute_import, division, print_function
 from ibeis.model.hots import hstypes

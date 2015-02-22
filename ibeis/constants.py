@@ -34,9 +34,10 @@ QUALITY_INT_TO_TEXT = OrderedDict([
     (2, 'good',),
     (1, 'ok',),
     (0, 'junk',),
-    (None, 'UNKNOWN',),
+    (-1, 'UNKNOWN',),
 ])
 QUALITY_TEXT_TO_INT = ut.invert_dict(QUALITY_INT_TO_TEXT)
+QUALITY_INT_TO_TEXT[None] = QUALITY_INT_TO_TEXT[-1]
 
 
 class PATH_NAMES(object):

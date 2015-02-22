@@ -42,6 +42,8 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> dbname = ibs.get_dbname()
         >>> result = dbname + datahashid
         >>> print(result)
+        PZ_MTEST_DSUUIDS((5)@n7v0df!&j5o8pni)
+
         PZ_MTEST_DSUUIDS((5)q87ho9a0@9s02imh)
 
     Example2:
@@ -65,8 +67,9 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> dbname = ibs.get_dbname()
         >>> result = dbname + datahashid
         >>> print(result)
-        NAUT_test_DSUUIDS((5)4e972cjxcj30a8u1)
+        NAUT_test_DSUUIDS((5)&flvjboruwyi08%t)
 
+    NAUT_test_DSUUIDS((5)4e972cjxcj30a8u1)
     NAUT_test_DSUUIDS((5)8l4exo@+@b+kh9!!)
     """
     if verbose:

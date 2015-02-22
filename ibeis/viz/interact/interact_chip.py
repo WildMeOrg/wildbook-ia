@@ -16,23 +16,31 @@ def show_annot_context_menu(ibs, aid,  qwin, pt, refresh_func=None):
     import guitool
     is_exemplar = ibs.get_annot_exemplar_flags(aid)
 
-    def toggle_exemplar_func():
-        ibs.set_annot_exemplar_flags(aid, not is_exemplar)
-        if refresh_func is not None:
+    def refresh_wrp():
+        if refresh_func is None:
+            print('no refresh func')
+        else:
+            print('calling refresh_func=%r' % (refresh_func,))
             refresh_func()
+
+    def toggle_exemplar_func():
+        new_flag = not is_exemplar
+        print('set_annot_exemplar(%r, %r)' % (aid, new_flag))
+        ibs.set_annot_exemplar_flags(aid, new_flag)
+        refresh_wrp()
     def set_yaw_func(key):
         def _wrap_yaw():
             yaw = const.VIEWTEXT_TO_YAW_RADIANS[key]
             ibs.set_annot_yaws([aid], [yaw])
-            if refresh_func is not None:
-                refresh_func()
+            print('set_annot_yaw(%r, %r=%r)' % (aid, key, yaw))
+            refresh_wrp()
         return _wrap_yaw
     def set_quality_func(key):
         def _wrp_qual():
             quality = const.QUALITY_TEXT_TO_INT[key]
             ibs.set_annot_qualities([aid], [quality])
-            if refresh_func is not None:
-                refresh_func()
+            print('set_annot_yaw(%r, %r=%r)' % (aid, key, quality))
+            refresh_wrp()
         return _wrp_qual
     angle_callback_list = [
         ('unset as exemplar' if is_exemplar else 'set as exemplar', toggle_exemplar_func),

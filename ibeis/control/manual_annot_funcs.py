@@ -894,7 +894,7 @@ def get_annot_semantic_uuids(ibs, aid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()[0:1]
         >>> annot_semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
         >>> assert len(aid_list) == len(annot_semantic_uuid_list)
@@ -928,7 +928,7 @@ def get_annot_visual_uuids(ibs, aid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()[0:1]
         >>> annot_visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
         >>> assert len(aid_list) == len(annot_visual_uuid_list)
@@ -1715,7 +1715,7 @@ def get_annot_probchip_fpaths(ibs, aid_list, qreq_=None):
 # ---
 
 @register_ibs_method
-@accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_QUALITY)
+#@accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_QUALITY)
 @getter_1to1
 def get_annot_qualities(ibs, aid_list, eager=True):
     """ annot_quality_list <- annot.annot_quality[aid_list]
@@ -1754,7 +1754,7 @@ def get_annot_qualities(ibs, aid_list, eager=True):
 
 
 @register_ibs_method
-@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, ANNOT_QUALITY, native_rowids=True)
+#@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, ANNOT_QUALITY, native_rowids=True)
 def set_annot_qualities(ibs, aid_list, annot_quality_list):
     """ annot_quality_list -> annot.annot_quality[aid_list]
 
