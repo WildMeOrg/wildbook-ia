@@ -15,9 +15,9 @@ def TEST_DELETE_CHIPS(ibs, back):
     aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
     cid_list = ibs.add_annot_chips(aid_list)
     cid = cid_list[0]
-    _fid = ibs.get_chip_fids(cid, ensure=False)
+    _fid = ibs.get_chip_feat_rowids(cid, ensure=False)
     assert _fid is None, "_fid=%r should be None" % (_fid,)
-    _fid = ibs.get_chip_fids(cid, ensure=True)
+    _fid = ibs.get_chip_feat_rowids(cid, ensure=True)
     assert _fid is not None, "_fid=%r should be computed" % (_fid,)
     ibs.delete_chips(cid)
     cid_list = ibs.get_valid_cids()

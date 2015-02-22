@@ -127,6 +127,8 @@ TABLE_COLNAMES = {
         #'aid',
         #'annot_gname',
         #'namenotes',
+        'yaw_text',
+        'quality_text',
     ],
 
     IMAGE_GRID     : [
@@ -143,7 +145,7 @@ TABLE_COLNAMES = {
 }
 
 # Columns for developers
-if ut.is_developer():
+if True or ut.is_developer():
     TABLE_COLNAMES[ANNOTATION_TABLE].append('yaw_text')
     TABLE_COLNAMES[ANNOTATION_TABLE].append('quality_text')
 
@@ -153,13 +155,13 @@ if ut.is_developer():
 # the columns which are editable
 TABLE_EDITSET = {
     IMAGE_TABLE      : set(['reviewed', 'imgnotes']),
-    ANNOTATION_TABLE : set(['name', 'species', 'yaw', 'yaw_text', 'annotnotes', 'exemplar', 'quality_text']),
+    ANNOTATION_TABLE : set(['name', 'species', 'annotnotes', 'exemplar', 'yaw', 'yaw_text', 'quality_text']),
     NAME_TABLE       : set(['name', 'namenotes']),
     QRES_TABLE       : set(['name']),
     ENCOUNTER_TABLE  : set(['encounter_shipped_flag', 'encounter_processed_flag']),
     IMAGE_GRID       : set([]),
     THUMB_TABLE      : set([]),
-    NAMES_TREE       : set(['exemplar', 'name', 'namenotes']),
+    NAMES_TREE       : set(['exemplar', 'name', 'namenotes', 'yaw', 'yaw_text', 'quality_text']),
 }
 
 TABLE_TREE_LEVELS = {
@@ -173,6 +175,8 @@ TABLE_TREE_LEVELS = {
         'exemplar': 1,
         'thumb': 1,
         'annot_gname': 1,
+        'yaw_text': 1,
+        'quality_text': 1,
         'aid': 1,
 
     },
@@ -338,7 +342,7 @@ def make_ibeis_headers_dict(ibs):
         'name'                : ibs.get_annot_names,
         'species'             : ibs.get_annot_species_texts,
         'yaw'                 : ibs.get_annot_yaws,
-        'yaw_text'             : ibs.get_annot_yaw_texts,
+        'yaw_text'            : ibs.get_annot_yaw_texts,
         'quality_text'        : ibs.get_annot_quality_texts,
         'annot_gname'         : ibs.get_annot_image_names,
         'nGt'                 : ibs.get_annot_num_groundtruth,
@@ -379,20 +383,24 @@ def make_ibeis_headers_dict(ibs):
     #
     iders[NAMES_TREE]   = [ibs.get_valid_nids, ibs.get_name_aids]
     getters[NAMES_TREE] = {
-        'nid'        : lambda nids: nids,
-        'name'       : ibs.get_name_texts,
-        'nAids'      : ibs.get_name_num_annotations,
-        'nExAids'    : ibs.get_name_num_exemplar_annotations,
-        'namenotes'  : ibs.get_name_notes,
-        'aid'        : lambda aids: aids,
-        'exemplar'   : ibs.get_annot_exemplar_flags,
-        'thumb'      : ibs.get_annot_chip_thumbtup,
-        'annot_gname' : ibs.get_annot_image_names,
+        'nid'          : lambda nids: nids,
+        'name'         : ibs.get_name_texts,
+        'nAids'        : ibs.get_name_num_annotations,
+        'nExAids'      : ibs.get_name_num_exemplar_annotations,
+        'namenotes'    : ibs.get_name_notes,
+        'aid'          : lambda aids: aids,
+        'exemplar'     : ibs.get_annot_exemplar_flags,
+        'thumb'        : ibs.get_annot_chip_thumbtup,
+        'annot_gname'  : ibs.get_annot_image_names,
+        'yaw_text'     : getters[ANNOTATION_TABLE]['yaw_text'],
+        'quality_text' : getters[ANNOTATION_TABLE]['quality_text'],
     }
     setters[NAMES_TREE] = {
-        'exemplar'   : ibs.set_annot_exemplar_flags,
         'name'       : ibs.set_name_texts,
         'namenotes'  : ibs.set_name_notes,
+        'exemplar'     : setters[ANNOTATION_TABLE]['exemplar'],
+        'yaw_text'     : setters[ANNOTATION_TABLE]['yaw_text'],
+        'quality_text' : setters[ANNOTATION_TABLE]['quality_text'],
     }
 
     iders[THUMB_TABLE]   = [ibs.get_valid_gids]

@@ -351,3 +351,90 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
     ut.doctest_funcs()
+
+
+@register_ibs_method
+@adder
+def add_annot_chips(ibs, aid_list, qreq_=None):
+    """ annot.chip.add(aid_list)
+
+    CRITICAL FUNCTION MUST EXIST FOR ALL DEPENDANTS
+    Adds / ensures / computes a dependant property
+
+    Args:
+         aid_list
+
+    Returns:
+        returns chip_rowid_list of added (or already existing chips)
+
+    TemplateInfo:
+        Tadder_pl_dependant
+        parent = annot
+        leaf = chip
+
+    CommandLine:
+        python -m ibeis.control.manual_chip_funcs --test-add_annot_chips
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> aid_list = ibs._get_all_aids()[::3]
+        >>> chip_rowid_list = ibs.add_annot_chips(aid_list, qreq_=qreq_)
+        >>> assert len(chip_rowid_list) == len(aid_list)
+        >>> ut.assert_all_not_None(chip_rowid_list)
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> aid_list = ibs._get_all_aids()[0:10]
+        >>> sub_aid_list1 = aid_list[0:6]
+        >>> sub_aid_list2 = aid_list[5:7]
+        >>> sub_aid_list3 = aid_list[0:7]
+        >>> sub_cid_list1 = ibs.get_annot_chip_rowids(sub_aid_list1, qreq_=qreq_, ensure=True)
+        >>> ut.assert_all_not_None(sub_cid_list1)
+        >>> ibs.delete_annot_chips(sub_aid_list2)
+        >>> sub_cid_list3 = ibs.get_annot_chip_rowids(sub_aid_list3, qreq_=qreq_, ensure=False)
+        >>> # Only the last two should be None
+        >>> ut.assert_all_not_None(sub_cid_list3)
+        >>> assert sub_cid_list3[5:7] == [None, None]
+        >>> sub_cid_list3_ensured = ibs.get_annot_chip_rowids(sub_aid_list3, qreq_=qreq_, ensure=True)
+        >>> # Only two params should have been computed here
+        >>> ut.assert_all_not_None(sub_cid_list3_ensured)
+
+    """
+    from ibeis.model.preproc import preproc_chip
+    ut.assert_all_not_None(aid_list, 'aid_list')
+    # Get requested configuration id
+    config_rowid = ibs.get_chip_config_rowid(qreq_=qreq_)
+    # Find leaf rowids that need to be computed
+    initial_chip_rowid_list = get_annot_chip_rowids_(ibs, aid_list, qreq_=qreq_)
+    # Get corresponding "dirty" parent rowids
+    isdirty_list = ut.flag_None_items(initial_chip_rowid_list)
+    dirty_aid_list = ut.filter_items(aid_list, isdirty_list)
+    num_dirty = len(dirty_aid_list)
+    if num_dirty > 0:
+        #if ut.VERBOSE:
+        print('[add_annot_chips] adding %d / %d new chips' % (len(dirty_aid_list), len(aid_list)))
+        # Dependant columns do not need true from_superkey getters.
+        # We can use the Tgetter_pl_dependant_rowids_ instead
+        get_rowid_from_superkey = functools.partial(
+            ibs.get_annot_chip_rowids_, qreq_=qreq_)
+        proptup_gen = preproc_chip.generate_chip_properties(ibs, dirty_aid_list)
+        dirty_params_iter = (
+            (aid, config_rowid, chip_uri, chip_width, chip_height)
+            for aid, (chip_uri, chip_width, chip_height,) in
+            zip(dirty_aid_list, proptup_gen)
+        )
+        dirty_params_iter = list(dirty_params_iter)
+        colnames = ['annot_rowid', 'config_rowid',
+                    'chip_uri', 'chip_width', 'chip_height']
+        #chip_rowid_list = ibs.dbcache.add_cleanly(
+        #    const.CHIP_TABLE, colnames, params_iter, get_rowid_from_superkey)
+        ibs.dbcache._add(const.CHIP_TABLE, colnames, dirty_params_iter)
+        # Now that the dirty params are added get the correct order of rowids
+        chip_rowid_list = get_rowid_from_superkey(aid_list)
+    else:
+        chip_rowid_list = initial_chip_rowid_list
+    return chip_rowid_list

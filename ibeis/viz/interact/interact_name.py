@@ -383,7 +383,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.show_page()
 
     def merge_all_into_next_name(self, event=None):
-        """ All nonjunk annotations are given the SAME new name """
+        """ All nonjunk? annotations are given the SAME new name """
         # Delete all original names
         aid_list    = self.all_aid_list
         self.ibs.delete_annot_nids(aid_list)
@@ -398,7 +398,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.show_page()
 
     def dismiss_all(self, event=None):
-        """ All unknown nonjunk annotations are given DIFFERENT new names """
+        """ All unknown nonjunk? annotations are given DIFFERENT new names """
         # Delete all original names
         ibs = self.ibs
         aid_list    = self.all_aid_list
@@ -406,8 +406,8 @@ class MatchVerificationInteraction(AbstractInteraction):
         # Get next name from the controller
         nid_list    = ibs.get_annot_name_rowids(aid_list)
         is_unknown  = ibsfuncs.is_nid_unknown(ibs, nid_list)
-        _aid_list_filtered = ut.filter_items(aid_list, is_unknown)
-        aid_list_filtered = ut.filterfalse_items(_aid_list_filtered, ibs.get_annot_isjunk(_aid_list_filtered))
+        aid_list_filtered = ut.filter_items(aid_list, is_unknown)
+        #aid_list_filtered = ut.filterfalse_items(_aid_list_filtered, ibs.get_annot_isjunk(_aid_list_filtered))
         next_names = ibsfuncs.make_next_name(ibs, num=len(aid_list_filtered))
         # Readd the new names to all aids
         ibs.set_annot_names(aid_list_filtered, next_names)

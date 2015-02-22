@@ -218,6 +218,7 @@ def generate_chip_properties(ibs, aid_list, qreq_=None):
     """
     try:
         # the old function didn't even call this
+        print('[generate_chip_properties] Requested params for %d chips ' % (len(aid_list)))
         cfpath_list = compute_and_write_chips(ibs, aid_list, qreq_=qreq_)
         for cfpath, aid in zip(cfpath_list, aid_list):
             # Can be made faster by getting size from generator
@@ -314,12 +315,11 @@ def compute_and_write_chips(ibs, aid_list, qreq_=None):
     arg_iter = zip(cfpath_list, gfpath_list, bbox_list, theta_list,
                             newsize_list, filtlist_iter)
     arg_list = list(arg_iter)
-    chip_async_iter = ut.util_parallel.generate(gen_chip, arg_list)
+    chip_async_iter = ut.util_parallel.generate(gen_chip, arg_list, ordered=True)
     # Compute and write chips in asychronous process
     if ut.VERBOSE:
-        print('Computing %d chips asynchronously' % (len(cfpath_list)))
-    for cfpath in chip_async_iter:
-        pass
+        print('Computing %d chips' % (len(cfpath_list)))
+    ut.evaluate_generator(chip_async_iter)
     if not ut.VERBOSE:
         print('Done computing chips')
     return cfpath_list

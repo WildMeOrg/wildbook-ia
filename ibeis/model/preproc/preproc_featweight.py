@@ -166,7 +166,8 @@ def compute_fgweights(ibs, aid_list, qreq_=None):
         [ 0.125  0.061  0.053]
 
     """
-    print('[preproc_featweight] Preparing to compute fgweights')
+    nTasks = len(aid_list)
+    print('[preproc_featweight.compute_fgweights] Preparing to compute %d fgweights' % (nTasks,))
     probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, qreq_=qreq_)
     if ut.DEBUG2:
         from PIL import Image
@@ -174,52 +175,49 @@ def compute_fgweights(ibs, aid_list, qreq_=None):
         chipsize_list = ibs.get_annot_chip_sizes(aid_list)
         assert chipsize_list == probchip_size_list, 'probably need to clear chip or probchip cache'
 
-    kpts_list = ibs.get_annot_kpts(aid_list)
+    kpts_list = ibs.get_annot_kpts(aid_list, qreq_=qreq_)
     # Force grayscale reading of chips
-    probchip_list = [vtimage.imread(fpath, grayscale=True) if exists(fpath) else None for fpath in probchip_fpath_list]
+    probchip_list = [vtimage.imread(fpath, grayscale=True) if exists(fpath) else None
+                     for fpath in probchip_fpath_list]
 
-    print('[preproc_featweight] Computing fgweights')
+    print('[preproc_featweight.compute_fgweights] Computing %d fgweights' % (nTasks,))
     arg_iter = zip(aid_list, kpts_list, probchip_list)
-    featweight_gen = utool.util_parallel.generate(gen_featweight_worker, arg_iter, nTasks=len(aid_list))
+    featweight_gen = utool.generate(gen_featweight_worker, arg_iter, nTasks=nTasks, ordered=True)
     featweight_param_list = list(featweight_gen)
     #arg_iter = zip(aid_list, kpts_list, probchip_list)
     #featweight_param_list1 = [gen_featweight_worker((aid, kpts, probchip)) for aid, kpts, probchip in arg_iter]
     #featweight_aids = ut.get_list_column(featweight_param_list, 0)
     featweight_list = ut.get_list_column(featweight_param_list, 1)
-    print('[preproc_featweight] Done computing fgweights')
+    print('[preproc_featweight.compute_fgweights] Done computing %d fgweights' % (nTasks,))
     return featweight_list
 
 
-def add_featweight_params_gen(ibs, fid_list, qreq_=None):
-    """
-    add_featweight_params_gen
-
-    DEPRICATE
-
-    Args:
-        ibs (IBEISController):
-        fid_list (list):
-
-    Returns:
-        featweight_list
-
-    Example:
-        >>> # DEPRICATE
-        >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> fid_list = ibs.get_valid_fids()
-        >>> result = add_featweight_params_gen(ibs, fid_list)
-        >>> print(result)
-    """
-    # HACK: TODO AUTOGENERATE THIS
-    cid_list = ibs.dbcache.get(const.FEATURE_TABLE, ('chip_rowid',), fid_list)
-    aid_list = ibs.dbcache.get(const.CHIP_TABLE, ('annot_rowid',), cid_list)
-    featweight_list = compute_fgweights(ibs, aid_list, qreq_=qreq_)
-    return featweight_list
+#def add_featweight_params_gen(ibs, fid_list, qreq_=None):
+#    """
+#    add_featweight_params_gen
+#    DEPRICATE
+#    Args:
+#        ibs (IBEISController):
+#        fid_list (list):
+#    Returns:
+#        featweight_list
+#    Example:
+#        >>> # DEPRICATE
+#        >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
+#        >>> import ibeis
+#        >>> ibs = ibeis.opendb('testdb1')
+#        >>> fid_list = ibs.get_valid_fids()
+#        >>> result = add_featweight_params_gen(ibs, fid_list)
+#        >>> print(result)
+#    """
+#    # HACK: TODO AUTOGENERATE THIS
+#    cid_list = ibs.dbcache.get(const.FEATURE_TABLE, ('chip_rowid',), fid_list)
+#    aid_list = ibs.dbcache.get(const.CHIP_TABLE, ('annot_rowid',), cid_list)
+#    featweight_list = compute_fgweights(ibs, aid_list, qreq_=qreq_)
+#    return featweight_list
 
 
-def generate_featweight_properties(ibs, fid_list, qreq_=None):
+def generate_featweight_properties(ibs, feat_rowid_list, qreq_=None):
     """
     Args:
         ibs (IBEISController):
@@ -247,10 +245,10 @@ def generate_featweight_properties(ibs, fid_list, qreq_=None):
         >>> ut.assert_almost_eq(featweight_test, featweight_target, .3)
     """
     # HACK: TODO AUTOGENERATE THIS
-    #cid_list = ibs.get_feat_cids(fid_list)
+    #cid_list = ibs.get_feat_cids(feat_rowid_list)
     #aid_list = ibs.get_chip_aids(cid_list)
-    cid_list = ibs.dbcache.get(const.FEATURE_TABLE, ('chip_rowid',), fid_list)
-    aid_list = ibs.dbcache.get(const.CHIP_TABLE, ('annot_rowid',), cid_list)
+    chip_rowid_list = ibs.dbcache.get(const.FEATURE_TABLE, ('chip_rowid',), feat_rowid_list)
+    aid_list = ibs.dbcache.get(const.CHIP_TABLE, ('annot_rowid',), chip_rowid_list)
     featweight_list = compute_fgweights(ibs, aid_list, qreq_=qreq_)
     return zip(featweight_list)
 
@@ -294,7 +292,7 @@ def generate_featweight_properties(ibs, fid_list, qreq_=None):
 #        fw_cfg.sqrt_area   = 800
 
 
-def on_delete(ibs, featweight_rowid_list):
+def on_delete(ibs, featweight_rowid_list, qreq_=None):
     # no external data to remove
     return 0
 

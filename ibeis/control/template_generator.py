@@ -782,6 +782,8 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
             set_root_leaf(depends_list[0], depends_list[-1], depends_list[-2])
         if with_adders:
             append_func('0_PL.adder',   Tdef.Tadder_pl_dependant)
+        if with_deleters:
+            append_func('0_PL.deleter', Tdef.Tdeleter_pl_depenant)
         if with_getters:
             append_func('0_PL.getter_rowids_',  Tdef.Tgetter_pl_dependant_rowids_)
             append_func('0_PL.getter_rowids',   Tdef.Tgetter_pl_dependant_rowids)

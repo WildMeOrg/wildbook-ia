@@ -198,6 +198,9 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
     """
     # Get probchip dest information (output path)
     grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, qreq_)
+    nSpecies = len(unique_species)
+    nTasks = len(aid_list)
+    print('[preproc_probchip.compute_and_write_probchip] Preparing to compute %d probchips of %d species' % (nTasks, nSpecies))
     cachedir = get_probchip_cachedir(ibs)
     ut.ensuredir(cachedir)
 
@@ -210,7 +213,7 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
             print('[preproc_probchip] |--------------------')
         if len(aids) == 0:
             continue
-        probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, species=species)
+        probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, qreq_=None, species=species)
         cfpath_list  = ibs.get_annot_chip_fpaths(aids, ensure=True, qreq_=qreq_)
 
         if lazy:
@@ -222,6 +225,7 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
             exists_list = list(map(exists, probchip_fpath_list))
             dirty_cfpath_list = ut.filterfalse_items(cfpath_list, exists_list)
             dirty_probchip_fpath_list = ut.filterfalse_items(probchip_fpath_list, exists_list)
+            print('[preproc_probchip.compute_and_write_probchip] Lazy compute of to compute %d/%d of species=%s' % (len(dirty_cfpath_list), len(cfpath_list), species))
         else:
             # No filtering
             dirty_cfpath_list  = cfpath_list
