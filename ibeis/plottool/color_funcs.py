@@ -16,6 +16,11 @@ def assert_base01(channels):
         raise
 
 
+def to_base01(color255):
+    color01 = [channel / 255.0 for channel in color255]
+    return color01
+
+
 def to_base255(color01):
     assert_base01(color01)
     color255 = map(int, [round(channel * 255.0) for channel in color01])
@@ -23,14 +28,70 @@ def to_base255(color01):
 
 
 def brighten_rgb(rgb, amount):
-    return adjust_sat_and_val_rgb(rgb, amount, amount)
+    hue_adjust = 0.0
+    sat_adjust = amount
+    val_adjust = amount
+    return adjust_hsv_of_rgb(rgb, hue_adjust, sat_adjust, val_adjust)
+
+
+def desaturate_rgb(rgb, amount):
+    r"""
+    CommandLine:
+        python -m plottool.color_funcs --test-desaturate_rgb
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.color_funcs import *  # NOQA
+        >>> # build test data
+        >>> rgb = (255.0 / 255.0, 100 / 255.0, 0 / 255.0)
+        >>> amount = 10.0 / 255.0
+        >>> # execute function
+        >>> result = desaturate_rgb(rgb, amount)
+        >>> # verify results
+        >>> print(result)
+        (1.0, 0.41599384851980004, 0.039215686274509776)
+    """
+    hue_adjust = 0.0
+    sat_adjust = -amount
+    val_adjust = 0.0
+    new_rgb = adjust_hsv_of_rgb(rgb, hue_adjust, sat_adjust, val_adjust)
+    return new_rgb
 
 
 def lighten_rgb(rgb, amount):
-    return adjust_sat_and_val_rgb(rgb, -amount, amount)
+    r"""
+    CommandLine:
+        python -m plottool.color_funcs --test-lighten_rgb
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.color_funcs import *  # NOQA
+        >>> # build test data
+        >>> rgb = np.array((255.0 / 255.0, 100 / 255.0, 0 / 255.0))
+        >>> amount = 20.0 / 255.0
+        >>> # execute function
+        >>> rgb_new = lighten_rgb(rgb, amount)
+        >>> # verify results
+        >>> result = str(rgb_new)
+        >>> print(result)
+        [ 1.          0.43983083  0.07843137]
+    """
+    hue_adjust = 0.0
+    sat_adjust = -amount
+    val_adjust = amount
+    rgb_new = adjust_hsv_of_rgb(rgb, hue_adjust, sat_adjust, val_adjust)
+    return rgb_new
 
 
-def adjust_sat_and_val_rgb(rgb, sat_adjust, val_adjust):
+def adjust_hsv_of_rgb255(rgb255, *args, **kwargs):
+    rgb = to_base01(rgb255)
+    new_rgb = adjust_hsv_of_rgb(rgb, *args, **kwargs)
+    new_rgb255 = to_base255(new_rgb)
+    return new_rgb255
+
+
+def adjust_hsv_of_rgb(rgb, hue_adjust=0.0, sat_adjust=0.0, val_adjust=0.0):
+    """ works on a single rgb tuple """
     assert_base01(rgb)
     assert_base01([sat_adjust, val_adjust])
     numpy_input = isinstance(rgb, np.ndarray)
@@ -46,10 +107,11 @@ def adjust_sat_and_val_rgb(rgb, sat_adjust, val_adjust):
         (R, G, B) = rgb
     hsv = colorsys.rgb_to_hsv(R, G, B)
     (H, S, V) = hsv
+    H_new = (H + hue_adjust) % 1.0
     S_new = max(min(S + sat_adjust, 1.0), 0.0)
     V_new = max(min(V + val_adjust, 1.0), 0.0)
     #print('hsv=%r' % (hsv,))
-    hsv_new = (H, S_new, V_new)
+    hsv_new = (H_new, S_new, V_new)
     #print('hsv_new=%r' % (hsv_new,))
     rgb_new = colorsys.hsv_to_rgb(*hsv_new)
     if alpha is not None:
@@ -78,3 +140,16 @@ def distinct_colors(N, brightness=.878):
 
 def add_alpha(colors):
     return [list(color) + [1] for color in colors]
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m plottool.color_funcs
+        python -m plottool.color_funcs --allexamples
+        python -m plottool.color_funcs --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
