@@ -1,3 +1,13 @@
+"""
+Notes:
+    http://stackoverflow.com/questions/8312725/how-to-create-executable-file-for-a-qt-application
+    http://stackoverflow.com/questions/6783194/background-thread-with-qthread-in-pyqt
+    For windows need at least these dlls:
+        mingwm10.dll
+        libgcc_s_dw2-1.dll
+        QtCore4.dll
+        QtGui4.dll
+"""
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtGui, QtCore
 import cv2
@@ -18,8 +28,6 @@ ut.noinject(__name__, '[APIThumbDelegate]', DEBUG=False)
 VERBOSE = utool.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
 
 
-DELEGATE_BASE = QtGui.QItemDelegate
-RUNNABLE_BASE = QtCore.QRunnable
 MAX_NUM_THUMB_THREADS = 1
 
 
@@ -46,6 +54,9 @@ def register_thread(key, val):
 def unregister_thread(key):
     global RUNNING_CREATION_THREADS
     del RUNNING_CREATION_THREADS[key]
+
+
+DELEGATE_BASE = QtGui.QItemDelegate
 
 
 class APIThumbDelegate(DELEGATE_BASE):
@@ -208,6 +219,7 @@ class APIThumbDelegate(DELEGATE_BASE):
             if thumb_path is not None:
                 # Read the precomputed thumbnail
                 qimg, width, height = read_thumb_as_qimg(thumb_path)
+                del qimg
                 return QtCore.QSize(width, height)
             else:
                 #print("[APIThumbDelegate] Name not found")
@@ -228,6 +240,30 @@ def view_would_not_be_visible(view, offset):
     return abs(current_offset - offset) >= height
 
 
+RUNNABLE_BASE = QtCore.QRunnable
+
+
+def get_thread_thumb_info(bbox_list, theta_list, thumbsize, img_size):
+    theta_list = [theta_list] if not utool.is_listlike(theta_list) else theta_list
+    max_dsize = (thumbsize, thumbsize)
+    dsize, sx, sy = gtool.resized_clamped_thumb_dims(img_size, max_dsize)
+    # Compute new verts list
+    new_verts_list = [new_verts for new_verts in gtool.scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy)]
+    return dsize, new_verts_list
+
+
+def make_thread_thumb(img_path, dsize, new_verts_list):
+    orange_bgr = (0, 128, 255)
+    img = gtool.imread(img_path)  # Read Image (.0424s) <- Takes most time!
+    thumb = gtool.resize(img, dsize)  # Resize to thumb dims (.0015s)
+    del img
+    # Draw bboxes on thumb (not image)
+    for new_verts in new_verts_list:
+        geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2, out=thumb)
+        #thumb = geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
+    return thumb
+
+
 class ThumbnailCreationThread(RUNNABLE_BASE):
     """
     Helper to compute thumbnails concurrently
@@ -245,9 +281,6 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         thread.bbox_list = bbox_list
         thread.theta_list = theta_list
 
-    #def __del__(self):
-    #    print('About to delete creation thread')
-
     def thumb_would_not_be_visible(thread):
         return view_would_not_be_visible(thread.view, thread.offset)
 
@@ -257,27 +290,20 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         if thread.thumb_would_not_be_visible():
             return
         # Precompute info BEFORE reading the image (.0002s)
-        bbox_list = thread.bbox_list
-        theta_list = [thread.theta_list] if not utool.is_listlike(thread.theta_list) else thread.theta_list
-        max_dsize = (thread.thumbsize, thread.thumbsize)
-        dsize, sx, sy = gtool.resized_clamped_thumb_dims(thread.img_size, max_dsize)
-        orange_bgr = (0, 128, 255)
-        # Compute new verts list
-        new_verts_list = []
-        for new_verts in gtool.scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy):
-            new_verts_list.append(new_verts)
+        dsize, new_verts_list = get_thread_thumb_info(thread.bbox_list, thread.theta_list, thread.thumbsize, thread.img_size)
         #time.sleep(.005)  # Wait a in case the user is just scrolling
         if thread.thumb_would_not_be_visible():
             return
         # -----------------
         # This part takes time, hopefully the user actually wants to see this
         # thumbnail.
-        img = gtool.imread(thread.img_path)  # Read Image (.0424s) <- Takes most time!
-        thumb = gtool.resize(img, dsize)  # Resize to thumb dims (.0015s)
-        for new_verts in new_verts_list:
-            # Draw bboxes on thumb (not image)
-            thumb = geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
+        thumb = make_thread_thumb(thread.img_path, dsize, new_verts_list)
+        if thread.thumb_would_not_be_visible():
+            return
         gtool.imwrite(thread.thumb_path, thumb)
+        del thumb
+        if thread.thumb_would_not_be_visible():
+            return
         #print('[ThumbCreationThread] Thumb Written: %s' % thread.thumb_path)
         thread.qtindex.model().dataChanged.emit(thread.qtindex, thread.qtindex)
         #unregister_thread(thread.thumb_path)
@@ -288,6 +314,9 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         except Exception as ex:
             utool.printex(ex, 'thread failed', tb=True)
             #raise
+
+    #def __del__(self):
+    #    print('About to delete creation thread')
 
 
 # GRAVE:
