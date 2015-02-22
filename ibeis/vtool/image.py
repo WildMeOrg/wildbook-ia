@@ -60,6 +60,11 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False):
     CommandLine:
         python -m vtool.image --test-imread
 
+
+    References:
+        http://docs.opencv.org/modules/core/doc/utility_and_system_functions_and_macros.html#error
+        http://stackoverflow.com/questions/23572241/cv2-threshold-error-210
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
@@ -79,14 +84,28 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False):
         else:
             # opencv always reads in BGR mode (fastest load time?)
             imgBGR = cv2.imread(img_fpath, flags=IMREAD_COLOR)
+    except cv2.error as cv2ex:
+        ut.printex(cv2ex, iswarning=True)
+        #print('cv2error dict = ' + ut.dict_str(cv2ex.__dict__))
+        #print('cv2error dirlist = ' + ut.list_str(dir(cv2ex)))
+        #print('cv2error args = ' + repr(cv2ex.args))
+        #print('cv2error message = ' + repr(cv2ex.message))
+        #cv2error args = ('c:/Users/joncrall/code/opencv/modules/core/src/alloc.cpp:52: error: (-4) Failed to allocate 22311168 bytes in function OutOfMemoryError\n',)
+#cv2error message = 'c:/Users/joncrall/code/opencv/modules/core/src/alloc.cpp:52: error: (-4) Failed to allocate 22311168 bytes in function OutOfMemoryError\n'
+        imgBGR = None
+        #ismem_error = cv2ex.message.find('error: (-4)') > -1
+        ismem_error = cv2ex.message.find('OutOfMemoryError') > -1
+        if ismem_error:
+            raise MemoryError('Memory Error while reading img_fpath=%s' % img_fpath)
     except Exception as ex:
         ut.printex(ex, iswarning=True)
         imgBGR = None
     if imgBGR is None:
-        if not exists(img_fpath):
+        #if not exists(img_fpath):
+        if not ut.checkpath(img_fpath, verbose=True):
             raise IOError('cannot read img_fpath=%s does not exist' % img_fpath)
         else:
-            msg = 'cannot read img_fpath=%s seems corrupted.' % img_fpath
+            msg = 'cannot read img_fpath=%s seems corrupted or memory error.' % img_fpath
             print('[gtool] ' + msg)
             if delete_if_corrupted:
                 print('[gtool] deleting corrupted image')

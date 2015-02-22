@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip
 import numpy as np
 import utool as ut
+import cv2
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[geom]', DEBUG=False)
 
 
@@ -59,7 +60,7 @@ def unhomogonize(xyz_arr):
     return xy_arr
 
 
-def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2):
+def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
     r"""
     Args:
         img_in (?):
@@ -72,6 +73,8 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2):
 
     CommandLine:
         python -m vtool.geometry --test-draw_verts --show
+        python -m vtool.geometry --test-draw_verts:0 --show
+        python -m vtool.geometry --test-draw_verts:1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -84,22 +87,47 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2):
         >>> color = (0, 128, 255)
         >>> thickness = 2
         >>> # execute function
-        >>> img = draw_verts(img_in, verts, color, thickness)
+        >>> out = None
+        >>> img = draw_verts(img_in, verts, color, thickness, out)
+        >>> assert img_in is not img
+        >>> assert out is not img
+        >>> assert out is not img_in
+        >>> # verify results
+        >>> if ut.show_was_requested():
+        >>>     pt.imshow(img)
+        >>>     pt.show_if_requested()
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.geometry import *  # NOQA
+        >>> import plottool as pt
+        >>> import vtool as vt
+        >>> # build test data
+        >>> img_in = vt.imread(ut.grab_test_imgpath('carl.jpg'))
+        >>> verts = ((10, 10), (10, 100), (100, 100), (100, 10))
+        >>> color = (0, 128, 255)
+        >>> thickness = 2
+        >>> out = img_in
+        >>> # execute function
+        >>> img = draw_verts(img_in, verts, color, thickness, out)
+        >>> assert img_in is img, 'should be in place'
+        >>> assert out is img, 'should be in place'
         >>> # verify results
         >>> if ut.show_was_requested():
         >>>     pt.imshow(img)
         >>>     pt.show_if_requested()
     """
-    img = np.copy(img_in)
+    if out is None:
+        out = np.copy(img_in)
     if isinstance(verts, np.ndarray):
         verts = verts.tolist()
-    import cv2
-    line_sequence = zip(verts[:-1], verts[1:])
-    cv2.line(img, tuple(verts[0]), tuple(verts[-1]), color, thickness)
-    for (p1, p2) in line_sequence:
+    line_list_sequence = zip(verts[:-1], verts[1:])
+    line_tuple_sequence = ((tuple(p1_), tuple(p2_)) for (p1_, p2_) in line_list_sequence)
+    cv2.line(out, tuple(verts[0]), tuple(verts[-1]), color, thickness)
+    for (p1, p2) in line_tuple_sequence:
+        cv2.line(out, p1, p2, color, thickness)
         #print('p1, p2: (%r, %r)' % (p1, p2))
-        cv2.line(img, tuple(p1), tuple(p2), color, thickness)
-    return img
+    return out
 
 
 if __name__ == '__main__':
