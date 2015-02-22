@@ -876,4 +876,3 @@ python dev.py --allgt -t custom custom:rrvsone_on=True
 * FIXED: No orientation invariance, gravity vector is always assumed
 * We do not add or remove points from kdtrees. They are always rebuilt
 * Feature weights are never recomputed unless the database cache is deleted
-
