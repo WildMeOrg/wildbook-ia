@@ -13,8 +13,8 @@ Notes:
 """
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtGui, QtCore
-import cv2  # NOQA
-import numpy as np
+#import cv2  # NOQA
+#import numpy as np
 import utool
 #import time
 #from six.moves import zip
@@ -93,31 +93,31 @@ def read_thumb_as_qimg(thumb_path):
     # Read thumbnail image and convert to 32bit aligned for Qt
     #if False:
     #    data  = np.dstack((npimg, np.full(npimg.shape[0:2], 255, dtype=np.uint8)))
-    if False:
-        # Reading the npimage and then handing it off to Qt causes a memory
-        # leak. The numpy array probably is never unallocated because qt doesn't
-        # own it and it never loses its reference count
-        npimg = gtool.imread(thumb_path, delete_if_corrupted=True)
-        print('npimg.dtype = %r, %r' % (npimg.shape, npimg.dtype))
-        npimg   = cv2.cvtColor(npimg, cv2.COLOR_BGR2BGRA)
-        format_ = QtGui.QImage.Format_ARGB32
-        #    #data    = npimg.astype(np.uint8)
-        #    #npimg   = np.dstack((npimg[:, :, 3], npimg[:, :, 0:2]))
-        #    #data    = npimg.astype(np.uint8)
-        #else:
-        # Memory seems to be no freed by the QImage?
-        #data = np.ascontiguousarray(npimg[:, :, ::-1].astype(np.uint8), dtype=np.uint8)
-        #data = np.ascontiguousarray(npimg[:, :, :].astype(np.uint8), dtype=np.uint8)
-        data = npimg
-        #format_ = QtGui.QImage.Format_RGB888
-        (height, width) = data.shape[0:2]
-        qimg    = QtGui.QImage(data, width, height, format_)
-        del npimg
-        del data
-    else:
-        format_ = QtGui.QImage.Format_ARGB32
-        #qimg    = QtGui.QImage(thumb_path, format_)
-        qimg    = QtGui.QImage(thumb_path)
+    #if False:
+    #    # Reading the npimage and then handing it off to Qt causes a memory
+    #    # leak. The numpy array probably is never unallocated because qt doesn't
+    #    # own it and it never loses its reference count
+    #    #npimg = gtool.imread(thumb_path, delete_if_corrupted=True)
+    #    #print('npimg.dtype = %r, %r' % (npimg.shape, npimg.dtype))
+    #    #npimg   = cv2.cvtColor(npimg, cv2.COLOR_BGR2BGRA)
+    #    #format_ = QtGui.QImage.Format_ARGB32
+    #    ##    #data    = npimg.astype(np.uint8)
+    #    ##    #npimg   = np.dstack((npimg[:, :, 3], npimg[:, :, 0:2]))
+    #    ##    #data    = npimg.astype(np.uint8)
+    #    ##else:
+    #    ## Memory seems to be no freed by the QImage?
+    #    ##data = np.ascontiguousarray(npimg[:, :, ::-1].astype(np.uint8), dtype=np.uint8)
+    #    ##data = np.ascontiguousarray(npimg[:, :, :].astype(np.uint8), dtype=np.uint8)
+    #    #data = npimg
+    #    ##format_ = QtGui.QImage.Format_RGB888
+    #    #(height, width) = data.shape[0:2]
+    #    #qimg    = QtGui.QImage(data, width, height, format_)
+    #    #del npimg
+    #    #del data
+    #else:
+    #format_ = QtGui.QImage.Format_ARGB32
+    #qimg    = QtGui.QImage(thumb_path, format_)
+    qimg    = QtGui.QImage(thumb_path)
     return qimg
 
 
