@@ -43,7 +43,7 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None):
     def set_quality_func(qualtext):
         def _wrp_qual():
             ibs.set_annot_quality_texts([aid], [qualtext])
-            print('set_annot_quality(%r, %r=%r)' % (aid, qualtext))
+            print('set_annot_quality(%r, %r)' % (aid, qualtext))
             refresh_wrp()
         return _wrp_qual
     # Define popup menu

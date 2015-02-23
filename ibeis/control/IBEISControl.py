@@ -1262,6 +1262,7 @@ class IBEISController(object):
 
     @default_decorator
     def has_species_detector(ibs, species_text):
+        """ TODO: extend to use non-constant species """
         return species_text in const.SPECIES_WITH_DETECTORS
 
     @default_decorator
