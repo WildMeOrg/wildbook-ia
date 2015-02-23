@@ -401,9 +401,9 @@ class QueryVerificationInteraction(AbstractInteraction):
                 if event.button == 3:   # right-click
                     from ibeis.viz.interact import interact_chip
                     height = self.fig.canvas.geometry().height()
-                    pt = guitool.newQPoint(event.x, height - event.y)
+                    qpoint = guitool.newQPoint(event.x, height - event.y)
                     interact_chip.show_annot_context_menu(
-                        self.ibs, aid, self.fig.canvas, pt, refresh_func=self.show_page)
+                        self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)
                     #self.show_page()
                     #ibs.print_annotation_table()
                 print(ut.dict_str(event.__dict__))

@@ -504,6 +504,7 @@ def fix_and_clean_database(ibs):
     ibs.fix_unknown_exemplars()
     ibs.fix_invalid_name_texts()
     ibs.fix_invalid_nids()
+    ibs.update_annot_visual_uuids(ibs.get_valid_aids())
 
 
 def check_name_consistency(ibs, nid_list):
@@ -1828,9 +1829,13 @@ def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True):
         >>> aid_list = ibs.get_valid_aids()
         >>> distinguish_unknowns = True
         >>> # execute function
-        >>> result = group_annots_by_name(ibs, aid_list, distinguish_unknowns)
+        >>> grouped_aids_, unique_nids = group_annots_by_name(ibs, aid_list, distinguish_unknowns)
+        >>> result = str([aids.tolist() for aids in grouped_aids_])
+        >>> result += '\n' + str(unique_nids.tolist())
         >>> # verify results
         >>> print(result)
+        [[11], [9], [4], [1], [2, 3], [5, 6], [7], [8], [10], [12], [13]]
+        [-11, -9, -4, -1, 1, 2, 3, 4, 5, 6, 7]
     """
     import vtool as vt
     nid_list = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=distinguish_unknowns))
@@ -2684,6 +2689,125 @@ def detect_false_positives(ibs):
     #qres_list = ibs.query_annots(qaid_list)
     #for qres in qres_list:
     #    top_aids = qres.get_top_aids(num=2)
+
+
+def set_exemplars_from_quality_and_view_for_mugu(ibs):
+    """
+    Ignore:
+        # We want to choose the minimum per-item weight w such that
+        # we can't pack more than N w's into the knapsack
+        w * (N + 1) > N
+        # and w < 1.0, so we can have wiggle room for preferences
+        # so
+        w * (N + 1) > N
+        w > N / (N + 1)
+        EPS = 1E-9
+        w = N / (N + 1) + EPS
+
+        # Preference denomiantor should not make any choice of
+        # feasible items infeasible, but give more weight to a few.
+        # delta_w is the wiggle room we have, but we need to choose a number
+        # much less than it.
+        prefdenom = N ** 2
+        maybe its just N + EPS?
+        N ** 2 should work though. Figure out correct value later
+        delta_w = (1 - w)
+        prefdenom = delta_w / N
+        N - (w * N)
+
+    Ignore:
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('PZ_MUGU_19')
+
+
+    """
+    # General params
+    EXEMPLARS_PER_VIEW = 3
+    PREFER_GOOD_OVER_OLDFLAG = True
+    verbose = False
+    DRY_RUN = False
+    #
+    # Params for knapsack
+    N = EXEMPLARS_PER_VIEW
+    EPS = 1E-9
+    # Solve for the minimum per-item weight
+    # to allow for preference wiggle room
+    w = N / (N + 1) + EPS
+    # level1 perference augmentation
+    # TODO: figure out mathematically ellegant value
+    pref_decimator = N ** 2
+    # we want space to specify two levels of tier1 preference
+    num_teir1_prefs = 2
+    pref_teir1 = w / (num_teir1_prefs * pref_decimator)
+    pref_teir2 = pref_teir1 / pref_decimator
+    infeasible_w = max(9001, N + 1)
+    qual2_weight = {
+        'good':  w + pref_teir1,
+        'ok':    w,
+        'junk':  infeasible_w,
+    }
+    oldflag_offset = (
+        # always prefer good over ok
+        pref_teir1 - pref_teir2
+        if PREFER_GOOD_OVER_OLDFLAG else
+        # prefer ok over good when ok has oldflag
+        pref_teir1 + pref_teir2
+    )
+
+    def choose_exemplars(aids):
+        qualtexts = ibs.get_annot_quality_texts(aids)
+        oldflags = ibs.get_annot_exemplar_flags(aids)
+        # We like good more than ok, and junk is infeasible We prefer items that
+        # had previously been exemplars Build input for knapsack
+        weights = [qual2_weight[qual] + oldflag_offset * oldflag
+                   for qual, oldflag in zip(qualtexts, oldflags)]
+        values = [1] * len(weights)
+        indices = list(range(len(weights)))
+        items = list(zip(values, weights, indices))
+        total_value, chosen_items = ut.knapsack(items, N)
+        chosen_indices = ut.get_list_column(chosen_items, 2)
+        new_flags = [False] * len(aids)
+        for index in chosen_indices:
+            new_flags[index] = True
+        return new_flags
+
+    def get_changed_infostr(yawtext, aids, new_flags):
+        old_flags = ibs.get_annot_exemplar_flags(aids)
+        quals = ibs.get_annot_quality_texts(aids)
+        ischanged = ut.xor_lists(old_flags, new_flags)
+        changed_list = ['***' if flag else ''
+                        for flag in ischanged]
+        infolist = list(zip(aids, quals, old_flags, new_flags, changed_list))
+        infostr = ('yawtext=%r:\n' % (yawtext,)) + ut.list_str(infolist)
+        return infostr
+
+    aid_list = ibs.get_valid_aids()
+    aids_list, unique_nids  = ibs.group_annots_by_name(aid_list)
+    # for final settings because I'm too lazy to write
+    # this correctly using group_indicies instead of group_items
+    new_aid_list = []
+    new_flag_list = []
+    _iter = ut.ProgressIter(zip(aids_list, unique_nids), nTotal=len(aids_list), lbl='Optimizing name exemplars')
+    for aids_, nid in _iter:
+        yawtexts  = ibs.get_annot_yaw_texts(aids_)
+        yawtext2_aids = ut.group_items(aids_, yawtexts)
+        if verbose:
+            print('+ ---')
+            print('  nid=%r' % (nid))
+        for yawtext, aids in six.iteritems(yawtext2_aids):
+            new_flags = choose_exemplars(aids)
+            if verbose:
+                print(ut.indent(get_changed_infostr(yawtext, aids, new_flags)))
+            new_aid_list.extend(aids)
+            new_flag_list.extend(new_flags)
+        if verbose:
+            print('L ___')
+
+    if not DRY_RUN:
+        ibs.set_annot_exemplar_flags(new_aid_list, new_flag_list)
+
 
 #def detect_false_negatives():
 #     pass

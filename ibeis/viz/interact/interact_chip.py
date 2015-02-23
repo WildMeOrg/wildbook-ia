@@ -1,6 +1,8 @@
 from __future__ import absolute_import, division, print_function
 from ibeis import viz
 import utool
+import plottool as pt  # NOQA
+import functools
 import six
 from ibeis import constants as const
 from plottool import draw_func2 as df2
@@ -12,7 +14,11 @@ from plottool import interact_helpers as ih
     __name__, '[interact_chip]', DEBUG=False)
 
 
-def show_annot_context_menu(ibs, aid,  qwin, pt, refresh_func=None):
+def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None):
+    """
+    Defines logic for poping up a context menu when viewing an annotation.
+    Used in other interactions like name_interaction and interact_query_decision
+    """
     import guitool
     is_exemplar = ibs.get_annot_exemplar_flags(aid)
 
@@ -28,37 +34,70 @@ def show_annot_context_menu(ibs, aid,  qwin, pt, refresh_func=None):
         print('set_annot_exemplar(%r, %r)' % (aid, new_flag))
         ibs.set_annot_exemplar_flags(aid, new_flag)
         refresh_wrp()
-    def set_yaw_func(key):
+    def set_yaw_func(yawtext):
         def _wrap_yaw():
-            yaw = const.VIEWTEXT_TO_YAW_RADIANS[key]
-            ibs.set_annot_yaws([aid], [yaw])
-            print('set_annot_yaw(%r, %r=%r)' % (aid, key, yaw))
+            ibs.set_annot_yaw_texts([aid], [yawtext])
+            print('set_annot_yaw(%r, %r)' % (aid, yawtext))
             refresh_wrp()
         return _wrap_yaw
-    def set_quality_func(key):
+    def set_quality_func(qualtext):
         def _wrp_qual():
-            quality = const.QUALITY_TEXT_TO_INT[key]
-            ibs.set_annot_qualities([aid], [quality])
-            print('set_annot_yaw(%r, %r=%r)' % (aid, key, quality))
+            ibs.set_annot_quality_texts([aid], [qualtext])
+            print('set_annot_quality(%r, %r=%r)' % (aid, qualtext))
             refresh_wrp()
         return _wrp_qual
+    # Define popup menu
     angle_callback_list = [
         ('unset as exemplar' if is_exemplar else 'set as exemplar', toggle_exemplar_func),
-
     ]
+    current_qualtext = ibs.get_annot_quality_texts([aid])[0]
+    current_yawtext = ibs.get_annot_yaw_texts([aid])[0]
+    # Nested viewpoints
     angle_callback_list += [
-        ('Set Viewpoint: ' + key, set_yaw_func(key))
-        for key in six.iterkeys(const.VIEWTEXT_TO_YAW_RADIANS)
+        #('Set Viewpoint: ' + key, set_yaw_func(key))
+        ('Set Viewpoint: ',  [
+            (('*' if current_yawtext == key else '') + key, set_yaw_func(key))
+            for key in six.iterkeys(const.VIEWTEXT_TO_YAW_RADIANS)
+        ]),
     ]
+    # Nested qualities
     angle_callback_list += [
-        ('Set Quality: ' + key, set_quality_func(key))
-        for key in six.iterkeys(const.QUALITY_TEXT_TO_INT)
+        #('Set Quality: ' + key, set_quality_func(key))
+        ('Set Quality: ',  [
+            (('*' if current_qualtext == key else '') + key, set_quality_func(key))
+            for key in six.iterkeys(const.QUALITY_TEXT_TO_INT)
+        ]),
     ]
-    guitool.popup_menu(qwin, pt, angle_callback_list)
+    guitool.popup_menu(qwin, qpoint, angle_callback_list)
 
 
 # CHIP INTERACTION 2
 def ishow_chip(ibs, aid, fnum=2, fx=None, **kwargs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid (int):  annotation id
+        fnum (int):  figure number
+        fx (None):
+
+    CommandLine:
+        python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.interact.interact_chip import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid = 1
+        >>> fnum = 2
+        >>> fx = None
+        >>> # execute function
+        >>> result = ishow_chip(ibs, aid, fnum, fx)
+        >>> # verify results
+        >>> pt.show_if_requested()
+        >>> print(result)
+    """
     vh.ibsfuncs.assert_valid_aids(ibs, (aid,))
     # TODO: Reconcile this with interact keypoints.
     # Preferably this will call that but it will set some fancy callbacks
@@ -94,25 +133,35 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, **kwargs):
             mode_ptr[0] = (mode_ptr[0] + 1) % 3
             _chip_view(**kwargs)
         else:
-            viztype = vh.get_ibsdat(ax, 'viztype')
-            print_('[ic] viztype=%r' % viztype)
-            if viztype == 'chip' and event.key == 'shift':
-                _chip_view(**kwargs)
-                ih.disconnect_callback(fig, 'button_press_event')
-            elif viztype == 'chip':
-                kpts = ibs.get_annot_kpts(aid)
-                if len(kpts) > 0:
-                    fx = utool.nearest_point(x, y, kpts)[0]
-                    print('... clicked fx=%r' % fx)
-                    _select_fxth_kpt(fx)
-                else:
-                    print('... len(kpts) == 0')
-            elif viztype in ['warped', 'unwarped']:
-                fx = vh.get_ibsdat(ax, 'fx')
-                if fx is not None and viztype == 'warped':
-                    viz.show_keypoint_gradient_orientations(ibs, aid, fx, fnum=df2.next_fnum())
+            if event.button == 3:   # right-click
+                import guitool
+                height = fig.canvas.geometry().height()
+                qpoint = guitool.newQPoint(event.x, height - event.y)
+                from ibeis.viz.interact import interact_chip
+                refresh_func = functools.partial(_chip_view, **kwargs)
+                interact_chip.show_annot_context_menu(
+                    ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func)
             else:
-                print('...Unknown viztype: %r' % viztype)
+                viztype = vh.get_ibsdat(ax, 'viztype')
+                print_('[ic] viztype=%r' % viztype)
+                if viztype == 'chip' and event.key == 'shift':
+                    _chip_view(**kwargs)
+                    ih.disconnect_callback(fig, 'button_press_event')
+                elif viztype == 'chip':
+                    kpts = ibs.get_annot_kpts(aid)
+                    if len(kpts) > 0:
+                        fx = utool.nearest_point(x, y, kpts)[0]
+                        print('... clicked fx=%r' % fx)
+                        _select_fxth_kpt(fx)
+                    else:
+                        print('... len(kpts) == 0')
+                elif viztype in ['warped', 'unwarped']:
+                    fx = vh.get_ibsdat(ax, 'fx')
+                    if fx is not None and viztype == 'warped':
+                        viz.show_keypoint_gradient_orientations(ibs, aid, fx, fnum=df2.next_fnum())
+                else:
+                    print('...Unknown viztype: %r' % viztype)
+
         viz.draw()
 
     # Draw without keypoints the first time
@@ -122,3 +171,16 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, **kwargs):
         _chip_view(**kwargs)
     viz.draw()
     ih.connect_callback(fig, 'button_press_event', _on_chip_click)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.viz.interact.interact_chip
+        python -m ibeis.viz.interact.interact_chip --allexamples
+        python -m ibeis.viz.interact.interact_chip --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

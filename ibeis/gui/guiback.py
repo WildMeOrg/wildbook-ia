@@ -39,6 +39,11 @@ class UserCancel(Exception):
         super(Exception, self).__init__(*args)
 
 
+class InvalidRequest(Exception):
+    def __init__(self, *args):
+        super(Exception, self).__init__(*args)
+
+
 def backreport(func):
     """
     reports errors on backend functions
@@ -302,7 +307,7 @@ class MainWindowBackend(QtCore.QObject):
             if len(back.sel_aids) == 0:
                 gid = back.ibs.get_annot_gids(back.sel_aids)[0]
                 return gid
-            raise AssertionError('There are no selected images')
+            raise InvalidRequest('There are no selected images')
         gid = back.sel_gids[0]
         return gid
 
@@ -310,7 +315,7 @@ class MainWindowBackend(QtCore.QObject):
     def get_selected_aid(back):
         """ selected annotation id """
         if len(back.sel_aids) == 0:
-            raise AssertionError('There are no selected ANNOTATIONs')
+            raise InvalidRequest('There are no selected ANNOTATIONs')
         aid = back.sel_aids[0]
         return aid
 
@@ -318,7 +323,7 @@ class MainWindowBackend(QtCore.QObject):
     def get_selected_eid(back):
         """ selected encounter id """
         if len(back.sel_eids) == 0:
-            raise AssertionError('There are no selected Encounters')
+            raise InvalidRequest('There are no selected Encounters')
         eid = back.sel_eids[0]
         return eid
 
@@ -347,16 +352,16 @@ class MainWindowBackend(QtCore.QObject):
                 sel_enctexts = []
             else:
                 sel_enctexts = map(str, sel_enctexts)
-            back.ibswgt.set_status_text(0, 'Selected Encounter: %r' % (sel_enctexts,))
+            back.ibswgt.set_status_text(gh.ENCOUNTER_TABLE, repr(sel_enctexts,))
         if sel_gids is not None:
             back.sel_gids = sel_gids
-            back.ibswgt.set_status_text(1, 'Selected Image: %r' % (sel_gids,))
+            back.ibswgt.set_status_text(gh.IMAGE_TABLE, repr(sel_gids,))
         if sel_aids is not None:
             back.sel_aids = sel_aids
-            back.ibswgt.set_status_text(2, 'Selected ANNOTATION: %r' % (sel_aids,))
+            back.ibswgt.set_status_text(gh.ANNOTATION_TABLE, repr(sel_aids,))
         if sel_nids is not None:
             back.sel_nids = sel_nids
-            back.ibswgt.set_status_text(3, 'Selected Name: %r' % (sel_nids,))
+            back.ibswgt.set_status_text(gh.NAMES_TREE, repr(sel_nids,))
         if sel_qres is not None:
             back.sel_sel_qres = sel_qres
 
@@ -881,7 +886,7 @@ class MainWindowBackend(QtCore.QObject):
         # Get the database annotation ids to be searched
         # Execute Query
         if len(daid_list) == 0:
-            raise AssertionError('No exemplars set for this species')
+            raise InvalidRequest('No exemplars set for this species')
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
         if query_mode == const.INTRA_ENC_KEY:
             # HACK IN ENCOUNTER INFO
@@ -911,6 +916,8 @@ class MainWindowBackend(QtCore.QObject):
         # the database annotation ids to be searched
         qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
         daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
+        if len(qaid_list) == 0:
+            raise InvalidRequest('No unknown query exemplars')
         back.confirm_query_dialog(daid_list, qaid_list)
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
         # HACK IN ENCOUNTER INFO
@@ -985,7 +992,7 @@ class MainWindowBackend(QtCore.QObject):
     def review_queries(back, **kwargs):
         eid = back.get_selected_eid()
         if eid not in back.encounter_query_results:
-            raise AssertionError('Queries have not been computed yet')
+            raise InvalidRequest('Queries have not been computed yet')
         qaid2_qres = back.encounter_query_results[eid]
         # review_kw = {
         #     'on_change_callback': back.front.update_tables,

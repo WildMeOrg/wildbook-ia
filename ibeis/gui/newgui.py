@@ -11,13 +11,13 @@ BUGS:
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, filter  # NOQA
 from os.path import isdir
+import sys
 from ibeis import constants as const
 import functools  # NOQA
 from guitool.__PYQT__ import QtGui, QtCore
 from guitool.__PYQT__.QtCore import Qt
 from guitool.__PYQT__.QtGui import QSizePolicy
 from guitool import signal_, slot_, checks_qt_error, ChangeLayoutContext  # NOQA
-from ibeis.control import IBEISControl
 from ibeis import ibsfuncs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
@@ -321,22 +321,25 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                                verticalStretch=6,
                                                horizontalSizePolicy=QSizePolicy.Maximum)
 
-        ibswgt.statusBar = QtGui.QHBoxLayout(ibswgt)
         _NEWLBL = functools.partial(guitool.newLabel, ibswgt)
         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
         _COMBO  = functools.partial(guitool.newComboBox, ibswgt)
+        _NEWTEXT = functools.partial(guitool.newLineEdit, ibswgt, enabled=False)
 
         primary_fontkw = dict(bold=True, pointSize=11)
         secondary_fontkw = dict(bold=False, pointSize=9)
         advanced_fontkw = dict(bold=False, pointSize=8, italic=True)
 
-        ibswgt.statusLabel_list = [
-            _NEWLBL('', fontkw=secondary_fontkw),
-            _NEWLBL('Status Bar', fontkw=secondary_fontkw),
-            _NEWLBL('', fontkw=secondary_fontkw),
-            _NEWLBL('', fontkw=secondary_fontkw),
+        ibswgt.status_widget_list = [
+            _NEWLBL('Selected Encounter: ', fontkw=secondary_fontkw, align='right'),
+            _NEWTEXT(),
+            _NEWLBL('Selected Image: ', fontkw=secondary_fontkw, align='right'),
+            _NEWTEXT(),
+            _NEWLBL('Selected Annotation: ', fontkw=secondary_fontkw, align='right'),
+            _NEWTEXT(),
+            _NEWLBL('Selected Name: ', fontkw=secondary_fontkw, align='right'),
+            _NEWTEXT(),
         ]
-        ibswgt.buttonBars = []
 
         back = ibswgt.back
 
@@ -392,29 +395,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, 0.01, -0.7, 0.0),
             fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
 
-        #ibswgt.species_button = _NEWBUT('Update Encounter Species',
-        #                                ibswgt.back.encounter_set_species,
-        #                                bgcolor=(100, 255, 150))
-
-        detection_combo_box_options = [
-            # Text              # Value
-            #('4) Intra Encounter', const.INTRA_ENC_KEY),
-            ('5) Vs Exemplars',    const.VS_EXEMPLARS_KEY),
-        ]
-        #ibswgt.querydb_combo = _COMBO(detection_combo_box_options,
-        #                              ibswgt.back.change_query_mode)
-
-        ibswgt.button_list = [
+        ibswgt.control_widget_lists = [
             [
                 ibswgt.import_button,
-
-                #_NEWBUT('Import Images\n(via dir)',
-                #        back.import_images_from_dir,
-                #        bgcolor=(235, 200, 200)),
-                #_NEWBUT('Import Images\n(via dir + size filter)',
-                #        bgcolor=(235, 200, 200)),
-
-                #_NEWBUT('Filter Images (GIST)'),
 
                 ibswgt.encounter_button,
 
@@ -441,13 +424,19 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 _NEWLBL(''),
 
             ],
-            #[
-            #    _NEWLBL(''),
-            #    _NEWLBL(''),
-            #    _NEWLBL(''),
-
-            #]
         ]
+
+        #detection_combo_box_options = [
+        #    # Text              # Value
+        #    #('4) Intra Encounter', const.INTRA_ENC_KEY),
+        #    ('5) Vs Exemplars',    const.VS_EXEMPLARS_KEY),
+        #]
+
+        #ibswgt.species_button = _NEWBUT('Update Encounter Species',
+        #                                ibswgt.back.encounter_set_species,
+        #                                bgcolor=(100, 255, 150))
+        #ibswgt.querydb_combo = _COMBO(detection_combo_box_options,
+        #                              ibswgt.back.change_query_mode)
 
     def _init_layout(ibswgt):
         """ Lays out the defined components """
@@ -462,16 +451,18 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Horizontal Lower
         ibswgt.status_wgt.addWidget(ibswgt.outputLog)
         ibswgt.status_wgt.addWidget(ibswgt.progressBar)
-        # Add buttonbar
-        for row in ibswgt.button_list:
-            ibswgt.buttonBars.append(QtGui.QHBoxLayout(ibswgt))
-            ibswgt.status_wgt.addLayout(ibswgt.buttonBars[-1])
-            for button in row:
-                ibswgt.buttonBars[-1].addWidget(button)
-        ibswgt.status_wgt.addLayout(ibswgt.statusBar)
-        # Add statusbar
-        for widget in ibswgt.statusLabel_list:
-            ibswgt.statusBar.addWidget(widget)
+        # Add control widgets (import, group, species selector, etc...)
+        ibswgt.control_layout_list = []
+        for control_widgets in ibswgt.control_widget_lists:
+            ibswgt.control_layout_list.append(QtGui.QHBoxLayout(ibswgt))
+            ibswgt.status_wgt.addLayout(ibswgt.control_layout_list[-1])
+            for widget in control_widgets:
+                ibswgt.control_layout_list[-1].addWidget(widget)
+        # Add selected ids status widget
+        ibswgt.selectionStatusLayout = QtGui.QHBoxLayout(ibswgt)
+        ibswgt.status_wgt.addLayout(ibswgt.selectionStatusLayout)
+        for widget in ibswgt.status_widget_list:
+            ibswgt.selectionStatusLayout.addWidget(widget)
 
     def _init_redirects(ibswgt):
         redirects = gh.get_redirects(ibswgt.ibs)
@@ -481,9 +472,18 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 src_table_col = gh.TABLE_COLNAMES[src_table].index(src_table_name)
                 ibswgt.register_redirect(src_table, src_table_col, dst_table, mapping_func)
 
-    def set_status_text(ibswgt, index, text):
+    def set_status_text(ibswgt, key, text):
         #printDBG('set_status_text[%r] = %r' % (index, text))
-        ibswgt.statusLabel_list[index].setText(text)
+        key_to_index = {
+            ENCOUNTER_TABLE: 1,
+            IMAGE_TABLE: 3,
+            IMAGE_GRID: 3,
+            ANNOTATION_TABLE: 5,
+            NAMES_TREE: 7,
+            NAME_TABLE: 7,
+        }
+        index = key_to_index[key]
+        ibswgt.status_widget_list[index].setText(text)
 
     def changing_models_gen(ibswgt, tblnames=None):
         """
@@ -612,8 +612,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #ibswgt.query_button
             #ibswgt.querydb_combo.setOptionText(text_list)
             #ibswgt.query_
-            #ibswgt.button_list[1][0].setText('Identify (intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
-            #ibswgt.button_list[1][1].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, const.EXEMPLAR_ENCTEXT))
+            #ibswgt.control_widget_lists[1][0].setText('Identify (intra-encounter)\nQUERY(%r vs. %r)' % (enctext, enctext))
+            #ibswgt.control_widget_lists[1][1].setText('Identify (vs exemplar database)\nQUERY(%r vs. %r)' % (enctext, const.EXEMPLAR_ENCTEXT))
         except Exception as ex:
             ut.printex(ex, iswarning=True)
         ibswgt.set_table_tab(IMAGE_TABLE)
@@ -824,6 +824,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 aid = id_list[0]
                 eid = model.eid
                 context_options += [
+                    ('Edit Annotation in Image',
+                        lambda: ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, eid)),
+                    ('----', lambda: None),
                     ('View annotation', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
                     ('View image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
                     ('View detection chip (probability) [dev]', lambda: ibswgt.back.show_probability_chip(aid)),
@@ -878,7 +881,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt.set_table_tab(dst_table)
             ibswgt.views[dst_table].select_row_from_id(id_, scroll=True)
             return None
-        except:
+        except Exception as ex:
+            if ut.VERYVERBOSE:
+                ut.printex(ex, 'no redirect listed for this table', iswarning=True)
             # No redirect listed for this table
             pass
 
@@ -887,24 +892,44 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             pass
             #printDBG('clicked encounter')
         else:
+            table_key = model.name
+            level = model._get_level(qtindex)
             eid = model.eid
-            if model.name == IMAGE_TABLE:
-                gid = id_
-                ibswgt.back.select_gid(gid, eid, show=False)
-            elif model.name == IMAGE_GRID:
-                gid = id_
-                ibswgt.back.select_gid(gid, eid, show=False)
-            elif model.name == ANNOTATION_TABLE:
-                aid = id_
-                ibswgt.back.select_aid(aid, eid, show=False)
-            elif model.name in (NAME_TABLE, NAMES_TREE,):
-                level = model._get_level(qtindex)
-                if level == 0:
-                    nid = id_
-                    ibswgt.back.select_nid(nid, eid, show=False)
-                elif level == 1:
-                    aid = id_
-                    ibswgt.back.select_aid(aid, eid, show=False)
+
+            if True:
+                ibswgt.select_table_id(table_key, level, id_, eid)
+            else:
+                pass
+                #if model.name == IMAGE_TABLE:
+                #    gid = id_
+                #    ibswgt.back.select_gid(gid, eid, show=False)
+                #elif model.name == IMAGE_GRID:
+                #    gid = id_
+                #    ibswgt.back.select_gid(gid, eid, show=False)
+                #elif model.name == ANNOTATION_TABLE:
+                #    aid = id_
+                #    ibswgt.back.select_aid(aid, eid, show=False)
+                #elif model.name in (NAME_TABLE, NAMES_TREE,):
+                #    level = model._get_level(qtindex)
+                #    if level == 0:
+                #        nid = id_
+                #        ibswgt.back.select_nid(nid, eid, show=False)
+                #    elif level == 1:
+                #        aid = id_
+                #        ibswgt.back.select_aid(aid, eid, show=False)
+
+    def select_table_id(ibswgt, table_key, level, id_, eid):
+        select_func_dict = {
+            (IMAGE_TABLE, 0)      : ibswgt.back.select_gid,
+            (IMAGE_GRID, 0)       : ibswgt.back.select_gid,
+            (ANNOTATION_TABLE, 0) : ibswgt.back.select_aid,
+            (NAME_TABLE, 0)       : ibswgt.back.select_nid,
+            (NAMES_TREE, 0)       : ibswgt.back.select_nid,
+            (NAME_TABLE, 1)       : ibswgt.back.select_aid,
+            (NAMES_TREE, 1)       : ibswgt.back.select_aid,
+        }
+        select_func = select_func_dict[(table_key, level)]
+        select_func(id_, eid, show=False)
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick(ibswgt, qtindex):
@@ -921,22 +946,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         else:
             eid = model.eid
             if (model.name == IMAGE_TABLE) or (model.name == IMAGE_GRID):
-                print('[newgui] Creating new annotation interaction')
-                ANNOTATION_Interaction2 = interact_annotations2.ANNOTATION_Interaction2
                 gid = id_
-                ibs = ibswgt.ibs
-                # Select gid
-                ibswgt.back.select_gid(gid, eid, show=False)
-                # Interact with gid
-                nextcb, prevcb, current_gid = ibswgt._interactannot2_callbacks(model, qtindex)
-                iannot2_kw = {
-                    'rows_updated_callback': ibswgt.update_tables,
-                    'next_callback': nextcb,
-                    'prev_callback': prevcb,
-                }
-                assert current_gid == gid, 'problem in next/prev updater'
-                ibswgt.annot_interact = ANNOTATION_Interaction2(ibs, gid, **iannot2_kw)
-                #ibswgt.annot_interact.update_image_and_callbacks(gid, nextcb, prevcb)
+                ibswgt.spawn_edit_image_annotation_interaction(model, qtindex, gid, eid)
             elif model.name == ANNOTATION_TABLE:
                 aid = id_
                 ibswgt.back.select_aid(aid, eid)
@@ -952,9 +963,42 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     aid = id_
                     ibswgt.back.select_aid(aid, eid, show=True)
 
+    def spawn_edit_image_annotation_interaction_from_aid(ibswgt, aid, eid):
+        """ hack for letting annots spawn image editing
+
+            aid = 1
+            eid = 1
+        """
+        gid = ibswgt.back.ibs.get_annot_gids(aid)
+        view = ibswgt.views[IMAGE_TABLE]
+        model = view.model()
+        qtindex, row = view.get_row_and_qtindex_from_id(gid)
+        ibswgt.spawn_edit_image_annotation_interaction(model, qtindex, gid, eid)
+
+    def spawn_edit_image_annotation_interaction(ibswgt, model, qtindex, gid, eid):
+        """
+        TODO: needs reimplement using more standard interaction methods
+
+        """
+        print('[newgui] Creating new annotation interaction')
+        ibs = ibswgt.ibs
+        # Select gid
+        ibswgt.back.select_gid(gid, eid, show=False)
+        # Interact with gid
+        nextcb, prevcb, current_gid = ibswgt._interactannot2_callbacks(model, qtindex)
+        iannot2_kw = {
+            'rows_updated_callback': ibswgt.update_tables,
+            'next_callback': nextcb,
+            'prev_callback': prevcb,
+        }
+        assert current_gid == gid, 'problem in next/prev updater'
+        ibswgt.annot_interact = interact_annotations2.ANNOTATION_Interaction2(ibs, gid, **iannot2_kw)
+
     def _interactannot2_callbacks(ibswgt, model, qtindex):
         """
         callbacks for the edit image annotation (from image table) interaction
+
+        TODO: needs reimplement
         """
         #if not qtindex.isValid():
         #    raise AssertionError('Bug: qtindex got invalidated')
@@ -1015,17 +1059,39 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if len(gpath_list) > 0:
             ibswgt.back.import_images_from_file(gpath_list=gpath_list)
 
-if __name__ == '__main__':
+
+def testfunc():
+    from ibeis.gui.newgui import *  # NOQA
     import ibeis
-    import sys
-    ibeis._preload(mpl=False, par=False)
-    guitool.ensure_qtapp()
-    dbdir = ibeis.sysres.get_args_dbdir(defaultdb='cache')
-    ibs = IBEISControl.IBEISController(dbdir=dbdir)
-    ibswgt = IBEISGuiWidget(ibs=ibs)
+    main_locals = ibeis.main(defaultdb='testdb1')
+    ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
+    ibswgt = back.ibswgt  # NOQA
 
     if '--cmd' in sys.argv:
         guitool.qtapp_loop(qwin=ibswgt, ipy=True)
         exec(ut.ipython_execstr())
     else:
         guitool.qtapp_loop(qwin=ibswgt)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.gui.newgui
+        python -m ibeis.gui.newgui --allexamples
+        python -m ibeis.gui.newgui --allexamples --noface --nosrc
+    """
+    testfunc()
+
+    #import ibeis
+    #main_locals = ibeis.main(defaultdb='testdb1')
+    #ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
+    #ibswgt = back.ibswgt
+
+    ##ibswgt = IBEISGuiWidget(back=back, ibs=ibs)
+
+    #if '--cmd' in sys.argv:
+    #    guitool.qtapp_loop(qwin=ibswgt, ipy=True)
+    #    exec(ut.ipython_execstr())
+    #else:
+    #    guitool.qtapp_loop(qwin=ibswgt)
