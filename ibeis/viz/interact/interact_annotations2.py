@@ -1,10 +1,11 @@
 from __future__ import absolute_import, division, print_function
 from plottool import interact_annotations
 from plottool import draw_func2 as df2
+import plottool as pt  # NOQA
 #from six.moves import zip
-import utool
-from ibeis.constants import VALID_SPECIES
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[interact_annot2]')
+import utool as ut
+from ibeis import constants as const
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[interact_annot2]')
 
 
 #DESTROY_OLD_WINDOW = True
@@ -13,7 +14,21 @@ DESTROY_OLD_WINDOW = False
 
 class ANNOTATION_Interaction2(object):
     def __init__(self, ibs, gid, next_callback=None, prev_callback=None,
-                 rows_updated_callback=lambda: None, reset_window=True):
+                 rows_updated_callback=None, reset_window=True):
+        """
+        CommandLine:
+            python -m ibeis.viz.interact.interact_annotations2 --test-__init__ --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.viz.interact.interact_annotations2 import *  # NOQA
+            >>> import ibeis
+            >>> import plottool as pt
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> gid = 1
+            >>> self = ANNOTATION_Interaction2(ibs, gid)
+            >>> pt.show_if_requested()
+        """
         self.ibs = ibs
         self.gid = gid
         self.rows_updated_callback = rows_updated_callback
@@ -22,13 +37,16 @@ class ANNOTATION_Interaction2(object):
         bbox_list     = ibs.get_annot_bboxes(self.aid_list)
         theta_list    = ibs.get_annot_thetas(self.aid_list)
         species_list  = ibs.get_annot_species_texts(self.aid_list)
-        valid_species = VALID_SPECIES
+        #valid_species = const.VALID_SPECIES
+        valid_species = [tup[1] for tup in
+                         const.get_working_species_set()]
         self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(
             img,
             bbox_list=bbox_list,
             theta_list=theta_list,
             species_list=species_list,
             commit_callback=self.commit_callback,
+            # TODO: get default species in a better way
             default_species=self.ibs.cfg.detect_cfg.species_text,
             next_callback=next_callback,
             prev_callback=prev_callback,
@@ -83,7 +101,7 @@ class ANNOTATION_Interaction2(object):
             print('[interact_annot2] new_aids: %r' % (new_aids,))
 
         print('[interact_annot2] about to exit callback')
-        if rows_updated:
+        if rows_updated and self.rows_updated_callback is not None:
             self.rows_updated_callback()
         print('[interact_annot2] exit callback')
 
@@ -124,3 +142,15 @@ class ANNOTATION_Interaction2(object):
 #    gid = gid_list[len(gid_list) - 1]
 #    annotation = ANNOTATION_Interaction2(ibs, gid)
 #    exec(df2.present())
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.viz.interact.interact_annotations2
+        python -m ibeis.viz.interact.interact_annotations2 --allexamples
+        python -m ibeis.viz.interact.interact_annotations2 --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

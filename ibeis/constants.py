@@ -188,7 +188,9 @@ CHIP_THUMB_SUFFIX  = '_chip_thumb.jpg'
 class Species(object):
     ZEB_PLAIN     = 'zebra_plains'
     ZEB_GREVY     = 'zebra_grevys'
+    # TODO change to giraffe_reticulated
     GIRAFFE       = 'giraffe'
+    GIRAFFE_MASAI = 'giraffe_masai'
     ELEPHANT_SAV  = 'elephant_savanna'
     JAG           = 'jaguar'
     LEOPARD       = 'leopard'
@@ -219,7 +221,8 @@ SpeciesTuple = namedtuple('SpeciesTuple', SpeciesTupleProperties)
 SPECIES_TUPS = [
     SpeciesTuple(Species.ZEB_PLAIN,          'PZ', 'Zebra (Plains)'),
     SpeciesTuple(Species.ZEB_GREVY,          'GZ', 'Zebra (Grevy\'s)'),
-    SpeciesTuple(Species.GIRAFFE,           'GIR', 'Giraffes'),
+    SpeciesTuple(Species.GIRAFFE,           'GIR', 'Giraffes (Reticulated)'),
+    SpeciesTuple(Species.GIRAFFE_MASAI,    'GIRM', 'Giraffes (Masai)'),
     SpeciesTuple(Species.ELEPHANT_SAV,     'ELEP', 'Elephant (savanna)'),
     SpeciesTuple(Species.POLAR_BEAR,         'PB', 'Polar Bear'),
     SpeciesTuple(Species.WILDDOG,            'WD', 'Wild Dog'),
@@ -243,6 +246,7 @@ SPECIES_WITH_DETECTORS = (
     Species.ZEB_GREVY,
     Species.ZEB_PLAIN,
     Species.GIRAFFE,
+    Species.GIRAFFE_MASAI,
     Species.ELEPHANT_SAV,
 )
 
@@ -283,6 +287,25 @@ if six.PY2:
     __STR__ = unicode  # change to str if needed
 else:
     __STR__ = str
+
+
+def get_working_species_set():
+    """ hack to make only species with detectors show up """
+    # TODO: FUNCTIONS SHOULD NOT BE IN CONSTANTS
+    # TODO: allow for custom user-define species
+    RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = not ut.get_argflag('--allspecies')
+    if RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS:
+        working_species_tups = [
+            (species_tup.species_nice, species_tup.species_text)
+            for species_tup in SPECIES_TUPS
+            if species_tup.species_text in SPECIES_WITH_DETECTORS
+        ]
+    else:
+        working_species_tups = [
+            (species_tup.species_nice, species_tup.species_text)
+            for species_tup in SPECIES_TUPS
+        ]
+    return working_species_tups
 
 
 # clean namespace

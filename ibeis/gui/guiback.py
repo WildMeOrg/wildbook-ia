@@ -213,11 +213,11 @@ class MainWindowBackend(QtCore.QObject):
             interact.ishow_image(back.ibs, gid, sel_aids=[aid])
 
     def show_name(back, nid, sel_aids=[], **kwargs):
-        #nid = back.ibs.get_name_rowids_from_text(name)
         kwargs.update({
             'sel_aids': sel_aids,
             'select_aid_callback': back.select_aid,
         })
+        #nid = back.ibs.get_name_rowids_from_text(name)
         interact.ishow_name(back.ibs, nid, **kwargs)
         pass
 
@@ -682,20 +682,20 @@ class MainWindowBackend(QtCore.QObject):
             back.front.update_tables([gh.ANNOTATION_TABLE])
 
     @blocking_slot()
-    def change_detection_species(back, index, value):
-        print('[back] change_detection_species(%r, %r)' % (index, value))
+    def change_detection_species(back, index, species_text):
+        """ callback for combo box """
+        print('[back] change_detection_species(%r, %r)' % (index, species_text))
         ibs = back.ibs
-        species = value
         # Load full blown configs for each species
         if back.edit_prefs_wgt:
             back.edit_prefs_wgt.close()
-        if species == 'none':
+        if species_text == 'none':
             cfgname = 'cfg'
         else:
-            cfgname = species
+            cfgname = species_text
         ibs._load_named_config(cfgname)
-        #ibs.cfg.save()
-        #ibs.cfg.detect_cfg.species_text = value
+        ibs.cfg.detect_cfg.species_text = species_text
+        ibs.cfg.save()
 
     def get_selected_species(back):
         return back.ibs.cfg.detect_cfg.species_text

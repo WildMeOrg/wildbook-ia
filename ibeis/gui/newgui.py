@@ -269,22 +269,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     #@checks_qt_error
     def _init_components(ibswgt):
         """ Defines gui components """
-        def get_working_species_set():
-            """ hack to make only species with detectors show up """
-            # TODO: allow for custom user-define species
-            RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = not ut.get_argflag('--allspecies')
-            if RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS:
-                working_species_tups = [
-                    (species_tup.species_nice, species_tup.species_text)
-                    for species_tup in const.SPECIES_TUPS
-                    if species_tup.species_text in const.SPECIES_WITH_DETECTORS
-                ]
-            else:
-                working_species_tups = [
-                    (species_tup.species_nice, species_tup.species_text)
-                    for species_tup in const.SPECIES_TUPS
-                ]
-            return working_species_tups
         # Layout
         ibswgt.vlayout = QtGui.QVBoxLayout(ibswgt)
         ibswgt.hsplitter = guitool.newSplitter(ibswgt, Qt.Horizontal, verticalStretch=18)
@@ -348,7 +332,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         detection_combo_box_options = [
             # Text              # Value
             ('Select Species',  'none'),
-        ] + get_working_species_set()
+        ] + const.get_working_species_set()
         #list(zip(const.SPECIES_NICE, const.VALID_SPECIES))
         ibswgt.species_combo = _COMBO(detection_combo_box_options,
                                       ibswgt.back.change_detection_species,
