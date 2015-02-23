@@ -229,46 +229,80 @@ def msgbox(msg, title='msgbox'):
     return msgbox
 
 
-def popup_menu(widget, pos, opt2_callback):
+def build_nested_qmenu(widget, context_options, name=None):
+    """ builds nested menu for context menus but can be used for other menu
+    related things. """
+    if name is None:
+        menu = QtGui.QMenu(widget)
+    else:
+        menu = QtGui.QMenu(name, widget)
+    action_list = []
+    for opt, func, in context_options:
+        if isinstance(func, list):
+            sub_menu, sub_action_list = build_nested_qmenu(widget, func, opt)
+            menu.addMenu(sub_menu)
+            action_list.append((sub_menu, sub_action_list))
+        else:
+            action = menu.addAction(opt, func)
+            action_list.append(action)
+    return menu, action_list
+
+
+def popup_menu(widget, pos, context_options):
     r"""
     Args:
         widget (QWidget):
         pos (QPoint):
-        opt2_callback (dict):
+        context_options (list): of (name, func) tuples. Can also replace func with
+            nested context_options list.
 
     Returns:
         tuple: (selection, actions)
 
     CommandLine:
-        python -m guitool.guitool_dialogs --test-popup_menu
+        python -m guitool.guitool_dialogs --test-popup_menu --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from guitool.guitool_dialogs import *  # NOQA
         >>> import guitool
         >>> import plottool as pt
+        >>> from plottool import interact_helpers as ih
         >>> fig = pt.figure()
-        >>> widget = fig.canvas
-        >>> def foo():
-        ...    print('bar')
-        >>> x, y = 10, 10
-        >>> pos = guitool.newQPoint(event.x, fig.canvas.geometry().height() - event.y)
-        >>> opt2_callback = {'func': foo}
-        >>> (selection, actions) = popup_menu(widget, pos, opt2_callback)
-        >>> result = str((selection, actions))
-        >>> print(result)
+        >>> def spam():
+        ...    print('spam')
+        >>> def eggs():
+        ...    print('eggs')
+        >>> context_options = [
+        ...     ('spam', spam),
+        ...     ('nest', [
+        ...         ('eggs', eggs)
+        ...     ])
+        ... ]
+        >>> # Hacky way to get a right click to span a context menu
+        >>> def figure_clicked(event, fig=fig, spam=spam, eggs=eggs, context_options=context_options):
+        ...     import guitool
+        ...     import plottool as pt
+        ...     from plottool import interact_helpers as ih
+        ...     pos = guitool.newQPoint(event.x, fig.canvas.geometry().height() - event.y)
+        ...     widget = fig.canvas
+        ...     (selection, actions) = popup_menu(widget, pos, context_options)
+        ...     #print(str((selection, actions)))
+        >>> ih.connect_callback(fig, 'button_press_event', figure_clicked)
+        >>> pt.show_if_requested()
     """
-    menu = QtGui.QMenu(widget)
-    #actions = [menu.addAction(opt, ut.tracefunc(func)) for (opt, func) in opt2_callback]
-    actions = [menu.addAction(opt, func) for (opt, func) in opt2_callback]
+    #menu = QtGui.QMenu(widget)
+    #actions = [menu.addAction(opt, ut.tracefunc(func)) for (opt, func) in context_options]
+    menu, action_list = build_nested_qmenu(widget, context_options)
+    #actions = [menu.addAction(opt, func) for (opt, func) in context_options]
     selection = menu.exec_(widget.mapToGlobal(pos))
-    return selection, actions
+    return selection, action_list
     #pos=QtGui.QCursor.pos()
 
 
-def connect_context_menu(widget, opt2_callback):
+def connect_context_menu(widget, context_options):
     def popup_slot(pos):
-        return popup_menu(widget, pos, opt2_callback)
+        return popup_menu(widget, pos, context_options)
     # Remove other context menus from this widget
     for _slot in _get_scope(widget, '_popup_scope'):
         widget.customContextMenuRequested.disconnect(_slot)

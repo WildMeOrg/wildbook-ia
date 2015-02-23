@@ -117,7 +117,7 @@ class APIItemModel(API_MODEL_BASE):
         col_sort_reverse : boolean of if to reverse the sort ordering
     """
     _rows_updated = signal_(str, int)
-    EditableItemColor = QtGui.QColor(220, 220, 255)
+    EditableItemColor = QtGui.QColor(242, 242, 255)
     TrueItemColor     = QtGui.QColor(230, 250, 230)
     FalseItemColor    = QtGui.QColor(250, 230, 230)
 

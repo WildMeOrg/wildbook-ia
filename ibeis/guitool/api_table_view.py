@@ -95,7 +95,7 @@ class APITableView(API_VIEW_BASE):
         horizontalHeader.setSortIndicatorShown(True)
         horizontalHeader.setHighlightSections(True)
         # Column Sizes
-        # DO NOT USE RESIZETOCONTENTS. IT MAKES THINGS VERY SLOW
+        # DO NOT USE ResizeToContents. IT MAKES THINGS VERY SLOW
         #horizontalHeader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
         #horizontalHeader.setResizeMode(QtGui.QHeaderView.Stretch)
         horizontalHeader.setResizeMode(QtGui.QHeaderView.Interactive)

@@ -145,12 +145,17 @@ class APIThumbDelegate(DELEGATE_BASE):
 
     get_thumb_size is a callback function which should return whatever the
     requested thumbnail size is
+
+    SeeAlso:
+         api_item_view.infer_delegates
     """
     def __init__(dgt, parent=None, get_thumb_size=None):
         if VERBOSE_THUMB:
-            print('[ThumbDelegate] __init__ parent=%r, get_thumb_size=%r' % (parent, get_thumb_size))
+            print('[ThumbDelegate] __init__ parent=%r, get_thumb_size=%r' %
+                    (parent, get_thumb_size))
         DELEGATE_BASE.__init__(dgt, parent)
         dgt.pool = None
+        # TODO: get from the view
         if get_thumb_size is None:
             dgt.get_thumb_size = lambda: 128  # 256
         else:
@@ -173,14 +178,18 @@ class APIThumbDelegate(DELEGATE_BASE):
             data = data.toPyObject()
         if data is None:
             return None
-        assert isinstance(data, tuple), 'data=%r is %r. should be a thumbtup' % (data, type(data))
+        assert isinstance(data, tuple), (
+            'data=%r is %r. should be a thumbtup' % (data, type(data)))
         thumbtup = data
         #(thumb_path, img_path, bbox_list) = thumbtup
         return thumbtup
 
-    def try_get_thumb_path(dgt, view, offset, qtindex):
-        """ Checks if the thumbnail is ready to paint
-        Returns thumb_path if computed. Otherwise returns None
+    def get_thumb_path_if_exists(dgt, view, offset, qtindex):
+        """
+        Checks if the thumbnail is ready to paint
+
+        Returns:
+            thumb_path if computed otherwise returns None
         """
 
         # Check if still in viewport
@@ -219,15 +228,8 @@ class APIThumbDelegate(DELEGATE_BASE):
                 print('[ThumbDelegate] Spawning thumbnail creation thread')
             thumbsize = dgt.get_thumb_size()
             thumb_creation_thread = ThumbnailCreationThread(
-                thumb_path,
-                img_path,
-                img_size,
-                thumbsize,
-                qtindex,
-                view,
-                offset,
-                bbox_list,
-                theta_list
+                thumb_path, img_path, img_size, thumbsize,
+                qtindex, view, offset, bbox_list, theta_list
             )
             #register_thread(thumb_path, thumb_creation_thread)
             # Initialize threadcount
@@ -240,14 +242,46 @@ class APIThumbDelegate(DELEGATE_BASE):
             # thumb is computed return the path
             return thumb_path
 
+    def adjust_thumb_cell_size(dgt, qtindex, width, height):
+        """
+        called during paint to ensure that the cell is large enough for the
+        image.
+        """
+        view = dgt.parent()
+        if isinstance(view, QtGui.QTableView):
+            # dimensions of the table cells
+            col_width = view.columnWidth(qtindex.column())
+            col_height = view.rowHeight(qtindex.row())
+            thumbsize = dgt.get_thumb_size()
+            if thumbsize != dgt.last_thumbsize:
+                # has thumbsize changed?
+                if thumbsize != col_width:
+                    view.setColumnWidth(qtindex.column(), thumbsize)
+                if height != col_height:
+                    view.setRowHeight(qtindex.row(), height)
+                dgt.last_thumbsize = thumbsize
+            # Let columns shrink
+            if thumbsize != col_width:
+                view.setColumnWidth(qtindex.column(), thumbsize)
+            # Let rows grow
+            if height > col_height:
+                view.setRowHeight(qtindex.row(), height)
+        elif isinstance(view, QtGui.QTreeView):
+            col_width = view.columnWidth(qtindex.column())
+            col_height = view.rowHeight(qtindex)
+            # TODO: finishme
+
     def paint(dgt, painter, option, qtindex):
+        """
+        TODO: prevent recursive paint
+        """
         view = dgt.parent()
         offset = view.verticalOffset() + option.rect.y()
         # Check if still in viewport
         if view_would_not_be_visible(view, offset):
             return None
         try:
-            thumb_path = dgt.try_get_thumb_path(view, offset, qtindex)
+            thumb_path = dgt.get_thumb_path_if_exists(view, offset, qtindex)
             if thumb_path is not None:
                 # Check if still in viewport
                 if view_would_not_be_visible(view, offset):
@@ -255,28 +289,8 @@ class APIThumbDelegate(DELEGATE_BASE):
                 # Read the precomputed thumbnail
                 qimg = read_thumb_as_qimg(thumb_path)
                 width, height = qimg.width(), qimg.height()
-                view = dgt.parent()
-                if isinstance(view, QtGui.QTreeView):
-                    col_width = view.columnWidth(qtindex.column())
-                    col_height = view.rowHeight(qtindex)
-                elif isinstance(view, QtGui.QTableView):
-                    # dimensions of the table cells
-                    col_width = view.columnWidth(qtindex.column())
-                    col_height = view.rowHeight(qtindex.row())
-                    thumbsize = dgt.get_thumb_size()
-                    if thumbsize != dgt.last_thumbsize:
-                        # has thumbsize changed?
-                        if thumbsize != col_width:
-                            view.setColumnWidth(qtindex.column(), thumbsize)
-                        if height != col_height:
-                            view.setRowHeight(qtindex.row(), height)
-                        dgt.last_thumbsize = thumbsize
-                    # Let columns shrink
-                    if thumbsize != col_width:
-                        view.setColumnWidth(qtindex.column(), thumbsize)
-                    # Let rows grow
-                    if height > col_height:
-                        view.setRowHeight(qtindex.row(), height)
+                # Adjust the cell size to fit the image
+                dgt.adjust_thumb_cell_size(qtindex, width, height)
                 # Check if still in viewport
                 if view_would_not_be_visible(view, offset):
                     return None
@@ -297,7 +311,7 @@ class APIThumbDelegate(DELEGATE_BASE):
         view = dgt.parent()
         offset = view.verticalOffset() + option.rect.y()
         try:
-            thumb_path = dgt.try_get_thumb_path(view, offset, qtindex)
+            thumb_path = dgt.get_thumb_path_if_exists(view, offset, qtindex)
             if thumb_path is not None:
                 # Read the precomputed thumbnail
                 width, height = read_thumb_size(thumb_path)
@@ -321,15 +335,37 @@ def view_would_not_be_visible(view, offset):
     return abs(current_offset - offset) >= height
 
 
-RUNNABLE_BASE = QtCore.QRunnable
-
-
 def get_thread_thumb_info(bbox_list, theta_list, thumbsize, img_size):
+    r"""
+    Args:
+        bbox_list (list):
+        theta_list (list):
+        thumbsize (?):
+        img_size (?):
+
+    CommandLine:
+        python -m guitool.api_thumb_delegate --test-get_thread_thumb_info
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from guitool.api_thumb_delegate import *  # NOQA
+        >>> # build test data
+        >>> bbox_list = [(100, 50, 400, 200)]
+        >>> theta_list = [0]
+        >>> thumbsize = 128
+        >>> img_size = 600, 300
+        >>> # execute function
+        >>> result = get_thread_thumb_info(bbox_list, theta_list, thumbsize, img_size)
+        >>> # verify results
+        >>> print(result)
+        ((128, 64), [[[21, 11], [107, 11], [107, 53], [21, 53], [21, 11]]])
+
+    """
     theta_list = [theta_list] if not utool.is_listlike(theta_list) else theta_list
     max_dsize = (thumbsize, thumbsize)
     dsize, sx, sy = gtool.resized_clamped_thumb_dims(img_size, max_dsize)
     # Compute new verts list
-    new_verts_list = [new_verts for new_verts in gtool.scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy)]
+    new_verts_list = list(gtool.scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy))
     return dsize, new_verts_list
 
 
@@ -343,6 +379,9 @@ def make_thread_thumb(img_path, dsize, new_verts_list):
         geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2, out=thumb)
         #thumb = geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
     return thumb
+
+
+RUNNABLE_BASE = QtCore.QRunnable
 
 
 class ThumbnailCreationThread(RUNNABLE_BASE):
@@ -371,7 +410,8 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         if thread.thumb_would_not_be_visible():
             return
         # Precompute info BEFORE reading the image (.0002s)
-        dsize, new_verts_list = get_thread_thumb_info(thread.bbox_list, thread.theta_list, thread.thumbsize, thread.img_size)
+        dsize, new_verts_list = get_thread_thumb_info(
+            thread.bbox_list, thread.theta_list, thread.thumbsize, thread.img_size)
         #time.sleep(.005)  # Wait a in case the user is just scrolling
         if thread.thumb_would_not_be_visible():
             return

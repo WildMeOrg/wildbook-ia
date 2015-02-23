@@ -11,8 +11,8 @@ WIDGET_BASE = QtGui.QWidget
 
 
 class APIItemWidget(WIDGET_BASE):
-    """ SIMPLE WIDGET WHICH AUTOCREATES MODEL AND VIEW FOR YOU.
-    TODO: Depricate this except for as an example.
+    """ SIMPLE WIDGET WHICH AUTO-CREATES MODEL AND VIEW FOR YOU.
+    TODO: Deprecate this except for as an example.
     """
 
     def __init__(widget, headers=None, parent=None,
@@ -23,8 +23,9 @@ class APIItemWidget(WIDGET_BASE):
         widget.vert_layout = QtGui.QVBoxLayout(widget)
         # Create a ColumnListTableView for the AbstractItemModel
         widget.view = view_class(parent=widget)
-        # Instansiate the AbstractItemModel
-        # FIXME: It is very bad to give the model a view. Only the view should have a model
+        # Instantiate the AbstractItemModel
+        # FIXME: It is very bad to give the model a view.
+        # Only the view should have a model
         widget.model = model_class(parent=widget.view)
         widget.view.setModel(widget.model)
         widget.vert_layout.addWidget(widget.view)

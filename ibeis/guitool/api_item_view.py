@@ -25,7 +25,9 @@ from guitool.api_item_model import APIItemModel
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[APIItemView]', DEBUG=False)
 
-VERBOSE = utool.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
+VERBOSE_QT = ut.get_argflag(('--verbose-qt', '--verbqt'))
+VERBOSE_ITEM_VIEW = ut.get_argflag(('--verbose-item-view'))
+VERBOSE = utool.VERBOSE or VERBOSE_QT or VERBOSE_ITEM_VIEW
 
 API_VIEW_BASE = QtGui.QAbstractItemView
 register_view_method = utool.make_class_method_decorator(API_VIEW_BASE, __name__)
@@ -59,7 +61,7 @@ class APIItemView(API_VIEW_BASE):
 def infer_delegates(view, **headers):
     """ Infers which columns should be given item delegates """
     get_thumb_size = headers.get('get_thumb_size', None)
-    col_type_list = headers.get('col_type_list', [])
+    col_type_list  = headers.get('col_type_list', [])
     num_cols = view.model().columnCount()
     num_duplicates = int(num_cols / len(col_type_list))
     col_type_list = col_type_list * num_duplicates
@@ -72,6 +74,9 @@ def infer_delegates(view, **headers):
             if VERBOSE:
                 print('[view] colx=%r is a BUTTON' % colx)
             view.setItemDelegateForColumn(colx, APIButtonDelegate(view))
+        else:
+            if VERBOSE:
+                print('[view] colx=%r does not have a delgate' % colx)
 
 
 @register_view_method
@@ -89,10 +94,10 @@ def _update_headers(view, **headers):
     """ Mirrors _update_headers in api_item_model """
     # Use headers from model #model = view.model #headers = model.headers
     # Get header info
-    col_sort_index = headers.get('col_sort_index', None)
-    col_sort_reverse = headers.get('col_sort_reverse', False)
+    col_sort_index       = headers.get('col_sort_index', None)
+    col_sort_reverse     = headers.get('col_sort_reverse', False)
     view.col_hidden_list = headers.get('col_hidden_list', [])
-    view.col_name_list = headers.get('col_name_list', [])
+    view.col_name_list   = headers.get('col_name_list', [])
     # Call updates
     view._set_sort(col_sort_index, col_sort_reverse)
     view.infer_delegates(**headers)
@@ -118,16 +123,24 @@ def hide_cols(view):
 
 @register_view_method
 @profile
+def get_row_and_qtindex_from_id(view, _id):
+    """ uses an sqlrowid (from iders) to get a qtindex """
+    model = view.model()
+    row = model.get_row_from_id(_id)
+    qtindex = model.index(row, 0) if row is not None else None
+    return qtindex, row
+
+
+@register_view_method
+@profile
 def select_row_from_id(view, _id, scroll=False, collapse=True):
     """
         _id is from the iders function (i.e. an ibeis rowid)
         selects the row in that view if it exists
     """
     with ut.Timer('selecting row from id'):
-        model = view.model()
-        row = model.get_row_from_id(_id)
+        qtindex, row = view.get_row_and_qtindex_from_id(_id)
         if row is not None:
-            qtindex = model.index(row, 0)
             if isinstance(view, QtGui.QTreeView):
                 if collapse:
                     view.collapseAll()
@@ -140,6 +153,7 @@ def select_row_from_id(view, _id, scroll=False, collapse=True):
                 with ut.Timer('expanding'):
                     view.setExpanded(qtindex, True)
             else:
+                # For Table Views
                 view.selectRow(row)
             # Scroll to selection
             if scroll:

@@ -11,6 +11,14 @@ from guitool import guitool_dialogs
                                                        '[guitool_components]')
 
 
+ALIGN_DICT = {
+    'center': Qt.AlignCenter,
+    'right': Qt.AlignRight | Qt.AlignVCenter,
+    'left': Qt.AlignLeft | Qt.AlignVCenter,
+    'justify': Qt.AlignJustify,
+}
+
+
 def newSizePolicy(widget,
                   verticalSizePolicy=QSizePolicy.Expanding,
                   horizontalSizePolicy=QSizePolicy.Expanding,
@@ -159,6 +167,7 @@ def newOutputLog(parent, pointSize=6, visible=True, verticalStretch=1):
 
 
 def newTextEdit(parent, visible=True):
+    """ This is a text area """
     outputEdit = QtGui.QTextEdit(parent)
     sizePolicy = newSizePolicy(outputEdit, verticalStretch=1)
     outputEdit.setSizePolicy(sizePolicy)
@@ -166,6 +175,39 @@ def newTextEdit(parent, visible=True):
     outputEdit.setVisible(visible)
     setattr(outputEdit, '_guitool_sizepolicy', sizePolicy)
     return outputEdit
+
+
+def newLineEdit(parent, text=None, enabled=True, align='center', textChangedSlot=None, visible=True, fontkw={}):
+    """ This is a text line
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> parent = None
+        >>> text = None
+        >>> visible = True
+        >>> # execute function
+        >>> widget = newLineEdit(parent, text, visible)
+        >>> # verify results
+        >>> result = str(widget)
+        >>> print(result)
+    """
+    widget = QtGui.QLineEdit(parent)
+    sizePolicy = newSizePolicy(widget, verticalStretch=1)
+    widget.setSizePolicy(sizePolicy)
+    if text is not None:
+        widget.setText(text)
+    widget.setEnabled(enabled)
+    widget.setAlignment(ALIGN_DICT[align])
+
+    if textChangedSlot is not None:
+        widget.textChangedSlot.connect(textChangedSlot)
+
+    #outputEdit.setAcceptRichText(False)
+    #outputEdit.setVisible(visible)
+    adjust_font(widget, **fontkw)
+    setattr(widget, '_guitool_sizepolicy', sizePolicy)
+    return widget
 
 
 def newWidget(parent, orientation=Qt.Vertical,
@@ -421,13 +463,7 @@ def make_style_sheet(bgcolor=None, fgcolor=None):
 
 def newLabel(parent=None, text='', align='center', fontkw={}):
     label = QtGui.QLabel(text, parent=parent)
-    align_dict = {
-        'center': Qt.AlignCenter,
-        'right': Qt.AlignRight | Qt.AlignVCenter,
-        'left': Qt.AlignLeft | Qt.AlignVCenter,
-        'justify': Qt.AlignJustify,
-    }
-    label.setAlignment(align_dict[align])
+    label.setAlignment(ALIGN_DICT[align])
     adjust_font(label, **fontkw)
     return label
 
