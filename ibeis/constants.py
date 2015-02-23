@@ -246,7 +246,7 @@ SPECIES_WITH_DETECTORS = (
     Species.ZEB_GREVY,
     Species.ZEB_PLAIN,
     Species.GIRAFFE,
-    Species.GIRAFFE_MASAI,
+    #Species.GIRAFFE_MASAI,
     Species.ELEPHANT_SAV,
 )
 
@@ -293,7 +293,8 @@ def get_working_species_set():
     """ hack to make only species with detectors show up """
     # TODO: FUNCTIONS SHOULD NOT BE IN CONSTANTS
     # TODO: allow for custom user-define species
-    RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = not ut.get_argflag('--allspecies')
+    #RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = not ut.get_argflag('--allspecies')
+    RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = ut.get_argflag('--no-allspecies')
     if RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS:
         working_species_tups = [
             (species_tup.species_nice, species_tup.species_text)
