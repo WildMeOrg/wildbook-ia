@@ -294,7 +294,8 @@ class ANNOTATIONInteraction(object):
             self.mouseY = None  # mouse Y coordinate
             self.indX = None
             self.indY = None
-            self.press1 = False        # HACK (corner case): flag if polygon is highlighted
+            self.leftbutton_is_down = False
+            self.rightbutton_is_down = False
             self.canUncolor = False    # flag if the polygon SHOULD be active
             self._autoinc_polynum = 0  # num polys in image
             self._polyHeld = False                # if any poly is active
@@ -541,11 +542,16 @@ class ANNOTATIONInteraction(object):
             return poly_ind, self.polys[poly_ind]
 
     def button_press_callback(self, event):
-        """ whenever a mouse button is pressed """
+        """
+        Called whenever a mouse button is pressed
+
+        CommandLine:
+            python -m ibeis.viz.interact.interact_annotations2 --test-__init__ --show
+        """
         if self._ind is not None:
             self._ind = None
             return
-        ignore = not self.showverts or event.inaxes is None or event.button != 1
+        ignore = not self.showverts or event.inaxes is None
         if ignore:
             return
 
@@ -580,7 +586,12 @@ class ANNOTATIONInteraction(object):
             self.update_colors(self._currently_selected_poly.num)
             #self._currently_selected_poly.set_facecolor('red')
             #self._currently_selected_poly.lines.set_color('red')
-        self.press1 = True
+        if event.button == 1:  # left
+            self.leftbutton_is_down = True
+        elif event.button == 3:  # rightclick
+            self.rightbutton_is_down = True
+        elif event.button == 2:  # middleclick
+            pass
         self.canUncolor = False
         self._update_line()
         if self.background is not None:
@@ -596,23 +607,30 @@ class ANNOTATIONInteraction(object):
         self.fig.canvas.blit(self.fig.ax.bbox)
 
     def button_release_callback(self, event):
-        """ whenever a mouse button is released """
-        if self._polyHeld is True:  # and (self._ind is None or self.press1 is False):
+        """
+        Called whenever a mouse button is released
+        """
+        if self._polyHeld is True:
             self._polyHeld = False
 
         self.currently_rotating_poly = None
 
-        ignore = not self.showverts or event.button != 1 or self._currently_selected_poly is None
+        ignore = not self.showverts or self._currently_selected_poly is None
         if ignore:
             return
         if (self._ind is None) or self._polyHeld is False or \
-           (self._ind is not None and self.press1 is True) and \
+           (self._ind is not None and self.leftbutton_is_down is True) and \
            self._currently_selected_poly is not None and self.canUncolor is True:
             self._currently_selected_poly.set_alpha(0)
             #self._currently_selected_poly.set_facecolor('white')
 
         self.update_UI()
-        self.press1 = False
+        if event.button == 1:  # left
+            self.leftbutton_is_down = False
+        elif event.button == 3:  # rightclick
+            self.rightbutton_is_down = False
+        elif event.button == 2:  # middleclick
+            pass
 
         if self._ind is None:
             return
@@ -631,7 +649,7 @@ class ANNOTATIONInteraction(object):
 
         if ((self._ind is None) or
            (self._polyHeld is False) or
-           (self._ind is not None and self.press1 is True) and
+           (self._ind is not None and self.leftbutton_is_down is True) and
            self._currently_selected_poly is not None):
             #self._currently_selected_poly = None
             #self.update_colors(None)
@@ -802,7 +820,10 @@ class ANNOTATIONInteraction(object):
         self.fig.canvas.draw()
 
     def motion_notify_callback(self, event):
-        """ on mouse movement """
+        """
+        CALLBACK FOR MOTION EVENTS
+        Called on mouse movement
+        """
         #print('motion_notify_callback')
         ignore = (not self.showverts or event.inaxes is None)
         if not (event.xdata is None or event.ydata is None):
@@ -816,22 +837,31 @@ class ANNOTATIONInteraction(object):
 
         if ignore:
             return
-        if self.press1 is True:
+        if self.leftbutton_is_down is True:
             self.canUncolor = True
 
+        if self._polyHeld:
+            print('event.button = %r' % (event.button,))
+            print('self._polyHeld = %r' % (self._polyHeld,))
         if self._polyHeld is True and self._ind is not None:
-            self.resize_rectangle(self._currently_selected_poly, self.mouseX, self.mouseY)
+            # Resize by dragging corner
+            self.resize_rectangle(self._currently_selected_poly, self.mouseX, self.mouseY, self._ind)
+            self.update_UI()
+            return
+        elif self._polyHeld is True and event.button == 3:
+            # Resize by right click drag
+            self.resize_rectangle(self._currently_selected_poly, self.mouseX, self.mouseY, 0)
             self.update_UI()
             return
 
         if self.currently_rotating_poly:
-                poly = self.currently_rotating_poly
-                cx, cy = polygon_center(poly)
-                theta = math.atan2(cy - self.mouseY, cx - self.mouseX) - TAU / 4
-                dtheta = theta - poly.theta
-                self.rotate_rectangle(poly, dtheta)
-                self.update_UI()
-                return
+            poly = self.currently_rotating_poly
+            cx, cy = polygon_center(poly)
+            theta = math.atan2(cy - self.mouseY, cx - self.mouseX) - TAU / 4
+            dtheta = theta - poly.theta
+            self.rotate_rectangle(poly, dtheta)
+            self.update_UI()
+            return
 
         if self._ind is None and event.button == 1:
             # move all vertices
@@ -916,8 +946,11 @@ class ANNOTATIONInteraction(object):
             poly.basecoords = new_coords
             set_display_coords(poly)
 
-    def resize_rectangle(self, poly, x, y):
+    def resize_rectangle(self, poly, x, y, idx):
         #print('resize_rectangle')
+        #idx = self._ind
+        # TODO: allow resize by middle click to scale from the center
+
         if poly is None:
             return
 
@@ -947,45 +980,11 @@ class ANNOTATIONInteraction(object):
         def wrapIndex(i):
             return (i % len(tmpcoords))
 
-        idx = self._ind
         previdx, nextidx = wrapIndex(idx - 1), wrapIndex(idx + 1)
         #oppidx = wrapIndex(idx + 2)
         (dx, dy) = (x - poly.xy[idx][0], y - poly.xy[idx][1])
-        #(total_dx, total_dy) = (x - poly.xy[idx][0], y - poly.xy[idx][1])
-        #higher_delta = max(total_dx, total_dy)
-        #print('total (%r, %r), heigher = %r' % (total_dx, total_dy, higher_delta))
-        #for i in range(0, int(higher_delta)):
-        #    (dx, dy) = (total_dx / higher_delta, total_dy / higher_delta)
-        #    print('dx dy (%r, %r)' % (dx, dy))
-        tmpcoords = poly.xy[:-1]
-        #tmpcoords[idx] = (tmpcoords[idx][0] + dx, tmpcoords[idx][1] + dy)
 
-        #a#newx, newy = tmpcoords[idx][0], tmpcoords[idx][1]
-        #a#oppx, oppy = tmpcoords[oppidx][0], tmpcoords[oppidx][1]
-        #a#prevx, prevy = tmpcoords[previdx][0], tmpcoords[previdx][1]
-        #a#nextx, nexty = tmpcoords[nextidx][0], tmpcoords[nextidx][1]
-        #a#
-        #a#hypotenuse_new_opp = distance(oppy - newy, oppx - newx) # green line
-        #a#
-        #a#
-        #a#angle_xaxis_opp_new = math.atan2(oppy - newy, oppx - newx) # black theta
-        #a#angle_xaxis_opp_newprev = math.atan2(oppy - prevy, oppx - prevx) # blue theta
-        #a#angle_newprev_opp_new = angle_xaxis_opp_new - angle_xaxis_opp_newprev # red theta
-        #a#hypotenuse_opp_newprev = hypotenuse_new_opp * math.cos(angle_xaxis_opp_new)
-        #a#
-        #a#newprev_x = hypotenuse_opp_newprev * math.cos(angle_xaxis_opp_newprev)
-        #a#newprev_y = hypotenuse_opp_newprev * math.sin(angle_xaxis_opp_newprev)
-        #a#tmpcoords[previdx] = (newprev_x, newprev_y)
-        #a#
-        #a#
-        #a#angle_xaxis_opp_new = math.atan2(oppy - newy, oppx - newx)
-        #a#angle_xaxis_opp_newnext = math.atan2(oppy - nexty, oppx - nextx)
-        #a#angle_newnext_opp_new = angle_xaxis_opp_new - angle_xaxis_opp_newnext
-        #a#hypotenuse_opp_newnext = hypotenuse_new_opp * math.sin(angle_xaxis_opp_new)
-        #a#
-        #a#newnext_x = hypotenuse_opp_newnext * math.cos(angle_xaxis_opp_newnext)
-        #a#newnext_y = hypotenuse_opp_newnext * math.sin(angle_xaxis_opp_newnext)
-        #a#tmpcoords[nextidx] = (newnext_x, newnext_y)
+        tmpcoords = poly.xy[:-1]
 
         # this algorithm worked the best of the ones I tried, but needs
         # "experimentally determined constants" to work properly, since I failed
@@ -1045,18 +1044,6 @@ class ANNOTATIONInteraction(object):
             assert within_epsilon(height1, height2), 'h1: %r, h2: %r' % (height1, height2)
             #print('w, h = (%r, %r)' % (width1, height1))
             return (MIN_W < width1) and (MIN_H < height1)
-
-            #b#def pairs(slicable):
-            #b#    return zip(slicable[:-1], slicable[1:])
-            #b#def is_rectangle(coords):
-            #b#    first_samex = within_epsilon(coords[0][0], coords[1][0])
-            #b#    which_to_compare = 0 if first_samex else 1
-            #b#    for p1, p2 in pairs(coords):
-            #b#        if not within_epsilon(p1[which_to_compare], p2[which_to_compare]):
-            #b#            return False
-            #b#        else:
-            #b#            which_to_compare = 0 if which_to_compare == 1 else 0
-            #b#    return True
 
         if self.check_valid_coords(calc_display_coords(tmpcoords, poly.theta)) and meets_minimum_width_and_height(tmpcoords):
             poly.basecoords = tmpcoords
@@ -1175,8 +1162,8 @@ class ANNOTATIONInteraction(object):
             deleted_indices   = list(set(self.original_indices) - set(indices_list))
             changed_indices   = []
             unchanged_indices = []  # sanity check
-            changed_annottups  = []
-            new_annottups      = []
+            changed_annottups = []
+            new_annottups     = []
             original_annottup_list = list(zip(self.original_bbox_list,
                                               self.original_theta_list,
                                               self.original_species_list))
