@@ -36,25 +36,51 @@ from matplotlib.widgets import Button
 #import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import math as math
+import functools
 from functools import partial
 #from matplotlib import nxutils  # Deprecated
 #from matplotlib.mlab import dist_point_to_segment
 # Scientific
 import numpy as np
-import utool
+import vtool as vt
+import utool as ut
 import re
 # FIXME: REMOVE IBEIS DEPENDENCY
 from plottool import draw_func2 as df2
 from six.moves import zip
-utool.noinject(__name__, '[interact_annotations]')
+ut.noinject(__name__, '[interact_annotations]')
 
 
 DEFAULT_SPECIES_TAG = '____'
-ACCEPT_SAVE_HOTKEY   = 'a'
-ADD_RECTANGLE_HOTKEY = 'd'
+# FIXE THESE TO BE GENERIC
+ACCEPT_SAVE_HOTKEY        = 'a'
+ADD_RECTANGLE_HOTKEY      = 'd'
 ADD_RECTANGLE_FULL_HOTKEY = 'f'
-DEL_RECTANGLE_HOTKEY = 'r'
-TOGGLE_LABEL_HOTKEY = 't'
+DEL_RECTANGLE_HOTKEY      = 'r'
+TOGGLE_LABEL_HOTKEY       = 't'
+#
+
+NEXT_IMAGE_HOTKEYS  = ['right', 'pagedown']
+PREV_IMAGE_HOTKEYS  = ['left', 'pageup']
+
+
+RIGHT_CLICK = 3
+MIDDLE_CLICK = 2
+
+SCALE_INPLACE_BUTTON = RIGHT_CLICK  # middle click
+
+
+def pretty_hotkey_map(hotkeys):
+    hotkeys = [hotkeys] if not isinstance(hotkeys, list) else hotkeys
+    mapping = {
+        #'right': 'right arrow',
+        #'left':  'left arrow',
+    }
+    mapped_hotkeys = [mapping.get(hk, hk) for hk in hotkeys]
+    hotkey_str = '(' + ut.cond_phrase(mapped_hotkeys, 'or') + ')'
+    return hotkey_str
+
+
 TAU = np.pi * 2  # References: tauday.com
 
 
@@ -295,7 +321,6 @@ class ANNOTATIONInteraction(object):
             self.indX = None
             self.indY = None
             self.leftbutton_is_down = False
-            self.rightbutton_is_down = False
             self.canUncolor = False    # flag if the polygon SHOULD be active
             self._autoinc_polynum = 0  # num polys in image
             self._polyHeld = False                # if any poly is active
@@ -311,6 +336,8 @@ class ANNOTATIONInteraction(object):
         # Ensure that our input is in verts_list format
         assert verts_list is None or bbox_list is None, 'only one can be specified'
         # bbox_list will get converted to verts_list
+        if verts_list is not None:
+            bbox_list = vt.bboxes_from_vert_list(verts_list)
         if bbox_list is not None:
             verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
         if theta_list is None:
@@ -338,7 +365,7 @@ class ANNOTATIONInteraction(object):
         self.fig.clear()
         self.fig.clf()
         #self.fig.cla()
-        #utool.qflag()
+        #ut.qflag()
         self.fnum = fnum
         #print(self.fnum)
         #ax = plt.subplot(111)
@@ -351,7 +378,9 @@ class ANNOTATIONInteraction(object):
         ax.set_title(('\n'.join([
             'Click and drag to select/move/resize an ANNOTATION',
             #'Press enter to clear the species tag of the selected ANNOTATION',
-            'Start type to set the species tag of the selected ANNOTATION', ])))
+            'Type to edit the ANNOTATION species (press tab to autocomplete)'
+        ])))
+        #to set the species tag of the selected ANNOTATION', ])))
 
     def handle_polygon_creation(self, bbox_list, theta_list, species_list):
         # Maintain original input
@@ -439,13 +468,14 @@ class ANNOTATIONInteraction(object):
         self.next_callback = next_callback
         if self.prev_callback is not None:
             self.prev_ax = self.fig.add_axes([0.02, 0.01, but_width, but_height])
-            self.prev_but = Button(self.prev_ax, 'Previous Image\n(left arrow)')
-            self.prev_but.on_clicked(self.prev_annotation)
+            self.prev_but = Button(self.prev_ax, 'Previous Image\n' + pretty_hotkey_map(NEXT_IMAGE_HOTKEYS))
+            self.prev_but.on_clicked(self.prev_image)
 
         if self.next_callback is not None:
             self.next_ax = self.fig.add_axes([0.82, 0.01, but_width, but_height])
-            self.next_but = Button(self.next_ax, 'Next Image\n(right arrow)')
-            self.next_but.on_clicked(self.next_annotation)
+            self.next_but = Button(self.next_ax, 'Next Image\n' +
+                                   pretty_hotkey_map(NEXT_IMAGE_HOTKEYS))
+            self.next_but.on_clicked(self.next_image)
 
     def update_image_and_callbacks(self, img, bbox_list, theta_list,
                                    species_list, next_callback, prev_callback):
@@ -465,14 +495,16 @@ class ANNOTATIONInteraction(object):
         self.fig.canvas.draw()
         self.update_UI()
 
-    def next_annotation(self, event):
-        self.next_callback()
+    def next_image(self, event):
+        if self.next_callback is not None:
+            self.next_callback()
 
-    def prev_annotation(self, event):
-        self.prev_callback()
+    def prev_image(self, event):
+        if self.prev_callback is not None:
+            self.prev_callback()
 
     def on_resize(self, event):
-        #print(utool.dict_str(event.__dict__))
+        #print(ut.dict_str(event.__dict__))
         #self.fig.canvas.draw()
         self.fig.canvas.draw()
         #self.fig.canvas.update()
@@ -548,6 +580,7 @@ class ANNOTATIONInteraction(object):
         CommandLine:
             python -m ibeis.viz.interact.interact_annotations2 --test-__init__ --show
         """
+        print('[button_press_callback] key = %r' % (event.key))
         if self._ind is not None:
             self._ind = None
             return
@@ -588,10 +621,6 @@ class ANNOTATIONInteraction(object):
             #self._currently_selected_poly.lines.set_color('red')
         if event.button == 1:  # left
             self.leftbutton_is_down = True
-        elif event.button == 3:  # rightclick
-            self.rightbutton_is_down = True
-        elif event.button == 2:  # middleclick
-            pass
         self.canUncolor = False
         self._update_line()
         if self.background is not None:
@@ -604,12 +633,25 @@ class ANNOTATIONInteraction(object):
             self.fig.ax.draw_artist(poly)
             self.fig.ax.draw_artist(poly.lines)
             self.fig.ax.draw_artist(poly.handle)
+
         self.fig.canvas.blit(self.fig.ax.bbox)
 
     def button_release_callback(self, event):
         """
         Called whenever a mouse button is released
         """
+        # CONTEXT MENU
+        #if True:
+        if False and event.button == RIGHT_CLICK:
+            import guitool
+            height = self.fig.canvas.geometry().height()
+            qpoint = guitool.newQPoint(event.x, height - event.y)
+            callback_list = [
+                ('Foo: ',  functools.partial(print, 'bar'))
+            ]
+            qwin = self.fig.canvas
+            guitool.popup_menu(qwin, qpoint, callback_list)
+
         if self._polyHeld is True:
             self._polyHeld = False
 
@@ -627,10 +669,6 @@ class ANNOTATIONInteraction(object):
         self.update_UI()
         if event.button == 1:  # left
             self.leftbutton_is_down = False
-        elif event.button == 3:  # rightclick
-            self.rightbutton_is_down = False
-        elif event.button == 2:  # middleclick
-            pass
 
         if self._ind is None:
             return
@@ -656,6 +694,7 @@ class ANNOTATIONInteraction(object):
             pass
         self._ind = None
         self._polyHeld = False
+
         self.fig.canvas.draw()
 
     def draw_new_poly(self, event=None, full=False):
@@ -727,13 +766,16 @@ class ANNOTATIONInteraction(object):
         self.update_UI()
 
     def key_press_callback(self, event):
-        """ whenever a key is pressed """
-        #print('[interact_annot] key_press_callback')
-        print('[interact_annot] Got key: %r' % event.key)
+        """
+        Callback whenever a key is pressed
+        """
+        if ut.VERBOSE:
+            print('[interact_annot] key_press_callback')
+            print('[interact_annot] Got key: %r' % event.key)
         if not event.inaxes:
             return
 
-        def handle_command(keychar):
+        def handle_control_command(keychar):
             print('[interact_annot] got hotkey=%r' % (keychar,))
             if keychar == ACCEPT_SAVE_HOTKEY:
                 self.accept_new_annotations(event)
@@ -778,7 +820,7 @@ class ANNOTATIONInteraction(object):
         # perfect use case for anaphoric if, or assignment in if statements (if python had either)
         match = re.match('^ctrl\+(.)$', event.key)
         if match:
-            handle_command(match.group(1))
+            handle_control_command(match.group(1))
 
         # enter clears the species tag, workaround since matplotlib doesn't seem
         # to trigger 'key_press_event's for backspace (which would be the
@@ -812,11 +854,20 @@ class ANNOTATIONInteraction(object):
         if match:
             handle_label_typing(match.group(0))
 
-        if re.match('left', event.key) and self.prev_callback is not None:
-            self.prev_callback()
-        if re.match('right', event.key) and self.next_callback is not None:
-            self.next_callback()
+        # NEXT ANND PREV COMMAND
+        print('[interact_annot] Got key: %r' % event.key)
+        def matches_hotkey(key, hotkeys):
+            hotkeys = [hotkeys] if not isinstance(hotkeys, list) else hotkeys
+            #flags = [re.match(hk, '^' + key + '$') for hk in hotkeys]
+            flags = [re.match(hk,  key) is not None for hk in hotkeys]
+            print(hotkeys)
+            print(flags)
+            return any(flags)
 
+        if matches_hotkey(event.key, PREV_IMAGE_HOTKEYS):
+            self.prev_image(event)
+        if matches_hotkey(event.key, NEXT_IMAGE_HOTKEYS):
+            self.next_image(event)
         self.fig.canvas.draw()
 
     def motion_notify_callback(self, event):
@@ -840,15 +891,13 @@ class ANNOTATIONInteraction(object):
         if self.leftbutton_is_down is True:
             self.canUncolor = True
 
-        if self._polyHeld:
-            print('event.button = %r' % (event.button,))
-            print('self._polyHeld = %r' % (self._polyHeld,))
         if self._polyHeld is True and self._ind is not None:
             # Resize by dragging corner
             self.resize_rectangle(self._currently_selected_poly, self.mouseX, self.mouseY, self._ind)
             self.update_UI()
             return
-        elif self._polyHeld is True and event.button == 3:
+
+        elif self._polyHeld is True and event.button == SCALE_INPLACE_BUTTON:
             # Resize by right click drag
             self.resize_rectangle(self._currently_selected_poly, self.mouseX, self.mouseY, 0)
             self.update_UI()
@@ -1273,7 +1322,7 @@ def ANNOTATION_creator(img, verts_list):  # add callback as variable
     if img is None:
         try:
             img_url = 'http://i.imgur.com/Vq9CLok.jpg'
-            img_fpath = utool.grab_file_url(img_url)
+            img_fpath = ut.grab_file_url(img_url)
             #img = mpimg.imread(img_fpath)
             from vtool import image as gtool
             img = gtool.imread(img_fpath)
@@ -1296,7 +1345,16 @@ def ANNOTATION_creator(img, verts_list):  # add callback as variable
 
 
 if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m plottool.interact_annotations --show
+
+    CommandLine:
+        python -m ibeis.viz.interact.interact_annotations2 --test-__init__ --show
+    """
     #verts = [[0,0,400,400]]
     verts = [((0, 400), (400, 400), (400, 0), (0, 0), (0, 400)),
              ((400, 700), (700, 700), (700, 400), (400, 400), (400, 700))]
     ANNOTATION_creator(None, verts_list=verts)
+    import plottool as pt
+    pt.show_if_requested()
