@@ -391,6 +391,36 @@ def resize_thumb(img, max_dsize=(64, 64)):
 
 
 def scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy):
+    r"""
+    Helps with drawing scaled bbounding boxes on thumbnails
+
+    Args:
+        bbox_list (list): bboxes in x,y,w,h format
+        theta_list (list): rotation of bounding boxes
+        sx (float): x scale factor
+        sy (float): y scale factor
+
+    Yeilds:
+        new_verts - vertices of scaled bounding box for every input
+
+    CommandLine:
+        python -m vtool.image --test-scale_bbox_to_verts_gen
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> # build test data
+        >>> bbox_list = [(10, 10, 100, 100)]
+        >>> theta_list = [0]
+        >>> sx = .5
+        >>> sy = .5
+        >>> # execute function
+        >>> new_verts_list = list(scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy))
+        >>> result = str(new_verts_list)
+        >>> # verify results
+        >>> print(result)
+        [[[5, 5], [55, 5], [55, 55], [5, 55], [5, 5]]]
+    """
     # TODO: input verts support and better name
     for bbox, theta in zip(bbox_list, theta_list):
         # Transformation matrixes
