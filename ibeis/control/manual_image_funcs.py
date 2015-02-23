@@ -743,6 +743,26 @@ def get_image_sizes(ibs, gid_list):
 
 
 @register_ibs_method
+@getter_1to1
+def get_image_widths(ibs, gid_list):
+    """
+    Returns:
+        list_ (list): a list of (width, height) tuples """
+    gwidth_list = ibs.db.get(const.IMAGE_TABLE, ('image_width',), gid_list)
+    return gwidth_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_image_heights(ibs, gid_list):
+    """
+    Returns:
+        list_ (list): a list of (width, height) tuples """
+    gheight_list = ibs.db.get(const.IMAGE_TABLE, ('image_height',), gid_list)
+    return gheight_list
+
+
+@register_ibs_method
 @ut.accepts_numpy
 @getter_1to1
 def get_image_unixtime(ibs, gid_list):

@@ -1203,6 +1203,8 @@ def load_named_config(cfgname, dpath, use_config_cache=False):
     if cfgname is None:
         cfgname = 'cfg'
     fpath = join(dpath, cfgname) + '.cPkl'
+    if not ut.QUIET:
+        print('[Config] loading named config fpath=%r' % (fpath,))
     # Always a fresh object
     cfg = GenericConfig(cfgname, fpath=fpath)
     try:

@@ -164,6 +164,8 @@ def _index(value, list_, warning=True):
 
 def export_transfer_data(ibs_src, gid_list=None, user_prompt=False):
     """
+    STEP 1)
+
     Packs all the data you are going to transfer from ibs_src
     info the transfer_data named tuple.
 
@@ -373,8 +375,8 @@ def export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list, n
     if gid_list is None or len(gid_list) == 0:
         return None
     # Get image data
-    image_size_list = ibs_src.get_image_sizes(gid_list)
-    image_gps_list = ibs_src.get_image_gps(gid_list)
+    #image_size_list = ibs_src.get_image_sizes(gid_list)
+    #image_gps_list = ibs_src.get_image_gps(gid_list)
     # Get encounter INDEXs
     eids_list = ibs_src.get_image_eids(gid_list)
     encounter_INDEXs_list = [
@@ -401,11 +403,15 @@ def export_image_transfer_data(ibs_src, gid_list, config_rowid_list, eid_list, n
         ibs_src.get_image_uuids(gid_list),
         ibs_src.get_image_exts(gid_list),
         ibs_src.get_image_gnames(gid_list),
-        [size[0] for size in image_size_list],
-        [size[1] for size in image_size_list],
+        ibs_src.get_image_widths(gid_list),
+        ibs_src.get_image_heights(gid_list),
+        #[size[0] for size in image_size_list],
+        #[size[1] for size in image_size_list],
         ibs_src.get_image_unixtime(gid_list),
-        [gps[0] for gps in image_gps_list],
-        [gps[1] for gps in image_gps_list],
+        ibs_src.get_image_lat(gid_list),
+        ibs_src.get_image_lon(gid_list),
+        #[gps[0] for gps in image_gps_list],
+        #[gps[1] for gps in image_gps_list],
         ibs_src.get_image_enabled(gid_list),
         ibs_src.get_image_reviewed(gid_list),
         ibs_src.get_image_notes(gid_list),
@@ -969,6 +975,8 @@ def import_lblannot_transfer_data(ibs_dst, lblannot_td, aid, config_rowid_list):
 
 def merge_databases(ibs_src, ibs_dst, gid_list=None, back=None, user_prompt=False, bulk_conflict_resolution='ignore'):
     """
+    STEP 0) MAIN DRIVER FUNCTION
+
     Conflict resolutions are only between contributors, configs, encounters and images.
     Annotations, lblannots, lblimages, their respective relationships, and image-encounter
     relationships all inherit the resolution from their associated image.
@@ -976,7 +984,7 @@ def merge_databases(ibs_src, ibs_dst, gid_list=None, back=None, user_prompt=Fals
     Args:
         ibs_src (IBEISController): source controller
 
-        ibs_dst (IBEISController): destination controller
+        ibs_dst (IBEISController): destination controller (can be an empty database)
 
         back (GUIBackend): optional gui to update
 

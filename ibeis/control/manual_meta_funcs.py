@@ -675,6 +675,7 @@ def _init_config(ibs):
     TODO: per-species config
     """
     species_list = ibs.get_database_species()
+    print('[_init_config] Loading databsae with species_list = %r ' % (species_list,))
     # try to be intelligent about the default speceis
     cfgname = species_list[0] if len(species_list) == 1 else 'cfg'
     ibs._load_named_config(cfgname)
@@ -684,7 +685,8 @@ def _init_config(ibs):
 def _load_named_config(ibs, cfgname=None):
     # TODO: update cfgs between versions
     # Try to load previous config otherwise default
-    use_config_cache = not (ut.is_developer() or ut.get_argflag(('--nocache-pref',)))
+    #use_config_cache = not (ut.is_developer() and not ut.get_argflag(('--nocache-pref',)))
+    use_config_cache = not ut.get_argflag(('--nocache-pref',))
     ibs.cfg = Config.load_named_config(cfgname, ibs.get_dbdir(), use_config_cache)
     ibs.reset_table_cache()
 

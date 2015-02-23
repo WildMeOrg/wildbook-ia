@@ -252,6 +252,11 @@ def setup_option_menu(mainwin, back):
         tooltip='Organizes windows in a grid',
         shortcut='Ctrl+L',
         slot_fn=back.layout_figures)
+    mainwin.menuOptions.newAction(
+        name='actionToggleQueryMode',
+        text='Toggle Query Mode: ----',
+        tooltip='Changes behavior of Actions->Query',
+        slot_fn=functools.partial(back.set_query_mode, 'toggle'))
     mainwin.menuOptions.addSeparator()
     mainwin.menuOptions.newAction(
         name='actionPreferences',
@@ -259,11 +264,6 @@ def setup_option_menu(mainwin, back):
         tooltip='Changes algorithm parameters and program behavior.',
         shortcut='Ctrl+P',
         slot_fn=back.edit_preferences)
-    mainwin.menuOptions.newAction(
-        name='actionToggleQueryMode',
-        text='Toggle Query Mode: ----',
-        tooltip='Changes behavior of Actions->Query',
-        slot_fn=functools.partial(back.set_query_mode, 'toggle'))
 
 
 def setup_help_menu(mainwin, back):

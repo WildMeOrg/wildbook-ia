@@ -36,8 +36,9 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[newgui]')
 
 IBEIS_WIDGET_BASE = QtGui.QWidget
 
-#WITH_GUILOG = not ut.get_argflag('--noguilog')
+VERBOSE_GUI = ut.VERBOSE or ut.get_argflag('--verbose-gui')
 WITH_GUILOG = ut.get_argflag('--guilog')
+#WITH_GUILOG = not ut.get_argflag('--noguilog')
 
 """
 from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE,
@@ -650,7 +651,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
         When the rows are updated change the tab names
         """
-        print('[newgui] on_rows_updated: tblname=%12r nRows=%r ' % (tblname, nRows))
+        if VERBOSE_GUI:
+            print('[newgui] on_rows_updated: tblname=%12r nRows=%r ' % (tblname, nRows))
         #printDBG('Rows updated in tblname=%r, nRows=%r' % (str(tblname), nRows))
         if tblname == ENCOUNTER_TABLE:  # Hack
             print('... tblname == ENCOUNTER_TABLE, ...hack return')
@@ -877,7 +879,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #printDBG('clicked encounter')
         else:
             table_key = model.name
-            level = model._get_level(qtindex)
+            # FIXME: stripe model needs to forward get_level
+            if not hasattr(model, '_get_level'):
+                level = 0
+            else:
+                level = model._get_level(qtindex)
             eid = model.eid
 
             if True:

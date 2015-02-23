@@ -25,6 +25,9 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     Keywords:
         color (3/4-tuple, ndarray, or str): colors for keypoints
 
+    CommandLine:
+        python -m ibeis.viz.viz_chip --test-show_chip --show
+
     Example:
         >>> from plottool.viz_keypoints import _annotate_kpts
         >>> from ibeis.viz.viz_chip import *  # NOQA
@@ -37,6 +40,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         >>> color = np.array([df2.ORANGE] * len(kpts))
         >>> kwargs = {'kpts': kpts, 'color': color}
         >>> show_chip(ibs, aid, in_image=in_image, annote=annote, **kwargs)
+        >>> pt.show_if_requested()
 
     """
     # python -c "import utool; utool.print_auto_docstr('ibeis.viz.viz_chip', 'show_chip')
@@ -62,9 +66,10 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         if 'color' not in kwargs:
             #from ibeis.model.preproc import preproc_featweight
             #featweights = preproc_featweight.compute_fgweights(ibs, [aid])[0]
-            if weights is None and ibs.has_species_detector(ibs.get_annot_species_texts(aid)):
-                weight_label = 'fg_weights'
-                weights = ibs.get_annot_fgweights([aid], ensure=True)[0]
+            if weight_label == 'fg_weights':
+                if weights is None and ibs.has_species_detector(ibs.get_annot_species_texts(aid)):
+                    weight_label = 'fg_weights'
+                    weights = ibs.get_annot_fgweights([aid], ensure=True)[0]
             if weights is not None:
                 cmap_ = 'hot'
                 #if weight_label == 'dstncvs':
