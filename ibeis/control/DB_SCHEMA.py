@@ -844,6 +844,38 @@ def update_1_3_4(db, ibs=None):
         (ANNOT_VIEWPOINT, ANNOT_YAW,  'REAL', convert_old_viewpoint_to_yaw),
     ))
 
+
+def update_1_3_5(db, ibs=None):
+    """ expand datasets to use new quality measures """
+    aid_list = ibs.get_valid_aids()
+    qual_list = ibs.get_annot_qualities(aid_list)
+    assert len(qual_list) == 0 or max(qual_list) < 3, 'there were no qualities higher than 3 at this point'
+    old_to_new = {
+        2: 3,
+        1: 2,
+    }
+    new_qual_list = [old_to_new.get(qual, qual) for qual in qual_list]
+    ibs.set_annot_qualities(aid_list, new_qual_list)
+    #from collections import OrderedDict
+    #QUALITY_INT_TO_TEXT_OLD = OrderedDict([
+    #    (2, 'good',),
+    #    (1, 'ok',),
+    #    (0, 'junk',),
+    #    (-1, 'UNKNOWN',),
+    #])
+    #QUALITY_INT_TO_TEXT_NEW = OrderedDict([
+    #    (4, 'perfect',),
+    #    (3, 'good',),
+    #    (2, 'ok',),
+    #    (1, 'bad',),
+    #    (0, 'junk',),
+    #    (-1, 'UNKNOWN',),
+    #])
+    #new_qual_list
+    #new_qual_list
+    # Adds a few different degrees of quality
+    pass
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -867,6 +899,7 @@ VALID_VERSIONS = utool.odict([
     ('1.3.2',    (None,                 update_1_3_2,       None                )),
     ('1.3.3',    (None,                 update_1_3_3,       None                )),
     ('1.3.4',    (None,                 update_1_3_4,       post_1_3_4          )),
+    ('1.3.5',    (None,                 update_1_3_5,       None          )),
 ])
 
 

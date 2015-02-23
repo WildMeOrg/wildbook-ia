@@ -31,6 +31,7 @@ from ibeis.gui.models_and_views import (IBEISStripeModel, IBEISTableView,
                                         EncTableWidget)
 import guitool
 import utool as ut
+import plottool as pt
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[newgui]')
 
 
@@ -954,10 +955,24 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ibswgt.back.select_aid(aid, eid, show=True)
 
     def spawn_edit_image_annotation_interaction_from_aid(ibswgt, aid, eid):
-        """ hack for letting annots spawn image editing
+        """
+        hack for letting annots spawn image editing
 
-            aid = 1
-            eid = 1
+        CommandLine:
+            python -m ibeis.gui.newgui --test-spawn_edit_image_annotation_interaction_from_aid --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.gui.newgui import *  # NOQA
+            >>> import ibeis
+            >>> main_locals = ibeis.main(defaultdb='testdb1')
+            >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
+            >>> ibswgt = back.ibswgt  # NOQA
+            >>> aid = 4
+            >>> eid = 1
+            >>> ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, eid)
+            >>> if ut.show_was_requested():
+            >>>    guitool.qtapp_loop(qwin=ibswgt)
         """
         gid = ibswgt.back.ibs.get_annot_gids(aid)
         view = ibswgt.views[IMAGE_TABLE]
@@ -970,7 +985,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         TODO: needs reimplement using more standard interaction methods
 
         """
-        print('[newgui] Creating new annotation interaction')
+        print('[newgui] Creating new annotation interaction: gid=%r' % (gid,))
         ibs = ibswgt.ibs
         # Select gid
         ibswgt.back.select_gid(gid, eid, show=False)
@@ -983,6 +998,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         }
         assert current_gid == gid, 'problem in next/prev updater'
         ibswgt.annot_interact = interact_annotations2.ANNOTATION_Interaction2(ibs, gid, **iannot2_kw)
+        # hacky GID_PROG: TODO: FIX WITH OTHER HACKS OF THIS TYPE
+        _, row = model.view.get_row_and_qtindex_from_id(gid)
+        pt.set_figtitle('%d/%d' % (row + 1, model.rowCount()))
 
     def _interactannot2_callbacks(ibswgt, model, qtindex):
         """
@@ -1011,6 +1029,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 nextcb, prevcb, new_gid1 = ibswgt._interactannot2_callbacks(model, next_qtindex)
                 print('[newgui] next_callback: new_gid1=%r' % (new_gid1))
                 ibswgt.annot_interact.update_image_and_callbacks(new_gid1, nextcb, prevcb, do_save=True)
+                # hacky GID_PROG: TODO: FIX WITH OTHER HACKS OF THIS TYPE
+                _, row = model.view.get_row_and_qtindex_from_id(new_gid1)
+                pt.set_figtitle('%d/%d' % (row + 1, model.rowCount()))
         if prev_qtindex is not None and prev_qtindex.isValid():
             def prev_callback():
                 if numclicks[0] != 0:
@@ -1021,6 +1042,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 nextcb, prevcb, new_gid2 = ibswgt._interactannot2_callbacks(model, prev_qtindex)
                 print('[newgui] prev_callback: new_gid2=%r' % (new_gid2))
                 ibswgt.annot_interact.update_image_and_callbacks(new_gid2, nextcb, prevcb, do_save=True)
+                # hacky GID_PROG: TODO: FIX WITH OTHER HACKS OF THIS TYPE
+                _, row = model.view.get_row_and_qtindex_from_id(new_gid2)
+                pt.set_figtitle('%d/%d' % (row + 1, model.rowCount()))
         return next_callback, prev_callback, cur_gid
 
     @slot_(list)
@@ -1051,11 +1075,23 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
 
 def testfunc():
-    from ibeis.gui.newgui import *  # NOQA
+    r"""
+    CommandLine:
+        python -m ibeis.gui.newgui --test-testfunc
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.gui.newgui import *  # NOQA
+        >>> result = testfunc()
+        >>> # verify results
+        >>> print(result)
+    """
     import ibeis
     main_locals = ibeis.main(defaultdb='testdb1')
     ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
     ibswgt = back.ibswgt  # NOQA
+    if ut.show_was_requested():
+        guitool.qtapp_loop(qwin=ibswgt)
 
     if '--cmd' in sys.argv:
         guitool.qtapp_loop(qwin=ibswgt, ipy=True)
@@ -1064,6 +1100,27 @@ def testfunc():
         guitool.qtapp_loop(qwin=ibswgt)
 
 
+#if __name__ == '__main__':
+#    """
+#    CommandLine:
+#        python -m ibeis.gui.newgui
+#        python -m ibeis.gui.newgui --allexamples
+#        python -m ibeis.gui.newgui --allexamples --noface --nosrc
+#    """
+#    testfunc()
+
+#    #import ibeis
+#    #main_locals = ibeis.main(defaultdb='testdb1')
+#    #ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
+#    #ibswgt = back.ibswgt
+
+#    ##ibswgt = IBEISGuiWidget(back=back, ibs=ibs)
+
+#    #if '--cmd' in sys.argv:
+#    #    guitool.qtapp_loop(qwin=ibswgt, ipy=True)
+#    #    exec(ut.ipython_execstr())
+#    #else:
+#    #    guitool.qtapp_loop(qwin=ibswgt)
 if __name__ == '__main__':
     """
     CommandLine:
@@ -1071,17 +1128,7 @@ if __name__ == '__main__':
         python -m ibeis.gui.newgui --allexamples
         python -m ibeis.gui.newgui --allexamples --noface --nosrc
     """
-    testfunc()
-
-    #import ibeis
-    #main_locals = ibeis.main(defaultdb='testdb1')
-    #ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
-    #ibswgt = back.ibswgt
-
-    ##ibswgt = IBEISGuiWidget(back=back, ibs=ibs)
-
-    #if '--cmd' in sys.argv:
-    #    guitool.qtapp_loop(qwin=ibswgt, ipy=True)
-    #    exec(ut.ipython_execstr())
-    #else:
-    #    guitool.qtapp_loop(qwin=ibswgt)
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

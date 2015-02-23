@@ -2,6 +2,9 @@
 This module was never really finished. It is used in some cases
 to display the results from a query in a qt window. It needs
 some work if its to be re-integrated.
+
+TODO:
+    Refresh name table on inspect gui close
 """
 from __future__ import absolute_import, division, print_function
 from functools import partial
@@ -178,7 +181,170 @@ class QueryResultsWidget(APIItemWidget):
         guitool.popup_menu(iqrw, qpos, [
             ('view match annotations', lambda: show_match_at(iqrw, qtindex)),
             ('review match', lambda: review_match_at(iqrw, qtindex)),
+            ('Mark as Match.', lambda: mark_pair_as_positive_match(iqrw, qtindex)),
+            ('Mark as Not Match.', lambda: mark_pair_as_negative_match(iqrw, qtindex)),
         ])
+
+
+def mark_pair_as_positive_match(qres_wgt, qtindex):
+    model = qtindex.model()
+    qaid  = model.get_header_data('qaid', qtindex)
+    daid  = model.get_header_data('aid', qtindex)
+    ibs = qres_wgt.ibs
+    status = mark_annot_pair_as_positive_match(ibs, qaid, daid)
+    print('status = %r' % (status,))
+
+
+def mark_pair_as_negative_match(qres_wgt, qtindex):
+    model = qtindex.model()
+    qaid  = model.get_header_data('qaid', qtindex)
+    daid  = model.get_header_data('aid', qtindex)
+    ibs = qres_wgt.ibs
+    try:
+        status = mark_annot_pair_as_negative_match(ibs, qaid, daid)
+        print('status = %r' % (status,))
+    except ComplexSplitException:
+        review_match_at(qres_wgt, qtindex)
+
+
+class ComplexSplitException(Exception):
+    pass
+
+
+def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False):
+    """
+    TODO: ELEVATE THIS FUNCTION
+
+    Need to test several cases:
+        uknown, unknown
+        knownA, knownA
+        knownB, knownA
+        unknown, knownA
+        knownA, unknown
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1 (int):  query annotation id
+        aid2 (int):  matching annotation id
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_positive_match
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
+        >>> dryrun = True
+        >>> status = mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun)
+        >>> # verify results
+        >>> print(status)
+    """
+    def _set_annot_name_rowids(aid_list, nid_list):
+        if not ut.QUIET:
+            print('... _set_annot_name_rowids(aids=%r, nids=%r)' % (aid_list, nid_list))
+            print('... names = %r' % (ibs.get_name_texts(nid_list)))
+        if not dryrun:
+            ibs.set_annot_name_rowids(aid_list, nid_list)
+        # Return the new annots in this name
+        _aids_list = ibs.get_name_aids(nid_list)
+        _combo_aids_list = [_aids + [aid] for _aids, aid, in zip(_aids_list, aid_list)]
+        status = _combo_aids_list
+        return status
+    print('[marking_match] aid1 = %r, aid2 = %r' % (aid1, aid2))
+
+    nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
+    if nid1 == nid2:
+        print('...images already matched')
+        status = None
+    else:
+        isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
+        if isunknown1 and isunknown2:
+            print('...match unknown1 to unknown2 into 1 new name')
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid1, aid2], next_nids * 2)
+        elif not isunknown1 and not isunknown2:
+            print('...merge known1 into known2')
+            aid1_and_groundtruth = ibs.get_annot_groundtruth(aid1, noself=False)
+            status =  _set_annot_name_rowids(aid1_and_groundtruth, [nid2])
+        elif isunknown2 and not isunknown1:
+            print('...match unknown2 into known1')
+            status =  _set_annot_name_rowids([aid2], [nid1])
+        elif isunknown1 and not isunknown2:
+            print('...match unknown1 into known2')
+            status =  _set_annot_name_rowids([aid1], [nid2])
+        else:
+            raise AssertionError('impossible state')
+    return status
+
+
+def mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False):
+    """
+    TODO: ELEVATE THIS FUNCTION
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1 (int):  annotation id
+        aid2 (int):  annotation id
+        dryrun (bool):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_negative_match
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
+        >>> dryrun = True
+        >>> # execute function
+        >>> result = mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun)
+        >>> # verify results
+        >>> print(result)
+    """
+    def _set_annot_name_rowids(aid_list, nid_list):
+        print('... _set_annot_name_rowids(%r, %r)' % (aid_list, nid_list))
+        if not dryrun:
+            ibs.set_annot_name_rowids(aid_list, nid_list)
+    nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
+    if nid1 == nid2:
+        print('images are marked as having the same name... we must tread carefully')
+        aid1_groundtruth = ibs.get_annot_groundtruth(aid1, noself=True)
+        if len(aid1_groundtruth) == 1 and aid1_groundtruth == [aid2]:
+            # this is the only safe case for same name split
+            # Change so the names are not the same
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid1], next_nids)
+        else:
+            status = 'error'
+            print('There are %d annots in this name. Need more sophisticated split' % (len(aid1_groundtruth)))
+            raise ComplexSplitException()
+    else:
+        isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
+        if isunknown1 and isunknown2:
+            print('...nonmatch unknown1 and unknown2 into 2 new names')
+            next_nids = ibs.make_next_nids(num=2)
+            status =  _set_annot_name_rowids([aid1, aid2], next_nids)
+        elif not isunknown1 and not isunknown2:
+            print('...nonmatch known1 and known2... nothing to do (yet)')
+            status = None
+        elif isunknown2 and not isunknown1:
+            print('...nonmatch unknown2 -> newname and known1')
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid2], next_nids)
+        elif isunknown1 and not isunknown2:
+            print('...nonmatch unknown1 -> newname and known2')
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid1], next_nids)
+        else:
+            raise AssertionError('impossible state')
+    return status
 
 
 def show_match_at(qres_wgt, qtindex):
@@ -744,8 +910,9 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, ibeis.gui.inspect_gui; utool.doctest_funcs(ibeis.gui.inspect_gui, allexamples=True)"
-        python -c "import utool, ibeis.gui.inspect_gui; utool.doctest_funcs(ibeis.gui.inspect_gui)"
+        python -m ibeis.gui.inspect_gui --test-test_singleres_api --cmd
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --cmd
+
         python -m ibeis.gui.inspect_gui
         python -m ibeis.gui.inspect_gui --allexamples
         python -m ibeis.gui.inspect_gui --allexamples --noface --nosrc

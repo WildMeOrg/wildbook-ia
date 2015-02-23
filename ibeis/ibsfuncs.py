@@ -1686,6 +1686,21 @@ def make_enctext_list(eid_list, enc_cfgstr):
 
 
 @__injectable
+def make_next_nids(ibs, *args, **kwargs):
+    """
+    makes name and adds it to the database returning the newly added name rowid(s)
+
+    CAUTION; changes database state
+
+    SeeAlso:
+        make_next_name
+    """
+    next_names = ibs.make_next_name(*args, **kwargs)
+    next_nids  = ibs.add_names(next_names)
+    return next_nids
+
+
+@__injectable
 def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text=None):
     """ Creates a number of names which are not in the database, but does not
     add them
@@ -2798,8 +2813,10 @@ def set_exemplars_from_quality_and_view_for_mugu(ibs):
     pref_teir2 = pref_teir1 / pref_decimator
     infeasible_w = max(9001, N + 1)
     qual2_weight = {
+        'perfect':  w + pref_teir1,
         'good':  w + pref_teir1,
         'ok':    w,
+        'bad':   w,
         'junk':  infeasible_w,
     }
     oldflag_offset = (

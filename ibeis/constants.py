@@ -30,12 +30,21 @@ VIEWTEXT_TO_YAW_RADIANS = OrderedDict([
 ])
 
 
-QUALITY_INT_TO_TEXT = OrderedDict([
+QUALITY_INT_TO_TEXT_OLD = OrderedDict([
     (2, 'good',),
     (1, 'ok',),
     (0, 'junk',),
     (-1, 'UNKNOWN',),
 ])
+QUALITY_INT_TO_TEXT_NEW = OrderedDict([
+    (5, 'perfect',),
+    (4, 'good',),
+    (3, 'ok',),
+    (2, 'bad',),
+    (0, 'junk',),
+    (-1, 'UNKNOWN',),
+])
+QUALITY_INT_TO_TEXT = QUALITY_INT_TO_TEXT_NEW
 QUALITY_TEXT_TO_INT = ut.invert_dict(QUALITY_INT_TO_TEXT)
 QUALITY_INT_TO_TEXT[None] = QUALITY_INT_TO_TEXT[-1]
 

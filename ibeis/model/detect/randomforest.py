@@ -289,6 +289,7 @@ def _valid_candidate(candidate, annot_bbox_list, overlap=0.0, tries=10):
 
 
 def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VERBOSE_RF):
+    #with ut.embed_on_exception_context:
     if cfg_override and len(ibs.cfg.detect_cfg.trees_path) > 0:
         trees_path = ibs.cfg.detect_cfg.trees_path
     else:
@@ -307,10 +308,11 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
         msg = ut.codeblock(
             '''
             [_get_models] Error loading trees, either directory or files not found
+              * trees_path = %r
               * species = %r
               * model_dir = %r
               * cfg_override = %r
             '''
-        ) % (species, modeldir, cfg_override)
+        ) % (trees_path, species, modeldir, cfg_override)
         raise AssertionError(msg)
     return files

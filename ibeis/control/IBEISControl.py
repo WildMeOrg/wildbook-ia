@@ -345,7 +345,7 @@ class IBEISController(object):
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
-        ibs.db_version_expected = '1.3.4'
+        ibs.db_version_expected = '1.3.5'
         # TODO: add this functionality to SQLController
         TESTING_NEW_SQL_VERSION = False
         if TESTING_NEW_SQL_VERSION:
@@ -362,7 +362,7 @@ class IBEISController(object):
                 dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
                 ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
                 # Set testing schema version
-                ibs.db_version_expected = '1.3.4'
+                ibs.db_version_expected = '1.3.5'
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
                                               text_factory=const.__STR__,
                                               inmemory=False)
