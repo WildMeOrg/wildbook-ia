@@ -37,7 +37,7 @@ from matplotlib.widgets import Button
 import matplotlib.pyplot as plt
 import math as math
 from functools import partial
-#from matplotlib import nxutils  # Depricated
+#from matplotlib import nxutils  # Deprecated
 #from matplotlib.mlab import dist_point_to_segment
 # Scientific
 import numpy as np
