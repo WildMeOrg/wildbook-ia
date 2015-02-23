@@ -44,7 +44,11 @@ class APITableView(API_VIEW_BASE):
     #---------------
 
     def _init_table_behavior(view):
-        """ Table behavior """
+        """ Table behavior
+
+        References:
+            http://qt-project.org/doc/qt-4.8/qabstractitemview.html
+        """
         view.setCornerButtonEnabled(False)
         view.setWordWrap(True)
         view.setSortingEnabled(True)
@@ -68,7 +72,7 @@ class APITableView(API_VIEW_BASE):
         #QtGui.QAbstractItemView.NoEditTriggers  |  # 0
         #QtGui.QAbstractItemView.CurrentChanged  |  # 1
         #QtGui.QAbstractItemView.DoubleClicked   |  # 2
-        #QtGui.QtGui.QAbstractItemView.SelectedClicked |  # 4
+        #QtGui.QAbstractItemView.SelectedClicked |  # 4
         #QtGui.QAbstractItemView.EditKeyPressed  |  # 8
         #QtGui.QAbstractItemView.AnyKeyPressed      # 16
         view._defaultEditTriggers = QtGui.QAbstractItemView.AllEditTriggers

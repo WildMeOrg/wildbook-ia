@@ -69,11 +69,13 @@ def infer_delegates(view, **headers):
         if coltype in  qtype.QT_PIXMAP_TYPES:
             if VERBOSE:
                 print('[view] colx=%r is a PIXMAP' % colx)
-            view.setItemDelegateForColumn(colx, APIThumbDelegate(view, get_thumb_size))
+            thumb_delegate = APIThumbDelegate(view, get_thumb_size)
+            view.setItemDelegateForColumn(colx, thumb_delegate)
         elif coltype in qtype.QT_BUTTON_TYPES:
             if VERBOSE:
                 print('[view] colx=%r is a BUTTON' % colx)
-            view.setItemDelegateForColumn(colx, APIButtonDelegate(view))
+            button_delegate = APIButtonDelegate(view)
+            view.setItemDelegateForColumn(colx, button_delegate)
         else:
             if VERBOSE:
                 print('[view] colx=%r does not have a delgate' % colx)
