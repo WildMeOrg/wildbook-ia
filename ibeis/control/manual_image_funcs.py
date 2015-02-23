@@ -73,6 +73,35 @@ def _get_all_eids(ibs):
 @register_ibs_method
 @ider
 def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        eid (None):
+        require_unixtime (bool):
+        reviewed (None):
+
+    Returns:
+        list: gid_list
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_valid_gids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> eid = None
+        >>> require_unixtime = False
+        >>> reviewed = None
+        >>> # execute function
+        >>> gid_list = get_valid_gids(ibs, eid, require_unixtime, reviewed)
+        >>> # verify results
+        >>> result = str(gid_list)
+        >>> print(result)
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    """
     if eid is None:
         gid_list = ibs._get_all_gids()
     else:
@@ -87,6 +116,13 @@ def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
         isvalid_list = [reviewed == flag for flag in reviewed_list]
         gid_list = ut.filter_items(gid_list, isvalid_list)
     return gid_list
+
+
+@register_ibs_method
+@ider
+def get_valid_image_rowids(ibs, eid=None, require_unixtime=False, reviewed=None):
+    """ alias """
+    return get_valid_gids(ibs, eid, require_unixtime, reviewed)
 
 
 @register_ibs_method
@@ -997,7 +1033,7 @@ def get_image_egrids(ibs, gid_list):
 @deleter
 def delete_images(ibs, gid_list):
     """ deletes images from the database that belong to gids"""
-    if ut.VERBOSE:
+    if not ut.QUIET:
         print('[ibs] deleting %d images' % len(gid_list))
     # Move images to trash before deleting them. #
     # TODO: only move localized images

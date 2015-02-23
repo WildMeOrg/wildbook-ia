@@ -8,6 +8,7 @@ TODO:
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
+import six  # NOQA
 from collections import namedtuple
 import utool
 import utool as ut
@@ -23,6 +24,9 @@ from ibeis import constants as const
 # from vtool import geometry
 
 # Transfer data structures could become classes.
+# TODO: Infer transfer data properties from SQLController
+# TODO: REmove the nesting of transfer datas
+# it should be a flat list
 TransferData = namedtuple(
     'TransferData', (
         'transfer_database_name',
@@ -149,86 +153,8 @@ def _index(value, list_, warning=True):
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
         if warning:
-            print("[export_subset] WARNING: value (%r) not in list: %r (%r)" % (value, list_, calframe[1][3]))
+            print('[export_subset] WARNING: value (%r) not in list: %r (%r)' % (value, list_, calframe[1][3]))
         return None
-
-
-def geo_locate(default="Unknown", timeout=1):
-    try:
-        import urllib2
-        import json
-        req = urllib2.Request('http://freegeoip.net/json/', headers={ 'User-Agent': 'Mozilla/5.0' })
-        f = urllib2.urlopen(req, timeout=timeout)
-        json_string = f.read()
-        f.close()
-        location = json.loads(json_string)
-        location_city    = location['city']
-        location_state   = location['region_name']
-        location_country = location['country_name']
-        location_zip     = location['zipcode']
-        success = True
-    except:
-        success = False
-        location_city    = default
-        location_state   = default
-        location_zip     = default
-        location_country = default
-    return success, location_city, location_state, location_country, location_zip
-
-
-def ensure_contributor_rowids(ibs, user_prompt=False):
-    # TODO: Alter this check to support merging databases with more than one contributor, but none assigned to the manual config
-    contrib_rowid_list = ibs.get_valid_contrib_rowids()
-    if len(contrib_rowid_list) == 0:
-        print("[collect_transfer_data] There is no contributor for this database.  Add a contributor to continue merge.")
-        name_first = ibs.get_dbname()
-        name_last = utool.get_computer_name() + ":" + utool.get_user_name() + ":" + ibs.get_dbdir()
-        print("[collect_transfer_data] Contributor default first name: %s" % (name_first, ))
-        print("[collect_transfer_data] Contributor default last name:  %s" % (name_last, ))
-        if user_prompt:
-            name_first = raw_input("\n[collect_transfer_data] Change first name (Enter to use default): ")
-            name_last  = raw_input("\n[collect_transfer_data] Change last name (Enter to use default): ")
-
-        success, location_city, location_state, location_country, location_zip = geo_locate()
-
-        if success:
-            print("\n[collect_transfer_data] Your location was be determined automatically.")
-            print("[collect_transfer_data] Contributor default city: %s"    % (location_city, ))
-            print("[collect_transfer_data] Contributor default state: %s"   % (location_state, ))
-            print("[collect_transfer_data] Contributor default zip: %s"     % (location_country, ))
-            print("[collect_transfer_data] Contributor default country: %s" % (location_zip, ))
-            if user_prompt:
-                location_city    = raw_input("\n[collect_transfer_data] Change default location city (Enter to use default): ")
-                location_state   = raw_input("\n[collect_transfer_data] Change default location state (Enter to use default): ")
-                location_zip     = raw_input("\n[collect_transfer_data] Change default location zip (Enter to use default): ")
-                location_country = raw_input("\n[collect_transfer_data] Change default location country (Enter to use default): ")
-        else:
-            if user_prompt:
-                print("\n")
-            print("[collect_transfer_data] Your location could not be determined automatically.")
-            if user_prompt:
-                location_city    = raw_input("[collect_transfer_data] Enter your location city (Enter to skip): ")
-                location_state   = raw_input("[collect_transfer_data] Enter your location state (Enter to skip): ")
-                location_zip     = raw_input("[collect_transfer_data] Enter your location zip (Enter to skip): ")
-                location_country = raw_input("[collect_transfer_data] Enter your location country (Enter to skip): ")
-            else:
-                location_city    = ''
-                location_state   = ''
-                location_zip     = ''
-                location_country = ''
-
-        tag = "::".join([name_first, name_last, location_city, location_state, location_zip, location_country])
-        contrib_rowid = ibs.add_contributors(
-            [tag], name_first_list=[name_first],
-            name_last_list=[name_last], loc_city_list=[location_city],
-            loc_state_list=[location_state], loc_country_list=[location_country],
-            loc_zip_list=[location_zip])
-        contrib_rowid = contrib_rowid[0]
-        print('[collect_transfer_data] New contributor\'s contrib_rowid: %s' % (contrib_rowid,))
-        ibs.set_config_contributor_unassigned(contrib_rowid)
-        ibs.set_image_contributor_unassigned(contrib_rowid)
-        ibs.ensure_encounter_configs_populated()
-    return ibs.get_valid_contrib_rowids()
 
 
 #############################
@@ -241,43 +167,78 @@ def export_transfer_data(ibs_src, gid_list=None, user_prompt=False):
     Packs all the data you are going to transfer from ibs_src
     info the transfer_data named tuple.
 
+    CommandLine:
+        python -m ibeis.dbio.export_subset --test-export_transfer_data
+
     Example:
-        >>> # SLOW_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> import ibeis
         >>> from ibeis.dbio import export_subset    # NOQA
         >>> from ibeis.dbio.export_subset import *  # NOQA
-        >>> ibs_src = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
+        >>> #ibs_src = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
+        >>> ibs_src = ibeis.opendb(db='testdb1')
         >>> bulk_conflict_resolution = 'ignore'
-        >>> gid_list = ibs.get_valid_gids()[::10]
+        >>> num = 5
+        >>> gid_list = ibs_src.get_valid_gids()[0:num]
         >>> user_prompt = False
+        >>> td = export_transfer_data(ibs_src, gid_list=gid_list, user_prompt=False)
+        >>> assert len(td.contributor_td_list) == 1, 'more than 1 contrib'
+        >>> contributor_td = td.contributor_td_list[0]
+        >>> image_td = contributor_td.image_td
+        >>> assert len(image_td.annotation_td_list) == num
+        >>> annotation_td = image_td.annotation_td_list[num - 1]
+        >>> annot_td_dict = annotation_td._asdict()
+        >>> # remove non-determenistic uuid
+        >>> del annot_td_dict['annot_uuid_list']
+        >>> result = ut.dict_str(annot_td_dict)
+        >>> print(result)
+        {
+            'annot_parent_INDEX_list': [None],
+            'annot_theta_list': [0.0],
+            'annot_verts_list': [((0, 0), (1072, 0), (1072, 804), (0, 804))],
+            'annot_yaw_list': [None],
+            'annot_detection_confidence_list': [0.0],
+            'annot_exemplar_flag_list': [1],
+            'annot_visual_uuid_list': [UUID('5a1a53ba-fd44-b113-7f8c-fcf248d7047f')],
+            'annot_semantic_uuid_list': [UUID('02a8b625-fd66-cf7f-8835-468043d0ed63')],
+            'annot_note_list': [u''],
+            'annot_name_INDEX_list': [1],
+            'annot_species_INDEX_list': [0],
+            'lblannot_td_list': [None],
+        }
     """
+    if not ut.QUIET:
+        print('Exporting transfer from ibs_src.dbname = %r' % (ibs_src.get_dbname()))
     if gid_list is None:
-        nid_list = ibs_src._get_all_known_name_rowids()
-        species_rowid_list = ibs_src._get_all_species_rowids()
-    else:
-        nid_list = list(set(ut.flatten(ibs_src.get_image_nids(gid_list))))
-        species_rowid_list = ibs_src._get_all_species_rowids()
-        #species_rowid_list = list(set(ut.flatten(ibs_src.species_rowid_list(gid_list))))
+        gid_list = ibs_src.get_valid_gids()
+    if not ut.QUIET:
+        print('... with %d images' % (len(gid_list)))
+    nid_list = list(set(ut.flatten(ibs_src.get_image_nids(gid_list))))
+    species_rowid_list = ibs_src._get_all_species_rowids()
     # Create Name TransferData
     name_td = export_name_transfer_data(ibs_src, nid_list)  # NOQA
     # Create Species TranferData
     species_td = export_species_transfer_data(ibs_src, species_rowid_list)   # NOQA
     # Create Contributor TranferData
-    contrib_rowid_list = ensure_contributor_rowids(ibs_src, user_prompt=user_prompt)
-    if gid_list is not None:
-        contrib_rowid_list = list(set(ibs_src.get_image_contributor_rowid(gid_list)))
-    assert len(contrib_rowid_list) > 0, "There must be at least one contributor to merge"
+    contrib_rowid_list = ibs_src.ensure_contributor_rowids(user_prompt=user_prompt)
+    with ut.EmbedOnException():
+        if gid_list is not None:
+            contrib_rowid_list = list(set(ibs_src.get_image_contributor_rowid(gid_list)))
+        assert len(contrib_rowid_list) > 0, 'There must be at least one contributor to merge'
     contributor_td_list = [
         export_contributor_transfer_data(ibs_src, contrib_rowid, nid_list,
                                          species_rowid_list, valid_gid_list=gid_list)
         for contrib_rowid in contrib_rowid_list
     ]
     # Geolocate and create database's TransferData object
-    success, location_city, location_state, location_country, location_zip = geo_locate()
+    success, location_city, location_state, location_country, location_zip = ut.geo_locate()
+    transfer_database_source = ut.get_computer_name() + ':' + ut.get_user_name() + ':' + ibs_src.workdir
+    transfer_export_time =  '%s' % (datetime.datetime.now())
+
     td = TransferData(
         ibs_src.dbname,
-        utool.get_computer_name() + ":" + utool.get_user_name() + ":" + ibs_src.workdir,
-        "%s" % (datetime.datetime.now()),
+        transfer_database_source,
+        transfer_export_time,
         location_city,
         location_state,
         location_zip,
@@ -568,28 +529,28 @@ def import_transfer_data(ibs_dst, td, bulk_conflict_resolution='merge'):
             added.append(contrib_uuid)
         else:
             rejected.append(contrib_uuid)
-    print("[import_transfer_data] ----------------------")
-    print("[import_transfer_data] Database %r imported" % (td.transfer_database_name,))
-    print("[import_transfer_data]   Contributors Accepted: %i" % (len(added),))
-    print("[import_transfer_data]   Contributors Rejected: %i" % (len(rejected),))
+    print('[import_transfer_data] ----------------------')
+    print('[import_transfer_data] Database %r imported' % (td.transfer_database_name,))
+    print('[import_transfer_data]   Contributors Accepted: %i' % (len(added),))
+    print('[import_transfer_data]   Contributors Rejected: %i' % (len(rejected),))
 
 
 def import_contributor_transfer_data(ibs_dst, contributor_td, nid_list, species_rowid_list,
                                      bulk_conflict_resolution='merge'):
-    print("[import_transfer_data] Import Contributor: %r" % (contributor_td.contributor_uuid,))
+    print('[import_transfer_data] Import Contributor: %r' % (contributor_td.contributor_uuid,))
     # Find conflicts
     contributor_rowid = ibs_dst.get_contributor_rowid_from_uuid([contributor_td.contributor_uuid])[0]
     if contributor_rowid is not None:
         # Resolve conflict
         if bulk_conflict_resolution == 'replace':
-            print("[import_transfer_data]     Conflict Resolution - Replacing contributor: %r" % (contributor_td.contributor_uuid, ))
+            print('[import_transfer_data]     Conflict Resolution - Replacing contributor: %r' % (contributor_td.contributor_uuid, ))
             # Delete current contributor
             ibs_dst.delete_contributors([contributor_rowid])
         elif bulk_conflict_resolution == 'ignore':
-            print("[import_transfer_data]     Conflict Resolution - Ignoring contributor: %r" % (contributor_td.contributor_uuid, ))
+            print('[import_transfer_data]     Conflict Resolution - Ignoring contributor: %r' % (contributor_td.contributor_uuid, ))
             return True
         else:
-            print("[import_transfer_data]     Conflict Resolution - Merging contributor: %r" % (contributor_td.contributor_uuid, ))
+            print('[import_transfer_data]     Conflict Resolution - Merging contributor: %r' % (contributor_td.contributor_uuid, ))
             # TODO: do a more sophisticated contributor merge
             return False
 
@@ -607,41 +568,41 @@ def import_contributor_transfer_data(ibs_dst, contributor_td, nid_list, species_
     # Import configs
     if contributor_td.config_td is not None:
         if utool.VERBOSE:
-            print("[import_transfer_data]   Importing configs: %r" % (contributor_td.config_td.config_suffixes_list,))
+            print('[import_transfer_data]   Importing configs: %r' % (contributor_td.config_td.config_suffixes_list,))
         else:
-            print("[import_transfer_data]   Importing configs")
+            print('[import_transfer_data]   Importing configs')
         config_rowid_list = import_config_transfer_data(
             ibs_dst,
             contributor_td.config_td,
             contributor_rowid,
             bulk_conflict_resolution=bulk_conflict_resolution
         )
-        print("[import_transfer_data]   ...imported %i configs" % (len(config_rowid_list),))
+        print('[import_transfer_data]   ...imported %i configs' % (len(config_rowid_list),))
     else:
         config_rowid_list = []
-        print("[import_transfer_data]   NO CONFIGS TO IMPORT (WARNING)")
+        print('[import_transfer_data]   NO CONFIGS TO IMPORT (WARNING)')
     # Import encounters
     if contributor_td.encounter_td is not None:
         if utool.VERBOSE:
-            print("[import_transfer_data]   Importing encounters: %r" % (contributor_td.encounter_td.encounter_uuid_list,))
+            print('[import_transfer_data]   Importing encounters: %r' % (contributor_td.encounter_td.encounter_uuid_list,))
         else:
-            print("[import_transfer_data]   Importing encounters:")
+            print('[import_transfer_data]   Importing encounters:')
             eid_list = import_encounter_transfer_data(
                 ibs_dst,
                 contributor_td.encounter_td,
                 config_rowid_list,
                 bulk_conflict_resolution=bulk_conflict_resolution
             )
-        print("[import_transfer_data]   ...imported %i encounters" % (len(eid_list),))
+        print('[import_transfer_data]   ...imported %i encounters' % (len(eid_list),))
     else:
         eid_list = []
-        print("[import_transfer_data]   NO ENCOUNTERS TO IMPORT")
+        print('[import_transfer_data]   NO ENCOUNTERS TO IMPORT')
     # Import images
     if contributor_td.image_td is not None:
         if utool.VERBOSE:
-            print("[import_transfer_data]   Importing images: %r" % (contributor_td.image_td.image_uuid_list,))
+            print('[import_transfer_data]   Importing images: %r' % (contributor_td.image_td.image_uuid_list,))
         else:
-            print("[import_transfer_data]   Importing images:")
+            print('[import_transfer_data]   Importing images:')
         gid_list = import_image_transfer_data(
             ibs_dst,
             contributor_td.image_td,
@@ -652,11 +613,11 @@ def import_contributor_transfer_data(ibs_dst, contributor_td, nid_list, species_
             config_rowid_list,
             bulk_conflict_resolution=bulk_conflict_resolution
         )
-        print("[import_transfer_data]   ...imported %i images" % (len(gid_list),))
+        print('[import_transfer_data]   ...imported %i images' % (len(gid_list),))
     else:
-        print("[import_transfer_data]   NO IMAGES TO IMPORT")
+        print('[import_transfer_data]   NO IMAGES TO IMPORT')
     # Finished importing contributor
-    print("[import_transfer_data] ...imported contributor: %s" % (contributor_rowid,))
+    print('[import_transfer_data] ...imported contributor: %s' % (contributor_rowid,))
     return True
 
 
@@ -693,22 +654,22 @@ def import_config_transfer_data(ibs_dst, config_td, contributor_rowid, bulk_conf
         #invalid_indices = utool.filterfalse_items(range(len(known_config_rowid_list)), valid_list) # TODO
         if bulk_conflict_resolution == 'replace':
             if utool.VERBOSE:
-                print("[import_transfer_data]     Conflict Resolution - Replacing configs: %r" % (invalid_config_rowid_list, ))
+                print('[import_transfer_data]     Conflict Resolution - Replacing configs: %r' % (invalid_config_rowid_list, ))
             else:
-                print("[import_transfer_data]     Conflict Resolution - Replacing %i configs..." % (len(invalid_config_rowid_list), ))
+                print('[import_transfer_data]     Conflict Resolution - Replacing %i configs...' % (len(invalid_config_rowid_list), ))
             # Delete invalid configs
             ibs_dst.delete_configs(invalid_config_rowid_list)
         elif bulk_conflict_resolution == 'ignore':
             if utool.VERBOSE:
-                print("[import_transfer_data]     Conflict Resolution - Ignoring configs: %r" % (invalid_config_rowid_list, ))
+                print('[import_transfer_data]     Conflict Resolution - Ignoring configs: %r' % (invalid_config_rowid_list, ))
             else:
-                print("[import_transfer_data]     Conflict Resolution - Ignoring %i configs..." % (len(invalid_config_rowid_list), ))
+                print('[import_transfer_data]     Conflict Resolution - Ignoring %i configs...' % (len(invalid_config_rowid_list), ))
             config_suffixes_list = utool.filter_items(config_td.config_suffixes_list, valid_list)
         else:
             if utool.VERBOSE:
-                print("[import_transfer_data]     Conflict Resolution - Merging configs: %r" % (invalid_config_rowid_list, ))
+                print('[import_transfer_data]     Conflict Resolution - Merging configs: %r' % (invalid_config_rowid_list, ))
             else:
-                print("[import_transfer_data]     Conflict Resolution - Merging %i configs..." % (len(invalid_config_rowid_list), ))
+                print('[import_transfer_data]     Conflict Resolution - Merging %i configs...' % (len(invalid_config_rowid_list), ))
             # TODO: do a more sophisticated config merge
     # Add configs
     config_rowid_list = ibs_dst.add_config(
@@ -733,25 +694,25 @@ def import_encounter_transfer_data(ibs_dst, encounter_td, config_rowid_list, bul
         #invalid_indices = utool.filterfalse_items(range(len(known_eid_list)), valid_list)  # TODO
         if bulk_conflict_resolution == 'replace':
             if utool.VERBOSE:
-                print("[import_transfer_data]     Conflict Resolution - Replacing encounters: %r" % (invalid_eid_list, ))
+                print('[import_transfer_data]     Conflict Resolution - Replacing encounters: %r' % (invalid_eid_list, ))
             else:
-                print("[import_transfer_data]     Conflict Resolution - Replacing %i encounters..." % (len(invalid_eid_list), ))
+                print('[import_transfer_data]     Conflict Resolution - Replacing %i encounters...' % (len(invalid_eid_list), ))
             # Delete invalid gids
             ibs_dst.delete_encounters(invalid_eid_list)
         elif bulk_conflict_resolution == 'ignore':
             if utool.VERBOSE:
-                print("[import_transfer_data]     Conflict Resolution - Ignoring encounters: %r" % (invalid_eid_list, ))
+                print('[import_transfer_data]     Conflict Resolution - Ignoring encounters: %r' % (invalid_eid_list, ))
             else:
-                print("[import_transfer_data]     Conflict Resolution - Ignoring %i encounters..." % (len(invalid_eid_list), ))
+                print('[import_transfer_data]     Conflict Resolution - Ignoring %i encounters...' % (len(invalid_eid_list), ))
             config_INDEX_list   = utool.filter_items(config_INDEX_list,   valid_list)
             encounter_uuid_list = utool.filter_items(encounter_uuid_list, valid_list)
             encounter_text_list = utool.filter_items(encounter_text_list, valid_list)
             encoutner_note_list = utool.filter_items(encoutner_note_list, valid_list)
         else:
             if utool.VERBOSE:
-                print("[import_transfer_data]     Conflict Resolution - Merging encounters: %r" % (invalid_eid_list, ))
+                print('[import_transfer_data]     Conflict Resolution - Merging encounters: %r' % (invalid_eid_list, ))
             else:
-                print("[import_transfer_data]     Conflict Resolution - Merging %i encounters..." % (len(invalid_eid_list), ))
+                print('[import_transfer_data]     Conflict Resolution - Merging %i encounters...' % (len(invalid_eid_list), ))
             # TODO: do a more sophisticated encounter merge
     # Add encounters
     config_rowid_list_ = [ config_rowid_list[i] for i in config_INDEX_list ]
@@ -792,16 +753,16 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
         #invalid_indices = utool.filterfalse_items(range(len(known_gid_list)), valid_list)  # TODO
         if bulk_conflict_resolution == 'replace':
             if utool.VERBOSE:
-                print("[import_transfer_data]     Conflict Resolution - Replacing images: %r" % (invalid_gid_list, ))
+                print('[import_transfer_data]     Conflict Resolution - Replacing images: %r' % (invalid_gid_list, ))
             else:
-                print("[import_transfer_data]     Conflict Resolution - Replacing %i images..." % (len(invalid_gid_list), ))
+                print('[import_transfer_data]     Conflict Resolution - Replacing %i images...' % (len(invalid_gid_list), ))
             # Delete invalid gids
             ibs_dst.delete_images(invalid_gid_list)
         elif bulk_conflict_resolution == 'ignore':
             if utool.VERBOSE:
-                print("[import_transfer_data]     Conflict Resolution - Ignoring images: %r" % (invalid_gid_list, ))
+                print('[import_transfer_data]     Conflict Resolution - Ignoring images: %r' % (invalid_gid_list, ))
             else:
-                print("[import_transfer_data]     Conflict Resolution - Ignoring %i images..." % (len(invalid_gid_list), ))
+                print('[import_transfer_data]     Conflict Resolution - Ignoring %i images...' % (len(invalid_gid_list), ))
             encounter_INDEXs_list      = utool.filter_items(encounter_INDEXs_list,      valid_list)
             image_path_list            = utool.filter_items(image_path_list,            valid_list)
             image_uuid_list            = utool.filter_items(image_uuid_list,            valid_list)
@@ -819,14 +780,14 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
             annotation_td_list         = utool.filter_items(annotation_td_list,         valid_list)
         else:
             if utool.VERBOSE:
-                print("[import_transfer_data]     Conflict Resolution - Merging images: %r" % (invalid_gid_list, ))
+                print('[import_transfer_data]     Conflict Resolution - Merging images: %r' % (invalid_gid_list, ))
             else:
-                print("[import_transfer_data]     Conflict Resolution - Merging %i images..." % (len(invalid_gid_list), ))
-            print("IMAGE MERGING HAS NOT BEEN IMPLEMENTED, USE IGNORE OR REPLACE RESOLUTIONS FOR NOW")
+                print('[import_transfer_data]     Conflict Resolution - Merging %i images...' % (len(invalid_gid_list), ))
+            print('IMAGE MERGING HAS NOT BEEN IMPLEMENTED, USE IGNORE OR REPLACE RESOLUTIONS FOR NOW')
             raise
 
     # Sanity Check
-    assert len(image_uuid_list) == len(set(image_uuid_list)), "Not unique images"
+    assert len(image_uuid_list) == len(set(image_uuid_list)), 'Not unique images'
     # Add images
     params_list = zip(image_uuid_list, image_path_list,
                       image_original_name_list, image_ext_list, image_width_list,
@@ -837,19 +798,19 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
         params_list=params_list
     )
     # Add new contributor and set image reviewed and enabled bits
-    print("[import_transfer_data]     Associating images with contributors and setting reviewed and enabled bits...")
+    print('[import_transfer_data]     Associating images with contributors and setting reviewed and enabled bits...')
     contrib_rowid_list = [contributor_rowid] * len(gid_list)
     ibs_dst.set_image_contributor_rowid(gid_list, contrib_rowid_list)
     ibs_dst.set_image_reviewed(gid_list, image_toggle_reviewed_list)
     ibs_dst.set_image_enabled(gid_list, image_toggle_enabled_list)
     # Add images to appropriate encounters
-    print("[import_transfer_data]     Associating images with new encounters...")
+    print('[import_transfer_data]     Associating images with new encounters...')
     for gid, encounter_INDEXs in zip(gid_list, encounter_INDEXs_list):
         for encounter_INDEX in encounter_INDEXs:
             if 0 <= encounter_INDEX and encounter_INDEX < len(eid_list):
                 ibs_dst.set_image_eids([gid], [eid_list[encounter_INDEX]])
     # Add lblimages
-    print("[import_transfer_data]     Importing lblimages...")
+    print('[import_transfer_data]     Importing lblimages...')
     glrid_total = 0
     for gid, lblimage_td in zip(gid_list, lblimage_td_list):
         if lblimage_td is not None:
@@ -860,14 +821,14 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
                 config_rowid_list
             )
             glrid_total += len(glrid_list)
-    print("[import_transfer_data]     ...imported %i lblimages" % (glrid_total,))
+    print('[import_transfer_data]     ...imported %i lblimages' % (glrid_total,))
     # Add annotations
-    print("[import_transfer_data]     Importing annotations...")
+    print('[import_transfer_data]     Importing annotations...')
     aid_total = 0
     for gid, annotation_td in zip(gid_list, annotation_td_list):
         if annotation_td is not None:
             if utool.VERBOSE:
-                print("[import_transfer_data]     Importing annotations for image %r: %r " % (gid, annotation_td.annot_uuid_list,))
+                print('[import_transfer_data]     Importing annotations for image %r: %r ' % (gid, annotation_td.annot_uuid_list,))
             aid_list = import_annot_transfer_data(
                 ibs_dst,
                 annotation_td,
@@ -878,10 +839,10 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
             )
             aid_total += len(aid_list)
             if utool.VERBOSE:
-                print("[import_transfer_data]     ...imported %i annotations" % (len(aid_list),))
+                print('[import_transfer_data]     ...imported %i annotations' % (len(aid_list),))
         elif utool.VERBOSE:
-            print("[import_transfer_data]     NO ANNOTATIONS TO IMPORT FOR IMAGE %r" % (gid))
-    print("[import_transfer_data]     ...imported %i annotations" % (aid_total,))
+            print('[import_transfer_data]     NO ANNOTATIONS TO IMPORT FOR IMAGE %r' % (gid))
+    print('[import_transfer_data]     ...imported %i annotations' % (aid_total,))
     return gid_list
 
 
@@ -915,7 +876,7 @@ def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, nid_list,
         quiet_delete_thumbs=True  # Turns off thumbnail deletion print statements
     )
     if utool.VERBOSE:
-        print("[import_transfer_data]       Setting the annotation's parent and exemplar bits...")
+        print('[import_transfer_data]       Setting the annotation\'s parent and exemplar bits...')
     # Adding parent rowids that come from the aid_list (only can come from this list because
     # aid parent rowids cannot span across images)
     for aid, annot_parent_INDEX in zip(aid_list, annot_td.annot_parent_INDEX_list):
@@ -925,7 +886,7 @@ def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, nid_list,
     ibs_dst.set_annot_exemplar_flags(aid_list, annot_td.annot_exemplar_flag_list)
     # Add lblannots
     if utool.VERBOSE:
-        print("[import_transfer_data]       Importing lblannots...")
+        print('[import_transfer_data]       Importing lblannots...')
     alrid_total = 0
     for aid, lblannot_td in zip(aid_list, annot_td.lblannot_td_list):
         if lblannot_td is not None:
@@ -937,7 +898,7 @@ def import_annot_transfer_data(ibs_dst, annot_td, parent_gid, nid_list,
             )
             alrid_total += len(alrid_list)
     if utool.VERBOSE:
-        print("[import_transfer_data]       ...imported %i lblimages" % (alrid_total,))
+        print('[import_transfer_data]       ...imported %i lblimages' % (alrid_total,))
     return aid_list
 
 
@@ -1035,12 +996,15 @@ def merge_databases(ibs_src, ibs_dst, gid_list=None, back=None, user_prompt=Fals
             WARNING - this may cause an exception to be raised
             +---
 
+    CommandLine:
+        python -m ibeis.dbio.export_subset --test-merge_databases
+
     Example:
         >>> # SLOW_DOCTEST
         >>> import ibeis
         >>> from ibeis.dbio import export_subset
         >>> from ibeis.dbio.export_subset import *  # NOQA
-        >>> ibs_src = ibeis.opendb(dbdir='testdb1')
+        >>> ibs_src = ibeis.opendb(db='testdb1')
         >>> bulk_conflict_resolution = 'ignore'
         >>> #gid_list = None
         >>> back = None
@@ -1048,24 +1012,29 @@ def merge_databases(ibs_src, ibs_dst, gid_list=None, back=None, user_prompt=Fals
         >>> #ibs_src2 = ibeis.opendb(dbdir='PZ_MTEST')
         >>> print(ibs_src.get_infostr())
         >>> #print(ibs_src2.get_infostr())
+        >>> # OPEN A CLEAN DATABASE
         >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst', allow_newdir=True, delete_ibsdir=True)
-        >>> assert ibs_dst.get_num_names() == 0
-        >>> assert ibs_dst.get_num_images() == 0
-        >>> assert ibs_dst.get_num_annotations() == 0
+        >>> assert ibs_dst.get_num_names() == 0, 'dst database is not empty'
+        >>> assert ibs_dst.get_num_images() == 0, 'dst database is not empty'
+        >>> assert ibs_dst.get_num_annotations() == 0, 'dst database is not empty'
         >>> #ibs_dst = ibs
-        >>> export_subset.merge_databases(ibs_src, ibs_dst,
+        >>> gid_list = ibs_src.get_valid_gids()
+        >>> print('Execute test func')
+        >>> export_subset.merge_databases(ibs_src, ibs_dst, gid_list,
         ...                               bulk_conflict_resolution=bulk_conflict_resolution)
         >>> #export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution='ignore')
-        >>> print(ibs_dst.get_infostr())
+        >>> result = ibs_dst.get_infostr()
+        >>> print('Result:')
+        >>> print(result)
     """
     # Export source database
     td = export_transfer_data(ibs_src, gid_list=gid_list, user_prompt=user_prompt)
     if utool.VERBOSE:
-        print("\n\n[merge_databases] -------------------\n\n")
-        print("[merge_databases] %s" % (td,))
-        print("\n\n[merge_databases] -------------------\n\n")
+        print('\n\n[merge_databases] -------------------\n\n')
+        print('[merge_databases] %s' % (td,))
+        print('\n\n[merge_databases] -------------------\n\n')
     # Check that destination database has a valid contributor
-    contrib_rowid_list = ensure_contributor_rowids(ibs_dst, user_prompt=user_prompt)  # NOQA
+    ibs_dst.ensure_contributor_rowids(user_prompt=user_prompt)
     # Import tansfer data object into the destination database
     # TODO: Implement db backup
     import_transfer_data(ibs_dst, td, bulk_conflict_resolution=bulk_conflict_resolution)

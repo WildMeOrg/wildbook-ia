@@ -8,22 +8,9 @@ def ensure_testing_data():
     print('Making sure test data exists')
     import ibeis
     from os.path import join
-    import sys
     ut.change_term_title('ENSURE IBEIS TETSDATA')
+    reset_testdbs.reset_testdbs()
     workdir = ibeis.get_workdir()
-    RESET_TESTDATA = ut.get_argflag('--reset-testdata')
-    if RESET_TESTDATA:
-        if ut.are_you_sure('reseting testdata'):
-            reset_testdbs.delete_testdbs()
-            reset_testdbs.delete_larger_testdbs()
-            #print('Reset testdata please rerun script without reset flag')
-            print('Reset testdata')
-        else:
-            print('Not reseting...')
-            sys.exit(0)
-
-    if not ut.checkpath(join(workdir, 'testdb1')):
-        ut.cmd('sh reset_dbs.sh')
     if not ut.checkpath(join(workdir, 'PZ_MTEST')):
         ibeis.ensure_pz_mtest()
     if not ut.checkpath(join(workdir, 'NAUT_test')):

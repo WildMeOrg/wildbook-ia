@@ -1476,19 +1476,45 @@ def get_dbinfo_str(ibs):
 
 @__injectable
 def get_infostr(ibs):
-    """ Returns printable database information """
+    """ Returns printable database information
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    Returns:
+        str: infostr
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_infostr
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> infostr = get_infostr(ibs)
+        >>> # verify results
+        >>> result = str(infostr)
+        >>> print(result)
+        dbname = 'testdb1'
+        num_images = 13
+        num_annotations = 13
+        num_names = 7
+    """
     dbname = ibs.get_dbname()
-    workdir = ut.unixpath(ibs.get_workdir())
+    #workdir = ut.unixpath(ibs.get_workdir())
     num_images = ibs.get_num_images()
     num_annotations = ibs.get_num_annotations()
     num_names = ibs.get_num_names()
-    infostr = '''
-    workdir = %r
+    #workdir = %r
+    infostr = ut.codeblock('''
     dbname = %r
     num_images = %r
     num_annotations = %r
     num_names = %r
-    ''' % (workdir, dbname, num_images, num_annotations, num_names)
+    ''' % (dbname, num_images, num_annotations, num_names))
     return infostr
 
 
@@ -1617,6 +1643,34 @@ def print_tables(ibs, exclude_columns=None, exclude_tables=None):
     #ibs.print_chip_table()
     #ibs.print_feat_table()
     print('\n')
+
+
+@__injectable
+def print_contributor_table(ibs, verbosity=1, exclude_columns=[]):
+    """
+    Dumps annotation table to stdout
+
+    Args:
+        ibs (IBEISController):
+        verbosity (int):
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> verbosity = 1
+        >>> print_contributor_table(ibs, verbosity)
+    """
+    exclude_columns = exclude_columns[:]
+    if verbosity < 5:
+        exclude_columns += ['contributor_uuid']
+        exclude_columns += ['contributor_location_city']
+        exclude_columns += ['contributor_location_state']
+        exclude_columns += ['contributor_location_country']
+        exclude_columns += ['contributor_location_zip']
+    print('\n')
+    print(ibs.db.get_table_csv(const.CONTRIBUTOR_TABLE, exclude_columns=exclude_columns))
 
 
 @__injectable

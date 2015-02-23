@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function
 import six  # NOQA
 #from os.path import join
 import functools
-from six.moves import range
+from six.moves import range, input, zip, map  # NOQA
 from ibeis import constants as const
 from ibeis.control.accessor_decors import (
     adder, deleter, setter, getter_1to1, default_decorator, ider)
@@ -140,20 +140,121 @@ def set_config_contributor_rowid(ibs, config_rowid_list, contrib_rowid_list):
 
 
 @register_ibs_method
-def set_config_contributor_unassigned(ibs, contrib_rowid):
-    config_rowid_list = ibs.get_valid_configids()
-    contrib_rowid_list = ibs.get_config_contributor_rowid(config_rowid_list)
-    unassigned_config_rowid_list = [
-        config_rowid
-        for config_rowid, _contrib_rowid in zip(config_rowid_list, contrib_rowid_list)
-        if _contrib_rowid is None
-    ]
-    contrib_rowid_list = list([contrib_rowid]) * len(unassigned_config_rowid_list)
-    ibs.set_config_contributor_rowid(config_rowid_list, contrib_rowid_list)
+def add_new_temp_contributor(ibs, user_prompt=False, offset=None):
+    name_first = ibs.get_dbname()
+    name_last = ut.get_computer_name() + ':' + ut.get_user_name() + ':' + ibs.get_dbdir()
+    print('[collect_transfer_data] Contributor default first name: %s' % (name_first, ))
+    print('[collect_transfer_data] Contributor default last name:  %s' % (name_last, ))
+    if user_prompt:
+        name_first = input('\n[collect_transfer_data] Change first name (Enter to use default): ')
+        name_last  = input('\n[collect_transfer_data] Change last name (Enter to use default): ')
+
+    success, location_city, location_state, location_country, location_zip = ut.geo_locate()
+
+    if success:
+        print('\n[collect_transfer_data] Your location was be determined automatically.')
+        print('[collect_transfer_data] Contributor default city: %s'    % (location_city, ))
+        print('[collect_transfer_data] Contributor default state: %s'   % (location_state, ))
+        print('[collect_transfer_data] Contributor default zip: %s'     % (location_country, ))
+        print('[collect_transfer_data] Contributor default country: %s' % (location_zip, ))
+        if user_prompt:
+            location_city    = input('\n[collect_transfer_data] Change default location city (Enter to use default): ')
+            location_state   = input('\n[collect_transfer_data] Change default location state (Enter to use default): ')
+            location_zip     = input('\n[collect_transfer_data] Change default location zip (Enter to use default): ')
+            location_country = input('\n[collect_transfer_data] Change default location country (Enter to use default): ')
+    else:
+        if user_prompt:
+            print('\n')
+        print('[collect_transfer_data] Your location could not be determined automatically.')
+        if user_prompt:
+            location_city    = input('[collect_transfer_data] Enter your location city (Enter to skip): ')
+            location_state   = input('[collect_transfer_data] Enter your location state (Enter to skip): ')
+            location_zip     = input('[collect_transfer_data] Enter your location zip (Enter to skip): ')
+            location_country = input('[collect_transfer_data] Enter your location country (Enter to skip): ')
+        else:
+            location_city    = ''
+            location_state   = ''
+            location_zip     = ''
+            location_country = ''
+
+    #tag = '::'.join([name_first, name_last, location_city, location_state, location_zip, location_country])
+    tag_components = [name_first, name_last, location_city, location_state, location_zip, location_country]
+    if offset is not None:
+        tag_components += [str(offset)]
+    tag_components_clean = [comp.replace(';', '<semi>') for comp in tag_components]
+    tag = ','.join(tag_components_clean)
+    contrib_rowid = ibs.add_contributors(
+        [tag], name_first_list=[name_first],
+        name_last_list=[name_last], loc_city_list=[location_city],
+        loc_state_list=[location_state], loc_country_list=[location_country],
+        loc_zip_list=[location_zip])[0]
+    return contrib_rowid
 
 
 @register_ibs_method
-def set_image_contributor_unassigned(ibs, contrib_rowid):
+def ensure_contributor_rowids(ibs, user_prompt=False):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        user_prompt (bool):
+
+    Returns:
+        list:
+
+    CommandLine:
+        python -m ibeis.control.manual_meta_funcs --test-ensure_contributor_rowids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_meta_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb(db='testdb1')
+        >>> gid_list = ibs.get_valid_gids()
+        >>> ibs.delete_contributors(ibs.get_valid_contrib_rowids())
+        >>> contrib_rowid_list1 = ibs.get_image_contributor_rowid(gid_list)
+        >>> assert ut.list_allsame(contrib_rowid_list1)
+        >>> ut.assert_eq(contrib_rowid_list1[0], None)
+        >>> user_prompt = ut.get_argflag('--user-prompt')
+        >>> # execute function
+        >>> result = ensure_contributor_rowids(ibs, user_prompt)
+        >>> # verify results
+        >>> ibs.print_contributor_table()
+        >>> print(result)
+        >>> contrib_rowid_list2 = ibs.get_image_contributor_rowid(gid_list)
+        >>> assert ut.list_allsame(contrib_rowid_list2)
+        >>> ut.assert_eq(contrib_rowid_list2[0], 1)
+    """
+    # TODO: Alter this check to support merging databases with more than one contributor, but none assigned to the manual config
+    if not ut.QUIET:
+        print('[ensure_contributor_rowids] Ensuring all images have contributors for dbname=%r' % (ibs.get_dbname()))
+    contrib_rowid_list = ibs.get_valid_contrib_rowids()
+    if len(contrib_rowid_list) == 0:
+        if not ut.QUIET:
+            print('[ensure_contributor_rowids] No contributors found')
+        contrib_rowid = ibs.add_new_temp_contributor(offset=0)
+        print('[collect_transfer_data] New contributor\'s contrib_rowid: %s' % (contrib_rowid,))
+        ibs.set_config_contributor_unassigned(contrib_rowid)
+        ibs.set_image_contributor_unassigned(contrib_rowid)
+        ibs.ensure_encounter_configs_populated()
+    else:
+        # make sure that all images have assigned contributors
+        unassigned_gid_list = ibs.get_all_uncontributed_images()
+        if len(unassigned_gid_list) > 0:
+            if not ut.QUIET:
+                print('[ensure_contributor_rowids] Contributors exist but %d images are unassigned' % (len(unassigned_gid_list)))
+            # Get new non-conflicting contributor for unassigned images
+            new_contrib_rowid = ibs.add_new_temp_contributor(offset=len(contrib_rowid_list))
+            contrib_rowid_list = list([new_contrib_rowid]) * len(unassigned_gid_list)
+            ibs.set_config_contributor_rowid(unassigned_gid_list, contrib_rowid_list)
+        else:
+            if not ut.QUIET:
+                print('[ensure_contributor_rowids] All clean. All images have contributors.')
+    return ibs.get_valid_contrib_rowids()
+
+
+@register_ibs_method
+def get_all_uncontributed_images(ibs):
     gid_list = ibs.get_valid_gids()
     contrib_rowid_list = ibs.get_image_contributor_rowid(gid_list)
     unassigned_gid_list = [
@@ -161,7 +262,33 @@ def set_image_contributor_unassigned(ibs, contrib_rowid):
         for gid, _contrib_rowid in zip(gid_list, contrib_rowid_list)
         if _contrib_rowid is None
     ]
-    contrib_rowid_list = list([contrib_rowid]) * len(unassigned_gid_list)
+    return unassigned_gid_list
+
+
+@register_ibs_method
+def get_all_uncontributed_configs(ibs):
+    config_rowid_list = ibs.get_valid_configids()
+    contrib_rowid_list = ibs.get_config_contributor_rowid(config_rowid_list)
+    unassigned_config_rowid_list = [
+        config_rowid
+        for config_rowid, _contrib_rowid in zip(config_rowid_list, contrib_rowid_list)
+        if _contrib_rowid is None
+    ]
+    return unassigned_config_rowid_list
+
+
+@register_ibs_method
+def set_config_contributor_unassigned(ibs, contrib_rowid):
+    # IS THIS NECESSARY?
+    unassigned_config_rowid_list = ibs.get_all_uncontributed_configs()
+    contrib_rowid_list = [contrib_rowid] * len(unassigned_config_rowid_list)
+    ibs.set_config_contributor_rowid(unassigned_config_rowid_list, contrib_rowid_list)
+
+
+@register_ibs_method
+def set_image_contributor_unassigned(ibs, contrib_rowid):
+    unassigned_gid_list = ibs.get_all_uncontributed_images()
+    contrib_rowid_list = [contrib_rowid] * len(unassigned_gid_list)
     ibs.set_image_contributor_rowid(unassigned_gid_list, contrib_rowid_list)
 
 
@@ -424,21 +551,26 @@ def get_config_suffixes(ibs, config_rowid_list):
 @register_ibs_method
 @deleter
 def delete_contributors(ibs, contrib_rowid_list):
-    """ deletes contributors from the database and all information associated"""
-    if ut.VERBOSE:
+    """ deletes contributors from the database and all information associated
+    """
+    # TODO: FIXME TESTME
+    if not ut.QUIET:
         print('[ibs] deleting %d contributors' % len(contrib_rowid_list))
+
     config_rowid_list = ut.flatten(ibs.get_contributor_config_rowids(contrib_rowid_list))
-    # Delete configs
+    # Delete configs (UNSURE IF THIS IS CORRECT)
     ibs.delete_configs(config_rowid_list)
+    # CONTRIBUTORS SHOULD NOT DELETE IMAGES
     # Delete encounters
-    eid_list = ibs.get_valid_eids()
-    eid_config_list = ibs.get_encounter_configid(eid_list)
-    valid_list = [ config in config_rowid_list for config in eid_config_list ]
-    eid_list = ut.filter_items(eid_list, valid_list)
-    ibs.delete_encounters(eid_list)
-    # Delete images
+    #eid_list = ibs.get_valid_eids()
+    #eid_config_list = ibs.get_encounter_configid(eid_list)
+    #valid_list = [config in config_rowid_list for config in eid_config_list ]
+    #eid_list = ut.filter_items(eid_list, valid_list)
+    #ibs.delete_encounters(eid_list)
+    # Remote image contributors ~~~Delete images~~~~
     gid_list = ut.flatten(ibs.get_contributor_gids(contrib_rowid_list))
-    ibs.delete_images(gid_list)
+    ibs.set_image_contributor_rowid(gid_list, [None] * len(gid_list))
+    #ibs.delete_images(gid_list)
     # Delete contributors
     ibs.db.delete_rowids(const.CONTRIBUTOR_TABLE, contrib_rowid_list)
 
@@ -458,7 +590,23 @@ def _get_all_contrib_rowids(ibs):
 def get_valid_contrib_rowids(ibs):
     """
     Returns:
-        list_ (list):  list of all contributor ids """
+        list_ (list):  list of all contributor ids
+
+    Returns:
+        list: contrib_rowids_list
+
+    CommandLine:
+        python -m ibeis.control.manual_meta_funcs --test-get_valid_contrib_rowids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_meta_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> contrib_rowids_list = get_valid_contrib_rowids(ibs)
+        >>> result = str(contrib_rowids_list)
+        >>> print(result)
+    """
     contrib_rowids_list = ibs._get_all_contrib_rowids()
     return contrib_rowids_list
 

@@ -27,28 +27,18 @@ def get_testdata_dir(ensure=True, key='testdb1'):
     return testdata_dir
 
 
-def delete_testdbs():
-    workdir = ibeis.sysres.get_workdir()
-    TESTDB0 = join(workdir, 'testdb0')
-    TESTDB1 = join(workdir, 'testdb1')
-    TESTDB_GUIALL = join(workdir, 'testdb_guiall')
-    ut.delete(TESTDB0, ignore_errors=False)
-    ut.delete(TESTDB1, ignore_errors=False)
-    ut.delete(TESTDB_GUIALL, ignore_errors=False)
+# Convert stanadardized names to true names
+TEST_DBNAMES_MAP = {
+    'nauts': 'NAUT_test',
+    'mtest': 'PZ_MTEST',
+    'testdb0': 'testdb0',
+    'testdb1': 'testdb1',
+    'testdb_guiall': 'testdb_guiall',
+}
 
 
-def delete_larger_testdbs():
-    workdir = ibeis.sysres.get_workdir()
-    ut.delete(join(workdir, 'PZ_MTEST'))
-    ut.delete(join(workdir, 'NAUT_test'))
-
-
-def ensure_larger_testing_dbs():
-    workdir = ibeis.sysres.get_workdir()
-    if not ut.checkpath(join(workdir, 'NAUT_test'), verbose=True):
-        ibeis.ensure_nauts()
-    if not ut.checkpath(join(workdir, 'PZ_MTEST'), verbose=True):
-        ibeis.ensure_pz_mtest()
+def delete_dbdir(dbname):
+    ut.delete(join(ibeis.sysres.get_workdir(), dbname), ignore_errors=False)
 
 
 def ensure_smaller_testingdbs():
@@ -101,23 +91,31 @@ def ensure_smaller_testingdbs():
             raise
 
     get_testdata_dir(True)
-    print("\n\nMAKE TESTDB0\n\n")
-    make_testdb0()
-    print("\n\nMAKE TESTDB1\n\n")
-    ingest_database.ingest_standard_database('testdb1')
+    if not ut.checkpath(join(ibeis.sysres.get_workdir(), 'testdb0'), verbose=True):
+        print("\n\nMAKE TESTDB0\n\n")
+        make_testdb0()
+    if not ut.checkpath(join(ibeis.sysres.get_workdir(), 'testdb1'), verbose=True):
+        print("\n\nMAKE TESTDB1\n\n")
+        ingest_database.ingest_standard_database('testdb1')
 
 
 def reset_testdbs():
-    argdict = ut.parse_dict_from_argv(
-        {
-            'reset_all': False
-        }
-    )
-    if argdict['reset_all']:
-        delete_larger_testdbs()
-    delete_testdbs()
+    default_args = {'reset_' + key: False for key in six.iterkeys(TEST_DBNAMES_MAP) }
+    default_args['reset_all'] = False
+    argdict = ut.parse_dict_from_argv(default_args)
+    if not any(list(six.itervalues(argdict))):
+        # Default behavior is to reset the small dbs
+        argdict['reset_testdb0'] = True
+        argdict['reset_testdb1'] = True
+        argdict['reset_testdb_guiall'] = True
+    for key, dbname in six.iteritems(TEST_DBNAMES_MAP):
+        if argdict.get('reset_' + key, False) or argdict['reset_all']:
+            delete_dbdir(dbname)
     ensure_smaller_testingdbs()
-    ensure_larger_testing_dbs()
+    if not ut.checkpath(join(ibeis.sysres.get_workdir(), 'PZ_MTEST'), verbose=True):
+        ibeis.ensure_pz_mtest()
+    if not ut.checkpath(join(ibeis.sysres.get_workdir(), 'NAUT_test'), verbose=True):
+        ibeis.ensure_nauts()
     workdir = ibeis.sysres.get_workdir()
     TESTDB1 = join(workdir, 'testdb1')
     sysres.set_default_dbdir(TESTDB1)
