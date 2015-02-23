@@ -294,7 +294,9 @@ class ANNOTATIONInteraction(object):
         self.valid_species = valid_species
         self.commit_callback = commit_callback  # commit_callback
         self.but_width = .14
-        self.but_height = .08
+        #self.but_height = .08
+        self.next_prev_but_height = .08
+        self.but_height = self.next_prev_but_height - .01
         self.callback_funcs = dict([
             ('draw_event', self.draw_callback),
             ('button_press_event', self.button_press_callback),
@@ -306,6 +308,7 @@ class ANNOTATIONInteraction(object):
         ])
         self.mpl_callback_ids = {}
         self.img = img
+        self.show_species_tags = True
         def initialize_variables():
             # Jon: I don't like this nested function. I want a better solution.
             #self.next_callback = next_callback
@@ -326,7 +329,6 @@ class ANNOTATIONInteraction(object):
             self._polyHeld = False                # if any poly is active
             self._currently_selected_poly = None  # active polygon
             self.background = None  # Something Jon added
-            self.show_species_tags = True
         initialize_variables()
         self.initialize_variables = initialize_variables  # hack involving exploting lexical scoping to save defaults for a restore operation
         self.handle_matplotlib_initialization(fnum=fnum)
@@ -442,37 +444,32 @@ class ANNOTATIONInteraction(object):
         self.fig.canvas = canvas
 
     def add_action_buttons(self):
-        but_width = self.but_width
-        but_height = self.but_height
-
-        self.add_ax  = self.fig.add_axes([0.18, 0.01, but_width, but_height])
+        self.add_ax  = self.fig.add_axes([0.18, 0.015, self.but_width, self.but_height])
         self.add_but = Button(self.add_ax, 'Add Annotation\n(ctrl+%r)' % (ADD_RECTANGLE_HOTKEY))
         self.add_but.on_clicked(self.draw_new_poly)
 
-        self.add_ax2  = self.fig.add_axes([0.34, 0.01, but_width, but_height])
+        self.add_ax2  = self.fig.add_axes([0.34, 0.015, self.but_width, self.but_height])
         self.add_but2 = Button(self.add_ax2, 'Add Full Annotation\n(ctrl+%r)' % (ADD_RECTANGLE_FULL_HOTKEY))
         self.add_but2.on_clicked(partial(self.draw_new_poly, full=True))
 
-        self.del_ax  = self.fig.add_axes([0.50, 0.01, but_width, but_height])
+        self.del_ax  = self.fig.add_axes([0.50, 0.015, self.but_width, self.but_height])
         self.del_but = Button(self.del_ax, 'Delete Annotation\n(ctrl+%r)' % (DEL_RECTANGLE_HOTKEY))
         self.del_but.on_clicked(self.delete_current_poly)
 
-        self.accept_ax  = self.fig.add_axes([0.66, 0.01, but_width, but_height])
+        self.accept_ax  = self.fig.add_axes([0.66, 0.015, self.but_width, self.but_height])
         self.accept_but = Button(self.accept_ax, 'Save and Exit\n(ctrl+%r)' % (ACCEPT_SAVE_HOTKEY))
         self.accept_but.on_clicked(self.accept_new_annotations)
 
     def update_callbacks(self, next_callback, prev_callback):
-        but_width = self.but_width
-        but_height = self.but_height
         self.prev_callback = prev_callback
         self.next_callback = next_callback
         if self.prev_callback is not None:
-            self.prev_ax = self.fig.add_axes([0.02, 0.01, but_width, but_height])
+            self.prev_ax = self.fig.add_axes([0.02, 0.01, self.but_width, self.next_prev_but_height])
             self.prev_but = Button(self.prev_ax, 'Previous Image\n' + pretty_hotkey_map(NEXT_IMAGE_HOTKEYS))
             self.prev_but.on_clicked(self.prev_image)
 
         if self.next_callback is not None:
-            self.next_ax = self.fig.add_axes([0.82, 0.01, but_width, but_height])
+            self.next_ax = self.fig.add_axes([0.82, 0.01, self.but_width, self.next_prev_but_height])
             self.next_but = Button(self.next_ax, 'Next Image\n' +
                                    pretty_hotkey_map(NEXT_IMAGE_HOTKEYS))
             self.next_but.on_clicked(self.next_image)
