@@ -377,11 +377,11 @@ def set_image_uris(ibs, gid_list, new_gpath_list):
 
 @register_ibs_method
 @setter
-def set_image_contributor_rowid(ibs, gid_list, contributor_rowid_list):
+def set_image_contributor_rowid(ibs, gid_list, contributor_rowid_list, **kwargs):
     """ Sets the image contributor rowid """
     id_iter = ((gid,) for gid in gid_list)
     val_list = ((contrib_rowid,) for contrib_rowid in contributor_rowid_list)
-    ibs.db.set(const.IMAGE_TABLE, ('contributor_rowid',), val_list, id_iter)
+    ibs.db.set(const.IMAGE_TABLE, ('contributor_rowid',), val_list, id_iter, **kwargs)
 
 
 @register_ibs_method
@@ -413,11 +413,11 @@ def set_image_notes(ibs, gid_list, notes_list):
 
 @register_ibs_method
 @setter
-def set_image_unixtime(ibs, gid_list, unixtime_list):
+def set_image_unixtime(ibs, gid_list, unixtime_list, **kwargs):
     """ Sets the image unixtime (does not modify exif yet) """
     id_iter = ((gid,) for gid in gid_list)
     val_list = ((unixtime,) for unixtime in unixtime_list)
-    ibs.db.set(const.IMAGE_TABLE, ('image_time_posix',), val_list, id_iter)
+    ibs.db.set(const.IMAGE_TABLE, ('image_time_posix',), val_list, id_iter, **kwargs)
 
 
 @register_ibs_method
