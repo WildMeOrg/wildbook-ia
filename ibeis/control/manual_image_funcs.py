@@ -10,7 +10,10 @@ CommandLine:
     python -m ibeis.control.template_generator --key featweight
     python -m ibeis.control.template_generator --key encounter
 
-    python -m ibeis.control.template_generator --key image
+    python -m ibeis.control.template_generator --key image --onlyfn
+    python -m ibeis.control.template_generator --key image --fnfilt timedelta_posix --modfname manual_image_funcs
+    python -m ibeis.control.template_generator --key image --fnfilt location --modfname manual_image_funcs
+    python -m ibeis.control.template_generator --key image --fnfilt set_.*time --modfname manual_image_funcs
 
     image_timedelta_posix
 
@@ -45,7 +48,7 @@ ENCOUNTER_START_TIME_POSIX = 'encounter_start_time_posix'
 ENCOUNTER_SMART_WAYPOINT_ID = 'encounter_smart_waypoint_id'
 ENCOUNTER_SMART_XML_FNAME   = 'encounter_smart_xml_fname'
 
-
+IMAGE_TIME_POSIX      = 'image_time_posix'
 IMAGE_LOCATION_CODE   = 'image_location_code'
 IMAGE_TIMEDELTA_POSIX = 'image_timedelta_posix'
 
@@ -450,11 +453,36 @@ def set_image_notes(ibs, gid_list, notes_list):
 
 @register_ibs_method
 @setter
-def set_image_unixtime(ibs, gid_list, unixtime_list, **kwargs):
-    """ Sets the image unixtime (does not modify exif yet) """
+def set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error'):
+    """ Sets the image unixtime (does not modify exif yet)
+        alias for set_image_time_posix
+    """
     id_iter = ((gid,) for gid in gid_list)
     val_list = ((unixtime,) for unixtime in unixtime_list)
-    ibs.db.set(const.IMAGE_TABLE, ('image_time_posix',), val_list, id_iter, **kwargs)
+    ibs.db.set(const.IMAGE_TABLE, (IMAGE_TIME_POSIX,), val_list, id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+#@accessor_decors.cache_invalidator(const.IMAGE_TABLE, IMAGE_TIME_POSIX, native_rowids=True)
+def set_image_time_posix(ibs, image_rowid_list, image_time_posix_list, duplicate_behavior='error'):
+    """ image_time_posix_list -> image.image_time_posix[image_rowid_list]
+
+    SeeAlso:
+        set_image_unixtime
+
+    Args:
+        image_rowid_list
+        image_time_posix_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = image
+        col = image_time_posix
+    """
+    id_iter = image_rowid_list
+    colnames = (IMAGE_TIME_POSIX,)
+    ibs.db.set(const.IMAGE_TABLE, colnames, image_time_posix_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
 
 
 @register_ibs_method
@@ -1931,9 +1959,6 @@ def get_image_timedelta_posix(ibs, image_rowid_list, eager=True):
         col = image_timedelta_posix
         tbl = image
 
-    CommandLine:
-        python -m ibeis.control.manual_image_funcs --test-get_image_timedelta_posix
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
@@ -1951,27 +1976,8 @@ def get_image_timedelta_posix(ibs, image_rowid_list, eager=True):
 
 
 @register_ibs_method
-#@accessor_decors.cache_invalidator(const.IMAGE_TABLE, IMAGE_LOCATION_CODE, native_rowids=True)
-def set_image_location_codes(ibs, image_rowid_list, image_location_code_list):
-    """ image_location_code_list -> image.image_location_code[image_rowid_list]
-
-    Args:
-        image_rowid_list
-        image_location_code_list
-
-    TemplateInfo:
-        Tsetter_native_column
-        tbl = image
-        col = image_location_code
-    """
-    id_iter = image_rowid_list
-    colnames = (IMAGE_LOCATION_CODE,)
-    ibs.db.set(const.IMAGE_TABLE, colnames, image_location_code_list, id_iter)
-
-
-@register_ibs_method
 #@accessor_decors.cache_invalidator(const.IMAGE_TABLE, IMAGE_TIMEDELTA_POSIX, native_rowids=True)
-def set_image_timedelta_posix(ibs, image_rowid_list, image_timedelta_posix_list):
+def set_image_timedelta_posix(ibs, image_rowid_list, image_timedelta_posix_list, duplicate_behavior='error'):
     """ image_timedelta_posix_list -> image.image_timedelta_posix[image_rowid_list]
 
     Args:
@@ -1985,7 +1991,62 @@ def set_image_timedelta_posix(ibs, image_rowid_list, image_timedelta_posix_list)
     """
     id_iter = image_rowid_list
     colnames = (IMAGE_TIMEDELTA_POSIX,)
-    ibs.db.set(const.IMAGE_TABLE, colnames, image_timedelta_posix_list, id_iter)
+    ibs.db.set(const.IMAGE_TABLE, colnames, image_timedelta_posix_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+#@accessor_decors.cache_getter(const.IMAGE_TABLE, IMAGE_LOCATION_CODE)
+def get_image_location_codes(ibs, image_rowid_list, eager=True):
+    """ image_location_code_list <- image.image_location_code[image_rowid_list]
+
+    gets data from the "native" column "image_location_code" in the "image" table
+
+    Args:
+        image_rowid_list (list):
+
+    Returns:
+        list: image_location_code_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = image_location_code
+        tbl = image
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> eager = True
+        >>> image_location_code_list = ibs.get_image_location_codes(image_rowid_list, eager=eager)
+        >>> assert len(image_rowid_list) == len(image_location_code_list)
+    """
+    id_iter = image_rowid_list
+    colnames = (IMAGE_LOCATION_CODE,)
+    image_location_code_list = ibs.db.get(
+        const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager)
+    return image_location_code_list
+
+
+@register_ibs_method
+#@accessor_decors.cache_invalidator(const.IMAGE_TABLE, IMAGE_LOCATION_CODE, native_rowids=True)
+def set_image_location_codes(ibs, image_rowid_list, image_location_code_list, duplicate_behavior='error'):
+    """ image_location_code_list -> image.image_location_code[image_rowid_list]
+
+    Args:
+        image_rowid_list
+        image_location_code_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = image
+        col = image_location_code
+    """
+    id_iter = image_rowid_list
+    colnames = (IMAGE_LOCATION_CODE,)
+    ibs.db.set(const.IMAGE_TABLE, colnames, image_location_code_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
 
 
 def testdata_ibs():

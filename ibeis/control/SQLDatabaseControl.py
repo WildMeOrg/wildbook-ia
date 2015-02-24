@@ -451,7 +451,10 @@ class SQLDatabaseController(object):
     #@setter_sql
     def set(db, tblname, colnames, val_iter, id_iter, id_colname='rowid',
             duplicate_behavior='error', **kwargs):
-        """ setter """
+        """ setter
+
+        TODO: Test
+        """
         assert isinstance(colnames, tuple)
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
@@ -478,7 +481,7 @@ class SQLDatabaseController(object):
             id_list  = utool.filter_items(id_list, isunique_list)
             val_list = utool.filter_items(val_list, isunique_list)
         else:
-            raise AssertionError('unknown duplicate_behavior=%r' % (duplicate_behavior,))
+            raise AssertionError('unknown duplicate_behavior=%r. known behaviors are: error and filter' % (duplicate_behavior,))
 
         try:
             num_val = len(val_list)

@@ -787,7 +787,7 @@ Tsetter_native_column = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @setter
-    def set_{tbl}_{col}s({self}, {tbl}_rowid_list, {col}_list):
+    def set_{tbl}_{col}s({self}, {tbl}_rowid_list, {col}_list, duplicate_behavior='error'):
         """ {col}_list -> {tbl}.{col}[{tbl}_rowid_list]
 
         Args:
@@ -801,7 +801,7 @@ Tsetter_native_column = ut.codeblock(
         """
         id_iter = {tbl}_rowid_list
         colnames = ({COLNAME},)
-        {self}.{dbself}.set({TABLE}, colnames, {col}_list, id_iter)
+        {self}.{dbself}.set({TABLE}, colnames, {col}_list, id_iter, duplicate_behavior=duplicate_behavior)
     # ENDBLOCK
     ''')
 
@@ -809,7 +809,7 @@ Tsetter_native_column = ut.codeblock(
 Tsetter_native_multicolumn = ut.codeblock(
     r'''
     # STARTBLOCK
-    def set_{tbl}_{multicol}s({self}, {tbl}_rowid_list, {multicol}_list):
+    def set_{tbl}_{multicol}s({self}, {tbl}_rowid_list, {multicol}_list, duplicate_behavior='error'):
         """ {multicol}_list -> {tbl}.{multicol}[{tbl}_rowid_list]
 
         Tsetter_native_multicolumn
@@ -825,7 +825,7 @@ Tsetter_native_multicolumn = ut.codeblock(
         """
         id_iter = {tbl}_rowid_list
         colnames = {MULTICOLNAMES}
-        {self}.{dbself}.set({TABLE}, colnames,  {multicol}_list, id_iter)
+        {self}.{dbself}.set({TABLE}, colnames,  {multicol}_list, id_iter, duplicate_behavior=duplicate_behavior)
     # ENDBLOCK
     ''')
 

@@ -509,13 +509,16 @@ def build_templated_funcs(ibs, autogen_modname, tblname_list, autogen_key,
     return tfunctup
 
 
-def get_autogen_modpaths(parent_module, autogen_key='default'):
+def get_autogen_modpaths(parent_module, autogen_key='default', flagskw={}):
     """
     Returns info on where the autogen module will be placed if is written
     """
     # Build output filenames and info
-    autogen_mod_fname_fmt = '_autogen_{autogen_key}_funcs.py'
-    autogen_mod_fname = autogen_mod_fname_fmt.format(autogen_key=autogen_key)
+    if flagskw['mod_fname'] is not None:
+        autogen_mod_fname = flagskw['mod_fname']
+    else:
+        autogen_mod_fname_fmt = '_autogen_{autogen_key}_funcs.py'
+        autogen_mod_fname = autogen_mod_fname_fmt.format(autogen_key=autogen_key)
     # module we will autogenerate next to
     parent_modpath = dirname(parent_module.__file__)
     # Build autogen paths and modnames
@@ -661,6 +664,12 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
             # ENDHACK
             # parse out function name
             func_name = parse_first_func_name(func_code)
+
+            funcname_filter = flagskw['funcname_filter']
+            if funcname_filter is not None:
+                import re
+                if re.search(funcname_filter, func_name) is None:
+                    return
             #if func_name == 'get_featweight_fgweights':
             #    ut.embed()
             #
@@ -878,7 +887,7 @@ def get_autogen_text(
     """
     print('GET_AUTGEN_TEXT')
     # Filepath info
-    modpath_info = get_autogen_modpaths(parent_module, autogen_key)
+    modpath_info = get_autogen_modpaths(parent_module, autogen_key, flagskw)
     autogen_fpath, autogen_rel_fpath, autogen_modname = modpath_info
     # Build functions and constant containers
     tfunctup = build_templated_funcs(
@@ -894,6 +903,8 @@ def get_autogen_text(
 
 def main(ibs, verbose=None):
     """
+    MAIN FUNCTION
+
     CommandLine:
         python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.control.template_generator')"
 
@@ -933,13 +944,15 @@ def main(ibs, verbose=None):
             raise AssertionError('unknown autogen_key=%r. known tables are %r' %
                                  (autogen_key, list(tbl2_tablename.keys())))
 
+    flagskw = {}
     tblname_list = ut.get_argval(('--autogen-tables', '--tbls'), type_=list, default=default_tblname_list)
     #print(tblname_list)
     # Parse dictionary flag list
     template_flags = ut.get_argval(('--Tcfg', '--template-config'), type_=list, default=[])
+    flagskw['funcname_filter']  = ut.get_argval(('--funcname-filter', '--fnfilt'), type_=str, default=None)
+    flagskw['mod_fname']  = ut.get_argval(('--mod-fname', '--modfname'), type_=str, default=None)
 
     # Processes command line args
-    flagskw = {}
     if len(template_flags) > 0:
         flagdefault = False
         flagskw['with_decor'] = False
