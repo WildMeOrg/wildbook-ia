@@ -157,7 +157,53 @@ def get_timedelta_str(ibs, aid1, aid2):
 
 
 def get_annot_texts(ibs, aid_list, **kwargs):
-    """ Add each type of text_list to the strings list """
+    """ Add each type of text_list to the strings list
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+
+    Returns:
+        list: annotation_text_list
+
+    CommandLine:
+        python -m ibeis.viz.viz_helpers --test-get_annot_texts
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.viz.viz_helpers import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> import collections
+        >>> class KwargsProxy(collections.Mapping):
+        ...    def get(self, a, b):
+        ...        return True
+        ...    def __getitem__(self, key):
+        ...        return self.__dict__[key]
+        ...    def __iter__(self):
+        ...        return iter(self.__dict__)
+        ...    def __len__(self):
+        ...        return len(self.__dict__)
+        >>> kwargs_proxy = KwargsProxy()
+        >>> #kwargs.get = lambda a, b: True  # kwargs.__getitem__(a)
+        >>> aid_list = ibs.get_valid_aids()[::3]
+        >>> # execute function
+        >>> annotation_text_list = get_annot_texts(ibs, aid_list, kwargs_proxy=kwargs_proxy)
+        >>> # verify results
+        >>> result = ut.list_str(annotation_text_list)
+        >>> print(result)
+        [
+            u'aid1, gname=easy1.JPG, name=____, nid=-1, , nGt=0, quality=UNKNOWN, yaw=None',
+            u'aid4, gname=hard1.JPG, name=____, nid=-4, , nGt=0, quality=UNKNOWN, yaw=None',
+            u'aid7, gname=jeff.png, name=jeff, nid=3, EX, nGt=0, quality=UNKNOWN, yaw=None',
+            u'aid10, gname=occl2.JPG, name=occl, nid=5, EX, nGt=0, quality=UNKNOWN, yaw=None',
+            u'aid13, gname=zebra.jpg, name=zebra, nid=7, EX, nGt=0, quality=UNKNOWN, yaw=None',
+        ]
+    """
+    if 'kwargs_proxy' in kwargs:
+        # HACK FOR TEST
+        kwargs = kwargs['kwargs_proxy']
     try:
         ibsfuncs.assert_valid_aids(ibs, aid_list)
         assert utool.isiterable(aid_list), 'input must be iterable'
@@ -187,13 +233,12 @@ def get_annot_texts(ibs, aid_list, **kwargs):
         nGt_list = ibs.get_annot_num_groundtruth(aid_list)
         texts_list.append(['nGt=%r' % nGt for nGt in nGt_list])
     if kwargs.get('show_quality_text', False):
-        qualtext_list = ibsfuncs.get_quality_texts(ibs.get_annot_qualities(aid_list))
+        qualtext_list = ibs.get_annot_quality_texts(aid_list)
         texts_list.append(list(map(lambda text: 'quality=%s' % text, qualtext_list)))
     if kwargs.get('show_yawtext', False):
         # FIXME: This should be num_groundtruth with respect to the currently
         # allowed annotations
-        yaws = ibs.get_annot_yaws(aid_list)
-        yawtext_list = ibsfuncs.get_yaw_viewtexts(yaws)
+        yawtext_list = ibs.get_annot_yaw_texts(aid_list)
         texts_list.append(list(map(lambda text: 'yaw=%s' % text, yawtext_list)))
     # zip them up to get a tuple for each chip and join the fields
     if len(texts_list) > 0:
@@ -293,3 +338,16 @@ def kp_info(kp):
     scale = ktool.get_scales(kpts)[0]
     return xy_str, shape_str, scale, ori_str
 #----
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.viz.viz_helpers
+        python -m ibeis.viz.viz_helpers --allexamples
+        python -m ibeis.viz.viz_helpers --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
