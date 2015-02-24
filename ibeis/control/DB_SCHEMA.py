@@ -847,15 +847,16 @@ def update_1_3_4(db, ibs=None):
 
 def update_1_3_5(db, ibs=None):
     """ expand datasets to use new quality measures """
-    aid_list = ibs.get_valid_aids()
-    qual_list = ibs.get_annot_qualities(aid_list)
-    assert len(qual_list) == 0 or max(qual_list) < 3, 'there were no qualities higher than 3 at this point'
-    old_to_new = {
-        2: 3,
-        1: 2,
-    }
-    new_qual_list = [old_to_new.get(qual, qual) for qual in qual_list]
-    ibs.set_annot_qualities(aid_list, new_qual_list)
+    if ibs is not None:
+        aid_list = ibs.get_valid_aids()
+        qual_list = ibs.get_annot_qualities(aid_list)
+        assert len(qual_list) == 0 or max(qual_list) < 3, 'there were no qualities higher than 3 at this point'
+        old_to_new = {
+            2: 3,
+            1: 2,
+        }
+        new_qual_list = [old_to_new.get(qual, qual) for qual in qual_list]
+        ibs.set_annot_qualities(aid_list, new_qual_list)
     #from collections import OrderedDict
     #QUALITY_INT_TO_TEXT_OLD = OrderedDict([
     #    (2, 'good',),

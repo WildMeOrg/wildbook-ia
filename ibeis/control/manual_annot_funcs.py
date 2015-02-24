@@ -1764,7 +1764,7 @@ def set_annot_qualities(ibs, aid_list, annot_quality_list):
         aid_list
         annot_quality_list
 
-    SeeALso:
+    SeeAlso:
         ibeis.const.QUALITY_INT_TO_TEXT
 
     TemplateInfo:
