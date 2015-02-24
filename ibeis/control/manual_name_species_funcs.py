@@ -263,9 +263,14 @@ def get_empty_nids(ibs):
         >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> new_nid_list = ibs.get_next_nids(num=2)
-        >>> empty_nids = get_empty_nids(ibs)
-        >>> result = str(nids_list)
+        >>> new_nid_list = ibs.make_next_nids(num=2)
+        >>> empty_nids = ibs.get_empty_nids()
+        >>> assert len(empty_nids) == 2, 'get_empty_nids fails1'
+        >>> assert new_nid_list == empty_nids, 'get_empty_nids fails2'
+        >>> ibs.delete_empty_nids()
+        >>> empty_nids2 = ibs.get_empty_nids()
+        >>> assert len(empty_nids2) == 0, 'get_empty_nids fails3'
+        >>> result = str(empty_nids2)
         >>> print(result)
         []
     """

@@ -79,62 +79,57 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         +============================
         + singleton := single sighting
         + multiton  := multiple sightings
-         -- -- -- -- --
-         DB Info:  testdb1
-         DB Notes: None
-         DB NumContrib: 1
-         -- -- -- -- --
-         # Names                      = 8
-         # Names (unassociated)       = 1
-         # Names (singleton)          = 5
-         # Names (multiton)           = 2
-         -- -- -- -- --
-         # Annots                     = 13
-         # Annots (unknown)           = 4
-         # Annots (singleton)         = 5
-         # Annots (multiton)          = 4
-         -- -- -- -- --
-         # Annots per Name (multiton) = {
-            'max': 2.0,
-            'min': 2.0,
-            'mean': 2.0,
-            'std': 0.0,
-            'nMin': 2,
-            'nMax': 2,
+        ----------
+        DB Info:  testdb1
+        DB Notes: None
+        DB NumContrib: 0
+        ----------
+        # Names                      = 7
+        # Names (unassociated)       = 0
+        # Names (singleton)          = 5
+        # Names (multiton)           = 2
+        ----------
+        # Annots                     = 13
+        # Annots (unknown)           = 4
+        # Annots (singleton)         = 5
+        # Annots (multiton)          = 4
+        ----------
+        # Annots per Name (multiton) = {
+            'max'  : 2.0,
+            'min'  : 2.0,
+            'mean' : 2.0,
+            'std'  : 0.0,
+            'nMin' : 2,
+            'nMax' : 2,
             'shape': (2,),
         }
-         # Annots per Image           = {
-            'max': 1.0,
-            'min': 1.0,
-            'mean': 1.0,
-            'std': 0.0,
-            'nMin': 13,
-            'nMax': 13,
+        # Annots per Image           = {
+            'max'  : 1.0,
+            'min'  : 1.0,
+            'mean' : 1.0,
+            'std'  : 0.0,
+            'nMin' : 13,
+            'nMax' : 13,
             'shape': (13,),
         }
-         # Annots per Species         = {
-            '____': 3,
-            u'bear_polar': 2,
+        # Annots per Species         = {
+            '____'         : 3,
+            u'bear_polar'  : 2,
             u'zebra_plains': 6,
             u'zebra_grevys': 2,
         }
-         -- -- -- -- --
-         # Img                        = 13
-         # Img reviewed               = 0
-         # Img with gps               = 0
-         # Img with timestamp         = 13
-         Img Time Stats               = {
-            'max': '1969/12/31 21:30:13',
-            'min': '1969/12/31 19:01:41',
+        ----------
+        # Img                        = 13
+        # Img reviewed               = 0
+        # Img with gps               = 0
+        # Img with timestamp         = 13
+        Img Time Stats               = {
+            'std' : '1:13:57',
+            'max' : '1969/12/31 21:30:13',
             'mean': '1969/12/31 20:10:15',
-            'std': '1:13:57',
-            'nMin': 1,
-            'nMax': 1,
-            'shape': (13,),
+            'min' : '1969/12/31 19:01:41',
         }
         L============================
-
-
     """
     # TODO Database size in bytes
     # TODO: encounters, contributors, etc...
@@ -310,48 +305,48 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     ]
 
     source_block_lines = [
-        (' --' * num_tabs),
-        (' DB Info:  ' + ibs.get_dbname()),
-        (' DB Notes: ' + ibs.get_dbnotes()),
-        (' DB NumContrib: %d' % num_contributors),
+        ('--' * num_tabs),
+        ('DB Info:  ' + ibs.get_dbname()),
+        ('DB Notes: ' + ibs.get_dbnotes()),
+        ('DB NumContrib: %d' % num_contributors),
     ]
 
     bytes_block_lines = [
-        (' --' * num_tabs),
-        (' DB Bytes: '),
-        ('      +- dbdir nBytes:         ' + dbdir_space),
-        ('      |  +- _ibsdb nBytes:     ' + ibsdir_space),
-        ('      |  |  +-imgdir nBytes:   ' + imgdir_space),
-        ('      |  |  +-cachedir nBytes: ' + cachedir_space),
+        ('--' * num_tabs),
+        ('DB Bytes: '),
+        ('     +- dbdir nBytes:         ' + dbdir_space),
+        ('     |  +- _ibsdb nBytes:     ' + ibsdir_space),
+        ('     |  |  +-imgdir nBytes:   ' + imgdir_space),
+        ('     |  |  +-cachedir nBytes: ' + cachedir_space),
     ] if with_bytes else []
 
     name_block_lines = [
-        (' --' * num_tabs),
-        (' # Names                      = %d' % num_names),
-        (' # Names (unassociated)       = %d' % num_names_unassociated),
-        (' # Names (singleton)          = %d' % num_names_singleton),
-        (' # Names (multiton)           = %d' % num_names_multiton),
+        ('--' * num_tabs),
+        ('# Names                      = %d' % num_names),
+        ('# Names (unassociated)       = %d' % num_names_unassociated),
+        ('# Names (singleton)          = %d' % num_names_singleton),
+        ('# Names (multiton)           = %d' % num_names_multiton),
     ]
 
     annot_block_lines = [
-        (' --' * num_tabs),
-        (' # Annots                     = %d' % num_annots),
-        (' # Annots (unknown)           = %d' % num_unknown_annots),
-        (' # Annots (singleton)         = %d' % num_singleton_annots),
-        (' # Annots (multiton)          = %d' % num_multiton_annots),
-        (' --' * num_tabs),
-        (' # Annots per Name (multiton) = %s' % (multiton_stats,)),
-        (' # Annots per Image           = %s' % (gx2_nAnnots_stats,)),
-        (' # Annots per Species         = %s' % (ut.dict_str(species2_nAids),)),
+        ('--' * num_tabs),
+        ('# Annots                     = %d' % num_annots),
+        ('# Annots (unknown)           = %d' % num_unknown_annots),
+        ('# Annots (singleton)         = %d' % num_singleton_annots),
+        ('# Annots (multiton)          = %d' % num_multiton_annots),
+        ('--' * num_tabs),
+        ('# Annots per Name (multiton) = %s' % (ut.align(multiton_stats, ':'),)),
+        ('# Annots per Image           = %s' % (ut.align(gx2_nAnnots_stats, ':'),)),
+        ('# Annots per Species         = %s' % (ut.align(ut.dict_str(species2_nAids), ':'),)),
     ]
 
     img_block_lines = [
-        (' --' * num_tabs),
-        (' # Img                        = %d' % len(valid_gids)),
-        (' # Img reviewed               = %d' % sum(image_reviewed_list)),
-        (' # Img with gps               = %d' % len(gps_list)),
-        (' # Img with timestamp         = %d' % len(unixtime_list)),
-        (' Img Time Stats               = %s' % (ut.align(unixtime_statstr),)),
+        ('--' * num_tabs),
+        ('# Img                        = %d' % len(valid_gids)),
+        ('# Img reviewed               = %d' % sum(image_reviewed_list)),
+        ('# Img with gps               = %d' % len(gps_list)),
+        ('# Img with timestamp         = %d' % len(unixtime_list)),
+        ('Img Time Stats               = %s' % (ut.align(unixtime_statstr, ':'),)),
     ]
 
     info_str_lines = (

@@ -2714,31 +2714,6 @@ def get_yaw_viewtexts(yaw_list):
     return text_list
 
 
-def get_quality_texts(quality_list):
-    r"""
-    Args:
-        quality_list (list of ints):
-
-    Returns:
-        str:
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-get_quality_texts
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> # build test data
-        >>> quality_list = [1, 2, 0, None]
-        >>> # execute function
-        >>> result = get_quality_texts(quality_list)
-        >>> # verify results
-        >>> print(result)
-        ['ok', 'good', 'junk', 'UNKNOWN']
-    """
-    return ut.dict_take(const.QUALITY_INT_TO_TEXT, quality_list)
-
-
 def GreatZebraCount_batch_rename(ibs):
     """
     python dev.py --db PZ_MUGU_19 --cmd

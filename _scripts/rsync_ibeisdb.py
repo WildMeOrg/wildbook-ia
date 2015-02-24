@@ -85,8 +85,8 @@ if __name__ == '__main__':
     CommandLine:
         ib
         python _scripts/rsync_ibeisdb.py push
-        python _scripts/rsync_ibeisdb.py pull --dryrun
-        python _scripts/rsync_ibeisdb.py push --dryrun
+        python _scripts/rsync_ibeisdb.py pull --db MUGU_MASTER  --user joncrall --dryrun
+        python _scripts/rsync_ibeisdb.py push --db MUGU_MASTER  --user joncrall --dryrun
     """
     import sys
     if len(sys.argv) < 2:
