@@ -10,6 +10,10 @@ CommandLine:
     python -m ibeis.control.template_generator --key featweight
     python -m ibeis.control.template_generator --key encounter
 
+    python -m ibeis.control.template_generator --key image
+
+    image_timedelta_posix
+
 """
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
@@ -42,14 +46,47 @@ ENCOUNTER_SMART_WAYPOINT_ID = 'encounter_smart_waypoint_id'
 ENCOUNTER_SMART_XML_FNAME   = 'encounter_smart_xml_fname'
 
 
+IMAGE_LOCATION_CODE   = 'image_location_code'
+IMAGE_TIMEDELTA_POSIX = 'image_timedelta_posix'
+
+
 @register_ibs_method
 @ider
 def _get_all_gids(ibs):
     """
+    alias
+
     Returns:
         list_ (list):  all unfiltered gids (image rowids) """
-    all_gids = ibs.db.get_all_rowids(const.IMAGE_TABLE)
+    all_gids = ibs._get_all_image_rowids()
     return all_gids
+
+
+@register_ibs_method
+def _get_all_image_rowids(ibs):
+    """ all_image_rowids <- image.get_all_rowids()
+
+    Returns:
+        list_ (list): unfiltered image_rowids
+
+    TemplateInfo:
+        Tider_all_rowids
+        tbl = image
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-_get_all_image_rowids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> all_image_rowids = ibs._get_all_image_rowids()
+        >>> result = str(all_image_rowids)
+        >>> print(result)
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    """
+    all_image_rowids = ibs.db.get_all_rowids(const.IMAGE_TABLE)
+    return all_image_rowids
 
 
 @register_ibs_method
@@ -1382,7 +1419,7 @@ def get_encounter_end_time_posix(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_end_time_posix_list = ibs.get_encounter_end_time_posix(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_end_time_posix_list)
@@ -1415,7 +1452,7 @@ def get_encounter_gps_lats(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_gps_lat_list = ibs.get_encounter_gps_lats(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_gps_lat_list)
@@ -1469,7 +1506,7 @@ def get_encounter_gps_lons(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_gps_lon_list = ibs.get_encounter_gps_lons(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_gps_lon_list)
@@ -1502,7 +1539,7 @@ def get_encounter_notes(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_note_list = ibs.get_encounter_notes(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_note_list)
@@ -1535,7 +1572,7 @@ def get_encounter_processed_flags(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_processed_flag_list = ibs.get_encounter_processed_flags(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_processed_flag_list)
@@ -1568,7 +1605,7 @@ def get_encounter_shipped_flags(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_shipped_flag_list = ibs.get_encounter_shipped_flags(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_shipped_flag_list)
@@ -1601,7 +1638,7 @@ def get_encounter_start_time_posix(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_start_time_posix_list = ibs.get_encounter_start_time_posix(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_start_time_posix_list)
@@ -1791,7 +1828,7 @@ def get_encounter_smart_waypoint_ids(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_smart_waypoint_id_list = ibs.get_encounter_smart_waypoint_ids(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_smart_waypoint_id_list)
@@ -1824,7 +1861,7 @@ def get_encounter_smart_xml_fnames(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = get_autogen_testdata()
+        >>> ibs, qreq_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_smart_xml_fname_list = ibs.get_encounter_smart_xml_fnames(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_smart_xml_fname_list)
@@ -1876,7 +1913,82 @@ def set_encounter_smart_xml_fnames(ibs, encounter_rowid_list, encounter_smart_xm
                encounter_smart_xml_fname_list, id_iter)
 
 
-def get_autogen_testdata():
+@register_ibs_method
+#@accessor_decors.cache_getter(const.IMAGE_TABLE, IMAGE_TIMEDELTA_POSIX)
+def get_image_timedelta_posix(ibs, image_rowid_list, eager=True):
+    """ image_timedelta_posix_list <- image.image_timedelta_posix[image_rowid_list]
+
+    gets data from the "native" column "image_timedelta_posix" in the "image" table
+
+    Args:
+        image_rowid_list (list):
+
+    Returns:
+        list: image_timedelta_posix_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = image_timedelta_posix
+        tbl = image
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-get_image_timedelta_posix
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> eager = True
+        >>> image_timedelta_posix_list = ibs.get_image_timedelta_posix(image_rowid_list, eager=eager)
+        >>> assert len(image_rowid_list) == len(image_timedelta_posix_list)
+    """
+    id_iter = image_rowid_list
+    colnames = (IMAGE_TIMEDELTA_POSIX,)
+    image_timedelta_posix_list = ibs.db.get(
+        const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager)
+    return image_timedelta_posix_list
+
+
+@register_ibs_method
+#@accessor_decors.cache_invalidator(const.IMAGE_TABLE, IMAGE_LOCATION_CODE, native_rowids=True)
+def set_image_location_codes(ibs, image_rowid_list, image_location_code_list):
+    """ image_location_code_list -> image.image_location_code[image_rowid_list]
+
+    Args:
+        image_rowid_list
+        image_location_code_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = image
+        col = image_location_code
+    """
+    id_iter = image_rowid_list
+    colnames = (IMAGE_LOCATION_CODE,)
+    ibs.db.set(const.IMAGE_TABLE, colnames, image_location_code_list, id_iter)
+
+
+@register_ibs_method
+#@accessor_decors.cache_invalidator(const.IMAGE_TABLE, IMAGE_TIMEDELTA_POSIX, native_rowids=True)
+def set_image_timedelta_posix(ibs, image_rowid_list, image_timedelta_posix_list):
+    """ image_timedelta_posix_list -> image.image_timedelta_posix[image_rowid_list]
+
+    Args:
+        image_rowid_list
+        image_timedelta_posix_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = image
+        col = image_timedelta_posix
+    """
+    id_iter = image_rowid_list
+    colnames = (IMAGE_TIMEDELTA_POSIX,)
+    ibs.db.set(const.IMAGE_TABLE, colnames, image_timedelta_posix_list, id_iter)
+
+
+def testdata_ibs():
     import ibeis
     ibs = ibeis.opendb('testdb1')
     qreq_ = None

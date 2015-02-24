@@ -474,7 +474,8 @@ class SQLDatabaseController(object):
                 raise
         elif duplicate_behavior == 'filter':
             # Keep only the first setting of every row
-            isunique_list = utool.flag_unique_items(id_iter)
+            isunique_list = utool.flag_unique_items(id_list)
+            id_list  = utool.filter_items(id_list, isunique_list)
             val_list = utool.filter_items(val_list, isunique_list)
         else:
             raise AssertionError('unknown duplicate_behavior=%r' % (duplicate_behavior,))
