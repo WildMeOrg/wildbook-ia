@@ -493,7 +493,7 @@ def layoutSplitter(splitter):
 
 def msg_event(title, msg):
     """ Returns a message event slot """
-    return lambda: guitool_dialogs.msgbox(title, msg)
+    return lambda: guitool_dialogs.msgbox(msg=msg, title=title)
 
 
 if __name__ == '__main__':

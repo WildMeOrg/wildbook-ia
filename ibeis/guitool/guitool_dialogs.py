@@ -2,7 +2,8 @@ from __future__ import absolute_import, division, print_function
 from six.moves import map
 from guitool.__PYQT__ import QtCore, QtGui  # NOQA
 from guitool.__PYQT__.QtCore import Qt
-from os.path import split
+import os
+from os.path import dirname
 import platform
 from utool import util_cache, util_path
 import utool as ut
@@ -20,6 +21,20 @@ def _guitool_cache_write(key, val):
 def _guitool_cache_read(key, **kwargs):
     """ Reads from global IBEIS cache """
     return util_cache.global_cache_read(key, appname='ibeis', **kwargs)  # HACK, user should specify appname
+
+
+def are_you_sure(parent=None, msg=None, title='Confirmation', default=None):
+    """ Prompt user for conformation before changing something """
+    msg = 'Are you sure?' if msg is None else msg
+    print('[guitool] Asking User if sure')
+    print('[guitool] title = %s' % (title,))
+    print('[guitool] msg =\n%s' % (msg,))
+    if ut.get_argflag('-y') or ut.get_argflag('--yes'):
+        # DONT ASK WHEN SPECIFIED
+        return True
+    ans = user_option(parent=parent, msg=msg, title=title, options=['No', 'Yes'],
+                           use_cache=False, default=default)
+    return ans == 'Yes'
 
 
 def user_option(parent=None, msg='msg', title='user_option',
@@ -73,6 +88,7 @@ def user_option(parent=None, msg='msg', title='user_option',
     _addOptions(msgbox, options)
     # Set default button
     if default is not None:
+        assert default in options, 'default=%r is not in options=%r' % (default, options)
         for qbutton in msgbox.buttons():
             if default == qbutton.text():
                 msgbox.setDefaultButton(qbutton)
@@ -116,13 +132,15 @@ def user_input(parent=None, msg='msg', title='user_input'):
         python -m guitool.guitool_dialogs --test-user_input
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from guitool.guitool_dialogs import *  # NOQA
         >>> # build test data
         >>> parent = None
         >>> msg = 'msg'
         >>> title = 'user_input'
         >>> # execute function
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
         >>> dpath = user_input(parent, msg, title)
         >>> # verify results
         >>> result = str(dpath)
@@ -150,13 +168,53 @@ def user_question(msg):
     return msgbox
 
 
-def select_directory(caption='Select Directory', directory=None):
-    print(caption)
+def newFileDialog(directory_, other_sidebar_dpaths=[], use_sidebar_cwd=True):
+    qdlg = QtGui.QFileDialog()
+    sidebar_urls = qdlg.sidebarUrls()[:]
+    if use_sidebar_cwd:
+        sidebar_urls.append(QtCore.QUrl.fromLocalFile(os.getcwd()))
+    if directory_ is not None:
+        sidebar_urls.append(QtCore.QUrl.fromLocalFile(directory_))
+    sidebar_urls.extend(list(map(QtCore.QUrl.fromUserInput, other_sidebar_dpaths)))
+    sidebar_urls = ut.unique_keep_order2(sidebar_urls)
+    print(sidebar_urls)
+    qdlg.setSidebarUrls(sidebar_urls)
+    return qdlg
+
+
+def select_directory(caption='Select Directory', directory=None,
+                     other_sidebar_dpaths=[], use_sidebar_cwd=True):
+    r"""
+    Args:
+        caption (str):
+        directory (None):
+
+    Returns:
+        str: dpath
+
+    CommandLine:
+        python -m guitool.guitool_dialogs --test-select_directory
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.guitool_dialogs import *  # NOQA
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
+        >>> # build test data
+        >>> caption = 'Select Directory'
+        >>> directory = None  # os.path.dirname(guitool.__file__)
+        >>> # execute function
+        >>> other_sidebar_dpaths = [os.path.dirname(ut.__file__)]
+        >>> dpath = select_directory(caption, directory, other_sidebar_dpaths)
+        >>> # verify results
+        >>> result = str(dpath)
+        >>> print(result)
+    """
+    print('[guitool] select_directory(caption=%r, directory=%r)' % (caption, directory))
     if directory is None:
         directory_ = _guitool_cache_read(SELDIR_CACHEID, default='.')
     else:
-        directory = directory_
-    qdlg = QtGui.QFileDialog()
+        directory_ = directory
     # hack to fix the dialog window on ubuntu
     if 'ubuntu' in platform.platform().lower():
         qopt = QtGui.QFileDialog.ShowDirsOnly | QtGui.QFileDialog.DontUseNativeDialog
@@ -167,13 +225,14 @@ def select_directory(caption='Select Directory', directory=None):
         'options': qopt,
         'directory': directory_
     }
+    qdlg = newFileDialog(directory_, other_sidebar_dpaths, use_sidebar_cwd)
     dpath = str(qdlg.getExistingDirectory(None, **qtkw))
     print('dpath = %r' % dpath)
     if dpath == '' or dpath is None:
         dpath = None
         return dpath
     else:
-        _guitool_cache_write(SELDIR_CACHEID, split(dpath)[0])
+        _guitool_cache_write(SELDIR_CACHEID, dirname(dpath))
     print('Selected Directory: %r' % dpath)
     return dpath
 
@@ -183,7 +242,7 @@ def select_images(caption='Select images:', directory=None):
     return select_files(caption, directory, name_filter)
 
 
-def select_files(caption='Select Files:', directory=None, name_filter=None):
+def select_files(caption='Select Files:', directory=None, name_filter=None, other_sidebar_dpaths=[], use_sidebar_cwd=True):
     """
     Selects one or more files from disk using a qt dialog
 
@@ -193,7 +252,8 @@ def select_files(caption='Select Files:', directory=None, name_filter=None):
     print(caption)
     if directory is None:
         directory = _guitool_cache_read(SELDIR_CACHEID, default='.')
-    qdlg = QtGui.QFileDialog()
+    #qdlg = QtGui.QFileDialog()
+    qdlg = newFileDialog(directory, other_sidebar_dpaths=[], use_sidebar_cwd=True)
     qfile_list = qdlg.getOpenFileNames(caption=caption, directory=directory, filter=name_filter)
     file_list = list(map(str, qfile_list))
     print('Selected %d files' % len(file_list))
@@ -231,19 +291,30 @@ def msgbox(msg, title='msgbox'):
 
 def build_nested_qmenu(widget, context_options, name=None):
     """ builds nested menu for context menus but can be used for other menu
-    related things. """
+    related things.
+
+    References:
+        http://pyqt.sourceforge.net/Docs/PyQt4/qkeysequence.html
+    """
     if name is None:
         menu = QtGui.QMenu(widget)
     else:
         menu = QtGui.QMenu(name, widget)
     action_list = []
-    for opt, func, in context_options:
+    for option_tup in context_options:
+        if len(option_tup) == 2:
+            opt, func = option_tup
+            shortcut = QtGui.QKeySequence(0)
+        elif len(option_tup) == 3:
+            opt, shortcut_str, func = option_tup
+            shortcut = QtGui.QKeySequence(shortcut_str)
+
         if isinstance(func, list):
             sub_menu, sub_action_list = build_nested_qmenu(widget, func, opt)
             menu.addMenu(sub_menu)
             action_list.append((sub_menu, sub_action_list))
         else:
-            action = menu.addAction(opt, func)
+            action = menu.addAction(opt, func, shortcut)
             action_list.append(action)
     return menu, action_list
 
@@ -253,13 +324,16 @@ def popup_menu(widget, pos, context_options):
     Args:
         widget (QWidget):
         pos (QPoint):
-        context_options (list): of (name, func) tuples. Can also replace func with
-            nested context_options list.
+        context_options (list): of tuples. Can also replace func with
+            nested context_options list. Tuples can be in the format:
+             (name, func)
+             (name, shortcut, func) - NOT FULLY SUPPORTED. USE AMPERSAND & INSTEAD
 
     Returns:
         tuple: (selection, actions)
 
     CommandLine:
+        python -m guitool.guitool_dialogs --test-popup_menu
         python -m guitool.guitool_dialogs --test-popup_menu --show
 
     Example:
@@ -267,20 +341,38 @@ def popup_menu(widget, pos, context_options):
         >>> from guitool.guitool_dialogs import *  # NOQA
         >>> import guitool
         >>> import plottool as pt
+        >>> import functools
         >>> from plottool import interact_helpers as ih
         >>> fig = pt.figure()
-        >>> def spam():
-        ...    print('spam')
+        >>> def spam(x=''):
+        ...    print('spam' + str(x))
         >>> def eggs():
         ...    print('eggs')
+        >>> def bacon():
+        ...    print('bacon')
+        >>> def nospam():
+        ...    print('i dont like spam')
+        ...    import webbrowser
+        ...    webbrowser.open('https://www.youtube.com/watch?v=anwy2MPT5RE')
         >>> context_options = [
-        ...     ('spam', spam),
-        ...     ('nest', [
-        ...         ('eggs', eggs)
+        ...     ('spam',  spam),
+        ...     ('&bacon', bacon),
+        ...     ('n&est', [
+        ...         ('e&ggs', eggs),
+        ...         ('&s&pam', functools.partial(spam, 1)),
+        ...         ('sp&a&m', functools.partial(spam, 2)),
+        ...         ('&spam', functools.partial(spam, 3)),
+        ...         ('&spamspamspam', [
+        ...              ('&spamspamspam', [
+        ...                  ('&spam', nospam),
+        ...             ])
+        ...         ])
         ...     ])
         ... ]
+        >>> widget = fig.canvas
+        >>> pos = guitool.newQPoint(10, 10)
         >>> # Hacky way to get a right click to span a context menu
-        >>> def figure_clicked(event, fig=fig, spam=spam, eggs=eggs, context_options=context_options):
+        >>> def figure_clicked(event, fig=fig, context_options=context_options):
         ...     import guitool
         ...     import plottool as pt
         ...     from plottool import interact_helpers as ih
@@ -288,8 +380,11 @@ def popup_menu(widget, pos, context_options):
         ...     widget = fig.canvas
         ...     (selection, actions) = popup_menu(widget, pos, context_options)
         ...     #print(str((selection, actions)))
-        >>> ih.connect_callback(fig, 'button_press_event', figure_clicked)
-        >>> pt.show_if_requested()
+        >>> if ut.show_was_requested():
+        ...     ih.connect_callback(fig, 'button_press_event', figure_clicked)
+        ...     pt.show_if_requested()
+        >>> else:
+        ...    (selection, actions) = popup_menu(widget, pos, context_options)
     """
     #menu = QtGui.QMenu(widget)
     #actions = [menu.addAction(opt, ut.tracefunc(func)) for (opt, func) in context_options]
