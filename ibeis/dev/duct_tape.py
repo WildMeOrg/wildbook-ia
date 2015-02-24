@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import utool
 from six.moves import zip
 from ibeis import constants
-from ibeis import ibsfuncs
+#from ibeis import ibsfuncs
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[duct_tape]', DEBUG=False)
@@ -45,8 +45,8 @@ def fix_compname_configs(ibs):
 
 
 def remove_database_slag(ibs,
-                         delete_invalid_names=False,
-                         delete_invalid_encounters=False,
+                         delete_empty_names=False,
+                         delete_empty_encounters=False,
                          delete_annotations_for_missing_images=False,
                          delete_image_labels_for_missing_types=False,
                          delete_annot_labels_for_missing_types=False,
@@ -56,11 +56,11 @@ def remove_database_slag(ibs,
                          delete_invalid_gl_relations=False,
                          delete_invalid_al_relations=True):
     # ZERO ORDER
-    if delete_invalid_names:
-        ibsfuncs.delete_invalid_nids(ibs)
+    if delete_empty_names:
+        ibs.delete_empty_nids()
 
-    if delete_invalid_encounters:
-        ibsfuncs.delete_invalid_eids(ibs)
+    if delete_empty_encounters:
+        ibs.delete_empty_eids()
 
     # FIRST ORDER
     if delete_annotations_for_missing_images:

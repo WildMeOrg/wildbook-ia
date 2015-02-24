@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import functools
 from ibeis import constants as const
-from guitool.guitool_components import newMenu, newMenubar, msg_event
+import guitool
 ut.noinject(__name__, '[guimenus]', DEBUG=False)
 
 
@@ -23,7 +23,7 @@ class DummyBack(object):
 
 def setup_menus(mainwin, back=None):
     print('[guimenus] creating menus')
-    mainwin.menubar = newMenubar(mainwin)
+    mainwin.menubar = guitool.newMenubar(mainwin)
     if back is None:
         back = DummyBack()
     setup_file_menu(mainwin, back)
@@ -36,7 +36,7 @@ def setup_menus(mainwin, back=None):
 
 def setup_file_menu(mainwin, back):
     """ FILE MENU """
-    mainwin.menuFile = newMenu(mainwin, mainwin.menubar, 'menuFile', 'File')
+    mainwin.menuFile = guitool.newMenu(mainwin, mainwin.menubar, 'menuFile', 'File')
     mainwin.menuFile.newAction(
         name='actionNew_Database',
         text='New Database',
@@ -105,7 +105,7 @@ def setup_file_menu(mainwin, back):
 
 def setup_actions_menu(mainwin, back):
     """ ACTIONS MENU """
-    mainwin.menuActions = newMenu(mainwin, mainwin.menubar, 'menuActions', 'Actions')
+    mainwin.menuActions = guitool.newMenu(mainwin, mainwin.menubar, 'menuActions', 'Actions')
 #    mainwin.menuActions.newAction(
 #        name='actionAdd_ANNOTATION',
 #        text='Add ANNOTATION',
@@ -170,7 +170,7 @@ def setup_actions_menu(mainwin, back):
 
 def setup_batch_menu(mainwin, back):
     """ BATCH MENU """
-    mainwin.menuBatch = newMenu(mainwin, mainwin.menubar, 'menuBatch', 'Batch')
+    mainwin.menuBatch = guitool.newMenu(mainwin, mainwin.menubar, 'menuBatch', 'Batch')
     mainwin.menuBatch.newAction(
         name='actionCompute_Encounters',
         text='Cluster Encounters',
@@ -214,6 +214,12 @@ def setup_batch_menu(mainwin, back):
         name='actionBatchUnknownVsExemplarQueries',
         text='Compute Batch Unknown VsExemplar Queries',
         slot_fn=functools.partial(back.compute_queries, query_is_known=False, query_mode=const.VS_EXEMPLARS_KEY))
+    mainwin.menuBatch.addSeparator()  # ---------
+    mainwin.menuBatch.newAction(
+        name='actionSetExemplarsFromQualityAndViewpoint',
+        text='Set Exemplars from Quality and Viewpoint',
+        slot_fn=back.set_exemplars_from_quality_and_viewpoint
+    )
 
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
@@ -245,7 +251,7 @@ def setup_batch_menu(mainwin, back):
 
 def setup_option_menu(mainwin, back):
     """ OPTIONS MENU """
-    mainwin.menuOptions = newMenu(mainwin, mainwin.menubar, 'menuOptions', 'Options')
+    mainwin.menuOptions = guitool.newMenu(mainwin, mainwin.menubar, 'menuOptions', 'Options')
     mainwin.menuOptions.newAction(
         name='actionLayout_Figures',
         text='Layout Figures',
@@ -268,18 +274,18 @@ def setup_option_menu(mainwin, back):
 
 def setup_help_menu(mainwin, back):
     """ HELP MENU """
-    mainwin.menuHelp = newMenu(mainwin, mainwin.menubar, 'menuHelp', 'Help')
-    about_msg = 'IBEIS = Image Based Ecological Information System'
+    mainwin.menuHelp = guitool.newMenu(mainwin, mainwin.menubar, 'menuHelp', 'Help')
+    about_msg = 'IBEIS = Image Based Ecological Information System\nhttp://ibeis.org/'
     mainwin.menuHelp.newAction(
         name='actionAbout',
         text='About',
         shortcut='',
-        slot_fn=msg_event('About', about_msg))
-    mainwin.menuHelp.newAction(
-        name='actionView_Docs',
-        text='View Documentation',
-        shortcut='',
-        slot_fn=back.view_docs)
+        slot_fn=guitool.msg_event('About', about_msg))
+    #mainwin.menuHelp.newAction(
+    #    name='actionView_Docs',
+    #    text='View Documentation',
+    #    shortcut='',
+    #    slot_fn=back.view_docs)
     # ---
     mainwin.menuHelp.addSeparator()
     # ---
@@ -341,7 +347,7 @@ def setup_help_menu(mainwin, back):
 
 def setup_developer_menu(mainwin, back):
     """ DEV MENU """
-    mainwin.menuDev = newMenu(mainwin, mainwin.menubar, 'menuDev', 'Dev')
+    mainwin.menuDev = guitool.newMenu(mainwin, mainwin.menubar, 'menuDev', 'Dev')
     mainwin.menuDev.newAction(
         name='actionDeveloper_reload',
         text='Developer Reload',

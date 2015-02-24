@@ -29,6 +29,17 @@ VIEWTEXT_TO_YAW_RADIANS = OrderedDict([
     ('backright'  , 0.875 * TAU,),
 ])
 
+#VIEWTEXT_TO_QT_VIEWTEXT = {
+#    'right'      : 'right',
+#    'frontright' : 'frontright',
+#    'front'      : 'front',
+#    'frontleft'  : 'frontleft',
+#    'left'       : 'left',
+#    'backleft'   : 'backleft',
+#    'back'       : 'back',
+#    'backright'  : 'backright',
+#}
+
 
 QUALITY_INT_TO_TEXT_OLD = OrderedDict([
     (2, 'good',),

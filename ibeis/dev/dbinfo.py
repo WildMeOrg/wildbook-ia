@@ -137,6 +137,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
 
     """
     # TODO Database size in bytes
+    # TODO: encounters, contributors, etc...
 
     # Basic variables
     valid_aids = ibs.get_valid_aids()
@@ -350,7 +351,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         (' # Img reviewed               = %d' % sum(image_reviewed_list)),
         (' # Img with gps               = %d' % len(gps_list)),
         (' # Img with timestamp         = %d' % len(unixtime_list)),
-        (' Img Time Stats               = %s' % (unixtime_statstr,)),
+        (' Img Time Stats               = %s' % (ut.align(unixtime_statstr),)),
     ]
 
     info_str_lines = (

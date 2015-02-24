@@ -18,6 +18,9 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None):
     """
     Defines logic for poping up a context menu when viewing an annotation.
     Used in other interactions like name_interaction and interact_query_decision
+
+    CommandLine:
+        python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show
     """
     import guitool
     is_exemplar = ibs.get_annot_exemplar_flags(aid)
@@ -48,24 +51,24 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None):
         return _wrp_qual
     # Define popup menu
     angle_callback_list = [
-        ('unset as exemplar' if is_exemplar else 'set as exemplar', toggle_exemplar_func),
+        ('Unset as e&xemplar' if is_exemplar else 'Set as e&xemplar', toggle_exemplar_func),
     ]
     current_qualtext = ibs.get_annot_quality_texts([aid])[0]
     current_yawtext = ibs.get_annot_yaw_texts([aid])[0]
     # Nested viewpoints
     angle_callback_list += [
         #('Set Viewpoint: ' + key, set_yaw_func(key))
-        ('Set Viewpoint: ',  [
-            (('*' if current_yawtext == key else '') + key, set_yaw_func(key))
-            for key in six.iterkeys(const.VIEWTEXT_TO_YAW_RADIANS)
+        ('Set &Viewpoint: ',  [
+            ('&' + str(count) + ' ' + ('*' if current_yawtext == key else '') + key, set_yaw_func(key))
+            for count, key in enumerate(six.iterkeys(const.VIEWTEXT_TO_YAW_RADIANS), start=1)
         ]),
     ]
     # Nested qualities
     angle_callback_list += [
         #('Set Quality: ' + key, set_quality_func(key))
-        ('Set Quality: ',  [
-            (('*' if current_qualtext == key else '') + key, set_quality_func(key))
-            for key in six.iterkeys(const.QUALITY_TEXT_TO_INT)
+        ('Set &Quality: ',  [
+            ('&' + str(count) + ' ' + ('*' if current_qualtext == key else '') + '&' + key, set_quality_func(key))
+            for count, key in enumerate(six.iterkeys(const.QUALITY_TEXT_TO_INT), start=1)
         ]),
     ]
     guitool.popup_menu(qwin, qpoint, angle_callback_list)

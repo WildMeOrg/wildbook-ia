@@ -1232,7 +1232,7 @@ class MainWindowBackend(QtCore.QObject):
                 use_cache=False)
             if reply == 'Choose Directory':
                 print('[back] new_database(): SELECT A DIRECTORY')
-                putdir = guitool.select_directory('Select new database directory')
+                putdir = guitool.select_directory('Select new database directory', other_sidebar_dpaths=[back.get_work_directory()])
             elif reply == 'My Work Dir':
                 putdir = back.get_work_directory()
             else:
@@ -1252,7 +1252,8 @@ class MainWindowBackend(QtCore.QObject):
         """ File -> Open Database"""
         if dbdir is None:
             print('[back] new_database(): SELECT A DIRECTORY')
-            dbdir = guitool.select_directory('Select new database directory')
+            #director
+            dbdir = guitool.select_directory('Select new database directory', other_sidebar_dpaths=[back.get_work_directory()])
             if dbdir is None:
                 return
         print('[back] open_database(dbdir=%r)' % dbdir)
@@ -1449,3 +1450,7 @@ class MainWindowBackend(QtCore.QObject):
 
     def display_special_encounters_error(back):
         back.user_info(msg="Contains special encounters")
+
+    @slot_()
+    def set_exemplars_from_quality_and_viewpoint(back):
+        back.ibs.set_exemplars_from_quality_and_viewpoint()

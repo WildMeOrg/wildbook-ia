@@ -168,7 +168,14 @@ class MatchVerificationInteraction(AbstractInteraction):
         unique_colors = df2.distinct_colors(len(unique_nids) + 2)
         self.nid2_color = dict(zip(unique_nids, unique_colors))
 
-        list_ = list(map(ut.flatten, zip(([self.aid1], [self.aid2]), self.gts_list)))
+        if len(self.gts_list) == 2:
+            list_ = list(map(ut.flatten, zip(([self.aid1], [self.aid2]), self.gts_list)))
+        elif len(self.gts_list) == 1:
+            # so hacky
+            hack_aids_list = [_ for _ in self.gts_list[0] if _ not in [self.aid1, self.aid2]]
+            list_ = [[self.aid1, self.aid2] + hack_aids_list]
+        else:
+            raise AssertionError('[interact_name] unknown hacked case')
         # For each row
         for rowx, aid_list in enumerate(list_):
             offset = rowx * nCols + 1
@@ -191,11 +198,22 @@ class MatchVerificationInteraction(AbstractInteraction):
                 #print('rowx=%r, colx=%r' % (rowx, colx))
                 #print('offset=%rr' % (offset))
                 ax = self.plot_chip(int(aid), nRows, nCols, px, color=color)
-                if (colx + 1) >= self.nCols and colx < (len(aid_list) - 1):
-                    next_text = 'next\n%d/%d' % (self.nCols - 1, len(aid_list) - 1)
-                    next_func = partial(self.show_more, rowx=rowx)
-                    self.append_button(next_text, callback=next_func,
-                                       location='right', size='33%', ax=ax)
+                if len(self.gts_list) == 2:
+                    # OH MY GOD THE HACKYNESS. WHY SO STATEFUL?
+                    if (colx + 1) >= self.nCols and colx < (len(aid_list) - 1):
+                        next_text = 'next\n%d/%d' % (self.nCols - 1, len(aid_list) - 1)
+                        next_func = partial(self.show_more, rowx=rowx)
+                        self.append_button(next_text, callback=next_func,
+                                           location='right', size='33%', ax=ax)
+                elif len(self.gts_list) == 1:
+                    # OH MY GOD THE HACKYNESS. WHY SO STATEFUL?
+                    if (colx + 1) >= self.nCols and colx < (len(hack_aids_list) - 1):
+                        next_text = 'next\n%d/%d' % (self.nCols - 2, len(hack_aids_list) - 1)
+                        next_func = partial(self.show_more, rowx=rowx)
+                        self.append_button(next_text, callback=next_func,
+                                           location='right', size='33%', ax=ax)
+                else:
+                    raise AssertionError('[interact_name] unknown hacked case')
 
         self.show_hud()
         #df2.adjust_subplots_safe(top=0.85, hspace=0.03)
@@ -238,6 +256,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                     'show_name': True,
                     'show_aidstr': True,
                     'show_yawtext': True,
+                    'show_num_gt': True,
                     'show_quality_text': True,
                 }
             )

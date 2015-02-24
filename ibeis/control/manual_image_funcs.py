@@ -2049,6 +2049,34 @@ def set_image_location_codes(ibs, image_rowid_list, image_location_code_list, du
                id_iter, duplicate_behavior=duplicate_behavior)
 
 
+@register_ibs_method
+def delete_empty_eids(ibs):
+    """ Removes encounters without images
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-delete_empty_eids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> result = ibs.delete_empty_eids()
+        >>> # verify results
+        >>> print(result)
+    """
+    eid_list = ibs.get_valid_eids(min_num_gids=0)
+    nGids_list = ibs.get_encounter_num_gids(eid_list)
+    is_invalid = [nGids == 0 for nGids in nGids_list]
+    invalid_eids = ut.filter_items(eid_list, is_invalid)
+    ibs.delete_encounters(invalid_eids)
+
+
 def testdata_ibs():
     import ibeis
     ibs = ibeis.opendb('testdb1')

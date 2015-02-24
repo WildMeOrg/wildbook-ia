@@ -128,8 +128,8 @@ class QueryResultsWidget(APIItemWidget):
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_click(iqrw, qtindex):
-        print('[qres_wgt] _on_click: ')
-        print('[qres_wgt] _on_click: ' + str(qtype.qindexinfo(qtindex)))
+        #print('[qres_wgt] _on_click: ')
+        #print('[qres_wgt] _on_click: ' + str(qtype.qindexinfo(qtindex)))
         col = qtindex.column()
         model = qtindex.model()
         colname = model.get_header_name(col)
@@ -155,7 +155,7 @@ class QueryResultsWidget(APIItemWidget):
         def _check_for_double_click(iqrw, qtindex):
             threshold = 0.50  # seconds
             distance = utool.toc(iqrw.tt)
-            print('Pressed %r' % (distance,))
+            #print('Pressed %r' % (distance,))
             col = qtindex.column()
             model = qtindex.model()
             colname = model.get_header_name(col)
@@ -179,10 +179,10 @@ class QueryResultsWidget(APIItemWidget):
     def on_contextMenuRequested(iqrw, qtindex, qpos):
         printDBG('[newgui] contextmenu')
         guitool.popup_menu(iqrw, qpos, [
-            ('view match annotations', lambda: show_match_at(iqrw, qtindex)),
-            ('review match', lambda: review_match_at(iqrw, qtindex)),
-            ('Mark as Match.', lambda: mark_pair_as_positive_match(iqrw, qtindex)),
-            ('Mark as Not Match.', lambda: mark_pair_as_negative_match(iqrw, qtindex)),
+            ('Show feature matches', lambda: show_match_at(iqrw, qtindex)),
+            ('Inspect Match Candidates', lambda: review_match_at(iqrw, qtindex)),
+            ('Mark as &True Match.', lambda: mark_pair_as_positive_match(iqrw, qtindex)),
+            ('Mark as &False Match.', lambda: mark_pair_as_negative_match(iqrw, qtindex)),
         ])
 
 
@@ -191,8 +191,13 @@ def mark_pair_as_positive_match(qres_wgt, qtindex):
     qaid  = model.get_header_data('qaid', qtindex)
     daid  = model.get_header_data('aid', qtindex)
     ibs = qres_wgt.ibs
-    status = mark_annot_pair_as_positive_match(ibs, qaid, daid)
-    print('status = %r' % (status,))
+    try:
+        status = mark_annot_pair_as_positive_match(ibs, qaid, daid)
+        print('status = %r' % (status,))
+    except NeedUserInputException:
+        review_match_at(qres_wgt, qtindex)
+    except UserCancelException:
+        print('user canceled positive match')
 
 
 def mark_pair_as_negative_match(qres_wgt, qtindex):
@@ -203,11 +208,17 @@ def mark_pair_as_negative_match(qres_wgt, qtindex):
     try:
         status = mark_annot_pair_as_negative_match(ibs, qaid, daid)
         print('status = %r' % (status,))
-    except ComplexSplitException:
+    except NeedUserInputException:
         review_match_at(qres_wgt, qtindex)
+    except UserCancelException:
+        print('user canceled negative match')
 
 
-class ComplexSplitException(Exception):
+class NeedUserInputException(Exception):
+    pass
+
+
+class UserCancelException(Exception):
     pass
 
 
@@ -245,6 +256,7 @@ def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False):
         if not ut.QUIET:
             print('... _set_annot_name_rowids(aids=%r, nids=%r)' % (aid_list, nid_list))
             print('... names = %r' % (ibs.get_name_texts(nid_list)))
+        assert len(aid_list) == len(nid_list), 'list must correspond'
         if not dryrun:
             ibs.set_annot_name_rowids(aid_list, nid_list)
         # Return the new annots in this name
@@ -266,8 +278,25 @@ def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False):
             status =  _set_annot_name_rowids([aid1, aid2], next_nids * 2)
         elif not isunknown1 and not isunknown2:
             print('...merge known1 into known2')
+            MERGE_NEEDS_INTERACTION  = False
+            MERGE_NEEDS_VERIFICATION = True
             aid1_and_groundtruth = ibs.get_annot_groundtruth(aid1, noself=False)
-            status =  _set_annot_name_rowids(aid1_and_groundtruth, [nid2])
+            if MERGE_NEEDS_INTERACTION:
+                raise NeedUserInputException('confirm merge')
+            elif MERGE_NEEDS_VERIFICATION:
+                aid2_and_groundtruth = ibs.get_annot_groundtruth(aid2, noself=False)
+                name1, name2 = ibs.get_annot_names([aid1, aid2])
+                msgfmt = ut.codeblock('''
+                   Confirm merge of animal {name1} and {name2}
+                   {name1} has {num_gt1} annotations
+                   {name2} has {num_gt2} annotations
+                   ''')
+                msg = msgfmt.format(name1=name1, name2=name2,
+                                    num_gt1=len(aid1_and_groundtruth),
+                                    num_gt2=len(aid2_and_groundtruth),)
+                if not guitool.are_you_sure(parent=None, msg=msg, default='Yes'):
+                    raise UserCancelException('canceled merge')
+            status =  _set_annot_name_rowids(aid1_and_groundtruth, [nid2] * len(aid1_and_groundtruth))
         elif isunknown2 and not isunknown1:
             print('...match unknown2 into known1')
             status =  _set_annot_name_rowids([aid2], [nid1])
@@ -324,7 +353,7 @@ def mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False):
         else:
             status = 'error'
             print('There are %d annots in this name. Need more sophisticated split' % (len(aid1_groundtruth)))
-            raise ComplexSplitException()
+            raise NeedUserInputException('non-trivial split')
     else:
         isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
         if isunknown1 and isunknown2:
@@ -618,8 +647,7 @@ def get_status_bgrole(ibs, aid_pair):
     aid1, aid2 = aid_pair
     truth = ibs.get_match_truth(aid1, aid2)
     #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
-    truth_color = vh.get_truth_color(truth, base255=True,
-                                        lighten_amount=0.35)
+    truth_color = vh.get_truth_color(truth, base255=True, lighten_amount=0.35)
     return truth_color
 
 
@@ -713,9 +741,14 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
         #('opt',       opts),
     ])
 
+    #get_status_bgrole_func = partial(get_status_bgrole, ibs)
     col_bgrole_dict = {
-        'status': partial(get_status_bgrole, ibs),
+        'status' : partial(get_status_bgrole, ibs),
+        #'aid'    : get_status_bgrole_func,
+        #'qaid'   : get_status_bgrole_func,
     }
+    # TODO: remove ider dict.
+    # it is massively unuseful
     col_ider_dict = {
         'status'     : ('qaid', 'aid'),
         'querythumb' : ('qaid'),

@@ -436,77 +436,6 @@ def check_annot_consistency(ibs, aid_list=None):
     ut.debug_duplicate_items(visual_uuid_list)
 
 
-def fix_remove_visual_dupliate_annotations(ibs):
-    r"""
-    depricate because duplicate visual_uuids
-    are no longer allowed to be duplicates
-
-    Add to clean database?
-
-    removes visually duplicate annotations
-
-    Args:
-        ibs (IBEISController):
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('GZ_ALL')
-        >>> fix_remove_visual_dupliate_annotations(ibs)
-    """
-    aid_list = ibs.get_valid_aids()
-    visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
-    ibs_dup_annots = ut.debug_duplicate_items(visual_uuid_list)
-    dupaids_list = []
-    if len(ibs_dup_annots):
-        for key, dupxs in six.iteritems(ibs_dup_annots):
-            aids = ut.list_take(aid_list, dupxs)
-            dupaids_list.append(aids[1:])
-
-        toremove_aids = ut.flatten(dupaids_list)
-        print('About to delete toremove_aids=%r' % (toremove_aids,))
-        if ut.are_you_sure():
-            ibs.delete_annots(toremove_aids)
-
-            aid_list = ibs.get_valid_aids()
-            visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
-            ibs_dup_annots = ut.debug_duplicate_items(visual_uuid_list)
-            assert len(ibs_dup_annots) == 0
-
-
-@__injectable
-def vacuum_and_clean_databases(ibs):
-    # Add to duct tape?
-    #ibs.vdd()
-    print(ibs.db.get_table_names())
-    # Removes all lblannots and lblannot relations as we are not using them
-    if False:
-        print(ibs.db.get_table_csv(const.NAME_TABLE))
-        print(ibs.db.get_table_csv(const.ANNOTATION_TABLE))
-        print(ibs.db.get_table_csv(const.LBLTYPE_TABLE))
-        print(ibs.db.get_table_csv(const.LBLANNOT_TABLE))
-        print(ibs.db.get_table_csv(const.AL_RELATION_TABLE))
-    # Get old table indexes
-    #lbltype_rowids = ibs.db.get_all_rowids(const.LBLTYPE_TABLE)
-    lblannot_rowids = ibs.db.get_all_rowids(const.LBLANNOT_TABLE)
-    alr_rowids = ibs.db.get_all_rowids(const.AL_RELATION_TABLE)
-    # delete those tables
-    #ibs.db.delete_rowids(const.LBLTYPE_TABLE, lbltype_rowids)
-    ibs.db.delete_rowids(const.LBLANNOT_TABLE, lblannot_rowids)
-    ibs.db.delete_rowids(const.AL_RELATION_TABLE, alr_rowids)
-    ibs.db.vacuum()
-
-
-@__injectable
-def fix_and_clean_database(ibs):
-    #TODO: Call more stuff, maybe rename to 'apply duct tape'
-    ibs.fix_unknown_exemplars()
-    ibs.fix_invalid_name_texts()
-    ibs.fix_invalid_nids()
-    ibs.update_annot_visual_uuids(ibs.get_valid_aids())
-
-
 def check_name_consistency(ibs, nid_list):
     r"""
     Args:
@@ -555,61 +484,8 @@ def check_annot_size(ibs):
     print('size(kpts_list) = ' + ut.byte_str2(ut.get_object_size(kpts_list)))
 
 
-@__injectable
-def check_consistency(ibs, embed=False):
-    print('[ibsfuncs] Checking consistency')
-    gid_list = ibs.get_valid_gids()
-    aid_list = ibs.get_valid_aids()
-    nid_list = ibs.get_valid_nids()
-    check_annot_size(ibs)
-    check_image_consistency(ibs, gid_list)
-    check_annot_consistency(ibs, aid_list)
-    check_name_consistency(ibs, nid_list)
-    # Very slow check
-    check_image_uuid_consistency(ibs, gid_list)
-    if embed:
-        ut.embed()
-    print('[ibsfuncs] Finshed consistency check')
-
-
-@__injectable
-def fix_exif_data(ibs, gid_list):
-    import vtool.exif as exif
-    from PIL import Image
-    gpath_list = ibs.get_image_paths(gid_list)
-    mark_, end_ = ut.log_progress('checking exif: ', len(gpath_list))
-    exif_dict_list = []
-    for ix in range(len(gpath_list)):
-        mark_(ix)
-        gpath = gpath_list[ix]
-        pil_img = Image.open(gpath, 'r')
-        exif_dict = exif.get_exif_dict(pil_img)
-        exif_dict_list.append(exif_dict)
-        #if len(exif_dict) > 0:
-        #    break
-    end_()
-
-    latlon_list = [exif.get_lat_lon(_dict, None) for _dict in exif_dict_list]
-    haslatlon_list = [latlon is not None for latlon in latlon_list]
-
-    latlon_list_ = ut.filter_items(latlon_list, haslatlon_list)
-    gid_list_    = ut.filter_items(gid_list, haslatlon_list)
-
-    gps_list = ibs.get_image_gps(gid_list_)
-    needsupdate_list = [gps == (-1, -1) for gps in gps_list]
-
-    print('%d / %d need gps update' % (sum(needsupdate_list),
-                                       len(needsupdate_list)))
-
-    if sum(needsupdate_list)  > 0:
-        assert sum(needsupdate_list) == len(needsupdate_list), 'safety. remove and evaluate if hit'
-        #ibs.set_image_enctext(gid_list_, ['HASGPS'] * len(gid_list_))
-        latlon_list__ = ut.filter_items(latlon_list_, needsupdate_list)
-        gid_list__ = ut.filter_items(gid_list_, needsupdate_list)
-        ibs.set_image_gps(gid_list__, latlon_list__)
-
-
 def check_exif_data(ibs, gid_list):
+    """ TODO CALL SCRIPT """
     import vtool.exif as exif
     from PIL import Image
     gpath_list = ibs.get_image_paths(gid_list)
@@ -651,20 +527,149 @@ def check_exif_data(ibs, gid_list):
 
 
 @__injectable
-def delete_thumbnails(ibs):
-    ut.remove_files_in_dir(ibs.get_thumbdir())
+def check_consistency(ibs, embed=False):
+    """ Function to run all database consistency checks
+
+    Rename to run_check_consistency_scripts
+
+    """
+    print('[ibsfuncs] Checking consistency')
+    gid_list = ibs.get_valid_gids()
+    aid_list = ibs.get_valid_aids()
+    nid_list = ibs.get_valid_nids()
+    check_annot_size(ibs)
+    check_image_consistency(ibs, gid_list)
+    check_annot_consistency(ibs, aid_list)
+    check_name_consistency(ibs, nid_list)
+    # Very slow check
+    check_image_uuid_consistency(ibs, gid_list)
+    if embed:
+        ut.embed()
+    print('[ibsfuncs] Finshed consistency check')
+
+
+def fix_remove_visual_dupliate_annotations(ibs):
+    r"""
+    depricate because duplicate visual_uuids
+    are no longer allowed to be duplicates
+
+    Add to clean database?
+
+    removes visually duplicate annotations
+
+    Args:
+        ibs (IBEISController):
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> ibs = ibeis.opendb('GZ_ALL')
+        >>> fix_remove_visual_dupliate_annotations(ibs)
+    """
+    aid_list = ibs.get_valid_aids()
+    visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
+    ibs_dup_annots = ut.debug_duplicate_items(visual_uuid_list)
+    dupaids_list = []
+    if len(ibs_dup_annots):
+        for key, dupxs in six.iteritems(ibs_dup_annots):
+            aids = ut.list_take(aid_list, dupxs)
+            dupaids_list.append(aids[1:])
+
+        toremove_aids = ut.flatten(dupaids_list)
+        print('About to delete toremove_aids=%r' % (toremove_aids,))
+        if ut.are_you_sure():
+            ibs.delete_annots(toremove_aids)
+
+            aid_list = ibs.get_valid_aids()
+            visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
+            ibs_dup_annots = ut.debug_duplicate_items(visual_uuid_list)
+            assert len(ibs_dup_annots) == 0
+
+
+#@__injectable
+#def vacuum_and_clean_databases(ibs):
+#    # Add to duct tape? or DEPRICATE
+#    #ibs.vdd()
+#    print(ibs.db.get_table_names())
+#    # Removes all lblannots and lblannot relations as we are not using them
+#    if False:
+#        print(ibs.db.get_table_csv(const.NAME_TABLE))
+#        print(ibs.db.get_table_csv(const.ANNOTATION_TABLE))
+#        print(ibs.db.get_table_csv(const.LBLTYPE_TABLE))
+#        print(ibs.db.get_table_csv(const.LBLANNOT_TABLE))
+#        print(ibs.db.get_table_csv(const.AL_RELATION_TABLE))
+#    if False:
+#        # We deleted these all at one point, but its not a good operation to
+#        # repeat
+#        # Get old table indexes
+#        #lbltype_rowids = ibs.db.get_all_rowids(const.LBLTYPE_TABLE)
+#        lblannot_rowids = ibs.db.get_all_rowids(const.LBLANNOT_TABLE)
+#        alr_rowids = ibs.db.get_all_rowids(const.AL_RELATION_TABLE)
+#        # delete those tables
+#        #ibs.db.delete_rowids(const.LBLTYPE_TABLE, lbltype_rowids)
+#        ibs.db.delete_rowids(const.LBLANNOT_TABLE, lblannot_rowids)
+#        ibs.db.delete_rowids(const.AL_RELATION_TABLE, alr_rowids)
+#    ibs.db.vacuum()
 
 
 @__injectable
-def delete_flann_cachedir(ibs):
-    print('[ibs] delete_flann_cachedir')
-    flann_cachedir = ibs.get_flann_cachedir()
-    ut.remove_files_in_dir(flann_cachedir)
+def fix_and_clean_database(ibs):
+    """ Function to run all database cleanup scripts
+
+    Rename to run_cleanup_scripts
+
+    Break into two funcs:
+        run_cleanup_scripts
+        run_fixit_scripts
+
+    """
+    #TODO: Call more stuff, maybe rename to 'apply duct tape'
+    ibs.fix_unknown_exemplars()
+    ibs.fix_invalid_name_texts()
+    ibs.fix_invalid_nids()
+    ibs.update_annot_visual_uuids(ibs.get_valid_aids())
+    ibs.delete_empty_nids()
+    ibs.delete_empty_eids()
+    ibs.db.vacuum()
 
 
-def print_flann_cachedir(ibs):
-    flann_cachedir = ibs.get_flann_cachedir()
-    print(ut.list_str(ut.ls(flann_cachedir)))
+@__injectable
+def fix_exif_data(ibs, gid_list):
+    """ TODO CALL SCRIPT """
+    import vtool.exif as exif
+    from PIL import Image
+    gpath_list = ibs.get_image_paths(gid_list)
+    mark_, end_ = ut.log_progress('checking exif: ', len(gpath_list))
+    exif_dict_list = []
+    for ix in range(len(gpath_list)):
+        mark_(ix)
+        gpath = gpath_list[ix]
+        pil_img = Image.open(gpath, 'r')
+        exif_dict = exif.get_exif_dict(pil_img)
+        exif_dict_list.append(exif_dict)
+        #if len(exif_dict) > 0:
+        #    break
+    end_()
+
+    latlon_list = [exif.get_lat_lon(_dict, None) for _dict in exif_dict_list]
+    haslatlon_list = [latlon is not None for latlon in latlon_list]
+
+    latlon_list_ = ut.filter_items(latlon_list, haslatlon_list)
+    gid_list_    = ut.filter_items(gid_list, haslatlon_list)
+
+    gps_list = ibs.get_image_gps(gid_list_)
+    needsupdate_list = [gps == (-1, -1) for gps in gps_list]
+
+    print('%d / %d need gps update' % (sum(needsupdate_list),
+                                       len(needsupdate_list)))
+
+    if sum(needsupdate_list)  > 0:
+        assert sum(needsupdate_list) == len(needsupdate_list), 'safety. remove and evaluate if hit'
+        #ibs.set_image_enctext(gid_list_, ['HASGPS'] * len(gid_list_))
+        latlon_list__ = ut.filter_items(latlon_list_, needsupdate_list)
+        gid_list__ = ut.filter_items(gid_list_, needsupdate_list)
+        ibs.set_image_gps(gid_list__, latlon_list__)
 
 
 @__injectable
@@ -766,6 +771,23 @@ def delete_all_annotations(ibs):
     all_aids = ibs._get_all_aids()
     ibs.delete_annots(all_aids)
     print('[ibs] finished delete_all_annotations')
+
+
+@__injectable
+def delete_thumbnails(ibs):
+    ut.remove_files_in_dir(ibs.get_thumbdir())
+
+
+@__injectable
+def delete_flann_cachedir(ibs):
+    print('[ibs] delete_flann_cachedir')
+    flann_cachedir = ibs.get_flann_cachedir()
+    ut.remove_files_in_dir(flann_cachedir)
+
+
+def print_flann_cachedir(ibs):
+    flann_cachedir = ibs.get_flann_cachedir()
+    print(ut.list_str(ut.ls(flann_cachedir)))
 
 
 @__injectable
@@ -874,11 +896,10 @@ def get_annot_bbox_area(ibs, aid_list):
 
 
 #@__injectable
-
-
-@__injectable
-def rebase_images(ibs, new_path, gid_list=None):
+def DEPRICATE_rebase_images(ibs, new_path, gid_list=None):
     """
+    DEPRICATE
+
     Moves the images into the ibeis image cache.
     Images are renamed to img_uuid.ext
     """
@@ -897,23 +918,6 @@ def rebase_images(ibs, new_path, gid_list=None):
     assert all(new_exists), 'some rebased images do not exist'
     ibs.set_image_uris(gid_list, new_gpath_list)
     assert  'not all images copied'
-
-
-@__injectable
-def delete_invalid_nids(ibs):
-    """ Removes names that have no Rois from the database """
-    invalid_nids = ibs.get_invalid_nids()
-    ibs.delete_names(invalid_nids)
-
-
-@__injectable
-def delete_invalid_eids(ibs):
-    """ Removes encounters without images """
-    eid_list = ibs.get_valid_eids(min_num_gids=0)
-    nGids_list = ibs.get_encounter_num_gids(eid_list)
-    is_invalid = [nGids == 0 for nGids in nGids_list]
-    invalid_eids = ut.filter_items(eid_list, is_invalid)
-    ibs.delete_encounters(invalid_eids)
 
 
 @__injectable
@@ -1222,8 +1226,8 @@ def get_species_dbs(species_prefix):
 #    delete_gid_flag_list = [not any(flags) for flags in flags_list]
 #    delete_gid_list = ut.filter_items(gid_list, delete_gid_flag_list)
 #    ibs.delete_images(delete_gid_list)
-#    delete_invalid_eids(ibs)
-#    delete_invalid_nids(ibs)
+#    delete_empty_eids(ibs)
+#    delete_empty_nids(ibs)
 
 
 #@__injectable
@@ -1463,9 +1467,14 @@ def print_stats(ibs):
 
 
 @__injectable
-def print_dbinfo(ibs):
+def print_dbinfo(ibs, **kwargs):
     from ibeis.dev import dbinfo
-    dbinfo.get_dbinfo(ibs)
+    dbinfo.get_dbinfo(ibs, *kwargs)
+
+
+@__injectable
+def print_infostr(ibs, **kwargs):
+    print(ibs.get_infostr())
 
 
 @__injectable
@@ -2370,6 +2379,7 @@ def fix_invalid_nids(ibs):
         >>> # verify results
         >>> print(result)
     """
+    print('[ibs] fixing invalid nids (nids that are <= ibs.UKNOWN_NAME_ROWID)')
     # Get actual rowids from sql database (no postprocessing)
     nid_list = ibs._get_all_known_name_rowids()
     # Get actual names from sql database (no postprocessing)
@@ -2381,6 +2391,8 @@ def fix_invalid_nids(ibs):
         if (len(invalid_nids) == 0 and
               invalid_nids[0] == ibs.UNKNOWN_NAME_ROWID and
               invalid_texts[0] == const.UNKNOWN):
+            print('[ibs] fuond bad name rowids = %r' % (invalid_nids,))
+            print('[ibs] fuond bad name texts  = %r' % (invalid_texts,))
             ibs.delete_names([ibs.UNKNOWN_NAME_ROWID])
         else:
             errmsg = 'Unfixable error: Found invalid (nid, text) pairs: '
@@ -2727,9 +2739,12 @@ def get_quality_texts(quality_list):
     return ut.dict_take(const.QUALITY_INT_TO_TEXT, quality_list)
 
 
-def batch_rename_names_for_great_zebra_count(ibs):
+def GreatZebraCount_batch_rename(ibs):
     """
     python dev.py --db PZ_MUGU_19 --cmd
+    python dev.py --db PZ_MUGU_20 --cmd
+    python dev.py --db PZ_MUGU_18 --cmd
+    python dev.py --db GIRM_MUGU_20 --cmd
     """
     nid_list = ibs.get_valid_nids()
     name_list = ibs.get_name_texts(nid_list)
@@ -2738,6 +2753,85 @@ def batch_rename_names_for_great_zebra_count(ibs):
     print(ibs.get_name_texts(nid_list))
     ibs.cfg.other_cfg.location_for_names = 'MUGU'
     ibs.cfg.save()
+
+
+def GreatZebraCount_mergedbs():
+    """ docstr """
+
+    import ibeis
+    #ibeis.opendb('PZ_MUGU_18')
+    #ibeis.opendb('GIRM_MUGU_20')
+
+    ibs_pz_mugu_18 = ibeis.opendb('PZ_MUGU_18')
+    ibs_pz_mugu_19 = ibeis.opendb('PZ_MUGU_19')
+    ibs_pz_mugu_20 = ibeis.opendb('PZ_MUGU_20')
+
+    ibs_pz_mugu_all  = ibeis.opendb('PZ_MUGU_ALL', allow_newdir=True)
+    #ibs_mugu_all = ibeis.opendb('PZ_MUGU_ALL', allow_newdir=True, delete_ibsdir=True)
+
+    def merge_rename(ibs, num):
+        nid_list = ibs.get_valid_nids()
+        name_list = ibs.get_name_texts(nid_list)
+        assert all(['IBEIS' not in name for name in name_list])
+        repl = 'MUGU_%d' % num
+        new_name_list = [
+            name if repl in name else name.replace('MUGU', repl)
+            for name in name_list
+        ]
+        ibs.set_name_texts(nid_list, new_name_list)
+
+    merge_rename(ibs_pz_mugu_18, 18)
+    merge_rename(ibs_pz_mugu_19, 19)
+    merge_rename(ibs_pz_mugu_20, 20)
+
+    ibs_pz_mugu_18.print_name_table()
+    ibs_pz_mugu_20.print_name_table()
+    ibs_pz_mugu_19.print_name_table()
+    ibs_pz_mugu_all.print_name_table()
+
+    #ibeis.ibsfuncs.GreatZebraCount_batch_rename(ibs_pz_mugu_19)
+    #ibeis.ibsfuncs.GreatZebraCount_batch_rename(ibs_pz_mugu_20)
+
+    ibs_pz_mugu_18.fix_and_clean_database()
+    ibs_pz_mugu_19.fix_and_clean_database()
+    ibs_pz_mugu_20.fix_and_clean_database()
+    ibs_pz_mugu_all.fix_and_clean_database()
+
+    ibs_pz_mugu_18.print_dbinfo()
+    ibs_pz_mugu_19.print_dbinfo()
+    ibs_pz_mugu_20.print_dbinfo()
+    ibs_pz_mugu_all.print_dbinfo()
+
+    ibs_pz_mugu_19.print_infostr()
+    ibs_pz_mugu_20.print_infostr()
+    ibs_pz_mugu_all.print_infostr()
+
+    # Merging works from {19}->{}
+    ibeis.dbio.export_subset.merge_databases(ibs_pz_mugu_18, ibs_pz_mugu_all)
+    ibeis.dbio.export_subset.merge_databases(ibs_pz_mugu_19, ibs_pz_mugu_all)
+    # Remerging ignores due to the contributor from {19}->{19} This should be
+    # changed. Images may be added and annots may be added also things might be
+    # changed.
+    #ibeis.dbio.export_subset.merge_databases(ibs_pz_mugu_19, ibs_mugu_all)
+    ibeis.dbio.export_subset.merge_databases(ibs_pz_mugu_20, ibs_pz_mugu_all)
+
+    len(ibs_pz_mugu_all.get_name_texts(ibs_pz_mugu_all.get_valid_nids()))
+    ibs_pz_mugu_all.get_name_texts(ibs_pz_mugu_all.get_valid_nids())
+
+    ####
+
+    ibs_girm_mugu_20 = ibeis.opendb('GIRM_MUGU_20', allow_newdir=True)
+    ibs_girm_mugu_20.fix_and_clean_database()
+
+    # Master multi-species database
+    ibs_pz_mugu_all = ibeis.opendb('PZ_MUGU_ALL')
+    ibs_mugu_master = ibeis.opendb('MUGU_MASTER', allow_newdir=True)
+    # Merge all PZ into Master
+    ibeis.dbio.export_subset.merge_databases(ibs_pz_mugu_all, ibs_mugu_master)
+    # Merge all GIRM into Master
+    ibeis.dbio.export_subset.merge_databases(ibs_girm_mugu_20, ibs_mugu_master)
+    ibs_mugu_master.print_dbinfo()
+    ibs_mugu_master.print_dbinfo()
 
 
 def detect_false_positives(ibs):
@@ -2760,8 +2854,11 @@ def detect_false_positives(ibs):
     #    top_aids = qres.get_top_aids(num=2)
 
 
-def set_exemplars_from_quality_and_view_for_mugu(ibs):
+@__injectable
+def set_exemplars_from_quality_and_viewpoint(ibs):
     """
+    Automatic exemplar selection algorithm based on viewpoint and quality
+
     Ignore:
         # We want to choose the minimum per-item weight w such that
         # we can't pack more than N w's into the knapsack
@@ -2808,15 +2905,18 @@ def set_exemplars_from_quality_and_view_for_mugu(ibs):
     # TODO: figure out mathematically ellegant value
     pref_decimator = N ** 2
     # we want space to specify two levels of tier1 preference
-    num_teir1_prefs = 2
+    num_teir1_prefs = 3
     pref_teir1 = w / (num_teir1_prefs * pref_decimator)
     pref_teir2 = pref_teir1 / pref_decimator
+    pref_teir3 = pref_teir2 / pref_decimator
+    #pref_teir4 = pref_teir3 / pref_decimator
     infeasible_w = max(9001, N + 1)
     qual2_weight = {
-        'perfect':  w + pref_teir1,
+        'perfect':  w + pref_teir1 + pref_teir2,
         'good':  w + pref_teir1,
-        'ok':    w,
-        'bad':   w,
+        'ok':    w + pref_teir2,
+        'UNKNOWN': w + pref_teir2,
+        'bad':   w + pref_teir3,
         'junk':  infeasible_w,
     }
     oldflag_offset = (

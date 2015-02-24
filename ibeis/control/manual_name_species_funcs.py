@@ -247,21 +247,24 @@ def delete_species(ibs, species_rowid_list):
 
 @register_ibs_method
 @ider
-def get_invalid_nids(ibs):
+def get_empty_nids(ibs):
     """
+    get name rowids that do not have any annotations (not including UNKONWN)
+
     Returns:
         list: nid_list - all names without any animals (does not include unknown names)
         an nid is not invalid if it has a valid alias
 
     CommandLine:
-        python -m ibeis.control.manual_name_species_funcs --test-get_invalid_nids
+        python -m ibeis.control.manual_name_species_funcs --test-get_empty_nids
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> nids_list = get_invalid_nids(ibs)
+        >>> new_nid_list = ibs.get_next_nids(num=2)
+        >>> empty_nids = get_empty_nids(ibs)
         >>> result = str(nids_list)
         >>> print(result)
         []
@@ -275,6 +278,15 @@ def get_invalid_nids(ibs):
     hasalias_list = [alias_text is not None for alias_text in ibs.get_name_alias_texts(nid_list)]
     nid_list = list(ut.ifilterfalse_items(nid_list, hasalias_list))
     return nid_list
+
+
+@register_ibs_method
+def delete_empty_nids(ibs):
+    """ Removes names that have no Rois from the database """
+    print('[ibs] deleting empty nids')
+    invalid_nids = ibs.get_empty_nids()
+    print('[ibs] ... %d empty nids' % (len(invalid_nids),))
+    ibs.delete_names(invalid_nids)
 
 
 @register_ibs_method

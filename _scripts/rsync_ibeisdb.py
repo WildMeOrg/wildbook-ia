@@ -74,10 +74,10 @@ def sync_ibeisdb(remote_uri, dbname, mode='pull'):
         raise AssertionError('unknown mode=%r' % (mode,))
 
 
-def sync_pz_mugu_19(mode='pull'):
-    remote_uri = 'joncrall@hyrule.cs.rpi.edu:/raid/work'
-    dbname = 'PZ_MUGU_19'
-    sync_ibeisdb(remote_uri, dbname, mode)
+#def sync_pz_mugu_19(mode='pull'):
+#    remote_uri = 'joncrall@hyrule.cs.rpi.edu:/raid/work'
+#    dbname = 'PZ_MUGU_19'
+#    sync_ibeisdb(remote_uri, dbname, mode)
 
 
 if __name__ == '__main__':
@@ -90,7 +90,10 @@ if __name__ == '__main__':
     """
     import sys
     if len(sys.argv) < 2:
-        print('Usage: rsync_ibeisdb.py [push, pull]')
+        print('Usage: rsync_ibeisdb.py [push, pull] --db <dbname> --user <username>')
         sys.exit(1)
+    user = ut.get_argval('--user', type_=str, default='joncrall')
+    dbname = ut.get_argval(('--db', '--dbname'), type_=str, default='MUGU_MASTER')
     mode = sys.argv[1]
-    sync_pz_mugu_19(mode=mode)
+    remote_uri = user + '@hyrule.cs.rpi.edu:/raid/work'
+    sync_ibeisdb(remote_uri, dbname, mode)

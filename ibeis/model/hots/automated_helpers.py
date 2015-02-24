@@ -209,7 +209,7 @@ def ensure_testdb_clean_data(ibs_gt, ibs2, aid_list1, aid_list2):
 
     # this test is for plains
     #assert  ut.list_all_eq_to(ibs2.get_annot_species_texts(aid_list2), 'zebra_plains')
-    ibs2.delete_invalid_nids()
+    ibs2.delete_empty_nids()
 
 
 def annot_testdb_consistency_checks(ibs_gt, ibs2, aid_list1, aid_list2):
