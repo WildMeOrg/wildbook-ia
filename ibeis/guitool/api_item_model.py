@@ -559,13 +559,13 @@ class APIItemModel(API_MODEL_BASE):
             if utool.USE_ASSERT:
                 assert isinstance(node, _atn.TreeNode), type(node)
         except AssertionError as ex:
-            utool.printex(ex, key_list=['node'], separate=True)
+            utool.printex(ex, key_list=['node'], pad_stdout=True)
             raise
         # get node parent
         try:
             node_parent = node.get_parent()
         except Exception as ex:
-            utool.printex(ex, key_list=['node'], reraise=False, separate=True)
+            utool.printex(ex, key_list=['node'], reraise=False, pad_stdout=True)
             raise
         # parent_node check
         if node_parent is None:

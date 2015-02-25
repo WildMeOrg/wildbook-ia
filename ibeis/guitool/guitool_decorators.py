@@ -43,7 +43,7 @@ def checks_qt_error(func):
         except Exception as ex:
             funcname = meta_util_six.get_funcname(func)
             msg = 'caught exception in %r' % (funcname,)
-            ut.printex(ex, msg, tb=True, separate=True)
+            ut.printex(ex, msg, tb=True, pad_stdout=True)
             raise
         return result
     return checkqterr_wrapper
