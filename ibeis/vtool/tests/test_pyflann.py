@@ -233,7 +233,7 @@ def test_pyflann_searches():
             'query',
             'query.shape',
             'pts.shape',
-        ], separate=True)
+        ], pad_stdout=True)
         #utool.embed()
         raise
 
