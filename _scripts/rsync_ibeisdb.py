@@ -1,4 +1,4 @@
-#/usr/env/bin python
+#!/usr/bin/env python
 """
 CommandLine:
     ib
@@ -85,15 +85,20 @@ if __name__ == '__main__':
     CommandLine:
         ib
         python _scripts/rsync_ibeisdb.py push
-        python _scripts/rsync_ibeisdb.py pull --db MUGU_MASTER  --user joncrall --dryrun
-        python _scripts/rsync_ibeisdb.py push --db MUGU_MASTER  --user joncrall --dryrun
+        python _scripts/rsync_ibeisdb.py pull --db MUGU_Master
+        python _scripts/rsync_ibeisdb.py pull --db GIRM_MUGU_20
+        python _scripts/rsync_ibeisdb.py pull --db PZ_MUGU_ALL
+        python _scripts/rsync_ibeisdb.py push --db MUGU_Master  --user joncrall --dryrun
     """
     import sys
+    default_user = ut.get_user_name()
+    default_db = 'MUGU_Master'
     if len(sys.argv) < 2:
-        print('Usage: rsync_ibeisdb.py [push, pull] --db <dbname> --user <username>')
+        print('Usage: rsync_ibeisdb.py [push, pull] --db <dbname=%s> --user <username=%s>' % (default_db, default_user,))
         sys.exit(1)
-    user = ut.get_argval('--user', type_=str, default='joncrall')
-    dbname = ut.get_argval(('--db', '--dbname'), type_=str, default='MUGU_MASTER')
+    user = ut.get_argval('--user', type_=str, default=default_user)
+    dbname = ut.get_argval(('--db', '--dbname'), type_=str, default=default_db)
     mode = sys.argv[1]
+    assert mode not in ['push', 'pull'], 'mode must be push or pull'
     remote_uri = user + '@hyrule.cs.rpi.edu:/raid/work'
     sync_ibeisdb(remote_uri, dbname, mode)
