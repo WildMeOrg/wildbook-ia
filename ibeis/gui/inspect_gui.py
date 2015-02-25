@@ -710,17 +710,17 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
         'name',
         'rank',
     ]
-    if ut.is_developer():
-        pass
-        col_name_list.insert(2, 'd_nGt')
-        col_name_list.insert(2, 'q_nGt')
-        #col_name_list.insert(2, 'q_nGt')
+    #if ut.is_developer():
+    #    pass
+    #    col_name_list.insert(2, 'd_nGt')
+    #    col_name_list.insert(2, 'q_nGt')
+    #    #col_name_list.insert(2, 'q_nGt')
 
     col_types_dict = dict([
         ('qaid',       int),
         ('aid',        int),
-        ('d_nGt',      int),
-        ('q_nGt',      int),
+        #('d_nGt',      int),
+        #('q_nGt',      int),
         ('review',     'BUTTON'),
         ('status',     str),
         ('querythumb', 'PIXMAP'),
@@ -736,8 +736,8 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     col_getters_dict = dict([
         ('qaid',       np.array(qaids)),
         ('aid',        np.array(aids)),
-        ('d_nGt',      ibs.get_annot_num_groundtruth),
-        ('q_nGt',      ibs.get_annot_num_groundtruth),
+        #('d_nGt',      ibs.get_annot_num_groundtruth),
+        #('q_nGt',      ibs.get_annot_num_groundtruth),
         ('review',     get_rowid_button),
         ('status',     partial(get_status, ibs)),
         ('querythumb', ibs.get_annot_chip_thumbtup),
@@ -760,8 +760,8 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     # it is massively unuseful
     col_ider_dict = {
         'status'     : ('qaid', 'aid'),
-        'd_nGt'      : ('aid'),
-        'q_nGt'      : ('qaid'),
+        #'d_nGt'      : ('aid'),
+        #'q_nGt'      : ('qaid'),
         'querythumb' : ('qaid'),
         'resthumb'   : ('aid'),
         'qname'      : ('qaid'),
