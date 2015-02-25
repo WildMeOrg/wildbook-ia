@@ -51,7 +51,7 @@ def TEST_QUERY_COMP(ibs):
             for name, qres in qres_dict.items():
                 print(name)
                 print(qres.get_inspect_str())
-        utool.printex(ex, keys=['qaid_list'], separate=True)
+        utool.printex(ex, keys=['qaid_list'], pad_stdout=True)
         raise
 
     for px, (lbl, qres) in enumerate(six.iteritems(qres_dict)):
