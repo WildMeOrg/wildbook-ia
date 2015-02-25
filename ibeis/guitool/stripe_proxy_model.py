@@ -7,29 +7,30 @@ import utool
 import six
 utool.noinject(__name__, '[StripProxyModel]', DEBUG=False)
 
-#BASE_CLASS = QtGui.QAbstractProxyModel
-#BASE_CLASS = QtGui.QSortFilterProxyModel
-BASE_CLASS = QtGui.QIdentityProxyModel
-META_CLASS = utool.makeForwardingMetaclass(lambda self: self.sourceModel(),
-                                                    ['_set_context_id',
-                                                     '_get_context_id',
-                                                     '_set_changeblocked',
-                                                     '_get_changeblocked',
-                                                     '_about_to_change',
-                                                     '_change',
-                                                     '_update',
-                                                     '_rows_updated',
-                                                     'name'],
-                                                     base_class=BASE_CLASS)
+#STRIPE_PROXY_BASE = QtGui.QAbstractProxyModel
+#STRIPE_PROXY_BASE = QtGui.QSortFilterProxyModel
+STRIPE_PROXY_BASE = QtGui.QIdentityProxyModel
+STRIP_PROXY_META_CLASS = utool.makeForwardingMetaclass(
+    lambda self: self.sourceModel(),
+    ['_set_context_id',
+     '_get_context_id',
+     '_set_changeblocked',
+     '_get_changeblocked',
+     '_about_to_change',
+     '_change',
+     '_update',
+     '_rows_updated',
+     'name'],
+    base_class=STRIPE_PROXY_BASE)
 
-SIX_BASE = six.with_metaclass(META_CLASS, BASE_CLASS)
+STRIP_PROXY_SIX_BASE = six.with_metaclass(STRIP_PROXY_META_CLASS, STRIPE_PROXY_BASE)
 
 
-class StripeProxyModel(SIX_BASE):  # (BASE_CLASS, metaclass=META_CLASS):
-    #__metaclass__ = META_CLASS
+class StripeProxyModel(STRIP_PROXY_SIX_BASE):  # (STRIPE_PROXY_BASE, metaclass=STRIP_PROXY_META_CLASS):
+    #__metaclass__ = STRIP_PROXY_META_CLASS
 
     def __init__(self, parent=None, numduplicates=1):
-        BASE_CLASS.__init__(self, parent=parent)
+        STRIPE_PROXY_BASE.__init__(self, parent=parent)
         self._nd = numduplicates
 
     def rowCount(self, parent=QtCore.QModelIndex()):

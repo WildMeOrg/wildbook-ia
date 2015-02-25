@@ -35,21 +35,6 @@ from guitool import guitool_main
 from guitool import guitool_misc
 from guitool import qtype
 
-from guitool.guitool_tables import *
-from guitool.guitool_dialogs import *
-from guitool.guitool_decorators import *
-from guitool.guitool_delegates import *
-from guitool.guitool_components import *
-from guitool.guitool_main import *
-from guitool.guitool_misc import *
-from guitool.api_item_model import *
-from guitool.api_table_view import *
-from guitool.api_tree_view import *
-from guitool.api_item_widget import *
-from guitool.stripe_proxy_model import *
-from guitool.filter_proxy_model import *
-from guitool.qtype import *
-
 import utool
 
 print, print_, printDBG, rrr, profile = utool.inject(
@@ -76,4 +61,181 @@ def reload_subs():
         guitool_components.rrr()
 
 rrrr = reload_subs
-#print('__guitool__3')
+
+
+IMPORT_TUPLES = [
+    ('guitool_main', None),
+    ('guitool_components', None),
+    ('guitool_dialogs', None),
+    ('guitool_decorators', None),
+    ('guitool_misc', None),
+    ('api_item_model', None),
+    ('api_tree_view', None),
+    ('api_table_view', None),
+    ('qtype', None),
+    ('stripe_proxy_model', None),
+    ('filter_proxy_model', None),
+]
+"""
+python -c "import guitool" --dump-guitool-init
+python -c "import guitool" --update-guitool-init
+"""
+__DYNAMIC__ = not ut.get_argflag('--nodyn')
+DOELSE = False
+if __DYNAMIC__:
+    # TODO: import all utool external prereqs. Then the imports will not import
+    # anything that has already in a toplevel namespace
+    # COMMENTED OUT FOR FROZEN __INIT__
+    # Dynamically import listed util libraries and their members.
+    from utool._internal import util_importer
+    # FIXME: this might actually work with rrrr, but things arent being
+    # reimported because they are already in the modules list
+    ignore_endswith = ['_cyth']
+    ignore_list = ['Qt']
+    import_execstr = util_importer.dynamic_import(__name__, IMPORT_TUPLES,
+                                                  ignore_endswith=ignore_endswith,
+                                                  ignore_list=ignore_list,
+                                                  verbose=False)
+    exec(import_execstr)
+    DOELSE = False
+else:
+    # Do the nonexec import (can force it to happen no matter what if alwyas set
+    # to True)
+    DOELSE = True
+
+# This screws up dynamic_import if it is placed before
+from guitool.guitool_tables import *
+from guitool.guitool_dialogs import *
+from guitool.guitool_decorators import *
+from guitool.guitool_delegates import *
+from guitool.guitool_components import *
+from guitool.guitool_main import *
+from guitool.guitool_misc import *
+from guitool.api_item_model import *
+from guitool.api_table_view import *
+from guitool.api_tree_view import *
+from guitool.api_item_widget import *
+from guitool.stripe_proxy_model import *
+from guitool.filter_proxy_model import *
+from guitool.qtype import *
+
+if DOELSE:
+    pass
+    # <AUTOGEN_INIT>
+
+    from guitool import guitool_main
+    from guitool import guitool_components
+    from guitool import guitool_dialogs
+    from guitool import guitool_decorators
+    from guitool import guitool_misc
+    from guitool import api_item_model
+    from guitool import api_tree_view
+    from guitool import api_table_view
+    from guitool import qtype
+    from guitool import stripe_proxy_model
+    from guitool import filter_proxy_model
+    from guitool.guitool_main import (IS_ROOT_WINDOW, QAPP, QUIET, VERBOSE, 
+                                      activate_qwindow, ensure_qapp, 
+                                      ensure_qtapp, exit_application, 
+                                      get_qtapp, init_qtapp, 
+                                      ping_python_interpreter, 
+                                      pyqtRemoveInputHook, qtapp_loop, 
+                                      qtapp_loop_nonblocking, 
+                                      remove_pyqt_input_hook,) 
+    from guitool.guitool_components import (ALIGN_DICT, QSizePolicy, 
+                                            adjust_font, getAvailableFonts, 
+                                            layoutSplitter, make_style_sheet, 
+                                            msg_event, newButton, newCheckBox, 
+                                            newComboBox, newFont, newLabel, 
+                                            newLineEdit, newMenu, 
+                                            newMenuAction, newMenubar, 
+                                            newOutputLog, newProgressBar, 
+                                            newQPoint, newSizePolicy, 
+                                            newSplitter, newTabWidget, 
+                                            newTextEdit, newWidget,) 
+    from guitool.guitool_dialogs import (SELDIR_CACHEID, are_you_sure, 
+                                         build_nested_qmenu, 
+                                         connect_context_menu, msgbox, 
+                                         newFileDialog, popup_menu, 
+                                         select_directory, select_files, 
+                                         select_images, user_info, user_input, 
+                                         user_option, user_question,) 
+    from guitool.guitool_decorators import (DEBUG, checks_qt_error, signal_, 
+                                            slot_,) 
+    from guitool.guitool_misc import (GUILoggingHandler, GUILoggingSender, 
+                                      QLoggedOutput, WITH_GUILOG, 
+                                      get_cplat_tab_height, 
+                                      get_view_selection_as_str,) 
+    from guitool.api_item_model import (APIItemModel, API_MODEL_BASE, 
+                                        ChangeLayoutContext, QVariantHack, 
+                                        default_method_decorator, updater,) 
+    from guitool.api_tree_view import (APITreeView, API_VIEW_BASE,) 
+    from guitool.api_table_view import (APITableView,) 
+    from guitool.qtype import (ItemDataRoles, LOCALE, QLocale, QString, 
+                               QT_BUTTON_TYPES, QT_COMBO_TYPES, 
+                               QT_DELEGATE_TYPES, QT_ICON_TYPES, 
+                               QT_IMAGE_TYPES, QT_PIXMAP_TYPES, QVariant, 
+                               SIMPLE_CASTING, cast_from_qt, cast_into_qt, 
+                               infer_coltype, locale_float, numpy_to_qicon, 
+                               numpy_to_qpixmap, qindexinfo, to_qcolor,) 
+    from guitool.stripe_proxy_model import (BASE_CLASS, META_CLASS, SIX_BASE, 
+                                            StripeProxyModel,) 
+    from guitool.filter_proxy_model import (FilterProxyModel,) 
+    import utool
+    print, print_, printDBG, rrr, profile = utool.inject(
+        __name__, '[guitool]')
+    
+    
+    def reassign_submodule_attributes(verbose=True):
+        """
+        why reloading all the modules doesnt do this I don't know
+        """
+        import sys
+        if verbose and '--quiet' not in sys.argv:
+            print('dev reimport')
+        # Self import
+        import guitool
+        # Implicit reassignment.
+        seen_ = set([])
+        for tup in IMPORT_TUPLES:
+            if len(tup) > 2 and tup[2]:
+                continue  # dont import package names
+            submodname, fromimports = tup[0:2]
+            submod = getattr(guitool, submodname)
+            for attr in dir(submod):
+                if attr.startswith('_'):
+                    continue
+                if attr in seen_:
+                    # This just holds off bad behavior
+                    # but it does mimic normal util_import behavior
+                    # which is good
+                    continue
+                seen_.add(attr)
+                setattr(guitool, attr, getattr(submod, attr))
+    
+    
+    def reload_subs(verbose=True):
+        """ Reloads guitool and submodules """
+        rrr(verbose=verbose)
+        def fbrrr(*args, **kwargs):
+            """ fallback reload """
+            pass
+        getattr(guitool_main, 'rrr', fbrrr)(verbose=verbose)
+        getattr(guitool_components, 'rrr', fbrrr)(verbose=verbose)
+        getattr(guitool_dialogs, 'rrr', fbrrr)(verbose=verbose)
+        getattr(guitool_decorators, 'rrr', fbrrr)(verbose=verbose)
+        getattr(guitool_misc, 'rrr', fbrrr)(verbose=verbose)
+        getattr(api_item_model, 'rrr', fbrrr)(verbose=verbose)
+        getattr(api_tree_view, 'rrr', fbrrr)(verbose=verbose)
+        getattr(api_table_view, 'rrr', fbrrr)(verbose=verbose)
+        getattr(qtype, 'rrr', fbrrr)(verbose=verbose)
+        getattr(stripe_proxy_model, 'rrr', fbrrr)(verbose=verbose)
+        getattr(filter_proxy_model, 'rrr', fbrrr)(verbose=verbose)
+        rrr(verbose=verbose)
+        try:
+            # hackish way of propogating up the new reloaded submodule attributes
+            reassign_submodule_attributes(verbose=verbose)
+        except Exception as ex:
+            print(ex)
+    rrrr = reload_subs
+    # </AUTOGEN_INIT>
