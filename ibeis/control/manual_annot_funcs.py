@@ -802,7 +802,6 @@ def get_annot_has_groundtruth(ibs, aid_list, is_exemplar=None, noself=True, daid
     numgts_list = ibs.get_annot_num_groundtruth(aid_list, is_exemplar=is_exemplar,
                                                 noself=noself,
                                                 daid_list=daid_list)
-
     has_gt_list = [num_gts > 0 for num_gts in numgts_list]
     return has_gt_list
 

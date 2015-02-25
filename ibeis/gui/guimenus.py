@@ -390,6 +390,10 @@ def setup_developer_menu(mainwin, back):
         shortcut='Ctrl+Shift+R',
         slot_fn=back.dev_reload)
     mainwin.menuDev.newAction(
+        name='actionDevRunTests',
+        text='Run Developer Tests',
+        slot_fn=back.run_tests)
+    mainwin.menuDev.newAction(
         name='actionDeveloper_mode',
         text='Developer IPython',
         shortcut='Ctrl+Shift+I',

@@ -537,6 +537,8 @@ class QueryRequest(object):
     def ensure_featweights(qreq_, verbose=True):
         """ ensure feature weights are computed """
         #with ut.EmbedOnException():
+        if verbose:
+            print('[qreq] ensure_featweights')
         internal_qaids = qreq_.get_internal_qaids()
         internal_daids = qreq_.get_internal_daids()
         # TODO: pass qreq_ down so the right parameters are computed
@@ -568,7 +570,7 @@ class QueryRequest(object):
         if qreq_.normalizer is not None:
             return False
         if verbose:
-            print('loading score normalizer')
+            print('[qreq] loading score normalizer')
         # TODO: SYSTEM updatable normalizer
         normalizer = score_normalization.request_ibeis_normalizer(qreq_, verbose=verbose)
         qreq_.normalizer = normalizer
@@ -583,7 +585,7 @@ class QueryRequest(object):
         if qreq_.dstcnvs_normer is not None:
             return False
         if verbose:
-            print('loading external distinctiveness normalizer')
+            print('[qreq] loading external distinctiveness normalizer')
         # TODO: SYSTEM updatable dstcnvs_normer
         dstcnvs_normer = distinctiveness_normalizer.request_ibeis_distinctiveness_normalizer(qreq_, verbose=verbose)
         qreq_.dstcnvs_normer = dstcnvs_normer

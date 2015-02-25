@@ -710,10 +710,17 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
         'name',
         'rank',
     ]
+    if ut.is_developer():
+        pass
+        col_name_list.insert(2, 'd_nGt')
+        col_name_list.insert(2, 'q_nGt')
+        #col_name_list.insert(2, 'q_nGt')
 
     col_types_dict = dict([
         ('qaid',       int),
         ('aid',        int),
+        ('d_nGt',      int),
+        ('q_nGt',      int),
         ('review',     'BUTTON'),
         ('status',     str),
         ('querythumb', 'PIXMAP'),
@@ -729,6 +736,8 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     col_getters_dict = dict([
         ('qaid',       np.array(qaids)),
         ('aid',        np.array(aids)),
+        ('d_nGt',      ibs.get_annot_num_groundtruth),
+        ('q_nGt',      ibs.get_annot_num_groundtruth),
         ('review',     get_rowid_button),
         ('status',     partial(get_status, ibs)),
         ('querythumb', ibs.get_annot_chip_thumbtup),
@@ -751,6 +760,8 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     # it is massively unuseful
     col_ider_dict = {
         'status'     : ('qaid', 'aid'),
+        'd_nGt'      : ('aid'),
+        'q_nGt'      : ('qaid'),
         'querythumb' : ('qaid'),
         'resthumb'   : ('aid'),
         'qname'      : ('qaid'),
@@ -899,17 +910,20 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         dict: locals_
 
     CommandLine:
-        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --cmd
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.gui.inspect_gui import *  # NOQA
         >>> import ibeis
+        >>> import guitool
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()[0:1]
-        >>> daid_list = ibs.get_valid_aids()
+        >>> daid_list = ibs.get_valid_aids()[0:20]
         >>> main_locals = test_inspect_matches(ibs, qaid_list, daid_list)
         >>> main_execstr = ibeis.main_loop(main_locals)
+        >>> if ut.show_was_requested():
+        >>>     guitool.qtapp_loop()
         >>> print(main_execstr)
         >>> exec(main_execstr)
     """
@@ -942,9 +956,10 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
 
 if __name__ == '__main__':
     """
+    # Broken:
+        python -m ibeis.gui.inspect_gui --test-test_singleres_api --show
     CommandLine:
-        python -m ibeis.gui.inspect_gui --test-test_singleres_api --cmd
-        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --cmd
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
 
         python -m ibeis.gui.inspect_gui
         python -m ibeis.gui.inspect_gui --allexamples

@@ -259,14 +259,14 @@ for nametup, repo_url in TPL_MODULES_AND_REPOS:
 # Non local project repos
 (IBEIS_REPO_URLS, IBEIS_REPO_DIRS) = ut.repo_list([
     'https://github.com/Erotemic/utool.git',
+    'https://github.com/Erotemic/vtool.git',
     'https://github.com/Erotemic/guitool.git',
     'https://github.com/Erotemic/plottool.git',
-    'https://github.com/Erotemic/vtool.git',
     'https://github.com/bluemellophone/detecttools.git',
-    'https://github.com/Erotemic/hesaff.git',
     'https://github.com/bluemellophone/pyrf.git',
+    'https://github.com/Erotemic/hesaff.git',
     'https://github.com/Erotemic/ibeis.git',
-    'https://github.com/aweinstock314/cyth.git',
+    #'https://github.com/aweinstock314/cyth.git',
     #'https://github.com/hjweide/pygist',
 ], CODE_DIR, forcessh=False)
 

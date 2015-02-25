@@ -2060,10 +2060,10 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
         >>> seed = 143039
         >>> upsizetup = get_upsize_data(ibs, qaid_list, daid_list, num_samp, clamp_gt, clamp_gf, seed)
         >>> (qaid_list, qaid_trues_list, qaid_false_samples_list, nTotal) = upsizetup
-        >>> assert len(qaid_list) == 119
-        >>> assert len(qaid_trues_list) == 119
-        >>> assert len(qaid_false_samples_list) == 119
-        >>> assert nTotal == 525
+        >>> ut.assert_eq(len(qaid_list), 119, var1_name='len(qaid_list)')
+        >>> ut.assert_eq(len(qaid_trues_list), 119, var1_name='len(qaid_trues_list)')
+        >>> ut.assert_eq(len(qaid_false_samples_list), 119, var1_name='len(qaid_false_samples_list)')
+        >>> ut.assert_eq(nTotal, 525, var1_name='nTotal')
         >>> qaid, true_aids, false_aids_samples = six.next(zip(qaid_list, qaid_trues_list, qaid_false_samples_list))
         >>> result = ut.hashstr(str(upsizetup))
         >>> print(result)
@@ -2926,6 +2926,7 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
 
     CommandLine:
         python -m ibeis.ibsfuncs --test-set_exemplars_from_quality_and_viewpoint
+        python -m ibeis.ibsfuncs --test-set_exemplars_from_quality_and_viewpoint:1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2944,6 +2945,21 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
         >>> zero_aid_list, zero_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(exemplars_per_view=0, dry_run=dry_run)
         >>> assert sum(zero_flag_list) == 0
         >>> result = new_sum
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> #ibs = ibeis.opendb('PZ_MUGU_19')
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> dry_run = True
+        >>> verbose = False
+        >>> old_sum = sum(ibs.get_annot_exemplar_flags(ibs.get_valid_aids()))
+        >>> new_aid_list, new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(dry_run=dry_run)
+        >>> assert len(new_aid_list) == len(new_flag_list)
+        >>> # 2 of the 11 annots are unknown and should not be exemplars
+        >>> ut.assert_eq(len(new_aid_list), 9)
     """
     # General params
     if exemplars_per_view is None:
@@ -3035,6 +3051,9 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
     new_flag_list = []
     _iter = ut.ProgressIter(zip(aids_list, unique_nids), nTotal=len(aids_list), lbl='Optimizing name exemplars')
     for aids_, nid in _iter:
+        if ibs.is_nid_unknown(nid):
+            # do not change unknown animals
+            continue
         yawtexts  = ibs.get_annot_yaw_texts(aids_)
         yawtext2_aids = ut.group_items(aids_, yawtexts)
         if verbose:

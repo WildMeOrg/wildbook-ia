@@ -13,7 +13,7 @@ from six.moves import zip, map, filter  # NOQA
 from os.path import isdir
 import sys
 from ibeis import constants as const
-import functools  # NOQA
+import functools
 from guitool.__PYQT__ import QtGui, QtCore
 from guitool.__PYQT__.QtCore import Qt
 from guitool.__PYQT__.QtGui import QSizePolicy
