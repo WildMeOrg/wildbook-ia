@@ -38,6 +38,12 @@ from os.path import join  # NOQA
 
 
 def fix_pyinstaller_sip_api():
+    """
+    Hack to get the correct version of SIP
+
+    References:
+        http://stackoverflow.com/questions/21217399/pyqt4-qtcore-qvariant-object-instead-of-a-string
+    """
     import PyInstaller
     from os.path import dirname, join  # NOQA
     hook_fpath = join(dirname(PyInstaller.__file__), 'loader', 'rthooks', 'pyi_rth_qt4plugins.py')
@@ -219,6 +225,7 @@ def system_command(command_tuple, detatch=False, sudo=False, shell=False, verbos
 
 def get_setup_dpath():
     assert exists('setup.py'), 'must be run in ibeis directory'
+    assert exists('main.py'), 'must be run in ibeis directory'
     assert exists('../ibeis/ibeis'), 'must be run in ibeis directory'
     cwd = normpath(realpath(dirname(__file__)))
     return cwd
@@ -439,9 +446,11 @@ def test_app():
 def main():
     """
     CommandLine:
+        python installers.py --clean
         python installers.py --all
         python installers.py --inno
         # For linux
+        python installers.py --clean
         python installers.py --build
         python installers.py --test
 
