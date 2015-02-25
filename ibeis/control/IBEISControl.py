@@ -39,6 +39,7 @@ from ibeis import ibsfuncs
 from ibeis.model.hots import pipeline
 #from ibeis.control import controller_inject
 
+# Pyinstaller hacks
 from ibeis.control import _autogen_featweight_funcs  # NOQA
 from ibeis.control import manual_ibeiscontrol_funcs  # NOQA
 from ibeis.control import manual_meta_funcs  # NOQA
@@ -49,8 +50,8 @@ from ibeis.control import manual_image_funcs  # NOQA
 from ibeis.control import manual_annot_funcs  # NOQA
 from ibeis.control import manual_name_species_funcs  # NOQA
 #from ibeis.control import manual_dependant_funcs  # NOQA
-#from ibeis.control import manual_chip_funcs  # NOQA
-#from ibeis.control import manual_feat_funcs  # NOQA
+from ibeis.control import manual_chip_funcs  # NOQA
+from ibeis.control import manual_feat_funcs  # NOQA
 
 
 # Shiny new way to inject external functions

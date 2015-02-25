@@ -39,7 +39,7 @@ from os.path import join  # NOQA
 
 def fix_pyinstaller_sip_api():
     import PyInstaller
-    from os.path import dirname, join
+    from os.path import dirname, join  # NOQA
     hook_fpath = join(dirname(PyInstaller.__file__), 'loader', 'rthooks', 'pyi_rth_qt4plugins.py')
     patch_code = ut.codeblock(
         '''
