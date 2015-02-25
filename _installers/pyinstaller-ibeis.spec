@@ -232,7 +232,7 @@ DATATUP_LIST.append((icon_dst, icon_src))
 # Executable name
 exe_name = {'win32':  'build/IBEISApp.exe',
             'darwin': 'build/pyi.darwin/IBEISApp/IBEISApp',
-            'linux2': 'build/IBEISApp.ln'}[PLATFORM]
+            'linux2': 'build/IBEISApp'}[PLATFORM]
 
 print('[installer] Checking Data')
 for (dst, src) in DATATUP_LIST:

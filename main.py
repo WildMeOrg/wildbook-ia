@@ -17,7 +17,8 @@ CMD = '--cmd' in sys.argv
 
 def dependencies_for_myprogram():
     """ Let pyintaller find these modules """
-    from PyQt4 import QtCore, QtGui  # NOQA
+    from guitool.__PYQT__ import QtCore, QtGui  # Pyinstaller hacks  # NOQA
+    #from PyQt4 import QtCore, QtGui  # NOQA
     from scipy.sparse.csgraph import _validation  # NOQA
     from scipy.special import _ufuncs_cxx  # NOQA
     from mpl_toolkits.axes_grid1 import make_axes_locatable  # NOQA
