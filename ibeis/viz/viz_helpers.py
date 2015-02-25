@@ -4,21 +4,21 @@ import numpy as np
 from six.moves import zip
 import plottool.draw_func2 as df2
 from plottool import plot_helpers as ph
-import utool
+import utool as ut
 import vtool.keypoint as ktool
 from ibeis import ibsfuncs
 from ibeis.control.accessor_decors import getter, getter_vector_output
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz_helpers]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_helpers]', DEBUG=False)
 
 
-NO_LBL_OVERRIDE = utool.get_argval('--no-lbl-override', type_=bool, default=None)
+NO_LBL_OVERRIDE = ut.get_argval('--no-lbl-override', type_=bool, default=None)
 
 
 FNUMS = dict(image=1, chip=2, res=3, inspect=4, special=5, name=6)
 
-IN_IMAGE_OVERRIDE = utool.get_argval('--in-image-override', type_=bool, default=None)
-SHOW_QUERY_OVERRIDE = utool.get_argval('--show-query-override', type_=bool, default=None)
-NO_LBL_OVERRIDE = utool.get_argval('--no-lbl-override', type_=bool, default=None)
+IN_IMAGE_OVERRIDE = ut.get_argval('--in-image-override', type_=bool, default=None)
+SHOW_QUERY_OVERRIDE = ut.get_argval('--show-query-override', type_=bool, default=None)
+NO_LBL_OVERRIDE = ut.get_argval('--no-lbl-override', type_=bool, default=None)
 
 SIFT_OR_VECFIELD  = ph.SIFT_OR_VECFIELD
 
@@ -43,7 +43,7 @@ def get_annot_kpts_in_imgspace(ibs, aid_list, **kwargs):
     try:
         chipsz_list = ibs.get_annot_chip_sizes(aid_list, ensure=ensure)
     except AssertionError as ex:
-        utool.printex(ex, '[!ibs.get_annot_kpts_in_imgspace]')
+        ut.printex(ex, '[!ibs.get_annot_kpts_in_imgspace]')
         print('[!ibs.get_annot_kpts_in_imgspace] aid_list = %r' % (aid_list,))
         raise
     kpts_list    = ibs.get_annot_kpts(aid_list, ensure=ensure)
@@ -74,7 +74,7 @@ def get_kpts(ibs, aid_list, in_image=False, **kwargs):
     else:
         kpts_list = ibs.get_annot_kpts(aid_list, ensure=ensure)
     if kpts_subset is not None:
-        kpts_list = [utool.spaced_items(kpts, kpts_subset, trunc=True) for kpts in kpts_list]
+        kpts_list = [ut.spaced_items(kpts, kpts_subset, trunc=True) for kpts in kpts_list]
     return kpts_list
 
 
@@ -91,14 +91,14 @@ def get_bboxes(ibs, aid_list, offset_list=None):
 
 
 def get_aidstrs(aid_list, **kwargs):
-    if utool.isiterable(aid_list):
+    if ut.isiterable(aid_list):
         return [ibsfuncs.aidstr(aid, **kwargs) for aid in aid_list]
     else:
         return ibsfuncs.aidstr(aid_list, **kwargs)
 
 
 def get_nidstrs(nid_list, **kwargs):
-    if utool.isiterable(nid_list):
+    if ut.isiterable(nid_list):
         return ['nid%d' for nid in nid_list]
     else:
         return 'nid%d' % nid_list
@@ -116,7 +116,8 @@ def get_bbox_centers(bbox_list):
 
 
 def is_unknown(ibs, nid_list):
-    return [ not isinstance(nid, utool.VALID_INT_TYPES) and len(nid) == 0 for nid in nid_list]
+    # this func seems unused
+    return [ not isinstance(nid, ut.VALID_INT_TYPES) and len(nid) == 0 for nid in nid_list]
 
 
 def get_truth_text(ibs, truth):
@@ -151,7 +152,7 @@ def get_timedelta_str(ibs, aid1, aid2):
         timedelta_str_ = 'NA'
     else:
         unixtime_diff = unixtime2 - unixtime1
-        timedelta_str_ = utool.get_unix_timedelta_str(unixtime_diff)
+        timedelta_str_ = ut.get_unix_timedelta_str(unixtime_diff)
     timedelta_str = 'timedelta(%s)' % (timedelta_str_)
     return timedelta_str
 
@@ -173,20 +174,13 @@ def get_annot_texts(ibs, aid_list, **kwargs):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.viz.viz_helpers import *  # NOQA
         >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
         >>> import collections
-        >>> class KwargsProxy(collections.Mapping):
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # Default all kwargs to true
+        >>> class KwargsProxy(object):
         ...    def get(self, a, b):
         ...        return True
-        ...    def __getitem__(self, key):
-        ...        return self.__dict__[key]
-        ...    def __iter__(self):
-        ...        return iter(self.__dict__)
-        ...    def __len__(self):
-        ...        return len(self.__dict__)
         >>> kwargs_proxy = KwargsProxy()
-        >>> #kwargs.get = lambda a, b: True  # kwargs.__getitem__(a)
         >>> aid_list = ibs.get_valid_aids()[::3]
         >>> # execute function
         >>> annotation_text_list = get_annot_texts(ibs, aid_list, kwargs_proxy=kwargs_proxy)
@@ -201,15 +195,15 @@ def get_annot_texts(ibs, aid_list, **kwargs):
             u'aid13, gname=zebra.jpg, name=zebra, nid=7, EX, nGt=0, quality=UNKNOWN, yaw=None',
         ]
     """
+    # HACK FOR TEST
     if 'kwargs_proxy' in kwargs:
-        # HACK FOR TEST
         kwargs = kwargs['kwargs_proxy']
     try:
         ibsfuncs.assert_valid_aids(ibs, aid_list)
-        assert utool.isiterable(aid_list), 'input must be iterable'
-        assert all([isinstance(aid, utool.VALID_INT_TYPES) for aid in aid_list]), 'invalid input'
+        assert ut.isiterable(aid_list), 'input must be iterable'
+        assert all([isinstance(aid, ut.VALID_INT_TYPES) for aid in aid_list]), 'invalid input'
     except AssertionError as ex:
-        utool.printex(ex, 'invalid input', 'viz', key_list=['aid_list'])
+        ut.printex(ex, 'invalid input', 'viz', key_list=['aid_list'])
         raise
     texts_list = []  # list of lists of texts
     if kwargs.get('show_aidstr', True):
@@ -263,7 +257,7 @@ def get_annot_text(ibs, aid_list, draw_lbls):
     if draw_lbls:
         text_list = ibs.get_annot_names(aid_list)
     else:
-        text_list = utool.alloc_nones(len(aid_list))
+        text_list = ut.alloc_nones(len(aid_list))
     return text_list
 
 
@@ -289,19 +283,19 @@ def get_query_text(ibs, qres, aid2, truth, **kwargs):
             aid2_rank = aid2_raw_rank + 1 if aid2_raw_rank is not None else None
             rank_str = 'rank=%s' % str(aid2_rank)
         except Exception as ex:
-            utool.printex(ex)
-            #utool.embed()
+            ut.printex(ex)
+            #ut.embed()
             raise
         text_list.append(rank_str)
     if kwargs.get('show_rawscore', rawscore is not None or qres is not None):
         #rawscore = qres.get_aid_scores([aid2], rawscore=True)[0]
-        rawscore_str = ('rawscore=' + utool.num_fmt(rawscore))
+        rawscore_str = ('rawscore=' + ut.num_fmt(rawscore))
         if len(text_list) > 0:
             rawscore_str = '\n' + rawscore_str
         text_list.append(rawscore_str)
     if kwargs.get('show_score', score is not None or qres is not None):
         #score = qres.get_aid_scores([aid2])[0]
-        score_str = ('score=' + utool.num_fmt(score))
+        score_str = ('score=' + ut.num_fmt(score))
         if len(text_list) > 0:
             score_str = '\n' + score_str
         text_list.append(score_str)

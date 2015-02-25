@@ -72,6 +72,8 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         >>> #ibs = ibeis.opendb(db='GZ_ALL')
         >>> #ibs = ibeis.opendb(db='PZ_Master0')
         >>> ibs = ibeis.opendb(db='testdb1')
+        >>> ibs.delete_contributors(ibs.get_valid_contrib_rowids())
+        >>> ibs.delete_empty_nids()
         >>> #ibs = ibeis.opendb(db='PZ_MTEST')
         >>> output = dbinfo.get_dbinfo(ibs, verbose=False)
         >>> result = (output['info_str'])

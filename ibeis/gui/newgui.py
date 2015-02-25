@@ -1080,7 +1080,7 @@ def testfunc():
         python -m ibeis.gui.newgui --test-testfunc
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.gui.newgui import *  # NOQA
         >>> result = testfunc()
         >>> # verify results

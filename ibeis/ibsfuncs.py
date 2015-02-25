@@ -2830,7 +2830,7 @@ def detect_false_positives(ibs):
 
 
 @__injectable
-def set_exemplars_from_quality_and_viewpoint(ibs):
+def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_run=False, verbose=False):
     """
     Automatic exemplar selection algorithm based on viewpoint and quality
 
@@ -2856,50 +2856,93 @@ def set_exemplars_from_quality_and_viewpoint(ibs):
         prefdenom = delta_w / N
         N - (w * N)
 
-    Ignore:
+        N = 3
+        EPS = 1E-9
+        w = N / (N + 1) + EPS
+        pref_decimator = N ** 2
+        num_teir1_levels = 3
+        pref_teir1 = w / (num_teir1_levels * pref_decimator)
+        pref_teir2 = pref_teir1 / pref_decimator
+        pref_teir3 = pref_teir2 / pref_decimator
+
+    References:
+        # implement maximum diversity approximation instead
+        http://www.csbio.unc.edu/mcmillan/pubs/ICDM07_Pan.pdf
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-set_exemplars_from_quality_and_viewpoint
+
+    Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('PZ_MUGU_19')
-
-
+        >>> #ibs = ibeis.opendb('PZ_MUGU_19')
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> dry_run = True
+        >>> verbose = False
+        >>> old_sum = sum(ibs.get_annot_exemplar_flags(ibs.get_valid_aids()))
+        >>> new_aid_list, new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(dry_run=dry_run)
+        >>> new_sum = sum(new_flag_list)
+        >>> print('old_sum = %r' % (old_sum,))
+        >>> print('new_sum = %r' % (new_sum,))
+        >>> zero_aid_list, zero_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(exemplars_per_view=0, dry_run=dry_run)
+        >>> assert sum(zero_flag_list) == 0
+        >>> result = new_sum
     """
     # General params
-    EXEMPLARS_PER_VIEW = 3
+    if exemplars_per_view is None:
+        exemplars_per_view = ibs.cfg.other_cfg.exemplars_per_view
     PREFER_GOOD_OVER_OLDFLAG = True
     verbose = False
-    DRY_RUN = False
+    dry_run = False
     #
     # Params for knapsack
-    N = EXEMPLARS_PER_VIEW
-    EPS = 1E-9
-    # Solve for the minimum per-item weight
-    # to allow for preference wiggle room
-    w = N / (N + 1) + EPS
-    # level1 perference augmentation
-    # TODO: figure out mathematically ellegant value
-    pref_decimator = N ** 2
-    # we want space to specify two levels of tier1 preference
-    num_teir1_prefs = 3
-    pref_teir1 = w / (num_teir1_prefs * pref_decimator)
-    pref_teir2 = pref_teir1 / pref_decimator
-    pref_teir3 = pref_teir2 / pref_decimator
-    #pref_teir4 = pref_teir3 / pref_decimator
-    infeasible_w = max(9001, N + 1)
+    def make_knapsack_params(N, levels_per_tier_list):
+        """
+        Args:
+            N (int): the integral maximum number of items
+            levels_per_tier_list (list): list of number of distinctions possible
+            per tier.
+
+        Returns:
+            per-item weights, weights go group items into several tiers, and an
+            infeasible weight
+        """
+        EPS = 1E-9
+        # Solve for the minimum per-item weight
+        # to allow for preference wiggle room
+        w = N / (N + 1) + EPS
+        # level1 perference augmentation
+        # TODO: figure out mathematically ellegant value
+        pref_decimator = max(1, (N + EPS)) ** 2  # max is a hack for N = 0
+        # we want space to specify two levels of tier1 preference
+        tier_w_list = []
+        last_w = w
+        for num_levels in levels_per_tier_list:
+            last_w = tier_w = last_w / (num_levels * pref_decimator)
+            tier_w_list.append(tier_w)
+        infeasible_w = max(9001, N + 1)
+        return w, tier_w_list, infeasible_w
+    N = exemplars_per_view
+    levels_per_tier_list = [3, 1, 1]
+    w, tier_w_list, infeasible_w = make_knapsack_params(N, levels_per_tier_list)
+
     qual2_weight = {
-        'perfect':  w + pref_teir1 + pref_teir2,
-        'good':  w + pref_teir1,
-        'ok':    w + pref_teir2,
-        'UNKNOWN': w + pref_teir2,
-        'bad':   w + pref_teir3,
-        'junk':  infeasible_w,
+        'perfect' : w + tier_w_list[0] + tier_w_list[1],
+        'good'    : w + tier_w_list[0],
+        'ok'      : w + tier_w_list[1],
+        'UNKNOWN' : w + tier_w_list[1],
+        'bad'     : w + tier_w_list[2],
+        'junk'    : infeasible_w,
     }
+    # this probably broke with the introduction of 2 more tiers
     oldflag_offset = (
         # always prefer good over ok
-        pref_teir1 - pref_teir2
+        tier_w_list[0] - tier_w_list[1]
         if PREFER_GOOD_OVER_OLDFLAG else
         # prefer ok over good when ok has oldflag
-        pref_teir1 + pref_teir2
+        tier_w_list[0] + tier_w_list[1]
     )
 
     def choose_exemplars(aids):
@@ -2951,8 +2994,9 @@ def set_exemplars_from_quality_and_viewpoint(ibs):
         if verbose:
             print('L ___')
 
-    if not DRY_RUN:
+    if not dry_run:
         ibs.set_annot_exemplar_flags(new_aid_list, new_flag_list)
+    return new_aid_list, new_flag_list
 
 
 #def detect_false_negatives():

@@ -12,9 +12,38 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[export_hsdb]')
 
 
 def get_hsdb_image_gpaths(ibs, gid_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):
+
+    Returns:
+        list: gpath_list
+
+    CommandLine:
+        python -m ibeis.dbio.export_hsdb --test-get_hsdb_image_gpaths
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.dbio.export_hsdb import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()[0:2]
+        >>> # execute function
+        >>> gpath_list = get_hsdb_image_gpaths(ibs, gid_list)
+        >>> # verify results
+        >>> result = ut.list_str(gpath_list)
+        >>> print(result)
+        [
+            u'../_ibsdb/images/66ec193a-1619-b3b6-216d-1784b4833b61.jpg',
+            u'../_ibsdb/images/d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg',
+        ]
+    """
     imgdir = join(ibs.get_dbdir(), 'images')
     gpath_list_ = ibs.get_image_paths(gid_list)
-    gpath_list  = [relpath(gpath, imgdir) for gpath in gpath_list_]
+    gpath_list  = [ut.ensure_unixslash(relpath(gpath, imgdir))
+                   for gpath in gpath_list_]
     return gpath_list
 
 
@@ -32,6 +61,7 @@ def get_hots_table_strings(ibs):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs.delete_empty_nids()
         >>> # execute function
         >>> csvtup = get_hots_table_strings(ibs)
         >>> # hack so hashtag is at the end of each line
@@ -87,7 +117,7 @@ def get_hots_table_strings(ibs):
     # Build Image Table
     gid_list        = ibs.get_valid_gids()
     gpath_list      = get_hsdb_image_gpaths(ibs, gid_list)
-    reviewed_list        = ibs.get_image_reviewed(gid_list)
+    reviewed_list   = ibs.get_image_reviewed(gid_list)
     # aif in hotspotter is equivilant to reviewed in IBEIS
     image_table_csv = ut.make_csv_table(
         [gid_list, gpath_list, reviewed_list],
