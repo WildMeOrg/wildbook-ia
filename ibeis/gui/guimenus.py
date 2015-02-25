@@ -195,30 +195,66 @@ def setup_batch_menu(mainwin, back):
     mainwin.menuBatch.newAction(
         name='actionComputeIncremental_Queries',
         text='Compute Incremental Queries',
-        slot_fn=back.incremental_query)
+        slot_fn=back.incremental_query
+    )
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionBatchIntraEncounterQueries',
         text='Compute Batch IntraEncounter Queries',
-        slot_fn=functools.partial(back.compute_queries, query_mode=const.INTRA_ENC_KEY))
+        slot_fn=functools.partial(back.compute_queries, query_mode=const.INTRA_ENC_KEY),
+        tooltip=ut.textblock(
+            '''
+            all-encounter-annots VS all-encounter-annots (nonjunk)
+            ''')
+    )
     mainwin.menuBatch.newAction(
         name='actionBatchVsExemplarQueries',
         text='Compute Batch VsExemplar Queries',
-        slot_fn=functools.partial(back.compute_queries, query_mode=const.VS_EXEMPLARS_KEY))
+        slot_fn=functools.partial(back.compute_queries, query_mode=const.VS_EXEMPLARS_KEY),
+        tooltip=ut.textblock(
+            '''
+            all-encounter-annots VS all-exemplar-annots (nonjunk)
+            ''')
+    )
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionBatchUnknownIntraEncounterQueries',
         text='Compute Batch Unknown IntraEncounter Queries',
-        slot_fn=functools.partial(back.compute_queries, query_is_known=False, query_mode=const.INTRA_ENC_KEY))
+        slot_fn=functools.partial(back.compute_queries, query_is_known=False, query_mode=const.INTRA_ENC_KEY),
+        tooltip=ut.textblock(
+            '''
+            unnamed-encounter-annots VS all-encounter-annots (nonjunk)
+            ''')
+    )
     mainwin.menuBatch.newAction(
         name='actionBatchUnknownVsExemplarQueries',
         text='Compute Batch Unknown VsExemplar Queries',
-        slot_fn=functools.partial(back.compute_queries, query_is_known=False, query_mode=const.VS_EXEMPLARS_KEY))
+        slot_fn=functools.partial(back.compute_queries, query_is_known=False, query_mode=const.VS_EXEMPLARS_KEY),
+        tooltip=ut.textblock(
+            '''
+            unnamed-encounter-annots VS all-exemplar-annots (nonjunk)
+            ''')
+    )
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionSetExemplarsFromQualityAndViewpoint',
         text='Set Exemplars from Quality and Viewpoint',
-        slot_fn=back.set_exemplars_from_quality_and_viewpoint
+        slot_fn=back.set_exemplars_from_quality_and_viewpoint,
+        tooltip=ut.textblock(
+            '''
+            Uses the quality and viewpoint column to pick the best N exemplars
+            per viewpoint, per name.
+            ''')
+    )
+    mainwin.menuBatch.newAction(
+        name='actionBatchConsecutiveLocationSpeciesRename',
+        text='Consecutive Location+Species Rename',
+        slot_fn=back.batch_rename_consecutive_via_species,
+        tooltip=ut.textblock(
+            '''
+            Renames ALL the names in the database to
+            {other_cfg.location_for_names}_{species_code}_{num}
+            ''')
     )
 
     mainwin.menuBatch.addSeparator()  # ---------

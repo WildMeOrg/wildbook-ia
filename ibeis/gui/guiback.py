@@ -1454,3 +1454,6 @@ class MainWindowBackend(QtCore.QObject):
     @slot_()
     def set_exemplars_from_quality_and_viewpoint(back):
         back.ibs.set_exemplars_from_quality_and_viewpoint()
+
+    def batch_rename_consecutive_via_species(back):
+        back.ibs.batch_rename_consecutive_via_species()

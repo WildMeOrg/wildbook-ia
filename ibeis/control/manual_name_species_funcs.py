@@ -967,7 +967,7 @@ def set_name_notes(ibs, name_rowid_list, notes_list):
 
 @register_ibs_method
 @setter
-def set_name_texts(ibs, name_rowid_list, name_text_list):
+def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False):
     """
     Changes the name text. Does not affect the animals of this name.
     Effectively just changes the TEXT UUID
@@ -985,6 +985,8 @@ def set_name_texts(ibs, name_rowid_list, name_text_list):
         >>> # result = set_name_texts(ibs, nid_list, name_list)
         >>> print(result)
     """
+    if verbose:
+        print('[ibs] setting %d name texts' % (len(name_rowid_list),))
     ibsfuncs.assert_valid_names(name_text_list)
     #sanatize_name_texts(ibs, name_text_list):
     #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])

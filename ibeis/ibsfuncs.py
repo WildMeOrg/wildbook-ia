@@ -459,14 +459,12 @@ def check_name_consistency(ibs, nid_list):
     """
     #aids_list = ibs.get_name_aids(nid_list)
     print('check name consistency. len(nid_list)=%r' % len(nid_list))
-    print('WARNING: check_name_consistency function is not longer used')
-    #aids_list = ibs.get_name_aids(nid_list)
-    #aid_list = ut.flatten(aids_list)
-    #
-    #lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(nid_list)
-    #individual_lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
-    #for lbltype_rowid in lbltype_rowid_list:
-    #    assert lbltype_rowid == individual_lbltype_rowid, 'non individual lbltype'
+    aids_list = ibs.get_name_aids(nid_list)
+    print('Checking that all annotations of a name have the same species')
+    species_rowids_list = ibs.unflat_map(ibs.get_annot_species_rowids, aids_list)
+    for aids, sids in zip(aids_list, species_rowids_list):
+        assert ut.list_allsame(sids), \
+            'aids=%r have the same name, but belong to multiple species=%r' % (aids, ibs.get_species_texts(ut.unique_keep_order2(sids)))
 
 
 @__injectable
@@ -1692,6 +1690,63 @@ def make_enctext_list(eid_list, enc_cfgstr):
     # DEPRICATE
     enctext_list = [str(eid) + enc_cfgstr for eid in eid_list]
     return enctext_list
+
+
+@__injectable
+def batch_rename_consecutive_via_species(ibs):
+    """ actually sets the new consectuive names"""
+    new_nid_list, new_name_list = ibs.get_consecutive_newname_list_via_species()
+    ibs.set_name_texts(new_nid_list, new_name_list, verbose=ut.NOT_QUIET)
+
+
+@__injectable
+def get_consecutive_newname_list_via_species(ibs):
+    """
+    Just creates the nams, but does not set them
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_consecutive_newname_list_via_species
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs)
+        >>> result = ut.list_str((new_nid_list, new_name_list))
+        >>> # verify results
+        >>> print(result)
+        (
+            [1, 2, 3, 4, 5, 6, 7],
+            ['IBEIS_PZ_0001', 'IBEIS_PZ_0002', 'IBEIS_UNKNOWN_0001', 'IBEIS_UNKNOWN_0002', 'IBEIS_GZ_0001', 'IBEIS_PB_0001', 'IBEIS_UNKNOWN_0003'],
+        )
+    """
+    print('[ibs] get_consecutive_newname_list_via_species')
+    ibs.delete_empty_nids()
+    nid_list  = ibs.get_valid_nids()
+    #name_list = ibs.get_name_texts(nid_list)
+    aids_list = ibs.get_name_aids(nid_list)
+    species_rowids_list = ibs.unflat_map(ibs.get_annot_species_rowids, aids_list)
+    unique_species_rowids_list = list(map(ut.unique_keep_order2, species_rowids_list))
+    # TODO: ibs.duplicate_map
+    unique_species_texts_list = ibs.unflat_map(ibs.get_species_texts, unique_species_rowids_list)
+    species_codes = [list(map(const.get_species_code, texts)) for texts in unique_species_texts_list]
+    code_list = ['_'.join(codes) for codes in species_codes]
+
+    _code2_count = ut.ddict(lambda: 0)
+    def get_next_index(code):
+        _code2_count[code] += 1
+        return _code2_count[code]
+
+    location_text = ibs.cfg.other_cfg.location_for_names
+    new_name_list = ['%s_%s_%04d' % (location_text, code, get_next_index(code)) for code in code_list]
+    new_nid_list = nid_list
+    return new_nid_list, new_name_list
 
 
 @__injectable
