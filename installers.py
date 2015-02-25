@@ -233,8 +233,8 @@ def clean_pyinstaller():
     ut.delete(join(cwd, 'dist/ibeis'))
     ut.delete(join(cwd, 'ibeis-win32-setup.exe'))
     ut.delete(join(cwd, 'build'))
-    ut.delete(join(cwd, 'pyrf'))
-    ut.delete(join(cwd, 'pyhesaff'))
+    #ut.delete(join(cwd, 'pyrf'))
+    #ut.delete(join(cwd, 'pyhesaff'))
     print('[installer] L___ FINSHED CLEAN_PYINSTALLER ___')
 
 
@@ -245,11 +245,11 @@ def build_pyinstaller():
     print('[installer] +--- BUILD_PYINSTALLER ---')
     # 1) RUN: PYINSTALLER
     # Run the pyinstaller command (does all the work)
-    if ut.WIN32:
-        #ut.cmd('pyinstaller', '--runtime-hook', 'rthook_pyqt4.py', '_installers/pyinstaller-ibeis.spec', '-y')
-        ut.cmd('pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-ibeis.spec -y')
-    else:
-        ut.cmd('pyinstaller', '_installers/pyinstaller-ibeis.spec', '-y')
+    #if ut.WIN32:
+    #ut.cmd('pyinstaller', '--runtime-hook', 'rthook_pyqt4.py', '_installers/pyinstaller-ibeis.spec', '-y')
+    ut.cmd('pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-ibeis.spec -y')
+    #else:
+    #ut.cmd('pyinstaller', '_installers/pyinstaller-ibeis.spec', '-y')
     #ut.cmd('pyinstaller', '--runtime-hook rthook_pyqt4.py', '_installers/pyinstaller-ibeis.spec')
     # 2) POST: PROCESSING
     # Perform some post processing steps on the mac
@@ -431,7 +431,9 @@ def fix_importlib_hook():
 
 def test_app():
     print('[installer] +--- TEST_APP ---')
-    ut.cmd(ut.unixpath('dist/ibeis/IBEISApp.exe'))
+    app_fpath = ut.unixpath('dist/ibeis/IBEISApp')
+    app_ext = '.exe' if ut.WIN32 else ''
+    ut.cmd(app_fpath + app_ext)
     print('[installer] L___ FINISH TEST_APP ___')
     #ut.cmd(ut.unixpath('dist/ibeis/ibeis-win32-setup.exe'))
 
@@ -441,6 +443,9 @@ def main():
     CommandLine:
         python installers.py --all
         python installers.py --inno
+        # For linux
+        python installers.py --build
+        python installers.py --test
 
     """
     print('For a full run use: python installers.py --all')
@@ -453,7 +458,7 @@ def main():
 
     fix_importlib_hook()
     # default behavior is full build
-    BUILD_ALL = ALL or not (BUILD_APP or BUILD_INSTALLER or TEST_APP)
+    BUILD_ALL = ALL or not (CLEAN_BUILD or BUILD_APP or BUILD_INSTALLER or TEST_APP)
 
     # 1) SETUP: CLEAN UP
     if CLEAN_BUILD or BUILD_ALL:
