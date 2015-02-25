@@ -86,7 +86,18 @@ except AssertionError:
 ##################################
 # Explicitly add modules in case they are not in the Python PATH
 ##################################
-module_repos = ['utool', 'vtool', 'guitool', 'plottool', 'pyrf', 'pygist', 'ibeis', 'hesaff', 'detecttools']
+module_repos = [
+    'utool',
+    'vtool',
+    'guitool',
+    'guitool.__PYQT__',
+    'plottool',
+    'pyrf',
+    #'pygist',
+    'ibeis',
+    'hesaff',
+    'detecttools'
+]
 pathex = ['.'] + [ join('..', repo) for repo in module_repos ]
 if APPLE:
     # We need to explicitly add the MacPorts and system Python site-packages folders on Mac
@@ -250,6 +261,7 @@ a = Analysis(  # NOQA
     ['main.py'],
     pathex=pathex,
     hiddenimports=[
+        'guitool.__PYQT__',
         'sklearn.utils.sparsetools._graph_validation',
         'sklearn.utils.sparsetools._graph_tools',
         'scipy.special._ufuncs_cxx',

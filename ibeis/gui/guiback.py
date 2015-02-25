@@ -126,7 +126,8 @@ class MainWindowBackend(QtCore.QObject):
     def __init__(back, ibs=None):
         """ Creates GUIBackend object """
         QtCore.QObject.__init__(back)
-        print('[back] MainWindowBackend.__init__()')
+        if ut.VERBOSE:
+            print('[back] MainWindowBackend.__init__(ibs=%r)' % (ibs,))
         back.ibs = None
         back.cfg = None
         back.edit_prefs_wgt = None
@@ -280,7 +281,10 @@ class MainWindowBackend(QtCore.QObject):
 
     #@ut.indent_func
     def connect_ibeis_control(back, ibs):
-        print('[back] connect_ibeis()')
+        if ut.VERBOSE:
+            print('[back] connect_ibeis(ibs=%r)' % (ibs,))
+        if ibs is None:
+            return None
         back.ibs = ibs
         # register self with the ibeis controller
         back.register_self()
