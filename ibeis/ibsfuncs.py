@@ -2950,8 +2950,6 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
-        >>> #ibs = ibeis.opendb('PZ_MUGU_19')
         >>> ibs = ibeis.opendb('testdb1')
         >>> dry_run = True
         >>> verbose = False

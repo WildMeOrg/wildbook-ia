@@ -429,7 +429,10 @@ def get_annot_rows(ibs, aid_list):
 @register_ibs_method
 @deleter
 def delete_annot_nids(ibs, aid_list):
-    """ Deletes nids of a list of annotations """
+    """
+    Remove name assocation from the list of input aids.
+    Does this by setting each annotations nid to the UNKNOWN name rowid
+    """
     # FIXME: This should be implicit by setting the anotation name to the
     # unknown name
     #ibs.delete_annot_relations_oftype(aid_list, const.INDIVIDUAL_KEY)
