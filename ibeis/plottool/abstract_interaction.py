@@ -16,7 +16,25 @@ class AbstractInteraction(object):
         if self.fnum  is None:
             self.fnum  = df2.next_fnum()
         self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)
+        # Careful this might cause memory leaks
         self.scope = []  # for keeping those widgets alive!
+
+    def clear_parent_axes(self, ax):
+        """ for clearing axes that we appended anything to """
+        child_axes = ph.get_plotdat(ax, 'child_axes', [])
+        ph.set_plotdat(ax, 'child_axes', [])
+        for subax in child_axes:
+            to_remove = None
+            for tup in self.scope:
+                if tup[1] is subax:
+                    to_remove = tup
+                    break
+            if to_remove is not None:
+                self.scope.remove(to_remove)
+            subax.cla()
+            self.fig.delaxes(subax)
+        ph.del_plotdat(ax, df2.DF2_DIVIDER_KEY)
+        ax.cla()
 
     def clean_scope(self):
         """ Removes any widgets saved in the interaction scope """
@@ -39,6 +57,11 @@ class AbstractInteraction(object):
             new_but.on_clicked(callback)
         ph.set_plotdat(new_ax, 'viztype', 'button')
         ph.set_plotdat(new_ax, 'text', text)
+        #ph.set_plotdat(new_ax, 'parent_axes', ax)
+        if ax is not None:
+            child_axes = ph.get_plotdat(ax, 'child_axes', [])
+            child_axes.append(new_ax)
+            ph.set_plotdat(ax, 'child_axes', child_axes)
         for key, val in six.iteritems(kwargs):
             ph.set_plotdat(new_ax, key, val)
         # Keep buttons from losing scrop

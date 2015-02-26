@@ -17,7 +17,7 @@ try:
 except ImportError as ex:
     ut.printex(ex,  'try pip install mpl_toolkits.axes_grid1 or something.  idk yet', iswarning=False)
     raise
-import colorsys
+#import colorsys
 import pylab
 import warnings
 import numpy as np
@@ -47,6 +47,7 @@ def printDBG(*args):
 # Bring over moved functions that still have dependants elsewhere
 
 TAU = np.pi * 2
+distinct_colors = color_fns.distinct_colors
 lighten_rgb = color_fns.lighten_rgb
 to_base255 = color_fns.to_base255
 
@@ -171,26 +172,24 @@ def label_to_colors(labels_):
     return color_list
 
 
-def distinct_colors(N, brightness=.878, shuffle=True):
-    """
-    Args:
-        N (int): number of distinct colors
-        brightness (float): brightness of colors (maximum distinctiveness is .5) default is .878
-
-    Returns:
-        RGB_tuples
-
-    Example:
-        >>> from plottool.draw_func2 import *  # NOQA
-    """
-    # http://blog.jianhuashao.com/2011/09/generate-n-distinct-colors.html
-    sat = brightness
-    val = brightness
-    HSV_tuples = [(x * 1.0 / N, sat, val) for x in range(N)]
-    RGB_tuples = list(map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples))
-    if shuffle:
-        ut.deterministic_shuffle(RGB_tuples)
-    return RGB_tuples
+#def distinct_colors(N, brightness=.878, shuffle=True):
+#    """
+#    Args:
+#        N (int): number of distinct colors
+#        brightness (float): brightness of colors (maximum distinctiveness is .5) default is .878
+#    Returns:
+#        RGB_tuples
+#    Example:
+#        >>> from plottool.draw_func2 import *  # NOQA
+#    """
+#    # http://blog.jianhuashao.com/2011/09/generate-n-distinct-colors.html
+#    sat = brightness
+#    val = brightness
+#    HSV_tuples = [(x * 1.0 / N, sat, val) for x in range(N)]
+#    RGB_tuples = list(map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples))
+#    if shuffle:
+#        ut.deterministic_shuffle(RGB_tuples)
+#    return RGB_tuples
 
 
 def add_alpha(colors):
@@ -969,12 +968,17 @@ def scores_to_cmap(scores, colors=None, cmap_='hot'):
     return listed_cmap
 
 
+DF2_DIVIDER_KEY = '_df2_divider'
+
+
 def ensure_divider(ax):
     """ Returns previously constructed divider or creates one """
-    if not hasattr(ax, '_df2_divider'):
+    from plottool import plot_helpers as ph
+    divider = ph.get_plotdat(ax, DF2_DIVIDER_KEY, None)
+    if divider is None:
         divider = make_axes_locatable(ax)
-        ax._df2_divider = divider
-    return ax._df2_divider
+        ph.set_plotdat(ax, DF2_DIVIDER_KEY, divider)
+    return divider
 
 
 def get_binary_svm_cmap():
@@ -1362,7 +1366,8 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
 # ---- CHIP DISPLAY COMMANDS ----
 def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
            interpolation='nearest', cmap=None, heatmap=False,
-           data_colorbar=False, darken=DARKEN, update=False, **kwargs):
+           data_colorbar=False, darken=DARKEN, update=False,
+           redraw_image=True, **kwargs):
     """
     Args:
         img (ndarray):  image data
@@ -1375,6 +1380,8 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
         heatmap (bool):
         data_colorbar (bool):
         darken (None):
+        redraw_image (bool): used when calling imshow over and over. if false
+                            doesnt do the image part.
 
     Returns:
         tuple: (fig, ax)
@@ -1386,6 +1393,10 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
     #printDBG('[***df2.imshow] img.stats = %r ' % (ut.get_stats_str(img),))
     fig = figure(fnum=fnum, pnum=pnum, title=title, figtitle=figtitle, **kwargs)
     ax = gca()
+
+    if not redraw_image:
+        return fig, ax
+
     if isinstance(img, six.string_types):
         # Allow for path to image to be specified
         img_fpath = img
