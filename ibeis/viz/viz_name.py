@@ -16,6 +16,38 @@ def show_name_of(ibs, aid, **kwargs):
 @utool.indent_func
 def show_name(ibs, nid, nid2_aids=None, in_image=True, fnum=0, sel_aids=[], subtitle='',
               annote=False, **kwargs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        nid (?):
+        nid2_aids (dict):
+        in_image (bool):
+        fnum (int):  figure number
+        sel_aids (list):
+        subtitle (str):
+        annote (bool):
+
+    CommandLine:
+        python -m ibeis.viz.viz_name --test-show_name
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_name import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid = 1
+        >>> nid2_aids = None
+        >>> in_image = True
+        >>> fnum = 0
+        >>> sel_aids = []
+        >>> subtitle = ''
+        >>> annote = False
+        >>> # execute function
+        >>> result = show_name(ibs, nid, nid2_aids, in_image, fnum, sel_aids, subtitle, annote)
+        >>> # verify results
+        >>> print(result)
+    """
     print('[viz] show_name nid=%r' % nid)
     aid_list = ibs.get_name_aids(nid)
     name = ibs.get_name_texts((nid,))
@@ -50,3 +82,16 @@ def show_name(ibs, nid, nid2_aids=None, in_image=True, fnum=0, sel_aids=[], subt
     #gs2.tight_layout(fig)
     #gs2.update(top=df2.TOP_SUBPLOT_ADJUST)
     #df2.set_figtitle(title, subtitle)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.viz.viz_name
+        python -m ibeis.viz.viz_name --allexamples
+        python -m ibeis.viz.viz_name --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

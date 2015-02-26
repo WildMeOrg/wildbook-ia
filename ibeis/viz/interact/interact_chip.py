@@ -1,3 +1,10 @@
+"""
+Interaction for a single annoation.
+Also defines annotation context menu.
+
+CommandLine:
+    python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show --aid 2
+"""
 from __future__ import absolute_import, division, print_function
 from ibeis import viz
 import utool
@@ -14,7 +21,9 @@ from plottool import interact_helpers as ih
     __name__, '[interact_chip]', DEBUG=False)
 
 
-def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None):
+def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
+                            with_interact_name=True, with_interact_chip=True,
+                            with_interact_image=True):
     """
     Defines logic for poping up a context menu when viewing an annotation.
     Used in other interactions like name_interaction and interact_query_decision
@@ -41,22 +50,22 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None):
         def _wrap_yaw():
             ibs.set_annot_yaw_texts([aid], [yawtext])
             print('set_annot_yaw(%r, %r)' % (aid, yawtext))
-            refresh_wrp()
+            #refresh_wrp()
         return _wrap_yaw
     def set_quality_func(qualtext):
         def _wrp_qual():
             ibs.set_annot_quality_texts([aid], [qualtext])
             print('set_annot_quality(%r, %r)' % (aid, qualtext))
-            refresh_wrp()
+            #refresh_wrp()
         return _wrp_qual
     # Define popup menu
-    angle_callback_list = [
+    callback_list = [
         ('Unset as e&xemplar' if is_exemplar else 'Set as e&xemplar', toggle_exemplar_func),
     ]
     current_qualtext = ibs.get_annot_quality_texts([aid])[0]
     current_yawtext = ibs.get_annot_yaw_texts([aid])[0]
     # Nested viewpoints
-    angle_callback_list += [
+    callback_list += [
         #('Set Viewpoint: ' + key, set_yaw_func(key))
         ('Set &Viewpoint: ',  [
             ('&' + str(count) + ' ' + ('*' if current_yawtext == key else '') + key, set_yaw_func(key))
@@ -64,18 +73,35 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None):
         ]),
     ]
     # Nested qualities
-    angle_callback_list += [
+    callback_list += [
         #('Set Quality: ' + key, set_quality_func(key))
         ('Set &Quality: ',  [
             ('&' + str(count) + ' ' + ('*' if current_qualtext == key else '') + '&' + key, set_quality_func(key))
             for count, key in enumerate(six.iterkeys(const.QUALITY_TEXT_TO_INT), start=1)
         ]),
     ]
-    guitool.popup_menu(qwin, qpoint, angle_callback_list)
+    nid = ibs.get_annot_name_rowids(aid)
+
+    if with_interact_chip:
+        callback_list += [
+            ('Interact chip', functools.partial(ishow_chip, ibs, aid, fnum=None))
+        ]
+    if with_interact_name and not ibs.is_nid_unknown(nid):
+        from ibeis.viz.interact import interact_name
+        callback_list.append(
+            ('Interact name', functools.partial(interact_name.ishow_name, ibs, nid, fnum=None))
+        )
+    if with_interact_image:
+        gid = ibs.get_annot_gids(aid)
+        from ibeis.viz.interact import interact_annotations2
+        callback_list.append(
+            ('Interact image', functools.partial(interact_annotations2.ishow_image2, ibs, gid, fnum=None))
+        )
+    guitool.popup_menu(qwin, qpoint, callback_list)
 
 
 # CHIP INTERACTION 2
-def ishow_chip(ibs, aid, fnum=2, fx=None, **kwargs):
+def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -85,6 +111,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, **kwargs):
 
     CommandLine:
         python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show
+        python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show --aid 2
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -92,15 +119,18 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, **kwargs):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aid = 1
+        >>> aid = ut.get_argval('--aid', type_=int, default=1)
         >>> fnum = 2
         >>> fx = None
         >>> # execute function
-        >>> result = ishow_chip(ibs, aid, fnum, fx)
+        >>> dodraw = ut.show_was_requested()
+        >>> result = ishow_chip(ibs, aid, fnum, fx, dodraw)
         >>> # verify results
         >>> pt.show_if_requested()
         >>> print(result)
     """
+    if fnum is None:
+        fnum = pt.next_fnum()
     vh.ibsfuncs.assert_valid_aids(ibs, (aid,))
     # TODO: Reconcile this with interact keypoints.
     # Preferably this will call that but it will set some fancy callbacks
@@ -138,12 +168,13 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, **kwargs):
         else:
             if event.button == 3:   # right-click
                 import guitool
+                from ibeis.viz.interact import interact_chip
                 height = fig.canvas.geometry().height()
                 qpoint = guitool.newQPoint(event.x, height - event.y)
-                from ibeis.viz.interact import interact_chip
                 refresh_func = functools.partial(_chip_view, **kwargs)
                 interact_chip.show_annot_context_menu(
-                    ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func)
+                    ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func,
+                    with_interact_chip=False)
             else:
                 viztype = vh.get_ibsdat(ax, 'viztype')
                 print_('[ic] viztype=%r' % viztype)
@@ -172,7 +203,8 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, **kwargs):
         _select_fxth_kpt(fx)
     else:
         _chip_view(**kwargs)
-    viz.draw()
+    if dodraw:
+        viz.draw()
     ih.connect_callback(fig, 'button_press_event', _on_chip_click)
 
 

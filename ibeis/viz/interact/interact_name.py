@@ -1,18 +1,23 @@
 """
 Matplotlib interface for name interactions. Allows for relatively fine grained
 control of splitting and merging.
+
+CommandLine:
+    python -m ibeis.viz.interact.interact_name --test-ishow_name --show
+    python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
+
 """
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
 from six.moves import zip
 from plottool import interact_helpers as ih
+import functools
 import plottool as pt
 from ibeis import viz
 from ibeis import constants as const
 from ibeis.viz import viz_helpers as vh
 from ibeis import ibsfuncs
-from functools import partial
 from ibeis.viz import viz_chip
 from plottool.abstract_interaction import AbstractInteraction
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[interact_name]', DEBUG=False)
@@ -25,7 +30,37 @@ from plottool.abstract_interaction import AbstractInteraction
 MAX_COLS = 3
 
 
-def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, **kwargs):
+def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, dodraw=True, **kwargs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        nid (?):
+        sel_aids (list):
+        select_aid_callback (None):
+        fnum (int):  figure number
+
+    CommandLine:
+        python -m ibeis.viz.interact.interact_name --test-ishow_name --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.interact.interact_name import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid = ut.get_argval('--nid', int, default=1)
+        >>> sel_aids = []
+        >>> select_aid_callback = None
+        >>> fnum = 5
+        >>> dodraw = ut.show_was_requested()
+        >>> # execute function
+        >>> result = ishow_name(ibs, nid, sel_aids, select_aid_callback, fnum, dodraw)
+        >>> # verify results
+        >>> pt.show_if_requested()
+        >>> print(result)
+    """
+    if fnum is None:
+        fnum = pt.next_fnum()
     fig = ih.begin_interaction('name', fnum)
 
     def _on_name_click(event):
@@ -37,13 +72,24 @@ def ishow_name(ibs, nid, sel_aids=[], select_aid_callback=None, fnum=5, **kwargs
             if viztype == 'chip':
                 aid = vh.get_ibsdat(ax, 'aid')
                 print('... aid=%r' % aid)
-                viz.show_name(ibs, nid, fnum=fnum, sel_aids=[aid])
-                if select_aid_callback is not None:
-                    select_aid_callback(aid)
+                if event.button == 3:   # right-click
+                    import guitool
+                    from ibeis.viz.interact import interact_chip
+                    height = fig.canvas.geometry().height()
+                    qpoint = guitool.newQPoint(event.x, height - event.y)
+                    refresh_func = functools.partial(viz.show_name, ibs, nid, fnum=fnum, sel_aids=sel_aids)
+                    interact_chip.show_annot_context_menu(
+                        ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func,
+                        with_interact_name=False)
+                else:
+                    viz.show_name(ibs, nid, fnum=fnum, sel_aids=[aid], in_image=True)
+                    if select_aid_callback is not None:
+                        select_aid_callback(aid)
         viz.draw()
 
-    viz.show_name(ibs, nid, fnum=fnum, sel_aids=sel_aids)
-    viz.draw()
+    viz.show_name(ibs, nid, fnum=fnum, sel_aids=sel_aids, in_image=True)
+    if dodraw:
+        viz.draw()
     ih.connect_callback(fig, 'button_press_event', _on_name_click)
     pass
 
@@ -250,7 +296,9 @@ class MatchVerificationInteraction(AbstractInteraction):
         if fulldraw:
             self.fig = pt.figure(**figkw)
         ih.disconnect_callback(self.fig, 'button_press_event')
+        ih.disconnect_callback(self.fig, 'key_press_event')
         ih.connect_callback(self.fig, 'button_press_event', self.figure_clicked)
+        ih.connect_callback(self.fig, 'key_press_event', self.on_key_press)
 
     def show_page(self, bring_to_front=False, onlyrows=None, fulldraw=True):
         """ Plots all subaxes on a page
@@ -302,7 +350,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                     total_indices = len(aid_list)
                     current_index = self.col_offset_list[rowx] + 1
                     next_text = 'next\n%d/%d' % (current_index, total_indices)
-                    next_func = partial(self.rotate_row, rowx=rowx)
+                    next_func = functools.partial(self.rotate_row, rowx=rowx)
                     self.append_button(next_text, callback=next_func,
                                        location='right', size='33%', ax=ax)
 
@@ -377,20 +425,20 @@ class MatchVerificationInteraction(AbstractInteraction):
         annotation_unknown = ibs.is_nid_unknown([nid])[0]
         if not annotation_unknown:
             # remove name
-            callback = partial(self.unname_annotation, aid)
+            callback = functools.partial(self.unname_annotation, aid)
             self.append_button('remove name', callback=callback, **butkw)
         else:
             # new name
-            callback = partial(self.mark_annotation_as_new_name, aid)
+            callback = functools.partial(self.mark_annotation_as_new_name, aid)
             self.append_button('mark as new name', callback=callback, **butkw)
         if nid != self.nid2 and not ibs.is_nid_unknown([self.nid2])[0] and not self.is_split_case:
             # match to nid2
-            callback = partial(self.rename_annotation, aid, self.nid2)
+            callback = functools.partial(self.rename_annotation, aid, self.nid2)
             text = 'match to name2: ' + ibs.get_name_texts(self.nid2)
             self.append_button(text, callback=callback, **butkw)
         if nid != self.nid1 and not ibs.is_nid_unknown([self.nid1])[0]:
             # match to nid1
-            callback = partial(self.rename_annotation, aid, self.nid1)
+            callback = functools.partial(self.rename_annotation, aid, self.nid1)
             text = 'match to name1: ' + ibs.get_name_texts(self.nid1)
             self.append_button(text, callback=callback, **butkw)
 
@@ -399,7 +447,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             if other_nid == nid:
                 continue
             # rename nid2
-            callback = partial(self.rename_annotation, aid, other_nid)
+            callback = functools.partial(self.rename_annotation, aid, other_nid)
             text = 'match to: ' + ibs.get_name_texts(other_nid)
             self.append_button(text, callback=callback, **butkw)
         return ax
@@ -456,12 +504,12 @@ class MatchVerificationInteraction(AbstractInteraction):
         # merges all into the first name
         if nid1_is_known and not all(is_name1):
             join1_text = 'match all to name1:\n{name1}'.format(name1=name1)
-            callback = partial(self.merge_all_into_nid, self.nid1)
+            callback = functools.partial(self.merge_all_into_nid, self.nid1)
             self.append_button(join1_text, callback=callback, rect=next_rect())
         # merges all into the seoncd name
         if name1 != name2 and nid2_is_known and not all(is_name2):
             join2_text = 'match all to name2:\n{name2}'.format(name2=name2)
-            callback = partial(self.merge_all_into_nid, self.nid2)
+            callback = functools.partial(self.merge_all_into_nid, self.nid2)
             self.append_button(join2_text, callback=callback, rect=next_rect())
         ###
         self.append_button('close', callback=self.close_, rect=hl_slot2(0))
@@ -565,6 +613,12 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.backend_callback()
         self.show_page()
 
+    def on_key_press(self, event=None):
+        if event.key == 'escape':
+            import guitool
+            if guitool.are_you_sure():
+                self.close()
+
     def figure_clicked(self, event=None):
         #print_('[inter] clicked name')
         ax = event.inaxes
@@ -595,6 +649,9 @@ class MatchVerificationInteraction(AbstractInteraction):
 if __name__ == '__main__':
     """
     CommandLine:
+        python -m ibeis.viz.interact.interact_name --test-ishow_name --show
+        python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
+
         python -m ibeis.viz.interact.interact_name
         python -m ibeis.viz.interact.interact_name --allexamples
         python -m ibeis.viz.interact.interact_name --allexamples --noface --nosrc

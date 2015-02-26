@@ -15,7 +15,7 @@ from ibeis.dev import results_organizer
 #from ibeis.viz import interact
 from ibeis.viz import viz_helpers as vh
 from plottool import fig_presenter
-from plottool import interact_helpers as ih
+#from plottool import interact_helpers as ih
 from six.moves import range
 import guitool
 import numpy as np
@@ -421,12 +421,13 @@ def review_match_at(qres_wgt, qtindex, quickmerge=False, **kwargs):
 
 def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None, **kwargs):
     print('Review match: ' + ibsfuncs.vsstr(aid1, aid2))
-    from ibeis.viz.interact.interact_name import MatchVerificationInteraction
+    from ibeis.viz.interact import interact_name
     #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
-    mvinteract = MatchVerificationInteraction(ibs, aid1, aid2, fnum=64,
-                                              update_callback=update_callback,
-                                              backend_callback=backend_callback, **kwargs)
-    ih.register_interaction(mvinteract)
+    mvinteract = interact_name.MatchVerificationInteraction(
+        ibs, aid1, aid2, fnum=64, update_callback=update_callback,
+        backend_callback=backend_callback, **kwargs)
+    return mvinteract
+    #ih.register_interaction(mvinteract)
 
 
 class CustomFilterModel(FilterProxyModel):
@@ -952,6 +953,21 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     #qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))
     locals_ =  locals()
     return locals_
+
+
+def launch_review_matches_interface(ibs, qres_list, dodraw=False):
+    """ TODO: move to a more general function """
+    from ibeis.gui import inspect_gui
+    import guitool
+    guitool.ensure_qapp()
+    #backend_callback = back.front.update_tables
+    backend_callback = None
+    qaid2_qres = {qres.qaid: qres for qres in qres_list}
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, callback=backend_callback)
+    if dodraw:
+        qres_wgt.show()
+        qres_wgt.raise_()
+    return qres_wgt
 
 
 if __name__ == '__main__':

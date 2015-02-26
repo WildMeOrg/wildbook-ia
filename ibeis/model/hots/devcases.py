@@ -20,7 +20,7 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[devcases]')
 def fix_pz_master():
     r"""
     CommandLine:
-        python -m ibeis.model.hots.devcases --test-fix_pz_master
+        python -m ibeis.model.hots.devcases --test-fix_pz_master --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -31,7 +31,8 @@ def fix_pz_master():
         >>> # verify results
         >>> print(result)
     """
-    qaids = [
+    # ReROI aid4513+name
+    qaids_ = [
         60, 82, 91, 117, 118, 131, 153, 184, 194, 213, 225, 254, 260, 271, 299,
         336, 351, 368, 392, 415, 430, 434, 441, 471, 477, 491, 495, 629, 664,
         679, 682, 695, 707, 728, 822, 835, 846, 849, 959, 1302, 1308, 1309,
@@ -73,30 +74,21 @@ def fix_pz_master():
         8673, 8674, 8676, 8689, 8691, 8693, 8694, 8699, 8700, 8702, 8703, 8712,
         8714, 8715, 8718, 8719, 8720, 8723, 8724, 8733, 8734, 8736]
     import ibeis
+    ibeis._preload()
+    from ibeis.gui import inspect_gui
+    import guitool
     ibs = ibeis.opendb('PZ_Master0')
     #ibs._default_config()
     #ibs.cfg.save()
-    daids = ibs.get_valid_aids()
+    daids = ibs.get_valid_aids(nojunk=True)
+    qaids = ibs.filter_junk_annotations(qaids_)
     qreq_ = ibs.new_query_request(qaids, daids)
     qreq_.lazy_load()
     qres_list = ibs.query_chips(qreq_=qreq_)
 
-    def launch_review_matches_interface(qres_list, show=False):
-        """ TODO: move to a more general function """
-        from ibeis.gui import inspect_gui
-        import guitool
-        guitool.ensure_qapp()
-        #backend_callback = back.front.update_tables
-        backend_callback = None
-        qaid2_qres = {qres.qaid: qres for qres in qres_list}
-        qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, callback=backend_callback)
-        if show:
-            qres_wgt.show()
-            qres_wgt.raise_()
-        return qres_wgt
-    qres_wgt = launch_review_matches_interface(qres_list, show=ut.show_was_requested())
+    qres_wgt = inspect_gui.launch_review_matches_interface(ibs, qres_list, dodraw=ut.show_was_requested())
+
     if ut.show_was_requested():
-        import guitool
         guitool.guitool_main.qtapp_loop()
     return qres_wgt
 

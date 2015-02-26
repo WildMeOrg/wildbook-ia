@@ -191,6 +191,39 @@ def get_image_annotation_thetas(ibs, gid_list):
 
 
 @__injectable
+def filter_junk_annotations(ibs, aid_list):
+    r"""
+    remove junk annotations from a list
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+
+    Returns:
+        list: filtered_aid_list
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-filter_junk_annotations
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> # execute function
+        >>> filtered_aid_list = filter_junk_annotations(ibs, aid_list)
+        >>> # verify results
+        >>> result = str(filtered_aid_list)
+        >>> print(result)
+    """
+    isjunk_list = ibs.get_annot_isjunk(aid_list)
+    filtered_aid_list = ut.filterfalse_items(aid_list, isjunk_list)
+    return filtered_aid_list
+
+
+@__injectable
 def compute_all_chips(ibs, **kwargs):
     """
     Executes lazy evaluation of all chips
@@ -334,7 +367,7 @@ def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
     except AssertionError as ex:
         print('dbname = %r' % (ibs.get_dbname()))
         ut.printex(ex)
-        ut.embed()
+        #ut.embed()
         raise
     if veryverbose:
         print('passed assert_valid_aids')
