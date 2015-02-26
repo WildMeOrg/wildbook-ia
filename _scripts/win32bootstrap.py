@@ -25,7 +25,9 @@ opencv_alt_ext_href = 'https://sourceforge.net/projects/opencvlibrary/files/open
 
 UNOFFICIAL_WEBURL = 'http://www.lfd.uci.edu/~gohlke/pythonlibs/'
 OS_VERSION = 'win32'
-PY_VERSION = 'py2.7'
+# cpython 27
+PY_VERSION = 'cp27'
+#PY_VERSION = 'py2.7'
 #PY_VERSION = 'py3.4'
 
 # force redownload of hrefs
@@ -118,7 +120,10 @@ cplat_alias_pkglist = [
 
     CPlatPkg(
         'numpy',
-        {'win32': 'numpy-MKL'}),
+        #{'win32': 'numpy-MKL'}
+        {'win32': 'numpy-1.9.2rc1+mkl-cp27-none-win32.whl'}
+        #'numpy-1.9.2rc1+mkl-cp27-none-win32.whl'
+    ),
     # alias_tup = (std_dict, alias_list)
     # std_dict = keys=packagemanager, vals=truename
     # alias_list = list of names
@@ -151,7 +156,7 @@ KNOWN_PKG_LIST = [
     #'sip',
     'PyQt4',
     'Pillow',
-    'numpy-MKL-1.9',  # 'numpy',
+    #'numpy-MKL-1.9',  # 'numpy',
     'scipy',
     'ipython',
     'tornado',
@@ -203,6 +208,15 @@ def build_uninstall_script():
 
 
 def main():
+    r"""
+    python win32bootstrap.py --dl numpy --force
+    python win32bootstrap.py --dl numpy-1.9.2rc1 --force
+    python win32bootstrap.py --dl numpy-1.9.2rc1 --run
+
+    C:\Users\jon.crall\AppData\Roaming\utool\numpy-1.9.2rc1+mkl-cp27-none-win32.whl
+    pip instal C:/Users/jon.crall/AppData/Roaming/utool/numpy-1.9.2rc1+mkl-cp27-none-win32.whl
+
+    """
     # Packages that you are requesting
     pkg_list = []
     if ut.get_argflag('--all'):
@@ -214,7 +228,9 @@ def main():
     pkg_exe_list = bootstrap_sysreq(pkg_list)
     if ut.get_argflag('--run'):
         for pkg_exe in pkg_exe_list:
-            ut.cmd(pkg_exe)
+            if pkg_exe.endswith('.whl'):
+                ut.cmd('pip install ' + pkg_exe)
+                #ut.cmd(pkg_exe)
 
 
 def bootstrap_sysreq(pkg_list='all'):
@@ -267,6 +283,8 @@ def download_win_packages(href_list):
 def get_win_packages_href(py_version, pkg_list):
     """ Returns the urls to download the requested installers """
     all_href_list, page_str = get_unofficial_package_hrefs()
+    if len(all_href_list) > 0:
+        print('all_href_list[0] = ' + str(all_href_list[0]))
     href_list1, missing  = filter_href_list(all_href_list, pkg_list, OS_VERSION, py_version)
     href_list2, missing2 = filter_href_list(all_href_list, missing, OS_VERSION, py_version)
     href_list3, missing3 = filter_href_list(all_href_list, missing2, 'x64', py_version.replace('p', 'P'))
@@ -330,10 +348,13 @@ def get_unofficial_package_hrefs(force=None):
         pass
     # Read page html
     headers = { 'User-Agent' : 'Mozilla/5.0' }
+    print('Sending request to %r' % (UNOFFICIAL_WEBURL,))
     req = urllib2.Request(UNOFFICIAL_WEBURL, None, headers)
     page = urllib2.urlopen(req)
     page_str = page.read()
-    encrypted_lines = filter(lambda x: x.find('onclick') > -1, page_str.split('\n'))
+    encrypted_lines = list(filter(lambda x: x.find('onclick') > -1, page_str.split('\n')))
+
+    print('Read %d encrypted lines ' % (len(encrypted_lines,)))
     # List of all download links, now choose wisely, because we don't want
     # to hack for evil
     #line = encrypted_lines[0]
@@ -379,6 +400,7 @@ def get_unofficial_package_hrefs(force=None):
         href  = ''.join([UNOFFICIAL_WEBURL, href_])
         return href
     all_href_list = list(map(parse_encrypted, encrypted_lines))
+    print('decrypted %d lines' % (len(all_href_list)))
     ut.save_cache(cachedir, 'win32_hrefs', 'all_href_list', all_href_list)
     ut.save_cache(cachedir, 'win32_hrefs', 'page_str', page_str)
     return all_href_list, page_str
