@@ -1,32 +1,24 @@
 """
-TODO: Rename species list to label list
-
-guiback.py  -- code/ibeis/ibeis/gui
-./resetdbs.sh
-./dev.py --cmd --gui --db testdb1 (--setdb) <-set default
-
-
-TODO:
-1. create a function call to create a rectangle at a given set of points
-2.. Make 45 degree rotation - need help
-
-
-
-3. Change bounding box and update continuously to the original image the new ANNOTATIONs
-
-2. Make new window and frames inside, double click to pull up normal window with editing
-start with just taking in 6 images and ANNOTATIONs
-
-1. ANNOTATION ID number, then list of 4 touples
-
-
-
-
-
 Interactive tool to draw mask on an image or image-like array.
 
-Adapted from matplotlib/examples/event_handling/poly_editor.py
-Jan 9 2014: taken from: https://gist.github.com/tonysyu/3090704
+TODO:
+    * add support for arbitrary polygons back in .
+    * rename species_list to label_list or category_list
+
+Notes:
+    3. Change bounding box and update continuously to the original image the new ANNOTATIONs
+
+    2. Make new window and frames inside, double click to pull up normal window with editing
+    start with just taking in 6 images and ANNOTATIONs
+
+    1. ANNOTATION ID number, then list of 4 tuples
+
+References:
+    Adapted from matplotlib/examples/event_handling/poly_editor.py
+    Jan 9 2014: taken from: https://gist.github.com/tonysyu/3090704
+
+CommandLine:
+    python -m plottool.interact_annotations --test-test_interact_annots --show
 """
 from __future__ import absolute_import, division, print_function
 import six
@@ -38,6 +30,7 @@ import matplotlib.pyplot as plt
 import math as math
 import functools
 from functools import partial
+from plottool import abstract_interaction  # TODO inherit from this
 #from matplotlib import nxutils  # Deprecated
 #from matplotlib.mlab import dist_point_to_segment
 # Scientific
@@ -264,20 +257,19 @@ class ANNOTATIONInteraction(object):
     """
     An interactive polygon editor.
 
-    Parameters
-    ----------
-    verts_list : list of lists of (float, float)
-        List of (x, y) coordinates used as vertices of the polygon.
-    max_ds : float
-        Max pixel distance to count as a vertex hit.
+    Args:
+        verts_list (list) : list of lists of (float, float)
+            List of (x, y) coordinates used as vertices of the polygon.
 
-    Key-bindings
-    ------------
-    't' : toggle vertex markers on and off.  When vertex markers are on,
-          you can move them, delete them
-    'd' : delete the vertex under point
-    'i' : insert a vertex at point.  You must be within max_ds of the
-          line connecting two existing vertices
+        max_ds (float) : float
+            Max pixel distance to count as a vertex hit.
+
+    KeyBindings:
+        't' : toggle vertex markers on and off.  When vertex markers are on,
+              you can move them, delete them
+        'd' : delete the vertex under point
+        'i' : insert a vertex at point.  You must be within max_ds of the
+              line connecting two existing vertices
     """
 
     def __init__(self, img, img_ind=None, commit_callback=None, verts_list=None,
@@ -291,6 +283,7 @@ class ANNOTATIONInteraction(object):
                  valid_species=[]):
         if fnum is None:
             fnum = df2.next_fnum()
+        abstract_interaction.register_interaction(self)
         self.valid_species = valid_species
         self.commit_callback = commit_callback  # commit_callback
         self.but_width = .14
@@ -298,6 +291,7 @@ class ANNOTATIONInteraction(object):
         self.next_prev_but_height = .08
         self.but_height = self.next_prev_but_height - .01
         self.callback_funcs = dict([
+            ('close_event', self.on_close),
             ('draw_event', self.draw_callback),
             ('button_press_event', self.button_press_callback),
             ('button_release_event', self.button_release_callback),
@@ -309,8 +303,7 @@ class ANNOTATIONInteraction(object):
         self.mpl_callback_ids = {}
         self.img = img
         self.show_species_tags = True
-        def initialize_variables():
-            # Jon: I don't like this nested function. I want a better solution.
+        def reinitialize_variables():
             #self.next_callback = next_callback
             #self.prev_callback = prev_callback
             self.do_mask = do_mask
@@ -329,8 +322,9 @@ class ANNOTATIONInteraction(object):
             self._polyHeld = False                # if any poly is active
             self._currently_selected_poly = None  # active polygon
             self.background = None  # Something Jon added
-        initialize_variables()
-        self.initialize_variables = initialize_variables  # hack involving exploting lexical scoping to save defaults for a restore operation
+        reinitialize_variables()
+        # hack involving exploting lexical scoping to save defaults for a restore operation
+        self.reinitialize_variables = reinitialize_variables
         self.handle_matplotlib_initialization(fnum=fnum)
         # print(verts_list)
         # test_list = verts_to_bbox(verts_list)
@@ -358,6 +352,12 @@ class ANNOTATIONInteraction(object):
 
         self.add_action_buttons()
         self.update_callbacks(next_callback, prev_callback)
+        # Hack: fake registration
+
+    def on_close(self, event=None):
+        # TODO rectifify with abstract interaction
+        # Hack: fake unregistration. does not inherit propertly
+        abstract_interaction.unregister_interaction(self)
 
     def handle_matplotlib_initialization(self, fnum=None, instantiate_window=True):
         if instantiate_window:
@@ -480,7 +480,7 @@ class ANNOTATIONInteraction(object):
         for poly in six.itervalues(self.polys):
             poly.remove()
         self.polys = {}
-        self.initialize_variables()
+        self.reinitialize_variables()
         self.img = img
         self.handle_matplotlib_initialization(fnum=self.fnum, instantiate_window=False)
         self.handle_polygon_creation(bbox_list, theta_list, species_list)
@@ -573,9 +573,6 @@ class ANNOTATIONInteraction(object):
     def button_press_callback(self, event):
         """
         Called whenever a mouse button is pressed
-
-        CommandLine:
-            python -m ibeis.viz.interact.interact_annotations2 --test-__init__ --show
         """
         print('[button_press_callback] key = %r' % (event.key))
         if self._ind is not None:
@@ -1305,33 +1302,50 @@ def default_vertices(img, polys=None, mouseX=None, mouseY=None):
 #         """add function call for redrawing the ANNOTATIONs"""
 
 
-def ANNOTATION_creator(img, verts_list):  # add callback as variable
+def test_interact_annots():
+    r"""
+    CommandLine:
+        python -m plottool.interact_annotations --test-test_interact_annots --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.interact_annotations import *  # NOQA
+        >>> import plottool as pt
+        >>> # build test data
+        >>> # execute function
+        >>> self = test_interact_annots()
+        >>> # verify results
+        >>> print(self)
+        >>> pt.show_if_requested()
+    """
+    verts_list = [((0, 400), (400, 400), (400, 0), (0, 0), (0, 400)),
+                  ((400, 700), (700, 700), (700, 400), (400, 400), (400, 700))]
     print('[interact_annot] *** START DEMO ***')
 
-    if verts_list is None:
-        verts_list = [default_vertices(img)]
+    #if verts_list is None:
+    #    verts_list = [default_vertices(img)]
     # else:
     #     for verts in verts_list:
     #         if (len(verts) is not 5):
     #             print("verts list is not of correct length. ", len(verts))
     #             return
 
-    if img is None:
-        try:
-            img_url = 'http://i.imgur.com/Vq9CLok.jpg'
-            img_fpath = ut.grab_file_url(img_url)
-            #img = mpimg.imread(img_fpath)
-            from vtool import image as gtool
-            img = gtool.imread(img_fpath)
-        except Exception as ex:
-            print('[interact_annot] cant read zebra: %r' % ex)
-            img = np.random.uniform(0, 255, size=(100, 100))
+    #if img is None:
+    try:
+        img_url = 'http://i.imgur.com/Vq9CLok.jpg'
+        img_fpath = ut.grab_file_url(img_url)
+        #img = mpimg.imread(img_fpath)
+        from vtool import image as gtool
+        img = gtool.imread(img_fpath)
+    except Exception as ex:
+        print('[interact_annot] cant read zebra: %r' % ex)
+        img = np.random.uniform(0, 255, size=(100, 100))
     #test_bbox = verts_to_bbox(verts_list)
-    mc = ANNOTATIONInteraction(img, verts_list=verts_list, fnum=0)  # NOQA
+    self = ANNOTATIONInteraction(img, verts_list=verts_list, fnum=0)  # NOQA
     # Do interaction
     #
     # Make mask from selection
-    #mask = mc.get_mask(img.shape)
+    #mask = self.get_mask(img.shape)
     # User must close previous figure
     # Modify the image with the mask
     #masked_img = apply_mask(img, mask)
@@ -1344,14 +1358,11 @@ def ANNOTATION_creator(img, verts_list):  # add callback as variable
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m plottool.interact_annotations --show
-
-    CommandLine:
-        python -m ibeis.viz.interact.interact_annotations2 --test-__init__ --show
+        python -m plottool.interact_annotations
+        python -m plottool.interact_annotations --allexamples
+        python -m plottool.interact_annotations --allexamples --noface --nosrc
     """
-    #verts = [[0,0,400,400]]
-    verts = [((0, 400), (400, 400), (400, 0), (0, 0), (0, 400)),
-             ((400, 700), (700, 700), (700, 400), (400, 400), (400, 700))]
-    ANNOTATION_creator(None, verts_list=verts)
-    import plottool as pt
-    pt.show_if_requested()
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

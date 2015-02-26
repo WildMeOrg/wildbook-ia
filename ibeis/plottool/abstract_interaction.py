@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from plottool import plot_helpers as ph
+from plottool import interact_helpers as ih
 import six
 import utool as ut
 import plottool.draw_func2 as df2
@@ -10,14 +11,34 @@ ut.noinject(__name__, '[abstract_iteract]')
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[abstract_iteract]')
 
 
+# for scoping
+__REGISTERED_INTERACTIONS__ = []
+
+
+def register_interaction(self):
+    global __REGISTERED_INTERACTIONS__
+    if ut.VERBOSE:
+        print('Registering intearction: self=%r' % (self,))
+    __REGISTERED_INTERACTIONS__.append(self)
+
+
+def unregister_interaction(self):
+    global __REGISTERED_INTERACTIONS__
+    if ut.VERBOSE:
+        print('Unregistering intearction: self=%r' % (self,))
+    __REGISTERED_INTERACTIONS__
+
+
 class AbstractInteraction(object):
     def __init__(self, **kwargs):
-        self.fnum            = kwargs.get('fnum', None)
+        self.fnum = kwargs.get('fnum', None)
         if self.fnum  is None:
             self.fnum  = df2.next_fnum()
         self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)
+        ih.connect_callback(self.fig, 'close_event', self.on_close)
         # Careful this might cause memory leaks
         self.scope = []  # for keeping those widgets alive!
+        register_interaction(self)
 
     def clear_parent_axes(self, ax):
         """ for clearing axes that we appended anything to """
@@ -90,3 +111,7 @@ class AbstractInteraction(object):
     def close(self):
         assert isinstance(self.fig, mpl.figure.Figure)
         fig_presenter.close_figure(self.fig)
+
+    def on_close(self, event=None):
+        print('handling close')
+        unregister_interaction(self)

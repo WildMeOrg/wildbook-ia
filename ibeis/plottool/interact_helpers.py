@@ -79,9 +79,9 @@ def connect_callback(fig, callback_type, callback_fn):
     fig.__dict__[cbfn_type] = callback_fn
 
 
-REGIESTERED_INTERACTIONS = []
+#REGIESTERED_INTERACTIONS = []
 
 
-def register_interaction(interaction):
-    global REGIESTERED_INTERACTIONS
-    REGIESTERED_INTERACTIONS.append(interaction)
+#def register_interaction(interaction):
+#    global REGIESTERED_INTERACTIONS
+#    REGIESTERED_INTERACTIONS.append(interaction)
