@@ -261,7 +261,7 @@ def bootstrap_sysreq(pkg_list='all', force=False, dryrun=False):
         pkg_exe_list = download_win_packages(href_list)
         text = '\n'.join(href_list) + '\n'
         text += ('Please Run:') + '\n'
-        text += ('\n'.join(pkg_exe_list))
+        text += ('\n'.join(['pip install ' + pkg for pkg in pkg_exe_list]))
         #print('TODO: Figure out how to run these installers without the GUI: ans use the new wheels')
         print(text)
         print(pkg_list_)
