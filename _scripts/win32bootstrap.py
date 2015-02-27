@@ -16,7 +16,7 @@ import parse
 import sys
 #import os
 import utool as ut
-from six.moves import filterfalse
+#from six.moves import filterfalse
 import urllib2
 
 'http://downloads.sourceforge.net/project/opencvlibrary/opencv-win/2.4.10/opencv-2.4.10.exe'
@@ -212,6 +212,10 @@ def main():
     python win32bootstrap.py --dl numpy --force
     python win32bootstrap.py --dl numpy-1.9.2rc1 --force
     python win32bootstrap.py --dl numpy-1.9.2rc1 --run
+    python win32bootstrap.py --force
+    python win32bootstrap.py --dryrun
+    python win32bootstrap.py --dryrun --dl numpy scipy
+    python win32bootstrap.py --dl numpy
 
     C:\Users\jon.crall\AppData\Roaming\utool\numpy-1.9.2rc1+mkl-cp27-none-win32.whl
     pip instal C:/Users/jon.crall/AppData/Roaming/utool/numpy-1.9.2rc1+mkl-cp27-none-win32.whl
@@ -225,7 +229,9 @@ def main():
         print('specify --all to download all packages')
         print('or specify --dl pkgname to download that package')
     pkg_list.extend(ut.get_argval('--dl', list, []))
-    pkg_exe_list = bootstrap_sysreq(pkg_list)
+    force = ut.get_argflag('--force')
+    dryrun = ut.get_argflag('--dryrun')
+    pkg_exe_list = bootstrap_sysreq(pkg_list, force, dryrun)
     if ut.get_argflag('--run'):
         for pkg_exe in pkg_exe_list:
             if pkg_exe.endswith('.whl'):
@@ -233,7 +239,7 @@ def main():
                 #ut.cmd(pkg_exe)
 
 
-def bootstrap_sysreq(pkg_list='all'):
+def bootstrap_sysreq(pkg_list='all', force=False, dryrun=False):
     """
     pkg_list = ['line_profiler']
     """
@@ -246,15 +252,23 @@ def bootstrap_sysreq(pkg_list='all'):
     py_version = PY_VERSION
     #python34_win32_x64_url = 'https://www.python.org/ftp/python/3.4.1/python-3.4.1.amd64.msi'
     #python34_win32_x86_exe = ut.grab_file_url(python34_win32_x64_url)
-    href_list = get_win_packages_href(py_version, pkg_list_)
+    all_href_list, page_str = get_unofficial_package_hrefs(force=force)
+    if len(all_href_list) > 0:
+        print('all_href_list[0] = ' + str(all_href_list[0]))
+    href_list = get_win_packages_href(all_href_list, py_version, pkg_list_)
     print('Available hrefs are:\n' +  '\n'.join(href_list))
-    pkg_exe_list = download_win_packages(href_list)
-    text = '\n'.join(href_list) + '\n'
-    text += ('Please Run:') + '\n'
-    text += ('\n'.join(pkg_exe_list))
-    print('TODO: Figure out how to run these installers without the GUI')
-    print(text)
-    print(pkg_list_)
+    if not dryrun:
+        pkg_exe_list = download_win_packages(href_list)
+        text = '\n'.join(href_list) + '\n'
+        text += ('Please Run:') + '\n'
+        text += ('\n'.join(pkg_exe_list))
+        #print('TODO: Figure out how to run these installers without the GUI: ans use the new wheels')
+        print(text)
+        print(pkg_list_)
+    else:
+        print('dryrun=True')
+        print('href_list = %r' % (href_list,))
+        pkg_exe_list = []
     return pkg_exe_list
 
 
@@ -280,11 +294,8 @@ def download_win_packages(href_list):
     return pkg_exe_list
 
 
-def get_win_packages_href(py_version, pkg_list):
+def get_win_packages_href(all_href_list, py_version, pkg_list):
     """ Returns the urls to download the requested installers """
-    all_href_list, page_str = get_unofficial_package_hrefs()
-    if len(all_href_list) > 0:
-        print('all_href_list[0] = ' + str(all_href_list[0]))
     href_list1, missing  = filter_href_list(all_href_list, pkg_list, OS_VERSION, py_version)
     href_list2, missing2 = filter_href_list(all_href_list, missing, OS_VERSION, py_version)
     href_list3, missing3 = filter_href_list(all_href_list, missing2, 'x64', py_version.replace('p', 'P'))
@@ -302,35 +313,58 @@ def filter_href_list(all_href_list, win_pkg_list, os_version, py_version):
         py_version = PY_VERSION
     """
     candidate_list = []
-    for pkgname in win_pkg_list:
-        candidates_ = filter(lambda x: x.find(pkgname) > -1, all_href_list)
-        if AMD64:
-            candidates = filter(lambda x: x.find('amd64') > -1, candidates_)
-        else:
-            candidates = filter(lambda x: x.find('amd64') == -1, candidates_)
-        candidate_list.extend(candidates)
-    filtered_list1 = candidate_list
-    filtered_list2 = filter(lambda x: py_version in x, filtered_list1)
-    filtered_list3 = filter(lambda x: os_version in x, filtered_list2)
     # hack
-    bad_list = [
+    ignore_list = [
         'vigranumpy',
     ]
-    filtered_list4 = list(filterfalse(lambda x: any([bad in x for bad in bad_list]), filtered_list3))
+    for pkgname in win_pkg_list:
+        amdfunc = lambda x: x.find('amd64') > -1 if AMD64 else lambda x: x.find('amd64') == -1
+        from os.path import basename
+        filter_funcs = [
+            lambda x: x.find(pkgname) > -1,
+            amdfunc,
+            lambda x: py_version in x,
+            lambda x: os_version in x,
+            lambda x: not any([bad in x for bad in ignore_list]),
+            lambda x: basename(x).lower().startswith(pkgname.lower()),
+        ]
+        _candidates = all_href_list
+        for func_ in filter_funcs:
+            _candidates = list(filter(func_, _candidates))
+        candidates = list(_candidates)
+        if len(candidates) > 1:
+            #print('\n\n\n')
+            #print(pkgname)
+            # parse out version
+            def get_href_version(href):
+                y = basename(href).split('-' + py_version)[0]
+                version = y.lower().split(pkgname.lower() + '-')[1]
+                return version
+            version_strs = list(map(get_href_version, candidates))
+            # Argsort the versions
+            from distutils.version import LooseVersion
+            from operator import itemgetter
+            versions = list(map(LooseVersion, version_strs))
+            sorted_tups = sorted(list(enumerate(versions)), key=itemgetter(1), reverse=True)
+            # Choose highest version
+            index = sorted_tups[0][0]
+            candidates = candidates[index:index + 1]
+            #print(candidates)
+            #print('Conflicting candidates: %r' % (candidates))
+            #print('\n\n\n')
+        candidate_list.extend(candidates)
 
     missing = []
     for pkgname in win_pkg_list:
-        if not any([pkgname in href for href in filtered_list4]):
+        if not any([pkgname in href for href in candidate_list]):
             print('missing: %r' % pkgname)
             missing += [pkgname]
-    return filtered_list4, missing
+    return candidate_list, missing
 
 
 def get_unofficial_package_hrefs(force=None):
     """
     Downloads the entire webpage of available hrefs
-
-
     """
     if force is None:
         force = FORCE

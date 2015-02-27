@@ -36,7 +36,12 @@ def checkinfo(target=None):
             msg = utool.dict_str(infodict) + '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
             statustext = ut.msgblock(infodict['__name__'], msg)
             passed = current_version is not None and parse_version(current_version.replace('.dev1', '')) >= parse_version(target)
-            return passed, current_version, target, infodict, statustext
+            suggested_fix = ''
+            if not passed:
+                suggested_fix = 'pip install ' + infodict['__name__'] + ' --upgrade'
+                if not sys.platform.startswith('win32'):
+                    suggested_fix = 'sudo ' + suggested_fix
+            return passed, current_version, target, infodict, statustext, suggested_fix
         ASSERT_FUNCS.append(wrapper2)
         return wrapper2
     return wrapper1
@@ -50,6 +55,12 @@ def module_stdinfo_dict(module, versionattr='__version__', **kwargs):
     }
     infodict.update(kwargs)
     return infodict
+
+
+@checkinfo('6.0.8')
+def pip_version():
+    import pip
+    return module_stdinfo_dict(pip)
 
 
 @checkinfo('1.0.0')
@@ -153,19 +164,28 @@ def assert_modules():
     print('* MACHINE_NAME = %r' % MACHINE_NAME)
 
     line_list = []
+    failed_list = []
+    fix_list = []
     for func in ASSERT_FUNCS:
+        passed, current_version, target, infodict, statustext, suggested_fix = func()
+        line_list.append(statustext)
         try:
-            passed, current_version, target, infodict, statustext = func()
-            line_list.append(statustext)
             assert passed
-            line_list.append(get_funcname(func) + ' passed')
-            line_list.append('')
         except AssertionError as ex:
+            failed_list.append(get_funcname(func) + ' FAILED!!!')
+            fix_list.append(suggested_fix)
             line_list.append(get_funcname(func) + ' FAILED!!!')
             line_list.append(ut.formatex(ex))
+        else:
+            line_list.append(get_funcname(func) + ' passed')
+            line_list.append('')
     output_text = '\n'.join(line_list)
     print(output_text)
+    print('\n'.join(failed_list))
     check_modules_exists()
+    if len(fix_list) > 0:
+        print('suggested fixes:')
+        print('\n'.join(fix_list))
 
 
 if __name__ == '__main__':
