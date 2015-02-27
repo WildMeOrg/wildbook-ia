@@ -23,7 +23,7 @@ def fix_pz_master():
         python -m ibeis.model.hots.devcases --test-fix_pz_master --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.devcases import *  # NOQA
         >>> # build test data
         >>> # execute function
