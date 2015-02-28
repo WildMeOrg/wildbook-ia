@@ -478,13 +478,19 @@ class APIItemModel(API_MODEL_BASE):
         returns the row if an _id from the iders list
 
         Args:
-            _id (?):
+            _id (int): sqlrowid
 
         Returns:
             int: row
         """
         row = model.root_node.find_row_from_id(_id)
         return row
+
+    def get_row_and_qtindex_from_id(model, _id):
+        """ uses an sqlrowid (from iders) to get a qtindex """
+        row = model.get_row_from_id(_id)
+        qtindex = model.index(row, 0) if row is not None else None
+        return qtindex, row
 
     #----------------------------------
     # --- API Convineince Functions ---

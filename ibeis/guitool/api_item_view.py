@@ -128,8 +128,7 @@ def hide_cols(view):
 def get_row_and_qtindex_from_id(view, _id):
     """ uses an sqlrowid (from iders) to get a qtindex """
     model = view.model()
-    row = model.get_row_from_id(_id)
-    qtindex = model.index(row, 0) if row is not None else None
+    qtindex, row = model.get_row_and_qtindex_from_id(_id)
     return qtindex, row
 
 
