@@ -204,7 +204,8 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
             # Mark rowids with cache misses
             ismiss_list = [val is None for val in vals_list]
             if debug or debug_:
-                debug_cache_hits(ismiss_list, rowid_list)
+                # debug_cache_hits(ismiss_list, rowid_list)
+                print('[cache_getter] "debug_cache_hits" turned off')
             # HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT
             with_assert = ASSERT_API_CACHE
             if with_assert:
