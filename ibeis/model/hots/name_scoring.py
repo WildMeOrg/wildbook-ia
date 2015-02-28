@@ -2,11 +2,88 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import vtool as vt
 import utool as ut
+import six
+from ibeis.model.hots import hstypes
+from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[nscoring]', DEBUG=False)
 
 NameScoreTup = namedtuple('NameScoreTup', ('sorted_nids', 'sorted_nscore',
                                            'sorted_aids', 'sorted_scores'))
+
+
+def dupvote_dense_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
+    """
+    dupvotes gives duplicate name votes a weight close to 0.
+
+    Dense version of name weighting
+
+    Each query feature is only allowed to vote for each name at most once.
+    IE: a query feature can vote for multiple names, but it cannot vote
+    for the same name twice.
+
+    CommandLine:
+        python dev.py --allgt -t best --db PZ_MTEST
+        python dev.py --allgt -t nsum --db PZ_MTEST
+        python dev.py --allgt -t dupvote --db PZ_MTEST
+
+    CommandLine:
+        # Compares with dupvote on and dupvote off
+        ./dev.py -t custom:dupvote_weight=0.0 custom:dupvote_weight=1.0  --db GZ_ALL --show --va -w --qaid 1032
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.name_scoring import *  # NOQA
+        >>> #tup = nn_weights.testdata_nn_weights('testdb1', slice(0, 1), slice(0, 11))
+        >>> dbname = 'testdb1'  # 'GZ_ALL'  # 'testdb1'
+        >>> cfgdict = dict(K=10, Knorm=10, codename='nsum')
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(dbname=dbname, qaid_list=[2], daid_list=[1, 2, 3], cfgdict=cfgdict)
+        >>> print(print(qreq_.get_infostr()))
+        >>> pipeline_locals_ = plh.testrun_pipeline_upto(qreq_, 'weight_neighbors')
+        >>> qaid2_nns, qaid2_nnvalid0 = ut.dict_take(pipeline_locals_, ['qaid2_nns', 'qaid2_nnvalid0'])
+        >>> # Test Function Call
+        >>> qaid2_dupvote_weight = dupvote_dense_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_)
+        >>> # Check consistency
+        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> qfx2_dupvote_weight = qaid2_dupvote_weight[qaid]
+        >>> flags = qfx2_dupvote_weight  > .5
+        >>> qfx2_topnid = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(qaid2_nns[qaid][0]))
+        >>> isunique_list = [ut.isunique(row[flag]) for row, flag in zip(qfx2_topnid, flags)]
+        >>> assert all(isunique_list), 'dupvote should only allow one vote per name'
+
+    """
+    K = qreq_.qparams.K
+    def find_dupvotes(nns, qfx2_invalid0):
+        if len(qfx2_invalid0) == 0:
+            # hack for empty query features (should never happen, but it
+            # inevitably will)
+            qfx2_dupvote_weight = np.empty((0, K), dtype=hstypes.FS_DTYPE)
+        else:
+            (qfx2_idx, qfx2_dist) = nns
+            qfx2_topidx = qfx2_idx.T[0:K].T
+            qfx2_topaid = qreq_.indexer.get_nn_aids(qfx2_topidx)
+            qfx2_topnid = qreq_.ibs.get_annot_name_rowids(qfx2_topaid)
+            qfx2_topnid[qfx2_invalid0] = 0
+            # A duplicate vote is when any vote for a name after the first
+            qfx2_isnondup = np.array([ut.flag_unique_items(topnids) for topnids in qfx2_topnid])
+            # set invalids to be duplicates as well (for testing)
+            qfx2_isnondup[qfx2_invalid0] = False
+            # Database feature index to chip index
+            qfx2_dupvote_weight = (qfx2_isnondup.astype(hstypes.FS_DTYPE) * (1 - 1E-7)) + 1E-7
+        return qfx2_dupvote_weight
+
+    # convert ouf of dict format
+    qaid_list = list(six.iterkeys(qaid2_nns))
+    nns_list        = ut.dict_take(qaid2_nns, qaid_list)
+    nnvalid0_list   = ut.dict_take(qaid2_nnvalid0, qaid_list)
+    nninvalid0_list = [np.bitwise_not(qfx2_valid0) for qfx2_valid0 in nnvalid0_list]
+    dupvote_weight_list = [
+        find_dupvotes(nns, qfx2_invalid0)
+        for nns, qfx2_invalid0 in zip(nns_list, nninvalid0_list)
+    ]
+    # convert into dict format
+    qaid2_dupvote_weight = dict(zip(qaid_list, dupvote_weight_list))
+    return qaid2_dupvote_weight
 
 
 def group_scores_by_name(ibs, aid_list, score_list):

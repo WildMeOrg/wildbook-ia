@@ -308,7 +308,7 @@ def nearest_neighbors(qreq_, verbose=VERB_PIPELINE):
     # Find the nearest neighbors of each descriptor vector
     qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids, qreq_=qreq_)
     # Mark progress ane execute nearest indexer nearest neighbor code
-    progkw = dict(freq=20, time_thresh=2.0)
+    progkw = dict(freq=20, time_thresh=2.5)
     qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, **progkw)
     nns_list = [qreq_.indexer.knn(qfx2_vec, num_neighbors)
                  for qfx2_vec in qvec_iter]

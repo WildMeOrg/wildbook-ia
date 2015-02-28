@@ -1,0 +1,132 @@
+ON ENCOUNTERS:
+    I recommend just keeping everything in the same monolithic encounter. 
+    I would only break up annotations into encounters if the single monolithic
+    encounter gets to be too slow. When encounters are being used exemplars
+    become much more important. 
+    
+
+MATCHING NEW IMAGES:
+    Import images via ``1) Detection'' import button or drag and drop
+
+    Select the species you are working with. 
+
+    OPTIONAL: Click ``2) Group''. This will only breakup images in the ``Ungrouped Encounter''
+
+    IMPORTANT: Ensure your current species of interest is correctly selected in
+    the ``Species Selector'' combo box. 
+
+    Click ``3) Detection''
+
+    Fix detections using the Image Table and the edit detection interface.
+       * new features here: right click will resize the bounding box to be at the
+       bottom left corner. This means you can line up the top right corner 
+
+    If everything you want to match is within a single encounter:
+
+        Run ``Intra Encounter Query'' or VsExemplar
+            (Note: only will query UNKNOWN animals, 
+             you can use Batch->Compute Batch Intra Encounter 
+             OR Batch->Compute Batch Vs Exemplar 
+             to compute UNKNOWN animals)
+
+        Use the right click + 'T/F' keys to quickly go through obvious matches/non-matches
+        Use the review interface to inspect the hard one or do non-trial join/splits
+
+
+CHOOSING EXEMPLARS:
+     Choosing exemplars is independent of matching (but can optionally be done
+     while querying by right clicking and setting the flag).
+
+     Option1:
+         The best way to choose exemplars is to open the ``Tree of Names'' and
+         expand each animal and appropriately set the exemplar checkboxes. 
+         However this way requiers a lot of mental work. 
+
+         This way may now be a little easier because I unhid the
+         #Exemplars-per-name column in the NameTree.
+
+     Option2:
+         An easier way (more clicks, but less thought) to set exemplars is to open
+         the Annotations Table and edit the quality and viewpoint columns. It is
+         easiest to do this in multiple passes. I typically copy the word ``left''
+         into my paste buffer and scroll through and paste ``left'' into all of the
+         images of left-side zebras. I then sort to find the None viewpoints and
+         repeat the process with right, back, front, frontleft, frontright,
+         backleft, and backright. 
+
+         Setting viewpoint is more imporant than setting quality. The valid quality
+         strings are perfect, good, ok, bad, junk, and UNKNOWN. It is most important
+         to set the junk annotations. It is second-most important to set either the
+         good or perfect qualities (it is find if a perfect annotation is marked as
+         good). I recommend iterating through good/ok/junk and ignoring perfect and
+         bad. 
+
+         If viewpoints and qualities are set (or at least partially set) use Batch
+         -> Set Exemplars from Quality and Viewpoint.  This will currently try to
+         pick the 3 best images per-name, per-viewpoint.  In the case of ties it
+         defers to images that are previously set as exemplars, 
+
+         so if you really want an image to be an exemplar set its quality to perfect
+         and its exemplar flag to 1.
+    
+
+OPTIONAL:
+   * Single Annotation Query:
+       You can run any single annotation as a query if there is a specific one of
+       interest. Do this by clicking the annotation to select it (you will see its
+       aid appear in the statusbar on the bottom) and then click Action -> Query
+       Single Annotation. You will see the top 6 ranks for this animal.
+       IntraEncounter and vsExemplar mode for this can be toggled by using
+       Options->Toggle Query Mode
+
+   * Edit Detections / Image Annotations from Annotation Table:
+       When I am editing viewpoint / quality I might see an annotation that
+       needs a better bounding box. You can right click an annotation row in the
+       Annotations Table and click ``Edit Annotation in Image'' which brings up
+       the edit detection interface. 
+
+   * Goto Image/Name/Annotation:
+      In the annotation and name table sometimes I want to pop to the
+      corresponding row in a second table. You can right click ``Goto
+      Annotation'', ``Goto Image'', or ``Goto Name''. 
+
+      Sometimes the scrolling for this doesnt work perfectly, but it often gets
+      you in the ballpark. Scroll around (usually down) and the correct row is
+      always selected in blue. 
+
+
+Fixing Errors:
+   The help menu has debugging tools, consistency checks, and fixes to common
+   issues. 
+
+   * Fix/Clean Database is a good starting point if something goes wrong. 
+
+   * Run Consistency Checks is also a good thing to do if the error persists.
+   It might suggest a fix, but usually these problems (should never arise) are
+   solved by the fix scripts. 
+
+   * View Log Directory will get you to the logfiles. You can run ibeis with a
+   --verbose, --veryverbose, and --debug2 flag to get more output. There is also 
+   a --help flag, but be aware that this list of flags is incomplete.
+
+   * A bad cache might could cause problems. Help -> Delete Database Cache will blow the
+   cache away for the current database. 
+
+   * Dev -> Refresh Tables might fix an issue if the tables are failing to
+   refresh.
+
+   The other options available are more niche cases.
+
+
+Speedups:
+   * Slow image thumbnail load time can be aleveat using Batch -> Precompute
+   Thumbnails. 
+
+   * Slow annotation thubnail load time can be aleveated using Batch -> Precompute
+   Chips / Fetaures
+
+
+Other: 
+    I have never clicked the ``5) Complete Button''. I think it does something with
+    wild book, but I don't know exactely what it does. I'd ask Jason. 
+

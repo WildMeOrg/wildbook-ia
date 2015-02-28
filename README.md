@@ -816,48 +816,57 @@ sh Tbig.sh -t custom:rrvsone_on=True custom --noqcache
 # static lnbnn, normonly, and count test
 # combinme vsone and vsmany matches in vsone rr 
 
-
-
 # Sanity Check 
 # Make sure vsmany and onevsone are exactly the same
-python dev.py --allgt -t custom custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200 --print-confusion-stats --noqcache
+python dev.py --setdb --db PZ_Master0
+python dev.py --setdb --db PZ_MTEST
 
-# We are different than lnbnn still, but that is because vsonerr strips out
-# dupvote and fgweight Turn those off in custom. 
-# Doing this gets close
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200 --print-confusion-stats 
-# Remmbering to turn them on in both instance gets even closer BUT STILL NOT THERE!
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 40:60
-
-# Single bad case why
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache
-
-
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache --va --show
-
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache
-
-
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache --index 38:40 --va --show
-
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache --va --show
-
-
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache --db PZ_Master0
-
+# These yeild the same results for vsmany and vsone reanking
+# notice that name scoring and feature scoring are turned off. 
+# also everything is reranked
+#----
 python dev.py --allgt -t \
     custom:fg_weight=0.0,dupvote_weight=0.0 \
+    custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 \
+    --print-confusion-stats --print-gtscore --noqcache
+#----
+
+#----
+# Turning back on name scoring and feature scoring and restricting to rerank a subset
+# This gives results that are closer to what we should actually expect
+python dev.py --allgt -t custom \
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1 \
+    custom:rrvsone_on=True,prior_coeff=0.5,unconstrained_coeff=0.5,fs_lnbnn_min=0,fs_lnbnn_max=1 \
+    custom:rrvsone_on=True,prior_coeff=0.1,unconstrained_coeff=0.9,fs_lnbnn_min=0,fs_lnbnn_max=1 \
+    --print-bestcfg
+#----
+
+#----
+# VsOneRerank Tuning: Tune linar combination
+python dev.py --allgt -t \
+    custom:fg_weight=0.0,dupvote_weight=0.0 \
+\
     custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 \
+\
     custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 \
-  --print-confusion-stats --print-gtscore --db PZ_MTEST
+\
+  --db PZ_MTEST
 
+#--print-confusion-stats --print-gtscore
+#----
 
+#----
 python dev.py --allgt -t \
     custom:fg_weight=0.0,dupvote_weight=0.0 \
+\
     custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 \
+\
     custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=2,nNameShortlistVsone=20,fg_weight=0.0,dupvote_weight=0.0 \
+\
     custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=2,nNameShortlistVsone=20,fg_weight=0.0,dupvote_weight=0.0 \
+\
    --db PZ_MTEST --index 30:60
+#----
 
 python dev.py --allgt -t custom --db PZ_Master0 --va --show
 

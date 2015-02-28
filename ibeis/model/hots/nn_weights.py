@@ -6,6 +6,7 @@ import numpy as np
 import vtool as vt
 import functools
 from ibeis.model.hots import scoring
+from ibeis.model.hots import name_scoring
 from ibeis.model.hots import hstypes
 from six.moves import zip
 print, print_,  printDBG, rrr, profile = utool.inject(__name__, '[nnweight]')
@@ -68,6 +69,10 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
     """
     dupvotes gives duplicate name votes a weight close to 0.
 
+    Densve version of name weighting
+    TODO: move to name_scoring
+    TODO: sparse version of name weighting
+
     Each query feature is only allowed to vote for each name at most once.
     IE: a query feature can vote for multiple names, but it cannot vote
     for the same name twice.
@@ -76,6 +81,9 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
         python dev.py --allgt -t best --db PZ_MTEST
         python dev.py --allgt -t nsum --db PZ_MTEST
         python dev.py --allgt -t dupvote --db PZ_MTEST
+
+    CommandLine:
+        python -m ibeis.model.hots.nn_weights --test-dupvote_match_weighter
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -88,6 +96,7 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
         >>> ibs, qreq_, qaid2_nns, qaid2_nnvalid0 = tup
         >>> # Test Function Call
         >>> qaid2_dupvote_weight = nn_weights.dupvote_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_)
+        >>> print(ut.numpy_str(qaid2_dupvote_weight[1], precision=1))
         >>> # Check consistency
         >>> qaid = qreq_.get_external_qaids()[0]
         >>> qfx2_dupvote_weight = qaid2_dupvote_weight[qaid]
@@ -101,33 +110,65 @@ def dupvote_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
         ./dev.py -t nsum_nosv --db GZ_ALL --show --va -w --qaid 1032
 
     """
-    # Prealloc output
-    K = qreq_.qparams.K
-    qaid2_dupvote_weight = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
-    # Database feature index to chip index
-    for qaid in six.iterkeys(qaid2_nns):
-        qfx2_valid0 = qaid2_nnvalid0[qaid]
-        if len(qfx2_valid0) == 0:
-            # hack for empty query features (should never happen, but it
-            # inevitably will)
-            qaid2_dupvote_weight[qaid] = np.empty((0, K), dtype=hstypes.FS_DTYPE)
-            continue
-        (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
-        qfx2_topidx = qfx2_idx.T[0:K].T
-        qfx2_topaid = qreq_.indexer.get_nn_aids(qfx2_topidx)
-        qfx2_topnid = qreq_.ibs.get_annot_name_rowids(qfx2_topaid)
-        # Don't let current query count as a valid match
-        # Change those names to the unused name
-        # qfx2_topnid[qfx2_topaid == qaid] = 0
-        qfx2_invalid0 = np.bitwise_not(qfx2_valid0)
-        qfx2_topnid[qfx2_invalid0] = 0
-        # A duplicate vote is when any vote for a name after the first
-        qfx2_isnondup = np.array([ut.flag_unique_items(topnids) for topnids in qfx2_topnid])
-        # set invalids to be duplicates as well (for testing)
-        qfx2_isnondup[qfx2_invalid0] = False
-        qfx2_dupvote_weight = (qfx2_isnondup.astype(hstypes.FS_DTYPE) * (1 - 1E-7)) + 1E-7
-        qaid2_dupvote_weight[qaid] = qfx2_dupvote_weight
+    qaid2_dupvote_weight = name_scoring.dupvote_dense_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_)
     return qaid2_dupvote_weight
+    #K = qreq_.qparams.K
+    #qaid_list = list(six.iterkeys(qaid2_nns))
+    #nns_list = ut.dict_take(qaid2_nns, qaid_list)
+    #nnvalid0_list = ut.dict_take(qaid2_nnvalid0, qaid_list)
+    #dupvote_weight_list = []
+    ## Database feature index to chip index
+    #for qaid, nns, qfx2_valid0 in zip(qaid_list, nns_list, nnvalid0_list):
+    #    if len(qfx2_valid0) == 0:
+    #        # hack for empty query features (should never happen, but it
+    #        # inevitably will)
+    #        qfx2_dupvote_weight = np.empty((0, K), dtype=hstypes.FS_DTYPE)
+    #    else:
+    #        (qfx2_idx, qfx2_dist) = nns
+    #        qfx2_topidx = qfx2_idx.T[0:K].T
+    #        qfx2_topaid = qreq_.indexer.get_nn_aids(qfx2_topidx)
+    #        qfx2_topnid = qreq_.ibs.get_annot_name_rowids(qfx2_topaid)
+    #        # Don't let current query count as a valid match
+    #        # Change those names to the unused name
+    #        # qfx2_topnid[qfx2_topaid == qaid] = 0
+    #        qfx2_invalid0 = np.bitwise_not(qfx2_valid0)
+    #        qfx2_topnid[qfx2_invalid0] = 0
+    #        # A duplicate vote is when any vote for a name after the first
+    #        qfx2_isnondup = np.array([ut.flag_unique_items(topnids) for topnids in qfx2_topnid])
+    #        # set invalids to be duplicates as well (for testing)
+    #        qfx2_isnondup[qfx2_invalid0] = False
+    #        qfx2_dupvote_weight = (qfx2_isnondup.astype(hstypes.FS_DTYPE) * (1 - 1E-7)) + 1E-7
+    #    dupvote_weight_list.append(qfx2_dupvote_weight)
+    #qaid2_dupvote_weight = dict(zip(qaid_list, dupvote_weight_list))
+    #return qaid2_dupvote_weight
+    #
+    ## Prealloc output
+    #K = qreq_.qparams.K
+    #qaid2_dupvote_weight = {qaid: None for qaid in six.iterkeys(qaid2_nns)}
+    ## Database feature index to chip index
+    #for qaid in six.iterkeys(qaid2_nns):
+    #    qfx2_valid0 = qaid2_nnvalid0[qaid]
+    #    if len(qfx2_valid0) == 0:
+    #        # hack for empty query features (should never happen, but it
+    #        # inevitably will)
+    #        qaid2_dupvote_weight[qaid] = np.empty((0, K), dtype=hstypes.FS_DTYPE)
+    #        continue
+    #    (qfx2_idx, qfx2_dist) = qaid2_nns[qaid]
+    #    qfx2_topidx = qfx2_idx.T[0:K].T
+    #    qfx2_topaid = qreq_.indexer.get_nn_aids(qfx2_topidx)
+    #    qfx2_topnid = qreq_.ibs.get_annot_name_rowids(qfx2_topaid)
+    #    # Don't let current query count as a valid match
+    #    # Change those names to the unused name
+    #    # qfx2_topnid[qfx2_topaid == qaid] = 0
+    #    qfx2_invalid0 = np.bitwise_not(qfx2_valid0)
+    #    qfx2_topnid[qfx2_invalid0] = 0
+    #    # A duplicate vote is when any vote for a name after the first
+    #    qfx2_isnondup = np.array([ut.flag_unique_items(topnids) for topnids in qfx2_topnid])
+    #    # set invalids to be duplicates as well (for testing)
+    #    qfx2_isnondup[qfx2_invalid0] = False
+    #    qfx2_dupvote_weight = (qfx2_isnondup.astype(hstypes.FS_DTYPE) * (1 - 1E-7)) + 1E-7
+    #    qaid2_dupvote_weight[qaid] = qfx2_dupvote_weight
+    #return qaid2_dupvote_weight
 
 
 def componentwise_uint8_dot(qfx2_qvec, qfx2_dvec):
