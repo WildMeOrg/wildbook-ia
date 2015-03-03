@@ -399,7 +399,6 @@ def compute_centroids(data, centroids, datax2_centroidx):
 #def group_indices2(idx2_groupid):
 #    """
 #    >>> idx2_groupid = np.array(np.random.randint(0, 4, size=100))
-
 #    #http://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
 #    """
 #    # Sort items and idx2_groupid by groupid
@@ -417,32 +416,33 @@ def compute_centroids(data, centroids, datax2_centroidx):
 #    return groupxs
 
 
-def group_indices_pandas(idx2_groupid):
-    """
-    >>> from vtool.clustering2 import *
-    >>> idx2_groupid = np.array(np.random.randint(0, 8000, size=1000000))
+#def group_indices_pandas(idx2_groupid):
+#    """
+#    DEPRICATED
+#    >>> from vtool.clustering2 import *
+#    >>> idx2_groupid = np.array(np.random.randint(0, 8000, size=1000000))
 
-    keys1, groupxs2 = group_indices_pandas(idx2_groupid)
-    keys2, groupxs2 = group_indices(idx2_groupid)
+#    keys1, groupxs2 = group_indices_pandas(idx2_groupid)
+#    keys2, groupxs2 = group_indices(idx2_groupid)
 
-    %timeit group_indices_pandas(idx2_groupid)
-    %timeit group_indices(idx2_groupid)
-    """
-    import pandas as pd
-    # Pandas is actually unreasonably fast here
-    #%timeit dataframe = pd.DataFrame(idx2_groupid, columns=['groupid'])  # 135 us
-    #%timeit dfgroup = dataframe.groupby('groupid')  # 33.9 us
-    #%timeit groupid2_idxs = dfgroup.indices  # 197 ns
-    series = pd.Series(idx2_groupid)  # 66 us
-    group = series.groupby(series)    # 32.9 us
-    groupid2_idxs = group.indices     # 194 ns
-    # Compute inverted index
-    groupxs = list(groupid2_idxs.values())  # 412 ns
-    keys    = list(groupid2_idxs.keys())    # 488 ns
-    return keys, groupxs
-#    # Consistency check
-#    #for wx in _wx2_idxs.keys():
-#    #    assert set(_wx2_idxs[wx]) == set(_wx2_idxs2[wx])
+#    %timeit group_indices_pandas(idx2_groupid)
+#    %timeit group_indices(idx2_groupid)
+#    """
+#    import pandas as pd
+#    # Pandas is actually unreasonably fast here
+#    #%timeit dataframe = pd.DataFrame(idx2_groupid, columns=['groupid'])  # 135 us
+#    #%timeit dfgroup = dataframe.groupby('groupid')  # 33.9 us
+#    #%timeit groupid2_idxs = dfgroup.indices  # 197 ns
+#    series = pd.Series(idx2_groupid)  # 66 us
+#    group = series.groupby(series)    # 32.9 us
+#    groupid2_idxs = group.indices     # 194 ns
+#    # Compute inverted index
+#    groupxs = list(groupid2_idxs.values())  # 412 ns
+#    keys    = list(groupid2_idxs.keys())    # 488 ns
+#    return keys, groupxs
+##    # Consistency check
+##    #for wx in _wx2_idxs.keys():
+##    #    assert set(_wx2_idxs[wx]) == set(_wx2_idxs2[wx])
 
 
 #@profile
@@ -461,6 +461,48 @@ def apply_jagged_grouping(unflat_items, groupxs):
     item_groups = apply_grouping(flat_items, groupxs)
     return item_groups
     #itemxs_iter = [[count] * len(idx2_groupid) for count, idx2_groupid in enumerate(groupids_list)]
+
+
+def groupedzip(id_list, datas_list):
+    r"""
+    Function for grouping multiple lists of data (stored in ``datas_list``)
+    using ``id_list``.
+
+    Args:
+        id_list (list):
+        datas_list (list):
+
+    Returns:
+        iterator: _iter
+
+    CommandLine:
+        python -m vtool.clustering2 --test-groupedzip
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> # build test data
+        >>> id_list = np.array([1, 2, 1, 2, 1, 2, 3])
+        >>> datas_list = [
+        ...     ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+        ...     ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
+        ... ]
+        >>> # execute function
+        >>> groupxs, grouped_iter = groupedzip(id_list, datas_list)
+        >>> grouped_tuples = list(grouped_iter)
+        >>> # verify results
+        >>> result = str(groupxs) + '\n'
+        >>> result += '\n'.join(list(map(str, grouped_tuples)))
+        >>> print(result)
+        [1 2 3]
+        (['a', 'c', 'e'], ['A', 'C', 'E'])
+        (['b', 'd', 'f'], ['B', 'D', 'F'])
+        (['g'], ['G'])
+    """
+    unique_ids, groupxs = group_indices(id_list)
+    grouped_datas_list = [apply_grouping_(data,  groupxs) for data in datas_list]
+    grouped_iter = zip(*grouped_datas_list)
+    return unique_ids, grouped_iter
 
 
 def group_indices(idx2_groupid):
@@ -487,6 +529,19 @@ def group_indices(idx2_groupid):
         >>> result = str((keys, groupxs))
         >>> print(result)
         (array([1, 2, 3]), [array([1, 3, 5]), array([0, 2, 4, 6]), array([ 7,  8,  9, 10])])
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> idx2_groupid = np.array([[  24], [ 129], [ 659], [ 659], [ 24],
+        ...       [659], [ 659], [ 822], [ 659], [ 659], [24]])
+        >>> # 2d arrays must be flattened before coming into this function so
+        >>> # information is on the last axis
+        >>> (keys, groupxs) = group_indices(idx2_groupid.T[0])
+        >>> result = str((keys, groupxs))
+        >>> print(result)
+        (array([ 24, 129, 659, 822]), [array([ 0,  4, 10]), array([1]), array([2, 3, 5, 6, 8, 9]), array([7])])
+
 
     SeeAlso:
         apply_grouping
@@ -593,6 +648,11 @@ def apply_grouping(items, groupxs):
     """
     return [items.take(xs, axis=0) for xs in groupxs]
     #return [items[idxs] for idxs in groupxs]
+
+
+def apply_grouping_(items, groupxs):
+    """ non-optimized version """
+    return [ut.list_take(items, xs) for xs in groupxs]
 
 
 def invert_apply_grouping(grouped_items, groupxs):

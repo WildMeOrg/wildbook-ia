@@ -6,6 +6,13 @@ from six.moves import zip, range  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[other]', DEBUG=False)
 
 
+def list_take_(list_, index_list):
+    if isinstance(list_, np.ndarray):
+        return list_.take(index_list, axis=0)
+    else:
+        return ut.list_take(list_, index_list)
+
+
 def index_partition(item_list, part1_items):
     """
     returns two lists. The first are the indecies of items in item_list that
