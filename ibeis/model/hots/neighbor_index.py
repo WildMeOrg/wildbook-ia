@@ -23,9 +23,10 @@ import pyflann
 #import lockfile
 from os.path import join
 from os.path import basename, exists  # NOQA
-from six.moves import range  # NOQA
+from six.moves import range, zip, map  # NOQA
 import vtool.nearest_neighbors as nntool
 from ibeis.model.hots import hstypes
+from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[neighbor_index]', DEBUG=False)
 
 NOCACHE_FLANN = ut.get_argflag('--nocache-flann')
@@ -619,7 +620,7 @@ def get_fgweights_hack(qreq_, daid_list):
     in config settings
     """
     # <HACK:featweight>
-    if qreq_.qparams.fg_weight != 0:
+    if qreq_.qparams.fg_on:
         fgws_list = qreq_.ibs.get_annot_fgweights(
             daid_list, qreq_=qreq_, ensure=True)
     else:
@@ -1009,10 +1010,9 @@ class NeighborIndex(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.model.hots import pipeline
             >>> cfgdict = dict()
             >>> dbname = 'testdb1'
-            >>> ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, cfgdict=cfgdict)
+            >>> ibs, qreq_ = plh.get_pipeline_testdata(dbname=dbname, cfgdict=cfgdict)
             >>> nnindexer = qreq_.indexer
             >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids()[0], qreq_=qreq_)
             >>> num_neighbors = 4

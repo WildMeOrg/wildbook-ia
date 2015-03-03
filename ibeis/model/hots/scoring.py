@@ -5,13 +5,15 @@ optional symetric and asymmetric search
 """
 
 from __future__ import absolute_import, division, print_function
-import six
+import six  # NOQA
+from itertools import chain
 import numpy as np
 import vtool as vt
 import utool as ut
 from vtool import coverage_kpts
 from vtool import coverage_grid
 from ibeis.model.hots import hstypes
+from ibeis.model.hots import name_scoring
 from ibeis.model.hots import distinctiveness_normalizer
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 from six.moves import zip, range  # NOQA
@@ -20,88 +22,194 @@ print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[scoring]', DEBUG=
 
 
 def get_chipmatch_testdata(**kwargs):
-    from ibeis.model.hots import pipeline
-    cfgdict = {'dupvote_weight': 1.0}
-    ibs, qreq_ = pipeline.get_pipeline_testdata('testdb1', cfgdict)
-    # Run first four pipeline steps
-    locals_ = pipeline.testrun_pipeline_upto(qreq_, 'spatial_verification')
-    qaid2_chipmatch = locals_['qaid2_chipmatch_FILT']
+    cfgdict = {}
+    ibs, qreq_ = plh.get_pipeline_testdata('testdb1', cfgdict)
+    locals_ = plh.testrun_pipeline_upto(qreq_, 'spatial_verification')
+    cm_list = locals_['cm_list_FILT']
     # Get a single cmtup_old
-    qaid = six.next(six.iterkeys(qaid2_chipmatch))
-    cmtup_old = qaid2_chipmatch[qaid]
-    return ibs, qreq_, qaid, cmtup_old
+    return ibs, qreq_, cm_list
 
 
-def score_chipmatch_csum(qaid, cmtup_old, qreq_):
+@profile
+def score_chipmatch_list(qreq_, cm_list, score_method):
     """
-    score_chipmatch_csum
-
-    Args:
-        cmtup_old (tuple):
-
-    Returns:
-        tuple: aid_list, score_list
+    CommandLine:
+        python -m ibeis.model.hots.scoring --test-score_chipmatch_list
+        python -m ibeis.model.hots.scoring --test-score_chipmatch_list:0 --show
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.scoring import *  # NOQA
-        >>> ibs, qreq_, qaid, cmtup_old = get_chipmatch_testdata()
-        >>> (aid_list, score_list) = score_chipmatch_csum(qaid, cmtup_old, qreq_)
-        >>> print(aid_list, score_list)
+        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver()
+        >>> score_method = qreq_.qparams.prescore_method
+        >>> score_chipmatch_list(qreq_, cm_list, score_method)
+        >>> cm = cm_list[0]
+        >>> assert cm.score_list.argmax() == 0
+        >>> cm.testshow(qreq_)
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.scoring import *  # NOQA
+        >>> ibs, qreq_, cm_list = plh.testdata_post_sver()
+        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> cm = cm_list[0]
+        >>> score_method = qreq_.qparams.score_method
+        >>> score_chipmatch_list(qreq_, cm_list, score_method)
+        >>> assert cm.score_list.argmax() == 0
+        >>> cm.testshow(qreq_)
     """
-    aid2_fsv = cmtup_old.aid2_fsv
-    aid_list = list(six.iterkeys(aid2_fsv))
-    fsv_list = ut.dict_take(aid2_fsv, aid_list)
-    fs_list = [fsv.prod(axis=1) for fsv in fsv_list]
-    score_list = [np.sum(fs) for fs in fs_list]
-    return (aid_list, score_list)
+    # Choose the appropriate scoring mechanism
+    if score_method == 'csum':
+        evaluate_chipmatch_annot_scores(cm_list, qreq_)
+        for cm in cm_list:
+            cm.score_list = cm.annot_score_list
+    elif score_method == 'nsum':
+        with ut.embed_on_exception_context:
+            evaluate_chipmatch_annot_scores(cm_list, qreq_)
+            evaluate_chipmatch_name_scores(cm_list, qreq_)
+            for cm in cm_list:
+                expand_name_scores_to_annot(cm, qreq_)
+            #cm.score_list = cm.annot_score_list
+    else:
+        raise Exception('[hs] unknown scoring method:' + score_method)
 
 
-def score_chipmatch_nsum(qaid, cmtup_old, qreq_):
+@profile
+def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName):
     """
-    score_chipmatch_nsum
+    Makes shortlists for reranking
 
-    Args:
-        cmtup_old (tuple):
+    CommandLine:
+        python -m ibeis.model.hots.scoring --test-make_chipmatch_shortlists --show
 
-    Returns:
-        dict: nid2_score
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.scoring import *  # NOQA
+        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[5])
+        >>> score_method    = 'nsum'
+        >>> nNameShortList  = 5
+        >>> nAnnotPerName   = 2
+        >>> score_chipmatch_list(qreq_, cm_list, score_method)
+        >>> assert cm_list[0].dnid_list.take(cm_list[0].argsort())[0] == cm_list[0].qnid
+        >>> # execute function
+        >>> cm_shortlist = make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName)
+        >>> cm_list[0].print_rawinfostr()
+        >>> cm = cm_shortlist[0]
+        >>> cm.print_rawinfostr()
+        >>> # should be sorted already from the shortlist take
+        >>> top_nid_list = cm.dnid_list
+        >>> top_aid_list = cm.daid_list
+        >>> qnid = cm.qnid
+        >>> print('top_aid_list = %r' % (top_aid_list,))
+        >>> print('top_nid_list = %r' % (top_nid_list,))
+        >>> print('qnid = %r' % (qnid,))
+        >>> rankx = top_nid_list.tolist().index(qnid)
+        >>> assert rankx == 0, 'qnid=%r should be first rank, not rankx=%r' % (qnid, rankx)
+        >>> max_num_rerank = nNameShortList * nAnnotPerName
+        >>> min_num_rerank = nNameShortList
+        >>> ut.assert_inbounds(len(top_nid_list), min_num_rerank, max_num_rerank, 'incorrect number in shortlist', eq=True)
+        >>> cm.testshow(qreq_, daid=top_aid_list[0])
+    """
+    cm_shortlist = []
+    for cm in cm_list:
+        nscore_tup = name_scoring.group_scores_by_name(qreq_.ibs, cm.daid_list, cm.score_list)
+        (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscore_tup
+        # Clip number of names
+        _top_aids_list  = ut.listclip(sorted_aids, nNameShortList)
+        # Clip number of annots per name
+        _top_clipped_aids_list = [ut.listclip(aids, nAnnotPerName) for aids in _top_aids_list]
+        top_aids = ut.flatten(_top_clipped_aids_list)
+        cm_subset = cm.shortlist_subset(top_aids)
+        cm_shortlist.append(cm_subset)
+    return cm_shortlist
+
+
+def evaluate_chipmatch_annot_scores(cm_list, qreq_=None):
+    """
+    Evaluates chimmatch csum score in place
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.scoring import *  # NOQA
+        >>> ibs, qreq_, cm_list = get_chipmatch_testdata()
+        >>> cm = cm_list[0]
+        >>> assert cm.annot_score_list is None
+        >>> evaluate_chipmatch_annot_scores(cm_list)
+        >>> assert cm.annot_score_list is not None
+        >>> cm.print_rawinfostr()
+    """
+    for cm in cm_list:
+        fs_list = (fsv.prod(axis=1) for fsv in cm.fsv_list)
+        cm.annot_score_list = np.array([np.sum(fs) for fs in fs_list])
+
+
+def evaluate_chipmatch_name_scores(cm_list, qreq_):
+    """
+    Evaluates chimmatch nsum score in place
 
     CommandLine:
         python dev.py -t custom:score_method=csum,prescore_method=csum --db GZ_ALL --show --va -w --qaid 1032 --noqcache
-
         python dev.py -t nsum_nosv --db GZ_ALL --allgt --noqcache
         python dev.py -t nsum --db GZ_ALL --show --va -w --qaid 1032 --noqcache
         python dev.py -t nsum_nosv --db GZ_ALL --show --va -w --qaid 1032 --noqcache
-        qaid=1032_res_gooc+f4msr4ouy9t_quuid=c4f78a6d.npz
-        qaid=1032_res_5ujbs8h&%vw1olnx_quuid=c4f78a6d.npz
+        python -m ibeis.model.hots.scoring --test-evaluate_chipmatch_name_scores
+        python -m ibeis.model.hots.scoring --test-evaluate_chipmatch_name_scores --show
+        utprof.py -m ibeis.model.hots.scoring --test-evaluate_chipmatch_name_scores
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.name_scoring import *   # NOQA
+        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver()
+        >>> evaluate_chipmatch_name_scores(cm_list, qreq_)
+        >>> cm = cm_list[0]
+        >>> nid = cm.qnid
+        >>> ut.assert_eq(ut.list_argmax(cm.name_score_list), cm.nid2_idx[nid])
+        >>> cm.testshow(qreq_)
+    """
+    for cm in cm_list:
+        cm.evaluate_dnids(qreq_.ibs)
+        unique_nids, name_score_list = name_scoring.name_scoring_sparse(cm)
+        cm.assign_name_scores(unique_nids, name_score_list)
+
+
+def expand_name_scores_to_annot(cm, qreq_):
+    """
+    weird name, fix that, takes name scores and gives them to the best annotation
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.scoring import *  # NOQA
-        >>> ibs, qreq_, qaid, cmtup_old = get_chipmatch_testdata()
-        >>> (aid_list, score_list) = score_chipmatch_nsum(qaid, cmtup_old, qreq_)
-        >>> print(aid_list, score_list)
+        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver()
+        >>> evaluate_chipmatch_annot_scores(cm_list, qreq_)
+        >>> evaluate_chipmatch_name_scores(cm_list, qreq_)
+        >>> cm = cm_list[0]
+        >>> assert cm.score_list is None
+        >>> expand_name_scores_to_annot(cm, qreq_)
+        >>> assert cm.score_list is not None
+        >>> assert ut.isunique(cm.dnid_list[cm.score_list > 0]), 'bad name score'
+
     """
-    # TODO: rectify this code with code in name scoring
-    # TODO: should be another version of nsum where each feature gets a single vote
-    aid2_fsv = cmtup_old.aid2_fsv
-    aid_list = list(six.iterkeys(aid2_fsv))
-    fsv_list = ut.dict_take(aid2_fsv, aid_list)
-    #fs_list = [fsv.prod(axis=1) if fsv.shape[1] > 1 else fsv.T[0] for fsv in fsv_list]
-    fs_list = [fsv.prod(axis=1) for fsv in fsv_list]
-    annot_score_list = np.array([fs.sum() for fs in fs_list])
-    annot_nid_list = np.array(qreq_.ibs.get_annot_name_rowids(aid_list))
-    nid_list, groupxs = vt.group_indices(annot_nid_list)
-    grouped_scores = vt.apply_grouping(annot_score_list, groupxs)
-    def indicator_array(size, pos, value):
-        """ creates zero array and places value at pos """
-        arr = np.zeros(size)
-        arr[pos] = value
-        return arr
-    grouped_nscores = [indicator_array(scores.size, scores.argmax(), scores.sum()) for scores in grouped_scores]
-    nscore_list = vt.clustering2.invert_apply_grouping(grouped_nscores, groupxs)
-    return aid_list, nscore_list
+    try:
+        annot_score_list = cm.annot_score_list
+        annot_nid_list = cm.dnid_list
+        nid_list, groupxs = vt.group_indices(annot_nid_list)
+        grouped_scores = vt.apply_grouping(annot_score_list, groupxs)
+        # Find the position of the highest scoring annotation for each name
+        offset_list = np.array([annot_scores.argmax() for annot_scores in grouped_scores])
+        # use chain to start offsets with 0
+        sizeoffset_list = np.array([len(annot_scores) for annot_scores in chain([[]], grouped_scores[:-1])])
+        baseindex_list = sizeoffset_list.cumsum()
+        idx_list = baseindex_list + offset_list
+        # give the annotation domain a name score
+        name_score_list = cm.name_score_list
+        score_list = np.zeros(len(annot_score_list), dtype=name_score_list.dtype)
+        score_list[idx_list] = name_score_list
+        cm.score_list = score_list
+    except Exception as ex:
+        cm.print_rawinfostr()
+        cm.print_csv()
+        ut.printex(ex)
+        raise
 
 
 #### FEATURE WEIGHTS ####

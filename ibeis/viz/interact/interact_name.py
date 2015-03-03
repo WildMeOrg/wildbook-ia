@@ -5,6 +5,8 @@ control of splitting and merging.
 CommandLine:
     python -m ibeis.viz.interact.interact_name --test-ishow_name --show
     python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
+    python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 30 --aid2 32
+
 
 """
 from __future__ import absolute_import, division, print_function

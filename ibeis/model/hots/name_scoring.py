@@ -1,8 +1,11 @@
 from __future__ import absolute_import, division, print_function
+from six.moves import zip, range, map  # NOQA
 import numpy as np
 import vtool as vt
 import utool as ut
-import six
+#import six
+#from ibeis.model.hots import scoring
+from ibeis.model.hots import chip_match
 from ibeis.model.hots import hstypes
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
@@ -12,7 +15,7 @@ NameScoreTup = namedtuple('NameScoreTup', ('sorted_nids', 'sorted_nscore',
                                            'sorted_aids', 'sorted_scores'))
 
 
-def dupvote_dense_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
+def name_scoring_dense_old(nns_list, nnvalid0_list, qreq_):
     """
     dupvotes gives duplicate name votes a weight close to 0.
 
@@ -36,18 +39,18 @@ def dupvote_dense_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
         >>> from ibeis.model.hots.name_scoring import *  # NOQA
         >>> #tup = nn_weights.testdata_nn_weights('testdb1', slice(0, 1), slice(0, 11))
         >>> dbname = 'testdb1'  # 'GZ_ALL'  # 'testdb1'
-        >>> cfgdict = dict(K=10, Knorm=10, codename='nsum')
+        >>> cfgdict = dict(K=10, Knorm=10)
         >>> ibs, qreq_ = plh.get_pipeline_testdata(dbname=dbname, qaid_list=[2], daid_list=[1, 2, 3], cfgdict=cfgdict)
         >>> print(print(qreq_.get_infostr()))
         >>> pipeline_locals_ = plh.testrun_pipeline_upto(qreq_, 'weight_neighbors')
-        >>> qaid2_nns, qaid2_nnvalid0 = ut.dict_take(pipeline_locals_, ['qaid2_nns', 'qaid2_nnvalid0'])
+        >>> nns_list, nnvalid0_list = ut.dict_take(pipeline_locals_, ['nns_list', 'nnvalid0_list'])
         >>> # Test Function Call
-        >>> qaid2_dupvote_weight = dupvote_dense_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_)
+        >>> dupvote_weight_list = name_scoring_dense_old(nns_list, nnvalid0_list, qreq_)
         >>> # Check consistency
         >>> qaid = qreq_.get_external_qaids()[0]
-        >>> qfx2_dupvote_weight = qaid2_dupvote_weight[qaid]
+        >>> qfx2_dupvote_weight = dupvote_weight_list[0]
         >>> flags = qfx2_dupvote_weight  > .5
-        >>> qfx2_topnid = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(qaid2_nns[qaid][0]))
+        >>> qfx2_topnid = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(nns_list[0][0]))
         >>> isunique_list = [ut.isunique(row[flag]) for row, flag in zip(qfx2_topnid, flags)]
         >>> assert all(isunique_list), 'dupvote should only allow one vote per name'
 
@@ -73,17 +76,92 @@ def dupvote_dense_match_weighter(qaid2_nns, qaid2_nnvalid0, qreq_):
         return qfx2_dupvote_weight
 
     # convert ouf of dict format
-    qaid_list = list(six.iterkeys(qaid2_nns))
-    nns_list        = ut.dict_take(qaid2_nns, qaid_list)
-    nnvalid0_list   = ut.dict_take(qaid2_nnvalid0, qaid_list)
     nninvalid0_list = [np.bitwise_not(qfx2_valid0) for qfx2_valid0 in nnvalid0_list]
     dupvote_weight_list = [
         find_dupvotes(nns, qfx2_invalid0)
         for nns, qfx2_invalid0 in zip(nns_list, nninvalid0_list)
     ]
     # convert into dict format
-    qaid2_dupvote_weight = dict(zip(qaid_list, dupvote_weight_list))
-    return qaid2_dupvote_weight
+    return dupvote_weight_list
+
+
+def testdata_chipmatch():
+    fm_list = [
+        np.array([(0, 1), (1, 2)]),
+        np.array([(1, 2), (2, 3)]),
+        np.array([(0, 9), (4, 8)]),
+        np.array([(1, 9), (2, 8)]),
+        np.array([(1, 9), (2, 8)])
+    ]
+    fsv_list = [
+        np.array([(1,), (1,)]),
+        np.array([(1,), (1,)]),
+        np.array([(1,), (1,)]),
+        np.array([(1,), (1,)]),
+        np.array([(1,), (1,)]), ]
+    cm = chip_match.ChipMatch2(
+        qaid=1,
+        daid_list=[1, 2, 3, 4, 5],
+        fm_list=fm_list,
+        fsv_list=fsv_list,
+        dnid_list=[1, 2, 1, 2, 3],
+        fsv_col_lbls=['count'],
+    )
+    #print(cm.get_rawinfostr())
+    #if False:
+    #    # DEBUG
+    #    cm.rrr()
+    #    print(cm.get_rawinfostr())
+    #    print(cm.get_cvs_str(ibs=qreq_.ibs, numtop=None))
+    return cm
+
+
+@profile
+def name_scoring_sparse(cm):
+    r"""
+    Args:
+        cm (ChipMatch2):
+
+    Returns:
+        tuple: (unique_nids, name_score_list)
+
+    CommandLine:
+        python -m ibeis.model.hots.name_scoring --test-name_scoring_sparse
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.name_scoring import *  # NOQA
+        >>> # build test data
+        >>> cm = testdata_chipmatch()
+        >>> # execute function
+        >>> (unique_nids, name_score_list) = name_scoring_sparse(cm)
+        >>> ut.assert_eq(unique_nids.tolist(), [1, 2, 3])
+        >>> ut.assert_eq(name_score_list.tolist(), [3, 2, 2])
+    """
+    fs_list = [fsv.prod(axis=1) for fsv in cm.fsv_list]
+    dnid_list = np.array(cm.dnid_list)
+    fx1_list = [fm.T[0] for fm in cm.fm_list]
+    # Group annotation matches by name
+    unique_nids, name_groupxs = vt.group_indices(dnid_list)
+    name_grouped_fx1_list = vt.apply_grouping_(fx1_list, name_groupxs)
+    name_grouped_fs_list  = vt.apply_grouping_(fs_list,  name_groupxs)
+    # Stack up all matches to a particular name
+    name_grouped_fx1_flat = (map(np.hstack, name_grouped_fx1_list))
+    name_grouped_fs_flat  = (map(np.hstack, name_grouped_fs_list))
+    # Group matches to a particular name by query feature index
+    fx1_groupxs_list = (vt.group_indices(fx1_flat)[1] for fx1_flat in name_grouped_fx1_flat)
+    feat_grouped_fs_list = (
+        vt.apply_grouping(fs_flat, fx1_groupxs)
+        for fs_flat, fx1_groupxs in zip(name_grouped_fs_flat, fx1_groupxs_list)
+    )
+    # Prevent a feature from voting twice:
+    # take only the max score that a query feature produced
+    best_fs_list = (
+        np.array([fs_group.max() for fs_group in feat_grouped_fs])
+        for feat_grouped_fs in feat_grouped_fs_list
+    )
+    name_score_list = np.array([fs.sum() for fs in best_fs_list])
+    return unique_nids, name_score_list
 
 
 def group_scores_by_name(ibs, aid_list, score_list):

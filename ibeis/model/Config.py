@@ -7,6 +7,8 @@ import utool as ut
 import six
 import copy
 from os.path import join
+from os.path import splitext
+from six.moves import zip, map, range, filter  # NOQA
 from ibeis import constants as const
 from utool._internal.meta_util_six import get_funcname
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[cfg]')
@@ -74,8 +76,9 @@ def make_config_metaclass():
         else:
             item_list = parse_config_items(cfg)
             itemstr_list = [key + '=' + str(val) for key, val in item_list]
+        filtered_itemstr_list = list(filter(len, itemstr_list))
         config_name = cfg.get_config_name()
-        return [config_name , '(' + ','.join(itemstr_list) + ')']
+        return ['_' + config_name , '(' + ','.join(filtered_itemstr_list) + ')']
 
     @_register
     def parse_items(cfg, **kwargs):
@@ -83,8 +86,12 @@ def make_config_metaclass():
 
     @_register
     def get_config_name(cfg, **kwargs):
-        """ the user should overwrite this function """
-        return 'METACONFIG'
+        """ the user might want to overwrite this function """
+        class_str = str(cfg.__class__)
+        full_class_str = class_str.replace('<class \'', '').replace('\'>', '')
+        config_name = splitext(full_class_str)[1][1:].replace('Config', '')
+        return config_name
+        #return 'METACONFIG'
 
     @_register
     def __hash__(cfg):
@@ -174,134 +181,6 @@ class NNConfig(ConfigBase):
 
 
 @six.add_metaclass(ConfigMetaclass)
-class FilterConfig(ConfigBase):
-    """
-    Rename to scoring mechanism
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.Config import *  # NOQA
-        >>> filt_cfg = FilterConfig()
-        >>> result1 = filt_cfg.get_cfgstr()
-        >>> filt_cfg.fg_weight = 1
-        >>> result2 = filt_cfg.get_cfgstr()
-        >>> result = result1
-        _FILT(lnbnn;1.0,dupvote;1.0,fg;1.0)
-    """
-
-    def __init__(filt_cfg, **kwargs):
-        super(FilterConfig, filt_cfg).__init__(name='filt_cfg')
-        filt_cfg = filt_cfg
-        filt_cfg.filt_on = True
-        filt_cfg.Krecip = 0  # 0 := off
-        filt_cfg.can_match_sameimg = False
-        filt_cfg.can_match_samename = True
-        filt_cfg.gravity_weighting = False
-        filt_cfg._valid_filters = []
-        def addfilt(sign, filt, thresh, weight, depends=None):
-            """
-            dynamically adds filters
-            (sign, filt, thresh, weight)
-            """
-            printDBG('[addfilt] %r %r %r %r' % (sign, filt, thresh, weight))
-            filt_cfg._valid_filters.append(filt)
-            filt_cfg[filt + '_thresh'] = None if thresh is None else float(thresh)
-            filt_cfg[filt + '_weight'] = None if weight is None else float(weight)
-            filt_cfg['_' + filt + '_depends'] = depends
-            filt_cfg['_' + filt + '_sign'] = sign
-        # thresh test is: sign * score <= sign * thresh
-        # sign +1 := Lower scores are better
-        # sign -1 := Higher scores are better
-        #tup( Sign,        Filt, ValidSignThresh, ScoreMetaWeight)
-        #    (sign,        filt, thresh, weight,  depends)
-        addfilt(+1,  'bboxdist',   None,    0.0)
-        addfilt(-1,     'recip',    0.0,    0.0, 'filt_cfg.Krecip > 0')
-        addfilt(+1,    'bursty',   None,    0.0)
-        addfilt(+1,     'ratio',   None,    0.0)
-        addfilt(+1,      'dist',   None,    0.0)
-        addfilt(-1,     'lnbnn',   None,    1.0)
-        addfilt(-1,   'dupvote',   None,    1.0)
-        addfilt(-1,    'lograt',   None,    0.0)
-        addfilt(-1,  'normonly',   None,    0.0)
-        addfilt(-1,   'logdist',   None,    0.0)
-        addfilt(-1,  'loglnbnn',   None,    0.0)
-        addfilt(-1,        'fg',   None,    1.0)
-        addfilt(-1,       'cos',   None,    0.0)
-        #addfilt(+1, 'scale' )
-        filt_cfg.update(**kwargs)
-
-    def make_feasible(filt_cfg):
-        # Ensure the list of on filters is valid given the weight and thresh
-        if filt_cfg.ratio_thresh is None or filt_cfg.ratio_thresh >= 1:
-            filt_cfg.ratio_thresh = None
-        if filt_cfg.bboxdist_thresh is None or filt_cfg.bboxdist_thresh >= 1:
-            filt_cfg.bboxdist_thresh = None
-        if filt_cfg.bursty_thresh  is None or filt_cfg.bursty_thresh <= 1:
-            filt_cfg.bursty_thresh = None
-
-    def get_stw(filt_cfg, filt):
-        # stw = sign, thresh, weight
-        if not isinstance(filt, six.string_types):
-            raise AssertionError('Global cache seems corrupted')
-        sign   = filt_cfg['_' + filt + '_sign']
-        thresh = filt_cfg[filt + '_thresh']
-        weight = filt_cfg[filt + '_weight']
-        if weight == 1.0:
-            weight = 1.0
-        return sign, thresh, weight
-
-    def get_active_filters(filt_cfg):
-        active_filters = []
-        for filt in filt_cfg._valid_filters:
-            sign, thresh, weight = filt_cfg.get_stw(filt)
-            depends = filt_cfg['_' + filt + '_depends']
-            # Check to make sure dependencies are satisfied
-            # RCOS TODO FIXME: Possible security flaw.
-            # This eval needs to be removed.
-            # Need to find a better way of encoding dependencies
-            assert depends is None or depends.find('(') == -1, 'unsafe dependency'
-            depends_ok = depends is None or eval(depends)
-            conditions_ok = thresh is not None or weight != 0
-            if conditions_ok and depends_ok:
-                active_filters.append(filt)
-        return active_filters
-
-    def get_cfgstr_list(filt_cfg, **kwargs):
-        if not filt_cfg.filt_on:
-            return ['_FILT()']
-        on_filters = filt_cfg.get_active_filters()
-        filt_cfgstr = ['_FILT(']
-        stw_list = []
-        # Create a cfgstr for each filter
-        for filt in on_filters:
-            sign, thresh, weight = filt_cfg.get_stw(filt)
-            stw_str = filt
-            if thresh is None and weight == 0:
-                continue
-            if thresh is not None:
-                sstr = '>' if sign == -1 else '<'  # actually <=, >=
-                stw_str += sstr + str(thresh)
-            if weight != 0:
-                stw_str += ';' + str(weight)
-            stw_list.append(stw_str)
-        stw_str = ','.join(stw_list)
-        if filt_cfg.Krecip != 0 and 'recip' in on_filters:
-            filt_cfgstr += ['Kr' + str(filt_cfg.Krecip)]
-            if len(stw_str) > 0:
-                filt_cfgstr += [',']
-        if len(stw_str) > 0:
-            filt_cfgstr += [stw_str]
-        if filt_cfg.can_match_sameimg:
-            filt_cfgstr += 'sameimg'
-        if not filt_cfg.can_match_samename:
-            filt_cfgstr += 'notsamename'
-        if filt_cfg.gravity_weighting:
-            filt_cfgstr += [',gvweight']
-        filt_cfgstr += [')']
-        return filt_cfgstr
-
-
-@six.add_metaclass(ConfigMetaclass)
 class SpatialVerifyConfig(ConfigBase):
     """
     Spatial verification
@@ -314,7 +193,8 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.scale_thresh = 2.0
         sv_cfg.ori_thresh   = tau / 4.0
         sv_cfg.min_nInliers = 4
-        sv_cfg.nShortlist = 50
+        sv_cfg.nNameShortlistSVER = 50
+        sv_cfg.nAnnotPerNameSVER = 2
         #sv_cfg.prescore_method = 'csum'
         sv_cfg.prescore_method = 'nsum'
         sv_cfg.use_chip_extent = False  # BAD CONFIG?
@@ -330,7 +210,8 @@ class SpatialVerifyConfig(ConfigBase):
             '_SV(',
             thresh_str,
             'minIn=%d,' % (sv_cfg.min_nInliers,),
-            'nRR=%d,' % (sv_cfg.nShortlist,),
+            'nRR=%d,' % (sv_cfg.nNameShortlistSVER,),
+            'nRR=%d,' % (sv_cfg.nNameShortlistSVER,),
             sv_cfg.prescore_method, ',',
             'cdl,' * sv_cfg.use_chip_extent,  # chip diag len
             '+w,' * sv_cfg.sver_weighting,  # chip diag len
@@ -347,7 +228,6 @@ class AggregateConfig(ConfigBase):
     def __init__(agg_cfg, **kwargs):
         super(AggregateConfig, agg_cfg).__init__(name='agg_cfg')
         # chipsum, namesum, placketluce
-        agg_cfg.isWeighted = False
         #agg_cfg.score_method = 'csum'
         agg_cfg.score_method = 'nsum'
         agg_cfg.score_normalization = False
@@ -368,10 +248,6 @@ class AggregateConfig(ConfigBase):
         # ---
         key = agg_cfg.score_method.lower()
         # Use w as a toggle for weighted mode
-        if key.find('w') == len(key) - 1:
-            agg_cfg.isWeighted = True
-            key = key[:-1]
-            agg_cfg.score_method = key
         # Sanatize the scoring method
         if key in alt_methods:
             agg_cfg.score_method = alt_methods[key]
@@ -380,8 +256,6 @@ class AggregateConfig(ConfigBase):
         agg_cfgstr = []
         agg_cfgstr.append('_AGG(')
         agg_cfgstr.append(agg_cfg.score_method)
-        if agg_cfg.isWeighted:
-            agg_cfgstr.append('w')
         if agg_cfg.score_method  == 'pl':
             agg_cfgstr.append(',%d' % (agg_cfg.max_alts,))
         if agg_cfg.score_normalization:
@@ -466,7 +340,7 @@ class SMKConfig(ConfigBase):
         super(SMKConfig, smk_cfg).__init__(name='smk_cfg')
         smk_cfg.smk_thresh = 0.0  # tau in the paper
         smk_cfg.smk_alpha  = 3.0
-        smk_cfg.aggregate  = False
+        smk_cfg.smk_aggregate  = False
         # TODO Separate into vocab config
         smk_cfg._valid_vocab_weighting = ['idf', 'negentropy']
         smk_cfg.vocab_weighting = 'idf'
@@ -485,7 +359,7 @@ class SMKConfig(ConfigBase):
     def get_cfgstr_list(smk_cfg, **kwargs):
         smk_cfgstr_list = [
             '_SMK(',
-            'agg=', str(smk_cfg.aggregate),
+            'agg=', str(smk_cfg.smk_aggregate),
             ',t=', str(smk_cfg.smk_thresh),
             ',a=', str(smk_cfg.smk_alpha),
             ',SelfOk' if smk_cfg.allow_self_match else '',
@@ -581,6 +455,57 @@ class VocabAssignConfig(ConfigBase):
 
 
 @six.add_metaclass(ConfigMetaclass)
+class NNWeightConfig(ConfigBase):
+    r"""
+    CommandLine:
+        python -m ibeis.model.Config --test-NNWeightConfig
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> cfg_list = [
+        ...     NNWeightConfig(),
+        ...     NNWeightConfig(can_match_sameimg=True, can_match_samename=False),
+        ...     NNWeightConfig(ratio_thresh=.625, lnbnn_on=False)
+        ... ]
+        >>> result = '\n'.join([cfg.get_cfgstr() for cfg in cfg_list])
+        >>> print(result)
+        NNWeight(lnbnn,fg)
+        NNWeight(lnbnn,fg,sameimg,nosamename)
+        NNWeight(ratio_thresh=0.625,fg)
+    """
+    def __init__(nnweight_cfg, **kwargs):
+        super(NNWeightConfig, nnweight_cfg).__init__(name='nnweight_cfg')
+        for pi in nnweight_cfg.get_param_info_list():
+            setattr(nnweight_cfg, pi.varname, pi.default)
+        nnweight_cfg.update(**kwargs)
+
+    #def get_config_name(nnweight_cfg):
+    #    return 'NNWeight'
+
+    def get_param_info_list(rrvsone_cfg):
+        # new way to try and specify config options.
+        # not sure if i like it yet
+        param_info_list = ut.flatten([
+            [
+                ut.ParamInfo('ratio_thresh', None, type_=float, hideif=None),
+                ut.ParamInfoBool('lnbnn_on', True,  hideif=False),
+                ut.ParamInfoBool('lograt_on', False, hideif=False),
+                ut.ParamInfoBool('logdist_on', False,  hideif=False),
+                ut.ParamInfoBool('dist_on', False,  hideif=False),
+                ut.ParamInfoBool('normonly_on', False,  hideif=False),
+                ut.ParamInfoBool('loglnbnn_on', False,  hideif=False),
+                ut.ParamInfoBool('cos_on', False,  hideif=False),
+                ut.ParamInfoBool('fg_on', True, hideif=False),
+                #
+                ut.ParamInfoBool('can_match_sameimg', False,  'sameimg', hideif=False),
+                ut.ParamInfoBool('can_match_samename', True, 'samename', hideif=True),
+            ],
+        ])
+        return param_info_list
+
+
+@six.add_metaclass(ConfigMetaclass)
 class RerankVsOneConfig(ConfigBase):
     """
     CommandLine:
@@ -591,7 +516,7 @@ class RerankVsOneConfig(ConfigBase):
         >>> from ibeis.model.Config import *  # NOQA
         >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=True)
         >>> result = rrvsone_cfg.get_cfgstr()
-        >>> assert result.startswith('RRVsOne(True,')
+        >>> assert result.startswith('_RRVsOne(True,')
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -668,7 +593,7 @@ class QueryConfig(ConfigBase):
     def __init__(query_cfg, **kwargs):
         super(QueryConfig, query_cfg).__init__(name='query_cfg')
         query_cfg.nn_cfg         = NNConfig(**kwargs)
-        query_cfg.filt_cfg       = FilterConfig(**kwargs)
+        query_cfg.nnweight_cfg   = NNWeightConfig(**kwargs)
         query_cfg.sv_cfg         = SpatialVerifyConfig(**kwargs)
         query_cfg.agg_cfg        = AggregateConfig(**kwargs)
         query_cfg.flann_cfg      = FlannConfig(**kwargs)
@@ -709,8 +634,8 @@ class QueryConfig(ConfigBase):
             # Naive Bayes Parameters
             if kwargs.get('use_nn', True):
                 cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
-            if kwargs.get('use_filt', True):
-                cfgstr_list += query_cfg.filt_cfg.get_cfgstr_list(**kwargs)
+            if kwargs.get('use_nnweight', True):
+                cfgstr_list += query_cfg.nnweight_cfg.get_cfgstr_list(**kwargs)
             if kwargs.get('use_sv', True):
                 cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
             if kwargs.get('use_agg', True):
@@ -734,7 +659,7 @@ class QueryConfig(ConfigBase):
         query_cfg.apply_codename(cfgdict.get('codename', None))
         # update subconfigs
         query_cfg.nn_cfg.update(**cfgdict)
-        query_cfg.filt_cfg.update(**cfgdict)
+        query_cfg.nnweight_cfg.update(**cfgdict)
         query_cfg.sv_cfg.update(**cfgdict)
         query_cfg.agg_cfg.update(**cfgdict)
         query_cfg.flann_cfg.update(**cfgdict)
@@ -763,46 +688,32 @@ class QueryConfig(ConfigBase):
         if codename is None:
             codename = query_cfg.codename
 
-        filt_cfg = query_cfg.filt_cfg
+        nnweight_cfg = query_cfg.nnweight_cfg
         nn_cfg   = query_cfg.nn_cfg
         agg_cfg = query_cfg.agg_cfg
-        sv_cfg = query_cfg.sv_cfg
 
         if codename.startswith('csum') or codename.endswith('_csum'):
-            filt_cfg.dupvote_weight = 0.0
-            sv_cfg.prescore_method = 'csum'
-            agg_cfg.score_method = 'csum'
+            raise NotImplementedError('codename nsum')
         if codename.startswith('nsum'):
-            filt_cfg.dupvote_weight = 1.0
-            agg_cfg.score_method = 'nsum'
-            sv_cfg.prescore_method = 'nsum'
-            if codename.startswith('nsum_unnorm'):
-                agg_cfg.score_normalization = False
-            else:
-                agg_cfg.score_normalization = True
+            raise NotImplementedError('codename nsum')
         if codename.startswith('vsmany'):
             query_cfg.pipeline_root = 'vsmany'
         elif codename.startswith('vsone'):
             query_cfg.pipeline_root = 'vsone'
             nn_cfg.K = 1
             nn_cfg.Knorm = 1
-            filt_cfg.lnbnn_weight = 0.0
-            #filt_cfg.ratio_thresh = 1.6
+            nnweight_cfg.lnbnn_on = False
+            #nnweight_cfg.ratio_thresh = 1.6
             if codename.endswith('_dist') or '_dist_' in codename:
                 # no ratio use distance
-                filt_cfg.ratio_thresh = None
-                filt_cfg.ratio_weight = 0.0
-                filt_cfg.dist_thresh = None
-                filt_cfg.dist_weight = 1.0
+                nnweight_cfg.ratio_thresh = None
+                nnweight_cfg.dist_on = True
             else:
-                filt_cfg.ratio_thresh = .625
-                filt_cfg.ratio_weight = 1.0
+                nnweight_cfg.ratio_thresh = .625
             if '_ratio' in codename:
-                filt_cfg.ratio_thresh = .625
-                filt_cfg.ratio_weight = 1.0
+                nnweight_cfg.ratio_thresh = .625
             if '_extern_distinctiveness' in codename:
                 query_cfg.use_external_distinctiveness = True
-            filt_cfg.dupvote_weight = 0.0
             if codename.startswith('vsone_unnorm'):
                 agg_cfg.score_normalization = False
             elif codename.startswith('vsone_norm'):
@@ -833,10 +744,10 @@ class QueryConfig(ConfigBase):
         """
         removes invalid parameter settings over all cfgs (move to QueryConfig)
         """
-        filt_cfg = query_cfg.filt_cfg
+        nnweight_cfg = query_cfg.nnweight_cfg
         nn_cfg   = query_cfg.nn_cfg
         featweight_cfg = query_cfg._featweight_cfg
-        feat_cfg = query_cfg._featweight_cfg._feat_cfg
+        #feat_cfg = query_cfg._featweight_cfg._feat_cfg
         smk_cfg = query_cfg.smk_cfg
         vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg
         agg_cfg = query_cfg.agg_cfg
@@ -849,7 +760,7 @@ class QueryConfig(ConfigBase):
 
         if query_cfg.pipeline_root == 'asmk':
             query_cfg.pipeline_root = 'smk'
-            smk_cfg.aggregate = True
+            smk_cfg.smk_aggregate = True
 
         hasvalid_root = any([
             query_cfg.pipeline_root == root
@@ -864,16 +775,14 @@ class QueryConfig(ConfigBase):
                 query_cfg.pipeline_root = query_cfg._valid_pipeline_roots[0]
                 pass
 
-        if feat_cfg.nogravity_hack is False:
-            filt_cfg.gravity_weighting = False
-
-        if featweight_cfg.featweight_on is not True or filt_cfg.fg_weight == 0.0:
-            filt_cfg.fg_weight = 0.0
-            featweight_cfg.featweight_on = False
+        if nnweight_cfg.fg_on is not True:
+            featweight_cfg.featweight_enabled = False
+        if featweight_cfg.featweight_enabled is not True:
+            nnweight_cfg.fg_on = False
 
         vocabassign_cfg.make_feasible()
         smk_cfg.make_feasible()
-        filt_cfg.make_feasible()
+        #nnweight_cfg.make_feasible()
         nn_cfg.make_feasible()
 
     def deepcopy(query_cfg, **kwargs):
@@ -901,21 +810,21 @@ class FeatureWeightConfig(ConfigBase):
         # Feature weights depend on the detector, but we only need to mirror
         # some parameters because featweight_cfg should not use the detect_cfg
         # object
-        featweight_cfg.featweight_on = True
+        featweight_cfg.featweight_enabled = True
         featweight_cfg.featweight_species  = 'uselabel'
         featweight_cfg.featweight_detector = 'rf'
         featweight_cfg.update(**kwargs)
 
     def make_feasible(featweight_cfg):
-        #featweight_cfg.featweight_on = False
+        #featweight_cfg.featweight_enabled = False
         pass
 
     def get_cfgstr_list(featweight_cfg, **kwargs):
         featweight_cfg.make_feasible()
         featweight_cfgstrs = []
         if kwargs.get('use_featweight', True):
-            if featweight_cfg.featweight_on is not True:
-                if featweight_cfg.featweight_on == 'ERR':
+            if featweight_cfg.featweight_enabled is not True:
+                if featweight_cfg.featweight_enabled == 'ERR':
                     featweight_cfgstrs.extend(['_FEATWEIGHT(ERR)'])
                 else:
                     featweight_cfgstrs.extend(['_FEATWEIGHT(OFF)'])
@@ -954,7 +863,6 @@ class FeatureConfig(ConfigBase):
         super(FeatureConfig, feat_cfg).__init__(name='feat_cfg')
         feat_cfg._chip_cfg = ChipConfig(**kwargs)
         feat_cfg.feat_type = 'hesaff+sift'
-        feat_cfg.whiten = False
         feat_cfg._param_list = list(six.iteritems(pyhesaff.get_hesaff_default_params()))
 
         for type_, name, default, doc in feat_cfg._iterparams():
@@ -985,7 +893,6 @@ class FeatureConfig(ConfigBase):
         if kwargs.get('use_feat', True):
             feat_cfgstrs = ['_FEAT(']
             feat_cfgstrs += [feat_cfg.feat_type]
-            feat_cfgstrs += [',white'] * feat_cfg.whiten
             #feat_cfgstrs += [',%r_%r' % (feat_cfg.scale_min, feat_cfg.scale_max)]
             feat_cfgstrs += [',adaptive'] * feat_cfg.use_adaptive_scale
             feat_cfgstrs += [',nogravity'] * feat_cfg.nogravity_hack
@@ -994,7 +901,6 @@ class FeatureConfig(ConfigBase):
                 'numberOfScales': 'nScales',
                 'edgeEigValRat': 'EdgeEigvRat',
                 'maxIterations': 'nIter',
-                #'whiten':
             }
             ignore = []
             import pyhesaff
@@ -1173,10 +1079,9 @@ def default_vsone_cfg(ibs, **kwargs):
     # DEPRICATE
     kwargs['pipeline_root'] = 'vsone'
     ut.dict_update_newkeys(kwargs, {
-        'lnbnn_weight': 0.0,
+        'lnbnn_on': False,
         'checks': 256, 'K': 1,
         'Knorm': 1,
-        'ratio_weight': 1.0,
         'ratio_thresh': .6666  # 1.5,
     })
     query_cfg = QueryConfig(**kwargs)

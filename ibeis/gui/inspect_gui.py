@@ -22,6 +22,7 @@ import numpy as np
 import six
 import utool
 import utool as ut
+from ibeis.gui import guiexcept
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[inspect_gui]')
 
 
@@ -194,9 +195,9 @@ def mark_pair_as_positive_match(qres_wgt, qtindex):
     try:
         status = mark_annot_pair_as_positive_match(ibs, qaid, daid)
         print('status = %r' % (status,))
-    except NeedUserInputException:
+    except guiexcept.NeedsUserInput:
         review_match_at(qres_wgt, qtindex)
-    except UserCancelException:
+    except guiexcept.UserCancel:
         print('user canceled positive match')
 
 
@@ -208,18 +209,10 @@ def mark_pair_as_negative_match(qres_wgt, qtindex):
     try:
         status = mark_annot_pair_as_negative_match(ibs, qaid, daid)
         print('status = %r' % (status,))
-    except NeedUserInputException:
+    except guiexcept.NeedsUserInput:
         review_match_at(qres_wgt, qtindex)
-    except UserCancelException:
+    except guiexcept.UserCancel:
         print('user canceled negative match')
-
-
-class NeedUserInputException(Exception):
-    pass
-
-
-class UserCancelException(Exception):
-    pass
 
 
 def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False):
@@ -282,7 +275,7 @@ def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False):
             MERGE_NEEDS_VERIFICATION = True
             aid1_and_groundtruth = ibs.get_annot_groundtruth(aid1, noself=False)
             if MERGE_NEEDS_INTERACTION:
-                raise NeedUserInputException('confirm merge')
+                raise guiexcept.NeedsUserInput('confirm merge')
             elif MERGE_NEEDS_VERIFICATION:
                 aid2_and_groundtruth = ibs.get_annot_groundtruth(aid2, noself=False)
                 name1, name2 = ibs.get_annot_names([aid1, aid2])
@@ -295,7 +288,7 @@ def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False):
                                     num_gt1=len(aid1_and_groundtruth),
                                     num_gt2=len(aid2_and_groundtruth),)
                 if not guitool.are_you_sure(parent=None, msg=msg, default='Yes'):
-                    raise UserCancelException('canceled merge')
+                    raise guiexcept.UserCancel('canceled merge')
             status =  _set_annot_name_rowids(aid1_and_groundtruth, [nid2] * len(aid1_and_groundtruth))
         elif isunknown2 and not isunknown1:
             print('...match unknown2 into known1')
@@ -353,7 +346,7 @@ def mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False):
         else:
             status = 'error'
             print('There are %d annots in this name. Need more sophisticated split' % (len(aid1_groundtruth)))
-            raise NeedUserInputException('non-trivial split')
+            raise guiexcept.NeedsUserInput('non-trivial split')
     else:
         isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
         if isunknown1 and isunknown2:

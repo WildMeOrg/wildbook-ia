@@ -4,6 +4,7 @@ from ibeis.model.hots import multi_index
 from ibeis.model.hots import score_normalization
 from ibeis.model.hots import distinctiveness_normalizer
 from ibeis.model.hots import query_params
+from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 import vtool as vt
 import copy
 import six
@@ -29,13 +30,11 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> ibs = ibeis.opendb(db='PZ_MTEST')
         >>> qaids = [1]
         >>> daids = [1, 2, 3, 4, 5]
-        >>> cfgdict = {'sv_on': False, 'fg_weight': 1.0, 'featweight_on': True}
+        >>> cfgdict = {'sv_on': False, 'fg_on': True}
         >>> # Execute test
         >>> qreq_ = new_ibeis_query_request(ibs, qaids, daids, cfgdict=cfgdict)
         >>> # Check Results
         >>> print(qreq_.qparams.query_cfgstr)
-        >>> assert qreq_.qparams.fg_weight == 1.0, (
-        ...    'qreq_.qparams.fg_weight = %r ' % qreq_.qparams.fg_weight)
         >>> assert qreq_.qparams.sv_on is False, (
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> datahashid = qreq_.get_data_hashid()
@@ -53,14 +52,12 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> ibs = ibeis.opendb(db='NAUT_test')
         >>> qaids = [1]
         >>> daids = [1, 2, 3, 4, 5]
-        >>> cfgdict = {'sv_on': True, 'fg_weight': 1.0, 'featweight_on': True}
+        >>> cfgdict = {'sv_on': True, 'fg_on': True}
         >>> # Execute test
         >>> qreq_ = new_ibeis_query_request(ibs, qaids, daids, cfgdict=cfgdict)
         >>> # Check Results.
         >>> # Featweight should be off because there is no Naut detector
         >>> print(qreq_.qparams.query_cfgstr)
-        >>> assert qreq_.qparams.fg_weight == 0.0, (
-        ...    'qreq_.qparams.fg_weight = %r ' % qreq_.qparams.fg_weight)
         >>> assert qreq_.qparams.sv_on is True, (
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> datahashid = qreq_.get_data_hashid()
@@ -109,8 +106,9 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids):
         else:
             print('  * unique_species = %r' % (unique_species,))
         print('  * valid species = %r' % (ibs.get_species_with_detectors(),))
-        #cfg._featweight_cfg.featweight_on = 'ERR'
-        cfgdict['featweight_on'] = 'ERR'
+        #cfg._featweight_cfg.featweight_enabled = 'ERR'
+        cfgdict['featweight_enabled'] = 'ERR'
+        cfgdict['fg_on'] = False
     else:
         #print(ibs.get_annot_species_texts(aid_list))
         print('NO NEED TO HACK. FG_WEIGHT CAN BE ON, unique_species=%r' % (unique_species,))
@@ -328,7 +326,7 @@ class QueryRequest(object):
             >>> cfgdict1 = dict(codename='vsone', sv_on=True)
             >>> qaid_list = [1, 2, 3, 4]
             >>> daid_list = [1, 2, 3, 4]
-            >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1,
+            >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1,
             ...     qaid_list=qaid_list, daid_list=daid_list)
             >>> qaids = qreq_.get_internal_qaids()
             >>> ut.assert_lists_eq(qaid_list, qaids)
@@ -360,7 +358,7 @@ class QueryRequest(object):
             >>> cfgdict1 = dict(codename='vsone', sv_on=True)
             >>> qaid_list = [1, 2, 3, 4]
             >>> daid_list = [1, 2, 3, 4]
-            >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1,
+            >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1,
             ...     qaid_list=qaid_list, daid_list=daid_list)
             >>> qaids = qreq_.get_internal_qaids()
             >>> ut.assert_lists_eq(qaid_list, qaids)
@@ -509,7 +507,7 @@ class QueryRequest(object):
         """
         if verbose:
             print('[qreq] lazy preloading')
-        if qreq_.qparams.featweight_on is True:
+        if qreq_.qparams.fg_on is True:
             qreq_.ensure_featweights(verbose=verbose)
         if qreq_.qparams.score_normalization is True:
             qreq_.load_score_normalizer(verbose=verbose)

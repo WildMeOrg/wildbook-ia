@@ -427,13 +427,13 @@ def build_vsone_shortlist(ibs, qaid2_qres_vsmany):
 
     """
     vsone_query_pairs = []
-    nNameShortlistVsone = 3
+    nNameShortlist = 3
     nAnnotPerName = 2
     for qaid, qres_vsmany in six.iteritems(qaid2_qres_vsmany):
         nscoretup = qres_vsmany.get_nscoretup(ibs)
         (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
-        #top_nid_list = ut.listclip(sorted_nids, nNameShortlistVsone)
-        top_aids_list = ut.listclip(sorted_aids, nNameShortlistVsone)
+        #top_nid_list = ut.listclip(sorted_nids, nNameShortlist)
+        top_aids_list = ut.listclip(sorted_aids, nNameShortlist)
         top_aids_list_ = [ut.listclip(aids, nAnnotPerName) for aids in top_aids_list]
         top_aid_list = ut.flatten(top_aids_list_)
         # get top annotations beloning to the database query

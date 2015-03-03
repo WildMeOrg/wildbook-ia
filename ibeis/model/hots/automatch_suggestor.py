@@ -54,9 +54,9 @@ def get_qres_name_choices(ibs, qres):
         >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]
         >>> choicetup = get_qres_name_choices(ibs, qres)
         >>> print(choicetup)
-        >>> result = np.array_repr(choicetup.sorted_nids)
+        >>> result = ut.numpy_str(choicetup.sorted_nids[0:1])
         >>> print(result)
-        array([ 1,  2, -4])
+        np.array([1], dtype=np.int32)
 
     """
     if qres is None:

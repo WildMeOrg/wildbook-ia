@@ -97,8 +97,8 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
             lbl1_list.append('q' + vh.get_aidstrs(aid1))
             lbl2_list.append(vh.get_aidstrs(aid2))
         if kwargs.get('show_name', True):
-            lbl1_list.append(repr(name1))
-            lbl2_list.append(repr(name2))
+            lbl1_list.append(repr(str(name1)))
+            lbl2_list.append(repr(str(name2)))
         if kwargs.get('show_nid', True):
             lbl1_list.append(vh.get_nidstrs(nid1))
             lbl2_list.append(vh.get_nidstrs(nid2))
