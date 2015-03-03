@@ -1442,7 +1442,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
                 cmap = plt.get_cmap(cmap)
             ax.imshow(imgGRAY, cmap=cmap, **plt_imshow_kwargs)
         else:
-            raise Exception('unknown image format')
+            raise AssertionError('unknown image format. img.dtype=%r, img.shape=%r' % (img.dtype, img.shape))
     except TypeError as te:
         print('[df2] imshow ERROR %r' % (te,))
         raise
