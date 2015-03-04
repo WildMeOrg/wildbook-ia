@@ -154,11 +154,15 @@ def show_was_requested():
 
 
 def show_if_requested():
-    if ut.get_argflag('--show'):
-        plt.show()
-    else:
+    if ut.inIPython():
         import plottool as pt
         pt.iup()
+    elif ut.get_argflag('--cmd'):
+        import plottool as pt
+        pt.draw()
+        ut.embed(N=1)
+    elif ut.get_argflag('--show'):
+        plt.show()
 
 
 def label_to_colors(labels_):
