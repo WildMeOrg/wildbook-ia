@@ -6,6 +6,10 @@ from six.moves import zip, range  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[other]', DEBUG=False)
 
 
+def trytake(list_, index_list):
+    return None if list_ is None else list_take_(list_, index_list)
+
+
 def list_take_(list_, index_list):
     if isinstance(list_, np.ndarray):
         return list_.take(index_list, axis=0)
