@@ -511,10 +511,6 @@ def group_daids_by_cached_nnindexer(qreq_, aid_list, min_reindex_thresh,
     FIXME: This function is slow due to ibs.get_annot_aids_from_visual_uuid
     282.253 seconds for 600 queries
 
-    Args:
-        ibs       (IBEISController):
-        daid_list (list):
-
     CommandLine:
         python -m ibeis.model.hots.neighbor_index --test-group_daids_by_cached_nnindexer
 
