@@ -91,8 +91,47 @@ def fourier_devtest(img):
         pt.show_if_requested()
 
 
-def computer_sharpness(img):
-    pass
+def compute_average_contrast(img):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.quality_classifier import *  # NOQA
+        >>> import vtool as vt
+        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img = vt.imread(img_fpath, grayscale=True)
+        >>> average_contrast = compute_average_contrast(img)
+        >>> ut.assert_inbounds(average_contrast, .0075, .0085)
+    """
+    ksize = 1
+    assert img.dtype == np.uint8
+    img_ = img.astype(np.float64) / 255.0
+    gradx = cv2.Sobel(img_, cv2.CV_64F, 1, 0, ksize=ksize)
+    grady = cv2.Sobel(img_, cv2.CV_64F, 0, 1, ksize=ksize)
+    gradmag_sqrd = (gradx ** 2) + (grady ** 2)
+    total_contrast = gradmag_sqrd.sum()
+    average_contrast = total_contrast / np.prod(gradmag_sqrd.shape)
+    return average_contrast
+
+
+def test_average_contrast():
+    import vtool as vt
+    ut.get_valid_test_imgkeys()
+    img_fpath_list = [ut.grab_test_imgpath(key) for key in ut.get_valid_test_imgkeys()]
+    img_list = [vt.imread(img, grayscale=True) for img in img_fpath_list]
+    avecontrast_list = np.array([compute_average_contrast(img) for img in img_list])
+    import plottool as pt
+    nCols = len(img_list)
+    fnum = None
+    if fnum is None:
+        fnum = pt.next_fnum()
+    pt.figure(fnum=fnum, pnum=(2, 1, 1))
+    sortx = avecontrast_list.argsort()
+    y_list = avecontrast_list[sortx]
+    x_list = np.arange(0, nCols) + .5
+    pt.plot(x_list, y_list, 'bo-')
+    sorted_imgs = ut.list_take(img_list, sortx)
+    for px, img in ut.ProgressIter(enumerate(sorted_imgs, start=1)):
+        pt.imshow(img, fnum=fnum, pnum=(2, nCols, nCols + px))
 
 
 if __name__ == '__main__':
