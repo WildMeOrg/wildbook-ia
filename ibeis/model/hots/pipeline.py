@@ -491,7 +491,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_
         >>> # execute function
         >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
         >>> # verify results
-        >>> [cm.assert_self(qreq_, True) for cm in cm_list]
+        >>> [cm.assert_self(qreq_) for cm in cm_list]
         >>> fm = cm_list[0].fm_list[cm_list[0].daid2_idx[2]]
         >>> num_matches = len(fm)
         >>> print('vsone num_matches = %r' % num_matches)
@@ -507,7 +507,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_
         >>> # execute function
         >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
         >>> # verify results
-        >>> [cm.assert_self(qreq_, True) for cm in cm_list]
+        >>> [cm.assert_self(qreq_) for cm in cm_list]
         >>> fm = cm_list[0].fm_list[cm_list[0].daid2_idx[2]]
         >>> num_matches = len(fm)
         >>> print('vsone num_matches = %r' % num_matches)
@@ -640,18 +640,25 @@ def spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
-        >>> verbose = True
-        >>> cm_list_SVER = spatial_verification(qreq_, cm_list)
+        >>> scoring.score_chipmatch_list(qreq_, cm_list, qreq_.qparams.prescore_method)  # HACK
         >>> cm = cm_list[0]
+        >>> top_nids = cm.get_top_nids(6)
+        >>> verbose = True
+        >>> # Execute Function
+        >>> cm_list_SVER = spatial_verification(qreq_, cm_list)
+        >>> # Test Results
         >>> cmSV = cm_list_SVER[0]
+        >>> scoring.score_chipmatch_list(qreq_, cm_list_SVER, qreq_.qparams.score_method)  # HACK
+        >>> top_nids_SV = cmSV.get_top_nids(6)
         >>> cm.print_csv(sort=True)
         >>> cmSV.print_csv(sort=False)
-        >>> qaid = qreq_.get_external_qaids()[0]
-        >>> daid = qreq_.get_external_query_groundtruth(qaid)[0]
-        >>> fm = cm.aid2_fm[daid]
-        >>> fmSV = cmSV.aid2_fm[daid]
-        >>> assert len(fmSV) < len(fm), 'feature matches were not filtered'
-        >>> cmSV.testshow_single(qreq_, daid)
+        >>> gt_daids  = np.intersect1d(cm.get_groundtruth_daids(), cmSV.get_groundtruth_daids())
+        >>> fm_list   = cm.get_annot_fm(gt_daids)
+        >>> fmSV_list = cmSV.get_annot_fm(gt_daids)
+        >>> maplen = lambda list_: np.array(list(map(len, list_)))
+        >>> assert len(gt_daids) > 0, 'ground truth did not survive'
+        >>> ut.assert_lessthan(maplen(fmSV_list), maplen(fm_list)), 'feature matches were not filtered'
+        >>> cmSV.show_daids_matches(qreq_, gt_daids)
         """
     if not qreq_.qparams.sv_on or qreq_.qparams.xy_thresh is None:
         if verbose:

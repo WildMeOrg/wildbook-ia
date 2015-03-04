@@ -36,10 +36,10 @@ def testdata_chipmatch():
     ]
     cm = chip_match.ChipMatch2(
         qaid=1,
-        daid_list=[1, 2, 3, 4, 5],
+        daid_list=np.array([1, 2, 3, 4, 5]),
         fm_list=fm_list,
         fsv_list=fsv_list,
-        dnid_list=[1, 1, 2, 2, 3],
+        dnid_list=np.array([1, 1, 2, 2, 3]),
         fsv_col_lbls=['count'],
     )
     #print(cm.get_rawinfostr())
@@ -75,27 +75,28 @@ def compute_nsum_score(cm):
         >>> result = ut.list_str((unique_nids, nsum_score_list))
         >>> print(result)
         (
-            np.array([2, 3, 1], dtype=np.int64),
-            np.array([7, 5, 4], dtype=np.int64),
+            np.array([1, 2, 3], dtype=np.int64),
+            np.array([4, 7, 5], dtype=np.int64),
         )
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.name_scoring import *  # NOQA
-        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])
+        >>> #ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])
+        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
         >>> cm = cm_list[0]
         >>> cm.evaluate_dnids(qreq_.ibs)
-        >>> cm.qnid = 1   # Hack for testdb1 names
-        >>> unique_nids, nsum_score_list = compute_nsum_score(cm)
-        >>> flags = (unique_nids == 1)
-        >>> assert nsum_score_list[flags].max() > nsum_score_list[~flags].max()
-        >>> assert nsum_score_list[flags].max() > 10.0
+        >>> #cm.qnid = 1   # Hack for testdb1 names
+        >>> nsum_nid_list, nsum_score_list = compute_nsum_score(cm)
+        >>> assert np.all(nsum_nid_list == cm.unique_nids), 'nids out of alignment'
+        >>> flags = (nsum_nid_list == cm.qnid)
+        >>> assert nsum_score_list[flags].max() > nsum_score_list[~flags].max(), 'is this truely a hard case?'
+        >>> assert nsum_score_list[flags].max() > 1.3, 'score should be higher for 18'
     """
-    fs_list = [fsv.prod(axis=1) for fsv in cm.fsv_list]
-    dnid_list = np.array(cm.dnid_list)
+    fs_list = cm.get_fsv_prod_list()
     fx1_list = [fm.T[0] for fm in cm.fm_list]
     # Group annotation matches by name
-    nsum_nid_list, name_groupxs = vt.group_indices(dnid_list)
+    nsum_nid_list, name_groupxs = vt.group_indices(cm.dnid_list)
     name_grouped_fx1_list = vt.apply_grouping_(fx1_list, name_groupxs)
     name_grouped_fs_list  = vt.apply_grouping_(fs_list,  name_groupxs)
     # Stack up all matches to a particular name
@@ -103,37 +104,40 @@ def compute_nsum_score(cm):
     name_grouped_fs_flat  = (map(np.hstack, name_grouped_fs_list))
     # Group matches to a particular name by query feature index
     fx1_groupxs_list = (vt.group_indices(fx1_flat)[1] for fx1_flat in name_grouped_fx1_flat)
-    feat_grouped_fs_list = (
+    feat_grouped_fs_list = list(
         vt.apply_grouping(fs_flat, fx1_groupxs)
         for fs_flat, fx1_groupxs in zip(name_grouped_fs_flat, fx1_groupxs_list)
     )
     # Prevent a feature from voting twice:
     # take only the max score that a query feature produced
-    best_fs_list = (
+    best_fs_list = list(
         np.array([fs_group.max() for fs_group in feat_grouped_fs])
         for feat_grouped_fs in feat_grouped_fs_list
     )
     nsum_score_list = np.array([fs.sum() for fs in best_fs_list])
-    # Return sorted by the name score
-    name_score_sortx = nsum_score_list.argsort()[::-1]
-    nsum_score_list = nsum_score_list.take(name_score_sortx)
-    nsum_nid_list   = nsum_nid_list.take(name_score_sortx)
+    # DO NOT Return sorted by the name score
+    #name_score_sortx = nsum_score_list.argsort()[::-1]
+    #nsum_score_list = nsum_score_list.take(name_score_sortx)
+    #nsum_nid_list   = nsum_nid_list.take(name_score_sortx)
     return nsum_nid_list, nsum_score_list
 
 
-def align_name_scores_with_annots(annot_score_list, annot_nid_list,
-                                  name_score_list, nid2_nidx):
+def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list):
     """
     takes name scores and gives them to the best annotation
 
+    Returns:
+        score_list: list of scores aligned with cm.daid_list and cm.dnid_list
+
     Args:
         annot_score_list (list): score associated with each annot
-        annot_nid_list (list): nid associated with each annot
+        name_groupxs (list): groups annot_score lists into groups compatible with name_score_list
         name_score_list (list): score assocated with name
         nid2_nidx (dict): mapping from nids to index in name score list
 
     CommandLine:
         python -m ibeis.model.hots.name_scoring --test-align_name_scores_with_annots
+        python -m ibeis.model.hots.name_scoring --test-align_name_scores_with_annots --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -143,35 +147,79 @@ def align_name_scores_with_annots(annot_score_list, annot_nid_list,
         >>> cm = cm_list[0]
         >>> cm.evaluate_csum_score(qreq_)
         >>> cm.evaluate_nsum_score(qreq_)
+        >>> # Annot aligned lists
         >>> annot_score_list = cm.csum_score_list
-        >>> annot_nid_list   = cm.dnid_list
+        >>> annot_aid_list   = cm.daid_list
+        >>> daid2_idx        = cm.daid2_idx
+        >>> # Name aligned lists
         >>> name_score_list  = cm.nsum_score_list
-        >>> nid2_nidx        = cm.nsum_nid2_nidx
-        >>> target = name_score_list[nid2_nidx[cm.qnid]]
-        >>> score_list = align_name_scores_with_annots(annot_score_list, annot_nid_list, name_score_list, nid2_nidx)
+        >>> name_groupxs     = cm.name_groupxs
+        >>> # Execute Function
+        >>> score_list = align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list)
+        >>> target = name_score_list[cm.nid2_nidx[cm.qnid]]
+        >>> # Check Results
         >>> test_index = np.where(score_list == target)[0][0]
+        >>> cm.score_list = score_list
         >>> ut.assert_eq(ibs.get_annot_name_rowids(cm.daid_list[test_index]), cm.qnid)
         >>> assert ut.isunique(cm.dnid_list[score_list > 0]), 'bad name score'
+        >>> assert cm.get_top_nids()[0] == cm.unique_nids[cm.nsum_score_list.argmax()], 'bug in alignment'
         >>> ut.quit_if_noshow()
-        >>> cm.score_list = score_list
         >>> cm.show_ranked_matches(qreq_)
+
+
+    Ignore:
+        dict(zip(cm.dnid_list, cm.score_list))
+        dict(zip(cm.unique_nids, cm.nsum_score_list))
+        np.all(nid_list == cm.unique_nids)
+
     """
-    nid_list, groupxs = vt.group_indices(annot_nid_list)
-    grouped_scores    = vt.apply_grouping(annot_score_list, groupxs)
+    # Group annot aligned indicies by nid
+    annot_aid_list = np.array(annot_aid_list)
+    #nid_list, groupxs  = vt.group_indices(annot_nid_list)
+    grouped_scores     = vt.apply_grouping(annot_score_list, name_groupxs)
+    grouped_annot_aids = vt.apply_grouping(annot_aid_list, name_groupxs)
+    flat_grouped_aids  = np.hstack(grouped_annot_aids)
+    #flat_groupxs  = np.hstack(name_groupxs)
+    #if __debug__:
+    #    sum_scores = np.array([scores.sum() for scores in grouped_scores])
+    #    max_scores = np.array([scores.max() for scores in grouped_scores])
+    #    assert np.all(name_score_list <= sum_scores)
+    #    assert np.all(name_score_list > max_scores)
+    # +------------
     # Find the position of the highest name_scoring annotation for each name
+    # IN THE FLATTENED GROUPED ANNOT_AID_LIST (this was the bug)
     offset_list = np.array([annot_scores.argmax() for annot_scores in grouped_scores])
-    # use chain to start offsets with 0
+    # Find the starting position of eatch group use chain to start offsets with 0
     _padded_scores  = itertools.chain([[]], grouped_scores[:-1])
     sizeoffset_list = np.array([len(annot_scores) for annot_scores in _padded_scores])
     baseindex_list  = sizeoffset_list.cumsum()
+    # Augment starting position with offset index
     annot_idx_list = np.add(baseindex_list, offset_list)
+    # L______________
+    best_aid_list = flat_grouped_aids[annot_idx_list]
+    best_idx_list = ut.dict_take(daid2_idx, best_aid_list)
     # give the annotation domain a name score
     score_list = np.zeros(len(annot_score_list), dtype=name_score_list.dtype)
     # make sure that the nid_list from group_indicies and the nids belonging to
-    # name_score_list are in alignment
-    nidx_list = np.array(ut.dict_take(nid2_nidx, nid_list))
-    score_list[annot_idx_list] = name_score_list.take(nidx_list)
+    # name_score_list (cm.unique_nids) are in alignment
+    #nidx_list = np.array(ut.dict_take(nid2_nidx, nid_list))
+
+    # THIS ASSUMES name_score_list IS IN ALIGNMENT WITH BOTH cm.unique_nids and
+    # nid_list (which should be == cm.unique_nids)
+    score_list[best_idx_list] = name_score_list
     return score_list
+
+
+#def get_best_annot_per_name_indices(cm):
+#    grouped_scores = vt.apply_grouping(cm.annot_score_list, cm.name_groupxs)
+#    # Find the position of the highest name_scoring annotation for each name
+#    offset_list = np.array([annot_scores.argmax() for annot_scores in grouped_scores])
+#    # Find the starting position of eatch group use chain to start offsets with 0
+#    _padded_scores  = itertools.chain([[]], grouped_scores[:-1])
+#    sizeoffset_list = np.array([len(annot_scores) for annot_scores in _padded_scores])
+#    baseindex_list  = sizeoffset_list.cumsum()
+#    # Augment starting position with offset index
+#    annot_idx_list = np.add(baseindex_list, offset_list)
 
 
 def group_scores_by_name(ibs, aid_list, score_list):

@@ -73,10 +73,10 @@ def compute_csum_score(cm, qreq_=None):
         >>> cm.qnid = 1   # Hack for testdb1 names
         >>> gt_flags = cm.get_groundtruth_flags()
         >>> annot_score_list = compute_csum_score(cm)
-        >>> assert annot_score_list[gt_idxs].max() > annot_score_list[~gt_idxs].max()
-        >>> assert annot_score_list[gt_idxs].max() > 10.0
+        >>> assert annot_score_list[gt_flags].max() > annot_score_list[~gt_flags].max()
+        >>> assert annot_score_list[gt_flags].max() > 10.0
     """
-    fs_list = (fsv.prod(axis=1) for fsv in cm.fsv_list)
+    fs_list = cm.get_fsv_prod_list()
     csum_score_list = np.array([np.sum(fs) for fs in fs_list])
     return csum_score_list
 
@@ -107,7 +107,7 @@ def get_name_shortlist_aids(daid_list, dnid_list, annot_score_list,
         >>> print(result)
         [15, 14, 11, 13, 16]
     """
-    unique_nids, groupxs = vt.group_indices(np.array(dnid_list))
+    unique_nids, groupxs    = vt.group_indices(np.array(dnid_list))
     grouped_annot_scores    = vt.apply_grouping(annot_score_list, groupxs)
     grouped_daids           = vt.apply_grouping(np.array(daid_list), groupxs)
     # Ensure name score list is aligned with the unique_nids
@@ -167,10 +167,11 @@ def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName):
         >>> ut.assert_inbounds(len(top_nid_list), min_num_rerank, max_num_rerank, 'incorrect number in shortlist', eq=True)
         >>> cm.testshow_single(qreq_, daid=top_aid_list[0])
     """
+    print('[scoring] Making shortlist nNameShortList=%r, nAnnotPerName=%r' % (nNameShortList, nAnnotPerName))
     cm_shortlist = []
     for cm in cm_list:
         assert cm.score_list is not None, 'score list must be computed'
-        assert cm.csum_score_list is not None, 'csum_score_list must be computed'
+        assert cm.annot_score_list is not None, 'annot_score_list must be computed'
         #nscore_tup = name_scoring.group_scores_by_name(qreq_.ibs, cm.daid_list, cm.score_list)
         #(sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscore_tup
         # Clip number of names
@@ -260,7 +261,7 @@ def compute_annot_coverage_score(qreq_, cm, config={}):
         >>> print(result)
     """
     make_mask_func, cov_cfg = get_mask_func(config)
-    masks_iter = general_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg)
+    masks_iter = general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg)
     daid_list, score_list = score_masks(masks_iter)
     return daid_list, score_list
 
@@ -300,14 +301,14 @@ def score_matching_mask(weight_mask_m, weight_mask):
     return coverage_score
 
 
-def general_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg):
+def general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg):
     """
     Yeilds:
         daid, weight_mask_m, weight_mask
 
     CommandLine:
-        python -m ibeis.model.hots.scoring --test-general_coverage_mask_generator --show
-        python -m ibeis.model.hots.scoring --test-general_coverage_mask_generator --show --qaid 18
+        python -m ibeis.model.hots.scoring --test-general_annot_coverage_mask_generator --show
+        python -m ibeis.model.hots.scoring --test-general_annot_coverage_mask_generator --show --qaid 18
 
     Note:
         Evaluate output one at a time or it will get clobbered
@@ -318,7 +319,7 @@ def general_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg):
         >>> qreq_, cm = plh.testdata_scoring('PZ_MTEST', qaid_list=[18])
         >>> config = qreq_.qparams
         >>> make_mask_func, cov_cfg = get_mask_func(config)
-        >>> masks_iter = general_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg)
+        >>> masks_iter = general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg)
         >>> daid_list, score_list, masks_list = evaluate_masks_iter(masks_iter)
         >>> #assert daid_list[idx] ==
         >>> ut.quit_if_noshow()
@@ -331,24 +332,7 @@ def general_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg):
     if ut.VERYVERBOSE:
         print('[acov] make_mask_func = %r' % (make_mask_func,))
         print('[acov] cov_cfg = %s' % (ut.dict_str(cov_cfg),))
-    qaid    = cm.qaid
-    fm_list   = cm.fm_list
-    fs_list   = cm.fs_list
-    daid_list = cm.daid_list
-    # Distinctivness and foreground weight
-    qweights = get_annot_kpts_basline_weights(qreq_, [qaid], config)[0]
-    # Denominator weight mask
-    chipsize    = qreq_.ibs.get_annot_chip_sizes(qaid, qreq_=qreq_)
-    qkpts       = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
-    weight_mask = make_mask_func(qkpts, chipsize, qweights, resize=False, **cov_cfg)
-    # Prealloc data for loop
-    weight_mask_m = weight_mask.copy()
-    # Apply weighted scoring to matches
-    for daid, fm, fs in zip(daid_list, fm_list, fs_list):
-        # CAREFUL weight_mask_m is overriden on every iteration
-        weight_mask_m = compute_general_matching_coverage_mask(
-            make_mask_func, chipsize, fm, fs, qkpts, qweights, cov_cfg, out=weight_mask_m)
-        yield daid, weight_mask_m, weight_mask
+    return general_coverage_mask_generator(make_mask_func, qreq_, cm.qaid, cm.daid_list, cm.fm_list, cm.fs_list, config, cov_cfg)
 
 
 def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg):
@@ -381,11 +365,20 @@ def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_
     if ut.VERYVERBOSE:
         print('[ncov] make_mask_func = %r' % (make_mask_func,))
         print('[ncov] cov_cfg = %s' % (ut.dict_str(cov_cfg),))
-    qaid    = cm.qaid
-    fm_list   = cm.fm_list
-    fs_list   = cm.fs_list
-    dnid_list = cm.dnid_list
-    assert dnid_list is not None, 'eval nids'
+    assert cm.dnid_list is not None, 'eval nids'
+    unique_dnids, groupxs = vt.group_indices(cm.dnid_list)
+    fm_groups = vt.apply_grouping_(cm.fm_list, groupxs)
+    fs_groups = vt.apply_grouping_(cm.fs_list, groupxs)
+    fs_name_list = [np.hstack(fs_group) for fs_group in fs_groups]
+    fm_name_list = [np.vstack(fm_group) for fm_group in fm_groups]
+    return general_coverage_mask_generator(make_mask_func, qreq_, cm.qaid, unique_dnids, fm_name_list, fs_name_list, config, cov_cfg)
+
+
+def general_coverage_mask_generator(make_mask_func, qreq_, qaid, id_list, fm_list, fs_list, config, cov_cfg):
+    """ agnostic to whether or not the id/fm/fs lists are name or annotation groups """
+    if ut.VERYVERBOSE:
+        print('[acov] make_mask_func = %r' % (make_mask_func,))
+        print('[acov] cov_cfg = %s' % (ut.dict_str(cov_cfg),))
     # Distinctivness and foreground weight
     qweights = get_annot_kpts_basline_weights(qreq_, [qaid], config)[0]
     # Denominator weight mask
@@ -395,12 +388,7 @@ def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_
     # Prealloc data for loop
     weight_mask_m = weight_mask.copy()
     # Apply weighted scoring to matches
-    unique_dnids, groupxs = vt.group_indices(dnid_list)
-    fm_groups = vt.apply_grouping_(fm_list, groupxs)
-    fs_groups = vt.apply_grouping_(fs_list, groupxs)
-    fs_name_list = [np.hstack(fs_group) for fs_group in fs_groups]
-    fm_name_list = [np.vstack(fm_group) for fm_group in fm_groups]
-    for daid, fm, fs in zip(unique_dnids, fm_name_list, fs_name_list):
+    for daid, fm, fs in zip(id_list, fm_list, fs_list):
         # CAREFUL weight_mask_m is overriden on every iteration
         weight_mask_m = compute_general_matching_coverage_mask(
             make_mask_func, chipsize, fm, fs, qkpts, qweights, cov_cfg, out=weight_mask_m)
@@ -458,7 +446,7 @@ def get_masks(qreq_, cm, config={}):
         >>> pt.show_if_requested()
     """
     make_mask_func, cov_cfg = get_mask_func(config)
-    masks_iter = general_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg)
+    masks_iter = general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg)
     # copy weight mask as it comes back if you want to see them
     id_list, score_list, masks_list = evaluate_masks_iter(masks_iter)
 

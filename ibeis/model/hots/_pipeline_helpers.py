@@ -190,20 +190,6 @@ def testdata_pre_build_chipmatch(defaultdb='testdb1', codename='vsmany'):
     return ibs, qreq_, args
 
 
-def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):
-    """
-        >>> from ibeis.model.hots._pipeline_helpers import *  # NOQA
-    """
-    #from ibeis.model import Config
-    cfgdict = dict(prescore_method='nsum', score_method='nsum')
-    ibs, qreq_ = get_pipeline_testdata(
-        qaid_list=qaid_list, daid_list=daid_list, defaultdb=defaultdb, cfgdict=cfgdict)
-    locals_ = testrun_pipeline_upto(qreq_, 'spatial_verification')
-    cm_list = locals_['cm_list_FILT']
-    #nnfilts_list   = locals_['nnfilts_list']
-    return ibs, qreq_, cm_list
-
-
 def testdata_pre_baselinefilter(defaultdb='testdb1', qaid_list=None, daid_list=None, codename='vsmany'):
     cfgdict = dict(codename=codename)
     ibs, qreq_ = get_pipeline_testdata(
@@ -211,6 +197,20 @@ def testdata_pre_baselinefilter(defaultdb='testdb1', qaid_list=None, daid_list=N
     locals_ = testrun_pipeline_upto(qreq_, 'baseline_neighbor_filter')
     nns_list, = ut.dict_take(locals_, ['nns_list'])
     return qreq_, nns_list
+
+
+def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):
+    """
+        >>> from ibeis.model.hots._pipeline_helpers import *  # NOQA
+    """
+    #from ibeis.model import Config
+    cfgdict = dict()
+    ibs, qreq_ = get_pipeline_testdata(
+        qaid_list=qaid_list, daid_list=daid_list, defaultdb=defaultdb, cfgdict=cfgdict)
+    locals_ = testrun_pipeline_upto(qreq_, 'spatial_verification')
+    cm_list = locals_['cm_list_FILT']
+    #nnfilts_list   = locals_['nnfilts_list']
+    return ibs, qreq_, cm_list
 
 
 def testdata_post_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, codename='vsmany', cfgdict=None):
