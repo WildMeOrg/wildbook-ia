@@ -1,15 +1,19 @@
+# -*- coding: utf-8 -*
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
+import functools  # NOQA
 from six import next
 from six.moves import zip, range  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[other]', DEBUG=False)
 
 
+@profile
 def trytake(list_, index_list):
     return None if list_ is None else list_take_(list_, index_list)
 
 
+@profile
 def list_take_(list_, index_list):
     if isinstance(list_, np.ndarray):
         return list_.take(index_list, axis=0)
@@ -17,6 +21,7 @@ def list_take_(list_, index_list):
         return ut.list_take(list_, index_list)
 
 
+@profile
 def list_compress_(list_, flag_list):
     if isinstance(list_, np.ndarray):
         return list_.compress(flag_list, axis=0)
@@ -369,7 +374,7 @@ def get_uncovered_mask(covered_array, covering_array):
         ndarray: flags
 
     CommandLine:
-        python -m vtool.other --test-get_mask_cover
+        python -m vtool.other --test-get_uncovered_mask
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -391,13 +396,52 @@ def get_uncovered_mask(covered_array, covering_array):
         >>> print(result)
         [ True  True  True  True  True]
 
+    Example3:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> covered_array = np.array([
+        ...  [1, 2, 3],
+        ...  [4, 5, 6],
+        ...  [7, 8, 9],
+        ... ], dtype=np.int32)
+        >>> covering_array = [2, 4, 5]
+        >>> flags = get_uncovered_mask(covered_array, covering_array)
+        >>> result = ut.numpy_str(flags)
+        >>> print(result)
+        np.array([[ True, False,  True],
+                  [False, False,  True],
+                  [ True,  True,  True]], dtype=bool)
+
+    Ignore::
+        covering_array = [1, 2, 3, 4, 5, 6, 7]
+        %timeit get_uncovered_mask(covered_array, covering_array)
+        100000 loops, best of 3: 18.6 µs per loop
+        %timeit get_uncovered_mask2(covered_array, covering_array)
+        100000 loops, best of 3: 16.9 µs per loop
+
+
     """
     if len(covering_array) == 0:
         return np.ones(np.shape(covered_array), dtype=np.bool)
     else:
-        flags_list = (np.not_equal(covered_array, item) for item in covering_array)
-        mask_array = and_lists(*flags_list)
+        flags_iter = (np.not_equal(covered_array, item) for item in covering_array)
+        mask_array = iter_reduce_ufunc(np.logical_and, flags_iter)
         return mask_array
+    #if len(covering_array) == 0:
+    #    return np.ones(np.shape(covered_array), dtype=np.bool)
+    #else:
+    #    flags_list = (np.not_equal(covered_array, item) for item in covering_array)
+    #    mask_array = and_lists(*flags_list)
+    #    return mask_array
+
+
+#def get_uncovered_mask2(covered_array, covering_array):
+#    if len(covering_array) == 0:
+#        return np.ones(np.shape(covered_array), dtype=np.bool)
+#    else:
+#        flags_iter = (np.not_equal(covered_array, item) for item in covering_array)
+#        mask_array = iter_reduce_ufunc(np.logical_and, flags_iter)
+#        return mask_array
 
 
 def get_covered_mask(covered_array, covering_array):
