@@ -228,15 +228,14 @@ def testdata_post_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, cod
     return ibs, qreq_, cm_list
 
 
-def testdata_pre_vsonerr():
+def testdata_pre_vsonerr(defaultdb='PZ_MTEST', qaid_list=[1], daid_list='all'):
     """
         >>> from ibeis.model.hots._pipeline_helpers import *  # NOQA
     """
-    cfgdict = dict(prescore_method='nsum', score_method='nsum', sver_weighting=True)
-    cfgdict['rrvsone_on'] = True
+    cfgdict = dict(sver_weighting=True, codename='vsmany', rrvsone_on=True)
     # Get pipeline testdata for this configuration
     ibs, qreq_ = get_pipeline_testdata(
-        cfgdict=cfgdict, qaid_list=[1], daid_list='all', defaultdb='PZ_MTEST', cmdline_ok=True)
+        cfgdict=cfgdict, qaid_list=qaid_list, daid_list=daid_list, defaultdb=defaultdb, cmdline_ok=True)
     qaid_list = qreq_.get_external_qaids().tolist()
     qaid = qaid_list[0]
     #daid_list = qreq_.get_external_daids().tolist()
@@ -247,21 +246,22 @@ def testdata_pre_vsonerr():
     return ibs, qreq_, cm_list, qaid_list
 
 
-def testdata_scoring():
+def testdata_scoring(defaultdb='PZ_MTEST', qaid_list=[1], daid_list='all'):
     from ibeis.model.hots import vsone_pipeline
-    ibs, qreq_, prior_cm = testdata_matching()
+    ibs, qreq_, prior_cm = testdata_matching(defaultdb=defaultdb, qaid_list=qaid_list, daid_list=daid_list)
     config = qreq_.qparams
-    unscored_cm = vsone_pipeline.refine_matches(qreq_, prior_cm, config)
-    return qreq_, unscored_cm
+    cm = vsone_pipeline.refine_matches(qreq_, prior_cm, config)
+    cm.evaluate_dnids(qreq_.ibs)
+    return qreq_, cm
 
 
-def testdata_matching():
+def testdata_matching(*args, **kwargs):
     """
         >>> from ibeis.model.hots._pipeline_helpers import *  # NOQA
     """
     from ibeis.model.hots import vsone_pipeline
     from ibeis.model.hots import scoring
-    ibs, qreq_, cm_list, qaid_list  = testdata_pre_vsonerr()
+    ibs, qreq_, cm_list, qaid_list  = testdata_pre_vsonerr(*args, **kwargs)
     vsone_pipeline.prepare_vsmany_chipmatch(qreq_, cm_list)
     nNameShortlist = qreq_.qparams.nNameShortlistVsone
     nAnnotPerName  = qreq_.qparams.nAnnotPerNameVsOne

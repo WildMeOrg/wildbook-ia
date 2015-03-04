@@ -46,7 +46,7 @@ import six  # NOQA
 import numpy as np
 import vtool as vt
 #from ibeis.model.hots import neighbor_index
-from ibeis.model.hots import name_scoring
+#from ibeis.model.hots import name_scoring
 from ibeis.model.hots import hstypes
 from ibeis.model.hots import chip_match
 from ibeis.model.hots import scoring
@@ -250,16 +250,12 @@ def refine_matches(qreq_, prior_cm, config={}):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-        >>> ibs, qreq_, prior_cm = plh.testdata_matching()
+        >>> ibs, qreq_, prior_cm = plh.testdata_matching('PZ_MTEST')
         >>> config = qreq_.qparams
         >>> unscored_cm = refine_matches(qreq_, prior_cm, config)
         >>> unscored_cm.print_csv(ibs=ibs)
         >>> prior_cm.print_csv(ibs=ibs)
-        >>> if ut.show_was_requested():
-        ...     import plottool as pt
-        ...     show_ranked_matches(ibs, prior_cm)
-        ...     pt.set_figtitle(qreq_.qparams.query_cfgstr)
-        ...     pt.show_if_requested()
+        >>> prior_cm.testshow_ranked(qreq_, figtitle=qreq_.qparams.query_cfgstr)
     """
     # THIS CAUSES THE ISSUE
     #prior_cm.fs_list = prior_cm.fsv_list
@@ -340,55 +336,36 @@ def single_vsone_rerank(qreq_, prior_cm, config={}):
     CommandLine:
         python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank
         python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank --show
+        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank --show --qaid 18
 
     Example1:
         >>> # ENABLE_DOCTEST
+        >>> import plottool as pt
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
-        >>> ibs, qreq_, prior_cm = plh.testdata_matching()
+        >>> ibs, qreq_, prior_cm = plh.testdata_matching('PZ_MTEST')
         >>> config = qreq_.qparams
         >>> rerank_cm = single_vsone_rerank(qreq_, prior_cm, config)
-        >>> if ut.show_was_requested():
-        ...     import plottool as pt
-        ...     show_ranked_matches(ibs, rerank_cm)
-        ...     pt.show_if_requested()
+        >>> rerank_cm.print_rawinfostr()
+        >>> rerank_cm.print_csv()
         >>> print(rerank_cm.score_list)
+        >>> ut.quit_if_noshow()
+        >>> prior_cm.score_nsum(qreq_)
+        >>> prior_cm.show_ranked_matches(qreq_, fnum=1, figtitle='prior')
+        >>> rerank_cm.show_ranked_matches(qreq_, fnum=2, figtitle='rerank')
+        >>> pt.show_if_requested()
     """
     #print('==================')
     unscored_cm = refine_matches(qreq_, prior_cm, config)
 
-    if qreq_.qparams.use_coverage_scoring:
-        cov_score_list = scoring.compute_coverage_score(qreq_, unscored_cm, config=config)
-        score_list_ = cov_score_list
+    if qreq_.qparams.covscore_on:
+        unscored_cm.score_coverage(qreq_)
     else:
         # hack
-        scoring.evaluate_chipmatch_name_scores([unscored_cm], qreq_)
-        score_list_ = unscored_cm.score_list
-        #unique_nid_list, _nscores = name_scoring.name_scoring_sparse(unscored_cm.qaid, unscored_cm, qreq_)
-        #idx_list = ut.dict_take(unscored_cm.daid2_idx, _daids)
-        #name_score_list = ut.list_take(_nscores, idx_list)
-        #score_list_ = name_score_list
-        pass
+        unscored_cm.score_nsum(qreq_)
 
-    fm_list   = unscored_cm.fm_list
-    fs_list   = unscored_cm.fs_list
-    fsv_list  = unscored_cm.fsv_list
-    H_list    = unscored_cm.H_list
-    qaid      = unscored_cm.qaid
-    daid_list = unscored_cm.daid_list
-
-    NAME_SCORING = True
-    #NAME_SCORING = False
-    if NAME_SCORING:
-        # Keep only the best annotation per name
-        # FIXME: There may be a problem here
-        nscore_tup = name_scoring.group_scores_by_name(qreq_.ibs, daid_list, score_list_)
-        score_list = ut.flatten([scores[0:1].tolist() + ([0] * (len(scores) - 1))
-                                 for scores in nscore_tup.sorted_scores])
-    else:
-        score_list = score_list_
     # Convert our one score to a score vector here
-    fsv_list = matching.ensure_fsv_list(fs_list)
-    rerank_cm = chip_match.ChipMatch2(qaid, daid_list, fm_list, fsv_list, None, score_list, H_list)
+    rerank_cm = unscored_cm
+    rerank_cm.fsv_list = matching.ensure_fsv_list(rerank_cm.fs_list)
     return rerank_cm
 
 
@@ -523,10 +500,13 @@ COVKPTS_DEFAULT = vt.coverage_kpts.COVKPTS_DEFAULT
 COVGRID_DEFAULT = vt.coverage_grid.COVGRID_DEFAULT
 
 OTHER_RRVSONE_PARAMS = ut.ParamInfoList('OTHERRRVSONE', [
-    ut.ParamInfo('fs_lnbnn_min', .0001),
-    ut.ParamInfo('fs_lnbnn_max', .05),
+    #ut.ParamInfo('fs_lnbnn_min', .0001),
+    #ut.ParamInfo('fs_lnbnn_max', .05),
+    #ut.ParamInfo('fs_lnbnn_power', 1.0),
+    ut.ParamInfo('fs_lnbnn_min', 0.0),
+    ut.ParamInfo('fs_lnbnn_max', 1.0),
     ut.ParamInfo('fs_lnbnn_power', 1.0),
-    ut.ParamInfo('use_coverage_scoring', False),
+    ut.ParamInfoBool('covscore_on', False, hideif=True),
 ])
 
 
@@ -540,10 +520,11 @@ COEFF_DEFAULTS = ut.ParamInfoList('COEFF', [
     ut.ParamInfo('prior_coeff', .6, 'prior_coeff='),
     ut.ParamInfo('unconstrained_coeff',    .4, 'unc_coeff='),
     ut.ParamInfo('constrained_coeff',     0.0, 'scr_coeff='),
-    ut.ParamInfo('sver_unconstrained',   True, 'sver_unc='),
-    ut.ParamInfo('sver_constrained',    False, 'sver_scr='),
+    ut.ParamInfo('sver_unconstrained',   True, 'sver_unc=', hideif=lambda cfg: cfg['unconstrained_coeff'] <= 0),
+    ut.ParamInfo('sver_constrained',    False, 'sver_scr=', hideif=lambda cfg: cfg['constrained_coeff'] <= 0),
     ut.ParamInfo('maskscore_mode', 'grid', 'cov='),
-])
+]
+)
 
 UNC_DEFAULTS = ut.ParamInfoList('UNC', [
     ut.ParamInfo('unc_ratio_thresh', .625, 'uncRat=', varyvals=[.625, .5, .9, 1.0, .8]),
@@ -565,7 +546,9 @@ SCR_DEFAULTS = ut.ParamInfoList('SCR', [
                  varyvals=[.625, .3, .9, 0.0, 1.0], varyslice=slice(0, 1)),
     ut.ParamInfo('scr_K', 7, 'scK',
                  varyvals=[7, 2], varyslice=slice(0, 2)),
-], scr_constraint_func)
+],
+    scr_constraint_func,
+    hideif=lambda cfg: cfg['constrained_coeff'] <= 0)
 
 
 def gridsearch_single_vsone_rerank():

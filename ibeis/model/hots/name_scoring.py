@@ -1,11 +1,11 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range, map  # NOQA
 import numpy as np
+import itertools
 import vtool as vt
 import utool as ut
 #import six
 #from ibeis.model.hots import scoring
-from ibeis.model.hots import chip_match
 from ibeis.model.hots import hstypes
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
@@ -13,6 +13,232 @@ from collections import namedtuple
 
 NameScoreTup = namedtuple('NameScoreTup', ('sorted_nids', 'sorted_nscore',
                                            'sorted_aids', 'sorted_scores'))
+
+
+def testdata_chipmatch():
+    from ibeis.model.hots import chip_match
+    # only the first indicies will matter in these test
+    # feature matches
+    fm_list = [
+        np.array([(0, 9), (1, 9), (2, 9), (3, 9)]),
+        np.array([(0, 9), (1, 9), (2, 9), (3, 9)]),
+        np.array([(0, 9), (1, 9), (2, 9), (3, 9)]),
+        np.array([(4, 9), (5, 9), (6, 9), (3, 9)]),
+        np.array([(0, 9), (1, 9), (2, 9), (3, 9), (4, 9)])
+    ]
+    # score each feature match as 1
+    fsv_list = [
+        np.array([(1,), (1,), (1,), (1,)]),
+        np.array([(1,), (1,), (1,), (1,)]),
+        np.array([(1,), (1,), (1,), (1,)]),
+        np.array([(1,), (1,), (1,), (1,)]),
+        np.array([(1,), (1,), (1,), (1,), (1, )]),
+    ]
+    cm = chip_match.ChipMatch2(
+        qaid=1,
+        daid_list=[1, 2, 3, 4, 5],
+        fm_list=fm_list,
+        fsv_list=fsv_list,
+        dnid_list=[1, 1, 2, 2, 3],
+        fsv_col_lbls=['count'],
+    )
+    #print(cm.get_rawinfostr())
+    #if False:
+    #    # DEBUG
+    #    cm.rrr()
+    #    print(cm.get_rawinfostr())
+    #    print(cm.get_cvs_str(ibs=qreq_.ibs, numtop=None))
+    return cm
+
+
+@profile
+def compute_nsum_score(cm):
+    r"""
+    nsum
+
+    Args:
+        cm (ChipMatch2):
+
+    Returns:
+        tuple: (unique_nids, nsum_score_list)
+
+    CommandLine:
+        python -m ibeis.model.hots.name_scoring --test-compute_nsum_score
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.name_scoring import *  # NOQA
+        >>> # build test data
+        >>> cm = testdata_chipmatch()
+        >>> # execute function
+        >>> (unique_nids, nsum_score_list) = compute_nsum_score(cm)
+        >>> result = ut.list_str((unique_nids, nsum_score_list))
+        >>> print(result)
+        (
+            np.array([2, 3, 1], dtype=np.int64),
+            np.array([7, 5, 4], dtype=np.int64),
+        )
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.name_scoring import *  # NOQA
+        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])
+        >>> cm = cm_list[0]
+        >>> cm.evaluate_dnids(qreq_.ibs)
+        >>> cm.qnid = 1   # Hack for testdb1 names
+        >>> unique_nids, nsum_score_list = compute_nsum_score(cm)
+        >>> flags = (unique_nids == 1)
+        >>> assert nsum_score_list[flags].max() > nsum_score_list[~flags].max()
+        >>> assert nsum_score_list[flags].max() > 10.0
+    """
+    fs_list = [fsv.prod(axis=1) for fsv in cm.fsv_list]
+    dnid_list = np.array(cm.dnid_list)
+    fx1_list = [fm.T[0] for fm in cm.fm_list]
+    # Group annotation matches by name
+    nsum_nid_list, name_groupxs = vt.group_indices(dnid_list)
+    name_grouped_fx1_list = vt.apply_grouping_(fx1_list, name_groupxs)
+    name_grouped_fs_list  = vt.apply_grouping_(fs_list,  name_groupxs)
+    # Stack up all matches to a particular name
+    name_grouped_fx1_flat = (map(np.hstack, name_grouped_fx1_list))
+    name_grouped_fs_flat  = (map(np.hstack, name_grouped_fs_list))
+    # Group matches to a particular name by query feature index
+    fx1_groupxs_list = (vt.group_indices(fx1_flat)[1] for fx1_flat in name_grouped_fx1_flat)
+    feat_grouped_fs_list = (
+        vt.apply_grouping(fs_flat, fx1_groupxs)
+        for fs_flat, fx1_groupxs in zip(name_grouped_fs_flat, fx1_groupxs_list)
+    )
+    # Prevent a feature from voting twice:
+    # take only the max score that a query feature produced
+    best_fs_list = (
+        np.array([fs_group.max() for fs_group in feat_grouped_fs])
+        for feat_grouped_fs in feat_grouped_fs_list
+    )
+    nsum_score_list = np.array([fs.sum() for fs in best_fs_list])
+    # Return sorted by the name score
+    name_score_sortx = nsum_score_list.argsort()[::-1]
+    nsum_score_list = nsum_score_list.take(name_score_sortx)
+    nsum_nid_list   = nsum_nid_list.take(name_score_sortx)
+    return nsum_nid_list, nsum_score_list
+
+
+def align_name_scores_with_annots(annot_score_list, annot_nid_list,
+                                  name_score_list, nid2_nidx):
+    """
+    takes name scores and gives them to the best annotation
+
+    Args:
+        annot_score_list (list): score associated with each annot
+        annot_nid_list (list): nid associated with each annot
+        name_score_list (list): score assocated with name
+        nid2_nidx (dict): mapping from nids to index in name score list
+
+    CommandLine:
+        python -m ibeis.model.hots.name_scoring --test-align_name_scores_with_annots
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.name_scoring import *  # NOQA
+        >>> #ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
+        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
+        >>> cm = cm_list[0]
+        >>> cm.evaluate_csum_score(qreq_)
+        >>> cm.evaluate_nsum_score(qreq_)
+        >>> annot_score_list = cm.csum_score_list
+        >>> annot_nid_list   = cm.dnid_list
+        >>> name_score_list  = cm.nsum_score_list
+        >>> nid2_nidx        = cm.nsum_nid2_nidx
+        >>> target = name_score_list[nid2_nidx[cm.qnid]]
+        >>> score_list = align_name_scores_with_annots(annot_score_list, annot_nid_list, name_score_list, nid2_nidx)
+        >>> test_index = np.where(score_list == target)[0][0]
+        >>> ut.assert_eq(ibs.get_annot_name_rowids(cm.daid_list[test_index]), cm.qnid)
+        >>> assert ut.isunique(cm.dnid_list[score_list > 0]), 'bad name score'
+        >>> ut.quit_if_noshow()
+        >>> cm.score_list = score_list
+        >>> cm.show_ranked_matches(qreq_)
+    """
+    nid_list, groupxs = vt.group_indices(annot_nid_list)
+    grouped_scores    = vt.apply_grouping(annot_score_list, groupxs)
+    # Find the position of the highest name_scoring annotation for each name
+    offset_list = np.array([annot_scores.argmax() for annot_scores in grouped_scores])
+    # use chain to start offsets with 0
+    _padded_scores  = itertools.chain([[]], grouped_scores[:-1])
+    sizeoffset_list = np.array([len(annot_scores) for annot_scores in _padded_scores])
+    baseindex_list  = sizeoffset_list.cumsum()
+    annot_idx_list = np.add(baseindex_list, offset_list)
+    # give the annotation domain a name score
+    score_list = np.zeros(len(annot_score_list), dtype=name_score_list.dtype)
+    # make sure that the nid_list from group_indicies and the nids belonging to
+    # name_score_list are in alignment
+    nidx_list = np.array(ut.dict_take(nid2_nidx, nid_list))
+    score_list[annot_idx_list] = name_score_list.take(nidx_list)
+    return score_list
+
+
+def group_scores_by_name(ibs, aid_list, score_list):
+    """
+    Converts annotation scores to name scores.
+    Over multiple annotations finds keypoints best match and uses that score.
+
+    CommandLine:
+        python -m ibeis.model.hots.name_scoring --test-group_scores_by_name
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.name_scoring import *   # NOQA
+        >>> import ibeis
+        >>> from ibeis.dev import results_all
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> daid_list = ibs.get_valid_aids()
+        >>> qaid_list = daid_list[0:1]
+        >>> cfgdict = dict()
+        >>> qaid2_qres, qreq_ = ibs._query_chips4(
+        ...     qaid_list, daid_list, cfgdict=cfgdict, return_request=True,
+        ...     use_cache=False, save_qcache=False)
+        >>> qres = qaid2_qres[qaid_list[0]]
+        >>> print(qres.get_inspect_str())
+        >>> print(qres.get_inspect_str(ibs=ibs, name_scoring=True))
+        >>> aid_list, score_list = qres.get_aids_and_scores()
+        >>> nscoretup = group_scores_by_name(ibs, aid_list, score_list)
+        >>> (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
+        >>> ut.assert_eq(sorted_nids[0], 1)
+
+    # TODO: this code needs a really good test case
+    #>>> result = np.array_repr(sorted_nids[0:2])
+    #>>> print(result)
+    #array([1, 5])
+
+    Ignore::
+        # hack in dict of Nones prob for testing
+        import six
+        qres.aid2_prob = {aid:None for aid in six.iterkeys(qres.aid2_score)}
+
+    array([ 1,  5, 26])
+    [2 6 5]
+    """
+    assert len(score_list) == len(aid_list), 'scores and aids must be associated'
+    score_arr = np.array(score_list)
+    aid_list  = np.array(aid_list)
+    nid_list  = np.array(ibs.get_annot_name_rowids(aid_list))
+    # Group scores by name
+    unique_nids, groupxs = vt.group_indices(nid_list)
+    grouped_scores = np.array(vt.apply_grouping(score_arr, groupxs))
+    grouped_aids   = np.array(vt.apply_grouping(aid_list, groupxs))
+    # Build representative score per group
+    # (find each keypoints best match per annotation within the name)
+    group_nscore = np.array([scores.max() for scores in grouped_scores])
+    group_sortx = group_nscore.argsort()[::-1]
+    # Top nids
+    sorted_nids = unique_nids.take(group_sortx, axis=0)
+    sorted_nscore = group_nscore.take(group_sortx, axis=0)
+    # Initial sort of aids
+    _sorted_aids   = grouped_aids.take(group_sortx, axis=0)
+    _sorted_scores = grouped_scores.take(group_sortx, axis=0)
+    # Secondary sort of aids
+    sorted_sortx  = [scores.argsort()[::-1] for scores in _sorted_scores]
+    sorted_scores = [scores.take(sortx) for scores, sortx in zip(_sorted_scores, sorted_sortx)]
+    sorted_aids   = [aids.take(sortx) for aids, sortx in zip(_sorted_aids, sorted_sortx)]
+    nscoretup     = NameScoreTup(sorted_nids, sorted_nscore, sorted_aids, sorted_scores)
+    return nscoretup
 
 
 def name_scoring_dense_old(nns_list, nnvalid0_list, qreq_):
@@ -83,152 +309,6 @@ def name_scoring_dense_old(nns_list, nnvalid0_list, qreq_):
     ]
     # convert into dict format
     return dupvote_weight_list
-
-
-def testdata_chipmatch():
-    fm_list = [
-        np.array([(0, 1), (1, 2)]),
-        np.array([(1, 2), (2, 3)]),
-        np.array([(0, 9), (4, 8)]),
-        np.array([(1, 9), (2, 8)]),
-        np.array([(1, 9), (2, 8)])
-    ]
-    fsv_list = [
-        np.array([(1,), (1,)]),
-        np.array([(1,), (1,)]),
-        np.array([(1,), (1,)]),
-        np.array([(1,), (1,)]),
-        np.array([(1,), (1,)]), ]
-    cm = chip_match.ChipMatch2(
-        qaid=1,
-        daid_list=[1, 2, 3, 4, 5],
-        fm_list=fm_list,
-        fsv_list=fsv_list,
-        dnid_list=[1, 2, 1, 2, 3],
-        fsv_col_lbls=['count'],
-    )
-    #print(cm.get_rawinfostr())
-    #if False:
-    #    # DEBUG
-    #    cm.rrr()
-    #    print(cm.get_rawinfostr())
-    #    print(cm.get_cvs_str(ibs=qreq_.ibs, numtop=None))
-    return cm
-
-
-@profile
-def name_scoring_sparse(cm):
-    r"""
-    Args:
-        cm (ChipMatch2):
-
-    Returns:
-        tuple: (unique_nids, name_score_list)
-
-    CommandLine:
-        python -m ibeis.model.hots.name_scoring --test-name_scoring_sparse
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.name_scoring import *  # NOQA
-        >>> # build test data
-        >>> cm = testdata_chipmatch()
-        >>> # execute function
-        >>> (unique_nids, name_score_list) = name_scoring_sparse(cm)
-        >>> ut.assert_eq(unique_nids.tolist(), [1, 2, 3])
-        >>> ut.assert_eq(name_score_list.tolist(), [3, 2, 2])
-    """
-    fs_list = [fsv.prod(axis=1) for fsv in cm.fsv_list]
-    dnid_list = np.array(cm.dnid_list)
-    fx1_list = [fm.T[0] for fm in cm.fm_list]
-    # Group annotation matches by name
-    unique_nids, name_groupxs = vt.group_indices(dnid_list)
-    name_grouped_fx1_list = vt.apply_grouping_(fx1_list, name_groupxs)
-    name_grouped_fs_list  = vt.apply_grouping_(fs_list,  name_groupxs)
-    # Stack up all matches to a particular name
-    name_grouped_fx1_flat = (map(np.hstack, name_grouped_fx1_list))
-    name_grouped_fs_flat  = (map(np.hstack, name_grouped_fs_list))
-    # Group matches to a particular name by query feature index
-    fx1_groupxs_list = (vt.group_indices(fx1_flat)[1] for fx1_flat in name_grouped_fx1_flat)
-    feat_grouped_fs_list = (
-        vt.apply_grouping(fs_flat, fx1_groupxs)
-        for fs_flat, fx1_groupxs in zip(name_grouped_fs_flat, fx1_groupxs_list)
-    )
-    # Prevent a feature from voting twice:
-    # take only the max score that a query feature produced
-    best_fs_list = (
-        np.array([fs_group.max() for fs_group in feat_grouped_fs])
-        for feat_grouped_fs in feat_grouped_fs_list
-    )
-    name_score_list = np.array([fs.sum() for fs in best_fs_list])
-    return unique_nids, name_score_list
-
-
-def group_scores_by_name(ibs, aid_list, score_list):
-    """
-    Converts annotation scores to name scores.
-    Over multiple annotations finds keypoints best match and uses that score.
-
-    CommandLine:
-        python -m ibeis.model.hots.name_scoring --test-group_scores_by_name
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.name_scoring import *   # NOQA
-        >>> import ibeis
-        >>> from ibeis.dev import results_all
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> daid_list = ibs.get_valid_aids()
-        >>> qaid_list = daid_list[0:1]
-        >>> cfgdict = dict()
-        >>> qaid2_qres, qreq_ = ibs._query_chips4(
-        ...     qaid_list, daid_list, cfgdict=cfgdict, return_request=True,
-        ...     use_cache=False, save_qcache=False)
-        >>> qres = qaid2_qres[qaid_list[0]]
-        >>> print(qres.get_inspect_str())
-        >>> print(qres.get_inspect_str(ibs=ibs, name_scoring=True))
-        >>> aid_list, score_list = qres.get_aids_and_scores()
-        >>> nscoretup = group_scores_by_name(ibs, aid_list, score_list)
-        >>> (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
-        >>> ut.assert_eq(sorted_nids[0], 1)
-
-    # TODO: this code needs a really good test case
-    #>>> result = np.array_repr(sorted_nids[0:2])
-    #>>> print(result)
-    #array([1, 5])
-
-    Ignore::
-        # hack in dict of Nones prob for testing
-        import six
-        qres.aid2_prob = {aid:None for aid in six.iterkeys(qres.aid2_score)}
-
-    array([ 1,  5, 26])
-    [2 6 5]
-    """
-    assert len(score_list) == len(aid_list), 'scores and aids must be associated'
-    score_arr = np.array(score_list)
-    aid_list  = np.array(aid_list)
-    nid_list  = np.array(ibs.get_annot_name_rowids(aid_list))
-    # Group scores by name
-    unique_nids, groupxs = vt.group_indices(nid_list)
-    grouped_scores = np.array(vt.apply_grouping(score_arr, groupxs))
-    grouped_aids   = np.array(vt.apply_grouping(aid_list, groupxs))
-    # Build representative score per group
-    # (find each keypoints best match per annotation within the name)
-    group_nscore = np.array([scores.max() for scores in grouped_scores])
-    group_sortx = group_nscore.argsort()[::-1]
-    # Top nids
-    sorted_nids = unique_nids.take(group_sortx, axis=0)
-    sorted_nscore = group_nscore.take(group_sortx, axis=0)
-    # Initial sort of aids
-    _sorted_aids   = grouped_aids.take(group_sortx, axis=0)
-    _sorted_scores = grouped_scores.take(group_sortx, axis=0)
-    # Secondary sort of aids
-    sorted_sortx  = [scores.argsort()[::-1] for scores in _sorted_scores]
-    sorted_scores = [scores.take(sortx) for scores, sortx in zip(_sorted_scores, sorted_sortx)]
-    sorted_aids   = [aids.take(sortx) for aids, sortx in zip(_sorted_aids, sorted_sortx)]
-    nscoretup     = NameScoreTup(sorted_nids, sorted_nscore, sorted_aids, sorted_scores)
-    return nscoretup
 
 
 if __name__ == '__main__':

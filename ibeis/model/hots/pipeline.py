@@ -496,7 +496,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_
         >>> num_matches = len(fm)
         >>> print('vsone num_matches = %r' % num_matches)
         >>> ut.assert_inbounds(num_matches, 550, 600, 'vsmany nmatches out of bounds')
-        >>> cm_list[0].testshow(qreq_)
+        >>> cm_list[0].testshow_single(qreq_)
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -512,7 +512,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_
         >>> num_matches = len(fm)
         >>> print('vsone num_matches = %r' % num_matches)
         >>> ut.assert_inbounds(num_matches, 33, 42, 'vsone nmatches out of bounds')
-        >>> cm_list[0].testshow(qreq_)
+        >>> cm_list[0].testshow_single(qreq_)
     """
     is_vsone =  qreq_.qparams.vsone
     if verbose:
@@ -634,23 +634,24 @@ def spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
 
     CommandLine:
         python -m ibeis.model.hots.pipeline --test-spatial_verification --show
+        python -m ibeis.model.hots.pipeline --test-spatial_verification:0
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST')
+        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
         >>> verbose = True
         >>> cm_list_SVER = spatial_verification(qreq_, cm_list)
         >>> cm = cm_list[0]
         >>> cmSV = cm_list_SVER[0]
-        >>> cm.print_csv(sort=False)
+        >>> cm.print_csv(sort=True)
         >>> cmSV.print_csv(sort=False)
         >>> qaid = qreq_.get_external_qaids()[0]
         >>> daid = qreq_.get_external_query_groundtruth(qaid)[0]
         >>> fm = cm.aid2_fm[daid]
         >>> fmSV = cmSV.aid2_fm[daid]
         >>> assert len(fmSV) < len(fm), 'feature matches were not filtered'
-        >>> cmSV.testshow(qreq_, daid)
+        >>> cmSV.testshow_single(qreq_, daid)
         """
     if not qreq_.qparams.sv_on or qreq_.qparams.xy_thresh is None:
         if verbose:
@@ -697,6 +698,7 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     return cm_list_SVER
 
 
+@profile
 def sver_single_chipmatch(qreq_, cm):
     """
     loops over a shortlist of results for a specific query annotation
@@ -876,6 +878,7 @@ def chipmatch_to_resdict(qreq_, cm_list, verbose=VERB_PIPELINE):
         qaid2_qres
 
     CommandLine:
+        utprof.py -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict
         python -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict
         python -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict:1
 

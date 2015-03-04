@@ -194,7 +194,7 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.ori_thresh   = tau / 4.0
         sv_cfg.min_nInliers = 4
         sv_cfg.nNameShortlistSVER = 50
-        sv_cfg.nAnnotPerNameSVER = 2
+        sv_cfg.nAnnotPerNameSVER = 6
         #sv_cfg.prescore_method = 'csum'
         sv_cfg.prescore_method = 'nsum'
         sv_cfg.use_chip_extent = False  # BAD CONFIG?
@@ -550,8 +550,10 @@ class RerankVsOneConfig(ConfigBase):
             vsone_pipeline.COEFF_DEFAULTS.aslist(),
             vsone_pipeline.UNC_DEFAULTS.aslist(),
             vsone_pipeline.SCR_DEFAULTS.aslist(),
-            vsone_pipeline.COVKPTS_DEFAULT.aslist(),
-            vsone_pipeline.COVGRID_DEFAULT.aslist(),
+            vsone_pipeline.COVKPTS_DEFAULT.aslist(
+                hideif=lambda cfg: cfg['covscore_on'] and cfg['maskscore_mode'] != 'kpts'),
+            vsone_pipeline.COVGRID_DEFAULT.aslist(
+                hideif=lambda cfg: cfg['covscore_on'] and cfg['maskscore_mode'] != 'grid'),
             distinctiveness_normalizer.DCVS_DEFAULT.aslist(),
         ])
         return param_info_list

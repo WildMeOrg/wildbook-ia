@@ -826,8 +826,8 @@ python dev.py --setdb --db PZ_MTEST
 # also everything is reranked
 #----
 python dev.py --allgt -t \
-    custom:fg_weight=0.0,dupvote_weight=0.0 \
-    custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 \
+    custom:fg_on=False \
+    custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerNameVsOne=200,nNameShortlistVsone=200,fg_on=False \
     --print-confusion-stats --print-gtscore --noqcache
 #----
 
@@ -844,11 +844,11 @@ python dev.py --allgt -t custom \
 #----
 # VsOneRerank Tuning: Tune linar combination
 python dev.py --allgt -t \
-    custom:fg_weight=0.0,dupvote_weight=0.0 \
+    custom:fg_weight=0.0 \
 \
-    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 \
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200,fg_weight=0.0 \
 \
-    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 \
+    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200,fg_weight=0.0 \
 \
   --db PZ_MTEST
 
@@ -857,14 +857,10 @@ python dev.py --allgt -t \
 
 #----
 python dev.py --allgt -t \
-    custom:fg_weight=0.0,dupvote_weight=0.0 \
-\
-    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 \
-\
-    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=2,nNameShortlistVsone=20,fg_weight=0.0,dupvote_weight=0.0 \
-\
-    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=2,nNameShortlistVsone=20,fg_weight=0.0,dupvote_weight=0.0 \
-\
+    custom \
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200,fg_weight=0.0 \
+    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=2,nNameShortlistVsone=20,fg_weight=0.0 \
+    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=2,nNameShortlistVsone=20,fg_weight=0.0 \
    --db PZ_MTEST --index 30:60
 #----
 
