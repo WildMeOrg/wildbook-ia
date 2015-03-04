@@ -726,12 +726,6 @@ class QueryConfig(ConfigBase):
             query_cfg.pipeline_root = 'smk'
         elif codename == 'None':
             pass
-        #if query_cfg.species_code == '____':
-        #    query_cfg.fg_weight = 0.0
-        #if query_cfg.species_code == 'zebra_plains':
-        #    query_cfg.fg_weight = 1.0
-        #if query_cfg.species_code == 'zebra_grevys':
-        #    query_cfg.fg_weight = 1.0
 
     def make_feasible(query_cfg):
         try:

@@ -152,7 +152,6 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     pt.plots.plot_stems(x_data, y_data)
     pt.present()
     pt.show()
-    ut.embed()
     #locals_ = viz_allres_annotation_scores(allres)
     locals_ = locals()
     return locals_
@@ -352,7 +351,7 @@ def vsone_gt(ibs, qaid_list, daid_list=None):
     """
     dev.py --db PZ_MTEST --allgt --cmd
     """
-    cfgdict = dict(fg_on=True, fg_weight=1.0)
+    cfgdict = dict(fg_on=True)
     allres = results_all.get_allres(ibs, qaid_list, daid_list, cfgdict)
     #orgtype_list = ['top_false', 'top_true']
     org_top_false = allres.get_orgtype('rank0_false')

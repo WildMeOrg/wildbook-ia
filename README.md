@@ -846,9 +846,9 @@ python dev.py --allgt -t custom \
 python dev.py --allgt -t \
     custom:fg_weight=0.0 \
 \
-    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200,fg_weight=0.0 \
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
 \
-    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200,fg_weight=0.0 \
+    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
 \
   --db PZ_MTEST
 
@@ -858,11 +858,17 @@ python dev.py --allgt -t \
 #----
 python dev.py --allgt -t \
     custom \
-    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200,fg_weight=0.0 \
-    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=2,nNameShortlistVsone=20,fg_weight=0.0 \
-    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=2,nNameShortlistVsone=20,fg_weight=0.0 \
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
+    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=2,nNameShortlistVsone=20 \
+    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=2,nNameShortlistVsone=20 \
    --db PZ_MTEST --index 30:60
 #----
+
+python dev.py --allgt -t \
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0\
+    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0 \
+    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5 \
+   --db PZ_MTEST
 
 python dev.py --allgt -t custom --db PZ_Master0 --va --show
 

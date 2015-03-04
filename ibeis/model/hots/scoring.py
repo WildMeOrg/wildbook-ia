@@ -15,7 +15,8 @@ from ibeis.model.hots import hstypes
 #from ibeis.model.hots import name_scoring
 from ibeis.model.hots import distinctiveness_normalizer
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
-from six.moves import zip, range  # NOQA
+import scipy.stats.mstats as spmstat
+from six.moves import zip, range, map  # NOQA
 #profile = ut.profile
 print, print_,  printDBG, rrr, profile = ut.inject(__name__, '[scoring]', DEBUG=False)
 
@@ -217,15 +218,45 @@ def get_kpts_distinctiveness(qreq_, aid_list, config={}):
     return dstncvs_list
 
 
-def get_annot_kpts_basline_weights(qreq_, aid_list, config={}):
+def get_annot_kpts_baseline_weights(qreq_, aid_list, config={}):
+    r"""
+    Args:
+        qreq_ (QueryRequest):  query request object with hyper-parameters
+        aid_list (int):  list of annotation ids
+        config (dict):
+
+    Returns:
+        list: weights_list
+
+    CommandLine:
+        python -m ibeis.model.hots.scoring --test-get_annot_kpts_baseline_weights
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.scoring import *  # NOQA
+        >>> qreq_, cm = plh.testdata_scoring()
+        >>> aid_list = cm.daid_list
+        >>> config = qreq_.qparams
+        >>> # execute function
+        >>> weights_list = get_annot_kpts_baseline_weights(qreq_, aid_list, config)
+        >>> # verify results
+        >>> result = str(weights_list)
+        >>> print(result)
+    """
     # TODO: clip the fgweights? (dilation?)
     # TODO; normalize and paramatarize and clean
-    qdstncvs_list  = get_kpts_distinctiveness(qreq_, aid_list, config)
-    qfgweight_list = qreq_.ibs.get_annot_fgweights(aid_list, ensure=True, qreq_=qreq_)
-    weights_list = [(qfgweight * qdstncvs) for (qfgweight,  qdstncvs) in zip(qdstncvs_list, qfgweight_list)]
-    #weights_list = [(qfgweight * qdstncvs) ** .5 for (qfgweight,  qdstncvs) in zip(qdstncvs_list, qfgweight_list)]
-    #weights_list = [(qfgweight + qdstncvs) / 2 for (qfgweight,  qdstncvs) in zip(qdstncvs_list, qfgweight_list)]
-    return weights_list
+    dcvs_on = config.get('dcvs_on')
+    fg_on = config.get('fg_on')
+    weight_lists = []
+    if dcvs_on:
+        qdstncvs_list = get_kpts_distinctiveness(qreq_, aid_list, config)
+        weight_lists.append(qdstncvs_list)
+    if fg_on:
+        qfgweight_list = qreq_.ibs.get_annot_fgweights(aid_list, ensure=True, qreq_=qreq_)
+        weight_lists.append(qfgweight_list)
+    # geometric mean of the selected weights
+    baseline_weights_list = [spmstat.gmean(weight_tup) for weight_tup in zip(*weight_lists)]
+    return baseline_weights_list
 
 
 def get_mask_func(config):
@@ -380,7 +411,7 @@ def general_coverage_mask_generator(make_mask_func, qreq_, qaid, id_list, fm_lis
         print('[acov] make_mask_func = %r' % (make_mask_func,))
         print('[acov] cov_cfg = %s' % (ut.dict_str(cov_cfg),))
     # Distinctivness and foreground weight
-    qweights = get_annot_kpts_basline_weights(qreq_, [qaid], config)[0]
+    qweights = get_annot_kpts_baseline_weights(qreq_, [qaid], config)[0]
     # Denominator weight mask
     chipsize    = qreq_.ibs.get_annot_chip_sizes(qaid, qreq_=qreq_)
     qkpts       = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
@@ -400,7 +431,7 @@ def compute_general_matching_coverage_mask(make_mask_func, chipsize, fm, fs,
     # Get matching query keypoints
     #SYMMETRIC = False
     #if SYMMETRIC:
-    #    get_annot_kpts_basline_weights()
+    #    get_annot_kpts_baseline_weights()
     qkpts_m    = qkpts.take(fm.T[0], axis=0)
     weights_m  = fs * qweights.take(fm.T[0], axis=0)
     # hacky buisness
@@ -528,7 +559,7 @@ def show_annot_weights(qreq_, aid, config={}):
     chipsize = qreq_.ibs.get_annot_chip_sizes(aid, qreq_=qreq_)
     chip  = qreq_.ibs.get_annot_chips(aid, qreq_=qreq_)
     qkpts = qreq_.ibs.get_annot_kpts(aid, qreq_=qreq_)
-    weights = get_annot_kpts_basline_weights(qreq_, [aid], config)[0]
+    weights = get_annot_kpts_baseline_weights(qreq_, [aid], config)[0]
     make_mask_func, cov_cfg = get_mask_func(config)
     mask = make_mask_func(qkpts, chipsize, weights, resize=True, **cov_cfg)
     coverage_kpts.show_coverage_map(chip, mask, None, qkpts, fnum, ell_alpha=.2, show_mask_kpts=False)

@@ -90,6 +90,7 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
 
     CommandLine:
         python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata
+        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata --daid_list 39 --qaid 41 --db PZ_MTEST
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -114,7 +115,7 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
             defaultdb = dbname
         dbname = ut.get_argval('--db', str, defaultdb)
         qaid_list = ut.get_argval(('--qaid_list', '--qaid'), list, qaid_list)
-        daid_list = ut.get_argval('--daid_list', list, daid_list)
+        daid_list = ut.get_argval(('--daid_list', '--daids'), list, daid_list)
         #if 'codename' not in cfgdict:
         # Allow commond line specification of all query params
         default_cfgdict = dict(Config.parse_config_items(Config.QueryConfig()))
@@ -142,6 +143,8 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
             daid_list = daid_list[0:min(5, len(daid_list))]
     elif daid_list == 'all':
         daid_list = ibs.get_valid_aids()
+    elif daid_list == 'gt':
+        daid_list = ut.flatten(ibs.get_annot_groundtruth(qaid_list))
     ibs = ibeis.test_main(db=dbname)
 
     if 'with_metadata' not in cfgdict:

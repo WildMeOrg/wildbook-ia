@@ -298,7 +298,7 @@ def baseline_neighbor_filter(qreq_, nns_list, verbose=VERB_PIPELINE):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *   # NOQA
-        >>> qreq_, nns_list = plh.testdata_pre_baselinefilter(codename='vsmany')
+        >>> qreq_, nns_list = plh.testdata_pre_baselinefilter(qaid_list=[1, 2, 3, 4], codename='vsmany')
         >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list)
         >>> assert len(nnvalid0_list) == len(qreq_.get_external_qaids())
         >>> assert qreq_.qparams.K == 4
@@ -335,11 +335,6 @@ def baseline_neighbor_filter(qreq_, nns_list, verbose=VERB_PIPELINE):
         # Get neighbor annotation information
         qfx2_aid = qreq_.indexer.get_nn_aids(qfx2_nnidx)
         # dont vote for yourself or another chip in the same image
-        if cant_match_self:
-            qfx2_notsamechip = qfx2_aid != qaid
-            if DEBUG_PIPELINE:
-                plh._self_verbose_check(qfx2_notsamechip, qfx2_valid0)
-            qfx2_valid0 = np.logical_and(qfx2_valid0, qfx2_notsamechip)
         if cant_match_sameimg:
             qfx2_gid = qreq_.ibs.get_annot_gids(qfx2_aid)
             qgid     = qreq_.ibs.get_annot_gids(qaid)
@@ -347,6 +342,12 @@ def baseline_neighbor_filter(qreq_, nns_list, verbose=VERB_PIPELINE):
             if DEBUG_PIPELINE:
                 plh._sameimg_verbose_check(qfx2_notsameimg, qfx2_valid0)
             qfx2_valid0 = np.logical_and(qfx2_valid0, qfx2_notsameimg)
+        elif cant_match_self:
+            # dont need to run this if cant_match_sameimg was True
+            qfx2_notsamechip = qfx2_aid != qaid
+            if DEBUG_PIPELINE:
+                plh._self_verbose_check(qfx2_notsamechip, qfx2_valid0)
+            qfx2_valid0 = np.logical_and(qfx2_valid0, qfx2_notsamechip)
         if cant_match_samename:
             # This should probably be off
             qfx2_nid = qreq_.ibs.get_annot_name_rowids(qfx2_aid)
@@ -358,17 +359,42 @@ def baseline_neighbor_filter(qreq_, nns_list, verbose=VERB_PIPELINE):
         return qfx2_valid0
     cant_match_sameimg  = not qreq_.qparams.can_match_sameimg
     cant_match_samename = not qreq_.qparams.can_match_samename
-    cant_match_self     = not cant_match_sameimg
+    cant_match_self     = True
     K = qreq_.qparams.K
+    internal_qaids = qreq_.get_internal_qaids()
+
     # Look at impossibility of the first K nearest neighbors
     nnidx_iter = (qfx2_idx.T[0:K].T for (qfx2_idx, _) in nns_list)
-    internal_qaids = qreq_.get_internal_qaids()
     nnvalid0_list = [
         flag_impossible_votes(qreq_, qaid, qfx2_nnidx, cant_match_self,
                               cant_match_sameimg, cant_match_samename,
                               verbose=verbose)
         for qaid, qfx2_nnidx in zip(internal_qaids, nnidx_iter)
     ]
+    if False:
+        # Build up impossible daids for each query aid
+        # NEW CODE
+        # TODO: this list is built before querytime and K is adjusted
+        _impossible_daid_lists = []
+        if cant_match_self:
+            _impossible_daid_lists.append([[qaid] for qaid in internal_qaids])
+        if cant_match_sameimg:
+            contact_aids_list = qreq_.ibs.get_annot_contact_aids(internal_qaids)
+            _impossible_daid_lists.append(contact_aids_list)
+        if cant_match_samename:
+            internal_daids = qreq_.get_internal_daids()
+            gt_aids = qreq_.ibs.get_annot_groundtruth(internal_qaids, daid_list=internal_daids)
+            _impossible_daid_lists.append(gt_aids)
+        # TODO: add explicit not a match case in here
+        impossible_daids_list = list(map(ut.flatten, zip(*_impossible_daid_lists)))
+        impossible_daids_list
+        nnidx_iter = (qfx2_idx.T[0:K].T for (qfx2_idx, _) in nns_list)
+        qfx2_aid_list = [qreq_.indexer.get_nn_aids(qfx2_nnidx) for qfx2_nnidx in nnidx_iter]
+        nnvalid0_list_NEW = [
+            vt.get_uncovered_mask(qfx2_aid, impossible_daids)
+            for qfx2_aid, impossible_daids in zip(qfx2_aid_list, impossible_daids_list)
+        ]
+        assert ut.lists_eq(nnvalid0_list, nnvalid0_list_NEW)
     return nnvalid0_list
 
 

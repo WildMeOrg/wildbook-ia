@@ -8,6 +8,7 @@ Current Issues:
       - we can reduce the size of the vsone shortlist
 
 TODOLIST:
+    * Unconstrained is a terrible name. It is constrianed by the ratio
     * Precompute distinctivness
     #* keep feature matches from vsmany (allow fm_B)
     #* Each keypoint gets
@@ -20,7 +21,7 @@ TODOLIST:
     * FIX BUGS IN score_chipmatch_nsum FIRST THING TOMORROW.
      dict keys / vals are being messed up. very inoccuous
 
-    Visualization to "proove" that vsone works
+    Visualization to "prove" that vsone works
 
 
 TestFuncs:
@@ -195,8 +196,8 @@ def sver_fmfs_merge(qreq_, qaid, daid_list, fmfs_merge, config={}):
     min_nInliers = config.get('min_nInliers')
     # input data
     fm_list, fs_list = fmfs_merge
-    fsv_list = matching.ensure_fsv_list(fs_list)
-    kpts1 = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
+    fsv_list   = matching.ensure_fsv_list(fs_list)
+    kpts1      = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
     kpts2_list = qreq_.ibs.get_annot_kpts(daid_list, qreq_=qreq_)
     chip2_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(daid_list, qreq_=qreq_)  # chip diagonal length
     res_list = []
@@ -324,6 +325,7 @@ def refine_matches(qreq_, prior_cm, config={}):
     fm_list, fsv_list = fmfs_merge
     # apply linear combination
     fs_list = [(np.nan_to_num(fsv) * coeffs[None, :]).sum(axis=1) for fsv in fsv_list]
+
     unscored_cm = chip_match.ChipMatch2.from_unscored(prior_cm, fm_list, fs_list, H_list)
     return unscored_cm
 
@@ -360,6 +362,23 @@ def single_vsone_rerank(qreq_, prior_cm, config={}):
     if qreq_.qparams.covscore_on:
         unscored_cm.score_coverage(qreq_)
     else:
+        # Apply score weights
+        data_baseline_weight_list = scoring.get_annot_kpts_baseline_weights(qreq_, unscored_cm.daid_list, config)
+        query_baseline_weight = scoring.get_annot_kpts_baseline_weights(qreq_, [unscored_cm.qaid], config)[0]
+        qfx_list = [fm.T[0] for fm in unscored_cm.fm_list]
+        dfx_list = [fm.T[1] for fm in unscored_cm.fm_list]
+
+        qfweight_list = [query_baseline_weight.take(qfx) for qfx in qfx_list]
+        dfweight_list = [data_baseline_weight.take(dfx)
+                         for dfx, data_baseline_weight in zip(dfx_list, data_baseline_weight_list)]
+        fweight_list = [np.sqrt(qfweight * dfweight) for qfweight, dfweight in
+                        zip(qfweight_list, dfweight_list)]
+        # hack in the distinctivness and fgweights
+        unscored_cm.fs_list = [fs * fweight for fs, fweight in zip(unscored_cm.fs_list, fweight_list)]
+        unscored_cm.fsv_list = matching.ensure_fsv_list(unscored_cm.fs_list)
+
+        #queryside_weights =
+        #dfweights_list =
         # hack
         unscored_cm.score_nsum(qreq_)
 
@@ -405,7 +424,8 @@ def compute_query_unconstrained_matches(qreq_, qaid, daid_list, config):
         ...     pt.set_title('unconstrained')
         ...     pt.show_if_requested()
     """
-    unc_ratio_thresh = config.get('unc_ratio_thresh', .625)
+    unc_ratio_thresh = config['unc_ratio_thresh']
+    #, .625)
     qvecs = qreq_.ibs.get_annot_vecs(qaid, qreq_=qreq_)
     dvecs_list = qreq_.ibs.get_annot_vecs(daid_list, qreq_=qreq_)
     flann = quick_vsone_flann(qreq_.ibs.get_flann_cachedir(), qvecs)
@@ -503,23 +523,24 @@ OTHER_RRVSONE_PARAMS = ut.ParamInfoList('OTHERRRVSONE', [
     #ut.ParamInfo('fs_lnbnn_min', .0001),
     #ut.ParamInfo('fs_lnbnn_max', .05),
     #ut.ParamInfo('fs_lnbnn_power', 1.0),
-    ut.ParamInfo('fs_lnbnn_min', 0.0),
-    ut.ParamInfo('fs_lnbnn_max', 1.0),
-    ut.ParamInfo('fs_lnbnn_power', 1.0),
+    ut.ParamInfo('fs_lnbnn_min', 0.0, hideif=0.0),
+    ut.ParamInfo('fs_lnbnn_max', 1.0, hideif=1.0),
+    ut.ParamInfo('fs_lnbnn_power', 1.0, hideif=1.0),
     ut.ParamInfoBool('covscore_on', False, hideif=True),
+    ut.ParamInfo('dcvs_on', False),
 ])
 
 
 SHORTLIST_DEFAULTS = ut.ParamInfoList('SLIST', [
-    ut.ParamInfo('nNameShortlistVsone', 5, 'nNm='),
-    ut.ParamInfo('nAnnotPerNameVsOne', 2, 'nApN='),
+    ut.ParamInfo('nNameShortlistVsone', 20, 'nNm='),
+    ut.ParamInfo('nAnnotPerNameVsOne', 3, 'nApN='),
 ])
 
 # matching types
 COEFF_DEFAULTS = ut.ParamInfoList('COEFF', [
     ut.ParamInfo('prior_coeff', .6, 'prior_coeff='),
     ut.ParamInfo('unconstrained_coeff',    .4, 'unc_coeff='),
-    ut.ParamInfo('constrained_coeff',     0.0, 'scr_coeff='),
+    ut.ParamInfo('constrained_coeff',     0.0, 'scr_coeff=', hideif=0.0),
     ut.ParamInfo('sver_unconstrained',   True, 'sver_unc=', hideif=lambda cfg: cfg['unconstrained_coeff'] <= 0),
     ut.ParamInfo('sver_constrained',    False, 'sver_scr=', hideif=lambda cfg: cfg['constrained_coeff'] <= 0),
     ut.ParamInfo('maskscore_mode', 'grid', 'cov='),
@@ -527,7 +548,7 @@ COEFF_DEFAULTS = ut.ParamInfoList('COEFF', [
 )
 
 UNC_DEFAULTS = ut.ParamInfoList('UNC', [
-    ut.ParamInfo('unc_ratio_thresh', .625, 'uncRat=', varyvals=[.625, .5, .9, 1.0, .8]),
+    ut.ParamInfo('unc_ratio_thresh', .8, 'uncRat=', varyvals=[.625, .82, .9, 1.0, .8]),
 ])
 
 
@@ -611,9 +632,11 @@ def gridsearch_single_vsone_rerank():
 
 def gridsearch_constrained_matches():
     r"""
+    Search spatially constrained matches
 
     CommandLine:
         python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_constrained_matches --show
+        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_constrained_matches --show --qaid 41
         python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_constrained_matches --show --testindex 2
 
     Example:
@@ -666,9 +689,13 @@ def gridsearch_constrained_matches():
 
 def gridsearch_unconstrained_matches():
     r"""
+    Search unconstrained ratio test vsone match
 
     CommandLine:
         python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show
+        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show --qaid 27
+        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show --qaid 41 --daid_list 39
+        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show --qaid 40 --daid_list 39
         python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show --testindex 2
 
     Example:
@@ -686,11 +713,11 @@ def gridsearch_unconstrained_matches():
     # HACK TO GET THE DATA WE WANT WITHOUT UNNCESSARY COMPUTATION
     # Get pipeline testdata for this configuration
     ibs, qreq_ = plh.get_pipeline_testdata(
-        cfgdict=cfgdict_, qaid_list=[1], daid_list='all', defaultdb='PZ_MTEST',
+        cfgdict=cfgdict_, qaid_list=[1], daid_list='gt', defaultdb='PZ_MTEST',
         cmdline_ok=True, preload=False)
     qaid_list = qreq_.get_external_qaids().tolist()
     qaid = qaid_list[0]
-    daid_list = qreq_.ibs.get_annot_groundtruth(qaid)[0:1]
+    daid_list = qreq_.get_external_query_groundtruth(qaid)[0:1]
     #
     cfgdict_list, cfglbl_list = UNC_DEFAULTS.get_gridsearch_input(defaultslice=slice(0, 10))
     assert len(cfgdict_list) > 0

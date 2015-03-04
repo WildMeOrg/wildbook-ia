@@ -31,8 +31,6 @@ small_best = {
     'score_method':    ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
     'prescore_method': ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
     'chip_sqrt_area':  [450],
-
-    'fg_weight'       : [1.0],
     'fg_on'   : [True],
 }
 
@@ -86,7 +84,6 @@ pzmastertest = augbase(small_best, {
 })
 
 fgweight = augbase(small_best, {
-    'fg_weight': [1.0],  # , 0.0],
     'fg_on':  [True]  # , 0.0],
 })
 
@@ -95,7 +92,6 @@ vary_sver = augbase(small_best, {
     'sv_on'          : [False, True],
     'use_chip_extent' : [False, True],
     'xy_thresh'       : [.1, .01, .001],
-    'fg_weight'       : [1.0],
     'fg_on'   : [True],
     'algorithm'       : ['linear'],
 })
@@ -104,14 +100,12 @@ sver_new = augbase(small_best, {
     'sv_on'           : [True],
     'use_chip_extent' : [True],
     'xy_thresh'       : [.001],
-    'fg_weight'       : [1.0],
     'fg_on'   : [True],
     #'algorithm'       : ['linear'],
 })
 
 nov6 = augbase(small_best, {
     'K': [4, 5, 6, 7, 8, 9, 10, 20],
-    'fg_weight': [1.0, 0.0],
     'score_method':   ['csum'],  # 'bordaw', 'topk', 'topkw'],  # , 'nsum', 'borda', 'topk', 'nunique']
 })
 
@@ -152,7 +146,7 @@ featparams_big2 = augbase(
     featparams_big,
     {
         'K': [4, 7, 10, 20],
-        'fg_weight': [1.0],
+        'fg_on': [True],
     })
 # low threshold = more keypoints
 # low initialSigma = more keypoints

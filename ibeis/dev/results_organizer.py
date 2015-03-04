@@ -144,7 +144,7 @@ def qres2_true_and_false(ibs, qres):
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
-        >>> cfgdict = dict(codename='nsum', fg_weight=1.0, fg_on=True)
+        >>> cfgdict = dict(codename='nsum',fg_on=True)
         >>> qaid_list = aid_list[0:1]
         >>> qaid2_qres = ibs._query_chips4(qaid_list, aid_list, cfgdict=cfgdict)
         >>> qres = qaid2_qres[qaid_list[0]]
@@ -197,10 +197,9 @@ def organize_results(ibs, qaid2_qres):
     CommandLine:
         ib
         python dev.py -t scores --db PZ_MTEST --allgt -w --show
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_weight=1.0
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 fg_on:True
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 fg_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='nsum' fg_weight=1.0 fg_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsone' fg_on:True --index 0:3
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg fg_on:True
         python dev.py -t scores --db GZ_ALL --allgt -w --show
 
     Example:
@@ -208,7 +207,7 @@ def organize_results(ibs, qaid2_qres):
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
-        >>> cfgdict = dict(codename='nsum', fg_weight=1.0, fg_on=True)
+        >>> cfgdict = dict(codename='vsmany', fg_on=True)
         >>> qaid2_qres = ibs._query_chips4(aid_list, aid_list, cfgdict=cfgdict)
     """
     print('organize_results()')
