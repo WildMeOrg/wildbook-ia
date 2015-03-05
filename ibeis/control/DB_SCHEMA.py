@@ -857,23 +857,6 @@ def update_1_3_5(db, ibs=None):
         }
         new_qual_list = [old_to_new.get(qual, qual) for qual in qual_list]
         ibs.set_annot_qualities(aid_list, new_qual_list)
-    #from collections import OrderedDict
-    #QUALITY_INT_TO_TEXT_OLD = OrderedDict([
-    #    (2, 'good',),
-    #    (1, 'ok',),
-    #    (0, 'junk',),
-    #    (-1, 'UNKNOWN',),
-    #])
-    #QUALITY_INT_TO_TEXT_NEW = OrderedDict([
-    #    (4, 'perfect',),
-    #    (3, 'good',),
-    #    (2, 'ok',),
-    #    (1, 'bad',),
-    #    (0, 'junk',),
-    #    (-1, 'UNKNOWN',),
-    #])
-    #new_qual_list
-    #new_qual_list
     # Adds a few different degrees of quality
     pass
 

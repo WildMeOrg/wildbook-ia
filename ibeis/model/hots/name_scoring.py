@@ -166,6 +166,16 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         >>> ut.quit_if_noshow()
         >>> cm.show_ranked_matches(qreq_)
 
+    Example:
+        >>> annot_score_list = []
+        >>> annot_aid_list   = []
+        >>> daid2_idx        = {}
+        >>> # Name aligned lists
+        >>> name_score_list  = np.array([], dtype=hstypes.FS_DTYPE)
+        >>> name_groupxs     = []
+        >>> # Execute Function
+        >>> score_list = align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list)
+
 
     Ignore:
         dict(zip(cm.dnid_list, cm.score_list))
@@ -173,41 +183,45 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         np.all(nid_list == cm.unique_nids)
 
     """
-    # Group annot aligned indicies by nid
-    annot_aid_list = np.array(annot_aid_list)
-    #nid_list, groupxs  = vt.group_indices(annot_nid_list)
-    grouped_scores     = vt.apply_grouping(annot_score_list, name_groupxs)
-    grouped_annot_aids = vt.apply_grouping(annot_aid_list, name_groupxs)
-    flat_grouped_aids  = np.hstack(grouped_annot_aids)
-    #flat_groupxs  = np.hstack(name_groupxs)
-    #if __debug__:
-    #    sum_scores = np.array([scores.sum() for scores in grouped_scores])
-    #    max_scores = np.array([scores.max() for scores in grouped_scores])
-    #    assert np.all(name_score_list <= sum_scores)
-    #    assert np.all(name_score_list > max_scores)
-    # +------------
-    # Find the position of the highest name_scoring annotation for each name
-    # IN THE FLATTENED GROUPED ANNOT_AID_LIST (this was the bug)
-    offset_list = np.array([annot_scores.argmax() for annot_scores in grouped_scores])
-    # Find the starting position of eatch group use chain to start offsets with 0
-    _padded_scores  = itertools.chain([[]], grouped_scores[:-1])
-    sizeoffset_list = np.array([len(annot_scores) for annot_scores in _padded_scores])
-    baseindex_list  = sizeoffset_list.cumsum()
-    # Augment starting position with offset index
-    annot_idx_list = np.add(baseindex_list, offset_list)
-    # L______________
-    best_aid_list = flat_grouped_aids[annot_idx_list]
-    best_idx_list = ut.dict_take(daid2_idx, best_aid_list)
-    # give the annotation domain a name score
-    score_list = np.zeros(len(annot_score_list), dtype=name_score_list.dtype)
-    # make sure that the nid_list from group_indicies and the nids belonging to
-    # name_score_list (cm.unique_nids) are in alignment
-    #nidx_list = np.array(ut.dict_take(nid2_nidx, nid_list))
+    if len(name_groupxs) == 0:
+        score_list = np.empty(0, dtype=name_score_list.dtype)
+        return score_list
+    else:
+        # Group annot aligned indicies by nid
+        annot_aid_list = np.array(annot_aid_list)
+        #nid_list, groupxs  = vt.group_indices(annot_nid_list)
+        grouped_scores     = vt.apply_grouping(annot_score_list, name_groupxs)
+        grouped_annot_aids = vt.apply_grouping(annot_aid_list, name_groupxs)
+        flat_grouped_aids  = np.hstack(grouped_annot_aids)
+        #flat_groupxs  = np.hstack(name_groupxs)
+        #if __debug__:
+        #    sum_scores = np.array([scores.sum() for scores in grouped_scores])
+        #    max_scores = np.array([scores.max() for scores in grouped_scores])
+        #    assert np.all(name_score_list <= sum_scores)
+        #    assert np.all(name_score_list > max_scores)
+        # +------------
+        # Find the position of the highest name_scoring annotation for each name
+        # IN THE FLATTENED GROUPED ANNOT_AID_LIST (this was the bug)
+        offset_list = np.array([annot_scores.argmax() for annot_scores in grouped_scores])
+        # Find the starting position of eatch group use chain to start offsets with 0
+        _padded_scores  = itertools.chain([[]], grouped_scores[:-1])
+        sizeoffset_list = np.array([len(annot_scores) for annot_scores in _padded_scores])
+        baseindex_list  = sizeoffset_list.cumsum()
+        # Augment starting position with offset index
+        annot_idx_list = np.add(baseindex_list, offset_list)
+        # L______________
+        best_aid_list = flat_grouped_aids[annot_idx_list]
+        best_idx_list = ut.dict_take(daid2_idx, best_aid_list)
+        # give the annotation domain a name score
+        score_list = np.zeros(len(annot_score_list), dtype=name_score_list.dtype)
+        # make sure that the nid_list from group_indicies and the nids belonging to
+        # name_score_list (cm.unique_nids) are in alignment
+        #nidx_list = np.array(ut.dict_take(nid2_nidx, nid_list))
 
-    # THIS ASSUMES name_score_list IS IN ALIGNMENT WITH BOTH cm.unique_nids and
-    # nid_list (which should be == cm.unique_nids)
-    score_list[best_idx_list] = name_score_list
-    return score_list
+        # THIS ASSUMES name_score_list IS IN ALIGNMENT WITH BOTH cm.unique_nids and
+        # nid_list (which should be == cm.unique_nids)
+        score_list[best_idx_list] = name_score_list
+        return score_list
 
 
 #def get_best_annot_per_name_indices(cm):

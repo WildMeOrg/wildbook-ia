@@ -278,26 +278,26 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
 
     Knorm = qreq_.qparams.Knorm
     rule  = qreq_.qparams.normalizer_rule
-    with_metadata = qreq_.qparams.with_metadata
+    #with_metadata = qreq_.qparams.with_metadata
     #normweight_upper_bound = 30  # TODO:  make this specific to each normweight func
 
     # Prealloc output
     weight_list = []
-    if with_metadata:
-        metadata = qreq_.metadata
-        metakey = ut.get_funcname(normweight_fn) + '_norm_meta'
-        metadata[metakey] = {}
-        metakey_metadata = metadata[metakey]
-    else:
-        metakey_metadata = None
+    #if with_metadata:
+    #    metadata = qreq_.metadata
+    #    metakey = ut.get_funcname(normweight_fn) + '_norm_meta'
+    #    metadata[metakey] = {}
+    #    metakey_metadata = metadata[metakey]
+    #else:
+    #    metakey_metadata = None
     # Database feature index to chip index
     qaid_list = qreq_.get_internal_qaids()
     for qaid, nns in zip(qaid_list, nns_list):
         (qfx2_idx, qfx2_dist) = nns
         # Apply normalized weights
         qfx2_normweight = apply_normweight(
-            normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm, qreq_,
-            with_metadata, metakey_metadata)
+            normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm, qreq_)
+        #with_metadata, metakey_metadata)
         #qfx2_normweight[qfx2_normweight > normweight_upper_bound] = normweight_upper_bound
         #qfx2_normweight /= normweight_upper_bound
         # Output
@@ -306,7 +306,8 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
 
 
 def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
-                     qreq_, with_metadata, metakey_metadata):
+                     qreq_):
+    #, with_metadata, metakey_metadata):
     """
     helper: applies the normalized weight function to one query annotation
 
@@ -319,8 +320,6 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
         K (int):
         Knorm (int):
         qreq_ (QueryRequest): hyper-parameters
-        with_metadata (bool):
-        metadata (dict):
 
     Returns:
         ndarray: qfx2_normweight
@@ -337,11 +336,8 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
         >>> normweight_fn = lnbnn_fn
         >>> rule  = qreq_.qparams.normalizer_rule
         >>> (qfx2_idx, qfx2_dist) = nns_list[0]
-        >>> with_metadata = True
-        >>> metakey_metadata = {}
         >>> qfx2_normweight = nn_weights.apply_normweight(normweight_fn, qaid, qfx2_idx,
-        ...         qfx2_dist, rule, K, Knorm, qreq_, with_metadata,
-        ...         metakey_metadata)
+        ...         qfx2_dist, rule, K, Knorm, qreq_)
 
     Timeits:
         %timeit qfx2_dist.T[0:K].T
@@ -368,23 +364,23 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
         raise NotImplementedError('[nn_weights] no rule=%r' % rule)
     qfx2_normdist = np.array([dists[normk]
                               for (dists, normk) in zip(qfx2_dist, qfx2_normk)])
-    qfx2_normidx  = np.array([idxs[normk]
-                              for (idxs, normk) in zip(qfx2_idx, qfx2_normk)])
+    #qfx2_normidx  = np.array([idxs[normk]
+    #                          for (idxs, normk) in zip(qfx2_idx, qfx2_normk)])
     # Ensure shapes are valid
     qfx2_normdist.shape = (len(qfx2_idx), 1)
     vdist = qfx2_nndist    # voting distance
     ndist = qfx2_normdist  # normalizer distance
     qfx2_normweight = normweight_fn(vdist, ndist)
     # build meta
-    if with_metadata:
-        normmeta_header = ('normalizer_metadata', ['norm_aid', 'norm_fx', 'norm_k'])
-        qfx2_normmeta = np.array(
-            [
-                (qreq_.indexer.get_nn_aids(idx), qreq_.indexer.get_nn_featxs(idx), normk)
-                for (normk, idx) in zip(qfx2_normk, qfx2_normidx)
-            ]
-        )
-        metakey_metadata[qaid] = (normmeta_header, qfx2_normmeta)
+    #if with_metadata:
+    #    normmeta_header = ('normalizer_metadata', ['norm_aid', 'norm_fx', 'norm_k'])
+    #    qfx2_normmeta = np.array(
+    #        [
+    #            (qreq_.indexer.get_nn_aids(idx), qreq_.indexer.get_nn_featxs(idx), normk)
+    #            for (normk, idx) in zip(qfx2_normk, qfx2_normidx)
+    #        ]
+    #    )
+    #    metakey_metadata[qaid] = (normmeta_header, qfx2_normmeta)
     return qfx2_normweight
 
 

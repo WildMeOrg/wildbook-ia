@@ -557,9 +557,12 @@ def dev_train_distinctiveness(species=None):
 
     CommandLine:
         python -m ibeis.model.hots.distinctiveness_normalizer --test-dev_train_distinctiveness
+
         alias dev_train_distinctiveness='python -m ibeis.model.hots.distinctiveness_normalizer --test-dev_train_distinctiveness'
+        # Publishing (uses cached normalizers if available)
         dev_train_distinctiveness --species GZ --publish
         dev_train_distinctiveness --species PZ --publish
+        dev_train_distinctiveness --species PZ --retrain
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -581,6 +584,8 @@ def dev_train_distinctiveness(species=None):
     cachedir = global_distinctdir
     dstcnvs_normer = DistinctivnessNormalizer(species, cachedir=cachedir)
     try:
+        if ut.get_argflag('--retrain'):
+            raise IOError('force cache miss')
         with ut.Timer('loading distinctiveness'):
             dstcnvs_normer.load(cachedir)
         # Cache hit
@@ -592,11 +597,18 @@ def dev_train_distinctiveness(species=None):
             # Add one example from each name
             # TODO: add one exemplar per viewpoint for each name
             #max_vecs = 1E6
+            #max_annots = 975
             max_annots = 975
+            #ibs.fix_and_clean_database()
             nid_list = ibs.get_valid_nids()
             aids_list = ibs.get_name_aids(nid_list)
+            # remove junk
+            aids_list = ibs.unflat_map(ibs.filter_junk_annotations, aids_list)
+            # remove empty
+            aids_list = [aids for aids in aids_list if len(aids) > 0]
             num_annots_list = list(map(len, aids_list))
             aids_list = ut.sortedby(aids_list, num_annots_list, reverse=True)
+            # take only one annot per name
             aid_list = ut.get_list_column(aids_list, 0)
             # Keep only a certain number of annots for distinctiveness mapping
             aid_list_ = ut.listclip(aid_list, max_annots)

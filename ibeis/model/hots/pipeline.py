@@ -148,11 +148,6 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
     elif qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
 
-        # TODO: We should bring the vsone breakup down to this level,
-        # then we should remerge the results after the build cmtup_old.
-        # then we should rectify the position in fk so the nodupv-ote filter
-        # can be run and name scoring will be meaningful.
-
         # Nearest neighbors (nns_list)
         # a nns object is a tuple(ndarray, ndarray) - (qfx2_dx, qfx2_dist)
         # * query descriptors assigned to database descriptors
@@ -276,9 +271,8 @@ def nearest_neighbors(qreq_, verbose=VERB_PIPELINE):
     # Verbose statistics reporting
     if verbose:
         plh.print_nearest_neighbor_assignments(qvecs_list, nns_list)
-    # Return old style dicts for now
-    if qreq_.qparams.with_metadata:
-        qreq_.metadata['nns'] = nns_list
+    #if qreq_.qparams.with_metadata:
+    #    qreq_.metadata['nns'] = nns_list
     return nns_list
 
 
@@ -705,29 +699,31 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
         print('[hs] Step 5) Spatial verification: ' + qreq_.qparams.sv_cfgstr)
 
     # TODO: move rerank out of theis pipeline node
-    with_metadata = qreq_.qparams.with_metadata
+    #with_metadata = qreq_.qparams.with_metadata
     # dbg info (can remove if there is a speed issue)
     score_method    = qreq_.qparams.prescore_method
     nNameShortList  = qreq_.qparams.nNameShortlistSVER
     nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER
 
-    qaid2_svtups = {} if with_metadata else None
+    #qaid2_svtups = {} if with_metadata else None
     scoring.score_chipmatch_list(qreq_, cm_list, score_method)
     cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName)
     cm_progiter = ut.ProgressIter(cm_shortlist, nTotal=len(cm_shortlist), lbl=SVER_LVL,
                                   freq=20, time_thresh=2.0)
-    cm_list_SVER = []
-    for cm in cm_progiter:
-        pass
-        # Find a transform from chip2 to chip1 (the old way was 1 to 2)
-        # Get information for sver, query keypoints, diaglen
-        cmSV, daid2_svtup = sver_single_chipmatch(qreq_, cm)
-        if with_metadata:
-            qaid2_svtups[cm.qaid] = daid2_svtup
-        # Rebuild the feature match / score arrays to be consistent
-        cm_list_SVER.append(cmSV)
-    if with_metadata:
-        qreq_.metadata['qaid2_svtups'] = qaid2_svtups
+    cm_list_SVER = [sver_single_chipmatch(qreq_, cm) for cm in cm_progiter]
+    #cm_list_SVER = []
+    #for cm in cm_progiter:
+    #    pass
+    #    # Find a transform from chip2 to chip1 (the old way was 1 to 2)
+    #    # Get information for sver, query keypoints, diaglen
+    #    #cmSV, daid2_svtup = sver_single_chipmatch(qreq_, cm)
+    #    cmSV = sver_single_chipmatch(qreq_, cm)
+    #    #if with_metadata:
+    #    #    qaid2_svtups[cm.qaid] = daid2_svtup
+    #    # Rebuild the feature match / score arrays to be consistent
+    #    cm_list_SVER.append(cmSV)
+    #if with_metadata:
+    #    qreq_.metadata['qaid2_svtups'] = qaid2_svtups
     return cm_list_SVER
 
 
@@ -747,7 +743,7 @@ def sver_single_chipmatch(qreq_, cm):
     min_nInliers    = qreq_.qparams.min_nInliers
     sver_weighting  = qreq_.qparams.sver_weighting
     # Precompute sver cmtup_old
-    daid2_svtup = {} if qreq_.qparams.with_metadata else None
+    #daid2_svtup = {} if qreq_.qparams.with_metadata else None
     kpts1 = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
     kpts2_list = qreq_.ibs.get_annot_kpts(cm.daid_list, qreq_=qreq_)
     if use_chip_extent:
@@ -768,8 +764,8 @@ def sver_single_chipmatch(qreq_, cm):
                 # image1 is a query chip and image2 is a database chip
                 sv_tup = sver.spatially_verify_kpts(
                     kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
-                    dlen_sqrd2, min_nInliers,
-                    returnAff=qreq_.qparams.with_metadata)
+                    dlen_sqrd2, min_nInliers)
+                # returnAff=qreq_.qparams.with_metadata)
             except Exception as ex:
                 ut.printex(ex, 'Unknown error in spatial verification.',
                               keys=['kpts1', 'kpts2',  'fm', 'xy_thresh',
@@ -786,9 +782,9 @@ def sver_single_chipmatch(qreq_, cm):
     fsv_list    = ut.filterfalse_items(cm.fsv_list, isnone_list)
     fk_list     = ut.filterfalse_items(cm.fk_list, isnone_list)
 
-    if qreq_.qparams.with_metadata:
-        for sv_tup, daid in zip(svtup_list_, daid_list):
-            daid2_svtup[daid] = sv_tup
+    #if qreq_.qparams.with_metadata:
+    #    for sv_tup, daid in zip(svtup_list_, daid_list):
+    #        daid2_svtup[daid] = sv_tup
 
     sver_matchtup_list = []
     fsv_col_lbls = cm.fsv_col_lbls[:]
@@ -823,7 +819,7 @@ def sver_single_chipmatch(qreq_, cm):
         fm_list=fm_list_SV, fsv_list=fsv_list_SV, fk_list=fk_list_SV,
         H_list=H_list_SV, dnid_list=dnid_list, qnid=cm.qnid,
         fsv_col_lbls=fsv_col_lbls)
-    return cmSV, daid2_svtup
+    return cmSV  # , daid2_svtup
 
 
 def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
@@ -904,7 +900,6 @@ def chipmatch_to_resdict(qreq_, cm_list, verbose=VERB_PIPELINE):
 
     Args:
         cm_list (dict):
-        metadata (dict):
         qreq_ (QueryRequest): hyper-parameters
 
     Returns:
@@ -970,10 +965,6 @@ def chipmatch_to_resdict(qreq_, cm_list, verbose=VERB_PIPELINE):
         qres.aid2_score = aid2_score
         qres.aid2_prob = aid2_prob
         qres.aid2_H = aid2_H
-        # Populate query result metadata (things like k+1th neighbor)
-        #qres.metadata = {}
-        #for key, qaid2_meta in six.iteritems(qreq_.metadata):
-        #    qres.metadata[key] = qaid2_meta[qaid]
     # Build dictionary structure to maintain functionality
     qaid2_qres = {qaid: qres for qaid, qres in zip(external_qaids, qres_list)}
     return qaid2_qres

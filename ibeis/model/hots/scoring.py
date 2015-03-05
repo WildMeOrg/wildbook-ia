@@ -286,7 +286,7 @@ def compute_annot_coverage_score(qreq_, cm, config={}):
         >>> from ibeis.model.hots.scoring import *  # NOQA
         >>> qreq_, cm = plh.testdata_scoring()
         >>> config = qreq_.qparams
-        >>> daid_list, score_list = compute_annot_coverage_score(qreq_, cm)
+        >>> daid_list, score_list = compute_annot_coverage_score(qreq_, cm, config)
         >>> ut.assert_inbounds(np.array(score_list), 0, 1, eq=True)
         >>> result = ut.list_str(score_list, precision=3)
         >>> print(result)
@@ -308,7 +308,7 @@ def compute_name_coverage_score(qreq_, cm, config={}):
         >>> qreq_, cm = plh.testdata_scoring()
         >>> cm.evaluate_dnids(qreq_.ibs)
         >>> config = qreq_.qparams
-        >>> dnid_list, score_list = compute_name_coverage_score(qreq_, cm)
+        >>> dnid_list, score_list = compute_name_coverage_score(qreq_, cm, config)
         >>> ut.assert_inbounds(np.array(score_list), 0, 1, eq=True)
         >>> result = ut.list_str(score_list, precision=3)
         >>> print(result)

@@ -201,6 +201,11 @@ class IBEISMainWindow(QtGui.QMainWindow):
         else:
             event.ignore()
 
+    @slot_()
+    def expand_names_tree(mainwin):
+        view = mainwin.ibswgt.views[gh.NAMES_TREE]
+        view.expandAll()
+
 
 class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     #@checks_qt_error
@@ -337,7 +342,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             # Text              # Value
             ('Select Species',  'none'),
         ] + const.get_working_species_set()
-        #list(zip(const.SPECIES_NICE, const.VALID_SPECIES))
+
         ibswgt.species_combo = _COMBO(detection_combo_box_options,
                                       ibswgt.back.change_detection_species,
                                       fontkw=primary_fontkw)
@@ -346,11 +351,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                          ibswgt.back.encounter_reviewed_all_images,
                                          bgcolor=(0, 232, 211), fontkw=primary_fontkw)
 
-        ibswgt.import_button = _NEWBUT('1) Import',  # Import Images\n(via files)',
+        ibswgt.import_button = _NEWBUT('1) Import',
                                        back.import_images_from_file,
                                        bgcolor=(235, 200, 200), fontkw=primary_fontkw)
 
-        ibswgt.encounter_button = _NEWBUT('2) Group',  # Images into Encounters',
+        ibswgt.encounter_button = _NEWBUT('2) Group',
                                           ibswgt.back.compute_encounters,
                                           bgcolor=(255, 255, 150), fontkw=primary_fontkw)
 
@@ -359,7 +364,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                        bgcolor=(150, 255, 150), fontkw=primary_fontkw)
 
         identify_color = (255, 150, 0)
-        ibswgt.inc_query_button = _NEWBUT('4) Identify',  # QUERY',
+        ibswgt.inc_query_button = _NEWBUT('4) Identify',
                                           ibswgt.back.incremental_query,
                                           bgcolor=identify_color,
                                           fgcolor=(0, 0, 0), fontkw=primary_fontkw)
@@ -367,7 +372,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         color_funcs.adjust_hsv_of_rgb255(identify_color, 0.01, -0.2, 0.0)
 
         ibswgt.batch_unknown_intra_encounter_query_button = _NEWBUT(
-            'Intra Encounter',  # QUERY',
+            'Intra Encounter',
             functools.partial(
                 back.compute_queries,
                 query_is_known=False, query_mode=const.INTRA_ENC_KEY),
@@ -375,7 +380,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
 
         ibswgt.batch_unknown_vsexemplar_query_button = _NEWBUT(
-            'Vs Exemplar',  # QUERY',
+            'Vs Exemplar',
             functools.partial(
                 back.compute_queries,
                 query_is_known=False, query_mode=const.VS_EXEMPLARS_KEY),
@@ -614,6 +619,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     #@checks_qt_error
     def _connect_signals_and_slots(ibswgt):
+        #ibswgt._tab_table_wgt.
         print('[newgui] _connect_signals_and_slots')
         for tblname in ibswgt.super_tblname_list:
             tblview = ibswgt.views[tblname]

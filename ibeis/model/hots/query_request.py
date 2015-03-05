@@ -151,7 +151,7 @@ class QueryRequest(object):
         qreq_.normalizer = None
         qreq_.dstcnvs_normer = None
         # Hacky metadata
-        qreq_.metadata = {}
+        #qreq_.metadata = {}
         qreq_.hasloaded = False
         # Set values
         qreq_.qparams = qparams   # Parameters relating to pipeline execution
@@ -160,11 +160,11 @@ class QueryRequest(object):
         qreq_.set_external_qaids(qaid_list)
 
     @profile
-    def shallowcopy(qreq_, qx=None, dx=None):
+    def shallowcopy(qreq_, qaids=None, qx=None, dx=None):
         """
         Creates a copy of qreq with the same qparams object and a subset of the qx
         and dx objects.
-        used to generate chunks of vsone queries
+        used to generate chunks of vsone and vsmany queries
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -174,13 +174,17 @@ class QueryRequest(object):
             >>> qreq2_ = qreq_.shallowcopy(qx=0)
             >>> assert qreq_.get_external_daids() is qreq2_.get_external_daids()
             >>> assert len(qreq_.get_external_qaids()) != len(qreq2_.get_external_qaids())
-            >>> assert qreq_.metadata is not qreq2_.metadata
+            >>> #assert qreq_.metadata is not qreq2_.metadata
         """
         qreq2_ = copy.copy(qreq_)
         if qx is not None:
             qaid_list  = qreq2_.get_external_qaids()
             qaid_list  = qaid_list[qx:qx + 1]
             qreq2_.set_external_qaids(qaid_list)  # , quuid_list)
+        elif qaids is not None:
+            assert qx is None, 'cannot specify both qx and qaids'
+            assert len(np.intersect1d(qaids, qreq2_.get_external_qaids())) == len(qaids), 'not a subset'
+            qreq2_.set_external_qaids(qaids)  # , quuid_list)
         if dx is not None:
             daid_list  = qreq2_.get_external_daids()
             daid_list  = daid_list[dx:dx + 1]
@@ -189,7 +193,7 @@ class QueryRequest(object):
             qreq2_.set_external_daids(daid_list)
         # The shallow copy does not bring over output / query data
         qreq2_.indexer = None
-        qreq2_.metadata = {}
+        #qreq2_.metadata = {}
         qreq2_.hasloaded = False
         return qreq2_
 
@@ -225,7 +229,7 @@ class QueryRequest(object):
         # Invalidate the current indexer, mask and metadata
         qreq_.indexer = None
         qreq_.internal_daids_mask = None
-        qreq_.metadata = {}
+        #qreq_.metadata = {}
         # Find indices to remove
         delete_flags = vt.get_covered_mask(qreq_.internal_daids, remove_daids)
         delete_indices = np.where(delete_flags)[0]
@@ -248,7 +252,7 @@ class QueryRequest(object):
             species = qreq_.ibs.get_annot_species(new_daids)
             assert set(qreq_.unique_species) == set(species), 'inconsistent species'
         qreq_.internal_daids_mask = None
-        qreq_.metadata = {}
+        #qreq_.metadata = {}
         qreq_.internal_daids = np.append(qreq_.internal_daids, new_daids)
         # TODO: multi-indexer add_support
         if qreq_.indexer is not None:
