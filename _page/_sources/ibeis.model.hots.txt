@@ -1,0 +1,269 @@
+ibeis.model.hots package
+========================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ibeis.model.hots.smk
+
+Submodules
+----------
+
+ibeis.model.hots._neighbor_experiment module
+--------------------------------------------
+
+.. automodule:: ibeis.model.hots._neighbor_experiment
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots._pipeline_helpers module
+-----------------------------------------
+
+.. automodule:: ibeis.model.hots._pipeline_helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.automatch_suggestor module
+-------------------------------------------
+
+.. automodule:: ibeis.model.hots.automatch_suggestor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.automated_helpers module
+-----------------------------------------
+
+.. automodule:: ibeis.model.hots.automated_helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.automated_matcher module
+-----------------------------------------
+
+.. automodule:: ibeis.model.hots.automated_matcher
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.automated_oracle module
+----------------------------------------
+
+.. automodule:: ibeis.model.hots.automated_oracle
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.automated_params module
+----------------------------------------
+
+.. automodule:: ibeis.model.hots.automated_params
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.chip_match module
+----------------------------------
+
+.. automodule:: ibeis.model.hots.chip_match
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.devcases module
+--------------------------------
+
+.. automodule:: ibeis.model.hots.devcases
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.distinctiveness_normalizer module
+--------------------------------------------------
+
+.. automodule:: ibeis.model.hots.distinctiveness_normalizer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.exceptions module
+----------------------------------
+
+.. automodule:: ibeis.model.hots.exceptions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.hots_query_result module
+-----------------------------------------
+
+.. automodule:: ibeis.model.hots.hots_query_result
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.hstypes module
+-------------------------------
+
+.. automodule:: ibeis.model.hots.hstypes
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.match_chips4 module
+------------------------------------
+
+.. automodule:: ibeis.model.hots.match_chips4
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.multi_index module
+-----------------------------------
+
+.. automodule:: ibeis.model.hots.multi_index
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.name_scoring module
+------------------------------------
+
+.. automodule:: ibeis.model.hots.name_scoring
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.neighbor_index module
+--------------------------------------
+
+.. automodule:: ibeis.model.hots.neighbor_index
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.nn_weights module
+----------------------------------
+
+.. automodule:: ibeis.model.hots.nn_weights
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.old_chip_match module
+--------------------------------------
+
+.. automodule:: ibeis.model.hots.old_chip_match
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.pipeline module
+--------------------------------
+
+.. automodule:: ibeis.model.hots.pipeline
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.precision_recall module
+----------------------------------------
+
+.. automodule:: ibeis.model.hots.precision_recall
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.qt_inc_automatch module
+----------------------------------------
+
+.. automodule:: ibeis.model.hots.qt_inc_automatch
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.query_helpers module
+-------------------------------------
+
+.. automodule:: ibeis.model.hots.query_helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.query_params module
+------------------------------------
+
+.. automodule:: ibeis.model.hots.query_params
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.query_request module
+-------------------------------------
+
+.. automodule:: ibeis.model.hots.query_request
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.score_normalization module
+-------------------------------------------
+
+.. automodule:: ibeis.model.hots.score_normalization
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.scoring module
+-------------------------------
+
+.. automodule:: ibeis.model.hots.scoring
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.special_query module
+-------------------------------------
+
+.. automodule:: ibeis.model.hots.special_query
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.user_dialogs module
+------------------------------------
+
+.. automodule:: ibeis.model.hots.user_dialogs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.vsone_pipeline module
+--------------------------------------
+
+.. automodule:: ibeis.model.hots.vsone_pipeline
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.model.hots.word_index module
+----------------------------------
+
+.. automodule:: ibeis.model.hots.word_index
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.model.hots
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,532 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.model.hots.match_chips4 &mdash; ibeis 0.1.0.dev1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../model.html">ibeis.model</a> &raquo;</li>
+      
+          <li><a href="../hots.html">ibeis.model.hots</a> &raquo;</li>
+      
+    <li>ibeis.model.hots.match_chips4</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for ibeis.model.hots.match_chips4</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Runs functions in pipeline to get query reuslts and does some caching.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="c">#from ibeis.model.hots import query_request</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c"># NOQA</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[mc4]&#39;</span><span class="p">)</span>
+
+
+<span class="c"># TODO: Move to params</span>
+<span class="n">USE_CACHE</span>    <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nocache-query&#39;</span><span class="p">,</span> <span class="s">&#39;--noqcache&#39;</span><span class="p">))</span>
+<span class="n">USE_BIGCACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nocache-big&#39;</span><span class="p">,</span> <span class="s">&#39;--no-bigcache-query&#39;</span><span class="p">,</span> <span class="s">&#39;--noqcache&#39;</span><span class="p">,</span> <span class="s">&#39;--nobigcache&#39;</span><span class="p">))</span>
+<span class="n">SAVE_CACHE</span>   <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-save&#39;</span><span class="p">)</span>
+<span class="c">#MIN_BIGCACHE_BUNDLE = 20</span>
+<span class="n">MIN_BIGCACHE_BUNDLE</span> <span class="o">=</span> <span class="mi">150</span>
+
+
+<span class="c">#----------------------</span>
+<span class="c"># Main Query Logic</span>
+<span class="c">#----------------------</span>
+
+
+<div class="viewcode-block" id="empty_query"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.empty_query">[docs]</a><span class="k">def</span> <span class="nf">empty_query</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Hack to give an empty query a query result object</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        qaids (?):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (qaid2_qres, qreq_)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.match_chips4 --test-empty_query</span>
+<span class="sd">        python -m ibeis.model.hots.match_chips4 --test-empty_query --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.match_chips4 import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; (qaid2_qres, qreq_) = empty_query(ibs, qaids)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str((qaid2_qres, qreq_))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; qres = qaid2_qres[qaids[0]]</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_eq(len(qres.get_top_aids()), 0)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; qres.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)</span>
+<span class="sd">        &gt;&gt;&gt; from matplotlib import pyplot as plt</span>
+<span class="sd">        &gt;&gt;&gt; plt.show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">daids</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+    <span class="n">qres_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">make_empty_query_results</span><span class="p">()</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">qres_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span>
+
+</div>
+<div class="viewcode-block" id="submit_query_request_nocache"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.submit_query_request_nocache">[docs]</a><span class="k">def</span> <span class="nf">submit_query_request_nocache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">pipeline</span><span class="o">.</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39; no current query aids&#39;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] WARNING no daids... returning empty query&#39;</span><span class="p">)</span>
+        <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">empty_query</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">qaid2_qres</span>
+    <span class="n">save_qcache</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">execute_query2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">save_qcache</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid2_qres</span>
+
+
+<span class="c">#@profile</span></div>
+<div class="viewcode-block" id="submit_query_request"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.submit_query_request">[docs]</a><span class="k">def</span> <span class="nf">submit_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                         <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                         <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                         <span class="n">verbose</span><span class="o">=</span><span class="n">pipeline</span><span class="o">.</span><span class="n">VERB_PIPELINE</span><span class="p">,</span> <span class="n">save_qcache</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The standard query interface.</span>
+
+<span class="sd">    TODO: rename use_cache to use_qcache</span>
+
+<span class="sd">    Checks a big cache for qaid2_qres.  If cache miss, tries to load each qres</span>
+<span class="sd">    individually.  On an individual cache miss, it preforms the query.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController) : ibeis control object</span>
+<span class="sd">        qaid_list (list): query annotation ids</span>
+<span class="sd">        daid_list (list): database annotation ids</span>
+<span class="sd">        use_cache (bool):</span>
+<span class="sd">        use_bigcache (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        qaid2_qres (dict): dict of QueryResult objects</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.match_chips4 --test-submit_query_request</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.match_chips4 import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = [1]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = [1, 2, 3, 4, 5]</span>
+<span class="sd">        &gt;&gt;&gt; use_bigcache = True</span>
+<span class="sd">        &gt;&gt;&gt; use_cache = True</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(db=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache)</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres, qreq_ = submit_query_request(ibs, qaid_list, daid_list, False, False, True)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Get flag defaults if necessary</span>
+    <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">use_cache</span> <span class="o">=</span> <span class="n">USE_CACHE</span>
+    <span class="k">if</span> <span class="n">save_qcache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">save_qcache</span> <span class="o">=</span> <span class="n">SAVE_CACHE</span>
+    <span class="k">if</span> <span class="n">use_bigcache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">use_bigcache</span> <span class="o">=</span> <span class="n">USE_BIGCACHE</span>
+    <span class="c"># Create new query request object to store temporary state</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39; --- Submit QueryRequest_ --- &#39;</span><span class="p">)</span>
+    <span class="c"># ------------</span>
+    <span class="c"># Build query request</span>
+    <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span>
+                                      <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="c"># --- BIG CACHE ---</span>
+    <span class="c"># Do not use bigcache single queries</span>
+    <span class="n">use_bigcache_</span> <span class="o">=</span> <span class="p">(</span><span class="n">use_bigcache</span> <span class="ow">and</span> <span class="n">use_cache</span> <span class="ow">and</span>
+                     <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MIN_BIGCACHE_BUNDLE</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">use_bigcache_</span> <span class="ow">or</span> <span class="n">save_qcache</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MIN_BIGCACHE_BUNDLE</span><span class="p">:</span>
+        <span class="n">bc_dpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">bigcachedir</span>
+        <span class="c"># TODO: SYSTEM : semantic should only be used if name scoring is on</span>
+        <span class="n">qhashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_semantic_uuid</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;Q&#39;</span><span class="p">)</span>
+        <span class="n">dhashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_semantic_uuid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;D&#39;</span><span class="p">)</span>
+        <span class="n">bc_fname</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="s">&#39;_QRESMAP&#39;</span><span class="p">,</span> <span class="n">qhashid</span><span class="p">,</span> <span class="n">dhashid</span><span class="p">))</span>
+        <span class="n">bc_cfgstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>  <span class="c"># FIXME, rectify w/ qparams</span>
+        <span class="k">if</span> <span class="n">use_bigcache_</span><span class="p">:</span>
+            <span class="c"># Try and load directly from a big cache</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cache</span><span class="p">(</span><span class="n">bc_dpath</span><span class="p">,</span> <span class="n">bc_fname</span><span class="p">,</span> <span class="n">bc_cfgstr</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;... qaid2_qres bigcache miss&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;... qaid2_qres bigcache hit&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">return_request</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">qaid2_qres</span>
+    <span class="c"># ------------</span>
+    <span class="c"># Execute query request</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">execute_query_and_save_L1</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">,</span> <span class="n">save_qcache</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="c"># ------------</span>
+    <span class="k">if</span> <span class="n">save_qcache</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MIN_BIGCACHE_BUNDLE</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">save_cache</span><span class="p">(</span><span class="n">bc_dpath</span><span class="p">,</span> <span class="n">bc_fname</span><span class="p">,</span> <span class="n">bc_cfgstr</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">return_request</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">qaid2_qres</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="execute_query_and_save_L1"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.execute_query_and_save_L1">[docs]</a><span class="k">def</span> <span class="nf">execute_query_and_save_L1</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">use_cache</span><span class="p">,</span> <span class="n">save_qcache</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        qreq_ (QueryRequest):</span>
+<span class="sd">        use_cache (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        qaid2_qres</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.match_chips4 --test-execute_query_and_save_L1</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.match_chips4 import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict1 = dict(codename=&#39;vsmany&#39;, sv_on=True)</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])</span>
+<span class="sd">        &gt;&gt;&gt; use_cache, save_qcache, verbose = False, False, True</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)</span>
+<span class="sd">        &gt;&gt;&gt; print(qaid2_qres_hit)</span>
+
+<span class="sd">    Example2:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.match_chips4 import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict1 = dict(codename=&#39;vsone&#39;, sv_on=True)</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1, qaid_list=[1, 2, 3, 4])</span>
+<span class="sd">        &gt;&gt;&gt; use_cache, save_qcache, verbose = False, False, True</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres_hit = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)</span>
+<span class="sd">        &gt;&gt;&gt; print(qaid2_qres_hit)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#print(&#39;[q1] execute_query_and_save_L1()&#39;)</span>
+    <span class="k">if</span> <span class="n">use_cache</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] cache-query is on&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+            <span class="c"># sanity check</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">assert_self</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="c"># Try loading as many cached results as possible</span>
+        <span class="n">qaid2_qres_hit</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">try_load_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid2_qres_hit</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="n">qaid2_qres_hit</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid2_qres_hit</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;... partial qres cache hit </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qaid2_qres_hit</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">())))</span>
+        <span class="n">cachehit_qaids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">qaid2_qres_hit</span><span class="p">))</span>
+        <span class="c"># mask queries that have already been executed</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">set_external_qaid_mask</span><span class="p">(</span><span class="n">cachehit_qaids</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] cache-query is off&#39;</span><span class="p">)</span>
+        <span class="n">qaid2_qres_hit</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">execute_query2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">save_qcache</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="c"># sanity check</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">assert_self</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="c"># Merge cache hits with computed misses</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid2_qres_hit</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">qaid2_qres</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">qaid2_qres_hit</span><span class="p">)</span>
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">set_external_qaid_mask</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>  <span class="c"># undo state changes</span>
+    <span class="k">return</span> <span class="n">qaid2_qres</span>
+
+</div>
+<div class="viewcode-block" id="execute_query2"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.execute_query2">[docs]</a><span class="k">def</span> <span class="nf">execute_query2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">save_qcache</span><span class="p">):</span>
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_preload</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">all_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c"># vsone must have a chunksize of 1</span>
+    <span class="n">chunksize</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsone</span> <span class="k">else</span> <span class="mi">64</span>
+    <span class="c"># Iterate over vsone queries in chunks. This ensures that we dont lose</span>
+    <span class="c"># too much time if a qreq_ crashes after the 2000th nn index.</span>
+    <span class="n">nTotalChunks</span>    <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_nTotalChunks</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_qaids</span><span class="p">),</span> <span class="n">chunksize</span><span class="p">)</span>
+    <span class="n">qaid_chunk_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">all_qaids</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
+    <span class="n">_qreq_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">shallowcopy</span><span class="p">(</span><span class="n">qaids</span><span class="o">=</span><span class="n">qaids</span><span class="p">)</span> <span class="k">for</span> <span class="n">qaids</span> <span class="ow">in</span> <span class="n">qaid_chunk_iter</span><span class="p">)</span>
+    <span class="n">qreq_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">_qreq_iter</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="n">nTotalChunks</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;[mc4] query chunk: &#39;</span><span class="p">,</span> <span class="n">backspace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">__qreq</span> <span class="ow">in</span> <span class="n">qreq_iter</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Generating vsmany chunk&#39;</span><span class="p">)</span>
+        <span class="n">__qaid2_qres</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">request_ibeis_query_L0</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">__qreq</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">save_qcache</span><span class="p">:</span>
+            <span class="n">pipeline</span><span class="o">.</span><span class="n">save_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">__qaid2_qres</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] not saving vsmany chunk&#39;</span><span class="p">)</span>
+        <span class="n">qaid2_qres</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">__qaid2_qres</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid2_qres</span>
+
+
+<span class="c"># DEPRICATE CODE UNDERNEATH</span>
+<span class="c"># DONE: TODO split both vsone and vsmany queries into chunks</span>
+
+</div>
+<div class="viewcode-block" id="execute_query"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.execute_query">[docs]</a><span class="k">def</span> <span class="nf">execute_query</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">save_qcache</span><span class="p">):</span>
+    <span class="c"># Execute and save cachemiss queries</span>
+    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsone</span><span class="p">:</span>
+        <span class="c"># break vsone queries into multiple queries - one for each external qaid</span>
+        <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">execute_vsone_query</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">save_qcache</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">execute_nonvsone_query</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">save_qcache</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid2_qres</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="execute_nonvsone_query"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.execute_nonvsone_query">[docs]</a><span class="k">def</span> <span class="nf">execute_nonvsone_query</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">save_qcache</span><span class="p">):</span>
+    <span class="c"># execute non-vsone queries</span>
+    <span class="n">all_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
+
+    <span class="n">chunksize</span> <span class="o">=</span> <span class="mi">64</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_qaids</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">chunksize</span><span class="p">:</span>
+        <span class="c"># If less than the chunksize peform old non-chuncked queries</span>
+        <span class="c"># We will get to the point where chunking will cost no overhead</span>
+        <span class="c"># and be robust. At that point this code will be depricated.</span>
+        <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">request_ibeis_query_L0</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">save_qcache</span><span class="p">:</span>
+            <span class="n">pipeline</span><span class="o">.</span><span class="n">save_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] not saving vsmany chunk&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c"># Iterate over vsone queries in chunks. This ensures that we dont lose</span>
+        <span class="c"># too much time if a qreq_ crashes after the 2000th nn index.</span>
+        <span class="n">nTotalChunks</span>    <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_nTotalChunks</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_qaids</span><span class="p">),</span> <span class="n">chunksize</span><span class="p">)</span>
+        <span class="n">qaid_chunk_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">all_qaids</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
+        <span class="n">_qreq_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">shallowcopy</span><span class="p">(</span><span class="n">qaids</span><span class="o">=</span><span class="n">qaids</span><span class="p">)</span> <span class="k">for</span> <span class="n">qaids</span> <span class="ow">in</span> <span class="n">qaid_chunk_iter</span><span class="p">)</span>
+        <span class="n">qreq_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">_qreq_iter</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="n">nTotalChunks</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                    <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;vsmany query chunk: &#39;</span><span class="p">,</span> <span class="n">backspace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">__qreq</span> <span class="ow">in</span> <span class="n">qreq_iter</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Generating vsmany chunk&#39;</span><span class="p">)</span>
+            <span class="n">__qaid2_qres</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">request_ibeis_query_L0</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">__qreq</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">save_qcache</span><span class="p">:</span>
+                <span class="n">pipeline</span><span class="o">.</span><span class="n">save_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">__qaid2_qres</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] not saving vsmany chunk&#39;</span><span class="p">)</span>
+            <span class="n">qaid2_qres</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">__qaid2_qres</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid2_qres</span>
+
+</div>
+<div class="viewcode-block" id="execute_vsone_query"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.execute_vsone_query">[docs]</a><span class="k">def</span> <span class="nf">execute_vsone_query</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">save_qcache</span><span class="p">):</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
+    <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">chunksize</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">qres_gen</span> <span class="o">=</span> <span class="n">generate_vsone_qreqs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">,</span>
+                                    <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">qres_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">qres_gen</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                <span class="n">backspace</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;vsone query: &#39;</span><span class="p">,</span>
+                                <span class="n">use_rate</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">qres_chunk_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">qres_iter</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">qres_chunk</span> <span class="ow">in</span> <span class="n">qres_chunk_iter</span><span class="p">:</span>
+        <span class="n">qaid2_qres_</span> <span class="o">=</span> <span class="p">{</span><span class="n">qaid</span><span class="p">:</span> <span class="n">qres</span> <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">qres_chunk</span><span class="p">}</span>
+        <span class="c"># Save chunk of vsone queries</span>
+        <span class="k">if</span> <span class="n">save_qcache</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] saving vsone chunk&#39;</span><span class="p">)</span>
+            <span class="n">pipeline</span><span class="o">.</span><span class="n">save_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_qres_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mc4] not saving vsone chunk&#39;</span><span class="p">)</span>
+        <span class="c"># Add current chunk to results</span>
+        <span class="n">qaid2_qres</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">qaid2_qres_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid2_qres</span>
+
+</div>
+<div class="viewcode-block" id="generate_vsone_qreqs"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.generate_vsone_qreqs">[docs]</a><span class="k">def</span> <span class="nf">generate_vsone_qreqs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    helper</span>
+
+<span class="sd">    Generate vsone quries one at a time, but create shallow qreqs in chunks.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#qreq_shallow_iter = ((query_request.qreq_shallow_copy(qreq_, qx), qaid)</span>
+    <span class="c">#                     for qx, qaid in enumerate(qaid_list))</span>
+    <span class="c"># normalizers are the same for all vsone queries but indexers are not</span>
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_preload</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">qreq_shallow_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">qreq_</span><span class="o">.</span><span class="n">shallowcopy</span><span class="p">(</span><span class="n">qx</span><span class="o">=</span><span class="n">qx</span><span class="p">),</span> <span class="n">qaid</span><span class="p">)</span>
+                         <span class="k">for</span> <span class="n">qx</span><span class="p">,</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">))</span>
+    <span class="n">qreq_chunk_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">qreq_shallow_iter</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">qreq_chunk</span> <span class="ow">in</span> <span class="n">qreq_chunk_iter</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">__qreq</span><span class="p">,</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">qreq_chunk</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Generating vsone for qaid=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,))</span>
+            <span class="n">__qaid2_qres</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">request_ibeis_query_L0</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">__qreq</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+            <span class="n">qres</span> <span class="o">=</span> <span class="n">__qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qres</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    python -m ibeis.model.hots.match_chips4</span>
+<span class="sd">    python -m ibeis.model.hots.match_chips4 --allexamples --testslow</span>
+<span class="sd">    python -m ibeis.model.hots.match_chips4 --test-execute_query_and_save_L1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'0.1.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

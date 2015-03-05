@@ -1,0 +1,264 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.viz.viz_name &mdash; ibeis 0.1.0.dev1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.viz" href="../viz.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../viz.html">ibeis.viz</a> &raquo;</li>
+      
+    <li>ibeis.viz.viz_name</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for ibeis.viz.viz_name</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">plottool.draw_func2</span> <span class="kn">as</span> <span class="nn">df2</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
+<span class="kn">from</span> <span class="nn">.viz_chip</span> <span class="kn">import</span> <span class="n">show_chip</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="show_name_of"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_name.show_name_of">[docs]</a><span class="k">def</span> <span class="nf">show_name_of</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+    <span class="n">show_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@utool.indent_func</span>
+<div class="viewcode-block" id="show_name"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_name.show_name">[docs]</a><span class="k">def</span> <span class="nf">show_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">nid2_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[],</span> <span class="n">subtitle</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+              <span class="n">annote</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        nid (?):</span>
+<span class="sd">        nid2_aids (dict):</span>
+<span class="sd">        in_image (bool):</span>
+<span class="sd">        fnum (int):  figure number</span>
+<span class="sd">        sel_aids (list):</span>
+<span class="sd">        subtitle (str):</span>
+<span class="sd">        annote (bool):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_name --test-show_name</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_name import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nid = 1</span>
+<span class="sd">        &gt;&gt;&gt; nid2_aids = None</span>
+<span class="sd">        &gt;&gt;&gt; in_image = True</span>
+<span class="sd">        &gt;&gt;&gt; fnum = 0</span>
+<span class="sd">        &gt;&gt;&gt; sel_aids = []</span>
+<span class="sd">        &gt;&gt;&gt; subtitle = &#39;&#39;</span>
+<span class="sd">        &gt;&gt;&gt; annote = False</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = show_name(ibs, nid, nid2_aids, in_image, fnum, sel_aids, subtitle, annote)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] show_name nid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">nid</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">((</span><span class="n">nid</span><span class="p">,))</span>
+    <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">ensure_annotation_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">chips</span><span class="o">=</span><span class="p">(</span><span class="ow">not</span> <span class="n">in_image</span> <span class="ow">or</span> <span class="n">annote</span><span class="p">),</span> <span class="n">feats</span><span class="o">=</span><span class="n">annote</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] show_name=</span><span class="si">%r</span><span class="s"> aid_list=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">nAids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nAids</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_square_row_cols</span><span class="p">(</span><span class="n">nAids</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz*] r=</span><span class="si">%r</span><span class="s">, c=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">))</span>
+        <span class="c">#gs2 = gridspec.GridSpec(nRows, nCols)</span>
+        <span class="n">pnum_</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">get_pnum_func</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">)</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+        <span class="c"># Trigger computation of all chips in parallel</span>
+        <span class="k">for</span> <span class="n">px</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aid_list</span><span class="p">):</span>
+            <span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(</span><span class="n">px</span><span class="p">),</span> <span class="n">annote</span><span class="o">=</span><span class="n">annote</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="n">in_image</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">sel_aids</span><span class="p">:</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+                <span class="n">df2</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">GREEN</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="c">#plot_aid3(ibs, aid)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">nid</span> <span class="o">=</span> <span class="n">nid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">df2</span><span class="o">.</span><span class="n">imshow_null</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">figtitle</span> <span class="o">=</span> <span class="s">&#39;Name View nid=</span><span class="si">%r</span><span class="s"> name=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">df2</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
+    <span class="c">#if not annote:</span>
+    <span class="c">#    title += &#39; noannote&#39;</span>
+    <span class="c">#gs2.tight_layout(fig)</span>
+    <span class="c">#gs2.update(top=df2.TOP_SUBPLOT_ADJUST)</span>
+    <span class="c">#df2.set_figtitle(title, subtitle)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_name</span>
+<span class="sd">        python -m ibeis.viz.viz_name --allexamples</span>
+<span class="sd">        python -m ibeis.viz.viz_name --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

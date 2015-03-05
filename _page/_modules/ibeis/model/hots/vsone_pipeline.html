@@ -1,0 +1,1004 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.model.hots.vsone_pipeline &mdash; ibeis 0.1.0.dev1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../model.html">ibeis.model</a> &raquo;</li>
+      
+          <li><a href="../hots.html">ibeis.model.hots</a> &raquo;</li>
+      
+    <li>ibeis.model.hots.vsone_pipeline</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for ibeis.model.hots.vsone_pipeline</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">special pipeline for vsone specific functions</span>
+
+<span class="sd">Current Issues:</span>
+<span class="sd">    * getting feature distinctiveness is too slow, we can either try a different</span>
+<span class="sd">      model, or precompute feature distinctiveness.</span>
+
+<span class="sd">      - we can reduce the size of the vsone shortlist</span>
+
+<span class="sd">TODOLIST:</span>
+<span class="sd">    * Unconstrained is a terrible name. It is constrianed by the ratio</span>
+<span class="sd">    * Precompute distinctivness</span>
+<span class="sd">    #* keep feature matches from vsmany (allow fm_B)</span>
+<span class="sd">    #* Each keypoint gets</span>
+<span class="sd">    #  - foregroundness</span>
+<span class="sd">    #  - global distinctivness (databasewide) LNBNN</span>
+<span class="sd">    #  - local distinctivness (imagewide) RATIO</span>
+<span class="sd">    #  - regional match quality (descriptor based) COS</span>
+<span class="sd">    * Asymetric weight scoring</span>
+
+<span class="sd">    * FIX BUGS IN score_chipmatch_nsum FIRST THING TOMORROW.</span>
+<span class="sd">     dict keys / vals are being messed up. very inoccuous</span>
+
+<span class="sd">    Visualization to &quot;prove&quot; that vsone works</span>
+
+
+<span class="sd">TestFuncs:</span>
+<span class="sd">    &gt;&gt;&gt; # VsMany Only</span>
+<span class="sd">    python -m ibeis.model.hots.vsone_pipeline --test-show_post_vsmany_vser --show</span>
+<span class="sd">    &gt;&gt;&gt; # VsOne Only</span>
+<span class="sd">    python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show --no-vsmany_coeff</span>
+<span class="sd">    &gt;&gt;&gt; # VsOne + VsMany</span>
+<span class="sd">    python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show</span>
+
+
+<span class="sd">    &gt;&gt;&gt; # Rerank Vsone Test Harness</span>
+<span class="sd">    python -c &quot;import utool as ut; ut.write_modscript_alias(&#39;Tvs1RR.sh&#39;, &#39;dev.py&#39;, &#39;--allgt  --db PZ_MTEST --index 1:40:2&#39;)&quot;</span>
+<span class="sd">    sh Tvs1RR.sh -t custom:rrvsone_on=True custom custom:rrvsone_on=True</span>
+<span class="sd">    sh Tvs1RR.sh -t custom custom:rrvsone_on=True --print-scorediff-mat-stats</span>
+<span class="sd">    sh Tvs1RR.sh -t custom:rrvsone_on=True custom:rrvsone_on=True, --print-confusion-stats --print-scorediff-mat-stats</span>
+
+<span class="sd">    --print-scorediff-mat-stats --print-confusion-stats</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="c">#from ibeis.model.hots import neighbor_index</span>
+<span class="c">#from ibeis.model.hots import name_scoring</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">scoring</span>
+<span class="c">#import pyflann</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="c">#from ibeis.model.hots import coverage_kpts</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">matching</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">reduce</span>  <span class="c"># NOQA</span>
+<span class="c">#profile = ut.profile</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span>  <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[vsonepipe]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="c">#from collections import namedtuple</span>
+
+
+<div class="viewcode-block" id="show_post_vsmany_vser"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.show_post_vsmany_vser">[docs]</a><span class="k">def</span> <span class="nf">show_post_vsmany_vser</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; TESTFUNC just show the input data</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-show_post_vsmany_vser --show --homog</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-show_post_vsmany_vser --show --csum --homog</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.vsone_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; show_post_vsmany_vser()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_SVER</span><span class="p">,</span> <span class="n">qaid_list</span>  <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testdata_pre_vsonerr</span><span class="p">()</span>
+    <span class="c"># HACK TO PRESCORE</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">prepare_vsmany_chipmatch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_SVER</span><span class="p">)</span>
+    <span class="n">show_all_ranked_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list_SVER</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;vsmany post sver&#39;</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="get_normalized_score_column"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.get_normalized_score_column">[docs]</a><span class="k">def</span> <span class="nf">get_normalized_score_column</span><span class="p">(</span><span class="n">fsv</span><span class="p">,</span> <span class="n">colx</span><span class="p">,</span> <span class="n">min_</span><span class="p">,</span> <span class="n">max_</span><span class="p">,</span> <span class="n">power</span><span class="p">):</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">fsv</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">colx</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">fs</span> <span class="k">if</span> <span class="n">min_</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">max_</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">vt</span><span class="o">.</span><span class="n">clipnorm</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">min_</span><span class="p">,</span> <span class="n">max_</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">fs</span> <span class="k">if</span> <span class="n">power</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fs</span>
+
+</div>
+<div class="viewcode-block" id="prepare_vsmany_chipmatch"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.prepare_vsmany_chipmatch">[docs]</a><span class="k">def</span> <span class="nf">prepare_vsmany_chipmatch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_SVER</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; gets normalized vsmany priors</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.vsone_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list_SVER, qaid_list  = plh.testdata_pre_vsonerr()</span>
+<span class="sd">        &gt;&gt;&gt; prepare_vsmany_chipmatch(qreq_, cm_list_SVER)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Hack: populate aid2 score field in cmtup_old using prescore</span>
+    <span class="c"># grab normalized lnbnn scores</span>
+    <span class="n">fs_lnbnn_min</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">fs_lnbnn_min</span>
+    <span class="n">fs_lnbnn_max</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">fs_lnbnn_max</span>
+    <span class="n">fs_lnbnn_power</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">fs_lnbnn_power</span>
+    <span class="n">_args</span> <span class="o">=</span> <span class="p">(</span><span class="n">fs_lnbnn_min</span><span class="p">,</span> <span class="n">fs_lnbnn_max</span><span class="p">,</span> <span class="n">fs_lnbnn_power</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list_SVER</span><span class="p">:</span>
+        <span class="n">lnbnn_index</span>    <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_col_lbls</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s">&#39;lnbnn&#39;</span><span class="p">)</span>
+        <span class="n">vsmany_fs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_normalized_score_column</span><span class="p">(</span><span class="n">vsmany_fsv</span><span class="p">,</span> <span class="n">lnbnn_index</span><span class="p">,</span> <span class="o">*</span><span class="n">_args</span><span class="p">)</span> <span class="k">for</span> <span class="n">vsmany_fsv</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="p">]</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span> <span class="o">=</span> <span class="n">matching</span><span class="o">.</span><span class="n">ensure_fsv_list</span><span class="p">(</span><span class="n">vsmany_fs_list</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">fs_list</span> <span class="o">=</span> <span class="n">vsmany_fs_list</span>
+
+
+<span class="c">#@profile</span></div>
+<div class="viewcode-block" id="vsone_reranking"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.vsone_reranking">[docs]</a><span class="k">def</span> <span class="nf">vsone_reranking</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_SVER</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Driver function</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show</span>
+
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking --show</span>
+
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking</span>
+<span class="sd">        utprof.py -m ibeis.model.hots.vsone_pipeline --test-vsone_reranking</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.vsone_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list_SVER, qaid_list  = plh.testdata_pre_vsonerr()</span>
+<span class="sd">        &gt;&gt;&gt; # cm_list_SVER = ut.dict_subset(cm_list_SVER, [6])</span>
+<span class="sd">        &gt;&gt;&gt; cm_list_VSONE = vsone_reranking(qreq_, cm_list_SVER)</span>
+<span class="sd">        &gt;&gt;&gt; #cm_list = cm_list_VSONE</span>
+<span class="sd">        &gt;&gt;&gt; if ut.show_was_requested():</span>
+<span class="sd">        ...     import plottool as pt</span>
+<span class="sd">        ...     figtitle = &#39;FIXME USE SUBSET OF CFGDICT&#39;  # ut.dict_str(rrvsone_cfgdict, newlines=False)</span>
+<span class="sd">        ...     show_all_ranked_matches(qreq_.ibs, cm_list_VSONE, figtitle=figtitle)</span>
+<span class="sd">        ...     pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
+    <span class="c"># Filter down to a shortlist</span>
+    <span class="n">nNameShortlist</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nNameShortlistVsone</span>
+    <span class="n">nAnnotPerName</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nAnnotPerNameVsOne</span>
+    <span class="n">scoring</span><span class="o">.</span><span class="n">score_chipmatch_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_SVER</span><span class="p">,</span> <span class="s">&#39;nsum&#39;</span><span class="p">)</span>
+    <span class="n">prepare_vsmany_chipmatch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_SVER</span><span class="p">)</span>
+    <span class="n">cm_shortlist</span> <span class="o">=</span> <span class="n">scoring</span><span class="o">.</span><span class="n">make_chipmatch_shortlists</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_SVER</span><span class="p">,</span> <span class="n">nNameShortlist</span><span class="p">,</span> <span class="n">nAnnotPerName</span><span class="p">)</span>
+    <span class="c">#return {cm.qaid: cm.to_cmtup_old() for cm in cm_shortlist }</span>
+    <span class="c"># Execute vsone reranking</span>
+    <span class="n">_prog</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">cm_shortlist</span><span class="p">),</span>
+                              <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;VSONE RERANKING&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">cm_list_VSONE</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">single_vsone_rerank</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">prior_cm</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">prior_cm</span> <span class="ow">in</span> <span class="n">_prog</span><span class="p">(</span><span class="n">cm_shortlist</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">cm_list_VSONE</span>
+
+</div>
+<div class="viewcode-block" id="marge_matches_lists"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.marge_matches_lists">[docs]</a><span class="k">def</span> <span class="nf">marge_matches_lists</span><span class="p">(</span><span class="n">fmfs_A</span><span class="p">,</span> <span class="n">fmfs_B</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">fmfs_A</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fmfs_B</span>
+    <span class="n">fm_A_list</span><span class="p">,</span> <span class="n">fsv_A_list</span> <span class="o">=</span> <span class="n">fmfs_A</span>
+    <span class="n">fm_B_list</span><span class="p">,</span> <span class="n">fsv_B_list</span> <span class="o">=</span> <span class="n">fmfs_B</span>
+    <span class="n">fm_merge_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">fsv_merge_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">fsv_A_list</span> <span class="o">=</span> <span class="n">matching</span><span class="o">.</span><span class="n">ensure_fsv_list</span><span class="p">(</span><span class="n">fsv_A_list</span><span class="p">)</span>
+    <span class="n">fsv_B_list</span> <span class="o">=</span> <span class="n">matching</span><span class="o">.</span><span class="n">ensure_fsv_list</span><span class="p">(</span><span class="n">fsv_B_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">fm_A</span><span class="p">,</span> <span class="n">fm_B</span><span class="p">,</span> <span class="n">fsv_A</span><span class="p">,</span> <span class="n">fsv_B</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fm_A_list</span><span class="p">,</span> <span class="n">fm_B_list</span><span class="p">,</span> <span class="n">fsv_A_list</span><span class="p">,</span> <span class="n">fsv_B_list</span><span class="p">):</span>
+        <span class="n">fm_merged</span><span class="p">,</span> <span class="n">fs_merged</span> <span class="o">=</span> <span class="n">matching</span><span class="o">.</span><span class="n">marge_matches</span><span class="p">(</span><span class="n">fm_A</span><span class="p">,</span> <span class="n">fm_B</span><span class="p">,</span> <span class="n">fsv_A</span><span class="p">,</span> <span class="n">fsv_B</span><span class="p">)</span>
+        <span class="n">fm_merge_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fm_merged</span><span class="p">)</span>
+        <span class="n">fsv_merge_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fs_merged</span><span class="p">)</span>
+    <span class="n">fmfs_merge</span> <span class="o">=</span> <span class="n">fm_merge_list</span><span class="p">,</span> <span class="n">fsv_merge_list</span>
+    <span class="k">return</span> <span class="n">fmfs_merge</span>
+
+</div>
+<div class="viewcode-block" id="get_selectivity_score_list"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.get_selectivity_score_list">[docs]</a><span class="k">def</span> <span class="nf">get_selectivity_score_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">cos_power</span><span class="p">):</span>
+    <span class="n">vecs1</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">vecs2_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">vecs1_m_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">vecs1</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">fm_list</span><span class="p">)</span>
+    <span class="n">vecs2_m_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">vecs2</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">fm</span><span class="p">,</span> <span class="n">vecs2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">vecs2_list</span><span class="p">))</span>
+    <span class="c"># Rescore constrained using selectivity function</span>
+    <span class="n">fs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">scoring</span><span class="o">.</span><span class="n">sift_selectivity_score</span><span class="p">(</span><span class="n">vecs1_m</span><span class="p">,</span> <span class="n">vecs2_m</span><span class="p">,</span> <span class="n">cos_power</span><span class="p">)</span>
+               <span class="k">for</span> <span class="n">vecs1_m</span><span class="p">,</span> <span class="n">vecs2_m</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vecs1_m_iter</span><span class="p">,</span> <span class="n">vecs2_m_iter</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">fs_list</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="sver_fmfs_merge"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.sver_fmfs_merge">[docs]</a><span class="k">def</span> <span class="nf">sver_fmfs_merge</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fmfs_merge</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">spatial_verification</span> <span class="k">as</span> <span class="n">sver</span>
+    <span class="c"># params</span>
+    <span class="c"># TODO paramaterize better</span>
+    <span class="n">xy_thresh</span>    <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;xy_thresh&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.5</span>
+    <span class="n">scale_thresh</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;scale_thresh&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
+    <span class="n">ori_thresh</span>   <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;ori_thresh&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
+    <span class="n">min_nInliers</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;min_nInliers&#39;</span><span class="p">)</span>
+    <span class="c"># input data</span>
+    <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span> <span class="o">=</span> <span class="n">fmfs_merge</span>
+    <span class="n">fsv_list</span>   <span class="o">=</span> <span class="n">matching</span><span class="o">.</span><span class="n">ensure_fsv_list</span><span class="p">(</span><span class="n">fs_list</span><span class="p">)</span>
+    <span class="n">kpts1</span>      <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">kpts2_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">chip2_dlen_sqrd_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_dlensqrd</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>  <span class="c"># chip diagonal length</span>
+    <span class="n">res_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c"># homog_inliers</span>
+    <span class="k">for</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">chip2_dlen_sqrd</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fsv</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">kpts2_list</span><span class="p">,</span> <span class="n">chip2_dlen_sqrd_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fsv_list</span><span class="p">):</span>
+        <span class="n">sv_tup</span> <span class="o">=</span> <span class="n">sver</span><span class="o">.</span><span class="n">spatially_verify_kpts</span><span class="p">(</span>
+            <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">xy_thresh</span><span class="p">,</span> <span class="n">scale_thresh</span><span class="p">,</span> <span class="n">ori_thresh</span><span class="p">,</span>
+            <span class="n">chip2_dlen_sqrd</span><span class="p">,</span> <span class="n">min_nInliers</span><span class="p">,</span>
+            <span class="n">returnAff</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sv_tup</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">homog_errors</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">aff_inliers</span><span class="p">,</span> <span class="n">aff_errors</span><span class="p">,</span> <span class="n">Aff</span><span class="p">)</span> <span class="o">=</span> <span class="n">sv_tup</span>
+            <span class="n">fm_SV</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">fsv_SV</span> <span class="o">=</span> <span class="n">fsv</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fm_SV</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FM_DTYPE</span><span class="p">)</span>
+            <span class="n">fsv_SV</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">fsv</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">res_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fm_SV</span><span class="p">,</span> <span class="n">fsv_SV</span><span class="p">,</span> <span class="n">H</span><span class="p">))</span>
+
+    <span class="n">fm_list_SV</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">res_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">fsv_list_SV</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">res_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">H_list</span>      <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">res_list</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">fmfs_merge_SV</span> <span class="o">=</span> <span class="p">(</span><span class="n">fm_list_SV</span><span class="p">,</span> <span class="n">fsv_list_SV</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fmfs_merge_SV</span><span class="p">,</span> <span class="n">H_list</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="refine_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.refine_matches">[docs]</a><span class="k">def</span> <span class="nf">refine_matches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">prior_cm</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show --homog</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show --homog --sver_unconstrained</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show --homog --sver_constrained&amp;</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show --homog --sver_constrained --sver_unconstrained&amp;</span>
+
+<span class="sd">        python dev.py -t custom:rrvsone_on=True --allgt --index 0:40 --db PZ_MTEST --print-confusion-stats --print-scorediff-mat-stats</span>
+<span class="sd">        python dev.py -t custom:rrvsone_on=True custom --allgt --index 0:40 --db PZ_MTEST --print-confusion-stats --print-scorediff-mat-stats</span>
+
+<span class="sd">        python dev.py -t custom:rrvsone_on=True,constrained_coeff=0 custom --qaid 12 --db PZ_MTEST \</span>
+<span class="sd">            --print-confusion-stats --print-scorediff-mat-stats --show --va</span>
+
+<span class="sd">        python dev.py -t custom:rrvsone_on=True,constrained_coeff=0,maskscore_mode=kpts --qaid 12 --db PZ_MTEST  \</span>
+<span class="sd">            --print-confusion-stats --print-scorediff-mat-stats --show --va</span>
+
+<span class="sd">        python dev.py -t custom:rrvsone_on=True,maskscore_mode=kpts --qaid 12 --db PZ_MTEST \</span>
+<span class="sd">                --print-confusion-stats --print-scorediff-mat-stats --show --va</span>
+
+<span class="sd">        use_kptscov_scoring</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.vsone_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, prior_cm = plh.testdata_matching(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; config = qreq_.qparams</span>
+<span class="sd">        &gt;&gt;&gt; unscored_cm = refine_matches(qreq_, prior_cm, config)</span>
+<span class="sd">        &gt;&gt;&gt; unscored_cm.print_csv(ibs=ibs)</span>
+<span class="sd">        &gt;&gt;&gt; prior_cm.print_csv(ibs=ibs)</span>
+<span class="sd">        &gt;&gt;&gt; prior_cm.testshow_ranked(qreq_, figtitle=qreq_.qparams.query_cfgstr)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># THIS CAUSES THE ISSUE</span>
+    <span class="c">#prior_cm.fs_list = prior_cm.fsv_list</span>
+    <span class="c">#return prior_cm</span>
+    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_num_feats</span><span class="p">(</span><span class="n">prior_cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">num_daids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prior_cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">)</span>
+        <span class="n">empty_unscored_cm</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="o">.</span><span class="n">from_unscored</span><span class="p">(</span>
+            <span class="n">prior_cm</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">alloc_lists</span><span class="p">(</span><span class="n">num_daids</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">alloc_lists</span><span class="p">(</span><span class="n">num_daids</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">alloc_lists</span><span class="p">(</span><span class="n">num_daids</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">empty_unscored_cm</span>
+
+    <span class="n">prior_coeff</span>         <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;prior_coeff&#39;</span><span class="p">)</span>
+    <span class="n">unconstrained_coeff</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;unconstrained_coeff&#39;</span><span class="p">)</span>
+    <span class="n">constrained_coeff</span>   <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;constrained_coeff&#39;</span><span class="p">)</span>
+    <span class="n">sver_unconstrained</span>  <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sver_unconstrained&#39;</span><span class="p">)</span>
+    <span class="n">sver_constrained</span>    <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sver_constrained&#39;</span><span class="p">)</span>
+    <span class="c"># TODO: Param</span>
+    <span class="n">scr_cos_power</span>      <span class="o">=</span> <span class="mf">3.0</span>
+    <span class="c">#</span>
+    <span class="n">qaid</span>           <span class="o">=</span> <span class="n">prior_cm</span><span class="o">.</span><span class="n">qaid</span>
+    <span class="n">daid_list</span>      <span class="o">=</span> <span class="n">prior_cm</span><span class="o">.</span><span class="n">daid_list</span>
+    <span class="n">fm_prior_list</span>  <span class="o">=</span> <span class="n">prior_cm</span><span class="o">.</span><span class="n">fm_list</span>
+    <span class="n">fsv_prior_list</span> <span class="o">=</span> <span class="n">prior_cm</span><span class="o">.</span><span class="n">fsv_list</span>
+    <span class="n">H_prior_list</span>   <span class="o">=</span> <span class="n">prior_cm</span><span class="o">.</span><span class="n">H_list</span>
+    <span class="n">H_list</span>         <span class="o">=</span> <span class="n">H_prior_list</span>
+
+    <span class="k">assert</span> <span class="n">unconstrained_coeff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">unconstrained_coeff</span><span class="p">,)</span>
+
+    <span class="n">col_coeff_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">fmfs_merge</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">if</span> <span class="n">prior_coeff</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c"># Merge into result</span>
+        <span class="n">col_coeff_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prior_coeff</span><span class="p">)</span>
+        <span class="n">fmfs_prior</span> <span class="o">=</span> <span class="p">(</span><span class="n">fm_prior_list</span><span class="p">,</span> <span class="n">fsv_prior_list</span><span class="p">)</span>
+        <span class="n">fmfs_merge</span> <span class="o">=</span> <span class="n">marge_matches_lists</span><span class="p">(</span><span class="n">fmfs_merge</span><span class="p">,</span> <span class="n">fmfs_prior</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">unconstrained_coeff</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">col_coeff_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unconstrained_coeff</span><span class="p">)</span>
+        <span class="n">unc_match_results</span> <span class="o">=</span> <span class="n">compute_query_unconstrained_matches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+        <span class="n">fm_unc_list</span><span class="p">,</span> <span class="n">fs_unc_list</span><span class="p">,</span> <span class="n">fm_norm_unc_list</span> <span class="o">=</span> <span class="n">unc_match_results</span>
+        <span class="c"># Merge into result</span>
+        <span class="n">fmfs_unc</span> <span class="o">=</span> <span class="p">(</span><span class="n">fm_unc_list</span><span class="p">,</span> <span class="n">fs_unc_list</span><span class="p">)</span>
+        <span class="n">fmfs_merge</span> <span class="o">=</span> <span class="n">marge_matches_lists</span><span class="p">(</span><span class="n">fmfs_merge</span><span class="p">,</span> <span class="n">fmfs_unc</span><span class="p">)</span>
+
+        <span class="c"># We have the option of spatially verifying the merged results from the</span>
+        <span class="c"># prior and the new unconstrained matches.</span>
+        <span class="k">if</span> <span class="n">sver_unconstrained</span><span class="p">:</span>
+            <span class="n">fmfs_merge</span><span class="p">,</span> <span class="n">H_list</span> <span class="o">=</span> <span class="n">sver_fmfs_merge</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fmfs_merge</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">constrained_coeff</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">scr_match_results</span> <span class="o">=</span> <span class="n">compute_query_constrained_matches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">H_list</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+        <span class="n">fm_scr_list</span><span class="p">,</span> <span class="n">fs_scr_list</span><span class="p">,</span> <span class="n">fm_norm_scr_list</span> <span class="o">=</span> <span class="n">scr_match_results</span>
+        <span class="n">fs_scr_list</span> <span class="o">=</span> <span class="n">get_selectivity_score_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_scr_list</span><span class="p">,</span> <span class="n">scr_cos_power</span><span class="p">)</span>
+        <span class="c"># Merge into result</span>
+        <span class="n">fmfs_scr</span> <span class="o">=</span> <span class="p">(</span><span class="n">fm_scr_list</span><span class="p">,</span> <span class="n">fs_scr_list</span><span class="p">)</span>
+        <span class="n">fmfs_merge</span> <span class="o">=</span> <span class="n">marge_matches_lists</span><span class="p">(</span><span class="n">fmfs_merge</span><span class="p">,</span> <span class="n">fmfs_scr</span><span class="p">)</span>
+        <span class="n">col_coeff_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constrained_coeff</span><span class="p">)</span>
+
+        <span class="c"># Another optional round of spatial verification</span>
+        <span class="k">if</span> <span class="n">sver_constrained</span><span class="p">:</span>
+            <span class="n">fmfs_merge</span><span class="p">,</span> <span class="n">H_list</span> <span class="o">=</span> <span class="n">sver_fmfs_merge</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fmfs_merge</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+    <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">col_coeff_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">coeffs</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="mf">1.0</span><span class="p">),</span> <span class="s">&#39;must sum to 1 coeffs = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">coeffs</span><span class="p">)</span>
+    <span class="c"># merge different match types</span>
+    <span class="n">fm_list</span><span class="p">,</span> <span class="n">fsv_list</span> <span class="o">=</span> <span class="n">fmfs_merge</span>
+    <span class="c"># apply linear combination</span>
+    <span class="n">fs_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">fsv</span><span class="p">)</span> <span class="o">*</span> <span class="n">coeffs</span><span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="p">:])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">fsv</span> <span class="ow">in</span> <span class="n">fsv_list</span><span class="p">]</span>
+
+    <span class="n">unscored_cm</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="o">.</span><span class="n">from_unscored</span><span class="p">(</span><span class="n">prior_cm</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">,</span> <span class="n">H_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">unscored_cm</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="single_vsone_rerank"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.single_vsone_rerank">[docs]</a><span class="k">def</span> <span class="nf">single_vsone_rerank</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">prior_cm</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Runs a single vsone-pair (query, daid_list)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank --show</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank --show --qaid 18</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.vsone_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, prior_cm = plh.testdata_matching(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; config = qreq_.qparams</span>
+<span class="sd">        &gt;&gt;&gt; rerank_cm = single_vsone_rerank(qreq_, prior_cm, config)</span>
+<span class="sd">        &gt;&gt;&gt; rerank_cm.print_rawinfostr()</span>
+<span class="sd">        &gt;&gt;&gt; rerank_cm.print_csv()</span>
+<span class="sd">        &gt;&gt;&gt; print(rerank_cm.score_list)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; prior_cm.score_nsum(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; prior_cm.show_ranked_matches(qreq_, fnum=1, figtitle=&#39;prior&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; rerank_cm.show_ranked_matches(qreq_, fnum=2, figtitle=&#39;rerank&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#print(&#39;==================&#39;)</span>
+    <span class="n">unscored_cm</span> <span class="o">=</span> <span class="n">refine_matches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">prior_cm</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">covscore_on</span><span class="p">:</span>
+        <span class="n">unscored_cm</span><span class="o">.</span><span class="n">score_coverage</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Apply score weights</span>
+        <span class="n">data_baseline_weight_list</span> <span class="o">=</span> <span class="n">scoring</span><span class="o">.</span><span class="n">get_annot_kpts_baseline_weights</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">unscored_cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+        <span class="n">query_baseline_weight</span> <span class="o">=</span> <span class="n">scoring</span><span class="o">.</span><span class="n">get_annot_kpts_baseline_weights</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="p">[</span><span class="n">unscored_cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">],</span> <span class="n">config</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">qfx_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">unscored_cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">]</span>
+        <span class="n">dfx_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">unscored_cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">]</span>
+
+        <span class="n">qfweight_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">query_baseline_weight</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qfx</span><span class="p">)</span> <span class="k">for</span> <span class="n">qfx</span> <span class="ow">in</span> <span class="n">qfx_list</span><span class="p">]</span>
+        <span class="n">dfweight_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">data_baseline_weight</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">dfx</span><span class="p">)</span>
+                         <span class="k">for</span> <span class="n">dfx</span><span class="p">,</span> <span class="n">data_baseline_weight</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dfx_list</span><span class="p">,</span> <span class="n">data_baseline_weight_list</span><span class="p">)]</span>
+        <span class="n">fweight_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">qfweight</span> <span class="o">*</span> <span class="n">dfweight</span><span class="p">)</span> <span class="k">for</span> <span class="n">qfweight</span><span class="p">,</span> <span class="n">dfweight</span> <span class="ow">in</span>
+                        <span class="nb">zip</span><span class="p">(</span><span class="n">qfweight_list</span><span class="p">,</span> <span class="n">dfweight_list</span><span class="p">)]</span>
+        <span class="c"># hack in the distinctivness and fgweights</span>
+        <span class="n">unscored_cm</span><span class="o">.</span><span class="n">fs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fs</span> <span class="o">*</span> <span class="n">fweight</span> <span class="k">for</span> <span class="n">fs</span><span class="p">,</span> <span class="n">fweight</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">unscored_cm</span><span class="o">.</span><span class="n">fs_list</span><span class="p">,</span> <span class="n">fweight_list</span><span class="p">)]</span>
+        <span class="n">unscored_cm</span><span class="o">.</span><span class="n">fsv_list</span> <span class="o">=</span> <span class="n">matching</span><span class="o">.</span><span class="n">ensure_fsv_list</span><span class="p">(</span><span class="n">unscored_cm</span><span class="o">.</span><span class="n">fs_list</span><span class="p">)</span>
+
+        <span class="c">#queryside_weights =</span>
+        <span class="c">#dfweights_list =</span>
+        <span class="c"># hack</span>
+        <span class="n">unscored_cm</span><span class="o">.</span><span class="n">score_nsum</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+
+    <span class="c"># Convert our one score to a score vector here</span>
+    <span class="n">rerank_cm</span> <span class="o">=</span> <span class="n">unscored_cm</span>
+    <span class="n">rerank_cm</span><span class="o">.</span><span class="n">fsv_list</span> <span class="o">=</span> <span class="n">matching</span><span class="o">.</span><span class="n">ensure_fsv_list</span><span class="p">(</span><span class="n">rerank_cm</span><span class="o">.</span><span class="n">fs_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rerank_cm</span>
+
+</div>
+<div class="viewcode-block" id="quick_vsone_flann"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.quick_vsone_flann">[docs]</a><span class="k">def</span> <span class="nf">quick_vsone_flann</span><span class="p">(</span><span class="n">flann_cachedir</span><span class="p">,</span> <span class="n">qvecs</span><span class="p">):</span>
+    <span class="n">flann_params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;algorithm&#39;</span><span class="p">:</span> <span class="s">&#39;kdtree&#39;</span><span class="p">,</span>
+        <span class="s">&#39;trees&#39;</span><span class="p">:</span> <span class="mi">8</span>
+    <span class="p">}</span>
+    <span class="n">use_cache</span> <span class="o">=</span> <span class="n">save</span> <span class="o">=</span> <span class="bp">False</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">()</span>
+    <span class="n">flann</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">flann_cache</span><span class="p">(</span><span class="n">qvecs</span><span class="p">,</span> <span class="n">flann_cachedir</span><span class="p">,</span> <span class="n">flann_params</span><span class="o">=</span><span class="n">flann_params</span><span class="p">,</span>
+                           <span class="n">quiet</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flann</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="compute_query_unconstrained_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.compute_query_unconstrained_matches">[docs]</a><span class="k">def</span> <span class="nf">compute_query_unconstrained_matches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-compute_query_unconstrained_matches --show</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-compute_query_unconstrained_matches --show --shownorm</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-compute_query_unconstrained_matches --show --shownorm --homog</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.vsone_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, prior_cm = plh.testdata_matching()</span>
+<span class="sd">        &gt;&gt;&gt; config = qreq_.qparams</span>
+<span class="sd">        &gt;&gt;&gt; qaid, daid_list, H_list = ut.dict_take(prior_cm, [&#39;qaid&#39;, &#39;daid_list&#39;, &#39;H_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; match_results = compute_query_unconstrained_matches(qreq_, qaid, daid_list, config)</span>
+<span class="sd">        &gt;&gt;&gt; fm_RAT_list, fs_RAT_list, fm_norm_RAT_list = match_results</span>
+<span class="sd">        &gt;&gt;&gt; if ut.show_was_requested():</span>
+<span class="sd">        ...     import plottool as pt</span>
+<span class="sd">        ...     idx = ut.listfind(ibs.get_annot_nids(daid_list), ibs.get_annot_nids(qaid))</span>
+<span class="sd">        ...     args = (ibs, qaid, daid_list, fm_RAT_list, fs_RAT_list, fm_norm_RAT_list, H_list)</span>
+<span class="sd">        ...     show_single_match(*args, index=idx)</span>
+<span class="sd">        ...     pt.set_title(&#39;unconstrained&#39;)</span>
+<span class="sd">        ...     pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">unc_ratio_thresh</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;unc_ratio_thresh&#39;</span><span class="p">]</span>
+    <span class="c">#, .625)</span>
+    <span class="n">qvecs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">dvecs_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">flann</span> <span class="o">=</span> <span class="n">quick_vsone_flann</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_flann_cachedir</span><span class="p">(),</span> <span class="n">qvecs</span><span class="p">)</span>
+    <span class="n">rat_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;unc_ratio_thresh&#39;</span> <span class="p">:</span> <span class="n">unc_ratio_thresh</span><span class="p">,</span>
+        <span class="s">&#39;fm_dtype&#39;</span>     <span class="p">:</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">FM_DTYPE</span><span class="p">,</span>
+        <span class="s">&#39;fs_dtype&#39;</span>     <span class="p">:</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="c">#print(&#39;rat_kwargs = &#39; + ut.dict_str(rat_kwargs))</span>
+    <span class="n">scrtup_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">matching</span><span class="o">.</span><span class="n">unconstrained_ratio_match</span><span class="p">(</span>
+            <span class="n">flann</span><span class="p">,</span> <span class="n">dvecs</span><span class="p">,</span> <span class="o">**</span><span class="n">rat_kwargs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">dvecs</span> <span class="ow">in</span> <span class="n">dvecs_list</span><span class="p">]</span>
+    <span class="n">fm_RAT_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">scrtup_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">fs_RAT_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">scrtup_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">fm_norm_RAT_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">scrtup_list</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">match_results</span> <span class="o">=</span> <span class="n">fm_RAT_list</span><span class="p">,</span> <span class="n">fs_RAT_list</span><span class="p">,</span> <span class="n">fm_norm_RAT_list</span>
+    <span class="k">return</span> <span class="n">match_results</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="compute_query_constrained_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.compute_query_constrained_matches">[docs]</a><span class="k">def</span> <span class="nf">compute_query_constrained_matches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">H_list</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show --shownorm</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show --shownorm --homog</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show --homog</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-compute_query_constrained_matches --show --homog --index 2</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.vsone_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, prior_cm = plh.testdata_matching()</span>
+<span class="sd">        &gt;&gt;&gt; config = qreq_.qparams</span>
+<span class="sd">        &gt;&gt;&gt; print(config.query_cfgstr)</span>
+<span class="sd">        &gt;&gt;&gt; qaid, daid_list, H_list = ut.dict_take(prior_cm, [&#39;qaid&#39;, &#39;daid_list&#39;, &#39;H_list&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; match_results = compute_query_constrained_matches(qreq_, qaid, daid_list, H_list, config)</span>
+<span class="sd">        &gt;&gt;&gt; fm_SCR_list, fs_SCR_list, fm_norm_SCR_list = match_results</span>
+<span class="sd">        &gt;&gt;&gt; if ut.show_was_requested():</span>
+<span class="sd">        ...     import plottool as pt</span>
+<span class="sd">        ...     idx = ut.listfind(ibs.get_annot_nids(daid_list), ibs.get_annot_nids(qaid))</span>
+<span class="sd">        ...     index = ut.get_argval(&#39;--index&#39;, int, idx)</span>
+<span class="sd">        ...     args = (ibs, qaid, daid_list, fm_SCR_list, fs_SCR_list, fm_norm_SCR_list, H_list)</span>
+<span class="sd">        ...     show_single_match(*args, index=index)</span>
+<span class="sd">        ...     pt.set_title(&#39;constrained&#39;)</span>
+<span class="sd">        ...     pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">scr_ratio_thresh</span>     <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;scr_ratio_thresh&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">scr_K</span>                <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;scr_K&#39;</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+    <span class="n">scr_match_xy_thresh</span>  <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;scr_match_xy_thresh&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mo">05</span><span class="p">)</span>
+    <span class="n">scr_norm_xy_min</span>      <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;scr_norm_xy_min&#39;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+    <span class="n">scr_norm_xy_max</span>      <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;scr_norm_xy_max&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">scr_norm_xy_bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">scr_norm_xy_min</span><span class="p">,</span> <span class="n">scr_norm_xy_max</span><span class="p">)</span>
+    <span class="n">vecs1</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">kpts1</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
+    <span class="n">vecs2_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">kpts2_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">chip2_dlen_sqrd_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_dlensqrd</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>  <span class="c"># chip diagonal length</span>
+    <span class="c"># build flann for query vectors</span>
+    <span class="n">flann</span> <span class="o">=</span> <span class="n">quick_vsone_flann</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_flann_cachedir</span><span class="p">(),</span> <span class="n">vecs1</span><span class="p">)</span>
+    <span class="c"># match database chips to query chip</span>
+    <span class="n">scr_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;scr_K&#39;</span>            <span class="p">:</span> <span class="n">scr_K</span><span class="p">,</span>
+        <span class="s">&#39;match_xy_thresh&#39;</span>  <span class="p">:</span> <span class="n">scr_match_xy_thresh</span><span class="p">,</span>
+        <span class="s">&#39;norm_xy_bounds&#39;</span>   <span class="p">:</span> <span class="n">scr_norm_xy_bounds</span><span class="p">,</span>
+        <span class="s">&#39;scr_ratio_thresh&#39;</span> <span class="p">:</span> <span class="n">scr_ratio_thresh</span><span class="p">,</span>
+        <span class="s">&#39;fm_dtype&#39;</span>         <span class="p">:</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">FM_DTYPE</span><span class="p">,</span>
+        <span class="s">&#39;fs_dtype&#39;</span>         <span class="p">:</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;scr_kwargs = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">scr_kwargs</span><span class="p">))</span>
+    <span class="c"># Homographys in H_list map image1 space into image2 space</span>
+    <span class="n">scrtup_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">matching</span><span class="o">.</span><span class="n">spatially_constrained_ratio_match</span><span class="p">(</span>
+            <span class="n">flann</span><span class="p">,</span> <span class="n">vecs2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">chip2_dlen_sqrd</span><span class="p">,</span> <span class="o">**</span><span class="n">scr_kwargs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">vecs2</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">chip2_dlen_sqrd</span><span class="p">,</span> <span class="n">H</span> <span class="ow">in</span>
+        <span class="nb">zip</span><span class="p">(</span><span class="n">vecs2_list</span><span class="p">,</span> <span class="n">kpts2_list</span><span class="p">,</span> <span class="n">chip2_dlen_sqrd_list</span><span class="p">,</span> <span class="n">H_list</span><span class="p">)]</span>
+    <span class="n">fm_SCR_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">scrtup_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">fs_SCR_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">scrtup_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">fm_norm_SCR_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">scrtup_list</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">match_results</span> <span class="o">=</span> <span class="n">fm_SCR_list</span><span class="p">,</span> <span class="n">fs_SCR_list</span><span class="p">,</span> <span class="n">fm_norm_SCR_list</span>
+    <span class="k">return</span> <span class="n">match_results</span>
+
+
+<span class="c"># -----------------------------</span>
+<span class="c"># GRIDSEARCH</span>
+<span class="c"># -----------------------------</span>
+
+</div>
+<span class="n">COVKPTS_DEFAULT</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">coverage_kpts</span><span class="o">.</span><span class="n">COVKPTS_DEFAULT</span>
+<span class="n">COVGRID_DEFAULT</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">coverage_grid</span><span class="o">.</span><span class="n">COVGRID_DEFAULT</span>
+
+<span class="n">OTHER_RRVSONE_PARAMS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoList</span><span class="p">(</span><span class="s">&#39;OTHERRRVSONE&#39;</span><span class="p">,</span> <span class="p">[</span>
+    <span class="c">#ut.ParamInfo(&#39;fs_lnbnn_min&#39;, .0001),</span>
+    <span class="c">#ut.ParamInfo(&#39;fs_lnbnn_max&#39;, .05),</span>
+    <span class="c">#ut.ParamInfo(&#39;fs_lnbnn_power&#39;, 1.0),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;fs_lnbnn_min&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;fs_lnbnn_max&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;fs_lnbnn_power&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s">&#39;covscore_on&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;dcvs_on&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+<span class="p">])</span>
+
+
+<span class="n">SHORTLIST_DEFAULTS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoList</span><span class="p">(</span><span class="s">&#39;SLIST&#39;</span><span class="p">,</span> <span class="p">[</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;nNameShortlistVsone&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s">&#39;nNm=&#39;</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;nAnnotPerNameVsOne&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&#39;nApN=&#39;</span><span class="p">),</span>
+<span class="p">])</span>
+
+<span class="c"># matching types</span>
+<span class="n">COEFF_DEFAULTS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoList</span><span class="p">(</span><span class="s">&#39;COEFF&#39;</span><span class="p">,</span> <span class="p">[</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;prior_coeff&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">6</span><span class="p">,</span> <span class="s">&#39;prior_coeff=&#39;</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;unconstrained_coeff&#39;</span><span class="p">,</span>    <span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="s">&#39;unc_coeff=&#39;</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;constrained_coeff&#39;</span><span class="p">,</span>     <span class="mf">0.0</span><span class="p">,</span> <span class="s">&#39;scr_coeff=&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;sver_unconstrained&#39;</span><span class="p">,</span>   <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;sver_unc=&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;unconstrained_coeff&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;sver_constrained&#39;</span><span class="p">,</span>    <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;sver_scr=&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;constrained_coeff&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;maskscore_mode&#39;</span><span class="p">,</span> <span class="s">&#39;grid&#39;</span><span class="p">,</span> <span class="s">&#39;cov=&#39;</span><span class="p">),</span>
+<span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">UNC_DEFAULTS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoList</span><span class="p">(</span><span class="s">&#39;UNC&#39;</span><span class="p">,</span> <span class="p">[</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;unc_ratio_thresh&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">8</span><span class="p">,</span> <span class="s">&#39;uncRat=&#39;</span><span class="p">,</span> <span class="n">varyvals</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">625</span><span class="p">,</span> <span class="o">.</span><span class="mi">82</span><span class="p">,</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="o">.</span><span class="mi">8</span><span class="p">]),</span>
+<span class="p">])</span>
+
+
+<div class="viewcode-block" id="scr_constraint_func"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.scr_constraint_func">[docs]</a><span class="k">def</span> <span class="nf">scr_constraint_func</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;scr_norm_xy_min&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;scr_norm_xy_max&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+</div>
+<span class="n">SCR_DEFAULTS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoList</span><span class="p">(</span><span class="s">&#39;SCR&#39;</span><span class="p">,</span> <span class="p">[</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;scr_match_xy_thresh&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">15</span><span class="p">,</span> <span class="s">&#39;xy=&#39;</span><span class="p">,</span>
+                 <span class="n">varyvals</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mo">05</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">],</span> <span class="n">varyslice</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;scr_norm_xy_min&#39;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                 <span class="n">varyvals</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">],</span> <span class="n">varyslice</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;scr_norm_xy_max&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+                 <span class="n">varyvals</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">3</span><span class="p">],</span> <span class="n">varyslice</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;scr_ratio_thresh&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">95</span><span class="p">,</span> <span class="s">&#39;scrRat=&#39;</span><span class="p">,</span>
+                 <span class="n">varyvals</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">625</span><span class="p">,</span> <span class="o">.</span><span class="mi">3</span><span class="p">,</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">varyslice</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;scr_K&#39;</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="s">&#39;scK&#39;</span><span class="p">,</span>
+                 <span class="n">varyvals</span><span class="o">=</span><span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">varyslice</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
+<span class="p">],</span>
+    <span class="n">scr_constraint_func</span><span class="p">,</span>
+    <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;constrained_coeff&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="gridsearch_single_vsone_rerank"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.gridsearch_single_vsone_rerank">[docs]</a><span class="k">def</span> <span class="nf">gridsearch_single_vsone_rerank</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_single_vsone_rerank --show</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_single_vsone_rerank --show --testindex 2</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.vsone_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; gridsearch_unconstrained_matches()</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">prior_cm</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testdata_matching</span><span class="p">()</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+    <span class="c"># Make configuration for every parameter setting</span>
+    <span class="n">cfgdict_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">prescore_method</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">,</span> <span class="n">score_method</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">,</span> <span class="n">sver_weighting</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">cfgdict_</span><span class="p">[</span><span class="s">&#39;rrvsone_on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="c"># HACK TO GET THE DATA WE WANT WITHOUT UNNCESSARY COMPUTATION</span>
+    <span class="c"># Get pipeline testdata for this configuration</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span>
+        <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict_</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">daid_list</span><span class="o">=</span><span class="s">&#39;all&#39;</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span>
+        <span class="n">cmdline_ok</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">preload</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">daid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qaid</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c">#</span>
+    <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfglbl_list</span> <span class="o">=</span> <span class="n">COEFF_DEFAULTS</span><span class="o">.</span><span class="n">get_gridsearch_input</span><span class="p">(</span><span class="n">defaultslice</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="c">#config = qreq_.qparams</span>
+    <span class="n">cfgresult_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">single_vsone_rerank</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">prior_cm</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cfgdict</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;rerank&#39;</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="c"># which result to look at</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--testindex&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">score_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">scrtup</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">scrtup</span> <span class="ow">in</span> <span class="n">cfgresult_list</span><span class="p">]</span>
+    <span class="c">#score_list = [scrtup[1][0].sum() / len(scrtup[1][0]) for scrtup in cfgresult_list]</span>
+    <span class="n">showfunc</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">show_single_match</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">onclick_func</span><span class="p">(</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">,</span> <span class="n">fm_norm_list</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_matches</span>
+        <span class="n">aid2</span> <span class="o">=</span> <span class="n">daid_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">(</span><span class="n">qaid</span><span class="o">=</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="o">=</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">fsv_list</span><span class="o">=</span><span class="n">fs_list</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">fs_list</span> <span class="o">=</span> <span class="n">fs_list</span>
+        <span class="n">interact_matches</span><span class="o">.</span><span class="n">MatchInteraction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">aid2</span><span class="o">=</span><span class="n">aid2</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">interact_gridsearch_result_images</span><span class="p">(</span>
+        <span class="n">showfunc</span><span class="p">,</span> <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfglbl_list</span><span class="p">,</span>
+        <span class="n">cfgresult_list</span><span class="p">,</span> <span class="n">score_list</span><span class="o">=</span><span class="n">score_list</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span>
+        <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;constrained ratio match&#39;</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">max_plots</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">scorelbl</span><span class="o">=</span><span class="s">&#39;sumscore&#39;</span><span class="p">,</span> <span class="n">onclick_func</span><span class="o">=</span><span class="n">onclick_func</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">iup</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="gridsearch_constrained_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.gridsearch_constrained_matches">[docs]</a><span class="k">def</span> <span class="nf">gridsearch_constrained_matches</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Search spatially constrained matches</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_constrained_matches --show</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_constrained_matches --show --qaid 41</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_constrained_matches --show --testindex 2</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.vsone_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; gridsearch_constrained_matches()</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+    <span class="c"># Make configuration for every parameter setting</span>
+    <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfglbl_list</span> <span class="o">=</span> <span class="n">SCR_DEFAULTS</span><span class="o">.</span><span class="n">get_gridsearch_input</span><span class="p">(</span><span class="n">defaultslice</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="c">#fname = None  # &#39;easy1.png&#39;</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">prior_cm</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testdata_matching</span><span class="p">()</span>
+    <span class="n">qaid</span>      <span class="o">=</span> <span class="n">prior_cm</span><span class="o">.</span><span class="n">qaid</span>
+    <span class="n">daid_list</span> <span class="o">=</span> <span class="n">prior_cm</span><span class="o">.</span><span class="n">daid_list</span>
+    <span class="n">H_list</span>    <span class="o">=</span> <span class="n">prior_cm</span><span class="o">.</span><span class="n">H_list</span>
+    <span class="c">#config = qreq_.qparams</span>
+    <span class="n">cfgresult_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">compute_query_constrained_matches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">H_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cfgdict</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;scr match&#39;</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="c"># which result to look at</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--testindex&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">score_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">scrtup</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">scrtup</span> <span class="ow">in</span> <span class="n">cfgresult_list</span><span class="p">]</span>
+    <span class="c">#score_list = [scrtup[1][0].sum() / len(scrtup[1][0]) for scrtup in cfgresult_list]</span>
+    <span class="n">showfunc</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">show_single_match</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">H_list</span><span class="o">=</span><span class="n">H_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">onclick_func</span><span class="p">(</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">,</span> <span class="n">fm_norm_list</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_matches</span>
+        <span class="n">aid2</span> <span class="o">=</span> <span class="n">daid_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">(</span><span class="n">qaid</span><span class="o">=</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="o">=</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">fsv_list</span><span class="o">=</span><span class="n">fs_list</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">fs_list</span> <span class="o">=</span> <span class="n">fs_list</span>
+        <span class="n">interact_matches</span><span class="o">.</span><span class="n">MatchInteraction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">aid2</span><span class="o">=</span><span class="n">aid2</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">interact_gridsearch_result_images</span><span class="p">(</span>
+        <span class="n">showfunc</span><span class="p">,</span> <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfglbl_list</span><span class="p">,</span>
+        <span class="n">cfgresult_list</span><span class="p">,</span> <span class="n">score_list</span><span class="o">=</span><span class="n">score_list</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span>
+        <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;constrained ratio match&#39;</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">max_plots</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">scorelbl</span><span class="o">=</span><span class="s">&#39;sumscore&#39;</span><span class="p">,</span> <span class="n">onclick_func</span><span class="o">=</span><span class="n">onclick_func</span><span class="p">)</span>
+
+    <span class="c">#if use_separate_norm:</span>
+    <span class="c">#    ut.interact_gridsearch_result_images(</span>
+    <span class="c">#        functools.partial(show_single_match, use_separate_norm=True), cfgdict_list, cfglbl_list,</span>
+    <span class="c">#        cfgresult_list, fnum=fnum + 1, figtitle=&#39;constrained ratio match&#39;, unpack=True,</span>
+    <span class="c">#        max_plots=25, scorelbl=&#39;sumscore&#39;)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">iup</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="gridsearch_unconstrained_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.gridsearch_unconstrained_matches">[docs]</a><span class="k">def</span> <span class="nf">gridsearch_unconstrained_matches</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Search unconstrained ratio test vsone match</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show --qaid 27</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show --qaid 41 --daid_list 39</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show --qaid 40 --daid_list 39</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show --testindex 2</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.vsone_pipeline import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; gridsearch_unconstrained_matches()</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+    <span class="c"># Make configuration for every parameter setting</span>
+    <span class="n">cfgdict_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">prescore_method</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">,</span> <span class="n">score_method</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">,</span> <span class="n">sver_weighting</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">cfgdict_</span><span class="p">[</span><span class="s">&#39;rrvsone_on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="c"># HACK TO GET THE DATA WE WANT WITHOUT UNNCESSARY COMPUTATION</span>
+    <span class="c"># Get pipeline testdata for this configuration</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span>
+        <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict_</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">daid_list</span><span class="o">=</span><span class="s">&#39;gt&#39;</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span>
+        <span class="n">cmdline_ok</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">preload</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">qaid</span> <span class="o">=</span> <span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">daid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_groundtruth</span><span class="p">(</span><span class="n">qaid</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c">#</span>
+    <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfglbl_list</span> <span class="o">=</span> <span class="n">UNC_DEFAULTS</span><span class="o">.</span><span class="n">get_gridsearch_input</span><span class="p">(</span><span class="n">defaultslice</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="c">#config = qreq_.qparams</span>
+    <span class="n">cfgresult_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">compute_query_unconstrained_matches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cfgdict</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;scr match&#39;</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="c"># which result to look at</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--testindex&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">score_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">scrtup</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">scrtup</span> <span class="ow">in</span> <span class="n">cfgresult_list</span><span class="p">]</span>
+    <span class="c">#score_list = [scrtup[1][0].sum() / len(scrtup[1][0]) for scrtup in cfgresult_list]</span>
+    <span class="n">showfunc</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">show_single_match</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">onclick_func</span><span class="p">(</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">,</span> <span class="n">fm_norm_list</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_matches</span>
+        <span class="n">aid2</span> <span class="o">=</span> <span class="n">daid_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">(</span><span class="n">qaid</span><span class="o">=</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="o">=</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">fsv_list</span><span class="o">=</span><span class="n">fs_list</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">fs_list</span> <span class="o">=</span> <span class="n">fs_list</span>
+        <span class="n">interact_matches</span><span class="o">.</span><span class="n">MatchInteraction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">aid2</span><span class="o">=</span><span class="n">aid2</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">interact_gridsearch_result_images</span><span class="p">(</span>
+        <span class="n">showfunc</span><span class="p">,</span> <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfglbl_list</span><span class="p">,</span>
+        <span class="n">cfgresult_list</span><span class="p">,</span> <span class="n">score_list</span><span class="o">=</span><span class="n">score_list</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span>
+        <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;constrained ratio match&#39;</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">max_plots</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">scorelbl</span><span class="o">=</span><span class="s">&#39;sumscore&#39;</span><span class="p">,</span> <span class="n">onclick_func</span><span class="o">=</span><span class="n">onclick_func</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">iup</span><span class="p">()</span>
+
+
+<span class="c"># -----------------------------</span>
+<span class="c"># VISUALIZATIONS</span>
+<span class="c"># -----------------------------</span>
+
+</div>
+<div class="viewcode-block" id="show_single_match"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.show_single_match">[docs]</a><span class="k">def</span> <span class="nf">show_single_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">,</span> <span class="n">fm_norm_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">H_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">use_sameaxis_norm</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--shownorm&#39;</span><span class="p">)</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="n">fs_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    <span class="n">fm</span> <span class="o">=</span> <span class="n">fm_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">use_sameaxis_norm</span><span class="p">:</span>
+        <span class="n">fm_norm</span> <span class="o">=</span> <span class="n">fm_norm_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fm_norm</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;darken&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">.</span><span class="mi">7</span>
+    <span class="n">daid</span> <span class="o">=</span> <span class="n">daid_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">H_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">H1</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">H1</span> <span class="o">=</span> <span class="n">H_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    <span class="c">#H1 = None  # uncomment to see warping</span>
+    <span class="n">show_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="n">H1</span><span class="o">=</span><span class="n">H1</span><span class="p">,</span> <span class="n">fm_norm</span><span class="o">=</span><span class="n">fm_norm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="show_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.show_matches">[docs]</a><span class="k">def</span> <span class="nf">show_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fm_norm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                               <span class="n">H1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_matches</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--homog&#39;</span><span class="p">):</span>
+        <span class="n">H1</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="n">viz_matches</span><span class="o">.</span><span class="n">show_matches2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fm</span><span class="o">=</span><span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="n">fm_norm</span><span class="o">=</span><span class="n">fm_norm</span><span class="p">,</span> <span class="n">ori</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                              <span class="n">H1</span><span class="o">=</span><span class="n">H1</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="n">show_name</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c">#else:</span>
+    <span class="c">#    from ibeis.viz.interact import interact_matches</span>
+    <span class="c">#    cm = chip_match.ChipMatch2(qaid, [daid], [fm], [fs])</span>
+    <span class="c">#    interact_matches.MatchInteraction(ibs, cm, fnum=None, aid2=daid)</span>
+
+    <span class="c">#pt.set_title(&#39;score = %.3f&#39; % (score,))</span>
+
+</div>
+<div class="viewcode-block" id="show_ranked_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.show_ranked_matches">[docs]</a><span class="k">def</span> <span class="nf">show_ranked_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">qaid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
+    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+    <span class="n">CLIP_TOP</span> <span class="o">=</span> <span class="mi">6</span>
+    <span class="n">top_idx_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listclip</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">argsort</span><span class="p">(),</span> <span class="n">CLIP_TOP</span><span class="p">)</span>
+    <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span>  <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_square_row_cols</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">top_idx_list</span><span class="p">),</span> <span class="n">fix</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">next_pnum</span>     <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_pnum_nextgen</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">top_idx_list</span><span class="p">:</span>
+        <span class="n">daid</span>  <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">fm</span>    <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">fsv</span>   <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">fs</span>    <span class="o">=</span> <span class="n">fsv</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">H1</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">H_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">pnum</span> <span class="o">=</span> <span class="n">next_pnum</span><span class="p">()</span>
+        <span class="c">#with ut.EmbedOnException():</span>
+        <span class="n">show_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fm</span><span class="o">=</span><span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="n">H1</span><span class="o">=</span><span class="n">H1</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">cm</span><span class="o">.</span><span class="n">score_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">cm</span><span class="o">.</span><span class="n">score_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">&#39;score = </span><span class="si">%.3f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">score</span><span class="p">,))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">&#39;score = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">score</span><span class="p">,))</span>
+
+</div>
+<div class="viewcode-block" id="show_all_ranked_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.show_all_ranked_matches">[docs]</a><span class="k">def</span> <span class="nf">show_all_ranked_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">fnum_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; helper &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="k">for</span> <span class="n">fnum_</span><span class="p">,</span> <span class="n">cm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cm_list</span><span class="p">):</span>
+        <span class="c">#cm.foo()</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">fnum_</span> <span class="o">+</span> <span class="n">fnum_offset</span>
+        <span class="n">show_ranked_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">fnum</span><span class="p">)</span>
+        <span class="c">#pt.figure(fnum=fnum, doclf=True, docla=True)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="s">&#39;qaid=</span><span class="si">%r</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">figtitle</span><span class="p">))</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --allexamples</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'0.1.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
