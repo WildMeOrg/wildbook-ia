@@ -101,6 +101,7 @@ def _update_headers(view, **headers):
     view.col_hidden_list = headers.get('col_hidden_list', [])
     view.col_name_list   = headers.get('col_name_list', [])
     # Call updates
+    # FIXME: is this the right thing to do here?
     view._set_sort(col_sort_index, col_sort_reverse)
     view.infer_delegates(**headers)
     #view.infer_delegates_from_model(model=model) #view.resizeColumnsToContents()

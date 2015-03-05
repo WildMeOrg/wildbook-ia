@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtCore, QtGui
 from guitool import api_item_view
+#from guitool import guitool_components
 from guitool.guitool_decorators import signal_, slot_
 import utool
 
@@ -39,6 +40,8 @@ class APITreeView(API_VIEW_BASE):
         # Context menu
         view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         view.customContextMenuRequested.connect(view.on_customMenuRequested)
+        #view.cornerButton = guitool_components.newButton(view)
+        #view.setCornerWidget(view.cornerButton)
 
     #---------------
     # Initialization
@@ -52,7 +55,18 @@ class APITreeView(API_VIEW_BASE):
         view.setEditTriggers(view._defaultEditTriggers)
 
     def _init_header_behavior(view):
-        """ Header behavior """
+        """ Header behavior
+
+        CommandLine:
+            python -m guitool.api_tree_view --test-_init_header_behavior
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> # TODO figure out how to test these
+            >>> from guitool.api_tree_view import *  # NOQA
+            >>> view = APITreeView()
+            >>> view._init_header_behavior()
+        """
         # Row Headers
         # Column headers
         header = view.header()
@@ -90,3 +104,16 @@ class APITreeView(API_VIEW_BASE):
     def on_customMenuRequested(view, pos):
         index = view.indexAt(pos)
         view.contextMenuClicked.emit(index, pos)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m guitool.api_tree_view
+        python -m guitool.api_tree_view --allexamples
+        python -m guitool.api_tree_view --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
