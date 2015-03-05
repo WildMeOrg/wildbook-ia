@@ -1,0 +1,688 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ibeis.viz.interact package &mdash; ibeis 0.1.0.dev1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0.dev1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="index.html" />
+    <link rel="up" title="ibeis.viz package" href="ibeis.viz.html" />
+    <link rel="next" title="ibeis.web package" href="ibeis.web.html" />
+    <link rel="prev" title="ibeis.viz package" href="ibeis.viz.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ibeis.web.html" title="ibeis.web package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ibeis.viz.html" title="ibeis.viz package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="ibeis.html" >ibeis package</a> &raquo;</li>
+          <li><a href="ibeis.viz.html" accesskey="U">ibeis.viz package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ibeis-viz-interact-package">
+<h1>ibeis.viz.interact package<a class="headerlink" href="#ibeis-viz-interact-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.viz.interact.interact_annotations2">
+<span id="ibeis-viz-interact-interact-annotations2-module"></span><h2>ibeis.viz.interact.interact_annotations2 module<a class="headerlink" href="#module-ibeis.viz.interact.interact_annotations2" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ibeis.viz.interact.interact_annotations2.ANNOTATION_Interaction2">
+<em class="property">class </em><tt class="descclassname">ibeis.viz.interact.interact_annotations2.</tt><tt class="descname">ANNOTATION_Interaction2</tt><big>(</big><em>ibs</em>, <em>gid</em>, <em>next_callback=None</em>, <em>prev_callback=None</em>, <em>rows_updated_callback=&lt;function &lt;lambda&gt; at 0x2b72097ab758&gt;</em>, <em>reset_window=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_annotations2.html#ANNOTATION_Interaction2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_annotations2.ANNOTATION_Interaction2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_annotations2.ANNOTATION_Interaction2.commit_callback">
+<tt class="descname">commit_callback</tt><big>(</big><em>unchanged_indicies</em>, <em>deleted_indicies</em>, <em>changed_indicies</em>, <em>changed_annottups</em>, <em>new_annottups</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_annotations2.html#ANNOTATION_Interaction2.commit_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_annotations2.ANNOTATION_Interaction2.commit_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO: Rename to commit_callback
+Callback from interact_annotations to ibs for when data is modified</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_annotations2.ANNOTATION_Interaction2.update_image_and_callbacks">
+<tt class="descname">update_image_and_callbacks</tt><big>(</big><em>gid</em>, <em>nextcb</em>, <em>prevcb</em>, <em>do_save=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_annotations2.html#ANNOTATION_Interaction2.update_image_and_callbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_annotations2.ANNOTATION_Interaction2.update_image_and_callbacks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.viz.interact.interact_bbox">
+<span id="ibeis-viz-interact-interact-bbox-module"></span><h2>ibeis.viz.interact.interact_bbox module<a class="headerlink" href="#module-ibeis.viz.interact.interact_bbox" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.viz.interact.interact_bbox.iselect_bbox">
+<tt class="descclassname">ibeis.viz.interact.interact_bbox.</tt><tt class="descname">iselect_bbox</tt><big>(</big><em>ibs</em>, <em>gid</em>, <em>fnum=1</em>, <em>figtitle='Image View - Select ANNOTATION (click two points)'</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_bbox.html#iselect_bbox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_bbox.iselect_bbox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.viz.interact.interact_chip">
+<span id="ibeis-viz-interact-interact-chip-module"></span><h2>ibeis.viz.interact.interact_chip module<a class="headerlink" href="#module-ibeis.viz.interact.interact_chip" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.viz.interact.interact_chip.ishow_chip">
+<tt class="descclassname">ibeis.viz.interact.interact_chip.</tt><tt class="descname">ishow_chip</tt><big>(</big><em>ibs</em>, <em>aid</em>, <em>fnum=2</em>, <em>fx=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_chip.html#ishow_chip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_chip.ishow_chip" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.viz.interact.interact_image">
+<span id="ibeis-viz-interact-interact-image-module"></span><h2>ibeis.viz.interact.interact_image module<a class="headerlink" href="#module-ibeis.viz.interact.interact_image" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.viz.interact.interact_image.ishow_image">
+<tt class="descclassname">ibeis.viz.interact.interact_image.</tt><tt class="descname">ishow_image</tt><big>(</big><em>ibs</em>, <em>gid</em>, <em>sel_aids=[]</em>, <em>fnum=1</em>, <em>select_callback=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_image.html#ishow_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_image.ishow_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.viz.interact.interact_matches">
+<span id="ibeis-viz-interact-interact-matches-module"></span><h2>ibeis.viz.interact.interact_matches module<a class="headerlink" href="#module-ibeis.viz.interact.interact_matches" title="Permalink to this headline">¶</a></h2>
+<p>Interaction for looking at matches between two queries</p>
+<p>Main development file</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.viz.interact.interact_matches &#8211;test-begin &#8211;show
+python -m ibeis.viz.interact.interact_matches &#8211;test-begin</dd>
+</dl>
+<dl class="class">
+<dt id="ibeis.viz.interact.interact_matches.MatchInteraction">
+<em class="property">class </em><tt class="descclassname">ibeis.viz.interact.interact_matches.</tt><tt class="descname">MatchInteraction</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_matches.html#MatchInteraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_matches.MatchInteraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>TODO: replace functional version with this class</p>
+<p>Plots a chip result and sets up callbacks for interaction.</p>
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_matches.MatchInteraction.begin">
+<tt class="descname">begin</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>aid=None</em>, <em>fnum=None</em>, <em>figtitle='Inspect Query Result'</em>, <em>same_fig=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_matches.html#MatchInteraction.begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_matches.MatchInteraction.begin" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</li>
+<li><strong>qres</strong> (<em>QueryResult</em>) &#8211; object of feature correspondences and scores</li>
+<li><strong>fnum</strong> (<em>int</em>) &#8211; figure number</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.viz.interact.interact_matches &#8211;test-begin
+python -m ibeis.viz.interact.interact_matches &#8211;test-begin &#8211;show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_matches</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="n">cfgdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">())[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid2</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sel_fm</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span>  <span class="o">=</span> <span class="n">MatchInteraction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">annot_mode</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#if not ut.get_argflag(&#39;--noshow&#39;):</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--show&#39;</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>   <span class="n">execstr</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">present</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span>   <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_matches.MatchInteraction.chipmatch_view">
+<tt class="descname">chipmatch_view</tt><big>(</big><em>pnum=(1</em>, <em>1</em>, <em>1)</em>, <em>**kwargs_</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_matches.html#MatchInteraction.chipmatch_view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_matches.MatchInteraction.chipmatch_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>just visualizes the matches using some type of lines</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_matches.MatchInteraction.query_last_feature">
+<tt class="descname">query_last_feature</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_matches.html#MatchInteraction.query_last_feature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_matches.MatchInteraction.query_last_feature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_matches.MatchInteraction.rrr">
+<tt class="descname">rrr</tt><big>(</big><em>verbose=True</em><big>)</big><a class="headerlink" href="#ibeis.viz.interact.interact_matches.MatchInteraction.rrr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_matches.MatchInteraction.select_ith_match">
+<tt class="descname">select_ith_match</tt><big>(</big><em>mx</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_matches.html#MatchInteraction.select_ith_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_matches.MatchInteraction.select_ith_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selects the ith match and visualizes and prints information concerning
+features weights, keypoint details, and sift descriptions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_matches.MatchInteraction.set_callbacks">
+<tt class="descname">set_callbacks</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_matches.html#MatchInteraction.set_callbacks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_matches.MatchInteraction.set_callbacks" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.viz.interact.interact_matches &#8211;test-begin &#8211;show
+python -m ibeis.viz.interact.interact_matches &#8211;test-begin</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_matches</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">code</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_doctest_from_docstr</span><span class="p">(</span><span class="n">MatchInteraction</span><span class="o">.</span><span class="n">begin</span><span class="o">.</span><span class="n">__doc__</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">set_clipboard</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">send_keyboard_input</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s">&#39;%paste&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">send_keyboard_input</span><span class="p">(</span><span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;KP_Enter&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_matches.MatchInteraction.show_each_chip">
+<tt class="descname">show_each_chip</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_matches.html#MatchInteraction.show_each_chip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_matches.MatchInteraction.show_each_chip" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_matches.MatchInteraction.show_each_probchip">
+<tt class="descname">show_each_probchip</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_matches.html#MatchInteraction.show_each_probchip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_matches.MatchInteraction.show_each_probchip" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_matches.MatchInteraction.sv_view">
+<tt class="descname">sv_view</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_matches.html#MatchInteraction.sv_view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_matches.MatchInteraction.sv_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>spatial verification view</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_matches.MatchInteraction.toggle_samefig">
+<tt class="descname">toggle_samefig</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_matches.html#MatchInteraction.toggle_samefig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_matches.MatchInteraction.toggle_samefig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_matches.MatchInteraction.toggle_vert">
+<tt class="descname">toggle_vert</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_matches.html#MatchInteraction.toggle_vert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_matches.MatchInteraction.toggle_vert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.viz.interact.interact_name">
+<span id="ibeis-viz-interact-interact-name-module"></span><h2>ibeis.viz.interact.interact_name module<a class="headerlink" href="#module-ibeis.viz.interact.interact_name" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction">
+<em class="property">class </em><tt class="descclassname">ibeis.viz.interact.interact_name.</tt><tt class="descname">MatchVerificationInteraction</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em>, <em>update_callback=None</em>, <em>backend_callback=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">plottool.abstract_interaction.AbstractInteraction</span></tt></p>
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.confirm">
+<tt class="descname">confirm</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.confirm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.confirm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.dismiss_all">
+<tt class="descname">dismiss_all</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.dismiss_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.dismiss_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>All annotations are given different new names</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.figure_clicked">
+<tt class="descname">figure_clicked</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.figure_clicked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.figure_clicked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.infer_data">
+<tt class="descname">infer_data</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.infer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.infer_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize data related to the input aids</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.merge_all_into_next_name">
+<tt class="descname">merge_all_into_next_name</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.merge_all_into_next_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.merge_all_into_next_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>All the annotations are given the same new name</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.merge_all_into_nid1">
+<tt class="descname">merge_all_into_nid1</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.merge_all_into_nid1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.merge_all_into_nid1" title="Permalink to this definition">¶</a></dt>
+<dd><p>All the annotations are given nid1</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.merge_all_into_nid2">
+<tt class="descname">merge_all_into_nid2</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.merge_all_into_nid2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.merge_all_into_nid2" title="Permalink to this definition">¶</a></dt>
+<dd><p>All the annotations are given nid2</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.plot_chip">
+<tt class="descname">plot_chip</tt><big>(</big><em>aid</em>, <em>nRows</em>, <em>nCols</em>, <em>px</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.plot_chip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.plot_chip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots an individual chip in a subaxis</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.prepare_page">
+<tt class="descname">prepare_page</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.prepare_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.prepare_page" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.rename_annotation_nid1">
+<tt class="descname">rename_annotation_nid1</tt><big>(</big><em>aid</em>, <em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.rename_annotation_nid1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.rename_annotation_nid1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.rename_annotation_nid2">
+<tt class="descname">rename_annotation_nid2</tt><big>(</big><em>aid</em>, <em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.rename_annotation_nid2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.rename_annotation_nid2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.review">
+<tt class="descname">review</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.review"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.review" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.show_hud">
+<tt class="descname">show_hud</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.show_hud"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.show_hud" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates heads up display</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.show_page">
+<tt class="descname">show_page</tt><big>(</big><em>bring_to_front=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.show_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.show_page" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots all subaxes on a page</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.unname_all">
+<tt class="descname">unname_all</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.unname_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.unname_all" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_name.MatchVerificationInteraction.unname_annotation">
+<tt class="descname">unname_annotation</tt><big>(</big><em>aid</em>, <em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#MatchVerificationInteraction.unname_annotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.MatchVerificationInteraction.unname_annotation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.viz.interact.interact_name.ishow_name">
+<tt class="descclassname">ibeis.viz.interact.interact_name.</tt><tt class="descname">ishow_name</tt><big>(</big><em>ibs</em>, <em>nid</em>, <em>sel_aids=[]</em>, <em>select_aid_callback=None</em>, <em>fnum=5</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_name.html#ishow_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_name.ishow_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.viz.interact.interact_qres">
+<span id="ibeis-viz-interact-interact-qres-module"></span><h2>ibeis.viz.interact.interact_qres module<a class="headerlink" href="#module-ibeis.viz.interact.interact_qres" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.viz.interact.interact_qres.ishow_qres">
+<tt class="descclassname">ibeis.viz.interact.interact_qres.</tt><tt class="descname">ishow_qres</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres.html#ishow_qres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres.ishow_qres" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays query chip, groundtruth matches, and top matches
+TODO: make this a class</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.viz.interact.interact_qres2">
+<span id="ibeis-viz-interact-interact-qres2-module"></span><h2>ibeis.viz.interact.interact_qres2 module<a class="headerlink" href="#module-ibeis.viz.interact.interact_qres2" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult">
+<em class="property">class </em><tt class="descclassname">ibeis.viz.interact.interact_qres2.</tt><tt class="descname">Interact_QueryResult</tt><big>(</big><em>ibs</em>, <em>qaid2_qres</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.append_button">
+<tt class="descname">append_button</tt><big>(</big><em>text</em>, <em>divider=None</em>, <em>rect=None</em>, <em>callback=None</em>, <em>size='9%'</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.append_button"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.append_button" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a button to the current page</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.bring_to_front">
+<tt class="descname">bring_to_front</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.bring_to_front"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.bring_to_front" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.clean_scope">
+<tt class="descname">clean_scope</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.clean_scope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.clean_scope" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes any widgets saved in the interaction scope</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.draw">
+<tt class="descname">draw</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.draw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.draw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.get_default_params">
+<tt class="descname">get_default_params</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.get_default_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.get_default_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.init_candidates">
+<tt class="descname">init_candidates</tt><big>(</big><em>qaid2_qres</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.init_candidates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.init_candidates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.make_hud">
+<tt class="descname">make_hud</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.make_hud"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.make_hud" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates heads up display</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.match_reviewed">
+<tt class="descname">match_reviewed</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.match_reviewed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.match_reviewed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.next_page">
+<tt class="descname">next_page</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.next_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.next_page" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.on_clicked_match">
+<tt class="descname">on_clicked_match</tt><big>(</big><em>aid1</em>, <em>aid2</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.on_clicked_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.on_clicked_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>HELPER: Executed when a result ANNOTATION is clicked</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.on_ctrl_clicked_match">
+<tt class="descname">on_ctrl_clicked_match</tt><big>(</big><em>aid1</em>, <em>aid2</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.on_ctrl_clicked_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.on_ctrl_clicked_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>HELPER:  Executed when a result ANNOTATION is control-clicked</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.on_figure_clicked">
+<tt class="descname">on_figure_clicked</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.on_figure_clicked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.on_figure_clicked" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clicked a match between query annotation and result annotation:
+parses the type of click it was and execute the correct
+visualiztion</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.plot_annotationmatch">
+<tt class="descname">plot_annotationmatch</tt><big>(</big><em>index</em>, <em>draw=True</em>, <em>make_buttons=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.plot_annotationmatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.plot_annotationmatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.prepare_page">
+<tt class="descname">prepare_page</tt><big>(</big><em>pagenum</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.prepare_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.prepare_page" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets indexes for the pagenum ready to be displayed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.prev_page">
+<tt class="descname">prev_page</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.prev_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.prev_page" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.select_candidate_match">
+<tt class="descname">select_candidate_match</tt><big>(</big><em>index</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.select_candidate_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.select_candidate_match" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.show">
+<tt class="descname">show</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.show" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.show_page">
+<tt class="descname">show_page</tt><big>(</big><em>pagenum=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.show_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.show_page" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays a page of matches</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_qres2.Interact_QueryResult.toggle_kw">
+<tt class="descname">toggle_kw</tt><big>(</big><em>event</em>, <em>keyword=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#Interact_QueryResult.toggle_kw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.Interact_QueryResult.toggle_kw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.viz.interact.interact_qres2.default_interact_qres_params">
+<tt class="descclassname">ibeis.viz.interact.interact_qres2.</tt><tt class="descname">default_interact_qres_params</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres2.html#default_interact_qres_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres2.default_interact_qres_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.viz.interact.interact_query_decision">
+<span id="ibeis-viz-interact-interact-query-decision-module"></span><h2>ibeis.viz.interact.interact_query_decision module<a class="headerlink" href="#module-ibeis.viz.interact.interact_query_decision" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction">
+<em class="property">class </em><tt class="descclassname">ibeis.viz.interact.interact_query_decision.</tt><tt class="descname">QueryVerificationInteraction</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>comp_aids</em>, <em>suggest_aids</em>, <em>progress_current=None</em>, <em>progress_total=None</em>, <em>update_callback=None</em>, <em>backend_callback=None</em>, <em>name_decision_callback=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">plottool.abstract_interaction.AbstractInteraction</span></tt></p>
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.confirm">
+<tt class="descname">confirm</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction.confirm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.confirm" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.viz.interact.interact_query_decision &#8211;test-confirm</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_query_decision</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">ibs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">selected_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()),</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comfirm_res</span> <span class="o">=</span> <span class="s">&#39;jeff&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#result = self.confirm(event)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#print(result)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.examine">
+<tt class="descname">examine</tt><big>(</big><em>aid</em>, <em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction.examine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.examine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.infer_data">
+<tt class="descname">infer_data</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction.infer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.infer_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize data related to the input aids</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.plot_chip">
+<tt class="descname">plot_chip</tt><big>(</big><em>aid</em>, <em>nRows</em>, <em>nCols</em>, <em>px</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction.plot_chip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.plot_chip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots an individual chip in a subaxis</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.prepare_page">
+<tt class="descname">prepare_page</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction.prepare_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.prepare_page" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.quit">
+<tt class="descname">quit</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction.quit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.quit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.select">
+<tt class="descname">select</tt><big>(</big><em>aid</em>, <em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction.select"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.select" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.select_none">
+<tt class="descname">select_none</tt><big>(</big><em>event=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction.select_none"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.select_none" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.show_hud">
+<tt class="descname">show_hud</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction.show_hud"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.show_hud" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates heads up display</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.show_page">
+<tt class="descname">show_page</tt><big>(</big><em>bring_to_front=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#QueryVerificationInteraction.show_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.QueryVerificationInteraction.show_page" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots all subaxes on a page</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.viz.interact.interact_query_decision.test_QueryVerificationInteraction">
+<tt class="descclassname">ibeis.viz.interact.interact_query_decision.</tt><tt class="descname">test_QueryVerificationInteraction</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_query_decision.html#test_QueryVerificationInteraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_query_decision.test_QueryVerificationInteraction" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.viz.interact.interact_query_decision &#8211;test-test_QueryVerificationInteraction</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_query_decision</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">test_QueryVerificationInteraction</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.viz.interact.interact_sver">
+<span id="ibeis-viz-interact-interact-sver-module"></span><h2>ibeis.viz.interact.interact_sver module<a class="headerlink" href="#module-ibeis.viz.interact.interact_sver" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.viz.interact.interact_sver.ishow_sver">
+<tt class="descclassname">ibeis.viz.interact.interact_sver.</tt><tt class="descname">ishow_sver</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em>, <em>chipmatch_FILT=None</em>, <em>aid2_svtup=None</em>, <em>fnum=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_sver.html#ishow_sver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_sver.ishow_sver" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.viz.interact.old_interact_matches">
+<span id="ibeis-viz-interact-old-interact-matches-module"></span><h2>ibeis.viz.interact.old_interact_matches module<a class="headerlink" href="#module-ibeis.viz.interact.old_interact_matches" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.viz.interact.old_interact_matches.ishow_matches">
+<tt class="descclassname">ibeis.viz.interact.old_interact_matches.</tt><tt class="descname">ishow_matches</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>aid=None</em>, <em>fnum=4</em>, <em>figtitle='Inspect Query Result'</em>, <em>same_fig=True</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/old_interact_matches.html#ishow_matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.old_interact_matches.ishow_matches" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO: make this interaction a class</p>
+<p>Plots a chip result and sets up callbacks for interaction.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.viz.interact">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.viz.interact" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.viz.interact.reassign_submodule_attributes">
+<tt class="descclassname">ibeis.viz.interact.</tt><tt class="descname">reassign_submodule_attributes</tt><big>(</big><em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>why reloading all the modules doesnt do this I don&#8217;t know</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.viz.interact.reload_subs">
+<tt class="descclassname">ibeis.viz.interact.</tt><tt class="descname">reload_subs</tt><big>(</big><em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.reload_subs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.viz.interact and submodules</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.viz.interact.rrrr">
+<tt class="descclassname">ibeis.viz.interact.</tt><tt class="descname">rrrr</tt><big>(</big><em>verbose=True</em><big>)</big><a class="headerlink" href="#ibeis.viz.interact.rrrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.viz.interact and submodules</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ibeis.viz.interact package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-ibeis.viz.interact.interact_annotations2">ibeis.viz.interact.interact_annotations2 module</a></li>
+<li><a class="reference internal" href="#module-ibeis.viz.interact.interact_bbox">ibeis.viz.interact.interact_bbox module</a></li>
+<li><a class="reference internal" href="#module-ibeis.viz.interact.interact_chip">ibeis.viz.interact.interact_chip module</a></li>
+<li><a class="reference internal" href="#module-ibeis.viz.interact.interact_image">ibeis.viz.interact.interact_image module</a></li>
+<li><a class="reference internal" href="#module-ibeis.viz.interact.interact_matches">ibeis.viz.interact.interact_matches module</a></li>
+<li><a class="reference internal" href="#module-ibeis.viz.interact.interact_name">ibeis.viz.interact.interact_name module</a></li>
+<li><a class="reference internal" href="#module-ibeis.viz.interact.interact_qres">ibeis.viz.interact.interact_qres module</a></li>
+<li><a class="reference internal" href="#module-ibeis.viz.interact.interact_qres2">ibeis.viz.interact.interact_qres2 module</a></li>
+<li><a class="reference internal" href="#module-ibeis.viz.interact.interact_query_decision">ibeis.viz.interact.interact_query_decision module</a></li>
+<li><a class="reference internal" href="#module-ibeis.viz.interact.interact_sver">ibeis.viz.interact.interact_sver module</a></li>
+<li><a class="reference internal" href="#module-ibeis.viz.interact.old_interact_matches">ibeis.viz.interact.old_interact_matches module</a></li>
+<li><a class="reference internal" href="#module-ibeis.viz.interact">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ibeis.viz.html"
+                        title="previous chapter">ibeis.viz package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ibeis.web.html"
+                        title="next chapter">ibeis.web package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/ibeis.viz.interact.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ibeis.web.html" title="ibeis.web package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ibeis.viz.html" title="ibeis.viz package"
+             >previous</a> |</li>
+        <li><a href="index.html">ibeis 0.1.0.dev1 documentation</a> &raquo;</li>
+          <li><a href="ibeis.html" >ibeis package</a> &raquo;</li>
+          <li><a href="ibeis.viz.html" >ibeis.viz package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Jon Crall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
