@@ -97,6 +97,6 @@ ibeis/model/hots/smk/_smk_core_docs.txt
 ibeis/model/hots/smk/csmk/
 failed_doctests.txt
 failed_shelltests.txt
-_page
+#_page
 
 T*.sh
