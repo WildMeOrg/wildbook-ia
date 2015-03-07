@@ -593,20 +593,22 @@ def colwise_operation(arr1, arr2, op):
     return colwise_result
 
 
-def compare_matrix_columns(matrix, columns):
+def compare_matrix_columns(matrix, columns, comp_op=np.equal, logic_op=np.logical_or):
     # FIXME: Generalize
     #row_matrix = matrix.T
     #row_list   = columns.T
-    return compare_matrix_to_rows(matrix.T, columns.T).T
+    return compare_matrix_to_rows(matrix.T, columns.T, comp_op=comp_op, logic_op=logic_op).T
 
 
 @profile
 def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.logical_or):
-    # FIXME: Generalize
     """
     Compares each row in row_list to each row in row matrix using comp_op
     Both must have the same number of columns.
     Performs logic_op on the results of each individual row
+
+    SeeAlso:
+        ibeis.model.hots.nn_weights.mark_name_valid_normalizers
 
     compop   = np.equal
     logic_op = np.logical_or
@@ -615,7 +617,8 @@ def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.l
                        for row in row_list]
     output = row_result_list[0]
     for row_result in row_result_list[1:]:
-        output = logic_op(output, row_result)
+        logic_op(output, row_result, out=output)
+        #output = logic_op(output, row_result)
     return output
 
 
