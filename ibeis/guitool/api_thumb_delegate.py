@@ -1725,7 +1725,7 @@ def get_thread_thumb_info(bbox_list, theta_list, thumbsize, img_size):
     max_dsize = (thumbsize, thumbsize)
     dsize, sx, sy = gtool.resized_clamped_thumb_dims(img_size, max_dsize)
     # Compute new verts list
-    new_verts_list = list(gtool.scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy))
+    new_verts_list = list(gtool.scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
     return dsize, new_verts_list
 
 
