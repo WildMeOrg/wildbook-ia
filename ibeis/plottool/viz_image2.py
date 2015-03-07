@@ -32,7 +32,7 @@ def draw_image_overlay(ax, bbox_list=[], theta_list=None, text_list=None,
         draw_chip_overlay(ax, bbox, theta, text, is_sel)
 
 
-@utool.indent_func
+#@utool.indent_func
 def show_image(img, bbox_list=[],  title='', theta_list=None,
                text_list=None, sel_list=None, draw_lbls=True,
                fnum=None, annote=True, **kwargs):

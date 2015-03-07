@@ -46,11 +46,11 @@ ut.noinject(__name__, '[interact_annotations]')
 
 DEFAULT_SPECIES_TAG = '____'
 # FIXE THESE TO BE GENERIC
-ACCEPT_SAVE_HOTKEY        = 'a'
-ADD_RECTANGLE_HOTKEY      = 'd'
-ADD_RECTANGLE_FULL_HOTKEY = 'f'
-DEL_RECTANGLE_HOTKEY      = 'r'
-TOGGLE_LABEL_HOTKEY       = 't'
+ACCEPT_SAVE_HOTKEY        = None  # 'ctrl+a'
+ADD_RECTANGLE_HOTKEY      = 'ctrl+a'  # 'ctrl+d'
+ADD_RECTANGLE_FULL_HOTKEY = 'ctrl+f'
+DEL_RECTANGLE_HOTKEY      = 'ctrl+d'  # 'ctrl+r'
+TOGGLE_LABEL_HOTKEY       = 'ctrl+t'
 #
 
 NEXT_IMAGE_HOTKEYS  = ['right', 'pagedown']
@@ -64,6 +64,8 @@ SCALE_INPLACE_BUTTON = RIGHT_CLICK  # middle click
 
 
 def pretty_hotkey_map(hotkeys):
+    if hotkeys is None:
+        return ''
     hotkeys = [hotkeys] if not isinstance(hotkeys, list) else hotkeys
     mapping = {
         #'right': 'right arrow',
@@ -445,19 +447,19 @@ class ANNOTATIONInteraction(object):
 
     def add_action_buttons(self):
         self.add_ax  = self.fig.add_axes([0.18, 0.015, self.but_width, self.but_height])
-        self.add_but = Button(self.add_ax, 'Add Annotation\n(ctrl+%r)' % (ADD_RECTANGLE_HOTKEY))
+        self.add_but = Button(self.add_ax, 'Add Annotation\n' + pretty_hotkey_map(ADD_RECTANGLE_HOTKEY))
         self.add_but.on_clicked(self.draw_new_poly)
 
         self.add_ax2  = self.fig.add_axes([0.34, 0.015, self.but_width, self.but_height])
-        self.add_but2 = Button(self.add_ax2, 'Add Full Annotation\n(ctrl+%r)' % (ADD_RECTANGLE_FULL_HOTKEY))
+        self.add_but2 = Button(self.add_ax2, 'Add Full Annotation\n' + pretty_hotkey_map(ADD_RECTANGLE_FULL_HOTKEY))
         self.add_but2.on_clicked(partial(self.draw_new_poly, full=True))
 
         self.del_ax  = self.fig.add_axes([0.50, 0.015, self.but_width, self.but_height])
-        self.del_but = Button(self.del_ax, 'Delete Annotation\n(ctrl+%r)' % (DEL_RECTANGLE_HOTKEY))
+        self.del_but = Button(self.del_ax, 'Delete Annotation\n' + pretty_hotkey_map(DEL_RECTANGLE_HOTKEY))
         self.del_but.on_clicked(self.delete_current_poly)
 
         self.accept_ax  = self.fig.add_axes([0.66, 0.015, self.but_width, self.but_height])
-        self.accept_but = Button(self.accept_ax, 'Save and Exit\n(ctrl+%r)' % (ACCEPT_SAVE_HOTKEY))
+        self.accept_but = Button(self.accept_ax, 'Save and Exit\n' + pretty_hotkey_map(ACCEPT_SAVE_HOTKEY))
         self.accept_but.on_clicked(self.accept_new_annotations)
 
     def update_callbacks(self, next_callback, prev_callback):
@@ -771,26 +773,6 @@ class ANNOTATIONInteraction(object):
 
         def handle_control_command(keychar):
             print('[interact_annot] got hotkey=%r' % (keychar,))
-            if keychar == ACCEPT_SAVE_HOTKEY:
-                self.accept_new_annotations(event)
-
-            elif keychar == ADD_RECTANGLE_HOTKEY:
-                self.draw_new_poly()
-
-            elif keychar == ADD_RECTANGLE_FULL_HOTKEY:
-                self.draw_new_poly(full=True)
-
-            elif keychar == DEL_RECTANGLE_HOTKEY:
-                self.delete_current_poly()
-
-            elif keychar == TOGGLE_LABEL_HOTKEY:
-                self.toggle_species_label()
-
-            elif keychar == 'u':
-                self.load_points()
-
-            elif keychar == 'p':
-                print('[interact_annot] fignums=%r' % (plt.get_fignums(),))
 
         def handle_label_typing(keychar):
             if self._currently_selected_poly:
@@ -812,9 +794,20 @@ class ANNOTATIONInteraction(object):
             self._currently_selected_poly.tcindex = 0
 
         # perfect use case for anaphoric if, or assignment in if statements (if python had either)
-        match = re.match('^ctrl\+(.)$', event.key)
-        if match:
-            handle_control_command(match.group(1))
+        if event.key == ACCEPT_SAVE_HOTKEY:
+            self.accept_new_annotations(event)
+        elif event.key == ADD_RECTANGLE_HOTKEY:
+            self.draw_new_poly()
+        elif event.key == ADD_RECTANGLE_FULL_HOTKEY:
+            self.draw_new_poly(full=True)
+        elif event.key == DEL_RECTANGLE_HOTKEY:
+            self.delete_current_poly()
+        elif event.key == TOGGLE_LABEL_HOTKEY:
+            self.toggle_species_label()
+        elif event.key == 'ctrl+u':
+            self.load_points()
+        elif event.key == 'ctrl+p':
+            print('[interact_annot] fignums=%r' % (plt.get_fignums(),))
 
         # enter clears the species tag, workaround since matplotlib doesn't seem
         # to trigger 'key_press_event's for backspace (which would be the
