@@ -613,13 +613,13 @@ def transform_kpts(kpts, M):
         >>> # execute function
         >>> kpts = transform_kpts(kpts, M)
         >>> # verify results
-        >>> result = ut.numpy_str(kpts, precision=3)
+        >>> result = ut.numpy_str(kpts, precision=3).replace('-0. ', ' 0. ')
         >>> print(result)
-        np.array([[ 200.   ,  450.   ,   52.166,    1.056,  241.499,   -0.   ],
-                  [ 290.   ,  540.   ,   23.551,  -27.559,  241.499,   -0.   ],
-                  [ 300.   ,  600.   ,  122.166,  242.357,  105.287,   -0.   ],
-                  [ 310.   ,  600.   ,  133.556,  309.899,  141.041,   -0.   ],
-                  [ 320.   ,  630.   ,  160.527,  194.6  ,  117.354,   -0.   ]], dtype=np.float64)
+        np.array([[ 200.   ,  450.   ,   52.166,    1.056,  241.499,    0.   ],
+                  [ 290.   ,  540.   ,   23.551,  -27.559,  241.499,    0.   ],
+                  [ 300.   ,  600.   ,  122.166,  242.357,  105.287,    0.   ],
+                  [ 310.   ,  600.   ,  133.556,  309.899,  141.041,    0.   ],
+                  [ 320.   ,  630.   ,  160.527,  194.6  ,  117.354,    0.   ]], dtype=np.float64)
 
     IGNORE:
         >>> # HOW DO WE KEEP SHAPE AFTER HOMOGRAPHY?

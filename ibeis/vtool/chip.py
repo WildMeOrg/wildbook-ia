@@ -7,8 +7,8 @@ import numpy.linalg as npl
 from vtool import linalg as ltool
 from vtool import image as gtool
 from vtool import image_filters as gfilt_tool
-from utool import util_inject
-(print, print_, printDBG, rrr, profile) = util_inject.inject(__name__, '[chip]', DEBUG=False)
+import utool as ut
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[chip]', DEBUG=False)
 
 
 @profile

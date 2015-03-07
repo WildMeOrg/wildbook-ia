@@ -25,8 +25,8 @@ import vtool.linalg as ltool
 import vtool.distance as dtool
 
 try:
-    if ut.WIN32:
-        raise Exception('forcing sver_c_wrapper off')
+    #if ut.WIN32:
+    #    raise Exception('forcing sver_c_wrapper off')
     from vtool import sver_c_wrapper
     HAS_SVER_C_WRAPPER = True
 except Exception as ex:

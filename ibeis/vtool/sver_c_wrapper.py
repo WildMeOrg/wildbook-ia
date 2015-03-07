@@ -6,6 +6,8 @@ CommandLine:
     python -m vtool.sver_c_wrapper --rebuild-sver
     python -m vtool.sver_c_wrapper --rebuild-sver --allexamples
     python -m vtool.sver_c_wrapper --allexamples
+
+    python -m vtool.sver_c_wrapper --test-test_sver_wrapper --rebuild-sver
 """
 from __future__ import absolute_import, division, print_function
 import ctypes as C
@@ -21,13 +23,16 @@ TAU = 2 * np.pi  # References: tauday.com
 c_double_p = C.POINTER(C.c_double)
 
 # copied/adapted from _pyhesaff.py
+kpts_dtype = np.float64
+# this is because size_t is 32 bit on mingw even on 64 bit machines
+fms_dtype = np.int32 if ut.WIN32 else np.int64
 FLAGS_RW = 'aligned, c_contiguous, writeable'
-kpts_t = np.ctypeslib.ndpointer(dtype=np.float64, ndim=2, flags=FLAGS_RW)
-fms_t = np.ctypeslib.ndpointer(dtype=np.int64, ndim=2, flags=FLAGS_RW)
+kpts_t = np.ctypeslib.ndpointer(dtype=kpts_dtype, ndim=2, flags=FLAGS_RW)
+fms_t  = np.ctypeslib.ndpointer(dtype=fms_dtype, ndim=2, flags=FLAGS_RW)
 
 inliers_t = lambda ndim: np.ctypeslib.ndpointer(dtype=np.bool, ndim=ndim, flags=FLAGS_RW)
-errs_t = lambda ndim: np.ctypeslib.ndpointer(dtype=np.float64, ndim=ndim, flags=FLAGS_RW)
-mats_t = lambda ndim: np.ctypeslib.ndpointer(dtype=np.float64, ndim=ndim, flags=FLAGS_RW)
+errs_t    = lambda ndim: np.ctypeslib.ndpointer(dtype=np.float64, ndim=ndim, flags=FLAGS_RW)
+mats_t    = lambda ndim: np.ctypeslib.ndpointer(dtype=np.float64, ndim=ndim, flags=FLAGS_RW)
 
 dpath = dirname(__file__)
 
@@ -50,31 +55,31 @@ if __name__ != '__main__':
 
     c_sver = C.cdll[lib_fname]
     c_getaffineinliers = c_sver['get_affine_inliers']
-    c_getaffineinliers.restype = None
+    c_getaffineinliers.restype = C.c_int
     # for every affine hypothesis, for every keypoint pair (is
     #  it an inlier, the error triples, the hypothesis itself)
     c_getaffineinliers.argtypes = [kpts_t, C.c_size_t,
-                                    kpts_t, C.c_size_t,
-                                    fms_t, C.c_size_t,
-                                    C.c_double, C.c_double, C.c_double,
-                                    inliers_t(2), errs_t(3), mats_t(3)]
+                                   kpts_t, C.c_size_t,
+                                   fms_t, C.c_size_t,
+                                   C.c_double, C.c_double, C.c_double,
+                                   inliers_t(2), errs_t(3), mats_t(3)]
     # for the best affine hypothesis, for every keypoint pair
     #  (is it an inlier, the error triples (transposed?), the
     #   hypothesis itself)
     c_getbestaffineinliers = c_sver['get_best_affine_inliers']
     c_getbestaffineinliers.restype = C.c_int
     c_getbestaffineinliers.argtypes = [kpts_t, C.c_size_t,
-                                        kpts_t, C.c_size_t,
-                                        fms_t, C.c_size_t,
-                                        C.c_double, C.c_double, C.c_double,
-                                        inliers_t(1), errs_t(2), mats_t(2)]
+                                       kpts_t, C.c_size_t,
+                                       fms_t, C.c_size_t,
+                                       C.c_double, C.c_double, C.c_double,
+                                       inliers_t(1), errs_t(2), mats_t(2)]
 
 
 def get_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
     #np.ascontiguousarray(kpts1)
     #with ut.Timer('PreC'):
     num_matches = len(fm)
-    fm = np.ascontiguousarray(fm, dtype=np.int64)
+    fm = np.ascontiguousarray(fm, dtype=fms_dtype)
     out_inlier_flags = np.empty((num_matches, num_matches), np.bool)
     out_errors = np.empty((num_matches, 3, num_matches), np.float64)
     out_mats = np.empty((num_matches, 3, 3), np.float64)
@@ -94,7 +99,7 @@ def get_best_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd,
                                 scale_thresh_sqrd, ori_thresh):
     #np.ascontiguousarray(kpts1)
     #with ut.Timer('PreC'):
-    fm = np.ascontiguousarray(fm, dtype=np.int64)
+    fm = np.ascontiguousarray(fm, dtype=fms_dtype)
     out_inlier_flags = np.empty((len(fm),), np.bool)
     out_errors = np.empty((3, len(fm)), np.float64)
     out_mat = np.empty((3, 3), np.float64)
@@ -251,23 +256,23 @@ def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2
     #return out_inliers_c
 
 
-def test_calling():
+def test_sver_wrapper():
     """
     Test to ensure cpp and python agree and that cpp is faster
 
     CommandLine:
-        python -m vtool.sver_c_wrapper --test-test_calling
-        python -m vtool.sver_c_wrapper --test-test_calling --rebuild-sver
-        python -m vtool.sver_c_wrapper --test-test_calling --show
-        python -m vtool.sver_c_wrapper --test-test_calling --show --dummy
-        python -m vtool.sver_c_wrapper --test-test_calling --show --fname1=easy1.png --fname2=easy2.png
-        python -m vtool.sver_c_wrapper --test-test_calling --show --fname1=easy1.png --fname2=hard3.png
-        python -m vtool.sver_c_wrapper --test-test_calling --show --fname1=carl.jpg --fname2=hard3.png
+        python -m vtool.sver_c_wrapper --test-test_sver_wrapper
+        python -m vtool.sver_c_wrapper --test-test_sver_wrapper --rebuild-sver
+        python -m vtool.sver_c_wrapper --test-test_sver_wrapper --show
+        python -m vtool.sver_c_wrapper --test-test_sver_wrapper --show --dummy
+        python -m vtool.sver_c_wrapper --test-test_sver_wrapper --show --fname1=easy1.png --fname2=easy2.png
+        python -m vtool.sver_c_wrapper --test-test_sver_wrapper --show --fname1=easy1.png --fname2=hard3.png
+        python -m vtool.sver_c_wrapper --test-test_sver_wrapper --show --fname1=carl.jpg --fname2=hard3.png
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.sver_c_wrapper import *  # NOQA
-        >>> test_calling()
+        >>> test_sver_wrapper()
 
     Ignore:
         %timeit call_python_version(*args)
@@ -286,12 +291,15 @@ def test_calling():
 
     if ut.get_argflag('--dummy'):
         testtup = dummy.testdata_dummy_matches()
+        (kpts1, kpts2, fm_input, fs_input, rchip1, rchip2) = testtup
+        fm_input = fm_input.astype(fms_dtype)
+        #fm_input = fm_input[0:10].astype(fms_dtype)
+        #fs_input = fs_input[0:10].astype(np.float32)
     else:
         fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
         fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
         testtup = dummy.testdata_ratio_matches(fname1, fname2)
-
-    (kpts1, kpts2, fm_input, fs_input, rchip1, rchip2) = testtup
+        (kpts1, kpts2, fm_input, fs_input, rchip1, rchip2) = testtup
 
     # pack up call to aff hypothesis
     args = (kpts1, kpts2, fm_input, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
