@@ -148,6 +148,8 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
     elif qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
 
+        #impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
+
         # Nearest neighbors (nns_list)
         # a nns object is a tuple(ndarray, ndarray) - (qfx2_dx, qfx2_dist)
         # * query descriptors assigned to database descriptors
@@ -294,9 +296,9 @@ def baseline_neighbor_filter(qreq_, nns_list, verbose=VERB_PIPELINE):
         >>> from ibeis.model.hots.pipeline import *   # NOQA
         >>> qreq_, nns_list = plh.testdata_pre_baselinefilter(qaid_list=[1, 2, 3, 4], codename='vsmany')
         >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list)
-        >>> assert len(nnvalid0_list) == len(qreq_.get_external_qaids())
-        >>> assert qreq_.qparams.K == 4
-        >>> assert nnvalid0_list[0].shape[1] == qreq_.qparams.K
+        >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.get_external_qaids()))
+        >>> ut.assert_eq(nnvalid0_list[0].shape[1], qreq_.qparams.K, 'does not match k')
+        >>> ut.assert_eq(qreq_.qparams.K, 4, 'k is not 4')
         >>> assert not np.any(nnvalid0_list[0][:, 0]), (
         ...    'first col should be all invalid because of self match')
         >>> assert not np.all(nnvalid0_list[0][:, 1]), (
@@ -308,88 +310,110 @@ def baseline_neighbor_filter(qreq_, nns_list, verbose=VERB_PIPELINE):
         >>> from ibeis.model.hots.pipeline import *   # NOQA
         >>> qreq_, nns_list = plh.testdata_pre_baselinefilter(codename='vsone')
         >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list)
-        >>> assert len(nnvalid0_list) == len(qreq_.get_external_daids())
-        >>> assert qreq_.qparams.K == 1
-        >>> assert nnvalid0_list[0].shape[1] == qreq_.qparams.K
+        >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.get_external_daids()))
+        >>> ut.assert_eq(qreq_.qparams.K, 1, 'k is not 1')
+        >>> assert nnvalid0_list[0].shape[1] == qreq_.qparams.K, 'does not match k'
         >>> ut.assert_eq(nnvalid0_list[0].sum(), 0, 'no self matches')
         >>> ut.assert_inbounds(nnvalid0_list[1].sum(), 800, 1100)
     """
     if verbose:
         print('[hs] Step 2) Baseline neighbor filter')
 
-    def flag_impossible_votes(qreq_, qaid, qfx2_nnidx, cant_match_self,
-                              cant_match_sameimg, cant_match_samename,
-                              verbose=VERB_PIPELINE):
-        """
-        Flags matches to self or same image
-        """
-        # Baseline is all matches have score 1 and all matches are valid
-        qfx2_valid0 = np.ones(qfx2_nnidx.shape, dtype=np.bool)
+    # Build up impossible daids for each query aid
+    impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
+    Knorm = qreq_.qparams.Knorm
+    nnidx_iter = (qfx2_idx.T[0:-Knorm].T for (qfx2_idx, _) in nns_list)
+    qfx2_aid_list = [qreq_.indexer.get_nn_aids(qfx2_nnidx) for qfx2_nnidx in nnidx_iter]
+    nnvalid0_list = [
+        vt.get_uncovered_mask(qfx2_aid, impossible_daids)
+        for qfx2_aid, impossible_daids in zip(qfx2_aid_list, impossible_daids_list)
+    ]
+    return nnvalid0_list
 
-        # Get neighbor annotation information
-        qfx2_aid = qreq_.indexer.get_nn_aids(qfx2_nnidx)
-        # dont vote for yourself or another chip in the same image
-        if cant_match_sameimg:
-            qfx2_gid = qreq_.ibs.get_annot_gids(qfx2_aid)
-            qgid     = qreq_.ibs.get_annot_gids(qaid)
-            qfx2_notsameimg = qfx2_gid != qgid
-            if DEBUG_PIPELINE:
-                plh._sameimg_verbose_check(qfx2_notsameimg, qfx2_valid0)
-            qfx2_valid0 = np.logical_and(qfx2_valid0, qfx2_notsameimg)
-        elif cant_match_self:
-            # dont need to run this if cant_match_sameimg was True
-            qfx2_notsamechip = qfx2_aid != qaid
-            if DEBUG_PIPELINE:
-                plh._self_verbose_check(qfx2_notsamechip, qfx2_valid0)
-            qfx2_valid0 = np.logical_and(qfx2_valid0, qfx2_notsamechip)
-        if cant_match_samename:
-            # This should probably be off
-            qfx2_nid = qreq_.ibs.get_annot_name_rowids(qfx2_aid)
-            qnid = qreq_.ibs.get_annot_name_rowids(qaid)
-            qfx2_notsamename = qfx2_nid != qnid
-            if DEBUG_PIPELINE:
-                plh._samename_verbose_check(qfx2_notsamename, qfx2_valid0)
-            qfx2_valid0 = np.logical_and(qfx2_valid0, qfx2_notsamename)
-        return qfx2_valid0
+
+def build_impossible_daids_list(qreq_):
+    r"""
+    Args:
+        qreq_ (QueryRequest):  query request object with hyper-parameters
+
+    CommandLine:
+        python -m ibeis.model.hots.pipeline --test-build_impossible_daids_list
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> daids = ibs.get_valid_aids(species=species)
+        >>> qaids = ibs.get_valid_aids(species=species)
+        >>> qreq_ = ibs.new_query_request(qaids, daids, cfgdict=dict(can_match_sameimg=False, can_match_samename=False))
+        >>> # execute function
+        >>> result = build_impossible_daids_list(qreq_)
+        >>> # verify results
+        >>> print(result)
+        ([array([1]), array([2, 3]), array([2, 3]), array([4]), array([5, 6]), array([5, 6])], [1, 2, 2, 1, 2, 2])
+    """
     cant_match_sameimg  = not qreq_.qparams.can_match_sameimg
     cant_match_samename = not qreq_.qparams.can_match_samename
     cant_match_self     = True
-    K = qreq_.qparams.K
     internal_qaids = qreq_.get_internal_qaids()
+    internal_daids = qreq_.get_internal_daids()
+    internal_data_nids  = qreq_.ibs.get_annot_nids(internal_daids)
 
-    # Look at impossibility of the first K nearest neighbors
-    nnidx_iter = (qfx2_idx.T[0:K].T for (qfx2_idx, _) in nns_list)
-    nnvalid0_list = [
-        flag_impossible_votes(qreq_, qaid, qfx2_nnidx, cant_match_self,
-                              cant_match_sameimg, cant_match_samename,
-                              verbose=verbose)
-        for qaid, qfx2_nnidx in zip(internal_qaids, nnidx_iter)
-    ]
-    if False:
-        # Build up impossible daids for each query aid
-        # NEW CODE
-        # TODO: this list is built before querytime and K is adjusted
-        _impossible_daid_lists = []
-        if cant_match_self:
+    _impossible_daid_lists = []
+    if cant_match_self:
+        if not (cant_match_sameimg or cant_match_samename):
+            # we can skip this if sameimg or samename is specified.
+            # it will cover this case for us
             _impossible_daid_lists.append([[qaid] for qaid in internal_qaids])
-        if cant_match_sameimg:
-            contact_aids_list = qreq_.ibs.get_annot_contact_aids(internal_qaids)
-            _impossible_daid_lists.append(contact_aids_list)
-        if cant_match_samename:
-            internal_daids = qreq_.get_internal_daids()
-            gt_aids = qreq_.ibs.get_annot_groundtruth(internal_qaids, daid_list=internal_daids)
-            _impossible_daid_lists.append(gt_aids)
-        # TODO: add explicit not a match case in here
-        impossible_daids_list = list(map(ut.flatten, zip(*_impossible_daid_lists)))
-        impossible_daids_list
-        nnidx_iter = (qfx2_idx.T[0:K].T for (qfx2_idx, _) in nns_list)
-        qfx2_aid_list = [qreq_.indexer.get_nn_aids(qfx2_nnidx) for qfx2_nnidx in nnidx_iter]
-        nnvalid0_list_NEW = [
-            vt.get_uncovered_mask(qfx2_aid, impossible_daids)
-            for qfx2_aid, impossible_daids in zip(qfx2_aid_list, impossible_daids_list)
+    if cant_match_sameimg:
+        # slow way of getting contact_aids
+        #contact_aids_list = qreq_.ibs.get_annot_contact_aids(internal_qaids)
+        # Faster way
+        internal_data_gids  = qreq_.ibs.get_annot_gids(internal_daids)
+        internal_query_gids = qreq_.ibs.get_annot_gids(internal_qaids)
+        contact_aids_list = [
+            internal_daids.compress(internal_data_gids == gid)
+            for gid in internal_query_gids
         ]
-        assert ut.lists_eq(nnvalid0_list, nnvalid0_list_NEW)
-    return nnvalid0_list
+        _impossible_daid_lists.append(contact_aids_list)
+        EXTEND_TO_OTHER_CONTACT_GT = False
+        # Also cannot match any aids with a name of an annotation in this image
+        if EXTEND_TO_OTHER_CONTACT_GT:
+            # TODO: need a test set that can accomidate testing this case
+            # testdb1 might cut it if we spruced it up
+            nonself_contact_aids = [np.setdiff1d(aids, qaid) for aids, qaid in zip(contact_aids_list, internal_qaids)]
+            nonself_contact_nids = qreq_.ibs.unflat_map(qreq_.ibs.get_annot_nids, nonself_contact_aids)
+            contact_aids_gt_list = [
+                internal_daids.compress(vt.get_covered_mask(internal_data_nids, nids))
+                for nids in nonself_contact_nids
+            ]
+            _impossible_daid_lists.append(contact_aids_gt_list)
+
+    if cant_match_samename:
+        #internal_daids = qreq_.get_internal_daids()
+        # slow way of getting gt_aids
+        #gt_aids = qreq_.ibs.get_annot_groundtruth(internal_qaids, daid_list=internal_daids)
+        #faster way
+        internal_data_nids  = qreq_.ibs.get_annot_nids(internal_daids)
+        internal_query_nids = qreq_.ibs.get_annot_nids(internal_qaids)
+        gt_aids = [
+            internal_daids.compress(internal_data_nids == nid)
+            for nid in internal_query_nids
+        ]
+        _impossible_daid_lists.append(gt_aids)
+    # TODO: add explicit not a match case in here
+    _impossible_daids_list = list(map(ut.flatten, zip(*_impossible_daid_lists)))
+    impossible_daids_list = [np.unique(impossible_daids) for impossible_daids in _impossible_daids_list]
+
+    # TODO: we need to pad K for each bad annotation
+    Kpad_list = list(map(len, impossible_daids_list))  # NOQA
+    #impossible_daids_list = [
+    #    np.intersect1d(np.unique(impossible_daids), internal_daids, assume_unique=True)
+    #    for impossible_daids in _impossible_daids_list]
+    return impossible_daids_list, Kpad_list
 
 
 #============================
@@ -611,9 +635,10 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list, q
         >>> ut.assert_inbounds(valid_qfx, -1, qreq_.ibs.get_annot_num_feats(daid, qreq_=qreq_))
     """
     # TODO: unpacking can be external
-    K = qreq_.qparams.K
+    Knorm = qreq_.qparams.Knorm
     # Unpack neighbor ids, indices, filter scores, and flags
-    qfx2_nnidx = qfx2_idx.T[0:K].T
+    qfx2_nnidx = qfx2_idx.T[:-Knorm].T
+    K = len(qfx2_nnidx.T)
     qfx2_daid = qreq_.indexer.get_nn_aids(qfx2_nnidx)
     qfx2_dfx = qreq_.indexer.get_nn_featxs(qfx2_nnidx)
     # And all valid lists together to get a final mask

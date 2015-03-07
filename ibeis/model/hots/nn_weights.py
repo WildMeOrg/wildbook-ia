@@ -6,7 +6,7 @@ import numpy as np
 import vtool as vt
 import functools
 from ibeis.model.hots import scoring
-from ibeis.model.hots import name_scoring
+#from ibeis.model.hots import name_scoring
 from ibeis.model.hots import hstypes
 from ibeis.model.hots import _pipeline_helpers as plh
 from six.moves import zip
@@ -47,53 +47,6 @@ def _register_misc_weight_func(func):
         print('[nn_weights] registering simple func: %r' % (filtkey,))
     MISC_WEIGHT_FUNC_DICT[filtkey] = func
     return func
-
-
-@_register_nn_simple_weight_func
-def dupvote_match_weighter(nns_list, nnvalid0_list, qreq_):
-    """
-    dupvotes gives duplicate name votes a weight close to 0.
-
-    Densve version of name weighting
-    TODO: move to name_scoring
-    TODO: sparse version of name weighting
-
-    Each query feature is only allowed to vote for each name at most once.
-    IE: a query feature can vote for multiple names, but it cannot vote
-    for the same name twice.
-
-    CommandLine:
-        python dev.py --allgt -t best --db PZ_MTEST
-        python dev.py --allgt -t nsum --db PZ_MTEST
-        python dev.py --allgt -t dupvote --db PZ_MTEST
-
-    CommandLine:
-        python -m ibeis.model.hots.nn_weights --test-dupvote_match_weighter
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.nn_weights import *  # NOQA
-        >>> from ibeis.model.hots import nn_weights
-        >>> tup = plh.testdata_pre_weight_neighbors('testdb1', cfgdict=dict(K=10, Knorm=10))
-        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
-        >>> # Test Function Call
-        >>> dupvote_weight_list = nn_weights.dupvote_match_weighter(nns_list, nnvalid0_list, qreq_)
-        >>> print(ut.numpy_str(dupvote_weight_list[0], precision=1))
-        >>> # Check consistency
-        >>> qaid = qreq_.get_external_qaids()[0]
-        >>> qfx2_dupvote_weight = dupvote_weight_list[0]
-        >>> flags = qfx2_dupvote_weight  > .5
-        >>> qfx2_topnid = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(nns_list[0][0]))
-        >>> isunique_list = [ut.isunique(row[flag]) for row, flag in zip(qfx2_topnid, flags)]
-        >>> assert all(isunique_list), 'dupvote should only allow one vote per name'
-
-    CommandLine:
-        ./dev.py -t nsum --db GZ_ALL --show --va -w --qaid 1032
-        ./dev.py -t nsum_nosv --db GZ_ALL --show --va -w --qaid 1032
-
-    """
-    dupvote_weight_list = name_scoring.name_scoring_dense_old(nns_list, nnvalid0_list, qreq_)
-    return dupvote_weight_list
 
 
 def componentwise_uint8_dot(qfx2_qvec, qfx2_dvec):
@@ -155,7 +108,7 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
 
     """
     # Prealloc output
-    K = qreq_.qparams.K
+    Knorm = qreq_.qparams.Knorm
     cos_weight_list = []
     qaid_list = qreq_.get_internal_qaids()
     # Database feature index to chip index
@@ -163,7 +116,8 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
         (qfx2_idx, qfx2_dist) = nns
         qfx2_qvec = qreq_.ibs.get_annot_vecs(qaid, qreq_=qreq_)[np.newaxis, :, :]
         # database forground weights
-        qfx2_dvec = qreq_.indexer.get_nn_vecs(qfx2_idx.T[0:K])
+        # avoid using K due to its more dynamic nature by using -Knorm
+        qfx2_dvec = qreq_.indexer.get_nn_vecs(qfx2_idx.T[:-Knorm])
         # Component-wise dot product + selectivity function
         alpha = 3.0
         qfx2_cosweight = scoring.sift_selectivity_score(qfx2_qvec, qfx2_dvec, alpha)
@@ -186,14 +140,14 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
         >>> fgvotes_list = fg_match_weighter(nns_list, nnvalid0_list, qreq_)
     """
     # Prealloc output
-    K = qreq_.qparams.K
+    Knorm = qreq_.qparams.Knorm
     fgvotes_list = []
     qaid_list = qreq_.get_internal_qaids()
     # Database feature index to chip index
     for qaid, nns in zip(qaid_list, nns_list):
         (qfx2_idx, qfx2_dist) = nns
         # database forground weights
-        qfx2_dfgw = qreq_.indexer.get_nn_fgws(qfx2_idx.T[0:K].T)
+        qfx2_dfgw = qreq_.indexer.get_nn_fgws(qfx2_idx.T[0:-Knorm].T)
         # query forground weights
         qfx2_qfgw = qreq_.ibs.get_annot_fgweights([qaid], ensure=False, qreq_=qreq_)[0]
         # feature match forground weight
@@ -253,6 +207,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> weights_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
+        >>> ut.assert_inbounds(weights1.sum(), 200, 250)
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -267,6 +222,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> weights_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
+        >>> ut.assert_inbounds(weights1.sum(), 2750, 2850)
 
     Ignore:
         #from ibeis.model.hots import neighbor_index as hsnbrx
@@ -274,10 +230,9 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
     """
     #utool.stash_testdata('nns_list')
     #
-    K = qreq_.qparams.K
-
+    #Knorm = qreq_.qparams.Knorm
     Knorm = qreq_.qparams.Knorm
-    rule  = qreq_.qparams.normalizer_rule
+    normalizer_rule  = qreq_.qparams.normalizer_rule
     #with_metadata = qreq_.qparams.with_metadata
     #normweight_upper_bound = 30  # TODO:  make this specific to each normweight func
 
@@ -296,7 +251,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         (qfx2_idx, qfx2_dist) = nns
         # Apply normalized weights
         qfx2_normweight = apply_normweight(
-            normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm, qreq_)
+            normweight_fn, qaid, qfx2_idx, qfx2_dist, normalizer_rule, Knorm, qreq_)
         #with_metadata, metakey_metadata)
         #qfx2_normweight[qfx2_normweight > normweight_upper_bound] = normweight_upper_bound
         #qfx2_normweight /= normweight_upper_bound
@@ -305,7 +260,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
     return weight_list
 
 
-def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
+def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, normalizer_rule, Knorm,
                      qreq_):
     #, with_metadata, metakey_metadata):
     """
@@ -316,7 +271,7 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
         qaid (int): query annotation id
         qfx2_idx (ndarray):
         qfx2_dist (ndarray):
-        rule (str):
+        normalizer_rule (str):
         K (int):
         Knorm (int):
         qreq_ (QueryRequest): hyper-parameters
@@ -325,43 +280,34 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
         ndarray: qfx2_normweight
 
     Example:
-        >>> # SLOW_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
         >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name'}
-        >>> tup = plh.testdata_pre_weight_neighbors()
+        >>> tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
+        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> qaid = qreq_.get_external_qaids()[0]
-        >>> K = qreq_.qparams.K
         >>> Knorm = qreq_.qparams.Knorm
         >>> normweight_fn = lnbnn_fn
-        >>> rule  = qreq_.qparams.normalizer_rule
+        >>> normalizer_rule  = qreq_.qparams.normalizer_rule
         >>> (qfx2_idx, qfx2_dist) = nns_list[0]
         >>> qfx2_normweight = nn_weights.apply_normweight(normweight_fn, qaid, qfx2_idx,
-        ...         qfx2_dist, rule, K, Knorm, qreq_)
-
-    Timeits:
-        %timeit qfx2_dist.T[0:K].T
-        %timeit qfx2_dist[:, 0:K]
-
-    Ignore:
-        print('\n'.join(((
-        '>>> ndist = np.' + np.array_repr(ndist.T).replace(' ...,', '') + '.T'),
-        '>>> vdist = np.' + np.array_repr(vdist.T).replace(' ...,', '') + '.T')
-        ))
-
+        ...         qfx2_dist, normalizer_rule, Knorm, qreq_)
+        >>> ut.assert_inbounds(qfx2_normweight.sum(), 800, 850)
     """
-
+    K = len(qfx2_idx.T) - Knorm
+    assert K > 0, 'K cannot be 0'
     qfx2_nndist = qfx2_dist.T[0:K].T
-    if rule == 'last':
-        # Normalizers for 'last' rule
+    if normalizer_rule == 'last':
+        # Normalizers for 'last' normalizer_rule
         qfx2_normk = np.zeros(len(qfx2_dist), hstypes.FK_DTYPE) + (K + Knorm - 1)
-    elif rule == 'name':
-        # Normalizers for 'name' rule
-        qfx2_normk = get_name_normalizers(qaid, qreq_, K, Knorm, qfx2_idx)
-    elif rule == 'external':
+    elif normalizer_rule == 'name':
+        # Normalizers for 'name' normalizer_rule
+        qfx2_normk = get_name_normalizers(qaid, qreq_, Knorm, qfx2_idx)
+    elif normalizer_rule == 'external':
         pass
     else:
-        raise NotImplementedError('[nn_weights] no rule=%r' % rule)
+        raise NotImplementedError('[nn_weights] no normalizer_rule=%r' % normalizer_rule)
     qfx2_normdist = np.array([dists[normk]
                               for (dists, normk) in zip(qfx2_dist, qfx2_normk)])
     #qfx2_normidx  = np.array([idxs[normk]
@@ -384,14 +330,13 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, rule, K, Knorm,
     return qfx2_normweight
 
 
-def get_name_normalizers(qaid, qreq_, K, Knorm, qfx2_idx):
+def get_name_normalizers(qaid, qreq_, Knorm, qfx2_idx):
     """
-    helper: normalizers for 'name' rule
+    helper: normalizers for 'name' normalizer_rule
 
     Args:
         qaid (int): query annotation id
         qreq_ (QueryRequest): hyper-parameters
-        K (int):
         Knorm (int):
         qfx2_idx (ndarray):
 
@@ -399,22 +344,25 @@ def get_name_normalizers(qaid, qreq_, K, Knorm, qfx2_idx):
         ndarray : qfx2_normk
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
-        >>> tup = plh.testdata_pre_weight_neighbors()
+        >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name'}
+        >>> tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
-        >>> K = ibs.cfg.query_cfg.nn_cfg.K
-        >>> Knorm = ibs.cfg.query_cfg.nn_cfg.Knorm
-        >>> normweight_fn = lnbnn_fn
+        >>> Knorm = qreq_.qparams.Knorm
         >>> (qfx2_idx, qfx2_dist) = nns_list[0]
-        >>> qfx2_nndist = qfx2_dist.T[0:K].T
+        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> qfx2_normk = get_name_normalizers(qaid, qreq_, Knorm, qfx2_idx)
 
     """
+    assert Knorm == qreq_.qparams.Knorm, 'inconsistency in qparams'
     # Get the top names you do not want your normalizer to be from
     qnid = qreq_.ibs.get_annot_name_rowids(qaid)
-    nTop = max(1, K)
+    K = len(qfx2_idx.T) - Knorm
+    assert K > 0, 'K cannot be 0'
     # Get the 0th - Kth matching neighbors
-    qfx2_topidx = qfx2_idx.T[0:nTop].T
+    qfx2_topidx = qfx2_idx.T[0:K].T
     # Get tke Kth - KNth normalizing neighbors
     qfx2_normidx = qfx2_idx.T[-Knorm:].T
     # Apply temporary uniquish name
@@ -423,38 +371,87 @@ def get_name_normalizers(qaid, qreq_, K, Knorm, qfx2_idx):
     qfx2_topnid  = qreq_.ibs.get_annot_name_rowids(qfx2_topaid)
     qfx2_normnid = qreq_.ibs.get_annot_name_rowids(qfx2_normaid)
     # Inspect the potential normalizers
-    qfx2_normk = mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid)
-    qfx2_normk += (K + Knorm)  # convert form negative to pos indexes
+    qfx2_selnorm = mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid)
+    qfx2_normk = qfx2_selnorm + (K + Knorm)  # convert form negative to pos indexes
     return qfx2_normk
 
 
-def mark_name_valid_normalizers(qfx2_normnid, qfx2_topnid, qnid=None):
+def mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid):
     """
     helper: Allows matches only to the first result of a given name
 
+    Each query feature finds its K matches and Kn normalizing matches. These are the
+    candidates from which it can choose a set of matches and a single normalizer.
+
+    A normalizer is marked as invalid if it belongs to a name that was also in its
+    feature's candidate matching set.
+
+
     Args:
-        qfx2_normnid (ndarray):
-        qfx2_topnid (ndarray):
+        qfx2_topnid (ndarray): marks the names a feature matches
+        qfx2_normnid (ndarray): marks the names of the feature normalizers
         qnid (int): query name id
+
+    Ignore:
+        print(ut.doctest_repr(qfx2_normnid, 'qfx2_normnid', verbose=False))
+        print(ut.doctest_repr(qfx2_topnid, 'qfx2_topnid', verbose=False))
+
 
     Returns:
         qfx2_selnorm - index of the selected normalizer for each query feature
-    """
-    #columns = qfx2_topnid
-    #matrix = qfx2_normnid
-    Kn = qfx2_normnid.shape[1]
-    # Find the positions in the normalizers that could be valid (assumes Knorm > 1)
-    # compare_matrix_columns is probably inefficient
-    qfx2_valid = True - vt.compare_matrix_columns(qfx2_normnid, qfx2_topnid)
 
-    if qnid is not None:
-        # Mark self as invalid, if given that information
-        qfx2_valid = np.logical_and(qfx2_normnid != qnid, qfx2_valid)
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.nn_weights import *  # NOQA
+        >>> qnid = 1
+        >>> qfx2_topnid = np.array([[1, 1, 1, 1, 1],
+        ...                         [1, 2, 1, 1, 1],
+        ...                         [1, 2, 2, 3, 1],
+        ...                         [5, 8, 9, 8, 8],
+        ...                         [5, 8, 9, 8, 8],
+        ...                         [6, 6, 9, 6, 8],
+        ...                         [5, 8, 6, 6, 6],
+        ...                         [1, 2, 8, 6, 6]], dtype=np.int32)
+        >>> qfx2_normnid = np.array([[ 1, 1, 1],
+        ...                          [ 2, 3, 1],
+        ...                          [ 2, 3, 1],
+        ...                          [ 6, 6, 6],
+        ...                          [ 6, 6, 8],
+        ...                          [ 2, 6, 6],
+        ...                          [ 6, 6, 1],
+        ...                          [ 4, 4, 9]], dtype=np.int32)
+        >>> qfx2_selnorm = mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid)
+        >>> K = len(qfx2_topnid.T)
+        >>> Knorm = len(qfx2_normnid.T)
+        >>> qfx2_normk_ = qfx2_selnorm + (Knorm)  # convert form negative to pos indexes
+        >>> result = str(qfx2_normk_)
+        >>> print(result)
+        [2 1 2 0 0 0 2 0]
+    """
+    # Your normalizer should be from a name that is not in any of the top
+    # matches if possible. If not possible it should be from the name with the
+    # highest k value.
+
+    #%timeit np.vstack([vt.get_uncovered_mask(normnids, topnids) for topnids, normnids in zip(qfx2_topnid, qfx2_normnid)])
+    #%timeit vt.compare_matrix_columns(qfx2_normnid, qfx2_topnid)
+    #""" matrix = qfx2_normnid; columns = qfx2_topnid; row_matrix = matrix.T; row_list = columns.T; """
+    # Find the positions in the normalizers that could be valid (assumes Knorm > 1)
+    # wow, this actually seems to work an is efficient. I hardly understand the code I write.
+    # takes each column in topnid and comparses it to each column in in qfx2_normnid
+    # Taking the logical or of all of these results gives you a matrix with the
+    # shape of qfx2_normnid that is True where a normalizing feature's name
+    # appears anywhere in the corresponding row of qfx2_topnid
+    qfx2_valid = np.logical_not(vt.compare_matrix_columns(qfx2_normnid, qfx2_topnid, comp_op=np.equal, logic_op=np.logical_or))
+
+    #if qnid is not None:
+    # Mark self as invalid, if given that information
+    qfx2_valid = np.logical_and(qfx2_normnid != qnid, qfx2_valid)
 
     # For each query feature find its best normalizer (using negative indices)
-    qfx2_validlist = [np.where(normrow)[0] for normrow in qfx2_valid]
-    qfx2_selnorm = np.array([poslist[0] - Kn if len(poslist) != 0 else -1 for
-                             poslist in qfx2_validlist], hstypes.FK_DTYPE)
+    Knorm = qfx2_normnid.shape[1]
+    qfx2_validxs = [np.where(normrow)[0] for normrow in qfx2_valid]
+    qfx2_selnorm = np.array([validxs[0] - Knorm if len(validxs) != 0 else -1 for
+                             validxs in qfx2_validxs], hstypes.FK_DTYPE)
     return qfx2_selnorm
 
 

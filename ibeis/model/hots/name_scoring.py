@@ -6,7 +6,7 @@ import vtool as vt
 import utool as ut
 #import six
 #from ibeis.model.hots import scoring
-from ibeis.model.hots import hstypes
+#from ibeis.model.hots import hstypes
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[nscoring]', DEBUG=False)
@@ -20,26 +20,26 @@ def testdata_chipmatch():
     # only the first indicies will matter in these test
     # feature matches
     fm_list = [
-        np.array([(0, 9), (1, 9), (2, 9), (3, 9)]),
-        np.array([(0, 9), (1, 9), (2, 9), (3, 9)]),
-        np.array([(0, 9), (1, 9), (2, 9), (3, 9)]),
-        np.array([(4, 9), (5, 9), (6, 9), (3, 9)]),
-        np.array([(0, 9), (1, 9), (2, 9), (3, 9), (4, 9)])
+        np.array([(0, 9), (1, 9), (2, 9), (3, 9)], dtype=np.int32),
+        np.array([(0, 9), (1, 9), (2, 9), (3, 9)], dtype=np.int32),
+        np.array([(0, 9), (1, 9), (2, 9), (3, 9)], dtype=np.int32),
+        np.array([(4, 9), (5, 9), (6, 9), (3, 9)], dtype=np.int32),
+        np.array([(0, 9), (1, 9), (2, 9), (3, 9), (4, 9)], dtype=np.int32)
     ]
     # score each feature match as 1
     fsv_list = [
-        np.array([(1,), (1,), (1,), (1,)]),
-        np.array([(1,), (1,), (1,), (1,)]),
-        np.array([(1,), (1,), (1,), (1,)]),
-        np.array([(1,), (1,), (1,), (1,)]),
-        np.array([(1,), (1,), (1,), (1,), (1, )]),
+        np.array([(1,), (1,), (1,), (1,)], dtype=np.float32),
+        np.array([(1,), (1,), (1,), (1,)], dtype=np.float32),
+        np.array([(1,), (1,), (1,), (1,)], dtype=np.float32),
+        np.array([(1,), (1,), (1,), (1,)], dtype=np.float32),
+        np.array([(1,), (1,), (1,), (1,), (1, )], dtype=np.float32),
     ]
     cm = chip_match.ChipMatch2(
         qaid=1,
-        daid_list=np.array([1, 2, 3, 4, 5]),
+        daid_list=np.array([1, 2, 3, 4, 5], dtype=np.int32),
         fm_list=fm_list,
         fsv_list=fsv_list,
-        dnid_list=np.array([1, 1, 2, 2, 3]),
+        dnid_list=np.array([1, 1, 2, 2, 3], dtype=np.int32),
         fsv_col_lbls=['count'],
     )
     #print(cm.get_rawinfostr())
@@ -75,8 +75,8 @@ def compute_nsum_score(cm):
         >>> result = ut.list_str((unique_nids, nsum_score_list))
         >>> print(result)
         (
-            np.array([1, 2, 3], dtype=np.int64),
-            np.array([4, 7, 5], dtype=np.int64),
+            np.array([1, 2, 3], dtype=np.int32),
+            np.array([ 4.,  7.,  5.], dtype=np.float32),
         )
 
     Example:
@@ -301,76 +301,6 @@ def group_scores_by_name(ibs, aid_list, score_list):
     sorted_aids   = [aids.take(sortx) for aids, sortx in zip(_sorted_aids, sorted_sortx)]
     nscoretup     = NameScoreTup(sorted_nids, sorted_nscore, sorted_aids, sorted_scores)
     return nscoretup
-
-
-def name_scoring_dense_old(nns_list, nnvalid0_list, qreq_):
-    """
-    dupvotes gives duplicate name votes a weight close to 0.
-
-    Dense version of name weighting
-
-    Each query feature is only allowed to vote for each name at most once.
-    IE: a query feature can vote for multiple names, but it cannot vote
-    for the same name twice.
-
-    CommandLine:
-        python dev.py --allgt -t best --db PZ_MTEST
-        python dev.py --allgt -t nsum --db PZ_MTEST
-        python dev.py --allgt -t dupvote --db PZ_MTEST
-
-    CommandLine:
-        # Compares with dupvote on and dupvote off
-        ./dev.py -t custom:dupvote_weight=0.0 custom:dupvote_weight=1.0  --db GZ_ALL --show --va -w --qaid 1032
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.name_scoring import *  # NOQA
-        >>> #tup = nn_weights.testdata_nn_weights('testdb1', slice(0, 1), slice(0, 11))
-        >>> dbname = 'testdb1'  # 'GZ_ALL'  # 'testdb1'
-        >>> cfgdict = dict(K=10, Knorm=10)
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(dbname=dbname, qaid_list=[2], daid_list=[1, 2, 3], cfgdict=cfgdict)
-        >>> print(print(qreq_.get_infostr()))
-        >>> pipeline_locals_ = plh.testrun_pipeline_upto(qreq_, 'weight_neighbors')
-        >>> nns_list, nnvalid0_list = ut.dict_take(pipeline_locals_, ['nns_list', 'nnvalid0_list'])
-        >>> # Test Function Call
-        >>> dupvote_weight_list = name_scoring_dense_old(nns_list, nnvalid0_list, qreq_)
-        >>> # Check consistency
-        >>> qaid = qreq_.get_external_qaids()[0]
-        >>> qfx2_dupvote_weight = dupvote_weight_list[0]
-        >>> flags = qfx2_dupvote_weight  > .5
-        >>> qfx2_topnid = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(nns_list[0][0]))
-        >>> isunique_list = [ut.isunique(row[flag]) for row, flag in zip(qfx2_topnid, flags)]
-        >>> assert all(isunique_list), 'dupvote should only allow one vote per name'
-
-    """
-    K = qreq_.qparams.K
-    def find_dupvotes(nns, qfx2_invalid0):
-        if len(qfx2_invalid0) == 0:
-            # hack for empty query features (should never happen, but it
-            # inevitably will)
-            qfx2_dupvote_weight = np.empty((0, K), dtype=hstypes.FS_DTYPE)
-        else:
-            (qfx2_idx, qfx2_dist) = nns
-            qfx2_topidx = qfx2_idx.T[0:K].T
-            qfx2_topaid = qreq_.indexer.get_nn_aids(qfx2_topidx)
-            qfx2_topnid = qreq_.ibs.get_annot_name_rowids(qfx2_topaid)
-            qfx2_topnid[qfx2_invalid0] = 0
-            # A duplicate vote is when any vote for a name after the first
-            qfx2_isnondup = np.array([ut.flag_unique_items(topnids) for topnids in qfx2_topnid])
-            # set invalids to be duplicates as well (for testing)
-            qfx2_isnondup[qfx2_invalid0] = False
-            # Database feature index to chip index
-            qfx2_dupvote_weight = (qfx2_isnondup.astype(hstypes.FS_DTYPE) * (1 - 1E-7)) + 1E-7
-        return qfx2_dupvote_weight
-
-    # convert ouf of dict format
-    nninvalid0_list = [np.bitwise_not(qfx2_valid0) for qfx2_valid0 in nnvalid0_list]
-    dupvote_weight_list = [
-        find_dupvotes(nns, qfx2_invalid0)
-        for nns, qfx2_invalid0 in zip(nns_list, nninvalid0_list)
-    ]
-    # convert into dict format
-    return dupvote_weight_list
 
 
 if __name__ == '__main__':
