@@ -11,10 +11,10 @@ import cv2
 #import functools
 import numpy as np
 import numpy.linalg as npl
-import utool
+import utool as ut
 
-profile = utool.profile
-(print, print_, printDBG, rrr, profile) = utool.inject(
+profile = ut.profile
+(print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[linalg]', DEBUG=False)
 
 '''
@@ -236,7 +236,7 @@ def whiten_xy_points(xy_m):
         >>> xy_m = dummy.get_dummy_xy()
         >>> tup = whiten_xy_points(xy_m)
         >>> xy_norm, T = tup
-        >>> result = (utool.hashstr(tup))
+        >>> result = (ut.hashstr(tup))
         >>> print(result)
         wg%mpai0hxvil4p2
 
@@ -264,6 +264,26 @@ def whiten_xy_points(xy_m):
 
 
 def add_homogenous_coordinate(_xys):
+    r"""
+    CommandLine:
+        python -m vtool.linalg --test-add_homogenous_coordinate
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> # build test data
+        >>> _xys = np.array([[ 2.,  0.,  0.,  2.],
+        ...                  [ 2.,  2.,  0.,  0.]], dtype=np.float32)
+        >>> # execute function
+        >>> _xyzs = add_homogenous_coordinate(_xys)
+        >>> # verify results
+        >>> assert np.all(_xys == remove_homogenous_coordinate(_xyzs))
+        >>> result = ut.numpy_str(_xyzs)
+        >>> print(result)
+        np.array([[ 2.,  0.,  0.,  2.],
+                  [ 2.,  2.,  0.,  0.],
+                  [ 1.,  1.,  1.,  1.]], dtype=np.float32)
+    """
     assert _xys.shape[0] == 2
     _zs = np.ones((1, _xys.shape[1]), dtype=_xys.dtype)
     _xyzs = np.vstack((_xys, _zs))
@@ -271,6 +291,48 @@ def add_homogenous_coordinate(_xys):
 
 
 def remove_homogenous_coordinate(_xyzs):
+    """
+    normalizes 3d homogonous coordinates into 2d coordinates
+
+    Args:
+        _xyzs (ndarray): of shape (3, N)
+
+    Returns:
+        ndarray: _xys of shape (2, N)
+
+    CommandLine:
+        python -m vtool.linalg --test-remove_homogenous_coordinate
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> # build test data
+        >>> _xyzs = np.array([[ 2.,   0.,  0.,  2.],
+        ...                   [ 2.,   2.,  0.,  0.],
+        ...                   [ 1.2,  1.,  1.,  2.]], dtype=np.float32)
+        >>> # execute function
+        >>> _xys = remove_homogenous_coordinate(_xyzs)
+        >>> # verify results
+        >>> result = ut.numpy_str(_xys, precision=3)
+        >>> print(result)
+        np.array([[ 1.667,  0.   ,  0.   ,  1.   ],
+                  [ 1.667,  2.   ,  0.   ,  0.   ]], dtype=np.float32)
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> # build test data
+        >>> _xyzs = np.array([[ 140.,  167.,  185.,  185.,  194.],
+        ...                   [ 121.,  139.,  156.,  155.,  163.],
+        ...                   [  47.,   56.,   62.,   62.,   65.]])
+        >>> # execute function
+        >>> _xys = remove_homogenous_coordinate(_xyzs)
+        >>> # verify results
+        >>> result = np.array_repr(_xys, precision=3)
+        >>> print(result)
+        array([[ 2.979,  2.982,  2.984,  2.984,  2.985],
+               [ 2.574,  2.482,  2.516,  2.5  ,  2.508]])
+    """
     assert _xyzs.shape[0] == 3
     _xys = np.divide(_xyzs[0:2], _xyzs[None, 2])
     return _xys
@@ -281,42 +343,6 @@ def transform_points_with_homography(H, _xys):
     xyz_t = matrix_multiply(H, xyz)
     xy_t  = remove_homogenous_coordinate(xyz_t)
     return xy_t
-
-
-def homogonize(_xyzs):
-    """
-    DEPRICATE in favor of remove_homogenous_coordinate
-
-    normalizes 3d homogonous coordinates into 2d coordinates
-
-    Args:
-        _xyzs (ndarray): of shape (3, N)
-
-    Returns:
-        ndarray: _xys of shape (2, N)
-
-    CommandLine:
-        python -m vtool.linalg --test-homogonize
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.linalg import *  # NOQA
-        >>> # build test data
-        >>> _xyzs = np.array([[ 140.,  167.,  185.,  185.,  194.],
-        ...                   [ 121.,  139.,  156.,  155.,  163.],
-        ...                   [  47.,   56.,   62.,   62.,   65.]])
-        >>> # execute function
-        >>> _xys = homogonize(_xyzs)
-        >>> # verify results
-        >>> result = np.array_repr(_xys, precision=3)
-        >>> print(result)
-        array([[ 2.979,  2.982,  2.984,  2.984,  2.985],
-               [ 2.574,  2.482,  2.516,  2.5  ,  2.508]])
-    """
-    _xys = np.divide(_xyzs[0:2], _xyzs[np.newaxis, 2])
-    #_xs, _ys, _zs = _xyzs
-    #_xys = np.vstack((_xs / _zs, _ys / _zs))
-    return _xys
 
 
 def normalize_rows(arr1):  # , out=None):

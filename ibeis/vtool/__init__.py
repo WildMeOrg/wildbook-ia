@@ -129,8 +129,9 @@ if DOELSE:
                              resize_imagelist_to_sqrtarea, resize_thumb, 
                              resize_worker, resized_clamped_thumb_dims, 
                              resized_dims_and_ratio, rotate_image, 
-                             rotate_image_on_disk, scale_bbox_to_verts_gen, 
-                             subpixel_values, warpAffine, warpHomog,) 
+                             rotate_image_on_disk, scaled_verts_from_bbox, 
+                             scaled_verts_from_bbox_gen, subpixel_values, 
+                             warpAffine, warpHomog,) 
     from vtool.histogram import (get_histinfo_str, hist_argmaxima, 
                                  hist_edges_to_centers, 
                                  hist_interpolated_submaxima, 
@@ -178,8 +179,8 @@ if DOELSE:
                                 get_extract_features_default_params,) 
     from vtool.linalg import (OLD_pdf_norm2d, TRANSFORM_DTYPE, 
                               add_homogenous_coordinate, det_ltri, dot_ltri, 
-                              gauss2d_pdf, homogonize, inv_ltri, 
-                              normalize_rows, normalize_vecs2d_inplace, 
+                              gauss2d_pdf, inv_ltri, normalize_rows, 
+                              normalize_vecs2d_inplace, 
                               remove_homogenous_coordinate, 
                               rotation_around_bbox_mat3x3, 
                               rotation_around_mat3x3, rotation_mat2x2, 
@@ -224,9 +225,8 @@ if DOELSE:
                             group_consecutive, iceil, iround, non_decreasing, 
                             non_increasing, strictly_decreasing, 
                             strictly_increasing, tau, test_language_modulus,) 
-    from vtool.geometry import (bbox_of_verts, bboxes_from_vert_list, 
-                                draw_verts, homogonize_list, unhomogonize, 
-                                unhomogonize_list, verts_from_bbox, 
+    from vtool.geometry import (bbox_from_verts, bboxes_from_vert_list, 
+                                draw_verts, verts_from_bbox, 
                                 verts_list_from_bboxes_list,) 
     from vtool.nearest_neighbors import (ann_flann_once, assign_to_centroids, 
                                          build_flann_index, flann_augment, 

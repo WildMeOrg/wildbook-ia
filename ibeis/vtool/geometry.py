@@ -9,7 +9,7 @@ import cv2
 
 def bboxes_from_vert_list(verts_list, castint=False):
     """ Fit the bounding polygon inside a rectangle """
-    return [bbox_of_verts(verts, castint=castint) for verts in verts_list]
+    return [bbox_from_verts(verts, castint=castint) for verts in verts_list]
 
 
 def verts_list_from_bboxes_list(bboxes_list):
@@ -29,7 +29,7 @@ def verts_from_bbox(bbox, close=False):
     return verts
 
 
-def bbox_of_verts(verts, castint=False):
+def bbox_from_verts(verts, castint=False):
     x = min(x[0] for x in verts)
     y = min(y[1] for y in verts)
     w = max(x[0] for x in verts) - x
@@ -38,26 +38,6 @@ def bbox_of_verts(verts, castint=False):
         return (int(x), int(y), int(w), int(h))
     else:
         return (x, y, w, h)
-
-
-def homogonize_list(xy_list):
-    return [(x, y, 1) for (x, y) in xy_list]
-
-
-def unhomogonize_list(xyz_list):
-    return [(x / z, y / z) for (x, y, z) in xyz_list]
-
-
-def homogonize(xy_arr):
-    z_arr = np.ones(xy_arr.shape[1], dtype=xy_arr.dtype)
-    xyz_arr = np.vstack((xy_arr, z_arr))
-    return xyz_arr
-
-
-def unhomogonize(xyz_arr):
-    x_arr, y_ar, z_arr = xyz_arr
-    xy_arr = np.vstack((x_arr / z_arr, y_ar / z_arr))
-    return xy_arr
 
 
 def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
@@ -93,9 +73,9 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
         >>> assert out is not img
         >>> assert out is not img_in
         >>> # verify results
-        >>> if ut.show_was_requested():
-        >>>     pt.imshow(img)
-        >>>     pt.show_if_requested()
+        >>> ut.quit_if_noshow()
+        >>> pt.imshow(img)
+        >>> pt.show_if_requested()
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -113,9 +93,9 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
         >>> assert img_in is img, 'should be in place'
         >>> assert out is img, 'should be in place'
         >>> # verify results
-        >>> if ut.show_was_requested():
-        >>>     pt.imshow(img)
-        >>>     pt.show_if_requested()
+        >>> ut.quit_if_noshow()
+        >>> pt.imshow(img)
+        >>> pt.show_if_requested()
     """
     if out is None:
         out = np.copy(img_in)

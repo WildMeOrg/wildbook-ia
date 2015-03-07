@@ -390,7 +390,7 @@ def resize_thumb(img, max_dsize=(64, 64)):
         return resize(img, dsize)
 
 
-def scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy):
+def scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy):
     r"""
     Helps with drawing scaled bbounding boxes on thumbnails
 
@@ -404,7 +404,7 @@ def scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy):
         new_verts - vertices of scaled bounding box for every input
 
     CommandLine:
-        python -m vtool.image --test-scale_bbox_to_verts_gen
+        python -m vtool.image --test-scaled_verts_from_bbox_gen
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -415,7 +415,7 @@ def scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy):
         >>> sx = .5
         >>> sy = .5
         >>> # execute function
-        >>> new_verts_list = list(scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy))
+        >>> new_verts_list = list(scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
         >>> result = str(new_verts_list)
         >>> # verify results
         >>> print(result)
@@ -423,16 +423,22 @@ def scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy):
     """
     # TODO: input verts support and better name
     for bbox, theta in zip(bbox_list, theta_list):
-        # Transformation matrixes
-        R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
-        S = linalg.scale_mat3x3(sx, sy)
-        # Get verticies of the annotation polygon
-        verts = geometry.verts_from_bbox(bbox, close=True)
-        # Rotate and transform to thumbnail space
-        xyz_pts = geometry.homogonize(np.array(verts).T)
-        trans_pts = geometry.unhomogonize(S.dot(R).dot(xyz_pts))
-        new_verts = np.round(trans_pts).astype(np.int32).T.tolist()
+        new_verts = scaled_verts_from_bbox(bbox, theta, sx, sy)
         yield new_verts
+
+
+def scaled_verts_from_bbox(bbox, theta, sx, sy):
+    """ Helps with drawing scaled bbounding boxes on thumbnails """
+    # Transformation matrixes
+    R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
+    S = linalg.scale_mat3x3(sx, sy)
+    # Get verticies of the annotation polygon
+    verts = geometry.verts_from_bbox(bbox, close=True)
+    # Rotate and transform to thumbnail space
+    xyz_pts = linalg.add_homogenous_coordinate(np.array(verts).T)
+    trans_pts = linalg.remove_homogenous_coordinate(S.dot(R).dot(xyz_pts))
+    new_verts = np.round(trans_pts).astype(np.int32).T.tolist()
+    return new_verts
 
 
 def _trimread(gpath):

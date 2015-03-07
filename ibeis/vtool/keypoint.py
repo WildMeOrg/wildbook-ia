@@ -724,7 +724,7 @@ def transform_kpts_xys(H, kpts):
     return xy_t
     #xyz   = get_homog_xyzs(kpts)
     #xyz_t = matrix_multiply(H, xyz)
-    #xy_t  = ltool.homogonize(xyz_t)
+    #xy_t  = ltool.add_homogenous_coordinate(xyz_t)
     #return xy_t
 
 #---------------------

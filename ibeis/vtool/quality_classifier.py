@@ -1,3 +1,11 @@
+
+"""
+References:
+    % Single-image noise level estimation for blind denoising.
+    % http://www.ok.ctrl.titech.ac.jp/res/NLE/TIP2013-noise-level-estimation06607209.pdfhttp://www.ok.ctrl.titech.ac.jp/res/NLE/TIP2013-noise-level-estimation06607209.pdf
+"""
+
+
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
