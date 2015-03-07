@@ -5,7 +5,6 @@ import utool as ut
 ut.noinject(__name__, '[ibeis.model.preproc.__init__]', DEBUG=False)
 
 from ibeis.model.preproc import preproc_chip
-from ibeis.model.preproc import preproc_detectchip
 from ibeis.model.preproc import preproc_detectimg
 from ibeis.model.preproc import preproc_encounter
 from ibeis.model.preproc import preproc_feat

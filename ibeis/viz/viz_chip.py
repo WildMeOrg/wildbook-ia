@@ -10,7 +10,7 @@ from ibeis.viz import viz_image
                                                        DEBUG=False)
 
 
-@utool.indent_func
+#@utool.indent_func
 def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
                 weight_label=None, weights=None, **kwargs):
     """ Driver function to show chips

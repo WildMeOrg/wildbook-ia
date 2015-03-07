@@ -18,6 +18,7 @@ import vtool.image as gtool
 import numpy as np
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
 from vtool import linalg, geometry, image
+import vtool as vt
 import utool as ut
 import ibeis
 from ibeis import params
@@ -91,7 +92,7 @@ def export_to_xml(ibs, offset=2829, enforce_yaw=True):
     information = {
         'database_name' : ibs.get_dbname()
     }
-    datadir = ibs._ibsdb + "/LearningData/"
+    datadir = ibs._ibsdb + '/LearningData/'
     imagedir = datadir + 'JPEGImages/'
     annotdir = datadir + 'Annotations/'
     ut.ensuredir(datadir)
@@ -138,8 +139,8 @@ def export_to_xml(ibs, offset=2829, enforce_yaw=True):
                 # Get verticies of the annotation polygon
                 verts = geometry.verts_from_bbox(bbox, close=True)
                 # Rotate and transform vertices
-                xyz_pts = geometry.homogonize(np.array(verts).T)
-                trans_pts = geometry.unhomogonize(R.dot(xyz_pts))
+                xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
+                trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
                 new_verts = np.round(trans_pts).astype(np.int).T.tolist()
                 x_points = [pt[0] for pt in new_verts]
                 y_points = [pt[1] for pt in new_verts]
@@ -1906,7 +1907,7 @@ def draw_thumb_helper(tup):
     img_size = (gw, gh)
     max_dsize = (thumbsize, thumbsize)
     dsize, sx, sy = gtool.resized_clamped_thumb_dims(img_size, max_dsize)
-    new_verts_list = list(gtool.scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy))
+    new_verts_list = list(gtool.scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
     #thumb = gtool.resize_thumb(img, max_dsize)
     # -----------------
     # Actual computation

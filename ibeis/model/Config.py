@@ -916,7 +916,8 @@ class FeatureConfig(ConfigBase):
                         valstr = str(val)
                     #namestr = ut.hashstr(alias.get(name, name), hashlen=6,
                     #                        alphabet=ut.util_hash.ALPHABET_27)
-                    namestr = ut.clipstr(alias.get(name, name), 5)
+                    #namestr = ut.clipstr(alias.get(name, name), 5)
+                    namestr = alias.get(name, name)
                     str_ = namestr + '=' + valstr
                     yield str_
             feat_cfgstrs.append('_' + ',' .join(list(_gen())))

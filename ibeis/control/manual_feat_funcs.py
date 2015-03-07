@@ -32,7 +32,7 @@ FEAT_ROWID        = 'feature_rowid'
 @getter_1to1
 def get_annot_feat_rowids(ibs, aid_list, ensure=False, eager=True, nInput=None, qreq_=None):
     cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
-    fid_list = ibs.get_chip_feat_rowids(cid_list, ensure=ensure, eager=eager, nInput=nInput)
+    fid_list = ibs.get_chip_feat_rowids(cid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
     return fid_list
 
 
@@ -411,6 +411,8 @@ def get_feat_config_rowid(ibs, qreq_=None):
         feat_cfg_suffix = qreq_.qparams.feat_cfgstr
     else:
         feat_cfg_suffix = ibs.cfg.feat_cfg.get_cfgstr()
+    #print(feat_cfg_suffix)
+    #print(qreq_)
     feat_cfg_rowid = ibs.add_config(feat_cfg_suffix)
     return feat_cfg_rowid
 

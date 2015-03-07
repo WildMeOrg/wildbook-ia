@@ -428,6 +428,7 @@ def compute_query_unconstrained_matches(qreq_, qaid, daid_list, config):
     #, .625)
     qvecs = qreq_.ibs.get_annot_vecs(qaid, qreq_=qreq_)
     dvecs_list = qreq_.ibs.get_annot_vecs(daid_list, qreq_=qreq_)
+    print(len(qvecs))
     flann = quick_vsone_flann(qreq_.ibs.get_flann_cachedir(), qvecs)
     rat_kwargs = {
         'unc_ratio_thresh' : unc_ratio_thresh,
@@ -697,6 +698,10 @@ def gridsearch_unconstrained_matches():
         python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show --qaid 41 --daid_list 39
         python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show --qaid 40 --daid_list 39
         python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show --testindex 2
+
+
+        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show --qaid 117 --daid_list 118 --db PZ_Master0
+        python -m ibeis.model.hots.vsone_pipeline --test-gridsearch_unconstrained_matches --show --qaid 117 --daid_list 118 --db PZ_Master0 --rotation_invariance
 
     Example:
         >>> # DISABLE_DOCTEST

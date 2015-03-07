@@ -21,6 +21,7 @@ import utool  # NOQA
 import utool as ut
 import vtool
 import numpy as np
+from os.path import exists
 # VTool
 #import vtool.chip as ctool
 #import vtool.image as gtool
@@ -101,7 +102,7 @@ def get_probchip_fname_fmt(ibs, qreq_=None, species=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
-        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
+        >>> ibs, aid_list = preproc_chip.testdata_ibeis()
         >>> qreq_ = None
         >>> probchip_fname_fmt = get_probchip_fname_fmt(ibs)
         >>> #want = 'probchip_aid=%d_bbox=%s_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png'
@@ -147,7 +148,7 @@ def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None, species=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> from os.path import basename
-        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
+        >>> ibs, aid_list = preproc_chip.testdata_ibeis()
         >>> qreq_ = None
         >>> probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)
         >>> result = basename(probchip_fpath_list[1])
@@ -172,7 +173,7 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
+        >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> qreq_ = None
@@ -183,7 +184,7 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
+        >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> qreq_ = None
@@ -214,22 +215,23 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
         if len(aids) == 0:
             continue
         probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, qreq_=None, species=species)
-        cfpath_list  = ibs.get_annot_chip_fpaths(aids, ensure=True, qreq_=qreq_)
 
         if lazy:
             # Filter out probchips that are already on disk
             # pyrf used to do this, now we need to do it
             # caching should be implicit due to using the visual_annot_uuid in
             # the filename
-            from os.path import exists
-            exists_list = list(map(exists, probchip_fpath_list))
-            dirty_cfpath_list = ut.filterfalse_items(cfpath_list, exists_list)
-            dirty_probchip_fpath_list = ut.filterfalse_items(probchip_fpath_list, exists_list)
-            print('[preproc_probchip.compute_and_write_probchip] Lazy compute of to compute %d/%d of species=%s' % (len(dirty_cfpath_list), len(cfpath_list), species))
+            isdirty_list = ut.not_list(map(exists, probchip_fpath_list))
+            dirty_aids = ut.filter_items(aids, isdirty_list)
+            dirty_probchip_fpath_list = ut.filter_items(probchip_fpath_list, isdirty_list)
+            print('[preproc_probchip.compute_and_write_probchip] Lazy compute of to compute %d/%d of species=%s' %
+                  (len(dirty_aids), len(aids), species))
         else:
             # No filtering
-            dirty_cfpath_list  = cfpath_list
+            dirty_aids  = aids
             dirty_probchip_fpath_list = probchip_fpath_list
+
+        dirty_cfpath_list  = ibs.get_annot_chip_fpaths(dirty_aids, ensure=True, qreq_=qreq_)
 
         config = {
             # 'scale_list': [1.0],
@@ -244,6 +246,119 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
         print('[preproc_probchip] Done computing probability images')
         print('[preproc_probchip] L_______________________')
     return probchip_fpath_list_
+
+
+def testshow_extramargin_info(ibs, aid_list, arg_list, newsize_list, halfoffset_cs_list):
+    #cfpath, gfpath, bbox, theta, new_size, filter_list = tup
+    # TEMP TESTING
+    from vtool import chip as ctool
+    import plottool as pt
+    import vtool as vt
+
+    index = 0
+    cfpath, gfpath, bbox, theta, new_size, filter_list = arg_list[index]
+    chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
+    bbox_cs_list = [
+        (xo_pcs, yo_pcs, w_pcs, h_pcs)
+        for (w_pcs, h_pcs), (xo_pcs, yo_pcs) in zip(newsize_list, halfoffset_cs_list)
+    ]
+    bbox_pcs = bbox_cs_list[index]
+    aid = aid_list[0]
+    from ibeis.viz import viz_chip
+    print('new_size = %r' % (new_size,))
+    print('newsize_list[index] = %r' % (newsize_list[index],))
+
+    fnum = 1
+    viz_chip.show_chip(ibs, aid, pnum=(1, 3, 1), fnum=fnum, annote=False, in_image=True , title_suffix='\noriginal image')
+    viz_chip.show_chip(ibs, aid, pnum=(1, 3, 2), fnum=fnum, annote=False, title_suffix='\noriginal chip')
+    bboxed_chip = vt.draw_verts(chipBGR, vt.scaled_verts_from_bbox(bbox_pcs, theta, 1, 1))
+    pt.imshow(bboxed_chip, pnum=(1, 3, 3), fnum=fnum, title='scaled chip with expanded margin.\n(orig margin drawn in orange)')
+
+    pt.show_if_requested()
+    #pt.imshow(chipBGR)
+
+
+def get_extramargin_detectchip_info(ibs, aid_list):
+    r"""
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_probchip --test-get_extramargin_detectchip_info --show
+        python -m ibeis.model.preproc.preproc_probchip --test-get_extramargin_detectchip_info --show --qaid 27
+        python -m ibeis.model.preproc.preproc_probchip --test-get_extramargin_detectchip_info --show --qaid 2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis.dev import main_helpers
+        >>> # build test data
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> aid_list = main_helpers.get_test_qaids(ibs)
+        >>> # execute function
+        >>> arg_list, newsize_list, halfoffset_cs_list = get_extramargin_detectchip_info(ibs, aid_list)
+        >>> # verify results
+        >>> ut.quit_if_noshow()
+        >>> testshow_extramargin_info(ibs, aid_list, arg_list, newsize_list, halfoffset_cs_list)
+    """
+    from vtool import chip as ctool
+    target_width = 128
+    gfpath_list = ibs.get_annot_image_paths(aid_list)
+    bbox_list   = ibs.get_annot_bboxes(aid_list)
+    theta_list  = ibs.get_annot_thetas(aid_list)
+    bbox_size_list = ut.get_list_column(bbox_list, [2, 3])
+    newsize_list = list(map(lambda size: ctool.get_scaled_size_with_width(target_width, *size), bbox_size_list))
+    invalid_aids = [aid for aid, (w, h) in zip(aid_list, bbox_size_list) if w == 0 or h == 0]
+    if len(invalid_aids) > 0:
+        msg = ("REMOVE INVALID (BAD WIDTH AND/OR HEIGHT) AIDS TO COMPUTE AND WRITE CHIPS")
+        msg += ("INVALID AIDS: %r" % (invalid_aids, ))
+        print(msg)
+        raise Exception(msg)
+    # There are two spaces we are working in here
+    # probchipspace _pcs (the space of the margined chip computed for probchip) and
+    # imagespace _gs (the space using in bbox specification)
+
+    # Compute the offset we would like in chip space for margin expansion
+    halfoffset_cs_list = [
+        # TODO: Find correct offsets
+        (16, 16)  # (w / 16, h / 16)
+        for (w, h) in newsize_list
+    ]
+
+    # Compute expanded newsize list to include the extra margin offset
+    expanded_newsize_list = [
+        (w_pcs + (2 * xo_pcs), h_pcs + (2 * yo_pcs))
+        for (w_pcs, h_pcs), (xo_pcs, yo_pcs) in zip(newsize_list, halfoffset_cs_list)
+    ]
+
+    # Get the conversion from chip to image space
+    to_imgspace_scale_factors = [
+        (w_gs / w_pcs, h_gs / h_pcs)
+        for ((w_pcs, h_pcs), (w_gs, h_gs)) in zip(newsize_list, bbox_size_list)
+    ]
+
+    # Convert the chip offsets to image space
+    halfoffset_gs_list = [
+        ((sx * xo), (sy * yo))
+        for (sx, sy), (xo, yo) in zip(to_imgspace_scale_factors, halfoffset_cs_list)
+    ]
+
+    # Find the size of the expanded margin bbox in image space
+    expanded_bbox_gs_list = [
+        (x_gs - xo_gs, y_gs - yo_gs, w_gs + (2 * xo_gs), h_gs + (2 * yo_gs))
+        for (x_gs, y_gs, w_gs, h_gs), (xo_gs, yo_gs) in zip(bbox_list, halfoffset_gs_list)
+    ]
+
+    # TODO: make this work
+    extramargin_cfpath_list = [None] * len(aid_list)
+    # # filter by species and add a suffix for the probchip_input
+    # # also compute a probchip fpath with an expanded suffix for the detector
+    #probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, qreq_=None, species=species)
+    # Then crop the output and write that as the real probchip
+
+    filtlist_iter = ([] for _ in range(len(aid_list)))
+    arg_iter = zip(extramargin_cfpath_list, gfpath_list, expanded_bbox_gs_list, theta_list, expanded_newsize_list, filtlist_iter)
+    arg_list = list(arg_iter)
+    return arg_list, newsize_list, halfoffset_cs_list
+
 
 if __name__ == '__main__':
     """

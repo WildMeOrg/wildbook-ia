@@ -122,11 +122,15 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
         default_cfgdict.update(cfgdict)
         _orig_cfgdict = cfgdict
         force_keys = set(list(_orig_cfgdict.keys()))
-        cfgdict = ut.util_arg.argparse_dict(default_cfgdict, verbose=not
-                                            ut.QUIET, only_specified=True,
-                                            force_keys=force_keys)
+        cfgdict_ = ut.util_arg.argparse_dict(default_cfgdict, verbose=not
+                                             ut.QUIET, only_specified=True,
+                                             force_keys=force_keys)
+        #ut.embed()
         if VERB_PIPELINE or VERB_TESTDATA:
-            print('[plh] cfgdict = ' + ut.dict_str(cfgdict))
+            print('[plh] cfgdict_ = ' + ut.dict_str(cfgdict_))
+    else:
+        cfgdict_ = cfgdict
+
     ibs = ibeis.opendb(dbname)
     if qaid_list is None:
         if dbname == 'testdb1':
@@ -148,8 +152,8 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
     ibs = ibeis.test_main(db=dbname)
 
     if 'with_metadata' not in cfgdict:
-        cfgdict['with_metadata'] = True
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
+        cfgdict_['with_metadata'] = True
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict_)
     if preload:
         qreq_.lazy_load()
     return ibs, qreq_
