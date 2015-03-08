@@ -490,12 +490,12 @@ class NNWeightConfig(ConfigBase):
             [
                 ut.ParamInfo('ratio_thresh', None, type_=float, hideif=None),
                 ut.ParamInfoBool('lnbnn_on', True,  hideif=False),
-                ut.ParamInfoBool('lograt_on', False, hideif=False),
-                ut.ParamInfoBool('logdist_on', False,  hideif=False),
-                ut.ParamInfoBool('dist_on', False,  hideif=False),
-                ut.ParamInfoBool('normonly_on', False,  hideif=False),
-                ut.ParamInfoBool('loglnbnn_on', False,  hideif=False),
-                ut.ParamInfoBool('cos_on', False,  hideif=False),
+                #ut.ParamInfoBool('lograt_on', False, hideif=False),
+                #ut.ParamInfoBool('logdist_on', False,  hideif=False),
+                #ut.ParamInfoBool('dist_on', False,  hideif=False),
+                #ut.ParamInfoBool('normonly_on', False,  hideif=False),
+                #ut.ParamInfoBool('loglnbnn_on', False,  hideif=False),
+                #ut.ParamInfoBool('cos_on', False,  hideif=False),
                 ut.ParamInfoBool('fg_on', True, hideif=False),
                 #
                 ut.ParamInfoBool('can_match_sameimg', False,  'sameimg', hideif=False),
@@ -850,6 +850,15 @@ class FeatureConfig(ConfigBase):
         >>> result = (feat_cfg.get_cfgstr())
         >>> print(result)
         _FEAT(hesaff+sift_)_CHIP(sz450)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model import Config  # NOQA
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> feat_cfg = Config.FeatureConfig(rotation_invariance=True)
+        >>> result = (feat_cfg.get_cfgstr())
+        >>> print(result)
+        _FEAT(hesaff+sift_rotation_invariance=True)_CHIP(sz450)
 
     _FEAT(hesaff+sift_nScal=3,thrsh=5.33,edggn=10.00,nIter=16,cnvrg=0.05,intlS=1.60)_CHIP(sz450)
     """

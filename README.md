@@ -411,8 +411,11 @@ python dev.py --allgt -t inspect -w
 # Profiling Code
 #----------------
 
-profiler.sh dev.py -t best --db testdb1 --allgt --nocache-query --prof-mod "spatial;linalg;keypoint"
-profiler.sh dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint"
+utprof.py dev.py -t best --db testdb1 --allgt --nocache-query --prof-mod "spatial;linalg;keypoint"
+utprof.py dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint"
+utprof.py dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint"
+utprof.py dev.py -t custom --db PZ_MTEST --allgt --noqcache
+utprof.py dev.py -t custom:sv_on=False --db PZ_MTEST --allgt --noqcache
 
 
 #----------------
@@ -524,13 +527,13 @@ python dev.py --dbdir /raid/work2/DanPrinctonDrive/elephants-dan-princton-drive-
 
 # Current Experiments:
 
-profiler.sh dev.py -t upsize --allgt --quiet --noshow
+utprof.py dev.py -t upsize --allgt --quiet --noshow
 
 python dev.py -t upsize --db PZ_MTEST --qaid 1:30:3 -w
 
 
 dev.py -t upsize --allgt --quiet --noshow
-profiler.sh dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:30
+utprof.py dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:30
 python dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:30
 python dev.py -t upsize --quiet --db PZ_MTEST --allgt -w
 
@@ -539,7 +542,7 @@ python dev.py -t upsize --quiet --db PZ_MTEST --allgt -w
 python dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:10:3 -w
 
 
-profiler.sh dev.py -t best --allgt --db PZ_MTEST --nocache-big --nocache-query
+utprof.py dev.py -t best --allgt --db PZ_MTEST --nocache-big --nocache-query
 ./dev.py -t best --qaid 1:10 --db PZ_MTEST --nocache-big --nocache-query
 
 ./main.py --db PZ_RoseMary --cmd
@@ -574,7 +577,7 @@ python dev.py --db PZ_RoseMary -t upsize --allgt --screen --cyth
 # Correct output 
 python dev.py --db PZ_MTEST -t best --qaid 1:20
 python dev.py --db PZ_MTEST -t upsize --allgt --screen --cyth
-python dev.py --db PZ_RoseMary -t upsize --allgt --screen --cyth
+python dev.py --db PZ_Master0 -t upsize --allgt --screen --cyth
 
 # EXPERIMENT DATABASES
 python dev.py --db testdb1 --setdb 
@@ -593,8 +596,8 @@ python dev.py -t best --allgt --view-hard
 python dev.py -t upsize --allgt 
 
 
-profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t asmk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
-profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t smk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
+utprof.py dev.py --prof-mod smk_,pandas_helpers,hstypes -t asmk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
+utprof.py dev.py --prof-mod smk_,pandas_helpers,hstypes -t smk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
 ./dev.py -t smk --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
 ./dev.py -t asmk --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
 

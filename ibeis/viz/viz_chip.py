@@ -12,7 +12,7 @@ from ibeis.viz import viz_image
 
 #@utool.indent_func
 def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
-                weight_label=None, weights=None, **kwargs):
+                weight_label=None, weights=None, qreq_=None, **kwargs):
     """ Driver function to show chips
 
     Args:
@@ -48,7 +48,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     ibs.assert_valid_aids((aid,))
     #utool.embed()
     # Get chip
-    chip = vh.get_chips(ibs, aid, in_image, **kwargs)
+    chip = vh.get_chips(ibs, aid, in_image, qreq_=qreq_, **kwargs)
     # Create chip title
     chip_text = vh.get_annot_texts(ibs, [aid], **kwargs)[0]
     if kwargs.get('enable_chip_title_prefix', True):
@@ -69,7 +69,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
             if weight_label == 'fg_weights':
                 if weights is None and ibs.has_species_detector(ibs.get_annot_species_texts(aid)):
                     weight_label = 'fg_weights'
-                    weights = ibs.get_annot_fgweights([aid], ensure=True)[0]
+                    weights = ibs.get_annot_fgweights([aid], ensure=True, qreq_=qreq_)[0]
             if weights is not None:
                 cmap_ = 'hot'
                 #if weight_label == 'dstncvs':
@@ -79,7 +79,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
                 kwargs['ell_color'] = color
                 kwargs['pts_color'] = color
 
-        kpts_ = vh.get_kpts(ibs, aid, in_image, **kwargs)
+        kpts_ = vh.get_kpts(ibs, aid, in_image, qreq_=qreq_, **kwargs)
         try:
             del kwargs['kpts']
         except KeyError:

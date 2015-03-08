@@ -36,6 +36,16 @@ class QueryParams(collections.Mapping):
             >>> result = qparams.query_cfgstr
             >>> print(')_\n'.join(result.split(')_')))
 
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots import query_params
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> cfg = ibs.cfg.query_cfg
+            >>> #cfg.pipeline_root = 'asmk'
+            >>> cfgdict = dict(rotation_invariance=True)
+            >>> qparams = query_params.QueryParams(cfg, cfgdict)
+            >>> ut.assert_eq(qparams.hesaff_params['rotation_invariance'], True)
 
             _smk_SMK(agg=True,t=0.0,a=3.0,idf)_
             VocabAssign(nAssign=10,a=1.2,s=None,eqw=T)_

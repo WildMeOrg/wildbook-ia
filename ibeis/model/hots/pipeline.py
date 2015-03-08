@@ -147,19 +147,18 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         # Selective match kernel
         qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
     elif qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
-
-        #impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
+        impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
 
         # Nearest neighbors (nns_list)
         # a nns object is a tuple(ndarray, ndarray) - (qfx2_dx, qfx2_dist)
         # * query descriptors assigned to database descriptors
         # * FLANN used here
-        nns_list = nearest_neighbors(qreq_, verbose=verbose)
+        nns_list = nearest_neighbors(qreq_, Kpad_list, verbose=verbose)
 
         # Remove Impossible Votes
         # a nnfilt object is an ndarray qfx2_valid
         # * marks matches to the same image as invalid
-        nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, verbose=verbose)
+        nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=verbose)
 
         # Nearest neighbors weighting / scoring (filtweights_list)
         # filtweights_list maps qaid to filtweights which is a dict
@@ -224,114 +223,11 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     return qaid2_qres_
 
 #============================
-# 1) Nearest Neighbors
+# 0) Nearest Neighbors
 #============================
 
 
-#@ut.indent_func('[nn]')
-@profile
-def nearest_neighbors(qreq_, verbose=VERB_PIPELINE):
-    """
-    Plain Nearest Neighbors
-
-    CommandLine:
-        python -m ibeis.model.hots.pipeline --test-nearest_neighbors
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> verbose = True
-        >>> ibs, qreq_ = plh.get_pipeline_testdata(dbname='testdb1')
-        >>> # execute function
-        >>> nn_list = nearest_neighbors(qreq_, verbose)
-        >>> qaids = qreq_.get_internal_qaids()
-        >>> nns = nn_list[0]
-        >>> (qfx2_idx, qfx2_dist) = nns
-        >>> # Assert nns tuple is valid
-        >>> ut.assert_eq(qfx2_idx.shape, qfx2_dist.shape)
-        >>> ut.assert_eq(qfx2_idx.shape[1], 5)
-        >>> ut.assert_inbounds(qfx2_idx.shape[0], 1000, 2000)
-    """
-    # Neareset neighbor configuration
-    K      = qreq_.qparams.K
-    Knorm  = qreq_.qparams.Knorm
-    #checks = qreq_.qparams.checks
-    # Get both match neighbors and normalizing neighbors
-    num_neighbors  = K + Knorm
-    if verbose:
-        print('[hs] Step 1) Assign nearest neighbors: %s' %
-              (qreq_.qparams.nn_cfgstr,))
-    # For each internal query annotation
-    internal_qaids = qreq_.get_internal_qaids()
-    # Find the nearest neighbors of each descriptor vector
-    qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids, qreq_=qreq_)
-    # Mark progress ane execute nearest indexer nearest neighbor code
-    progkw = dict(freq=20, time_thresh=2.5)
-    qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, **progkw)
-    nns_list = [qreq_.indexer.knn(qfx2_vec, num_neighbors)
-                 for qfx2_vec in qvec_iter]
-    # Verbose statistics reporting
-    if verbose:
-        plh.print_nearest_neighbor_assignments(qvecs_list, nns_list)
-    #if qreq_.qparams.with_metadata:
-    #    qreq_.metadata['nns'] = nns_list
-    return nns_list
-
-
-#============================
-# 2) Remove Impossible Weights
-#============================
-
-
-@profile
-def baseline_neighbor_filter(qreq_, nns_list, verbose=VERB_PIPELINE):
-    """
-    Removes matches to self, the same image, or the same name.
-
-    CommandLine:
-        python -m ibeis.model.hots.pipeline --test-baseline_neighbor_filter
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.pipeline import *   # NOQA
-        >>> qreq_, nns_list = plh.testdata_pre_baselinefilter(qaid_list=[1, 2, 3, 4], codename='vsmany')
-        >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list)
-        >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.get_external_qaids()))
-        >>> ut.assert_eq(nnvalid0_list[0].shape[1], qreq_.qparams.K, 'does not match k')
-        >>> ut.assert_eq(qreq_.qparams.K, 4, 'k is not 4')
-        >>> assert not np.any(nnvalid0_list[0][:, 0]), (
-        ...    'first col should be all invalid because of self match')
-        >>> assert not np.all(nnvalid0_list[0][:, 1]), (
-        ...    'second col should have some good matches')
-        >>> ut.assert_inbounds(nnvalid0_list[0].sum(), 1900, 2000)
-
-    Example1:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.pipeline import *   # NOQA
-        >>> qreq_, nns_list = plh.testdata_pre_baselinefilter(codename='vsone')
-        >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list)
-        >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.get_external_daids()))
-        >>> ut.assert_eq(qreq_.qparams.K, 1, 'k is not 1')
-        >>> assert nnvalid0_list[0].shape[1] == qreq_.qparams.K, 'does not match k'
-        >>> ut.assert_eq(nnvalid0_list[0].sum(), 0, 'no self matches')
-        >>> ut.assert_inbounds(nnvalid0_list[1].sum(), 800, 1100)
-    """
-    if verbose:
-        print('[hs] Step 2) Baseline neighbor filter')
-
-    # Build up impossible daids for each query aid
-    impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
-    Knorm = qreq_.qparams.Knorm
-    nnidx_iter = (qfx2_idx.T[0:-Knorm].T for (qfx2_idx, _) in nns_list)
-    qfx2_aid_list = [qreq_.indexer.get_nn_aids(qfx2_nnidx) for qfx2_nnidx in nnidx_iter]
-    nnvalid0_list = [
-        vt.get_uncovered_mask(qfx2_aid, impossible_daids)
-        for qfx2_aid, impossible_daids in zip(qfx2_aid_list, impossible_daids_list)
-    ]
-    return nnvalid0_list
-
-
-def build_impossible_daids_list(qreq_):
+def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
     r"""
     Args:
         qreq_ (QueryRequest):  query request object with hyper-parameters
@@ -340,7 +236,7 @@ def build_impossible_daids_list(qreq_):
         python -m ibeis.model.hots.pipeline --test-build_impossible_daids_list
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
         >>> import ibeis
         >>> # build test data
@@ -348,13 +244,17 @@ def build_impossible_daids_list(qreq_):
         >>> species = ibeis.const.Species.ZEB_PLAIN
         >>> daids = ibs.get_valid_aids(species=species)
         >>> qaids = ibs.get_valid_aids(species=species)
-        >>> qreq_ = ibs.new_query_request(qaids, daids, cfgdict=dict(can_match_sameimg=False, can_match_samename=False))
+        >>> qreq_ = ibs.new_query_request(qaids, daids, cfgdict=dict(codename='vsmany', can_match_sameimg=False, can_match_samename=False))
         >>> # execute function
-        >>> result = build_impossible_daids_list(qreq_)
+        >>> impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
         >>> # verify results
+        >>> result = str((impossible_daids_list, Kpad_list))
         >>> print(result)
         ([array([1]), array([2, 3]), array([2, 3]), array([4]), array([5, 6]), array([5, 6])], [1, 2, 2, 1, 2, 2])
     """
+    if verbose:
+        print('[hs] Step 0) Build impossible matches')
+
     cant_match_sameimg  = not qreq_.qparams.can_match_sameimg
     cant_match_samename = not qreq_.qparams.can_match_samename
     cant_match_self     = True
@@ -407,13 +307,123 @@ def build_impossible_daids_list(qreq_):
     # TODO: add explicit not a match case in here
     _impossible_daids_list = list(map(ut.flatten, zip(*_impossible_daid_lists)))
     impossible_daids_list = [np.unique(impossible_daids) for impossible_daids in _impossible_daids_list]
-
-    # TODO: we need to pad K for each bad annotation
-    Kpad_list = list(map(len, impossible_daids_list))  # NOQA
     #impossible_daids_list = [
     #    np.intersect1d(np.unique(impossible_daids), internal_daids, assume_unique=True)
     #    for impossible_daids in _impossible_daids_list]
+
+    # TODO: we need to pad K for each bad annotation
+    if qreq_.qparams.vsone:
+        # dont pad vsone
+        Kpad_list = [0 for _ in range(len(impossible_daids_list))]
+    else:
+        Kpad_list = list(map(len, impossible_daids_list))  # NOQA
     return impossible_daids_list, Kpad_list
+
+#============================
+# 1) Nearest Neighbors
+#============================
+
+
+#@ut.indent_func('[nn]')
+@profile
+def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
+    """
+    Plain Nearest Neighbors
+
+    CommandLine:
+        python -m ibeis.model.hots.pipeline --test-nearest_neighbors
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *  # NOQA
+        >>> verbose = True
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(dbname='testdb1')
+        >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
+        >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
+        >>> # execute function
+        >>> nn_list = nearest_neighbors(qreq_, Kpad_list, verbose=verbose)
+        >>> (qfx2_idx, qfx2_dist) = nn_list[0]
+        >>> num_neighbors = Kpad_list[0] + qreq_.qparams.K + qreq_.qparams.Knorm
+        >>> # Assert nns tuple is valid
+        >>> ut.assert_eq(qfx2_idx.shape, qfx2_dist.shape)
+        >>> ut.assert_eq(qfx2_idx.shape[1], num_neighbors)
+        >>> ut.assert_inbounds(qfx2_idx.shape[0], 1000, 2000)
+    """
+    # Neareset neighbor configuration
+    K      = qreq_.qparams.K
+    Knorm  = qreq_.qparams.Knorm
+    #checks = qreq_.qparams.checks
+    # Get both match neighbors (including padding) and normalizing neighbors
+    num_neighbors_list = [K + Kpad + Knorm for Kpad in Kpad_list]
+    if verbose:
+        print('[hs] Step 1) Assign nearest neighbors: %s' %
+              (qreq_.qparams.nn_cfgstr,))
+    # For each internal query annotation
+    internal_qaids = qreq_.get_internal_qaids()
+    # Find the nearest neighbors of each descriptor vector
+    qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids, qreq_=qreq_)
+    # Mark progress ane execute nearest indexer nearest neighbor code
+    progkw = dict(freq=20, time_thresh=2.5)
+    qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, **progkw)
+    nns_list = [qreq_.indexer.knn(qfx2_vec, num_neighbors)
+                for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
+    # Verbose statistics reporting
+    if verbose:
+        plh.print_nearest_neighbor_assignments(qvecs_list, nns_list)
+    #if qreq_.qparams.with_metadata:
+    #    qreq_.metadata['nns'] = nns_list
+    return nns_list
+
+
+#============================
+# 2) Remove Impossible Weights
+#============================
+
+
+@profile
+def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VERB_PIPELINE):
+    """
+    Removes matches to self, the same image, or the same name.
+
+    CommandLine:
+        python -m ibeis.model.hots.pipeline --test-baseline_neighbor_filter
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *   # NOQA
+        >>> qreq_, nns_list, impossible_daids_list = plh.testdata_pre_baselinefilter(qaid_list=[1, 2, 3, 4], codename='vsmany')
+        >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list)
+        >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.get_external_qaids()))
+        >>> #ut.assert_eq(nnvalid0_list[0].shape[1], qreq_.qparams.K, 'does not match k')
+        >>> #ut.assert_eq(qreq_.qparams.K, 4, 'k is not 4')
+        >>> assert not np.any(nnvalid0_list[0][:, 0]), (
+        ...    'first col should be all invalid because of self match')
+        >>> assert not np.all(nnvalid0_list[0][:, 1]), (
+        ...    'second col should have some good matches')
+        >>> ut.assert_inbounds(nnvalid0_list[0].sum(), 2000, 3000)
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.pipeline import *   # NOQA
+        >>> qreq_, nns_list, impossible_daids_list = plh.testdata_pre_baselinefilter(codename='vsone')
+        >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list)
+        >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.get_external_daids()))
+        >>> ut.assert_eq(qreq_.qparams.K, 1, 'k is not 1')
+        >>> ut.assert_eq(nnvalid0_list[0].shape[1], qreq_.qparams.K, 'does not match k')
+        >>> ut.assert_eq(nnvalid0_list[0].sum(), 0, 'no self matches')
+        >>> ut.assert_inbounds(nnvalid0_list[1].sum(), 800, 1100)
+    """
+    if verbose:
+        print('[hs] Step 2) Baseline neighbor filter')
+
+    Knorm = qreq_.qparams.Knorm
+    nnidx_iter = (qfx2_idx.T[0:-Knorm].T for (qfx2_idx, _) in nns_list)
+    qfx2_aid_list = [qreq_.indexer.get_nn_aids(qfx2_nnidx) for qfx2_nnidx in nnidx_iter]
+    nnvalid0_list = [
+        vt.get_uncovered_mask(qfx2_aid, impossible_daids)
+        for qfx2_aid, impossible_daids in zip(qfx2_aid_list, impossible_daids_list)
+    ]
+    return nnvalid0_list
 
 
 #============================
@@ -539,7 +549,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_
         >>> fm = cm_list[0].fm_list[cm_list[0].daid2_idx[2]]
         >>> num_matches = len(fm)
         >>> print('vsone num_matches = %r' % num_matches)
-        >>> ut.assert_inbounds(num_matches, 550, 600, 'vsmany nmatches out of bounds')
+        >>> ut.assert_inbounds(num_matches, 750, 800, 'vsmany nmatches out of bounds')
         >>> cm_list[0].testshow_single(qreq_)
 
     Example1:

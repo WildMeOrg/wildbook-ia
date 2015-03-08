@@ -254,6 +254,7 @@ def testshow_extramargin_info(ibs, aid_list, arg_list, newsize_list, halfoffset_
     from vtool import chip as ctool
     import plottool as pt
     import vtool as vt
+    from ibeis.viz import viz_chip
 
     index = 0
     cfpath, gfpath, bbox, theta, new_size, filter_list = arg_list[index]
@@ -264,7 +265,6 @@ def testshow_extramargin_info(ibs, aid_list, arg_list, newsize_list, halfoffset_
     ]
     bbox_pcs = bbox_cs_list[index]
     aid = aid_list[0]
-    from ibeis.viz import viz_chip
     print('new_size = %r' % (new_size,))
     print('newsize_list[index] = %r' % (newsize_list[index],))
 

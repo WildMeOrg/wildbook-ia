@@ -177,10 +177,7 @@ def get_nnindexer_uuid_map_fpath(qreq_):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> # build test data
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=False)
         >>> uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
         >>> result = str(ut.path_ndir_split(uuid_map_fpath, 3))
         >>> print(result)
@@ -215,10 +212,7 @@ def clear_uuid_cache(qreq_):
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(qaids, daids)
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=False)
         >>> # execute function
         >>> fgws_list = clear_uuid_cache(qreq_)
         >>> # verify results
@@ -242,11 +236,7 @@ def print_uuid_cache(qreq_):
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> dbname = 'PZ_Master0'  # 'testdb1'
-        >>> ibs = ibeis.opendb(dbname)
-        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(qaids, daids)
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='PZ_Master0', preload=False)
         >>> # execute function
         >>> print_uuid_cache(qreq_)
         >>> # verify results
@@ -1007,8 +997,7 @@ class NeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> cfgdict = dict()
-            >>> dbname = 'testdb1'
-            >>> ibs, qreq_ = plh.get_pipeline_testdata(dbname=dbname, cfgdict=cfgdict)
+            >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', cfgdict=cfgdict, preload=False)
             >>> nnindexer = qreq_.indexer
             >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids()[0], qreq_=qreq_)
             >>> num_neighbors = 4

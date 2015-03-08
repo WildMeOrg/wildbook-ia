@@ -228,7 +228,9 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
 
 
 def cache_invalidator(tblname, colnames=None, native_rowids=False, force=False):
-    """ cacher setter decorator """
+    """ cacher setter/deleter decorator
+    FIXME: this is more general than just setters
+    """
     def closure_cache_invalidator(setter_func):
         if not API_CACHE and not force:
             return setter_func
@@ -249,8 +251,8 @@ def cache_invalidator(tblname, colnames=None, native_rowids=False, force=False):
                     # iterate over all getter kwargs values
                     for cache_ in six.itervalues(kwargs_cache_):
                         ut.delete_dict_keys(cache_, rowid_list)
-            # Preform set action
-            setter_func(self, rowid_list, *args, **kwargs)
+            # Preform set/delete action
+            return setter_func(self, rowid_list, *args, **kwargs)
         wrp_cache_invalidator = ut.preserve_sig(wrp_cache_invalidator, setter_func)
         return wrp_cache_invalidator
     return closure_cache_invalidator

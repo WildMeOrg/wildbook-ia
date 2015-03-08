@@ -168,7 +168,7 @@ def add_feat_featweights(ibs, feat_rowid_list, qreq_=None, verbose=not ut.QUIET,
         get_rowid_from_superkey = functools.partial(
             ibs.get_feat_featweight_rowids_, qreq_=qreq_)
         proptup_gen = preproc_featweight.generate_featweight_properties(
-            ibs, dirty_feat_rowid_list)
+            ibs, dirty_feat_rowid_list, qreq_=qreq_)
         dirty_params_iter = (
             (feat_rowid, config_rowid, fgweight)
             for feat_rowid, (fgweight,) in

@@ -207,7 +207,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> weights_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
-        >>> ut.assert_inbounds(weights1.sum(), 200, 250)
+        >>> ut.assert_inbounds(weights1.sum(), 250, 300)
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -222,7 +222,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> weights_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
-        >>> ut.assert_inbounds(weights1.sum(), 2750, 2850)
+        >>> ut.assert_inbounds(weights1.sum(), 3000, 4000)
 
     Ignore:
         #from ibeis.model.hots import neighbor_index as hsnbrx
@@ -266,18 +266,20 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, normalizer_rule, 
     """
     helper: applies the normalized weight function to one query annotation
 
-    Args:
-        normweight_fn (func): chosen weight function e.g. lnbnn
-        qaid (int): query annotation id
-        qfx2_idx (ndarray):
-        qfx2_dist (ndarray):
-        normalizer_rule (str):
-        K (int):
-        Knorm (int):
-        qreq_ (QueryRequest): hyper-parameters
-
     Returns:
         ndarray: qfx2_normweight
+
+    Args:
+        normweight_fn (func):  chosen weight function e.g. lnbnn
+        qaid (int):  query annotation id
+        qfx2_idx (ndarray[int32_t, ndims=2]):  mapping from query feature index to db neighbor index
+        qfx2_dist (ndarray):  mapping from query feature index to dist
+        normalizer_rule (str):
+        Knorm (int):
+        qreq_ (QueryRequest):  query request object with hyper-parameters
+
+    CommandLine:
+        python -m ibeis.model.hots.nn_weights --test-apply_normweight
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -293,7 +295,7 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, normalizer_rule, 
         >>> (qfx2_idx, qfx2_dist) = nns_list[0]
         >>> qfx2_normweight = nn_weights.apply_normweight(normweight_fn, qaid, qfx2_idx,
         ...         qfx2_dist, normalizer_rule, Knorm, qreq_)
-        >>> ut.assert_inbounds(qfx2_normweight.sum(), 800, 850)
+        >>> ut.assert_inbounds(qfx2_normweight.sum(), 850, 950)
     """
     K = len(qfx2_idx.T) - Knorm
     assert K > 0, 'K cannot be 0'

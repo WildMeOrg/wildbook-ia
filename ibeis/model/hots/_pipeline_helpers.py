@@ -11,6 +11,29 @@ VERB_PIPELINE = ut.get_argflag(('--verb-pipeline', '--verb-pipe')) or ut.VERYVER
 VERB_TESTDATA = ut.get_argflag('--verb-testdata') or ut.VERYVERBOSE
 
 
+def testdata_hs2(defaultdb='testdb1', qaids=None, daids=None, cfgdict=None, stop_node=None, argnames=[]):
+    """
+        >>> from ibeis.model.hots._pipeline_helpers import *
+        >>> defaultdb = 'testdb1'
+        >>> qaids = None
+        >>> daids = None
+        >>> stop_node = 'build_chipmatches'
+        >>> cfgdict = None
+        >>> argnames = []
+        >>> # execute function
+        >>> result = testdata_hs2(defaultdb, qaids, daids, cfgdict, stop_node, argnames)
+        >>> # verify results
+        >>> print(result)
+    """
+    from ibeis.model.hots import pipeline
+    func = getattr(pipeline, stop_node)
+    ibs, qreq_ = get_pipeline_testdata(qaid_list=qaids, daid_list=daids, defaultdb=defaultdb, cfgdict=cfgdict)
+    func_argnames = ut.get_func_argspec(func).args
+    locals_ = testrun_pipeline_upto(qreq_, stop_node)
+    args = ut.dict_take(locals_, func_argnames)
+    return args
+
+
 def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
     r"""
     convinience: runs pipeline for tests
@@ -18,7 +41,8 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
 
     Ignore:
         >>> import utool as ut
-        >>> source = ut.get_func_sourcecode(request_ibeis_query_L0)
+        >>> from ibeis.model.hots import pipeline
+        >>> source = ut.get_func_sourcecode(pipeline.request_ibeis_query_L0)
         >>> stripsource = source[:]
         >>> stripsource = ut.strip_line_comments(stripsource)
         >>> triplequote1 = ut.TRIPLE_DOUBLE_QUOTE
@@ -33,17 +57,21 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
     from ibeis.model.hots.pipeline import (
         nearest_neighbors, baseline_neighbor_filter, weight_neighbors,
         build_chipmatches, spatial_verification,
-        chipmatch_to_resdict, vsone_reranking)
+        chipmatch_to_resdict, vsone_reranking, build_impossible_daids_list)
 
     qreq_.lazy_load(verbose=verbose)
     #---
+    if stop_node == 'build_impossible_daids_list':
+        return locals()
+    impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
+    #---
     if stop_node == 'nearest_neighbors':
         return locals()
-    nns_list = nearest_neighbors(qreq_, verbose=verbose)
+    nns_list = nearest_neighbors(qreq_, Kpad_list, verbose=verbose)
     #---
     if stop_node == 'baseline_neighbor_filter':
         return locals()
-    nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, verbose=verbose)
+    nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=verbose)
     #---
     if stop_node == 'weight_neighbors':
         return locals()
@@ -202,8 +230,8 @@ def testdata_pre_baselinefilter(defaultdb='testdb1', qaid_list=None, daid_list=N
     ibs, qreq_ = get_pipeline_testdata(
         qaid_list=qaid_list, daid_list=daid_list, defaultdb=defaultdb, cfgdict=cfgdict)
     locals_ = testrun_pipeline_upto(qreq_, 'baseline_neighbor_filter')
-    nns_list, = ut.dict_take(locals_, ['nns_list'])
-    return qreq_, nns_list
+    nns_list, impossible_daids_list = ut.dict_take(locals_, ['nns_list', 'impossible_daids_list'])
+    return qreq_, nns_list, impossible_daids_list
 
 
 def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):

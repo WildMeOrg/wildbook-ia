@@ -3105,8 +3105,41 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
     return new_aid_list, new_flag_list
 
 
-#def detect_false_negatives():
-#     pass
+def detect_join_cases(ibs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    Returns:
+        QueryResult: qres_list -  object of feature correspondences and scores
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-detect_join_cases
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> # execute function
+        >>> qres_list = detect_join_cases(ibs)
+        >>> # verify results
+        >>> result = str(qres_list)
+        >>> print(result)
+    """
+    qaids = ibs.get_valid_aids(is_exemplar=None, nojunk=True)
+    daids = ibs.get_valid_aids(is_exemplar=None, nojunk=True)
+    cfgdict = dict(can_match_samename=False)
+    qreq_ = ibs.new_query_request(qaids, daids, cfgdict)
+    qres_list = ibs.query_chips(qreq_=qreq_)
+
+    from ibeis.gui import inspect_gui
+    qaid2_qres = {qres.qaid: qres for qres in qres_list}
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres)
+    qres_wgt.show()
+    qres_wgt.raise_()
+    #return qres_list
 
 
 if __name__ == '__main__':
