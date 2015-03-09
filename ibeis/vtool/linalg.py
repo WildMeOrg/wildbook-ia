@@ -171,9 +171,41 @@ def scale_mat3x3(sx, sy=None, dtype=TRANSFORM_DTYPE):
 
 
 @profile
+#@ut.on_exception_report_input(force=True)
 def scaleedoffset_mat3x3(offset, scale_factor):
-    sfy = sfx = scale_factor
-    T = translation_mat3x3(*offset)
+    r"""
+    Args:
+        offset (tuple):
+        scale_factor (scalar or tuple):
+
+    Returns:
+        ndarray[ndims=2]: M
+
+    CommandLine:
+        python -m vtool.linalg --test-scaleedoffset_mat3x3
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> # build test data
+        >>> offset = (11, 13)
+        >>> scale_factor = (.3, .5)
+        >>> # execute function
+        >>> M = scaleedoffset_mat3x3(offset, scale_factor)
+        >>> # verify results
+        >>> result = ut.numpy_str(M, precision=2)
+        >>> print(result)
+        np.array([[  0.3,   0. ,  11. ],
+                  [  0. ,   0.5,  13. ],
+                  [  0. ,   0. ,   1. ]], dtype=np.float64)
+    """
+    try:
+        sfx, sfy = scale_factor
+    except TypeError:
+        sfx = sfy = scale_factor
+    #with ut.embed_on_exception_context:
+    tx, ty = offset
+    T = translation_mat3x3(tx, ty)
     S = scale_mat3x3(sfx, sfy)
     M = T.dot(S)
     return M

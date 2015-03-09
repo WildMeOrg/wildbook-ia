@@ -581,7 +581,43 @@ def transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz):
 
 #@profile
 def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
-    if offset == (0.0, 0.0) and scale_factor == 1.0:
+    r"""
+    Args:
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
+        offset (tuple):
+        scale_factor (float):
+
+    Returns:
+        ndarray[float32_t, ndim=2]: kpts -  keypoints
+
+    CommandLine:
+        python -m vtool.keypoint --test-offset_kpts
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> offset = (0.0, 0.0)
+        >>> scale_factor = (1.5, .5)
+        >>> # execute function
+        >>> kpts_ = offset_kpts(kpts, offset, scale_factor)
+        >>> # verify results
+        >>> orig = ut.numpy_str(kpts, precision=2)
+        >>> new = ut.numpy_str(kpts_, precision=2)
+        >>> print(orig)
+        >>> print(new)
+        >>> result = new
+        >>> print(result)
+        np.array([[ 20.  ,  25.  ,   5.22,  -5.11,  24.15,   0.  ],
+                  [ 29.  ,  25.  ,   2.36,  -5.11,  24.15,   0.  ],
+                  [ 30.  ,  30.  ,  12.22,  12.02,  10.53,   0.  ],
+                  [ 31.  ,  29.  ,  13.36,  17.63,  14.1 ,   0.  ],
+                  [ 32.  ,  31.  ,  16.05,   3.41,  11.74,   0.  ]], dtype=np.float32)
+
+    """
+    if offset == (0.0, 0.0) and (scale_factor == 1.0 or scale_factor == (1.0, 1.0)):
         return kpts
     M = ltool.scaleedoffset_mat3x3(offset, scale_factor)
     kpts_ = transform_kpts(kpts, M)
