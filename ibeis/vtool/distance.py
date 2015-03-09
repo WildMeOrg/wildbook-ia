@@ -196,6 +196,31 @@ def hist_isect(hist1, hist2):
     return hisect_dist
 
 
+def nearest_point(x, y, pts, conflict_mode='next', __next_counter=[0]):
+    """ finds the nearest point(s) in pts to (x, y)
+    """
+    with ut.embed_on_exception_context:
+        dists = (pts.T[0] - x) ** 2 + (pts.T[1] - y) ** 2
+        fx = dists.argmin()
+        mindist = dists[fx]
+        other_fx = np.where(mindist == dists)[0]
+        if len(other_fx) > 0:
+            if conflict_mode == 'random':
+                np.random.shuffle(other_fx)
+                fx = other_fx[0]
+            elif conflict_mode == 'next':
+                __next_counter[0] += 1
+                idx = __next_counter[0] % len(other_fx)
+                fx = other_fx[idx]
+            elif conflict_mode == 'all':
+                fx = other_fx
+            elif conflict_mode == 'first':
+                fx = fx
+            else:
+                raise AssertionError('unknown conflict_mode=%r' % (conflict_mode,))
+    return fx, mindist
+
+
 if __name__ == '__main__':
     """
     CommandLine:

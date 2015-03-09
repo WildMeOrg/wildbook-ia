@@ -75,6 +75,7 @@ if __name__ != '__main__':
                                        inliers_t(1), errs_t(2), mats_t(2)]
 
 
+@profile
 def get_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
     #np.ascontiguousarray(kpts1)
     #with ut.Timer('PreC'):
@@ -95,6 +96,7 @@ def get_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, 
     return out_inliers, out_errors, out_mats
 
 
+@profile
 def get_best_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd,
                                 scale_thresh_sqrd, ori_thresh):
     #np.ascontiguousarray(kpts1)

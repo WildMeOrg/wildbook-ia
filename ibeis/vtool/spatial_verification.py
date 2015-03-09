@@ -706,8 +706,12 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         dlen_sqrd2 = ktool.get_kpts_dlen_sqrd(kpts2_m)
     # Determine the best hypothesis transformation and get its inliers
     xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
-    aff_inliers, aff_errors, Aff = get_best_affine_inliers(
-        kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh)
+    if HAS_SVER_C_WRAPPER:
+        aff_inliers, aff_errors, Aff = sver_c_wrapper.get_best_affine_inliers_cpp(
+            kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh)
+    else:
+        aff_inliers, aff_errors, Aff = get_best_affine_inliers(
+            kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh)
     # Return if there are not enough inliers to compute homography
     if len(aff_inliers) < min_nInliers:
         if VERBOSE_SVER:
