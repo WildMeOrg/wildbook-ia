@@ -1,0 +1,31 @@
+ibeis.model package
+===================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ibeis.model.detect
+    ibeis.model.hots
+    ibeis.model.preproc
+
+Submodules
+----------
+
+ibeis.model.Config module
+-------------------------
+
+.. automodule:: ibeis.model.Config
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.model
+    :members:
+    :undoc-members:
+    :show-inheritance:

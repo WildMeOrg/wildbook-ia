@@ -140,15 +140,16 @@ Tadder_pl_dependant = ut.codeblock(
         isdirty_list = ut.flag_None_items(initial_{leaf}_rowid_list)
         dirty_{parent}_rowid_list = ut.filter_items({parent}_rowid_list, isdirty_list)
         num_dirty = len(dirty_{parent}_rowid_list)
+        num_total = len({parent}_rowid_list)
         if num_dirty > 0:
             if verbose:
-                fmtstr = '[add_{parent}_{leaf}s] adding %d / %d new {leaf}'
-                print(fmtstr % (num_dirty, len({parent}_rowid_list)))
+                fmtstr = '[add_{parent}_{leaf}s] adding %d / %d new {leaf} for config_rowid=%r'
+                print(fmtstr % (num_dirty, num_total, config_rowid))
             # Dependant columns do not need true from_superkey getters.
             # We can use the Tgetter_pl_dependant_rowids_ instead
             get_rowid_from_superkey = functools.partial({self}.get_{parent}_{leaf}_rowids_, qreq_=qreq_)
             # REM proptup_gen = preproc_{leaf}.add_{leaf}_params_gen({self}, {parent}_rowid_list)
-            proptup_gen = preproc_{leaf}.generate_{leaf}_properties({self}, dirty_{parent}_rowid_list)
+            proptup_gen = preproc_{leaf}.generate_{leaf}_properties({self}, dirty_{parent}_rowid_list, qreq_=qreq_)
             dirty_params_iter = (
                 ({parent}_rowid, config_rowid, {leaf_other_propnames})
                 for {parent}_rowid, ({leaf_other_propnames},) in
@@ -313,16 +314,25 @@ Tdeleter_rl_depenant = ut.codeblock(
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> from {autogen_modname} import *  # NOQA
             >>> {self}, qreq_ = testdata_ibs()
-            >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[::3]
-            >>> {self}.delete_{root}_{leaf}({root}_rowid_list, qreq_=qreq_)
+            >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[:1]
+            >>> # Ensure there are  some leafs to delete
+            >>> {leaf}_rowid_list = ibs.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_=qreq_, ensure=True)
+            >>> num_deleted1 = {self}.delete_{root}_{leaf}({root}_rowid_list, qreq_=qreq_)
+            >>> num_deleted2 = {self}.delete_{root}_{leaf}({root}_rowid_list, qreq_=qreq_)
+            >>> # The first delete should remove everything
+            >>> ut.assert_eq(num_deleted1, len({leaf}_rowid_list))
+            >>> # The second delete should have removed nothing
+            >>> ut.assert_eq(num_deleted2, 0)
         """
         if ut.VERBOSE:
             print('[{self}] deleting %d {root}s leaf nodes' % len({root}_rowid_list))
         # Delete any dependants
         _{leaf}_rowid_list = {self}.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_=qreq_, ensure=False)
         {leaf}_rowid_list = ut.filter_Nones(_{leaf}_rowid_list)
-        {self}.delete_{leaf}({leaf}_rowid_list)
+        num_deleted = {self}.delete_{leaf}({leaf}_rowid_list)
+        return num_deleted
     # ENDBLOCK
     '''
 )
@@ -342,6 +352,9 @@ Tdeleter_pl_depenant = ut.codeblock(
         Args:
             {parent}_rowid_list
 
+        Returns:
+             int: num_deleted
+
         TemplateInfo:
             Tdeleter_rl_depenant
             parent = {parent}
@@ -349,6 +362,7 @@ Tdeleter_pl_depenant = ut.codeblock(
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> from {autogen_modname} import *  # NOQA
             >>> {self}, qreq_ = testdata_ibs()
             >>> {parent}_rowid_list = {self}._get_all_{parent}_rowids()[::3]
             >>> {self}.delete_{parent}_{leaf}({parent}_rowid_list, qreq_=qreq_)
@@ -358,7 +372,8 @@ Tdeleter_pl_depenant = ut.codeblock(
         # Delete any dependants
         _{leaf}_rowid_list = {self}.get_{parent}_{leaf}_rowids({parent}_rowid_list, qreq_=qreq_, ensure=False)
         {leaf}_rowid_list = ut.filter_Nones(_{leaf}_rowid_list)
-        {self}.delete_{leaf}({leaf}_rowid_list)
+        num_deleted = {self}.delete_{leaf}({leaf}_rowid_list)
+        return num_deleted
     # ENDBLOCK
     '''
 )
@@ -378,6 +393,9 @@ Tdeleter_native_tbl = ut.codeblock(
         Args:
             {tbl}_rowid_list
 
+        Returns:
+            int: num_deleted
+
         TemplateInfo:
             Tdeleter_native_tbl
             tbl = {tbl}
@@ -386,6 +404,7 @@ Tdeleter_native_tbl = ut.codeblock(
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> from {autogen_modname} import *  # NOQA
             >>> {self}, qreq_ = testdata_ibs()
             >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()[::3]
             >>> {self}.delete_{tbl}({tbl}_rowid_list)
@@ -397,6 +416,8 @@ Tdeleter_native_tbl = ut.codeblock(
         preproc_{tbl}.on_delete({self}, {tbl}_rowid_list, qreq_=qreq_)
         # Finalize: Delete self
         {self}.{dbself}.delete_rowids({TABLE}, {tbl}_rowid_list)
+        num_deleted = len({tbl}_rowid_list)
+        return num_deleted
     # ENDBLOCK
     '''
 )
@@ -424,6 +445,7 @@ Tider_all_rowids = ut.codeblock(
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> from {autogen_modname} import *  # NOQA
             >>> {self}, qreq_ = testdata_ibs()
             >>> {self}._get_all_{tbl}_rowids()
         """
@@ -503,6 +525,8 @@ Tgetter_rl_pclines_dependant_multicolumn = ut.codeblock(
             leaf = {leaf}
 
         Example:
+            >>> # DISABLE_DOCTEST
+            >>> from {autogen_modname} import *  # NOQA
             >>> {self}, qreq_ = testdata_ibs()
             >>> {root}_rowid_list = {self}._get_all_{root}_rowids()
             >>> {multicol}_list = {self}.get_{root}_{multicol}s({root}_rowid_list, qreq_=qreq_)
@@ -643,6 +667,7 @@ Tgetter_rl_dependant_rowids = ut.codeblock(
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> from {autogen_modname} import *  # NOQA
             >>> {self}, qreq_ = testdata_ibs()
             >>> {root}_rowid_list = {self}._get_all_{root}_rowids()
             >>> {leaf}_rowid_list1 = {self}.get_{root}_{leaf}_rowids({root}_rowid_list, qreq_, ensure=False)

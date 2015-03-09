@@ -53,7 +53,7 @@ def read_chip_fpath(ibs, cid_list, **kwargs):
 # OLD FUNCTIONALITY TO DEPRICATE
 #--------------------------
 
-def compute_or_read_annotation_chips(ibs, aid_list, ensure=True):
+def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, qreq_=None):
     r"""
     ----------------------
     Found 1 line(s) in 'ibeis/model/preproc/preproc_chip.py':
@@ -69,7 +69,7 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True):
         except AssertionError as ex:
             ut.printex(ex, key_list=['aid_list'])
             raise
-    cfpath_list = make_annot_cfpath_list(ibs, aid_list)
+    cfpath_list = make_annot_cfpath_list(ibs, aid_list, qreq_=qreq_)
     try:
         if ensure:
             chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
@@ -106,7 +106,7 @@ def compute_and_write_chips_lazy(ibs, aid_list, qreq_=None):
     if ut.VERBOSE:
         print('[preproc_chip] compute_and_write_chips_lazy')
     # Mark which aid's need their chips computed
-    cfpath_list = make_annot_cfpath_list(ibs, aid_list)
+    cfpath_list = make_annot_cfpath_list(ibs, aid_list, qreq_=qreq_)
     exists_flags = [exists(cfpath) for cfpath in cfpath_list]
     invalid_aids = ut.get_dirty_items(aid_list, exists_flags)
     if ut.VERBOSE:
@@ -137,9 +137,9 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
         >>> import numpy as np
-        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
+        >>> ibs, aid_list = testdata_ibeis()
         >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)
-        >>> chip_list = preproc_chip.compute_or_read_chip_images(ibs, cid_list)
+        >>> chip_list = compute_or_read_chip_images(ibs, cid_list)
         >>> result = np.array(list(map(np.shape, chip_list))).sum(0).tolist()
         >>> print(result)
         [1434, 2274, 12]
@@ -147,15 +147,14 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
     Example:
         >>> # SLOW_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
-        >>> from ibeis.model.preproc import preproc_chip
         >>> import numpy as np
-        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
+        >>> ibs, aid_list = testdata_ibeis()
         >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)
         >>> # Do a bad thing. Remove from disk without removing from sql
-        >>> preproc_chip.on_delete(ibs, cid_list)
+        >>> on_delete(ibs, cid_list)
         >>> # Now compute_or_read_chip_images should catch the bad thing
         >>> # we did and correct for it.
-        >>> chip_list = preproc_chip.compute_or_read_chip_images(ibs, cid_list)
+        >>> chip_list = compute_or_read_chip_images(ibs, cid_list)
         >>> result = np.array(list(map(np.shape, chip_list))).sum(0).tolist()
         >>> print(result)
         [1434, 2274, 12]
@@ -204,9 +203,7 @@ def generate_chip_properties(ibs, aid_list, qreq_=None):
     Example:
         >>> # ENABLE DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
-        >>> from ibeis.model.preproc import preproc_chip
         >>> from os.path import basename
-        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
         >>> params_iter = generate_chip_properties(ibs, aid_list)
         >>> params_list = list(params_iter)
         >>> (cfpath, width, height,) = params_list[0]
@@ -261,10 +258,9 @@ def compute_and_write_chips(ibs, aid_list, qreq_=None):
     Example:
         >>> # SLOW_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
-        >>> from ibeis.model.preproc import preproc_chip
         >>> from os.path import basename
         >>> qreq_ = None
-        >>> ibs, aid_list = testdata_preproc_chip()
+        >>> ibs, aid_list = testdata_ibeis()
         >>> # delete chips
         >>> ibs.delete_annot_chips(aid_list)
         >>> # ensure they were deleted
@@ -296,7 +292,7 @@ def compute_and_write_chips(ibs, aid_list, qreq_=None):
     # Get how big to resize each chip, etc...
     nChips = len(aid_list)
     filter_list = ctool.get_filter_list(chip_cfg_dict)
-    cfpath_list = make_annot_cfpath_list(ibs, aid_list)
+    cfpath_list = make_annot_cfpath_list(ibs, aid_list, qreq_=qreq_)
     gfpath_list = ibs.get_annot_image_paths(aid_list)
     bbox_list   = ibs.get_annot_bboxes(aid_list)
     theta_list  = ibs.get_annot_thetas(aid_list)
@@ -336,7 +332,7 @@ def on_delete(ibs, cid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
-        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
+        >>> ibs, aid_list = preproc_chip.testdata_ibeis()
         >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)
         >>> assert len(ut.filter_Nones(cid_list)) == len(cid_list)
         >>> # Run test function
@@ -357,7 +353,7 @@ def on_delete(ibs, cid_list):
 #---------------
 
 
-def make_annot_cfpath_list(ibs, aid_list):
+def make_annot_cfpath_list(ibs, aid_list, qreq_=None):
     r"""
     Build chip file paths based on the current IBEIS configuration
 
@@ -376,7 +372,7 @@ def make_annot_cfpath_list(ibs, aid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from os.path import basename
-        >>> ibs, aid_list = testdata_preproc_chip()
+        >>> ibs, aid_list = testdata_ibeis()
         >>> aid_list = aid_list[0:1]
         >>> cfpath_list = make_annot_cfpath_list(ibs, aid_list)
         >>> fname = '\n'.join(map(basename, cfpath_list))
@@ -385,13 +381,13 @@ def make_annot_cfpath_list(ibs, aid_list):
         chip_aid=1_bbox=(0,0,1047,715)_theta=0.0tau_gid=1_CHIP(sz450).png
 
     """
-    cfname_fmt = get_chip_fname_fmt(ibs)
+    cfname_fmt = get_chip_fname_fmt(ibs, qreq_=qreq_)
     chipdir = ibs.get_chipdir()
     cfpath_list = format_aid_bbox_theta_gid_fnames(ibs, aid_list, cfname_fmt, chipdir)
     return cfpath_list
 
 
-def get_chip_fname_fmt(ibs):
+def get_chip_fname_fmt(ibs, qreq_=None):
     r"""Returns format of chip file names
 
     Args:
@@ -404,13 +400,16 @@ def get_chip_fname_fmt(ibs):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
-        >>> ibs, aid_list = preproc_chip.testdata_preproc_chip()
+        >>> ibs, aid_list = preproc_chip.testdata_ibeis()
         >>> cfname_fmt = get_chip_fname_fmt(ibs)
         >>> result = cfname_fmt
         >>> print(result)
         chip_aid=%d_bbox=%s_theta=%s_gid=%d_CHIP(sz450).png
     """
-    chip_cfgstr = ibs.cfg.chip_cfg.get_cfgstr()   # algo settings cfgstr
+    if qreq_ is not None:
+        chip_cfgstr = qreq_.qparams.chip_cfgstr
+    else:
+        chip_cfgstr = ibs.cfg.chip_cfg.get_cfgstr()   # algo settings cfgstr
     chip_ext = ibs.cfg.chip_cfg['chipfmt']  # png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)
     suffix = chip_cfgstr + chip_ext
     # Chip filenames are a function of annotation_rowid and cfgstr
@@ -479,7 +478,7 @@ def format_aid_bbox_theta_gid_fnames(ibs, aid_list, fname_fmt, dpath):
 # Testing
 #-------------
 
-def testdata_preproc_chip():
+def testdata_ibeis():
     r"""testdata function """
     import ibeis
     ibs = ibeis.opendb('testdb1')

@@ -10,9 +10,9 @@ dev.py runs experiments and serves as a scratchpad for new code and quick script
 
 
 CommandLine:
-    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg score_method:nsum prescore_method:nsum dupvote_weight=1.0
-    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg dupvote_weight=1.0
-    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg fg_weight=1.0
+    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg score_method:nsum prescore_method:nsum
+    python dev.py --wshow -t query --db PZ_MTEST --qaid 110
+    python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg fg_on=True
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg
 """
 # TODO: ADD COPYRIGHT TAG
@@ -131,15 +131,15 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     CommandLine:
         ib
         python dev.py -t scores --db PZ_MTEST --allgt -w --show
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_weight=1.0
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='nsum' fg_weight=1.0 featweight_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany' fg_on:True
         python dev.py -t scores --db GZ_ALL --allgt -w --show
 
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='nsum'
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='nsum'
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany'
+        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany'
 
 
     """
@@ -152,7 +152,6 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     pt.plots.plot_stems(x_data, y_data)
     pt.present()
     pt.show()
-    ut.embed()
     #locals_ = viz_allres_annotation_scores(allres)
     locals_ = locals()
     return locals_
@@ -352,7 +351,7 @@ def vsone_gt(ibs, qaid_list, daid_list=None):
     """
     dev.py --db PZ_MTEST --allgt --cmd
     """
-    cfgdict = dict(featweight_on=True, fg_weight=1.0)
+    cfgdict = dict(fg_on=True)
     allres = results_all.get_allres(ibs, qaid_list, daid_list, cfgdict)
     #orgtype_list = ['top_false', 'top_true']
     org_top_false = allres.get_orgtype('rank0_false')

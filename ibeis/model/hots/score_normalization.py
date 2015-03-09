@@ -688,8 +688,8 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
         >>> result = score_normalizer.get_fname()
         >>> result += '\n' + score_normalizer.get_cfgstr()
         >>> print(result)
-        zebra_plains_normalizer_x@9kc@so9&g0hu1i.cPkl
-        _vsone_NN(single,K1+1,last,cks704)_FILT(ratio<0.625;1.0,fg;1.0)_SV(0.01;2.0;1.57minIn=4,nRR=50,nsum,)_AGG(nsum)_FLANN(8_kdtrees)_RRVsOne(False)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
+        zebra_plains_normalizer_hm%pysdf1vgffms@.cPkl
+        _vsone_NN(single,K1+1,last,cks704)_NNWeight(ratio_thresh=0.625,fg)_SV(0.01;2.0;1.57minIn=4,nRR=50,nRR=50,nsum,)_AGG(nsum)_FLANN(8_kdtrees)_RRVsOne(False)_FEATWEIGHT(ON,uselabel,rf)_FEAT(hesaff+sift_)_CHIP(sz450)
 
 
     zebra_plains_normalizer_x@!cxcgfncxz97mo.cPkl

@@ -44,7 +44,7 @@ def get_config_result_info(ibs, qaids, daids):
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaids = ibs.get_valid_aids()[0:3]
         >>> daids = ibs.get_valid_aids()[0:5]
-        >>> qresinfotup = get_config_result_info(ibs, qaids, daids)
+        >>> qresinfotup, qreq_ = get_config_result_info(ibs, qaids, daids)
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -55,7 +55,7 @@ def get_config_result_info(ibs, qaids, daids):
         >>> # ibs.cfg.query_cfg.codename = 'vsone'
         >>> qaids = ibs.get_valid_aids()[0:3]
         >>> daids = ibs.get_valid_aids()[0:5]
-        >>> qresinfotup = get_config_result_info(ibs, qaids, daids)
+        >>> qresinfotup, qreq_ = get_config_result_info(ibs, qaids, daids)
 
     Ignore:
         for qaid, qres in six.iteritems(qaid2_qres):
@@ -64,7 +64,7 @@ def get_config_result_info(ibs, qaids, daids):
             qres.ishow_top(ibs)
     """
     # Execute or load query
-    qaid2_qres = ibs._query_chips4(qaids, daids)
+    qaid2_qres, qreq_ = ibs._query_chips4(qaids, daids, return_request=True)
     qx2_qres = ut.dict_take(qaid2_qres, qaids)
     # Get the groundtruth that could have been matched in this experiment
     qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
@@ -209,7 +209,7 @@ def get_config_result_info(ibs, qaids, daids):
     #    'qx2_scoreexpdiff'   : qx2_scoreexpdiff,
     #}
     cfgres_info['qx2_bestranks'] = ut.replace_nones(cfgres_info['qx2_bestranks'] , -1)
-    return cfgres_info
+    return cfgres_info, qreq_
 
 
 #-----------
@@ -285,6 +285,7 @@ def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
     # Query Config / Col Loop
     #nTotalQueries  = nQuery * nCfg  # number of quieries to run in total
     cfgx2_cfgresinfo = []
+    cfgx2_qreq_ = []
     with utool.Timer('experiment_harness'):
         cfgiter = ut.ProgressIter(enumerate(cfg_list), nTotal=nCfg, lbl=lbl,
                                   freq=1, time_thresh=4)
@@ -302,10 +303,11 @@ def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
             #nPrevQueries = nQuery * cfgx  # number of pervious queries
             # Run the test / read cache
             with utool.Indenter('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
-                cfgres_info = get_config_result_info(ibs, qaids, daids)
+                cfgres_info, qreq_ = get_config_result_info(ibs, qaids, daids)
                 #qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision = cfgres_info
             if not NOMEMORY:
                 cfgx2_cfgresinfo.append(cfgres_info)
+                cfgx2_qreq_.append(qreq_)
                 #bestranks_list.append(qx2_bestranks)
                 #cfgx2_aveprecs.append(qx2_avepercision)
             # Store the results
@@ -316,7 +318,7 @@ def test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list):
         return
     experiment_printres.print_results(ibs, qaids, daids, cfg_list,
                                       cfgx2_cfgresinfo, testnameid, sel_rows,
-                                      sel_cols, cfgx2_lbl)
+                                      sel_cols, cfgx2_lbl, cfgx2_qreq_)
     # Reset query config so nothing unexpected happens
     # TODO: should probably just use a cfgdict to build a list of QueryRequest
     # objects. That would avoid the entire problem

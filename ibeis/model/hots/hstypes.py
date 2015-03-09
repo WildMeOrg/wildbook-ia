@@ -104,7 +104,6 @@ class FiltKeys(object):
     RATIO = 'ratio'
     DIST = 'dist'
     LNBNN = 'lnbnn'
-    DUPVOTE = 'dupvote'
     HOMOGERR = 'homogerr'
 
 # Denote which scores should be  used as weights

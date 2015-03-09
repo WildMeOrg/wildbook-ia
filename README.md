@@ -411,8 +411,11 @@ python dev.py --allgt -t inspect -w
 # Profiling Code
 #----------------
 
-profiler.sh dev.py -t best --db testdb1 --allgt --nocache-query --prof-mod "spatial;linalg;keypoint"
-profiler.sh dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint"
+utprof.py dev.py -t best --db testdb1 --allgt --nocache-query --prof-mod "spatial;linalg;keypoint"
+utprof.py dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint"
+utprof.py dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint"
+utprof.py dev.py -t custom --db PZ_MTEST --allgt --noqcache
+utprof.py dev.py -t custom:sv_on=False --db PZ_MTEST --allgt --noqcache
 
 
 #----------------
@@ -524,13 +527,13 @@ python dev.py --dbdir /raid/work2/DanPrinctonDrive/elephants-dan-princton-drive-
 
 # Current Experiments:
 
-profiler.sh dev.py -t upsize --allgt --quiet --noshow
+utprof.py dev.py -t upsize --allgt --quiet --noshow
 
 python dev.py -t upsize --db PZ_MTEST --qaid 1:30:3 -w
 
 
 dev.py -t upsize --allgt --quiet --noshow
-profiler.sh dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:30
+utprof.py dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:30
 python dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:30
 python dev.py -t upsize --quiet --db PZ_MTEST --allgt -w
 
@@ -539,7 +542,7 @@ python dev.py -t upsize --quiet --db PZ_MTEST --allgt -w
 python dev.py -t upsize --quiet --db PZ_MTEST --qaid 1:10:3 -w
 
 
-profiler.sh dev.py -t best --allgt --db PZ_MTEST --nocache-big --nocache-query
+utprof.py dev.py -t best --allgt --db PZ_MTEST --nocache-big --nocache-query
 ./dev.py -t best --qaid 1:10 --db PZ_MTEST --nocache-big --nocache-query
 
 ./main.py --db PZ_RoseMary --cmd
@@ -574,7 +577,7 @@ python dev.py --db PZ_RoseMary -t upsize --allgt --screen --cyth
 # Correct output 
 python dev.py --db PZ_MTEST -t best --qaid 1:20
 python dev.py --db PZ_MTEST -t upsize --allgt --screen --cyth
-python dev.py --db PZ_RoseMary -t upsize --allgt --screen --cyth
+python dev.py --db PZ_Master0 -t upsize --allgt --screen --cyth
 
 # EXPERIMENT DATABASES
 python dev.py --db testdb1 --setdb 
@@ -593,8 +596,8 @@ python dev.py -t best --allgt --view-hard
 python dev.py -t upsize --allgt 
 
 
-profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t asmk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
-profiler.sh dev.py --prof-mod smk_,pandas_helpers,hstypes -t smk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
+utprof.py dev.py --prof-mod smk_,pandas_helpers,hstypes -t asmk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
+utprof.py dev.py --prof-mod smk_,pandas_helpers,hstypes -t smk --allgt --qindex 0:20 --db PZ_MTEST --nocache-big --nocache-query --nocache-save
 ./dev.py -t smk --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
 ./dev.py -t asmk --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
 
@@ -816,48 +819,59 @@ sh Tbig.sh -t custom:rrvsone_on=True custom --noqcache
 # static lnbnn, normonly, and count test
 # combinme vsone and vsmany matches in vsone rr 
 
-
-
 # Sanity Check 
 # Make sure vsmany and onevsone are exactly the same
-python dev.py --allgt -t custom custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200 --print-confusion-stats --noqcache
+python dev.py --setdb --db PZ_Master0
+python dev.py --setdb --db PZ_MTEST
 
-# We are different than lnbnn still, but that is because vsonerr strips out
-# dupvote and fgweight Turn those off in custom. 
-# Doing this gets close
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200 --print-confusion-stats 
-# Remmbering to turn them on in both instance gets even closer BUT STILL NOT THERE!
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 40:60
+# These yeild the same results for vsmany and vsone reanking
+# notice that name scoring and feature scoring are turned off. 
+# also everything is reranked
+#----
+python dev.py --allgt -t \
+    custom:fg_on=False \
+    custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerNameVsOne=200,nNameShortlistVsone=200,fg_on=False \
+    --print-confusion-stats --print-gtscore --noqcache
+#----
 
-# Single bad case why
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache
+#----
+# Turning back on name scoring and feature scoring and restricting to rerank a subset
+# This gives results that are closer to what we should actually expect
+python dev.py --allgt -t custom \
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1 \
+    custom:rrvsone_on=True,prior_coeff=0.5,unconstrained_coeff=0.5,fs_lnbnn_min=0,fs_lnbnn_max=1 \
+    custom:rrvsone_on=True,prior_coeff=0.1,unconstrained_coeff=0.9,fs_lnbnn_min=0,fs_lnbnn_max=1 \
+    --print-bestcfg
+#----
 
+#----
+# VsOneRerank Tuning: Tune linar combination
+python dev.py --allgt -t \
+    custom:fg_weight=0.0 \
+\
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
+\
+    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
+\
+  --db PZ_MTEST
 
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache --va --show
+#--print-confusion-stats --print-gtscore
+#----
 
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache
-
-
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache --index 38:40 --va --show
-
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache --va --show
-
-
-python dev.py --allgt -t custom:fg_weight=0.0,dupvote_weight=0.0 custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 --print-confusion-stats  --index 53:54  --print-gtscore --noqcache --db PZ_Master0
+#----
+python dev.py --allgt -t \
+    custom \
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
+    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=2,nNameShortlistVsone=20 \
+    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=2,nNameShortlistVsone=20 \
+   --db PZ_Master0 
+#----
 
 python dev.py --allgt -t \
-    custom:fg_weight=0.0,dupvote_weight=0.0 \
-    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 \
-    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 \
-  --print-confusion-stats --print-gtscore --db PZ_MTEST
-
-
-python dev.py --allgt -t \
-    custom:fg_weight=0.0,dupvote_weight=0.0 \
-    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=200,nNameShortlistVsone=200,fg_weight=0.0,dupvote_weight=0.0 \
-    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=2,nNameShortlistVsone=20,fg_weight=0.0,dupvote_weight=0.0 \
-    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerName=2,nNameShortlistVsone=20,fg_weight=0.0,dupvote_weight=0.0 \
-   --db PZ_MTEST --index 30:60
+    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0\
+    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0 \
+    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5 \
+   --db PZ_Master0
 
 python dev.py --allgt -t custom --db PZ_Master0 --va --show
 
@@ -867,6 +881,13 @@ python dev.py --allgt -t custom --db PZ_Master0 --va --show
 
 python dev.py --allgt -t custom custom:rrvsone_on=True
 
+
+# Testing no affine invaraiance and rotation invariance
+dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db PZ_MTEST --va --show
+
+dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db PZ_MTEST --allgt
+
+dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db GZ_ALL --allgt
 
 ```
 

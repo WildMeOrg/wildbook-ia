@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import collections
-import six
+#import six
 import utool as ut
 from ibeis.model.hots import hstypes
 from ibeis.model import Config
@@ -29,15 +29,23 @@ class QueryParams(collections.Mapping):
             >>> ibs = ibeis.opendb('testdb1')
             >>> cfg = ibs.cfg.query_cfg
             >>> #cfg.pipeline_root = 'asmk'
-            >>> cfgdict = {'pipeline_root': 'asmk', 'sv_on': False,
-            ...            'fg_weight': 1.0, 'featweight_on': True}
+            >>> cfgdict = {'pipeline_root': 'asmk', 'sv_on': False, 'fg_on': True}
             >>> qparams = query_params.QueryParams(cfg, cfgdict)
-            >>> assert qparams.fg_weight == 1.0
             >>> assert qparams.pipeline_root == 'smk'
-            >>> assert qparams.featweight_on is True
+            >>> assert qparams.fg_on is True
             >>> result = qparams.query_cfgstr
             >>> print(')_\n'.join(result.split(')_')))
 
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots import query_params
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> cfg = ibs.cfg.query_cfg
+            >>> #cfg.pipeline_root = 'asmk'
+            >>> cfgdict = dict(rotation_invariance=True)
+            >>> qparams = query_params.QueryParams(cfg, cfgdict)
+            >>> ut.assert_eq(qparams.hesaff_params['rotation_invariance'], True)
 
             _smk_SMK(agg=True,t=0.0,a=3.0,idf)_
             VocabAssign(nAssign=10,a=1.2,s=None,eqw=T)_
@@ -60,19 +68,8 @@ class QueryParams(collections.Mapping):
         for key, val in param_list:
             setattr(qparams, key, val)
         # Add params not implicitly represented in Config object
-        pipeline_root      = cfg.pipeline_root
-        active_filter_list = cfg.filt_cfg.get_active_filters()
-        filt2_stw          = {filt: cfg.filt_cfg.get_stw(filt)
-                               for filt in active_filter_list}
-        # Correct dumb filt2_stw Pref bugs
-        for key, val in six.iteritems(filt2_stw):
-            if val[1] == 'None':
-                val[1] = None
-            if val[1] is not None and not isinstance(val[1], (float, int)):
-                val[1] = float(val[1])
-        qparams.active_filter_list = active_filter_list
-        qparams.chip_cfg_dict      = cfg._featweight_cfg._feat_cfg._chip_cfg
-        qparams.filt2_stw          = filt2_stw
+        pipeline_root              = cfg.pipeline_root
+        qparams.chip_cfg_dict      = cfg._featweight_cfg._feat_cfg._chip_cfg.to_dict()
         qparams.flann_params       = cfg.flann_cfg.get_flann_params()
         qparams.hesaff_params      = cfg._featweight_cfg._feat_cfg.get_hesaff_params()
         qparams.pipeline_root      = pipeline_root
@@ -80,11 +77,12 @@ class QueryParams(collections.Mapping):
         qparams.vsone              = pipeline_root == 'vsone'
         # Add custom strings to the mix as well
         # TODO; Find better way to specify config strings
+        qparams.probchip_cfgstr   = cfg._featweight_cfg.get_cfgstr(use_feat=False, use_chip=False)
         qparams.featweight_cfgstr = cfg._featweight_cfg.get_cfgstr()
         qparams.chip_cfgstr       = cfg._featweight_cfg._feat_cfg._chip_cfg.get_cfgstr()
         qparams.feat_cfgstr       = cfg._featweight_cfg._feat_cfg.get_cfgstr()
         qparams.nn_cfgstr         = cfg.nn_cfg.get_cfgstr()
-        qparams.filt_cfgstr       = cfg.filt_cfg.get_cfgstr()
+        qparams.nnweight_cfgstr   = cfg.nnweight_cfg.get_cfgstr()
         qparams.sv_cfgstr         = cfg.sv_cfg.get_cfgstr()
         qparams.flann_cfgstr      = cfg.flann_cfg.get_cfgstr()
         qparams.query_cfgstr      = cfg.get_cfgstr()

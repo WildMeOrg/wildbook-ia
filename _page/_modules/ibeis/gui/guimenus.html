@@ -1,0 +1,582 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.gui.guimenus &mdash; ibeis 0.1.0.dev1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.gui.guimenus</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for ibeis.gui.guimenus</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module defines all of the menu items in the main GUI</span>
+<span class="sd">as well as their callbacks in guiback</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">import</span> <span class="nn">guitool</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[guimenus]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="DummyBack"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guimenus.DummyBack">[docs]</a><span class="k">class</span> <span class="nc">DummyBack</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;using dummy back&#39;</span><span class="p">)</span>
+        <span class="k">pass</span>
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="c">#print(name)</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+</div>
+<div class="viewcode-block" id="setup_menus"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guimenus.setup_menus">[docs]</a><span class="k">def</span> <span class="nf">setup_menus</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[guimenus] creating menus&#39;</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menubar</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newMenubar</span><span class="p">(</span><span class="n">mainwin</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">back</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">back</span> <span class="o">=</span> <span class="n">DummyBack</span><span class="p">()</span>
+    <span class="n">setup_file_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
+    <span class="n">setup_actions_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
+    <span class="n">setup_batch_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
+    <span class="n">setup_option_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
+    <span class="n">setup_help_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
+    <span class="n">setup_developer_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="setup_file_menu"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guimenus.setup_file_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_file_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; FILE MENU &quot;&quot;&quot;</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menubar</span><span class="p">,</span> <span class="s">&#39;menuFile&#39;</span><span class="p">,</span> <span class="s">&#39;File&#39;</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionNew_Database&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;New Database&#39;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Create a new folder to use as a database.&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+N&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">new_database</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionOpen_Database&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Open Database&#39;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Opens a different database directory.&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+O&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">open_database</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionBackup_Database&#39;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Backup the current main database.&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Backup Database&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+B&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">backup_database</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionExport_Database&#39;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Dumps and exports database as csv tables.&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Export Database&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+S&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">export_database</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionImport_Img_file&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Import Images (select file(s))&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_file</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionImport_Img_dir&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Import Images (select directory)&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+I&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_dir</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionImport_Img_AsAnnot_file&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Import Cropped Images As Annotations (select file(s))&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_as_annots_from_file</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionImport_Img_file_with_smart&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Import Images (select file(s)) with smart Patrol XML&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_file_with_smart</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionImport_Img_dir_with_smart&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Import Images (select directory) with smart Patrol XML&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">import_images_from_dir_with_smart</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionLocalizeImages&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Localize Images&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">localize_images</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionQuit&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Quit&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">quit</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="setup_actions_menu"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guimenus.setup_actions_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_actions_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; ACTIONS MENU &quot;&quot;&quot;</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menubar</span><span class="p">,</span> <span class="s">&#39;menuActions&#39;</span><span class="p">,</span> <span class="s">&#39;Actions&#39;</span><span class="p">)</span>
+<span class="c">#    mainwin.menuActions.newAction(</span>
+<span class="c">#        name=&#39;actionAdd_ANNOTATION&#39;,</span>
+<span class="c">#        text=&#39;Add ANNOTATION&#39;,</span>
+<span class="c">#        shortcut=&#39;A&#39;,</span>
+<span class="c">#        slot_fn=back.add_annot)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionQuery&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Query Single Annotation&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Q&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">query</span><span class="p">)</span>
+    <span class="c">#mainwin.menuActions.addSeparator()</span>
+    <span class="c">#mainwin.menuActions.newAction(</span>
+    <span class="c">#    name=&#39;actionReselect_ANNOTATION&#39;,</span>
+    <span class="c">#    text=&#39;Reselect ANNOTATION Bbox&#39;,</span>
+    <span class="c">#    shortcut=&#39;Ctrl+R&#39;,</span>
+    <span class="c">#    slot_fn=back.reselect_annotation)</span>
+    <span class="c">#mainwin.menuActions.newAction(</span>
+    <span class="c">#    name=&#39;actionReselect_Ori&#39;,</span>
+    <span class="c">#    text=&#39;Reselect ANNOTATION Orientation&#39;,</span>
+    <span class="c">#    shortcut=&#39;Ctrl+Shift+O&#39;,</span>
+    <span class="c">#    slot_fn=back.reselect_ori)</span>
+    <span class="c">#mainwin.menuActions.addSeparator()</span>
+    <span class="c">#mainwin.menuActions.newAction(</span>
+    <span class="c">#    name=&#39;actionNext&#39;,</span>
+    <span class="c">#    text=&#39;Select Next&#39;,</span>
+    <span class="c">#    shortcut=&#39;Ctrl+N&#39;,</span>
+    <span class="c">#    slot_fn=back.select_next)</span>
+    <span class="c">#mainwin.menuActions.newAction(</span>
+    <span class="c">#    name=&#39;actionPrev&#39;,</span>
+    <span class="c">#    text=&#39;Select Previous&#39;,</span>
+    <span class="c">#    shortcut=&#39;Ctrl+P&#39;,</span>
+    <span class="c">#    slot_fn=back.select_prev)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDeleteAllEncounters&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete All Encounters&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_all_encounters</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDelete_Image&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Image&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_image</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDelete_ANNOTATION&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Annotation&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+Del&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_annot</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionTrainWithEncounters&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Train RF with Open Encounter&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">train_rf_with_encounter</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuActions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;toggleThumbnails&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Toggle Thumbnails&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">toggle_thumbnails</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="setup_batch_menu"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guimenus.setup_batch_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_batch_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; BATCH MENU &quot;&quot;&quot;</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menubar</span><span class="p">,</span> <span class="s">&#39;menuBatch&#39;</span><span class="p">,</span> <span class="s">&#39;Batch&#39;</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionCompute_Encounters&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Cluster Encounters&#39;</span><span class="p">,</span>
+        <span class="c">#shortcut=&#39;Ctrl+2&#39;,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">compute_encounters</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDetect&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Run Detection&#39;</span><span class="p">,</span>
+        <span class="c">#shortcut=&#39;Ctrl+3&#39;,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_detection</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionCompute_Queries&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Compute Old Style Queries&#39;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;&#39;&#39;This might take anywhere from a coffee break to an</span>
+<span class="s">                    overnight procedure depending on how many ANNOTATIONs you</span><span class="se">\&#39;</span><span class="s">ve</span>
+<span class="s">                    made. It queries each chip and saves the result which</span>
+<span class="s">                    allows multiple queries to be rapidly inspected later.&#39;&#39;&#39;</span><span class="p">,</span>
+        <span class="c">#shortcut=&#39;Ctrl+4&#39;,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionComputeIncremental_Queries&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Compute Incremental Queries&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">incremental_query</span>
+    <span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionBatchIntraEncounterQueries&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Compute Batch IntraEncounter Queries&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">query_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_ENC_KEY</span><span class="p">),</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">textblock</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            all-encounter-annots VS all-encounter-annots (nonjunk)</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionBatchVsExemplarQueries&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Compute Batch VsExemplar Queries&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">query_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">),</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">textblock</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            all-encounter-annots VS all-exemplar-annots (nonjunk)</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionBatchUnknownIntraEncounterQueries&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Compute Batch Unknown IntraEncounter Queries&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">query_is_known</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">query_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">INTRA_ENC_KEY</span><span class="p">),</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">textblock</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            unnamed-encounter-annots VS all-encounter-annots (nonjunk)</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionBatchUnknownVsExemplarQueries&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Compute Batch Unknown VsExemplar Queries&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">,</span> <span class="n">query_is_known</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">query_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">),</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">textblock</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            unnamed-encounter-annots VS all-exemplar-annots (nonjunk)</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionSetExemplarsFromQualityAndViewpoint&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Set Exemplars from Quality and Viewpoint&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">set_exemplars_from_quality_and_viewpoint</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">textblock</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Uses the quality and viewpoint column to pick the best N exemplars</span>
+<span class="sd">            per viewpoint, per name.</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionBatchConsecutiveLocationSpeciesRename&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Consecutive Location+Species Rename&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">batch_rename_consecutive_via_species</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">textblock</span><span class="p">(</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Renames ALL the names in the database to</span>
+<span class="sd">            {other_cfg.location_for_names}_{species_code}_{num}</span>
+<span class="sd">            &#39;&#39;&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionShipProcessedEncounters&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Ship Processed Encounters&#39;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;&#39;&#39;This action will ship to WildBook any encounters that have</span>
+<span class="s">                    been marked as processed.  This can also be used to send</span>
+<span class="s">                    processed encounters that failed to ship correctly.&#39;&#39;&#39;</span><span class="p">,</span>
+        <span class="c">#shortcut=&#39;Ctrl+5&#39;,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">send_unshipped_processed_encounters</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionEncounterImagesReviewed&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Reviewed All Encounter Images&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">encounter_reviewed_all_images</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionPrecomputeANNOTATIONFeatures&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Precompute Chips/Features&#39;</span><span class="p">,</span>
+        <span class="c">#shortcut=&#39;Ctrl+Return&#39;,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">compute_feats</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionPrecomputeThumbnails&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Precompute Thumbnails&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">compute_thumbs</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuBatch</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>  <span class="c"># ---------</span>
+
+</div>
+<div class="viewcode-block" id="setup_option_menu"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guimenus.setup_option_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_option_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; OPTIONS MENU &quot;&quot;&quot;</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuOptions</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menubar</span><span class="p">,</span> <span class="s">&#39;menuOptions&#39;</span><span class="p">,</span> <span class="s">&#39;Options&#39;</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuOptions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionLayout_Figures&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Layout Figures&#39;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Organizes windows in a grid&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+L&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">layout_figures</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuOptions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionToggleQueryMode&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Toggle Query Mode: ----&#39;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Changes behavior of Actions-&gt;Query&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">set_query_mode</span><span class="p">,</span> <span class="s">&#39;toggle&#39;</span><span class="p">))</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuOptions</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuOptions</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionPreferences&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Edit Preferences&#39;</span><span class="p">,</span>
+        <span class="n">tooltip</span><span class="o">=</span><span class="s">&#39;Changes algorithm parameters and program behavior.&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+P&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">edit_preferences</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="setup_help_menu"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guimenus.setup_help_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_help_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; HELP MENU &quot;&quot;&quot;</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menubar</span><span class="p">,</span> <span class="s">&#39;menuHelp&#39;</span><span class="p">,</span> <span class="s">&#39;Help&#39;</span><span class="p">)</span>
+    <span class="n">about_msg</span> <span class="o">=</span> <span class="s">&#39;IBEIS = Image Based Ecological Information System</span><span class="se">\n</span><span class="s">http://ibeis.org/&#39;</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionAbout&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;About&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">guitool</span><span class="o">.</span><span class="n">msg_event</span><span class="p">(</span><span class="s">&#39;About&#39;</span><span class="p">,</span> <span class="n">about_msg</span><span class="p">))</span>
+    <span class="c">#mainwin.menuHelp.newAction(</span>
+    <span class="c">#    name=&#39;actionView_Docs&#39;,</span>
+    <span class="c">#    text=&#39;View Documentation&#39;,</span>
+    <span class="c">#    shortcut=&#39;&#39;,</span>
+    <span class="c">#    slot_fn=back.view_docs)</span>
+    <span class="c"># ---</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="c"># ---</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionView_DBDir&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;View Database Directory&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_database_dir</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionView_App_Files_Dir&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;View Application Files Directory&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_app_files_dir</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionViewLogsDir&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;View Log Directory&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">view_log_dir</span><span class="p">)</span>
+    <span class="c"># ---</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="c"># ---</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionRedownload_Detection_Models&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Redownload Detection Models&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">redownload_detection_models</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionFixCleanDatabase&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Fix/Clean Database&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">fix_and_clean_database</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionConsistencyCheck&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Run Consistency Checks&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_consistency_checks</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">addSeparator</span><span class="p">()</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDelete_Precomputed_Results&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Cached Query Results&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_queryresults_dir</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDelete_Cache_Directory&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Database Cache&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_cache</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDelete_global_preferences&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Global Preferences&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_global_prefs</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuHelp</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDeleteThumbnails&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Delete Thumbnails&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">delete_thumbnails</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="setup_developer_menu"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guimenus.setup_developer_menu">[docs]</a><span class="k">def</span> <span class="nf">setup_developer_menu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; DEV MENU &quot;&quot;&quot;</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newMenu</span><span class="p">(</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">mainwin</span><span class="o">.</span><span class="n">menubar</span><span class="p">,</span> <span class="s">&#39;menuDev&#39;</span><span class="p">,</span> <span class="s">&#39;Dev&#39;</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionExpandNamesTree&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Expand Names Tree&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">mainwin</span><span class="o">.</span><span class="n">expand_names_tree</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDeveloper_reload&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Developer Reload&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+Shift+R&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_reload</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDevRunTests&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Run Developer Tests&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">run_tests</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDeveloper_mode&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Developer IPython&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+Shift+I&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_mode</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDeveloper_CLS&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Refresh Tables&#39;</span><span class="p">,</span>
+        <span class="n">shortcut</span><span class="o">=</span><span class="s">&#39;Ctrl+Shift+C&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_cls</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;actionDeveloper_DumpDB&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Dump SQL Database&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_dumpdb</span><span class="p">)</span>
+    <span class="n">mainwin</span><span class="o">.</span><span class="n">menuDev</span><span class="o">.</span><span class="n">newAction</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">&#39;export_learning_data&#39;</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="s">&#39;Export learning data&#39;</span><span class="p">,</span>
+        <span class="n">slot_fn</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">dev_export_annotations</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

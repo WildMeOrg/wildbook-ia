@@ -7,7 +7,8 @@ CommandLine:
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import viz
-import utool
+import utool as ut
+import vtool as vt
 import plottool as pt  # NOQA
 import functools
 import six
@@ -17,7 +18,7 @@ from plottool.viz_featrow import draw_feat_row
 from ibeis.viz import viz_helpers as vh
 from plottool import interact_helpers as ih
 
-(print, print_, printDBG, rrr, profile) = utool.inject(
+(print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[interact_chip]', DEBUG=False)
 
 
@@ -101,7 +102,7 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
 
 
 # CHIP INTERACTION 2
-def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, **kwargs):
+def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, qreq_=None, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -140,9 +141,9 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, **kwargs):
 
     def _select_fxth_kpt(fx):
         # Get the fx-th keypiont
-        chip = ibs.get_annot_chips(aid)
-        kp = ibs.get_annot_kpts(aid)[fx]
-        sift = ibs.get_annot_vecs(aid)[fx]
+        chip = ibs.get_annot_chips(aid, qreq_=qreq_)
+        kp = ibs.get_annot_kpts(aid, qreq_=qreq_)[fx]
+        sift = ibs.get_annot_vecs(aid, qreq_=qreq_)[fx]
         # Draw chip + keypoints + highlighted plots
         _chip_view(pnum=(2, 1, 1), sel_fx=fx)
         # Draw the selected feature plots
@@ -155,7 +156,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, **kwargs):
         kwargs['pts'] = mode_ptr[0]  == 2
         df2.figure(fnum=fnum, pnum=pnum, docla=True, doclf=True)
         # Toggle no keypoints view
-        viz.show_chip(ibs, aid, fnum=fnum, pnum=pnum, **kwargs)
+        viz.show_chip(ibs, aid, fnum=fnum, pnum=pnum, qreq_=qreq_, **kwargs)
         df2.set_figtitle('Chip View')
 
     def _on_chip_click(event):
@@ -182,9 +183,9 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, **kwargs):
                     _chip_view(**kwargs)
                     ih.disconnect_callback(fig, 'button_press_event')
                 elif viztype == 'chip':
-                    kpts = ibs.get_annot_kpts(aid)
+                    kpts = ibs.get_annot_kpts(aid, qreq_=qreq_)
                     if len(kpts) > 0:
-                        fx = utool.nearest_point(x, y, kpts)[0]
+                        fx = vt.nearest_point(x, y, kpts, conflict_mode='next')[0]
                         print('... clicked fx=%r' % fx)
                         _select_fxth_kpt(fx)
                     else:

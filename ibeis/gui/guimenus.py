@@ -385,6 +385,10 @@ def setup_developer_menu(mainwin, back):
     """ DEV MENU """
     mainwin.menuDev = guitool.newMenu(mainwin, mainwin.menubar, 'menuDev', 'Dev')
     mainwin.menuDev.newAction(
+        name='actionExpandNamesTree',
+        text='Expand Names Tree',
+        slot_fn=mainwin.expand_names_tree)
+    mainwin.menuDev.newAction(
         name='actionDeveloper_reload',
         text='Developer Reload',
         shortcut='Ctrl+Shift+R',

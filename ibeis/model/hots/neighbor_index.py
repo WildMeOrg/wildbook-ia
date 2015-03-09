@@ -23,9 +23,10 @@ import pyflann
 #import lockfile
 from os.path import join
 from os.path import basename, exists  # NOQA
-from six.moves import range  # NOQA
+from six.moves import range, zip, map  # NOQA
 import vtool.nearest_neighbors as nntool
 from ibeis.model.hots import hstypes
+from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[neighbor_index]', DEBUG=False)
 
 NOCACHE_FLANN = ut.get_argflag('--nocache-flann')
@@ -176,10 +177,7 @@ def get_nnindexer_uuid_map_fpath(qreq_):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> # build test data
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='testdb1')
-        >>> daid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=False)
         >>> uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
         >>> result = str(ut.path_ndir_split(uuid_map_fpath, 3))
         >>> print(result)
@@ -214,10 +212,7 @@ def clear_uuid_cache(qreq_):
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(qaids, daids)
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=False)
         >>> # execute function
         >>> fgws_list = clear_uuid_cache(qreq_)
         >>> # verify results
@@ -241,11 +236,7 @@ def print_uuid_cache(qreq_):
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> dbname = 'PZ_Master0'  # 'testdb1'
-        >>> ibs = ibeis.opendb(dbname)
-        >>> daids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qaids = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> qreq_ = ibs.new_query_request(qaids, daids)
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='PZ_Master0', preload=False)
         >>> # execute function
         >>> print_uuid_cache(qreq_)
         >>> # verify results
@@ -510,10 +501,6 @@ def group_daids_by_cached_nnindexer(qreq_, aid_list, min_reindex_thresh,
     FIXME: This function is slow due to ibs.get_annot_aids_from_visual_uuid
     282.253 seconds for 600 queries
 
-    Args:
-        ibs       (IBEISController):
-        daid_list (list):
-
     CommandLine:
         python -m ibeis.model.hots.neighbor_index --test-group_daids_by_cached_nnindexer
 
@@ -619,7 +606,7 @@ def get_fgweights_hack(qreq_, daid_list):
     in config settings
     """
     # <HACK:featweight>
-    if qreq_.qparams.fg_weight != 0:
+    if qreq_.qparams.fg_on:
         fgws_list = qreq_.ibs.get_annot_fgweights(
             daid_list, qreq_=qreq_, ensure=True)
     else:
@@ -1009,10 +996,8 @@ class NeighborIndex(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.model.hots import pipeline
             >>> cfgdict = dict()
-            >>> dbname = 'testdb1'
-            >>> ibs, qreq_ = pipeline.get_pipeline_testdata(dbname=dbname, cfgdict=cfgdict)
+            >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', cfgdict=cfgdict, preload=True)
             >>> nnindexer = qreq_.indexer
             >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids()[0], qreq_=qreq_)
             >>> num_neighbors = 4

@@ -18,12 +18,12 @@ def flann_add_time_experiment(update=False):
     TODO: time experiment
 
     CommandLine:
-        python -m ibeis.model.hots.neighbor_index --test-flann_add_time_experiment
-        utprof.py -m ibeis.model.hots.neighbor_index --test-flann_add_time_experiment
+        python -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment
+        utprof.py -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> from ibeis.model.hots._neighbor_experiment import *  # NOQA
         >>> import ibeis
         >>> #ibs = ibeis.opendb('PZ_MTEST')
         >>> update = True
@@ -45,27 +45,22 @@ def flann_add_time_experiment(update=False):
         flann.build_index(vecs, **flann_params)
         return flann
 
-    def get_reindex_time(ibs, daids, flann_params):
-        vecs = np.vstack(ibs.get_annot_vecs(daids))
-        with ut.Timer(verbose=False) as t:
-            flann = make_flann_index(vecs, flann_params)  # NOQA
-        return t.ellapsed
-
-    def get_addition_time(ibs, daids, flann, flann_params):
-        vecs = np.vstack(ibs.get_annot_vecs(daids))
-        with ut.Timer(verbose=False) as t:
-            flann.add_points(vecs)
-        return t.ellapsed
-
     # Input
-    #ibs = ibeis.opendb(db='PZ_MTEST')
-    #ibs = ibeis.opendb(db='GZ_ALL')
-    ibs = ibeis.opendb(db='PZ_Master0')
+    mode = 1
+    if mode == 1:
+        ibs = ibeis.opendb(db='PZ_MTEST')
+        initial = 1
+        reindex_stride = 16
+        addition_stride = 4
+        max_ceiling = 120
+    elif mode == 2:
+        #ibs = ibeis.opendb(db='GZ_ALL')
+        ibs = ibeis.opendb(db='PZ_Master0')
+        initial = 32
+        reindex_stride = 32
+        addition_stride = 16
+        max_ceiling = 300001
     #max_ceiling = 32
-    initial = 32
-    reindex_stride = 32
-    addition_stride = 16
-    max_ceiling = 300001
     all_daids = ibs.get_valid_aids()
     max_num = min(max_ceiling, len(all_daids))
     flann_params = ibs.cfg.query_cfg.flann_cfg.get_flann_params()
@@ -82,15 +77,19 @@ def flann_add_time_experiment(update=False):
 
     def reindex_step(count, count_list, time_list_reindex):
         daids    = all_randomize_daids_[0:count]
-        ellapsed = get_reindex_time(ibs, daids, flann_params)
+        vecs = np.vstack(ibs.get_annot_vecs(daids))
+        with ut.Timer(verbose=False) as t:
+            flann = make_flann_index(vecs, flann_params)  # NOQA
         count_list.append(count)
-        time_list_reindex.append(ellapsed)
+        time_list_reindex.append(t.ellapsed)
 
     def addition_step(count, flann, count_list2, time_list_addition):
         daids = all_randomize_daids_[count:count + 1]
-        ellapsed = get_addition_time(ibs, daids, flann, flann_params)
+        vecs = np.vstack(ibs.get_annot_vecs(daids))
+        with ut.Timer(verbose=False) as t:
+            flann.add_points(vecs)
         count_list2.append(count)
-        time_list_addition.append(ellapsed)
+        time_list_addition.append(t.ellapsed)
 
     def make_initial_index(initial):
         daids = all_randomize_daids_[0:initial + 1]
@@ -101,7 +100,7 @@ def flann_add_time_experiment(update=False):
     # Reindex Part
     reindex_lbl = 'Reindexing'
     _reindex_iter = range(1, max_num, reindex_stride)
-    reindex_iter = ut.ProgressIter(_reindex_iter, lbl=reindex_lbl)
+    reindex_iter = ut.ProgressIter(_reindex_iter, lbl=reindex_lbl, freq=1)
     for count in reindex_iter:
         reindex_step(count, count_list, time_list_reindex)
 
@@ -128,7 +127,7 @@ def flann_add_time_experiment(update=False):
     next_fnum = iter(range(0, 2)).next  # python3 PY3
     pt.figure(fnum=next_fnum())
     pt.plot2(count_list, time_list_reindex, marker='-o', equal_aspect=False,
-             x_label='num_annotations', label=reindex_lbl + ' Time')
+             x_label='num_annotations', label=reindex_lbl + ' Time', dark=False)
 
     #pt.figure(fnum=next_fnum())
     pt.plot2(count_list2, time_list_addition, marker='-o', equal_aspect=False,
@@ -143,15 +142,18 @@ def flann_add_time_experiment(update=False):
 def augment_nnindexer_experiment(update=True):
     """
 
-    python -c "import utool; print(utool.auto_docstr('ibeis.model.hots.neighbor_index', 'augment_nnindexer_experiment'))"
+    python -c "import utool; print(utool.auto_docstr('ibeis.model.hots._neighbor_experiment', 'augment_nnindexer_experiment'))"
+
+    References:
+        http://answers.opencv.org/question/44592/flann-index-in-python-training-fails-with-segfault/
 
     CommandLine:
-        utprof.py -m ibeis.model.hots.neighbor_index --test-augment_nnindexer_experiment
-        python -m ibeis.model.hots.neighbor_index --test-augment_nnindexer_experiment
+        utprof.py -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment
+        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+        >>> from ibeis.model.hots._neighbor_experiment import *  # NOQA
         >>> # build test data
         >>> show = ut.get_argflag('--show')
         >>> update = show

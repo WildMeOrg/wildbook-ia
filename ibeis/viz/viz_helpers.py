@@ -35,7 +35,7 @@ set_ibsdat = ph.set_plotdat
 
 
 @getter_vector_output
-def get_annot_kpts_in_imgspace(ibs, aid_list, **kwargs):
+def get_annot_kpts_in_imgspace(ibs, aid_list, qreq_=None, **kwargs):
     """ Transforms keypoints so they are plotable in imagespace """
     ensure = kwargs.get('ensure', True)
     bbox_list   = ibs.get_annot_bboxes(aid_list)
@@ -46,7 +46,7 @@ def get_annot_kpts_in_imgspace(ibs, aid_list, **kwargs):
         ut.printex(ex, '[!ibs.get_annot_kpts_in_imgspace]')
         print('[!ibs.get_annot_kpts_in_imgspace] aid_list = %r' % (aid_list,))
         raise
-    kpts_list    = ibs.get_annot_kpts(aid_list, ensure=ensure)
+    kpts_list    = ibs.get_annot_kpts(aid_list, ensure=ensure, qreq_=qreq_)
     imgkpts_list = [ktool.transform_kpts_to_imgspace(kpts, bbox, theta, chipsz)
                     for kpts, bbox, theta, chipsz
                     in zip(kpts_list, bbox_list, theta_list, chipsz_list)]
@@ -54,25 +54,25 @@ def get_annot_kpts_in_imgspace(ibs, aid_list, **kwargs):
 
 
 @getter_vector_output
-def get_chips(ibs, aid_list, in_image=False, **kwargs):
+def get_chips(ibs, aid_list, in_image=False, qreq_=None, **kwargs):
     #if 'chip' in kwargs:
         #return kwargs['chip']
     if in_image:
-        return ibs.get_annot_images(aid_list)
+        return ibs.get_annot_images(aid_list, qreq_=qreq_)
     else:
-        return ibs.get_annot_chips(aid_list)
+        return ibs.get_annot_chips(aid_list, qreq_=qreq_)
 
 
 @getter_vector_output
-def get_kpts(ibs, aid_list, in_image=False, **kwargs):
+def get_kpts(ibs, aid_list, in_image=False, qreq_=None, **kwargs):
     if 'kpts' in kwargs:
         return kwargs['kpts']
     kpts_subset = kwargs.get('kpts_subset', None)
     ensure = kwargs.get('ensure', True)
     if in_image:
-        kpts_list = get_annot_kpts_in_imgspace(ibs, aid_list, **kwargs)
+        kpts_list = get_annot_kpts_in_imgspace(ibs, aid_list, qreq_=qreq_, **kwargs)
     else:
-        kpts_list = ibs.get_annot_kpts(aid_list, ensure=ensure)
+        kpts_list = ibs.get_annot_kpts(aid_list, ensure=ensure, qreq_=qreq_)
     if kpts_subset is not None:
         kpts_list = [ut.spaced_items(kpts, kpts_subset, trunc=True) for kpts in kpts_list]
     return kpts_list
@@ -311,13 +311,13 @@ def get_query_text(ibs, qres, aid2, truth, **kwargs):
 #==========================#
 
 
-def show_keypoint_gradient_orientations(ibs, aid, fx, fnum=None, pnum=None):
+def show_keypoint_gradient_orientations(ibs, aid, fx, fnum=None, pnum=None, qreq_=None):
     # Draw the gradient vectors of a patch overlaying the keypoint
     if fnum is None:
         fnum = df2.next_fnum()
-    rchip = ibs.get_annot_chips(aid)
-    kp    = ibs.get_annot_kpts(aid)[fx]
-    sift  = ibs.get_annot_vecs(aid)[fx]
+    rchip = ibs.get_annot_chips(aid, qreq_=qreq_)
+    kp    = ibs.get_annot_kpts(aid, qreq_=qreq_)[fx]
+    sift  = ibs.get_annot_vecs(aid, qreq_=qreq_)[fx]
     df2.draw_keypoint_gradient_orientations(rchip, kp, sift=sift,
                                             mode='vec', fnum=fnum, pnum=pnum)
     df2.set_title('Gradient orientation\n %s, fx=%d' % (get_aidstrs(aid), fx))

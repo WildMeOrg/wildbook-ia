@@ -1,0 +1,460 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.dev.experiment_helpers &mdash; ibeis 0.1.0.dev1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.dev" href="../dev.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../dev.html">ibeis.dev</a> &raquo;</li>
+      
+    <li>ibeis.dev.experiment_helpers</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for ibeis.dev.experiment_helpers</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Helper module that helps expand parameters for grid search</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">experiment_configs</span>
+<span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_helpers]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="n">QUIET</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span>
+
+
+<div class="viewcode-block" id="get_vary_dicts"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.experiment_helpers.get_vary_dicts">[docs]</a><span class="k">def</span> <span class="nf">get_vary_dicts</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    build varydicts from experiment_configs.</span>
+<span class="sd">    recomputes test_cfg_name_list_out in case there are any nested lists specified in it</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.experiment_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; test_cfg_name_list = [&#39;lnbnn2&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; vary_dicts, test_cfg_name_list_out = get_vary_dicts(test_cfg_name_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(utool.list_str(vary_dicts))</span>
+<span class="sd">        [</span>
+<span class="sd">            {&#39;sv_on&#39;: [True], &#39;logdist_weight&#39;: [0.0, 1.0], &#39;lnbnn_weight&#39;: [0.0], &#39;pipeline_root&#39;: [&#39;vsmany&#39;], &#39;normonly_weight&#39;: [0.0]},</span>
+<span class="sd">            {&#39;sv_on&#39;: [True], &#39;logdist_weight&#39;: [0.0], &#39;lnbnn_weight&#39;: [0.0], &#39;pipeline_root&#39;: [&#39;vsmany&#39;], &#39;normonly_weight&#39;: [0.0, 1.0]},</span>
+<span class="sd">            {&#39;sv_on&#39;: [True], &#39;logdist_weight&#39;: [0.0], &#39;lnbnn_weight&#39;: [0.0, 1.0], &#39;pipeline_root&#39;: [&#39;vsmany&#39;], &#39;normonly_weight&#39;: [0.0]},</span>
+<span class="sd">        ]</span>
+
+<span class="sd">    Ignore:</span>
+<span class="sd">        print(utool.indent(utool.list_str(vary_dicts), &#39; &#39; * 8))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vary_dicts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">test_cfg_name_list_out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cfg_name</span> <span class="ow">in</span> <span class="n">test_cfg_name_list</span><span class="p">:</span>
+        <span class="n">test_cfg</span> <span class="o">=</span> <span class="n">experiment_configs</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">cfg_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">test_cfg</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">vary_dicts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_cfg</span><span class="p">)</span>
+            <span class="n">test_cfg_name_list_out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cfg_name</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">test_cfg</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">vary_dicts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">test_cfg</span><span class="p">)</span>
+            <span class="c"># make sure len(test_cfg_names) still corespond with len(vary_dicts)</span>
+            <span class="n">test_cfg_name_list_out</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">cfg_name</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_cfg</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vary_dicts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">valid_cfg_names</span> <span class="o">=</span> <span class="n">experiment_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Choose a valid testcfg:</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">valid_cfg_names</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">dict_</span> <span class="ow">in</span> <span class="n">vary_dicts</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">),</span> <span class="s">&#39;val should be list not string: not </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">),)</span>
+            <span class="c">#assert not isinstance(val, (list, tuple)), &#39;val should be list or tuple: not %r&#39; % (type(val),)</span>
+    <span class="k">return</span> <span class="n">vary_dicts</span><span class="p">,</span> <span class="n">test_cfg_name_list_out</span>
+
+</div>
+<div class="viewcode-block" id="rankscore_str"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.experiment_helpers.rankscore_str">[docs]</a><span class="k">def</span> <span class="nf">rankscore_str</span><span class="p">(</span><span class="n">thresh</span><span class="p">,</span> <span class="n">nLess</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">withlbl</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="c">#helper to print rank scores of configs</span>
+    <span class="n">percent</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">nLess</span> <span class="o">/</span> <span class="n">total</span>
+    <span class="n">fmtsf</span> <span class="o">=</span> <span class="s">&#39;%&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">num2_sigfig</span><span class="p">(</span><span class="n">total</span><span class="p">))</span> <span class="o">+</span> <span class="s">&#39;d&#39;</span>
+    <span class="k">if</span> <span class="n">withlbl</span><span class="p">:</span>
+        <span class="n">fmtstr</span> <span class="o">=</span> <span class="s">&#39;:#ranks &lt; </span><span class="si">%d</span><span class="s"> = &#39;</span> <span class="o">+</span> <span class="n">fmtsf</span> <span class="o">+</span> <span class="s">&#39;/</span><span class="si">%d</span><span class="s"> = (</span><span class="si">%.1f%%</span><span class="s">) (err=&#39;</span> <span class="o">+</span> <span class="n">fmtsf</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span>
+        <span class="n">rankscore_str</span> <span class="o">=</span> <span class="n">fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">thresh</span><span class="p">,</span> <span class="n">nLess</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">percent</span><span class="p">,</span> <span class="p">(</span><span class="n">total</span> <span class="o">-</span> <span class="n">nLess</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fmtstr</span> <span class="o">=</span> <span class="n">fmtsf</span> <span class="o">+</span> <span class="s">&#39;/</span><span class="si">%d</span><span class="s"> = (</span><span class="si">%.1f%%</span><span class="s">) (err=&#39;</span> <span class="o">+</span> <span class="n">fmtsf</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span>
+        <span class="n">rankscore_str</span> <span class="o">=</span> <span class="n">fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">nLess</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">percent</span><span class="p">,</span> <span class="p">(</span><span class="n">total</span> <span class="o">-</span> <span class="n">nLess</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">rankscore_str</span>
+
+</div>
+<div class="viewcode-block" id="wrap_cfgstr"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.experiment_helpers.wrap_cfgstr">[docs]</a><span class="k">def</span> <span class="nf">wrap_cfgstr</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">):</span>
+    <span class="c"># REGEX to locate _XXXX(</span>
+    <span class="n">cfg_regex</span> <span class="o">=</span> <span class="s">r&#39;_[A-Z][A-Z]*\(&#39;</span>
+    <span class="n">cfgstrmarker_list</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">cfg_regex</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
+    <span class="n">cfgstrconfig_list</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">cfg_regex</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">cfgstrconfig_list</span><span class="p">,</span> <span class="n">cfgstrmarker_list</span><span class="p">]</span>
+    <span class="n">interleave_iter</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">interleave</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">new_cfgstr_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">total_len</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">prefix_str</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="c"># If unbalanced there is a prefix before a marker</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfgstrmarker_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfgstrconfig_list</span><span class="p">):</span>
+        <span class="n">frag</span> <span class="o">=</span> <span class="n">interleave_iter</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+        <span class="n">new_cfgstr_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">frag</span><span class="p">]</span>
+        <span class="n">total_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+        <span class="n">prefix_str</span> <span class="o">=</span> <span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+    <span class="c"># Iterate through markers and config strings</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">marker_str</span> <span class="o">=</span> <span class="n">interleave_iter</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+            <span class="n">config_str</span> <span class="o">=</span> <span class="n">interleave_iter</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+            <span class="n">frag</span> <span class="o">=</span> <span class="n">marker_str</span> <span class="o">+</span> <span class="n">config_str</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">total_len</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+        <span class="n">new_cfgstr_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">frag</span><span class="p">]</span>
+        <span class="c"># Go to newline if past 80 chars</span>
+        <span class="k">if</span> <span class="n">total_len</span> <span class="o">&gt;</span> <span class="mi">80</span><span class="p">:</span>
+            <span class="n">total_len</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">new_cfgstr_list</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">prefix_str</span><span class="p">]</span>
+    <span class="n">wrapped_cfgstr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_cfgstr_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrapped_cfgstr</span>
+
+</div>
+<div class="viewcode-block" id="format_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.experiment_helpers.format_cfgstr_list">[docs]</a><span class="k">def</span> <span class="nf">format_cfgstr_list</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">):</span>
+    <span class="n">indented_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">indent_list</span><span class="p">(</span><span class="s">&#39;    &#39;</span><span class="p">,</span> <span class="n">cfgstr_list</span><span class="p">)</span>
+    <span class="n">wrapped_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">wrap_cfgstr</span><span class="p">,</span> <span class="n">indented_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">utool</span><span class="o">.</span><span class="n">joins</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">wrapped_list</span><span class="p">)</span>
+
+
+<span class="c">#---------------</span>
+<span class="c"># Big Test Cache</span>
+<span class="c">#-----------</span>
+</div>
+<div class="viewcode-block" id="get_varied_params_list"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.experiment_helpers.get_varied_params_list">[docs]</a><span class="k">def</span> <span class="nf">get_varied_params_list</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    builds all combinations from dicts defined in experiment_configs</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.experiment_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; test_cfg_name_list = [&#39;lnbnn2&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; varied_params_list, varied_param_lbls = get_varied_params_list(test_cfg_name_list)</span>
+<span class="sd">        #&gt;&gt;&gt; print(varied_params_list)</span>
+<span class="sd">        #&gt;&gt;&gt; print(varied_param_lbls)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vary_dicts</span><span class="p">,</span> <span class="n">test_cfg_name_list_out</span> <span class="o">=</span> <span class="n">get_vary_dicts</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)</span>
+    <span class="n">dict_comb_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">utool</span><span class="o">.</span><span class="n">all_dict_combinations</span><span class="p">(</span><span class="n">dict_</span><span class="p">)</span>
+                      <span class="k">for</span> <span class="n">dict_</span> <span class="ow">in</span> <span class="n">vary_dicts</span><span class="p">]</span>
+    <span class="n">dict_comb_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">utool</span><span class="o">.</span><span class="n">all_dict_combinations_lbls</span><span class="p">(</span><span class="n">dict_</span><span class="p">)</span>
+                      <span class="k">for</span> <span class="n">dict_</span> <span class="ow">in</span> <span class="n">vary_dicts</span><span class="p">]</span>
+    <span class="c"># Append testname</span>
+    <span class="n">dict_comb_lbls</span> <span class="o">=</span> <span class="p">[[</span><span class="n">name_lbl</span> <span class="o">+</span> <span class="n">lbl</span> <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">comb_lbls</span><span class="p">]</span>
+                      <span class="k">for</span> <span class="n">name_lbl</span><span class="p">,</span> <span class="n">comb_lbls</span> <span class="ow">in</span>
+                      <span class="nb">zip</span><span class="p">(</span><span class="n">test_cfg_name_list_out</span><span class="p">,</span> <span class="n">dict_comb_lbls</span><span class="p">)]</span>
+    <span class="n">varied_params_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">dict_comb_list</span><span class="p">)</span>
+    <span class="n">varied_param_lbls</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">dict_comb_lbls</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">varied_params_list</span><span class="p">,</span> <span class="n">varied_param_lbls</span>
+
+</div>
+<div class="viewcode-block" id="get_cfg_list_helper"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.experiment_helpers.get_cfg_list_helper">[docs]</a><span class="k">def</span> <span class="nf">get_cfg_list_helper</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.experiment_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; test_cfg_name_list = [&#39;lnbnn2&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; cfg_list, cfgx2_lbl = get_cfg_list_helper(test_cfg_name_list)</span>
+<span class="sd">        &gt;&gt;&gt; cfgstr_list = [cfg.get_cfgstr() for cfg in cfg_list]</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;\n&#39;.join(cfgstr_list))</span>
+<span class="sd">        _vsmany_NN(K4+1,last,cks1024)_FILT()_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)</span>
+<span class="sd">        _vsmany_NN(K4+1,last,cks1024)_FILT(logdist_1.0)_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)</span>
+<span class="sd">        _vsmany_NN(K4+1,last,cks1024)_FILT(normonly_1.0)_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)</span>
+<span class="sd">        _vsmany_NN(K4+1,last,cks1024)_FILT(lnbnn_1.0)_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)</span>
+
+
+<span class="sd">     Ignore:</span>
+<span class="sd">        &gt;&gt;&gt; for cfg in cfg_list:</span>
+<span class="sd">        ...     print(&#39;____&#39;)</span>
+<span class="sd">        ...     cfg.printme3()</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python dev.py --allgt -t lnbnn2 --db PZ_Mothers --noqcache</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Get varied params (there may be duplicates)</span>
+    <span class="n">varied_params_list</span><span class="p">,</span> <span class="n">varied_param_lbls</span> <span class="o">=</span> <span class="n">get_varied_params_list</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)</span>
+    <span class="c"># Enforce rule that removes duplicate configs</span>
+    <span class="c"># by using feasiblity from ibeis.model.Config</span>
+    <span class="n">cfg_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cfg_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="c"># Add unique configs to the list</span>
+    <span class="k">for</span> <span class="n">dict_</span><span class="p">,</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">varied_params_list</span><span class="p">,</span> <span class="n">varied_param_lbls</span><span class="p">):</span>
+        <span class="c"># TODO: Move this unique finding code to its own function</span>
+        <span class="c"># and then move it up one function level so even the custom</span>
+        <span class="c"># configs can be uniquified</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">(</span><span class="o">**</span><span class="n">dict_</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cfg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfg_set</span><span class="p">:</span>
+            <span class="n">cfgx2_lbl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span>
+            <span class="n">cfg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+            <span class="n">cfg_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn] return </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> unique configs&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">varied_params_list</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">cfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span>
+
+</div>
+<div class="viewcode-block" id="get_cfg_list"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.experiment_helpers.get_cfg_list">[docs]</a><span class="k">def</span> <span class="nf">get_cfg_list</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        test_cfg_name_list (list):</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (cfg_list, cfgx2_lbl)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.dev.experiment_helpers --test-get_cfg_list</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.experiment_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; test_cfg_name_list = [&#39;best&#39;, &#39;custom&#39;, &#39;custom:sv_on=False&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; (cfg_list, cfgx2_lbl) = get_cfg_list(test_cfg_name_list, ibs)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; query_cfg0 = cfg_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; query_cfg1 = cfg_list[1]</span>
+<span class="sd">        &gt;&gt;&gt; assert query_cfg0.sv_cfg.sv_on is True</span>
+<span class="sd">        &gt;&gt;&gt; assert query_cfg1.sv_cfg.sv_on is False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn] building cfg_list: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">test_cfg_name_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s">&#39;custom&#39;</span> <span class="o">==</span> <span class="n">test_cfg_name_list</span><span class="p">:</span>
+        <span class="c"># Use the ibeis config as a custom config</span>
+        <span class="c"># this can be modified with the --cfg command line option</span>
+        <span class="c"># eg --cfg xy_thresh=.01 score_method=csum</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;   * custom cfg_list&#39;</span><span class="p">)</span>
+        <span class="n">cfg_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()]</span>
+        <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="p">[</span><span class="n">test_cfg_name_list</span><span class="p">]</span>
+    <span class="c">#elif &#39;custom&#39; in test_cfg_name_list:</span>
+    <span class="c">#    test_cfg_name_list.remove(&#39;custom&#39;)</span>
+    <span class="c">#    if len(test_cfg_name_list) &gt; 0:</span>
+    <span class="c">#        cfg_list, cfgx2_lbl = get_cfg_list_helper(test_cfg_name_list)</span>
+    <span class="c">#    else:</span>
+    <span class="c">#        cfg_list, cfgx2_lbl = [], []</span>
+    <span class="c">#    cfg_list += [ibs.cfg.query_cfg.deepcopy()]</span>
+    <span class="c">#    cfgx2_lbl += [&#39;custom()&#39;]</span>
+    <span class="c">#    test_cfg_name_list.append(&#39;custom&#39;)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c">#cfg_list, cfgx2_lbl = get_cfg_list_helper(test_cfg_name_list)</span>
+        <span class="n">cfg_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">test_cfg_name_list2</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">test_cfg_name</span> <span class="ow">in</span> <span class="n">test_cfg_name_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">test_cfg_name</span> <span class="o">==</span> <span class="s">&#39;custom&#39;</span><span class="p">:</span>
+                <span class="n">cfg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">())</span>
+                <span class="n">cfgx2_lbl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_cfg_name</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">test_cfg_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;custom:&#39;</span><span class="p">):</span>
+                <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="s">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">test_cfg_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+                <span class="c"># parse out modifications to custom</span>
+                <span class="n">cfgdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_cfgstr_list</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">smartcast</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="c">#ut.embed()</span>
+                <span class="n">query_cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
+                <span class="n">query_cfg</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
+                <span class="n">cfg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">query_cfg</span><span class="p">)</span>
+                <span class="n">cfgx2_lbl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_cfg_name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">test_cfg_name_list2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_cfg_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_cfg_name_list2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cfg_list2</span><span class="p">,</span> <span class="n">cfgx2_lbl2</span> <span class="o">=</span> <span class="n">get_cfg_list_helper</span><span class="p">(</span><span class="n">test_cfg_name_list2</span><span class="p">)</span>
+            <span class="n">cfg_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cfg_list2</span><span class="p">)</span>
+            <span class="n">cfgx2_lbl</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cfgx2_lbl2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">cfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_cfg_list_and_lbls"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.experiment_helpers.get_cfg_list_and_lbls">[docs]</a><span class="k">def</span> <span class="nf">get_cfg_list_and_lbls</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Driver function</span>
+
+<span class="sd">    Returns a list of varied query configurations. Only custom configs depend on</span>
+<span class="sd">    IBEIS</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        test_cfg_name_list (list):</span>
+<span class="sd">        ibs (IBEISController): optional for custom configs</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple : (cfg_list, cfgx2_lbl)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.experiment_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev import experiment_helpers as eh</span>
+<span class="sd">        &gt;&gt;&gt; test_cfg_name_list = [&#39;lnbnn2&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; ibs = None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="n">get_cfg_list</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="c">#print(cfgx2_lbl)</span>
+    <span class="c"># cfgx2_lbl denotes which parameters are being varied.</span>
+    <span class="c"># If there is just one config then nothing is varied</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">cfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.dev.experiment_helpers</span>
+<span class="sd">        python -m ibeis.dev.experiment_helpers --allexamples</span>
+<span class="sd">        python -m ibeis.dev.experiment_helpers --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

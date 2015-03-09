@@ -192,31 +192,6 @@ def compute_fgweights(ibs, aid_list, qreq_=None):
     return featweight_list
 
 
-#def add_featweight_params_gen(ibs, fid_list, qreq_=None):
-#    """
-#    add_featweight_params_gen
-#    DEPRICATE
-#    Args:
-#        ibs (IBEISController):
-#        fid_list (list):
-#    Returns:
-#        featweight_list
-#    Example:
-#        >>> # DEPRICATE
-#        >>> from ibeis.model.preproc.preproc_featweight import *  # NOQA
-#        >>> import ibeis
-#        >>> ibs = ibeis.opendb('testdb1')
-#        >>> fid_list = ibs.get_valid_fids()
-#        >>> result = add_featweight_params_gen(ibs, fid_list)
-#        >>> print(result)
-#    """
-#    # HACK: TODO AUTOGENERATE THIS
-#    cid_list = ibs.dbcache.get(const.FEATURE_TABLE, ('chip_rowid',), fid_list)
-#    aid_list = ibs.dbcache.get(const.CHIP_TABLE, ('annot_rowid',), cid_list)
-#    featweight_list = compute_fgweights(ibs, aid_list, qreq_=qreq_)
-#    return featweight_list
-
-
 def generate_featweight_properties(ibs, feat_rowid_list, qreq_=None):
     """
     Args:

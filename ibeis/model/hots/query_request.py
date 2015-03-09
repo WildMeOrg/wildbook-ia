@@ -4,6 +4,7 @@ from ibeis.model.hots import multi_index
 from ibeis.model.hots import score_normalization
 from ibeis.model.hots import distinctiveness_normalizer
 from ibeis.model.hots import query_params
+from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 import vtool as vt
 import copy
 import six
@@ -29,13 +30,11 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> ibs = ibeis.opendb(db='PZ_MTEST')
         >>> qaids = [1]
         >>> daids = [1, 2, 3, 4, 5]
-        >>> cfgdict = {'sv_on': False, 'fg_weight': 1.0, 'featweight_on': True}
+        >>> cfgdict = {'sv_on': False, 'fg_on': True}
         >>> # Execute test
         >>> qreq_ = new_ibeis_query_request(ibs, qaids, daids, cfgdict=cfgdict)
         >>> # Check Results
         >>> print(qreq_.qparams.query_cfgstr)
-        >>> assert qreq_.qparams.fg_weight == 1.0, (
-        ...    'qreq_.qparams.fg_weight = %r ' % qreq_.qparams.fg_weight)
         >>> assert qreq_.qparams.sv_on is False, (
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> datahashid = qreq_.get_data_hashid()
@@ -53,14 +52,12 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> ibs = ibeis.opendb(db='NAUT_test')
         >>> qaids = [1]
         >>> daids = [1, 2, 3, 4, 5]
-        >>> cfgdict = {'sv_on': True, 'fg_weight': 1.0, 'featweight_on': True}
+        >>> cfgdict = {'sv_on': True, 'fg_on': True}
         >>> # Execute test
         >>> qreq_ = new_ibeis_query_request(ibs, qaids, daids, cfgdict=cfgdict)
         >>> # Check Results.
         >>> # Featweight should be off because there is no Naut detector
         >>> print(qreq_.qparams.query_cfgstr)
-        >>> assert qreq_.qparams.fg_weight == 0.0, (
-        ...    'qreq_.qparams.fg_weight = %r ' % qreq_.qparams.fg_weight)
         >>> assert qreq_.qparams.sv_on is True, (
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> datahashid = qreq_.get_data_hashid()
@@ -109,8 +106,9 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids):
         else:
             print('  * unique_species = %r' % (unique_species,))
         print('  * valid species = %r' % (ibs.get_species_with_detectors(),))
-        #cfg._featweight_cfg.featweight_on = 'ERR'
-        cfgdict['featweight_on'] = 'ERR'
+        #cfg._featweight_cfg.featweight_enabled = 'ERR'
+        cfgdict['featweight_enabled'] = 'ERR'
+        cfgdict['fg_on'] = False
     else:
         #print(ibs.get_annot_species_texts(aid_list))
         print('NO NEED TO HACK. FG_WEIGHT CAN BE ON, unique_species=%r' % (unique_species,))
@@ -153,7 +151,7 @@ class QueryRequest(object):
         qreq_.normalizer = None
         qreq_.dstcnvs_normer = None
         # Hacky metadata
-        qreq_.metadata = {}
+        #qreq_.metadata = {}
         qreq_.hasloaded = False
         # Set values
         qreq_.qparams = qparams   # Parameters relating to pipeline execution
@@ -162,11 +160,11 @@ class QueryRequest(object):
         qreq_.set_external_qaids(qaid_list)
 
     @profile
-    def shallowcopy(qreq_, qx=None, dx=None):
+    def shallowcopy(qreq_, qaids=None, qx=None, dx=None):
         """
         Creates a copy of qreq with the same qparams object and a subset of the qx
         and dx objects.
-        used to generate chunks of vsone queries
+        used to generate chunks of vsone and vsmany queries
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -176,13 +174,17 @@ class QueryRequest(object):
             >>> qreq2_ = qreq_.shallowcopy(qx=0)
             >>> assert qreq_.get_external_daids() is qreq2_.get_external_daids()
             >>> assert len(qreq_.get_external_qaids()) != len(qreq2_.get_external_qaids())
-            >>> assert qreq_.metadata is not qreq2_.metadata
+            >>> #assert qreq_.metadata is not qreq2_.metadata
         """
         qreq2_ = copy.copy(qreq_)
         if qx is not None:
             qaid_list  = qreq2_.get_external_qaids()
             qaid_list  = qaid_list[qx:qx + 1]
             qreq2_.set_external_qaids(qaid_list)  # , quuid_list)
+        elif qaids is not None:
+            assert qx is None, 'cannot specify both qx and qaids'
+            assert len(np.intersect1d(qaids, qreq2_.get_external_qaids())) == len(qaids), 'not a subset'
+            qreq2_.set_external_qaids(qaids)  # , quuid_list)
         if dx is not None:
             daid_list  = qreq2_.get_external_daids()
             daid_list  = daid_list[dx:dx + 1]
@@ -191,7 +193,7 @@ class QueryRequest(object):
             qreq2_.set_external_daids(daid_list)
         # The shallow copy does not bring over output / query data
         qreq2_.indexer = None
-        qreq2_.metadata = {}
+        #qreq2_.metadata = {}
         qreq2_.hasloaded = False
         return qreq2_
 
@@ -227,7 +229,7 @@ class QueryRequest(object):
         # Invalidate the current indexer, mask and metadata
         qreq_.indexer = None
         qreq_.internal_daids_mask = None
-        qreq_.metadata = {}
+        #qreq_.metadata = {}
         # Find indices to remove
         delete_flags = vt.get_covered_mask(qreq_.internal_daids, remove_daids)
         delete_indices = np.where(delete_flags)[0]
@@ -250,7 +252,7 @@ class QueryRequest(object):
             species = qreq_.ibs.get_annot_species(new_daids)
             assert set(qreq_.unique_species) == set(species), 'inconsistent species'
         qreq_.internal_daids_mask = None
-        qreq_.metadata = {}
+        #qreq_.metadata = {}
         qreq_.internal_daids = np.append(qreq_.internal_daids, new_daids)
         # TODO: multi-indexer add_support
         if qreq_.indexer is not None:
@@ -328,7 +330,7 @@ class QueryRequest(object):
             >>> cfgdict1 = dict(codename='vsone', sv_on=True)
             >>> qaid_list = [1, 2, 3, 4]
             >>> daid_list = [1, 2, 3, 4]
-            >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1,
+            >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1,
             ...     qaid_list=qaid_list, daid_list=daid_list)
             >>> qaids = qreq_.get_internal_qaids()
             >>> ut.assert_lists_eq(qaid_list, qaids)
@@ -360,7 +362,7 @@ class QueryRequest(object):
             >>> cfgdict1 = dict(codename='vsone', sv_on=True)
             >>> qaid_list = [1, 2, 3, 4]
             >>> daid_list = [1, 2, 3, 4]
-            >>> ibs, qreq_ = pipeline.get_pipeline_testdata(cfgdict=cfgdict1,
+            >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict1,
             ...     qaid_list=qaid_list, daid_list=daid_list)
             >>> qaids = qreq_.get_internal_qaids()
             >>> ut.assert_lists_eq(qaid_list, qaids)
@@ -509,7 +511,7 @@ class QueryRequest(object):
         """
         if verbose:
             print('[qreq] lazy preloading')
-        if qreq_.qparams.featweight_on is True:
+        if qreq_.qparams.fg_on is True:
             qreq_.ensure_featweights(verbose=verbose)
         if qreq_.qparams.score_normalization is True:
             qreq_.load_score_normalizer(verbose=verbose)

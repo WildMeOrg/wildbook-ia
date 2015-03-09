@@ -18,6 +18,7 @@ import vtool.image as gtool
 import numpy as np
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
 from vtool import linalg, geometry, image
+import vtool as vt
 import utool as ut
 import ibeis
 from ibeis import params
@@ -91,7 +92,7 @@ def export_to_xml(ibs, offset=2829, enforce_yaw=True):
     information = {
         'database_name' : ibs.get_dbname()
     }
-    datadir = ibs._ibsdb + "/LearningData/"
+    datadir = ibs._ibsdb + '/LearningData/'
     imagedir = datadir + 'JPEGImages/'
     annotdir = datadir + 'Annotations/'
     ut.ensuredir(datadir)
@@ -138,8 +139,8 @@ def export_to_xml(ibs, offset=2829, enforce_yaw=True):
                 # Get verticies of the annotation polygon
                 verts = geometry.verts_from_bbox(bbox, close=True)
                 # Rotate and transform vertices
-                xyz_pts = geometry.homogonize(np.array(verts).T)
-                trans_pts = geometry.unhomogonize(R.dot(xyz_pts))
+                xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
+                trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
                 new_verts = np.round(trans_pts).astype(np.int).T.tolist()
                 x_points = [pt[0] for pt in new_verts]
                 y_points = [pt[1] for pt in new_verts]
@@ -1906,7 +1907,7 @@ def draw_thumb_helper(tup):
     img_size = (gw, gh)
     max_dsize = (thumbsize, thumbsize)
     dsize, sx, sy = gtool.resized_clamped_thumb_dims(img_size, max_dsize)
-    new_verts_list = list(gtool.scale_bbox_to_verts_gen(bbox_list, theta_list, sx, sy))
+    new_verts_list = list(gtool.scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
     #thumb = gtool.resize_thumb(img, max_dsize)
     # -----------------
     # Actual computation
@@ -2114,7 +2115,7 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
     dbsamplesize_list = ut.sample_domain(samp_min, samp_max, num_samp)
     #
     # Sample true and false matches for every query annotation
-    qaid_trues_list = ibs.get_annot_groundtruth_sample(qaid_list, per_name=clamp_gt)
+    qaid_trues_list = ibs.get_annot_groundtruth_sample(qaid_list, per_name=clamp_gt, isexemplar=None)
     qaid_falses_list = ibs.get_annot_groundfalse_sample(qaid_list, per_name=clamp_gf)
     #
     # Vary the size of the falses
@@ -3031,12 +3032,12 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
     w, tier_w_list, infeasible_w = make_knapsack_params(N, levels_per_tier_list)
 
     qual2_weight = {
-        'perfect' : w + tier_w_list[0] + tier_w_list[1],
-        'good'    : w + tier_w_list[0],
-        'ok'      : w + tier_w_list[1],
-        'UNKNOWN' : w + tier_w_list[1],
-        'bad'     : w + tier_w_list[2],
-        'junk'    : infeasible_w,
+        const.QUAL_PERFECT : w + tier_w_list[0] + tier_w_list[1],
+        const.QUAL_GOOD    : w + tier_w_list[0],
+        const.QUAL_OK      : w + tier_w_list[1],
+        const.QUAL_UNKNOWN : w + tier_w_list[1],
+        const.QUAL_POOR    : w + tier_w_list[2],
+        const.QUAL_JUNK    : infeasible_w,
     }
     # this probably broke with the introduction of 2 more tiers
     oldflag_offset = (
@@ -3104,8 +3105,41 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
     return new_aid_list, new_flag_list
 
 
-#def detect_false_negatives():
-#     pass
+def detect_join_cases(ibs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    Returns:
+        QueryResult: qres_list -  object of feature correspondences and scores
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-detect_join_cases
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> # execute function
+        >>> qres_list = detect_join_cases(ibs)
+        >>> # verify results
+        >>> result = str(qres_list)
+        >>> print(result)
+    """
+    qaids = ibs.get_valid_aids(is_exemplar=None, nojunk=True)
+    daids = ibs.get_valid_aids(is_exemplar=None, nojunk=True)
+    cfgdict = dict(can_match_samename=False)
+    qreq_ = ibs.new_query_request(qaids, daids, cfgdict)
+    qres_list = ibs.query_chips(qreq_=qreq_)
+
+    from ibeis.gui import inspect_gui
+    qaid2_qres = {qres.qaid: qres for qres in qres_list}
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres)
+    qres_wgt.show()
+    qres_wgt.raise_()
+    #return qres_list
 
 
 if __name__ == '__main__':

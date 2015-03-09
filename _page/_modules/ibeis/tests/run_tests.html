@@ -1,0 +1,219 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.tests.run_tests &mdash; ibeis 0.1.0.dev1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.tests.run_tests</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for ibeis.tests.run_tests</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python2.7</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+
+
+<div class="viewcode-block" id="ensure_testing_data"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.run_tests.ensure_testing_data">[docs]</a><span class="k">def</span> <span class="nf">ensure_testing_data</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">ibeis.tests</span> <span class="kn">import</span> <span class="n">reset_testdbs</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Making sure test data exists&#39;</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">change_term_title</span><span class="p">(</span><span class="s">&#39;ENSURE IBEIS TETSDATA&#39;</span><span class="p">)</span>
+    <span class="n">reset_testdbs</span><span class="o">.</span><span class="n">reset_testdbs</span><span class="p">()</span>
+    <span class="n">workdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)):</span>
+        <span class="n">ibeis</span><span class="o">.</span><span class="n">ensure_pz_mtest</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;NAUT_test&#39;</span><span class="p">)):</span>
+        <span class="n">ibeis</span><span class="o">.</span><span class="n">ensure_nauts</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="run_tests"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.run_tests.run_tests">[docs]</a><span class="k">def</span> <span class="nf">run_tests</span><span class="p">():</span>
+    <span class="c"># starts logging for tests</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibeis</span><span class="o">.</span><span class="n">_preload</span><span class="p">()</span>
+    <span class="c"># Build module list and run tests</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="n">ensure_testing_data</span><span class="p">()</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">change_term_title</span><span class="p">(</span><span class="s">&#39;RUN IBEIS TESTS&#39;</span><span class="p">)</span>
+    <span class="n">exclude_doctests_fnames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span>
+        <span class="s">&#39;template_definitions.py&#39;</span><span class="p">,</span>
+        <span class="s">&#39;autogen_test_script.py&#39;</span><span class="p">,</span>
+    <span class="p">])</span>
+    <span class="n">exclude_dirs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;_broken&#39;</span><span class="p">,</span>
+        <span class="s">&#39;old&#39;</span><span class="p">,</span>
+        <span class="s">&#39;tests&#39;</span><span class="p">,</span>
+        <span class="s">&#39;timeits&#39;</span><span class="p">,</span>
+        <span class="s">&#39;_scripts&#39;</span><span class="p">,</span>
+        <span class="s">&#39;_timeits&#39;</span><span class="p">,</span>
+        <span class="s">&#39;_doc&#39;</span><span class="p">,</span>
+        <span class="s">&#39;notebook&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;ibeis&#39;</span><span class="p">]</span>
+    <span class="n">doctest_modname_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_doctestable_modnames</span><span class="p">(</span>
+        <span class="n">dpath_list</span><span class="p">,</span> <span class="n">exclude_doctests_fnames</span><span class="p">,</span> <span class="n">exclude_dirs</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">modname</span> <span class="ow">in</span> <span class="n">doctest_modname_list</span><span class="p">:</span>
+        <span class="k">exec</span><span class="p">(</span><span class="s">&#39;import &#39;</span> <span class="o">+</span> <span class="n">modname</span><span class="p">,</span> <span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">())</span>
+    <span class="n">module_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">doctest_modname_list</span><span class="p">]</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_module_list</span><span class="p">(</span><span class="n">module_list</span><span class="p">)</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
+    <span class="n">run_tests</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

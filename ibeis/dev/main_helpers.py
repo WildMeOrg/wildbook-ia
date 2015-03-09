@@ -64,26 +64,26 @@ def get_test_qaids(ibs):
         #    printDBG('Testing qaid=%r' % params.args.qaid)
         available_qaids.extend(args_qaid)
 
-    valid_aids_ = ut.lazyfunc(ibs.get_valid_aids)
-    if valid_aids_() == 0:
+    valid_aids = ibs.get_valid_aids(nojunk=ut.get_argflag('--junk'))
+    if valid_aids == 0:
         print('no annotations available')
 
     # ALL CASES
     if params.args.all_cases:
-        available_qaids.extend(valid_aids_())
+        available_qaids.extend(valid_aids)
 
     # HARD CASES
     if params.args.all_hard_cases or ut.get_argflag('--hard'):
-        is_hard_list = ibs.get_annot_is_hard(valid_aids_())
-        hard_aids = ut.filter_items(valid_aids_(), is_hard_list)
+        is_hard_list = ibs.get_annot_is_hard(valid_aids)
+        hard_aids = ut.filter_items(valid_aids, is_hard_list)
         available_qaids.extend(hard_aids)
 
     # GROUNDTRUTH CASES
     if params.args.all_gt_cases:
-        has_gt_list = ibs.get_annot_has_groundtruth(valid_aids_())
-        hasgt_aids = ut.filter_items(valid_aids_(), has_gt_list)
+        has_gt_list = ibs.get_annot_has_groundtruth(valid_aids)
+        hasgt_aids = ut.filter_items(valid_aids, has_gt_list)
         print('Adding all %d/%d ground-truthed test cases' % (len(hasgt_aids),
-                                                              len(valid_aids_())))
+                                                              len(valid_aids)))
         available_qaids.extend(hasgt_aids)
 
     # INDEX SUBSET
@@ -99,9 +99,12 @@ def get_test_qaids(ibs):
         available_qaids = _test_qaids
         #printDBG('available_qaids = %r' % available_qaids)
     # DEFAULT [0]
-    elif len(available_qaids) == 0 and len(valid_aids_()) > 0:
+    elif len(available_qaids) == 0 and len(valid_aids) > 0:
         printDBG('no hard or gt aids. Defaulting to the first ANNOTATION')
-        available_qaids = valid_aids_()[0:1]
+        available_qaids = valid_aids[0:1]
+
+    if not ut.get_argflag('--junk'):
+        available_qaids = ibs.filter_junk_annotations(available_qaids)
 
     #print('available_qaids = %r' % available_qaids)
     available_qaids = ut.unique_keep_order2(available_qaids)
@@ -118,7 +121,7 @@ def get_test_daids(ibs, qaid_list=None):
         python dev.py --db PZ_MTEST -t best --exclude-query --qaid 72 -r 0 -c 0 --show --va --vf --dump-extra
 
     """
-    available_daids = ibs.get_valid_aids()
+    available_daids = ibs.get_valid_aids(nojunk=ut.get_argflag('--junk'))
 
     if ut.get_argflag('--exclude-singleton'):
         raise NotImplementedError('')
@@ -138,4 +141,5 @@ def get_test_daids(ibs, qaid_list=None):
         _test_daids = [available_daids[dx] for dx in dindexes if dx < len(available_daids)]
         available_daids = _test_daids
         #printDBG('available_daids = %r' % available_daids)
+
     return available_daids

@@ -5,6 +5,8 @@ control of splitting and merging.
 CommandLine:
     python -m ibeis.viz.interact.interact_name --test-ishow_name --show
     python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 1 --aid2 30
+    python -m ibeis.viz.interact.interact_name --test-testsdata_match_verification --show --db PZ_MTEST --aid1 30 --aid2 32
+
 
 """
 from __future__ import absolute_import, division, print_function
@@ -515,10 +517,11 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.append_button('close', callback=self.close_, rect=hl_slot2(0))
         self.append_button('review', callback=self.review, rect=hl_slot2(1))
         self.append_button('reset', callback=self.reset_all_names, rect=hl_slot2(2))
+        self.dbname = ibs.get_dbname()
         self.vsstr = ibsfuncs.vsstr(self.aid1, self.aid2)
         figtitle_fmt = '''
-        Match Review Interface
-        {match_text}
+        Match Review Interface - {dbname}
+        {match_text}:
         {vsstr}
         '''
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw

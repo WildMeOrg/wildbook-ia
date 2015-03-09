@@ -82,7 +82,7 @@ def drive_test_script(ibs):
         pt.show_if_requested()
 
 
-@ut.indent_func
+#@ut.indent_func
 def show_image(ibs, gid, sel_aids=[], fnum=None,
                annote=True, draw_lbls=True, rich_title=False, **kwargs):
     """

@@ -1,0 +1,427 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.web.appfuncs &mdash; ibeis 0.1.0.dev1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.web.appfuncs</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for ibeis.web.appfuncs</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cStringIO</span> <span class="kn">as</span> <span class="nn">StringIO</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">ibeis.web.DBWEB_SCHEMA</span> <span class="kn">import</span> <span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="n">REVIEW_TABLE</span>
+<span class="kn">import</span> <span class="nn">ibeis.constants</span> <span class="kn">as</span> <span class="nn">const</span>
+
+<span class="n">ORIENTATIONS</span> <span class="o">=</span> <span class="p">{</span>   <span class="c"># used in apply_orientation</span>
+    <span class="mi">2</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_LEFT_RIGHT</span><span class="p">,),</span>
+    <span class="mi">3</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_180</span><span class="p">,),</span>
+    <span class="mi">4</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_TOP_BOTTOM</span><span class="p">,),</span>
+    <span class="mi">5</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_LEFT_RIGHT</span><span class="p">,</span> <span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_90</span><span class="p">),</span>
+    <span class="mi">6</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_270</span><span class="p">,),</span>
+    <span class="mi">7</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_LEFT_RIGHT</span><span class="p">,</span> <span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_270</span><span class="p">),</span>
+    <span class="mi">8</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_90</span><span class="p">,)</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="open_oriented_image"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.open_oriented_image">[docs]</a><span class="k">def</span> <span class="nf">open_oriented_image</span><span class="p">(</span><span class="n">im_path</span><span class="p">):</span>
+    <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">im_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="s">&#39;_getexif&#39;</span><span class="p">):</span>
+        <span class="n">exif</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">_getexif</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">exif</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="mi">274</span> <span class="ow">in</span> <span class="n">exif</span><span class="p">:</span>
+            <span class="n">orientation</span> <span class="o">=</span> <span class="n">exif</span><span class="p">[</span><span class="mi">274</span><span class="p">]</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">apply_orientation</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">orientation</span><span class="p">)</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">im</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.</span>
+    <span class="k">if</span> <span class="n">img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">img</span>
+
+</div>
+<div class="viewcode-block" id="apply_orientation"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.apply_orientation">[docs]</a><span class="k">def</span> <span class="nf">apply_orientation</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">orientation</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This script handles the skimage exif problem.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">orientation</span> <span class="ow">in</span> <span class="n">ORIENTATIONS</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">ORIENTATIONS</span><span class="p">[</span><span class="n">orientation</span><span class="p">]:</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">im</span>
+
+</div>
+<div class="viewcode-block" id="embed_image_html"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.embed_image_html">[docs]</a><span class="k">def</span> <span class="nf">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">filter_width</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Creates an image embedded in HTML base64 format.&#39;&#39;&#39;</span>
+    <span class="n">image_pil</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">((</span><span class="mi">255</span> <span class="o">*</span> <span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s">&#39;uint8&#39;</span><span class="p">))</span>
+    <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">image_pil</span><span class="o">.</span><span class="n">size</span>
+    <span class="k">if</span> <span class="n">filter_width</span><span class="p">:</span>
+        <span class="n">_height</span> <span class="o">=</span> <span class="mi">350</span>
+        <span class="n">_width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="n">_height</span><span class="p">)</span> <span class="o">/</span> <span class="n">height</span><span class="p">)</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_width</span> <span class="o">=</span> <span class="mi">700</span>
+        <span class="n">_height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="n">_width</span><span class="p">)</span> <span class="o">/</span> <span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="n">height</span><span class="p">)</span>
+    <span class="n">image_pil</span> <span class="o">=</span> <span class="n">image_pil</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">_width</span><span class="p">,</span> <span class="n">_height</span><span class="p">))</span>
+    <span class="n">string_buf</span> <span class="o">=</span> <span class="n">StringIO</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
+    <span class="n">image_pil</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">string_buf</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;jpeg&#39;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">string_buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;base64&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;data:image/jpeg;base64,&#39;</span> <span class="o">+</span> <span class="n">data</span>
+
+</div>
+<div class="viewcode-block" id="check_valid_function_name"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.check_valid_function_name">[docs]</a><span class="k">def</span> <span class="nf">check_valid_function_name</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">all</span><span class="p">([</span> <span class="n">char</span><span class="o">.</span><span class="n">isalpha</span><span class="p">()</span> <span class="ow">or</span> <span class="n">char</span> <span class="o">==</span> <span class="s">&#39;_&#39;</span> <span class="ow">or</span> <span class="n">char</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">string</span><span class="p">])</span>
+
+
+<span class="c">################################################################################</span>
+
+</div>
+<div class="viewcode-block" id="get_next_detection_turk_candidate"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.get_next_detection_turk_candidate">[docs]</a><span class="k">def</span> <span class="nf">get_next_detection_turk_candidate</span><span class="p">(</span><span class="n">app</span><span class="p">):</span>
+    <span class="c"># Get available chips</span>
+    <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&quot;review_count=?&quot;</span>
+    <span class="n">review_rowid_list</span> <span class="o">=</span> <span class="n">get_review_rowids_where</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">where_clause</span><span class="o">=</span><span class="n">where_clause</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">review_rowid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;Stage 1 - </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">count</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">status</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">get_review_gid</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">)</span>
+    <span class="c"># Decide out of the candidates</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Detection candidate: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">return</span> <span class="n">gid</span>
+
+</div>
+<div class="viewcode-block" id="get_next_viewpoint_turk_candidate"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.get_next_viewpoint_turk_candidate">[docs]</a><span class="k">def</span> <span class="nf">get_next_viewpoint_turk_candidate</span><span class="p">(</span><span class="n">app</span><span class="p">):</span>
+    <span class="c"># Get available chips</span>
+    <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&quot;viewpoint_value_1=?&quot;</span>
+    <span class="n">viewpoint_rowid_list</span> <span class="o">=</span> <span class="n">get_viewpoint_rowids_where</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">where_clause</span><span class="o">=</span><span class="n">where_clause</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">])</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">viewpoint_rowid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&quot;viewpoint_value_2=?&quot;</span>
+        <span class="n">viewpoint_rowid_list</span> <span class="o">=</span> <span class="n">get_viewpoint_rowids_where</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">where_clause</span><span class="o">=</span><span class="n">where_clause</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">])</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">viewpoint_rowid_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;Stage 2 - </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">count</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;Stage 1 - </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">count</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">status</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">get_viewpoint_aid</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">viewpoint_rowid_list</span><span class="p">)</span>
+    <span class="c"># Decide out of the candidates</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Viewpoint candidate: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">return</span> <span class="n">aid</span>
+
+
+<span class="c">################################################################################</span>
+
+</div>
+<div class="viewcode-block" id="get_review_gid"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.get_review_gid">[docs]</a><span class="k">def</span> <span class="nf">get_review_gid</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">review_rowid_list</span><span class="p">):</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,),</span> <span class="n">review_rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">gid_list</span>
+
+</div>
+<div class="viewcode-block" id="get_review_rowids_where"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.get_review_rowids_where">[docs]</a><span class="k">def</span> <span class="nf">get_review_rowids_where</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="n">review_rowid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids_where</span><span class="p">(</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="n">where_clause</span><span class="o">=</span><span class="n">where_clause</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_rowid_list</span>
+
+</div>
+<div class="viewcode-block" id="get_review_rowids_from_gid"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.get_review_rowids_from_gid">[docs]</a><span class="k">def</span> <span class="nf">get_review_rowids_from_gid</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">app</span><span class="p">):</span>
+    <span class="n">review_rowid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;review_rowid&#39;</span><span class="p">,),</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;image_rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">review_rowid_list</span>
+
+</div>
+<div class="viewcode-block" id="get_review_counts_from_gids"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.get_review_counts_from_gids">[docs]</a><span class="k">def</span> <span class="nf">get_review_counts_from_gids</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="n">count_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;review_count&#39;</span><span class="p">,),</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;image_rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span>  <span class="n">count_list</span>
+
+</div>
+<div class="viewcode-block" id="get_viewpoint_aid"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.get_viewpoint_aid">[docs]</a><span class="k">def</span> <span class="nf">get_viewpoint_aid</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">viewpoint_rowid_list</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,),</span> <span class="n">viewpoint_rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">aid_list</span>
+
+</div>
+<div class="viewcode-block" id="get_viewpoint_rowids_where"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.get_viewpoint_rowids_where">[docs]</a><span class="k">def</span> <span class="nf">get_viewpoint_rowids_where</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="n">viewpoint_rowid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_all_rowids_where</span><span class="p">(</span><span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="n">where_clause</span><span class="o">=</span><span class="n">where_clause</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">viewpoint_rowid_list</span>
+
+</div>
+<div class="viewcode-block" id="get_viewpoint_rowids_from_aid"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.get_viewpoint_rowids_from_aid">[docs]</a><span class="k">def</span> <span class="nf">get_viewpoint_rowids_from_aid</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">app</span><span class="p">):</span>
+    <span class="n">viewpoint_rowid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;viewpoint_rowid&#39;</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">viewpoint_rowid_list</span>
+
+</div>
+<div class="viewcode-block" id="get_viewpoint_values_from_aids"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.get_viewpoint_values_from_aids">[docs]</a><span class="k">def</span> <span class="nf">get_viewpoint_values_from_aids</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">value_type</span><span class="p">):</span>
+    <span class="n">value_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">value_type</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">)</span>
+    <span class="n">value_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">else</span> <span class="n">value</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">value_list</span><span class="p">]</span>
+    <span class="k">return</span>  <span class="n">value_list</span>
+
+
+<span class="c">################################################################################</span>
+
+</div>
+<div class="viewcode-block" id="set_review_count_from_gids"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.set_review_count_from_gids">[docs]</a><span class="k">def</span> <span class="nf">set_review_count_from_gids</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">count_list</span><span class="p">):</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;review_count&#39;</span><span class="p">,),</span> <span class="n">count_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;image_rowid&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="set_viewpoint_values_from_aids"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.set_viewpoint_values_from_aids">[docs]</a><span class="k">def</span> <span class="nf">set_viewpoint_values_from_aids</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">,</span> <span class="n">value_type</span><span class="p">):</span>
+    <span class="n">viewpoint_rowids</span> <span class="o">=</span> <span class="n">get_viewpoint_rowids_from_aid</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">app</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">viewpoint_rowids</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">value_type</span><span class="p">,),</span> <span class="n">value_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Alright, this is a state issue.  An annotation, X, was querried for viewpoint and is &quot;checkedout&quot; by person A.</span>
+        <span class="c"># Between the time person A checks out X and commits the annotation, person B also checks out X (random chance).</span>
+        <span class="c"># Person B makes a judgment call and thinks that the bouding box for X need to be updated.  Person B updates the</span>
+        <span class="c"># bounding box for X, which deletes X and creates X&#39; to replace it.  In the meantime, person A still has the</span>
+        <span class="c"># row_id for X (which has not been deleted).  So, when person A commits the viewpoint for X, we simply do nothing.</span>
+        <span class="c"># X&#39; viewpoint annotation will get put back into the random queue for processing and we lose a little bit of</span>
+        <span class="c"># efficiency.</span>
+        <span class="c">#</span>
+        <span class="c"># Essentially, any viewpoint work that was done by A for X is simply ignored because X no longer exists in that form.</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[set_viewpoint_values_from_aids] WARNING - IGNORING VIEWPOINT BECAUSE AID_LIST: </span><span class="si">%s</span><span class="s"> NOT LONGER EXISTS&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="p">))</span>
+
+
+<span class="c">################################################################################</span>
+
+</div>
+<div class="viewcode-block" id="replace_aids"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.replace_aids">[docs]</a><span class="k">def</span> <span class="nf">replace_aids</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">aid_list_new</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Replacing </span><span class="si">%r</span><span class="s"> for </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">aid_list_new</span><span class="p">,</span> <span class="p">))</span>
+    <span class="c"># Delete the old aid_list from the cache database</span>
+    <span class="n">viewpoint_rowids</span> <span class="o">=</span> <span class="n">get_viewpoint_rowids_from_aid</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">app</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="n">viewpoint_rowids</span><span class="p">)</span>
+    <span class="c"># Add the new aid_list to the cache database</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list_new</span><span class="p">)</span>
+    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">get_viewpoint_rowids_from_aid</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
+
+
+<span class="c">################################################################################</span>
+
+</div>
+<div class="viewcode-block" id="database_init"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.database_init">[docs]</a><span class="k">def</span> <span class="nf">database_init</span><span class="p">(</span><span class="n">app</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">convert_yaw_to_old_viewpoint</span><span class="p">(</span><span class="n">yaw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        we initially had viewpoint coordinates inverted</span>
+<span class="sd">        (this function is its own inverse)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">yaw</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="n">angle</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">yaw</span> <span class="o">+</span> <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">TAU</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span> <span class="o">%</span> <span class="n">const</span><span class="o">.</span><span class="n">TAU</span>
+        <span class="k">return</span> <span class="n">angle</span>
+
+    <span class="k">def</span> <span class="nf">rad_to_deg</span><span class="p">(</span><span class="n">radians</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+        <span class="n">twopi</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+        <span class="n">radians</span> <span class="o">%=</span> <span class="n">twopi</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">((</span><span class="n">radians</span> <span class="o">/</span> <span class="n">twopi</span><span class="p">)</span> <span class="o">*</span> <span class="mf">360.0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">round</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c"># Detection Review</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+        <span class="n">image_reviewed_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">image_reviewed</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">image_reviewed</span> <span class="ow">in</span> <span class="n">image_reviewed_list</span><span class="p">]):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;WARNING: NOT ALL IMAGES ARE NOT-REVIEWED&quot;</span><span class="p">)</span>
+            <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Enter to set to not-reviewed...&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">set_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+        <span class="c"># Viewpoint Annotation</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="c"># Grab ALL viewpoints</span>
+        <span class="n">yaw_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_yaws</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">convert_yaw_to_old_viewpoint</span><span class="p">,</span> <span class="n">yaw_list</span><span class="p">))</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">rad_to_deg</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">)</span> <span class="k">for</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="n">viewpoint_list</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">viewpoint</span> <span class="ow">is</span> <span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="n">viewpoint_list</span><span class="p">]):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;WARNING: NOT ALL ANNOT THETAS ARE NULLED&quot;</span><span class="p">)</span>
+            <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;Enter to null annot thetas...&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_viewpoint</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+            <span class="c"># Grab ALL viewpoints</span>
+    <span class="k">elif</span> <span class="n">app</span><span class="o">.</span><span class="n">round</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c"># Detection Review</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">reviewed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">yaw</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">reviewed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">include_only_gid_list</span><span class="o">=</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">yaw</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="c"># Detection Review</span>
+    <span class="n">image_reviewed_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">get_review_rowids_from_gid</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">REVIEW_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
+
+    <span class="c"># Viewpoint Annotation</span>
+    <span class="n">yaw_list</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_yaws</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">convert_yaw_to_old_viewpoint</span><span class="p">,</span> <span class="n">yaw_list</span><span class="p">))</span>
+    <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">viewpoint</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">rad_to_deg</span><span class="p">(</span><span class="n">viewpoint</span><span class="p">)</span> <span class="k">for</span> <span class="n">viewpoint</span> <span class="ow">in</span> <span class="n">viewpoint_list</span><span class="p">]</span>
+    <span class="c"># Add chips to temporary web viewpoint table</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;viewpoint_value_1&#39;</span><span class="p">)</span>
+    <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">)</span>
+    <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">get_viewpoint_rowids_from_aid</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">VIEWPOINT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;ROUND: </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">round</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;WEB CACHED </span><span class="si">%d</span><span class="s"> IMAGES&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;WEB CACHED </span><span class="si">%d</span><span class="s"> ANNOTATIONS&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">))</span></div>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

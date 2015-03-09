@@ -3,7 +3,7 @@ Functions for chips:
     to work on autogeneration
 
 python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.control.template_generator')"
-sh Tgen.sh --key chip --Tcfg with_setters=False with_getters=True  with_adders=True
+sh Tgen.sh --key chip --Tcfg with_setters=False with_getters=True  with_adders=True --modfname manual_chip_funcs
 sh Tgen.sh --key chip
 
 """
@@ -101,15 +101,16 @@ def add_annot_chips(ibs, aid_list, qreq_=None, verbose=not ut.QUIET, return_num_
     isdirty_list = ut.flag_None_items(initial_chip_rowid_list)
     dirty_aid_list = ut.filter_items(aid_list, isdirty_list)
     num_dirty = len(dirty_aid_list)
+    num_total = len(aid_list)
     if num_dirty > 0:
         if verbose:
-            fmtstr = '[add_annot_chips] adding %d / %d new chip'
-            print(fmtstr % (num_dirty, len(aid_list)))
+            fmtstr = '[add_annot_chips] adding %d / %d new chip for config_rowid=%r'
+            print(fmtstr % (num_dirty, num_total, config_rowid))
         # Dependant columns do not need true from_superkey getters.
         # We can use the Tgetter_pl_dependant_rowids_ instead
         get_rowid_from_superkey = functools.partial(
             ibs.get_annot_chip_rowids_, qreq_=qreq_)
-        proptup_gen = preproc_chip.generate_chip_properties(ibs, dirty_aid_list)
+        proptup_gen = preproc_chip.generate_chip_properties(ibs, dirty_aid_list, qreq_=qreq_)
         dirty_params_iter = (
             (aid, config_rowid, chip_uri, chip_width, chip_height)
             for aid, (chip_uri, chip_width, chip_height,) in

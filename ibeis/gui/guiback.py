@@ -25,6 +25,7 @@ from ibeis.viz import interact
 from ibeis import constants as const
 from ibeis.control import IBEISControl
 from ibeis.gui import clock_offset_gui
+from ibeis.gui import guiexcept
 # Utool
 #import utool
 import utool as ut
@@ -32,16 +33,6 @@ import utool as ut
     __name__, '[back]', DEBUG=False)
 
 VERBOSE = ut.VERBOSE
-
-
-class UserCancel(Exception):
-    def __init__(self, *args):
-        super(Exception, self).__init__(*args)
-
-
-class InvalidRequest(Exception):
-    def __init__(self, *args):
-        super(Exception, self).__init__(*args)
 
 
 def backreport(func):
@@ -52,7 +43,7 @@ def backreport(func):
     def backreport_wrapper(back, *args, **kwargs):
         try:
             result = func(back, *args, **kwargs)
-        except UserCancel as ex:
+        except guiexcept.UserCancel as ex:
             print('handling user cancel')
             return None
         except Exception as ex:
@@ -311,7 +302,7 @@ class MainWindowBackend(QtCore.QObject):
             if len(back.sel_aids) == 0:
                 gid = back.ibs.get_annot_gids(back.sel_aids)[0]
                 return gid
-            raise InvalidRequest('There are no selected images')
+            raise guiexcept.InvalidRequest('There are no selected images')
         gid = back.sel_gids[0]
         return gid
 
@@ -319,7 +310,7 @@ class MainWindowBackend(QtCore.QObject):
     def get_selected_aid(back):
         """ selected annotation id """
         if len(back.sel_aids) == 0:
-            raise InvalidRequest('There are no selected ANNOTATIONs')
+            raise guiexcept.InvalidRequest('There are no selected ANNOTATIONs')
         aid = back.sel_aids[0]
         return aid
 
@@ -327,7 +318,7 @@ class MainWindowBackend(QtCore.QObject):
     def get_selected_eid(back):
         """ selected encounter id """
         if len(back.sel_eids) == 0:
-            raise InvalidRequest('There are no selected Encounters')
+            raise guiexcept.InvalidRequest('There are no selected Encounters')
         eid = back.sel_eids[0]
         return eid
 
@@ -868,7 +859,7 @@ class MainWindowBackend(QtCore.QObject):
         msg_str = back.make_confirm_query_msg(daid_list, qaid_list)
         confirm_kw = dict(use_msg=msg_str, title='Begin Identification?', default='Yes')
         if not back.are_you_sure(**confirm_kw):
-            raise UserCancel
+            raise guiexcept.UserCancel
 
     @blocking_slot()
     def query(back, aid=None, refresh=True, query_mode=None, **kwargs):
@@ -890,7 +881,7 @@ class MainWindowBackend(QtCore.QObject):
         # Get the database annotation ids to be searched
         # Execute Query
         if len(daid_list) == 0:
-            raise InvalidRequest('No exemplars set for this species')
+            raise guiexcept.InvalidRequest('No exemplars set for this species')
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
         if query_mode == const.INTRA_ENC_KEY:
             # HACK IN ENCOUNTER INFO
@@ -921,7 +912,7 @@ class MainWindowBackend(QtCore.QObject):
         qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
         daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
         if len(qaid_list) == 0:
-            raise InvalidRequest('No unknown query exemplars')
+            raise guiexcept.InvalidRequest('No unknown query exemplars')
         back.confirm_query_dialog(daid_list, qaid_list)
         qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
         # HACK IN ENCOUNTER INFO
@@ -996,7 +987,7 @@ class MainWindowBackend(QtCore.QObject):
     def review_queries(back, **kwargs):
         eid = back.get_selected_eid()
         if eid not in back.encounter_query_results:
-            raise InvalidRequest('Queries have not been computed yet')
+            raise guiexcept.InvalidRequest('Queries have not been computed yet')
         qaid2_qres = back.encounter_query_results[eid]
         # review_kw = {
         #     'on_change_callback': back.front.update_tables,

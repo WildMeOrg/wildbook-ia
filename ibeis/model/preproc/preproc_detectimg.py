@@ -65,6 +65,9 @@ def get_image_detectimg_fpath_list(ibs, gid_list):
 def compute_and_write_detectimg(ibs, gid_list):
     """
 
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_detectimg --test-compute_and_write_detectimg --show
+
     Example:
         >>> # SLOW_DOCTEST
         >>> import ibeis
@@ -72,7 +75,12 @@ def compute_and_write_detectimg(ibs, gid_list):
         >>> ibs = ibeis.opendb('testdb1')
         >>> valid_gids = ibs.get_valid_gids()
         >>> gid_list = valid_gids[0:2]
-        >>> result = compute_and_write_detectimg(ibs, gid_list)
+        >>> new_gfpath_list = compute_and_write_detectimg(ibs, gid_list)
+        >>> print(ut.list_str(new_gfpath_list))
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(new_gfpath_list[0])
+        >>> pt.show_if_requested()
     """
     utool.ensuredir(ibs.get_detectimg_cachedir())
     # Get img configuration information
@@ -92,6 +100,7 @@ def compute_and_write_detectimg(ibs, gid_list):
         # print('Wrote detectimg: %r' % new_gfpath)
         pass
     print('[preproc_detectimg] Done computing detectimgs')
+    return new_gfpath_list
 
 
 def compute_and_write_detectimg_lazy(ibs, gid_list):

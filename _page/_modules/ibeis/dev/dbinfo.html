@@ -1,0 +1,667 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.dev.dbinfo &mdash; ibeis 0.1.0.dev1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 0.1.0.dev1 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.dev" href="../dev.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../dev.html">ibeis.dev</a> &raquo;</li>
+      
+    <li>ibeis.dev.dbinfo</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for ibeis.dev.dbinfo</h1><div class="highlight"><pre>
+<span class="c"># This is not the cleanest module</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">get_dbinfo is probably the only usefull funciton in here</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c"># TODO: ADD COPYRIGHT TAG</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="c"># Science</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_latex</span> <span class="k">as</span> <span class="n">util_latex</span>
+<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">keypoint</span> <span class="k">as</span> <span class="n">ktool</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[dbinfo]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="test_name_consistency"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.dbinfo.test_name_consistency">[docs]</a><span class="k">def</span> <span class="nf">test_name_consistency</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(db=&#39;PZ_Master0&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #ibs = ibeis.opendb(db=&#39;GZ_ALL&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+    <span class="n">max_</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="c">#max_ = 10</span>
+    <span class="n">valid_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="n">max_</span><span class="p">]</span>
+    <span class="n">valid_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="n">max_</span><span class="p">]</span>
+    <span class="n">ax2_nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
+    <span class="n">nx2_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">valid_nids</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(valid_aids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(valid_nids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">valid_nids</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(ax2_nid) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ax2_nid</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(nx2_aids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nx2_aids</span><span class="p">),))</span>
+
+    <span class="c"># annots are grouped by names, so mapping aid back to nid should</span>
+    <span class="c"># result in each list having the same value</span>
+    <span class="n">_nids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">nx2_aids</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">_nids_list</span><span class="p">[</span><span class="o">-</span><span class="mi">20</span><span class="p">:])</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">nx2_aids</span><span class="p">[</span><span class="o">-</span><span class="mi">20</span><span class="p">:])</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">,</span> <span class="n">_nids_list</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="get_dbinfo"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.dbinfo.get_dbinfo">[docs]</a><span class="k">def</span> <span class="nf">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">with_imgsize</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">with_bytes</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Returns dictionary of digestable database information</span>
+<span class="sd">    Infostr is a string summary of all the stats. Prints infostr in addition to</span>
+<span class="sd">    returning locals</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):</span>
+<span class="sd">        verbose (bool):</span>
+<span class="sd">        with_imgsize (bool):</span>
+<span class="sd">        with_bytes (bool):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict:</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.dev.dbinfo --test-get_dbinfo</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.dbinfo import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev import dbinfo</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; verbose = True</span>
+<span class="sd">        &gt;&gt;&gt; #ibs = ibeis.opendb(db=&#39;GZ_ALL&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #ibs = ibeis.opendb(db=&#39;PZ_Master0&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(db=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_contributors(ibs.get_valid_contrib_rowids())</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_empty_nids()</span>
+<span class="sd">        &gt;&gt;&gt; #ibs = ibeis.opendb(db=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; output = dbinfo.get_dbinfo(ibs, verbose=False)</span>
+<span class="sd">        &gt;&gt;&gt; result = (output[&#39;info_str&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        +============================</span>
+<span class="sd">        + singleton := single sighting</span>
+<span class="sd">        + multiton  := multiple sightings</span>
+<span class="sd">        ----------</span>
+<span class="sd">        DB Info:  testdb1</span>
+<span class="sd">        DB Notes: None</span>
+<span class="sd">        DB NumContrib: 0</span>
+<span class="sd">        ----------</span>
+<span class="sd">        # Names                      = 7</span>
+<span class="sd">        # Names (unassociated)       = 0</span>
+<span class="sd">        # Names (singleton)          = 5</span>
+<span class="sd">        # Names (multiton)           = 2</span>
+<span class="sd">        ----------</span>
+<span class="sd">        # Annots                     = 13</span>
+<span class="sd">        # Annots (unknown)           = 4</span>
+<span class="sd">        # Annots (singleton)         = 5</span>
+<span class="sd">        # Annots (multiton)          = 4</span>
+<span class="sd">        ----------</span>
+<span class="sd">        # Annots per Name (multiton) = {</span>
+<span class="sd">            &#39;max&#39;  : 2.0,</span>
+<span class="sd">            &#39;min&#39;  : 2.0,</span>
+<span class="sd">            &#39;mean&#39; : 2.0,</span>
+<span class="sd">            &#39;std&#39;  : 0.0,</span>
+<span class="sd">            &#39;nMin&#39; : 2,</span>
+<span class="sd">            &#39;nMax&#39; : 2,</span>
+<span class="sd">            &#39;shape&#39;: (2,),</span>
+<span class="sd">        }</span>
+<span class="sd">        # Annots per Image           = {</span>
+<span class="sd">            &#39;max&#39;  : 1.0,</span>
+<span class="sd">            &#39;min&#39;  : 1.0,</span>
+<span class="sd">            &#39;mean&#39; : 1.0,</span>
+<span class="sd">            &#39;std&#39;  : 0.0,</span>
+<span class="sd">            &#39;nMin&#39; : 13,</span>
+<span class="sd">            &#39;nMax&#39; : 13,</span>
+<span class="sd">            &#39;shape&#39;: (13,),</span>
+<span class="sd">        }</span>
+<span class="sd">        # Annots per Species         = {</span>
+<span class="sd">            &#39;____&#39;         : 3,</span>
+<span class="sd">            u&#39;bear_polar&#39;  : 2,</span>
+<span class="sd">            u&#39;zebra_plains&#39;: 6,</span>
+<span class="sd">            u&#39;zebra_grevys&#39;: 2,</span>
+<span class="sd">        }</span>
+<span class="sd">        ----------</span>
+<span class="sd">        # Img                        = 13</span>
+<span class="sd">        # Img reviewed               = 0</span>
+<span class="sd">        # Img with gps               = 0</span>
+<span class="sd">        # Img with timestamp         = 13</span>
+<span class="sd">        Img Time Stats               = {</span>
+<span class="sd">            &#39;std&#39; : &#39;1:13:57&#39;,</span>
+<span class="sd">            &#39;max&#39; : &#39;1969/12/31 21:30:13&#39;,</span>
+<span class="sd">            &#39;mean&#39;: &#39;1969/12/31 20:10:15&#39;,</span>
+<span class="sd">            &#39;min&#39; : &#39;1969/12/31 19:01:41&#39;,</span>
+<span class="sd">        }</span>
+<span class="sd">        L============================</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># TODO Database size in bytes</span>
+    <span class="c"># TODO: encounters, contributors, etc...</span>
+
+    <span class="c"># Basic variables</span>
+    <span class="n">valid_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">valid_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()</span>
+    <span class="n">valid_gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">associated_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">(</span><span class="n">filter_empty</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  <span class="c"># nids with at least one annotation</span>
+
+    <span class="c"># Image info</span>
+    <span class="n">gname_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gnames</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
+    <span class="n">gx2_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
+    <span class="n">gx2_nAnnots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">gx2_aids</span><span class="p">))</span>
+    <span class="n">image_without_annots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">gx2_nAnnots</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">gx2_nAnnots_stats</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">gx2_nAnnots</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">image_reviewed_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
+
+    <span class="c"># Name stats</span>
+    <span class="n">nx2_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">valid_nids</span><span class="p">))</span>
+
+    <span class="c"># Annot Stats</span>
+    <span class="c"># TODO: number of images where chips cover entire image</span>
+    <span class="c"># TODO: total image coverage of annotation</span>
+    <span class="c"># TODO: total annotation overlap</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ax2_unknown = ibs.is_aid_unknown(valid_aids)</span>
+<span class="sd">    ax2_nid = ibs.get_annot_name_rowids(valid_aids)</span>
+<span class="sd">    assert all([nid &lt; 0 if unknown else nid &gt; 0 for nid, unknown in</span>
+<span class="sd">                zip(ax2_nid, ax2_unknown)]), &#39;bad annot nid&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c">#</span>
+    <span class="n">unknown_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">))</span>
+    <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
+    <span class="n">species2_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">,</span> <span class="n">species_list</span><span class="p">)</span>
+    <span class="n">species2_nAids</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">species2_aids</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="n">nx2_nAnnots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">nx2_aids</span><span class="p">)))</span>
+    <span class="c"># Seperate singleton / multitons</span>
+    <span class="n">multiton_nxs</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">nx2_nAnnots</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">singleton_nxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">nx2_nAnnots</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">singleton_nxs</span><span class="p">,</span> <span class="n">multiton_nxs</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;intersecting names&#39;</span>
+    <span class="n">valid_nxs</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">multiton_nxs</span><span class="p">,</span> <span class="n">singleton_nxs</span><span class="p">])</span>
+    <span class="n">num_names_with_gt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">multiton_nxs</span><span class="p">)</span>
+
+    <span class="c"># DEBUGGING CODE</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+        <span class="n">_nids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">nx2_aids</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">,</span> <span class="n">_nids_list</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="c"># THESE SHOULD BE CONSISTENT BUT THEY ARE NOT!!?</span>
+        <span class="c">#name_annots = [ibs.get_annot_name_rowids(aids) for aids in nx2_aids]</span>
+        <span class="n">bad</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">good</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">huh</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">nx</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nx2_aids</span><span class="p">):</span>
+            <span class="n">nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">nids</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_allsame</span><span class="p">(</span><span class="n">nids</span><span class="p">):</span>
+                    <span class="n">good</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">huh</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bad</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;good&#39;</span><span class="p">,</span> <span class="s">&#39;bad&#39;</span><span class="p">,</span> <span class="s">&#39;huh&#39;</span><span class="p">])</span>
+
+    <span class="c"># Annot Info</span>
+    <span class="n">multiton_aids_list</span> <span class="o">=</span> <span class="n">nx2_aids</span><span class="p">[</span><span class="n">multiton_nxs</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">multiton_nxs</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">multiton_nxs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">multiton_aids_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">multiton_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">multiton_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">multiton_aids_list</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">multiton_aids</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">multiton_aids</span><span class="p">),</span> <span class="s">&#39;duplicate annot&#39;</span>
+    <span class="n">singleton_aids</span> <span class="o">=</span> <span class="n">nx2_aids</span><span class="p">[</span><span class="n">singleton_nxs</span><span class="p">]</span>
+    <span class="n">multiton_nid2_nannots</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">multiton_aids_list</span><span class="p">))</span>
+
+    <span class="c"># Image size stats</span>
+    <span class="k">if</span> <span class="n">with_imgsize</span><span class="p">:</span>
+        <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wh_print_stats</span><span class="p">(</span><span class="n">wh_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">wh_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s">&#39;{empty}&#39;</span>
+            <span class="n">wh_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">wh_list</span><span class="p">)</span>
+            <span class="n">stat_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                <span class="p">[(</span> <span class="s">&#39;max&#39;</span><span class="p">,</span> <span class="n">wh_list</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">)),</span>
+                 <span class="p">(</span> <span class="s">&#39;min&#39;</span><span class="p">,</span> <span class="n">wh_list</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="mi">0</span><span class="p">)),</span>
+                 <span class="p">(</span><span class="s">&#39;mean&#39;</span><span class="p">,</span> <span class="n">wh_list</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">)),</span>
+                 <span class="p">(</span> <span class="s">&#39;std&#39;</span><span class="p">,</span> <span class="n">wh_list</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="mi">0</span><span class="p">))])</span>
+            <span class="n">arr2str</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">var</span><span class="p">:</span> <span class="s">&#39;[&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s">&#39;</span><span class="si">%.1f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">x</span><span class="p">,</span> <span class="n">var</span><span class="p">))))</span> <span class="o">+</span> <span class="s">&#39;]&#39;</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;,</span><span class="se">\n</span><span class="s">    &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">arr2str</span><span class="p">(</span><span class="n">val</span><span class="p">))</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">stat_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()]))</span>
+            <span class="k">return</span> <span class="s">&#39;{</span><span class="se">\n</span><span class="s">    &#39;</span> <span class="o">+</span> <span class="n">ret</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">}&#39;</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;reading image sizes&#39;</span><span class="p">)</span>
+        <span class="c"># Image size stats</span>
+        <span class="n">img_size_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
+        <span class="n">img_size_stats</span>  <span class="o">=</span> <span class="n">wh_print_stats</span><span class="p">(</span><span class="n">img_size_list</span><span class="p">)</span>
+
+        <span class="c"># Chip size stats</span>
+        <span class="n">annotation_bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
+        <span class="n">annotation_bbox_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">annotation_bbox_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">annotation_bbox_arr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">annotation_size_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">annotation_size_list</span> <span class="o">=</span> <span class="n">annotation_bbox_arr</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+        <span class="n">chip_size_stats</span> <span class="o">=</span> <span class="n">wh_print_stats</span><span class="p">(</span><span class="n">annotation_size_list</span><span class="p">)</span>
+        <span class="n">imgsize_stat_lines</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s">&#39; # Img in dir                 = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)),</span>
+            <span class="p">(</span><span class="s">&#39; Image Size Stats  = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">img_size_stats</span><span class="p">,)),</span>
+            <span class="p">(</span><span class="s">&#39; * Chip Size Stats = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chip_size_stats</span><span class="p">,)),</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">imgsize_stat_lines</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">multiton_stats</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">multiton_nid2_nannots</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="c"># Time stats</span>
+    <span class="n">unixtime_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
+    <span class="n">utvalid_list</span>   <span class="o">=</span> <span class="p">[</span><span class="n">time</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">time</span> <span class="ow">in</span> <span class="n">unixtime_list_</span><span class="p">]</span>
+    <span class="n">unixtime_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">unixtime_list_</span><span class="p">,</span> <span class="n">utvalid_list</span><span class="p">)</span>
+    <span class="n">unixtime_statstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_timestats_str</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="c"># GPS stats</span>
+    <span class="n">gps_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gps</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
+    <span class="n">gpsvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gps</span> <span class="o">!=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">gps</span> <span class="ow">in</span> <span class="n">gps_list_</span><span class="p">]</span>
+    <span class="n">gps_list</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">gps_list_</span><span class="p">,</span> <span class="n">gpsvalid_list</span><span class="p">)</span>
+
+    <span class="n">ibsdir_space</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_disk_space</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">()))</span>
+    <span class="n">dbdir_space</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_disk_space</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">()))</span>
+    <span class="n">imgdir_space</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_disk_space</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imgdir</span><span class="p">()))</span>
+    <span class="n">cachedir_space</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">byte_str2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_disk_space</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">()))</span>
+
+    <span class="c"># Summarize stats</span>
+    <span class="n">num_names</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_nids</span><span class="p">)</span>
+    <span class="n">num_names_unassociated</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_nids</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">associated_nids</span><span class="p">)</span>
+    <span class="n">num_names_singleton</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">singleton_nxs</span><span class="p">)</span>
+    <span class="n">num_names_multiton</span> <span class="o">=</span>  <span class="nb">len</span><span class="p">(</span><span class="n">multiton_nxs</span><span class="p">)</span>
+
+    <span class="n">num_singleton_annots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">singleton_aids</span><span class="p">)</span>
+    <span class="n">num_multiton_annots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">multiton_aids</span><span class="p">)</span>
+    <span class="n">num_unknown_annots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unknown_aids</span><span class="p">)</span>
+    <span class="n">num_annots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">bad_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">multiton_aids</span><span class="p">,</span> <span class="n">unknown_aids</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">bad_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;intersecting multiton aids and unknown aids&#39;</span>
+        <span class="k">assert</span> <span class="n">num_names_singleton</span> <span class="o">+</span> <span class="n">num_names_unassociated</span> <span class="o">+</span> <span class="n">num_names_multiton</span> <span class="o">==</span> <span class="n">num_names</span><span class="p">,</span> <span class="s">&#39;inconsistent num names&#39;</span>
+        <span class="k">assert</span> <span class="n">num_unknown_annots</span> <span class="o">+</span> <span class="n">num_singleton_annots</span> <span class="o">+</span> <span class="n">num_multiton_annots</span> <span class="o">==</span> <span class="n">num_annots</span><span class="p">,</span> <span class="s">&#39;inconsistent num annots&#39;</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span>
+            <span class="s">&#39;num_names_singleton&#39;</span><span class="p">,</span>
+            <span class="s">&#39;num_names_multiton&#39;</span><span class="p">,</span>
+            <span class="s">&#39;num_names&#39;</span><span class="p">,</span>
+            <span class="s">&#39;num_unknown_annots&#39;</span><span class="p">,</span>
+            <span class="s">&#39;num_multiton_annots&#39;</span><span class="p">,</span>
+            <span class="s">&#39;num_singleton_annots&#39;</span><span class="p">,</span>
+            <span class="s">&#39;num_annots&#39;</span><span class="p">])</span>
+        <span class="k">raise</span>
+
+    <span class="c"># Get contributor statistics</span>
+    <span class="n">contrib_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_contrib_rowids</span><span class="p">()</span>
+    <span class="n">num_contributors</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">contrib_rowids</span><span class="p">)</span>
+
+    <span class="c"># print</span>
+    <span class="n">num_tabs</span> <span class="o">=</span> <span class="mi">5</span>
+
+    <span class="n">header_block_lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s">&#39;+============================&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;+ singleton := single sighting&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;+ multiton  := multiple sightings&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="n">source_block_lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;DB Info:  &#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()),</span>
+        <span class="p">(</span><span class="s">&#39;DB Notes: &#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbnotes</span><span class="p">()),</span>
+        <span class="p">(</span><span class="s">&#39;DB NumContrib: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">num_contributors</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="n">bytes_block_lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;DB Bytes: &#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;     +- dbdir nBytes:         &#39;</span> <span class="o">+</span> <span class="n">dbdir_space</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;     |  +- _ibsdb nBytes:     &#39;</span> <span class="o">+</span> <span class="n">ibsdir_space</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;     |  |  +-imgdir nBytes:   &#39;</span> <span class="o">+</span> <span class="n">imgdir_space</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;     |  |  +-cachedir nBytes: &#39;</span> <span class="o">+</span> <span class="n">cachedir_space</span><span class="p">),</span>
+    <span class="p">]</span> <span class="k">if</span> <span class="n">with_bytes</span> <span class="k">else</span> <span class="p">[]</span>
+
+    <span class="n">name_block_lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;# Names                      = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">num_names</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;# Names (unassociated)       = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">num_names_unassociated</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;# Names (singleton)          = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">num_names_singleton</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;# Names (multiton)           = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">num_names_multiton</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="n">annot_block_lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;# Annots                     = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">num_annots</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;# Annots (unknown)           = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">num_unknown_annots</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;# Annots (singleton)         = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">num_singleton_annots</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;# Annots (multiton)          = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">num_multiton_annots</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;# Annots per Name (multiton) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">multiton_stats</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">),)),</span>
+        <span class="p">(</span><span class="s">&#39;# Annots per Image           = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">gx2_nAnnots_stats</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">),)),</span>
+        <span class="p">(</span><span class="s">&#39;# Annots per Species         = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">species2_nAids</span><span class="p">),</span> <span class="s">&#39;:&#39;</span><span class="p">),)),</span>
+    <span class="p">]</span>
+
+    <span class="n">img_block_lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s">&#39;--&#39;</span> <span class="o">*</span> <span class="n">num_tabs</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;# Img                        = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;# Img reviewed               = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">sum</span><span class="p">(</span><span class="n">image_reviewed_list</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;# Img with gps               = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gps_list</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;# Img with timestamp         = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;Img Time Stats               = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">unixtime_statstr</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">),)),</span>
+    <span class="p">]</span>
+
+    <span class="n">info_str_lines</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">header_block_lines</span> <span class="o">+</span>
+        <span class="n">bytes_block_lines</span> <span class="o">+</span>
+        <span class="n">source_block_lines</span> <span class="o">+</span>
+        <span class="n">name_block_lines</span> <span class="o">+</span>
+        <span class="n">annot_block_lines</span> <span class="o">+</span>
+        <span class="n">img_block_lines</span> <span class="o">+</span>
+        <span class="n">imgsize_stat_lines</span> <span class="o">+</span>
+        <span class="p">[(</span><span class="s">&#39;L============================&#39;</span><span class="p">),</span> <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">info_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">info_str_lines</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">info_str</span><span class="p">,</span> <span class="s">&#39;[dbinfo]&#39;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="get_keypoint_stats"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.dbinfo.get_keypoint_stats">[docs]</a><span class="k">def</span> <span class="nf">get_keypoint_stats</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="c"># from ut import util_latex</span>
+    <span class="c">#from hsdev import dev_consistency</span>
+    <span class="c">#dev_consistency.check_keypoint_consistency(ibs)</span>
+    <span class="c"># Keypoint stats</span>
+    <span class="c">#ibs.refresh_features()</span>
+    <span class="kn">from</span> <span class="nn">ibeis.control.IBEISControl</span> <span class="kn">import</span> <span class="n">IBEISController</span>
+    <span class="k">assert</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">IBEISController</span><span class="p">))</span>
+    <span class="n">valid_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
+    <span class="n">cx2_kpts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
+    <span class="c">#cx2_kpts = ibs.feats.cx2_kpts</span>
+    <span class="c"># Check cx2_kpts</span>
+    <span class="n">cx2_nFeats</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">cx2_kpts</span><span class="p">))</span>
+    <span class="n">kpts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">cx2_kpts</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[dbinfo] --- LaTeX --- &#39;</span><span class="p">)</span>
+    <span class="n">_printopts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">get_printoptions</span><span class="p">()</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">scales</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_scales</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
+    <span class="n">scales</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">scales</span><span class="p">))</span>
+    <span class="n">tex_scale_stats</span> <span class="o">=</span> <span class="n">util_latex</span><span class="o">.</span><span class="n">latex_get_stats</span><span class="p">(</span><span class="s">r&#39;kpt scale&#39;</span><span class="p">,</span> <span class="n">scales</span><span class="p">)</span>
+    <span class="n">tex_nKpts</span>       <span class="o">=</span> <span class="n">util_latex</span><span class="o">.</span><span class="n">latex_scalar</span><span class="p">(</span><span class="s">r&#39;\# kpts&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">))</span>
+    <span class="n">tex_kpts_stats</span>  <span class="o">=</span> <span class="n">util_latex</span><span class="o">.</span><span class="n">latex_get_stats</span><span class="p">(</span><span class="s">r&#39;\# kpts/chip&#39;</span><span class="p">,</span> <span class="n">cx2_nFeats</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">tex_nKpts</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">tex_kpts_stats</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">tex_scale_stats</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="o">**</span><span class="n">_printopts</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[dbinfo] ---/LaTeX --- &#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">tex_nKpts</span><span class="p">,</span> <span class="n">tex_kpts_stats</span><span class="p">,</span> <span class="n">tex_scale_stats</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="dbstats"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.dbinfo.dbstats">[docs]</a><span class="k">def</span> <span class="nf">dbstats</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="c"># Chip / Name / Image stats</span>
+    <span class="n">dbinfo_locals</span> <span class="o">=</span> <span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">db_name</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
+    <span class="c"># num_images = dbinfo_locals[&#39;num_images&#39;]</span>
+    <span class="c"># num_annots = dbinfo_locals[&#39;num_annots&#39;]</span>
+    <span class="n">num_names</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dbinfo_locals</span><span class="p">[</span><span class="s">&#39;valid_nids&#39;</span><span class="p">])</span>
+    <span class="n">num_singlenames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dbinfo_locals</span><span class="p">[</span><span class="s">&#39;singleton_nxs&#39;</span><span class="p">])</span>
+    <span class="n">num_multinames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dbinfo_locals</span><span class="p">[</span><span class="s">&#39;multiton_nxs&#39;</span><span class="p">])</span>
+    <span class="n">num_multiannots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dbinfo_locals</span><span class="p">[</span><span class="s">&#39;multiton_aids&#39;</span><span class="p">])</span>
+    <span class="n">multiton_nid2_nannots</span> <span class="o">=</span> <span class="n">dbinfo_locals</span><span class="p">[</span><span class="s">&#39;multiton_nid2_nannots&#39;</span><span class="p">]</span>
+
+    <span class="c"># tex_nImage = util_latex.latex_scalar(r&#39;\# images&#39;, num_images)</span>
+    <span class="c"># tex_nChip = util_latex.latex_scalar(r&#39;\# annots&#39;, num_annots)</span>
+    <span class="n">tex_nName</span> <span class="o">=</span> <span class="n">util_latex</span><span class="o">.</span><span class="n">latex_scalar</span><span class="p">(</span><span class="s">r&#39;\# names&#39;</span><span class="p">,</span> <span class="n">num_names</span><span class="p">)</span>
+    <span class="n">tex_nSingleName</span> <span class="o">=</span> <span class="n">util_latex</span><span class="o">.</span><span class="n">latex_scalar</span><span class="p">(</span><span class="s">r&#39;\# singlenames&#39;</span><span class="p">,</span> <span class="n">num_singlenames</span><span class="p">)</span>
+    <span class="n">tex_nMultiName</span>  <span class="o">=</span> <span class="n">util_latex</span><span class="o">.</span><span class="n">latex_scalar</span><span class="p">(</span><span class="s">r&#39;\# multinames&#39;</span><span class="p">,</span> <span class="n">num_multinames</span><span class="p">)</span>
+    <span class="n">tex_nMultiChip</span>  <span class="o">=</span> <span class="n">util_latex</span><span class="o">.</span><span class="n">latex_scalar</span><span class="p">(</span><span class="s">r&#39;\# multiannots&#39;</span><span class="p">,</span> <span class="n">num_multiannots</span><span class="p">)</span>
+    <span class="n">tex_multi_stats</span> <span class="o">=</span> <span class="n">util_latex</span><span class="o">.</span><span class="n">latex_get_stats</span><span class="p">(</span><span class="s">r&#39;\# multistats&#39;</span><span class="p">,</span> <span class="n">multiton_nid2_nannots</span><span class="p">)</span>
+
+    <span class="n">tex_kpts_scale_thresh</span> <span class="o">=</span> <span class="n">util_latex</span><span class="o">.</span><span class="n">latex_multicolumn</span><span class="p">(</span><span class="s">&#39;Scale Threshold (</span><span class="si">%d</span><span class="s"> </span><span class="si">%d</span><span class="s">)&#39;</span> <span class="o">%</span>
+                                                              <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">scale_min</span><span class="p">,</span>
+                                                               <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">scale_max</span><span class="p">))</span> <span class="o">+</span> <span class="s">r&#39;</span><span class="se">\\</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+
+    <span class="p">(</span><span class="n">tex_nKpts</span><span class="p">,</span> <span class="n">tex_kpts_stats</span><span class="p">,</span> <span class="n">tex_scale_stats</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_keypoint_stats</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">tex_title</span> <span class="o">=</span> <span class="n">util_latex</span><span class="o">.</span><span class="n">latex_multicolumn</span><span class="p">(</span><span class="n">db_name</span> <span class="o">+</span> <span class="s">&#39; database statistics&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">r&#39;</span><span class="se">\\</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="n">tabular_body_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">tex_title</span><span class="p">,</span>
+        <span class="c"># tex_nChip,</span>
+        <span class="n">tex_nName</span><span class="p">,</span>
+        <span class="n">tex_nSingleName</span><span class="p">,</span>
+        <span class="n">tex_nMultiName</span><span class="p">,</span>
+        <span class="n">tex_nMultiChip</span><span class="p">,</span>
+        <span class="n">tex_multi_stats</span><span class="p">,</span>
+        <span class="s">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">tex_kpts_scale_thresh</span><span class="p">,</span>
+        <span class="n">tex_nKpts</span><span class="p">,</span>
+        <span class="n">tex_kpts_stats</span><span class="p">,</span>
+        <span class="n">tex_scale_stats</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">tabular</span> <span class="o">=</span> <span class="n">util_latex</span><span class="o">.</span><span class="n">tabular_join</span><span class="p">(</span><span class="n">tabular_body_list</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[dev stats]&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">tabular</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="cache_memory_stats"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.dbinfo.cache_memory_stats">[docs]</a><span class="k">def</span> <span class="nf">cache_memory_stats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">ut</span> <span class="kn">import</span> <span class="n">util_latex</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[dev stats] cache_memory_stats()&#39;</span><span class="p">)</span>
+    <span class="c">#kpts_list = ibs.get_annot_kpts(cid_list)</span>
+    <span class="c">#desc_list = ibs.get_annot_vecs(cid_list)</span>
+    <span class="c">#nFeats_list = map(len, kpts_list)</span>
+    <span class="n">gx_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cx2_gx</span><span class="p">(</span><span class="n">cid_list</span><span class="p">))</span>
+
+    <span class="n">bytes_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;chip dbytes&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">file_bytes</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_rchip_path</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)],</span>
+        <span class="s">&#39;img dbytes&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">file_bytes</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">gx2_gname</span><span class="p">(</span><span class="n">gx_list</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">)],</span>
+        <span class="c">#&#39;flann dbytes&#39;:  ut.file_bytes(flann_fpath),</span>
+    <span class="p">}</span>
+
+    <span class="n">byte_units</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;GB&#39;</span><span class="p">:</span> <span class="mi">2</span> <span class="o">**</span> <span class="mi">30</span><span class="p">,</span>
+        <span class="s">&#39;MB&#39;</span><span class="p">:</span> <span class="mi">2</span> <span class="o">**</span> <span class="mi">20</span><span class="p">,</span>
+        <span class="s">&#39;KB&#39;</span><span class="p">:</span> <span class="mi">2</span> <span class="o">**</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">tabular_body_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">]</span>
+
+    <span class="n">convert_to</span> <span class="o">=</span> <span class="s">&#39;KB&#39;</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">bytes_map</span><span class="p">):</span>
+        <span class="n">key2</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;bytes&#39;</span><span class="p">,</span> <span class="n">convert_to</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">val2</span> <span class="o">=</span> <span class="p">[</span><span class="n">bytes_</span> <span class="o">/</span> <span class="n">byte_units</span><span class="p">[</span><span class="n">convert_to</span><span class="p">]</span> <span class="k">for</span> <span class="n">bytes_</span> <span class="ow">in</span> <span class="n">val</span><span class="p">]</span>
+            <span class="n">tex_str</span> <span class="o">=</span> <span class="n">util_latex</span><span class="o">.</span><span class="n">latex_get_stats</span><span class="p">(</span><span class="n">key2</span><span class="p">,</span> <span class="n">val2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">val2</span> <span class="o">=</span> <span class="n">val</span> <span class="o">/</span> <span class="n">byte_units</span><span class="p">[</span><span class="n">convert_to</span><span class="p">]</span>
+            <span class="n">tex_str</span> <span class="o">=</span> <span class="n">util_latex</span><span class="o">.</span><span class="n">latex_scalar</span><span class="p">(</span><span class="n">key2</span><span class="p">,</span> <span class="n">val2</span><span class="p">)</span>
+        <span class="n">tabular_body_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tex_str</span><span class="p">)</span>
+
+    <span class="n">tabular</span> <span class="o">=</span> <span class="n">util_latex</span><span class="o">.</span><span class="n">tabular_join</span><span class="p">(</span><span class="n">tabular_body_list</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="n">tabular</span><span class="p">)</span>
+    <span class="n">util_latex</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">tabular</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">return</span> <span class="n">fnum</span> <span class="o">+</span> <span class="mi">1</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.dev.dbinfo</span>
+<span class="sd">        python -m ibeis.dev.dbinfo --allexamples</span>
+<span class="sd">        python -m ibeis.dev.dbinfo --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0.dev1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
