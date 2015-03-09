@@ -1040,17 +1040,33 @@ def show_all_colormaps():
     import pylab
     import numpy as np
     pylab.rc('text', usetex=False)
+    TRANSPOSE = True
     a = np.outer(np.arange(0, 1, 0.01), np.ones(10))
+    if TRANSPOSE:
+        a = a.T
     pylab.figure(figsize=(10, 5))
-    pylab.subplots_adjust(top=0.8, bottom=0.05, left=0.01, right=0.99)
+    if TRANSPOSE:
+        pylab.subplots_adjust(right=0.8, left=0.05, bottom=0.01, top=0.99)
+    else:
+        pylab.subplots_adjust(top=0.8, bottom=0.05, left=0.01, right=0.99)
     maps = [m for m in pylab.cm.datad if not m.endswith("_r")]
     maps.sort()
     l = len(maps) + 1
     for i, m in enumerate(maps):
-        pylab.subplot(1, l, i + 1)
-        pylab.axis("off")
-        pylab.imshow(a, aspect='auto', cmap=pylab.get_cmap(m), origin="lower")
-        pylab.title(m, rotation=90, fontsize=10)
+        if TRANSPOSE:
+            pylab.subplot(l, 1, i + 1)
+        else:
+            pylab.subplot(1, l, i + 1)
+
+        #pylab.axis("off")
+        ax = plt.gca()
+        ax.set_xticks([])
+        ax.set_yticks([])
+        pylab.imshow(a, aspect='auto', cmap=pylab.get_cmap(m))  # , origin="lower")
+        if TRANSPOSE:
+            ax.set_ylabel(m, rotation=0, fontsize=10, horizontalalignment='right', verticalalignment='center')
+        else:
+            pylab.title(m, rotation=90, fontsize=10)
     #pylab.savefig("colormaps.png", dpi=100, facecolor='gray')
 
 
@@ -1210,7 +1226,7 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
                ell=True, pts=False, rect=False, eig=False, ori=False,
                pts_size=2, ell_alpha=.6, ell_linewidth=1.5,
                ell_color=None, pts_color=ORANGE, color_list=None, pts_alpha=1.0,
-               siftkw={}, H=None, **kwargs):
+               siftkw={}, H=None, weights=None, cmap_='hot', **kwargs):
     """
     thin wrapper around mpl_keypoint.draw_keypoints
 
@@ -1275,6 +1291,9 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
         ut.printex(ex)
         return
     ax = gca()
+    if color_list is None and weights is not None:
+        # hack to turn into a color map
+        color_list = scores_to_color(weights, cmap_=cmap_, reverse_cmap=False)
     if color_list is not None:
         ell_color = color_list
         pts_color = color_list
@@ -1304,6 +1323,7 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
     })
 
     mpl_kp.draw_keypoints(ax, kpts, siftkw=siftkw, H=H, **_kwargs)
+    return color_list
 
 
 def draw_keypoint_gradient_orientations(rchip, kpt, sift=None, mode='vec',

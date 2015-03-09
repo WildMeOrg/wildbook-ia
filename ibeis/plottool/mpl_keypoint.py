@@ -30,7 +30,7 @@ def _draw_patches(ax, patch_list, color, alpha, lw, fcolor='none'):
 
 
 #----------------------------
-def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
+def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
                    ell=True, pts=False, rect=False, eig=False, ori=False,
                    sifts=None, siftkw={}, H=None, **kwargs):
     """
@@ -53,11 +53,11 @@ def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         ori (bool):
         sifts (None):
 
-    CommandLine:
-        python -m plottool.mpl_keypoint --test-draw_keypoints --show
-
     References:
         http://stackoverflow.com/questions/28401788/using-homogeneous-transforms-non-affine-with-matplotlib-patches
+
+    CommandLine:
+        python -m plottool.mpl_keypoint --test-draw_keypoints --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -68,7 +68,7 @@ def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> imgBGR = vt.get_star_patch(jitter=True)
         >>> fig, ax = pt.imshow(imgBGR * 255)
         >>> TAU = 2 * np.pi
-        >>> kpts = vt.make_test_image_keypoints(imgBGR, scale=.5, skew=2, theta=TAU / 8.0)
+        >>> kpts_ = vt.make_test_image_keypoints(imgBGR, scale=.5, skew=2, theta=TAU / 8.0)
         >>> scale_factor=1.0
         >>> offset=(0.0, 0.0)
         >>> rotation=0.0
@@ -80,7 +80,7 @@ def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> sifts=None
         >>> siftkw = {}
         >>> kwargs = dict(ori_color=[0, 1, 0], rect_color=[0, 0, 1], eig_color=[1, 1, 0])
-        >>> draw_keypoints(ax, kpts, scale_factor, offset, rotation, ell, pts, rect, eig, ori, sifts, siftkw, **kwargs)
+        >>> draw_keypoints(ax, kpts_, scale_factor, offset, rotation, ell, pts, rect, eig, ori, sifts, siftkw, **kwargs)
         >>> pt.iup()
         >>> pt.show_if_requested()
     """
@@ -103,8 +103,8 @@ def draw_keypoints(ax, kpts, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
     rect_linewidth = kwargs.get('rect_linewidth', ell_linewidth)
     ori_linewidth  = kwargs.get('ori_linewidth',  ell_linewidth)
     # Offset keypoints
-    assert len(kpts) > 0, 'cannot draw no keypoints1'
-    kpts = ktool.offset_kpts(kpts, offset, scale_factor)
+    assert len(kpts_) > 0, 'cannot draw no keypoints1'
+    kpts = ktool.offset_kpts(kpts_, offset, scale_factor)
     assert len(kpts) > 0, 'cannot draw no keypoints2'
     # Extract keypoint components
     _xs, _ys = ktool.get_xys(kpts)
