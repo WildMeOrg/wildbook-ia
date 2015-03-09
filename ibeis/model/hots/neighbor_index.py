@@ -997,7 +997,7 @@ class NeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> cfgdict = dict()
-            >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', cfgdict=cfgdict, preload=False)
+            >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', cfgdict=cfgdict, preload=True)
             >>> nnindexer = qreq_.indexer
             >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids()[0], qreq_=qreq_)
             >>> num_neighbors = 4

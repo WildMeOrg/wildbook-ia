@@ -324,7 +324,7 @@ Tdeleter_rl_depenant = ut.codeblock(
             >>> # The first delete should remove everything
             >>> ut.assert_eq(num_deleted1, len({leaf}_rowid_list))
             >>> # The second delete should have removed nothing
-            >>> ut.assert_eq(num_deleted1, 0)
+            >>> ut.assert_eq(num_deleted2, 0)
         """
         if ut.VERBOSE:
             print('[{self}] deleting %d {root}s leaf nodes' % len({root}_rowid_list))

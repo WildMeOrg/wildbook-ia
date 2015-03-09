@@ -66,6 +66,9 @@ def componentwise_uint8_dot(qfx2_qvec, qfx2_dvec):
 def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
     r"""
 
+    CommandLine:
+        python -m ibeis.model.hots.nn_weights --test-cos_match_weighter
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA

@@ -495,7 +495,7 @@ class NNWeightConfig(ConfigBase):
                 #ut.ParamInfoBool('dist_on', False,  hideif=False),
                 #ut.ParamInfoBool('normonly_on', False,  hideif=False),
                 #ut.ParamInfoBool('loglnbnn_on', False,  hideif=False),
-                #ut.ParamInfoBool('cos_on', False,  hideif=False),
+                ut.ParamInfoBool('cos_on', False,  hideif=False),
                 ut.ParamInfoBool('fg_on', True, hideif=False),
                 #
                 ut.ParamInfoBool('can_match_sameimg', False,  'sameimg', hideif=False),
