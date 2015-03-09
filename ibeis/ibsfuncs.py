@@ -325,7 +325,7 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
 
 
 @__injectable
-def assert_valid_species(ibs, species_list, iswarning=True):
+def assert_valid_species_texts(ibs, species_list, iswarning=True):
     if ut.NO_ASSERTS:
         return
     try:

@@ -134,7 +134,6 @@ def generate_feat_properties(ibs, cid_list, qreq_=None, nInput=None):
         featgen = generate_feats(cfpath_list, hesaff_params=hesaff_params,
                                  cid_list=cid_list, nInput=nInput, ordered=True)
         for cid, nFeat, kpts, vecs in featgen:
-            print('Generated %d features' % (nFeat,))
             yield (nFeat, kpts, vecs,)
     pass
 

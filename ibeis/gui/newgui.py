@@ -349,7 +349,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         ibswgt.reviewed_button = _NEWBUT('5) Complete',
                                          ibswgt.back.encounter_reviewed_all_images,
-                                         bgcolor=(0, 232, 211), fontkw=primary_fontkw)
+                                         bgcolor=color_funcs.adjust_hsv_of_rgb255((0, 232, 211), 0., -.9, 0.),
+                                         fontkw=primary_fontkw,
+                                         enabled=False)
 
         ibswgt.import_button = _NEWBUT('1) Import',
                                        back.import_images_from_file,
@@ -1167,7 +1169,7 @@ def testdata_guifront():
 def testfunc():
     r"""
     CommandLine:
-        python -m ibeis.gui.newgui --test-testfunc
+        python -m ibeis.gui.newgui --test-testfunc --show
 
     Example:
         >>> # DISABLE_DOCTEST
