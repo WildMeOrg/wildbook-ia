@@ -112,7 +112,7 @@ def get_probchip_fname_fmt(ibs, qreq_=None, species=None):
         probchip_aid=%d_bbox=%s_theta=%s_gid=%d_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png
 
     """
-    cfname_fmt = preproc_chip.get_chip_fname_fmt(ibs)
+    cfname_fmt = preproc_chip.get_chip_fname_fmt(ibs, qreq_=qreq_)
 
     if qreq_ is None:
         # FIXME FIXME FIXME: ugly, bad code that wont generalize at all.
@@ -120,7 +120,8 @@ def get_probchip_fname_fmt(ibs, qreq_=None, species=None):
         # you have to delete your cache.
         probchip_cfgstr = ibs.cfg.featweight_cfg.get_cfgstr(use_feat=False, use_chip=False)
     else:
-        raise NotImplementedError('qreq_ is not None')
+        probchip_cfgstr = qreq_.qparams.probchip_cfgstr
+        #raise NotImplementedError('qreq_ is not None')
 
     suffix = probchip_cfgstr
     if species is not None:
@@ -214,7 +215,7 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
             print('[preproc_probchip] |--------------------')
         if len(aids) == 0:
             continue
-        probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, qreq_=None, species=species)
+        probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, qreq_=qreq_, species=species)
 
         if lazy:
             # Filter out probchips that are already on disk
@@ -233,14 +234,15 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
 
         dirty_cfpath_list  = ibs.get_annot_chip_fpaths(dirty_aids, ensure=True, qreq_=qreq_)
 
-        config = {
-            # 'scale_list': [1.0],
-            'output_gpath_list': dirty_probchip_fpath_list,
-            'mode': 1,
-        }
-        probchip_generator = randomforest.detect_gpath_list_with_species(ibs, dirty_cfpath_list, species, **config)
-        # Evalutate genrator until completion
-        ut.evaluate_generator(probchip_generator)
+        if len(dirty_cfpath_list) > 0:
+            config = {
+                # 'scale_list': [1.0],
+                'output_gpath_list': dirty_probchip_fpath_list,
+                'mode': 1,
+            }
+            probchip_generator = randomforest.detect_gpath_list_with_species(ibs, dirty_cfpath_list, species, **config)
+            # Evalutate genrator until completion
+            ut.evaluate_generator(probchip_generator)
         probchip_fpath_list_.extend(probchip_fpath_list)
     if ut.VERBOSE:
         print('[preproc_probchip] Done computing probability images')

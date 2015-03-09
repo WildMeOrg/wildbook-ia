@@ -69,7 +69,7 @@ class QueryParams(collections.Mapping):
             setattr(qparams, key, val)
         # Add params not implicitly represented in Config object
         pipeline_root              = cfg.pipeline_root
-        qparams.chip_cfg_dict      = cfg._featweight_cfg._feat_cfg._chip_cfg
+        qparams.chip_cfg_dict      = cfg._featweight_cfg._feat_cfg._chip_cfg.to_dict()
         qparams.flann_params       = cfg.flann_cfg.get_flann_params()
         qparams.hesaff_params      = cfg._featweight_cfg._feat_cfg.get_hesaff_params()
         qparams.pipeline_root      = pipeline_root
@@ -77,6 +77,7 @@ class QueryParams(collections.Mapping):
         qparams.vsone              = pipeline_root == 'vsone'
         # Add custom strings to the mix as well
         # TODO; Find better way to specify config strings
+        qparams.probchip_cfgstr   = cfg._featweight_cfg.get_cfgstr(use_feat=False, use_chip=False)
         qparams.featweight_cfgstr = cfg._featweight_cfg.get_cfgstr()
         qparams.chip_cfgstr       = cfg._featweight_cfg._feat_cfg._chip_cfg.get_cfgstr()
         qparams.feat_cfgstr       = cfg._featweight_cfg._feat_cfg.get_cfgstr()

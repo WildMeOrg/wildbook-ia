@@ -14,7 +14,7 @@ DEFAULT_NTOP = 3
 
 @ut.indent_func
 @profile
-def show_qres_top(ibs, qres, **kwargs):
+def show_qres_top(ibs, qres, qreq_=None, **kwargs):
     """
     Wrapper around show_qres.
     """
@@ -26,7 +26,7 @@ def show_qres_top(ibs, qres, **kwargs):
     if len(figtitle) > 0:
         figtitle = ' ' + figtitle
     kwargs['figtitle'] = ('q%s -- TOP %r' % (aidstr, N)) + figtitle
-    return show_qres(ibs, qres, top_aids=top_aids,
+    return show_qres(ibs, qres, top_aids=top_aids, qreq_=qreq_,
                      # dont use these. use annot mode instead
                      #draw_kpts=False,
                      #draw_ell=False,
@@ -36,7 +36,7 @@ def show_qres_top(ibs, qres, **kwargs):
 
 @ut.indent_func
 @profile
-def show_qres_analysis(ibs, qres, **kwargs):
+def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
     """
     Wrapper around show_qres.
 
@@ -94,11 +94,11 @@ def show_qres_analysis(ibs, qres, **kwargs):
         showgt_aids = _gtaids
 
     return show_qres(ibs, qres, gt_aids=showgt_aids, top_aids=top_aids,
-                     figtitle=figtitle, show_query=show_query, **kwargs)
+                     figtitle=figtitle, show_query=show_query, qreq_=qreq_, **kwargs)
 
 
 @ut.indent_func
-def show_qres(ibs, qres, **kwargs):
+def show_qres(ibs, qres, qreq_=None, **kwargs):
     """
     Display Query Result Logic
 
@@ -136,7 +136,8 @@ def show_qres(ibs, qres, **kwargs):
         >>> ibs = ibeis.opendb('testdb1')
         >>> qres = ibs.query_chips(ibs.get_valid_aids()[0:1])[0]
         >>> # execute function
-        >>> fig = show_qres(ibs, qres, sidebyside=False, show_query=True, top_aids=3)
+        >>> qreq_ = None
+        >>> fig = show_qres(ibs, qres, sidebyside=False, show_query=True, qreq_=qreq_, top_aids=3)
         >>> # verify results
         >>> #fig.show()
         >>> pt.show_if_requested()
@@ -243,7 +244,7 @@ def show_qres(ibs, qres, **kwargs):
         _kwshow['pnum'] = pnum
         _kwshow['aid2_color'] = aid2_color
         _kwshow['draw_ell'] = annot_mode >= 1
-        viz_chip.show_chip(ibs, qres.qaid, annote=False, **_kwshow)
+        viz_chip.show_chip(ibs, qres.qaid, annote=False, qreq_=qreq_, **_kwshow)
 
     def _plot_matches_aids(aid_list, plotx_shift, rowcols):
         """ helper for show_qres to draw many aids """
@@ -273,19 +274,19 @@ def show_qres(ibs, qres, **kwargs):
             # If we already are showing the query dont show it here
             if sidebyside:
                 # Draw each match side by side the query
-                viz_matches.show_matches(ibs, qres, aid, **_kwshow)
+                viz_matches.show_matches(ibs, qres, aid, qreq_=qreq_, **_kwshow)
             else:
                 # Draw each match by themselves
-                viz_chip.show_chip(ibs, aid, annote=False, **_kwshow)
-                viz_matches.annotate_matches(ibs, qres, aid, **_kwshow)
+                viz_chip.show_chip(ibs, aid, annote=False, qreq_=qreq_, **_kwshow)
+                viz_matches.annotate_matches(ibs, qres, aid, qreq_=qreq_, **_kwshow)
 
         if DEBUG_SHOW_QRES:
             print('[show_qres()] Plotting Chips %s:' % vh.get_aidstrs(aid_list))
         if aid_list is None:
             return
         # Do lazy load before show
-        vh.get_chips(ibs, aid_list, **kwargs)
-        vh.get_kpts(ibs, aid_list, **kwargs)
+        vh.get_chips(ibs, aid_list, qreq_=qreq_, **kwargs)
+        vh.get_kpts(ibs, aid_list, qreq_=qreq_, **kwargs)
         for ox, aid in enumerate(aid_list):
             plotx = ox + plotx_shift + 1
             pnum = (rowcols[0], rowcols[1], plotx)

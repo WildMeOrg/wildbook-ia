@@ -11,7 +11,7 @@ from ibeis.viz.interact.interact_sver import ishow_sver
     __name__, '[interact_qres]', DEBUG=False)
 
 
-def ishow_analysis(ibs, qres, **kwargs):
+def ishow_analysis(ibs, qres, qreq_=None, **kwargs):
     """
 
     CommandLine:
@@ -39,10 +39,10 @@ def ishow_analysis(ibs, qres, **kwargs):
         >>> pt.show_if_requested()
 
     """
-    return ishow_qres(ibs, qres, analysis=True, **kwargs)
+    return ishow_qres(ibs, qres, analysis=True, qreq_=qreq_, **kwargs)
 
 
-def ishow_qres(ibs, qres, analysis=False, dodraw=True, **kwargs):
+def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
     """
     Displays query chip, groundtruth matches, and top matches
     TODO: make this a class
@@ -59,10 +59,11 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, **kwargs):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.viz.interact.interact_qres import *  # NOQA
         >>> import ibeis
+        >>> qreq_ = None
         >>> ibs = ibeis.opendb('testdb1')
         >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]
         >>> analysis = False
-        >>> fig = ishow_qres(ibs, qres, analysis, dodraw=False)
+        >>> fig = ishow_qres(ibs, qres, analysis, dodraw=False, qreq_=qreq_)
         >>> pt.show_if_requested()
     """
     fnum = df2.ensure_fnum(kwargs.get('fnum', None))
@@ -75,14 +76,14 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, **kwargs):
     def _ctrlclicked_aid(aid2):
         printDBG('ctrl+clicked aid2=%r' % aid2)
         fnum_ = df2.next_fnum()
-        ishow_sver(ibs, qres.qaid, aid2, fnum=fnum_)
+        ishow_sver(ibs, qres.qaid, aid2, qreq_=qreq_, fnum=fnum_)
         fig.canvas.draw()
         pt.bring_to_front(fig)
 
     def _clicked_aid(aid2):
         printDBG('clicked aid2=%r' % aid2)
         fnum_ = df2.next_fnum()
-        qres.ishow_matches(ibs, aid2, fnum=fnum_)
+        qres.ishow_matches(ibs, aid2, qreq_=qreq_, fnum=fnum_)
         fig = df2.gcf()
         fig.canvas.draw()
         pt.bring_to_front(fig)
@@ -91,14 +92,14 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, **kwargs):
         # Toggle if the click is not in any axis
         printDBG('clicked none')
         kwargs['annot_mode'] = kwargs.get('annot_mode', 0) + toggle
-        fig = viz.show_qres(ibs, qres, **kwargs)
+        fig = viz.show_qres(ibs, qres, qreq_=qreq_, **kwargs)
         return fig
 
     def _analysis_view(toggle=0):
         # Toggle if the click is not in any axis
         printDBG('clicked none')
         kwargs['annot_mode'] = kwargs.get('annot_mode', 0) + toggle
-        fig = qres.show_analysis(ibs, **kwargs)
+        fig = qres.show_analysis(ibs, qreq_=qreq_, **kwargs)
         return fig
 
     def _on_match_click(event):

@@ -707,40 +707,40 @@ class QueryResult(__OBJECT_BASE__):
     # ----------------------------------------
 
     #TODO?: @utool.augment_signature(viz_qres.show_qres_top)
-    def show_top(qres, ibs, *args, **kwargs):
+    def show_top(qres, ibs, qreq_=None, *args, **kwargs):
         print('[qres] show_top')
         from ibeis.viz import viz_qres
-        fig = viz_qres.show_qres_top(ibs, qres, *args, **kwargs)
+        fig = viz_qres.show_qres_top(ibs, qres, *args, qreq_=qreq_, **kwargs)
         if kwargs.get('update', False):
             fig.show()
         return fig
 
-    def show_analysis(qres, ibs, *args, **kwargs):
+    def show_analysis(qres, ibs, qreq_=None, *args, **kwargs):
         print('[qres] show_analysis')
         from ibeis.viz import viz_qres
-        return viz_qres.show_qres_analysis(ibs, qres, *args, **kwargs)
+        return viz_qres.show_qres_analysis(ibs, qres, *args, qreq_=qreq_, **kwargs)
 
-    def ishow_analysis(qres, ibs, *args, **kwargs):
+    def ishow_analysis(qres, ibs, qreq_=None, *args, **kwargs):
         print('[qres] show_analysis')
         from ibeis.viz.interact import interact_qres
-        return interact_qres.ishow_analysis(ibs, qres, *args, **kwargs)
+        return interact_qres.ishow_analysis(ibs, qres, *args, qreq_=qreq_, **kwargs)
 
-    def ishow_top(qres, ibs, *args, **kwargs):
+    def ishow_top(qres, ibs, qreq_=None, *args, **kwargs):
         print('[qres] ishow_top')
         from ibeis.viz.interact import interact_qres
         # use make_title=True instead
         #if 'figtitle' not in kwargs:
         #    kwargs['figtitle'] = qres.make_smaller_title()
-        fig = interact_qres.ishow_qres(ibs, qres, *args, **kwargs)
+        fig = interact_qres.ishow_qres(ibs, qres, *args, qreq_=qreq_, **kwargs)
         if kwargs.get('update', False):
             fig.show()
         return fig
 
-    def show_matches(qres, ibs, aid, *args, **kwargs):
+    def show_matches(qres, ibs, aid, qreq_=None, *args, **kwargs):
         from ibeis.viz import viz_matches
-        return viz_matches.show_matches(ibs, qres, aid, *args, **kwargs)
+        return viz_matches.show_matches(ibs, qres, aid, *args, qreq_=qreq_, **kwargs)
 
-    def dump_top_match(qres, ibs, *args, **kwargs):
+    def dump_top_match(qres, ibs, qreq_=None, *args, **kwargs):
         """
         CommandLine:
             python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show
@@ -790,7 +790,7 @@ class QueryResult(__OBJECT_BASE__):
         fig = pt.figure(fnum=fnum, doclf=True, docla=True)
         aid = qres.get_top_aids(ibs)[0]
         # Draw Matches
-        ax, xywh1, xywh2 = qres.show_matches(ibs, aid, colorbar_=False, **kwargs)
+        ax, xywh1, xywh2 = qres.show_matches(ibs, aid, colorbar_=False, qreq_=qreq_, **kwargs)
         pt.set_figtitle(qres.make_smaller_title())
         # Adjust
         #pt.adjust_subplots(0, 0, 1, 1, 0, 0)
@@ -803,18 +803,18 @@ class QueryResult(__OBJECT_BASE__):
         #pt.figure(fnum=pt.next_fnum())
         #pt.imshow(img_fpath)
 
-    def ishow_matches(qres, ibs, aid, *args, **kwargs):
+    def ishow_matches(qres, ibs, aid, qreq_=None, *args, **kwargs):
         from ibeis.viz.interact import interact_matches  # NOQA
         #if aid == 'top':
         #    aid = qres.get_top_aids(ibs)
-        match_interaction = interact_matches.MatchInteraction(ibs, qres, aid, *args, **kwargs)
+        match_interaction = interact_matches.MatchInteraction(ibs, qres, aid, qreq_=qreq_, *args, **kwargs)
         # Keep the interaction alive at least while the qres is alive
         qres._live_interactions.append(match_interaction)
         return match_interaction
         #fig = interact_matches.ishow_matches(ibs, qres, aid, *args, **kwargs)
         #return fig
 
-    def qt_inspect_gui(qres, ibs, ranks_lt=6, name_scoring=False):
+    def qt_inspect_gui(qres, ibs, ranks_lt=6, qreq_=None, name_scoring=False):
         print('[qres] qt_inspect_gui')
         from ibeis.gui import inspect_gui
         import guitool
@@ -823,18 +823,19 @@ class QueryResult(__OBJECT_BASE__):
         print('[inspect_matches] make_qres_widget')
         qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
                                                   ranks_lt=ranks_lt,
-                                                  name_scoring=name_scoring)
+                                                  name_scoring=name_scoring,
+                                                  qreq_=qreq_)
         print('[inspect_matches] show')
         qres_wgt.show()
         print('[inspect_matches] raise')
         qres_wgt.raise_()
         return qres_wgt
 
-    def show(qres, ibs, type_, *args, **kwargs):
+    def show(qres, ibs, type_, qreq_=None, *args, **kwargs):
         if type_ == 'top':
-            return qres.show_top(ibs, *args, **kwargs)
+            return qres.show_top(ibs, *args, qreq_=qreq_, **kwargs)
         elif type_ == 'analysis':
-            return qres.show_analysis(ibs, *args, **kwargs)
+            return qres.show_analysis(ibs, *args, qreq_=qreq_, **kwargs)
         else:
             raise AssertionError('Uknown type=%r' % type_)
 

@@ -9,7 +9,7 @@ from ibeis.viz import viz_helpers as vh
 
 @utool.indent_func
 def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
-                  H1=None, H2=None, **kwargs):
+                  H1=None, H2=None, qreq_=None, **kwargs):
     """
     TODO: use this as the main function.
     Have the qres version be a wrapper
@@ -18,9 +18,9 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
     in_image = kwargs.get('in_image', False)
     draw_fmatches = kwargs.get('draw_fmatches', True)
     # Read query and result info (chips, names, ...)
-    rchip1, rchip2 = vh.get_chips(ibs, [aid1, aid2], **kwargs)
+    rchip1, rchip2 = vh.get_chips(ibs, [aid1, aid2], qreq_=qreq_, **kwargs)
     if draw_fmatches:
-        kpts1, kpts2 = vh.get_kpts( ibs, [aid1, aid2], **kwargs)
+        kpts1, kpts2 = vh.get_kpts( ibs, [aid1, aid2], qreq_=qreq_, **kwargs)
     else:
         kpts1, kpts2 = None, None
 
@@ -59,6 +59,7 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
                       offset2=(0, 0),
                       xywh2=None,  # (0, 0, 0, 0),
                       xywh1=None,  # (0, 0, 0, 0),
+                      qreq_=None,
                       **kwargs):
     """
     TODO: use this as the main function.
@@ -70,7 +71,7 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
     draw_border = kwargs.get('draw_border', True)
     draw_lbl    = kwargs.get('draw_lbl', True)
 
-    printDBG('[viz] annotate_matches()')
+    printDBG('[viz] annotate_matches2()')
     truth = ibs.get_match_truth(aid1, aid2)
     truth_color = vh.get_truth_color(truth)
     # Build title
@@ -129,7 +130,7 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
             xywh2 = (0,  0, w, h)
 
         if not show_query and xywh1 is None:
-            kpts2, = ibs.get_annot_kpts((aid2,))
+            kpts2, = ibs.get_annot_kpts((aid2,), qreq_=qreq_)
             #df2.draw_kpts2(kpts2.take(fm.T[1], axis=0))
             # Draw any selected matches
             #sm_kw = dict(rect=True, colors=df2.BLUE)
@@ -153,7 +154,7 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
 
 
 @utool.indent_func
-def show_matches(ibs, qres, aid2, sel_fm=[], **kwargs):
+def show_matches(ibs, qres, aid2, sel_fm=[], qreq_=None, **kwargs):
     """
     shows single annotated match result.
 
@@ -197,9 +198,9 @@ def show_matches(ibs, qres, aid2, sel_fm=[], **kwargs):
     fm = qres.aid2_fm.get(aid2, [])
     fs = qres.aid2_fs.get(aid2, [])
     # Read query and result info (chips, names, ...)
-    rchip1, rchip2 = vh.get_chips(ibs, [aid1, aid2], **kwargs)
+    rchip1, rchip2 = vh.get_chips(ibs, [aid1, aid2], qreq_=qreq_, **kwargs)
     if draw_fmatches:
-        kpts1, kpts2 = vh.get_kpts( ibs, [aid1, aid2], **kwargs)
+        kpts1, kpts2 = vh.get_kpts( ibs, [aid1, aid2], qreq_=qreq_, **kwargs)
     else:
         kpts1, kpts2 = None, None
 
@@ -229,7 +230,7 @@ def show_matches(ibs, qres, aid2, sel_fm=[], **kwargs):
     offset1 = (x1, y1)
     offset2 = (x2, y2)
     annotate_matches(ibs, qres, aid2, xywh2=xywh2, xywh1=xywh1,
-                     offset1=offset1, offset2=offset2, **kwargs)
+                     offset1=offset1, offset2=offset2, qreq_=qreq_, **kwargs)
     return ax, xywh1, xywh2
 
 
@@ -239,6 +240,7 @@ def annotate_matches(ibs, qres, aid2,
                      offset2=(0, 0),
                      xywh2=None,  # (0, 0, 0, 0),
                      xywh1=None,  # (0, 0, 0, 0),
+                     qreq_=None,
                      **kwargs):
     """
     Helper function
@@ -311,7 +313,7 @@ def annotate_matches(ibs, qres, aid2,
         if not show_query and xywh1 is None:
             fm = qres.aid2_fm.get(aid2, [])
             fs = qres.aid2_fs.get(aid2, [])
-            kpts2, = ibs.get_annot_kpts((aid2,))
+            kpts2, = ibs.get_annot_kpts((aid2,), qreq_=qreq_)
             #df2.draw_kpts2(kpts2.take(fm.T[1], axis=0))
             # Draw any selected matches
             #sm_kw = dict(rect=True, colors=df2.BLUE)

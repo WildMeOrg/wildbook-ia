@@ -49,7 +49,7 @@ def get_diffmat_str(rank_mat, qaids, nConfig):
 
 
 def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
-                  testnameid, sel_rows, sel_cols, cfgx2_lbl):
+                  testnameid, sel_rows, sel_cols, cfgx2_lbl, cfgx2_qreq_):
     """
     Prints results from an experiment harness run.
     Rows store different qaids (query annotation ids)
@@ -597,10 +597,10 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     print('To enable all printouts add --print-all to the commandline')
 
     # Draw result figures
-    draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new_hard_qx_list)
+    draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, cfgx2_qreq_, new_hard_qx_list)
 
 
-def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new_hard_qx_list):
+def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, cfgx2_qreq_, new_hard_qx_list):
     """
     Draws results from an experiment harness run.
     Rows store different qaids (query annotation ids)
@@ -674,15 +674,23 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         del cp_dst_list[:]
         del cp_src_list[:]
 
-    def load_qres(ibs, qaid, daids, query_cfg):
+    def load_qres(ibs, qaid, daids, query_cfg, qreq_):
         # Load / Execute the query w/ correct config
         # this is ok because query config is reset after
         # exerpiment_printres resturns
-        ibs.set_query_cfg(query_cfg)
+
+        # is this need anymore?
+        #ibs.set_query_cfg(query_cfg)
+
         # Force program to use cache here
+        #qres = ibs._query_chips4([qaid], daids,
+        #                         use_cache=True,
+        #                         use_bigcache=False)[qaid]
+        qreq_.set_external_qaids([qaid])
         qres = ibs._query_chips4([qaid], daids,
                                  use_cache=True,
-                                 use_bigcache=False)[qaid]
+                                 use_bigcache=False,
+                                 qreq_=qreq_)[qaid]
         return qres
 
     #DELETE              = False
@@ -705,7 +713,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
 
     # Save DEFAULT=True
 
-    def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), **dumpkw):
+    def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), qreq_=None, **dumpkw):
         print('[PRINT_RESULTS] show_chip(aid=%r) prefix=%r' % (aid, prefix))
         from ibeis import viz
         # only dump a chip that hasn't been dumped yet
@@ -715,13 +723,13 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
         fulldir = join(figdir, dumpkw['subdir'])
         if DUMP_PROBCHIP:
             # just copy it
-            probchip_fpath = ibs.get_annot_probchip_fpaths([aid])[0]
+            probchip_fpath = ibs.get_annot_probchip_fpaths([aid], qreq_=qreq_)[0]
             ut.copy(probchip_fpath, fulldir, overwrite=False)
         if DUMP_REGCHIP:
-            chip_fpath = ibs.get_annot_chip_fpaths([aid])[0]
+            chip_fpath = ibs.get_annot_chip_fpaths([aid], qreq_=qreq_)[0]
             ut.copy(chip_fpath, fulldir, overwrite=False)
 
-        viz.show_chip(ibs, aid, in_image=in_image)
+        viz.show_chip(ibs, aid, in_image=in_image, qreq_=qreq_)
         if rank is not None:
             prefix += 'rank%d_' % rank
         df2.set_figtitle(prefix + ibs.annotstr(aid))
@@ -738,6 +746,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
     for rciter_chunk in ut.ichunks(enumerate(rciter), chunksize):
         # First load a chunk of query results
         qres_list = []
+        qreq_list = []
         # <FOR RCITER>
         for count, rctup in rciter_chunk:
             if (count in skip_list) or (SKIP_TO and count < SKIP_TO):
@@ -748,11 +757,13 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
                 (r, c) = rctup
                 qaid      = qaids[r]
                 query_cfg = cfg_list[c]
-                qres = load_qres(ibs, qaid, daids, query_cfg)
+                qreq_     = cfgx2_qreq_[c]
+                qres = load_qres(ibs, qaid, daids, query_cfg, qreq_)
                 qres_list.append(qres)
+                qreq_list.append(qreq_)
         # Iterate over chunks a second time, but
         # with loaded query results
-        for item, qres in zip(rciter_chunk, qres_list):
+        for item, qres, qreq_ in zip(rciter_chunk, qres_list, qreq_list):
             count, rctup = item
             if (count in skip_list) or (SKIP_TO and count < SKIP_TO):
                 continue
@@ -770,7 +781,6 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             --- VIEW %d / %d --- (r=%r, c=%r)
             ----------------------------------
             ''')  % (count + 1, total, r, c))
-            #qres = load_qres(ibs, qaid, daids, query_cfg)
             qres_cfg = qres.get_fname(ext='')
             subdir = qres_cfg
             # Draw Result
@@ -810,10 +820,10 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             """
             print('showing')
             if SHOW:
-                qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, **show_kwargs)
+                qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
                 #qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, **show_kwargs)
             else:
-                qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, **show_kwargs)
+                qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
             print('done showing')
 
             # Adjust subplots
@@ -838,20 +848,20 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, new
             print('[harn] drawing extra plots')
 
             if DUMP_QANNOT:
-                _show_chip(qres.qaid, 'QUERY_', **dumpkw)
-                _show_chip(qres.qaid, 'QUERY_CXT_', in_image=True, **dumpkw)
+                _show_chip(qres.qaid, 'QUERY_', qreq_=qreq_, **dumpkw)
+                _show_chip(qres.qaid, 'QUERY_CXT_', in_image=True, qreq_=qreq_, **dumpkw)
 
             if DUMP_QANNOT_DUMP_GT:
                 gtaids = ibs.get_annot_groundtruth(qres.qaid)
                 for aid in gtaids:
                     rank = qres.get_aid_ranks(aid)
-                    _show_chip(aid, 'GT_CXT_', rank=rank, in_image=True, **dumpkw)
+                    _show_chip(aid, 'GT_CXT_', rank=rank, in_image=True, qreq_=qreq_, **dumpkw)
 
             if DUMP_TOP_CONTEXT:
                 topids = qres.get_top_aids(num=3)
                 for aid in topids:
                     rank = qres.get_aid_ranks(aid)
-                    _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, **dumpkw)
+                    _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, qreq_=qreq_, **dumpkw)
         flush_copy_tasks()
     # </FOR RCITER>
 
