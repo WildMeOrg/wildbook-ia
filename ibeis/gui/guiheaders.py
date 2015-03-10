@@ -120,10 +120,10 @@ TABLE_COLNAMES = {
     NAMES_TREE      : [
         'name',
         'nAids',
-        'nExAids',
         'thumb',
         'nid',
         'exemplar',
+        'nExAids',
         #'aid',
         #'annot_gname',
         #'namenotes',

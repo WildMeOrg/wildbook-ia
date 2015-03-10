@@ -17,6 +17,7 @@ from ibeis.viz import viz_helpers as vh
 from plottool import fig_presenter
 #from plottool import interact_helpers as ih
 from six.moves import range
+import functools
 import guitool
 import numpy as np
 import six
@@ -633,9 +634,88 @@ def get_buttontup(ibs, qtindex):
     return buttontup
 
 
+def test_inspect_matches(ibs, qaid_list, daid_list):
+    """
+
+    Args:
+        ibs       (IBEISController):
+        qaid_list (list): query annotation id list
+        daid_list (list): database annotation id list
+
+    Returns:
+        dict: locals_
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> import guitool
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid_list = ibs.get_valid_aids()[0:5]
+        >>> daid_list = ibs.get_valid_aids()[0:20]
+        >>> main_locals = test_inspect_matches(ibs, qaid_list, daid_list)
+        >>> main_execstr = ibeis.main_loop(main_locals)
+        >>> if ut.show_was_requested():
+        >>>     guitool.qtapp_loop()
+        >>> print(main_execstr)
+        >>> exec(main_execstr)
+    """
+    from ibeis.viz.interact import interact_qres2  # NOQA
+    from ibeis.gui import inspect_gui
+    from ibeis.dev import results_all
+    allres = results_all.get_allres(ibs, qaid_list)
+    tblname = 'qres'
+    qaid2_qres = allres.qaid2_qres
+    name_scoring = False
+    ranks_lt = 5
+    # This object is created inside QresResultsWidget
+    #qres_api = inspect_gui.make_qres_api(ibs, qaid2_qres)  # NOQA
+    # This is where you create the result widigt
+    guitool.ensure_qapp()
+    print('[inspect_matches] make_qres_widget')
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, ranks_lt=ranks_lt)
+    print('[inspect_matches] show')
+    qres_wgt.show()
+    print('[inspect_matches] raise')
+    qres_wgt.raise_()
+    #query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres)
+    #self = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, ranks_lt=ranks_lt)
+    print('</inspect_matches>')
+    # simulate double click
+    qres_wgt._on_click(qres_wgt.model.index(2, 2))
+    #qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))
+    locals_ =  locals()
+    return locals_
+
+
 def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     """
     Builds columns which are displayable in a ColumnListTableWidget
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-make_qres_api
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> import guitool
+        >>> from ibeis.viz.interact import interact_qres2  # NOQA
+        >>> from ibeis.gui import inspect_gui
+        >>> from ibeis.dev import results_all
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid_list = ibs.get_valid_aids()[0:2]
+        >>> daid_list = ibs.get_valid_aids()[0:20]
+        >>> allres = results_all.get_allres(ibs, qaid_list)
+        >>> tblname = 'qres'
+        >>> qaid2_qres = allres.qaid2_qres
+        >>> name_scoring = False
+        >>> ranks_lt = 5
+        >>> make_qres_api(ibs, qaid2_qres, ranks_lt, name_scoring)
+
     """
     if ut.VERBOSE:
         print('[inspect] make_qres_api')
@@ -646,6 +726,43 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     # Get extra info
     (qaids, aids, scores, ranks) = candidate_matches
 
+    # Preprocess Thumbs
+    USE_MATCH_THUMBS = False
+    if USE_MATCH_THUMBS:
+        match_thumb_dir = ut.unixjoin(ibs.get_cachedir(), 'match_thumbs')
+        ut.ensuredir(match_thumb_dir)
+        #match_thumb_fpath_list = []
+        #_prog = functools.partial(ut.ProgressIter, lbl='match chip: ', nTotal=len(qaids))
+
+        #for qres, qaid, daid in _prog(zip(ut.dict_take(qaid2_qres, qaids), qaids, aids)):
+        #    assert qres.qaid == qaid
+        #    match_thumb_fpath_ = ut.unixjoin(match_thumb_dir, 'matchthumb-aid1=%d-aid2=%d.jpg' % ((qaid, daid)))
+        #    match_thumb_fpath = qres.dump_match_img(ibs, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32, notitle=True, verbose=False)
+        #    match_thumb_fpath_list.append(match_thumb_fpath)
+
+        #thumbtup_list = [(ut.augpath(fpath, 'thumb'), fpath, (128, 128), [], []) far fpath in match_thumb_fpath_list ]
+        #print(ut.list_str(thumbtup_list))
+
+        match_thumbtup_cache = {}
+        def get_match_thumbtup(index, thumbsize=(128, 128)):
+            qaid, daid = qaids[index], aids[index]
+            qres = qaid2_qres[qaid]
+            match_thumb_fpath_ = ut.unixjoin(match_thumb_dir, 'matchthumb-aid1=%d-aid2=%d.jpg' % ((qaid, daid)))
+            if match_thumb_fpath_  not in match_thumbtup_cache:
+                match_thumb_fpath = qres.dump_match_img(ibs, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32, notitle=True, verbose=False)
+                #match_thumb_fpath_list.append(match_thumb_fpath)
+                match_thumbtup_cache[match_thumb_fpath_] = match_thumb_fpath
+            fpath = match_thumbtup_cache[match_thumb_fpath_]
+            #print(thumbsize)
+            if isinstance(thumbsize, int):
+                # HACK
+                thumbsize = (thumbsize, thumbsize)
+            thumbtup = (ut.augpath(fpath, 'thumb'), fpath, thumbsize, [], [])
+            return thumbtup
+
+    #ut.view_directory(match_thumb_dir)
+    #return
+
     #opts = np.zeros(len(qaids))
     # Define column information
 
@@ -653,8 +770,6 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     # TO GET THOSE PAIRWISE INDEXES
 
     col_name_list = [
-        'qaid',
-        'aid',
         'score',
         'status',
         'querythumb',
@@ -662,6 +777,8 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
         'qname',
         'name',
         'rank',
+        'qaid',
+        'aid',
     ]
     #if ut.is_developer():
     #    pass
@@ -703,6 +820,11 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
         #('opt',       opts),
     ])
 
+    if USE_MATCH_THUMBS:
+        col_name_list.insert(4, 'matchthumb')
+        col_types_dict['matchthumb'] = 'PIXMAP'
+        col_getters_dict['matchthumb'] = get_match_thumbtup
+
     #get_status_bgrole_func = partial(get_status_bgrole, ibs)
     col_bgrole_dict = {
         'status' : partial(get_status_bgrole, ibs),
@@ -732,62 +854,6 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
                          col_bgrole_dict, col_ider_dict, col_setter_dict,
                          editable_colnames, sortby, get_thumb_size)
     return qres_api
-
-
-def test_inspect_matches(ibs, qaid_list, daid_list):
-    """
-
-    Args:
-        ibs       (IBEISController):
-        qaid_list (list): query annotation id list
-        daid_list (list): database annotation id list
-
-    Returns:
-        dict: locals_
-
-    CommandLine:
-        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.gui.inspect_gui import *  # NOQA
-        >>> import ibeis
-        >>> import guitool
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qaid_list = ibs.get_valid_aids()[0:5]
-        >>> daid_list = ibs.get_valid_aids()[0:20]
-        >>> main_locals = test_inspect_matches(ibs, qaid_list, daid_list)
-        >>> main_execstr = ibeis.main_loop(main_locals)
-        >>> if ut.show_was_requested():
-        >>>     guitool.qtapp_loop()
-        >>> print(main_execstr)
-        >>> exec(main_execstr)
-    """
-    from ibeis.viz.interact import interact_qres2  # NOQA
-    from ibeis.gui import inspect_gui
-    from ibeis.dev import results_all
-    allres = results_all.get_allres(ibs, qaid_list)
-    guitool.ensure_qapp()
-    tblname = 'qres'
-    qaid2_qres = allres.qaid2_qres
-    ranks_lt = 5
-    # This object is created inside QresResultsWidget
-    #qres_api = inspect_gui.make_qres_api(ibs, qaid2_qres)  # NOQA
-    # This is where you create the result widigt
-    print('[inspect_matches] make_qres_widget')
-    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, ranks_lt=ranks_lt)
-    print('[inspect_matches] show')
-    qres_wgt.show()
-    print('[inspect_matches] raise')
-    qres_wgt.raise_()
-    #query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres)
-    #self = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, ranks_lt=ranks_lt)
-    print('</inspect_matches>')
-    # simulate double click
-    qres_wgt._on_click(qres_wgt.model.index(2, 2))
-    #qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))
-    locals_ =  locals()
-    return locals_
 
 
 def launch_review_matches_interface(ibs, qres_list, dodraw=False):

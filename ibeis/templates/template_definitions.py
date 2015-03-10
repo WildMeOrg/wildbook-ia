@@ -861,17 +861,33 @@ Tsetter_native_multicolumn = ut.codeblock(
 #-------------------------------
 
 
-Tdeleter_table_relation = ut.codeblock(
+Tdeleter_table1_relation = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @deleter
-    def delete_{tbl}_relations({self}, {tbl}_rowid_list):
+    def delete_{tbl1}_relations({self}, {tbl1}_rowid_list):
         """
         Deletes the relationship between an {tbl} row and a label
         """
-        {relation}_rowids_list = {self}.get_{tbl}_{relation}_rowids({tbl}_rowid_list)
-        {relation}_rowid_list = ut.flatten({relation}_rowids_list)
-        {self}.{dbself}.delete_rowids({RELATION_TABLE}, {relation}_rowid_list)
+        {relation_tbl}_rowids_list = {self}.get_{tbl1}_{relation_tbl}_rowids({tbl1}_rowid_list)
+        {relation_tbl}_rowid_list = ut.flatten({relation_tbl}_rowids_list)
+        {self}.{dbself}.delete_rowids({RELATION_TABLE}, {relation_tbl}_rowid_list)
+    # ENDBLOCK
+    '''
+)
+
+
+Tgetter_table1_rowids = ut.codeblock(
+    r'''
+    # STARTBLOCK
+    # REM @deleter
+    def delete_{tbl1}_relations({self}, {tbl1}_rowid_list):
+        """
+        Deletes the relationship between an {tbl} row and a label
+        """
+        {relation_tbl}_rowids_list = {self}.get_{tbl1}_{relation_tbl}_rowids({tbl1}_rowid_list)
+        {relation_tbl}_rowid_list = ut.flatten({relation_tbl}_rowids_list)
+        {self}.{dbself}.delete_rowids({RELATION_TABLE}, {relation_tbl}_rowid_list)
     # ENDBLOCK
     '''
 )
@@ -885,18 +901,18 @@ Tadder_relationship = ut.codeblock(
         Adds a relationship between an image and encounter
 
         Returns:
-            {tbl1}_{tbl2}_relation_rowid_list
+            {relation_tbl}_rowid_list
 
         TemplateInfo:
             Tadder_relationship
         """
         colnames = ('{tbl1}_rowid', '{tbl2}_rowid',)
         params_iter = list(zip({tbl1}_rowid_list, {tbl2}_rowid_list))
-        get_rowid_from_superkey = {self}.get_{tbl1}_{tbl2}_relation_rowid_from_superkey
+        get_rowid_from_superkey = {self}.get_{relation_tbl}_rowid_from_superkey
         superkey_paramx = (0, 1)
-        {tbl1}_{tbl2}_relation_rowid_list = {self}.{dbself}.add_cleanly(
-            {TABLE1}_{TABLE2}_RELATION_TABLE, colnames, params_iter, get_rowid_from_superkey, superkey_paramx)
-        return {tbl1}_{tbl2}_relation_rowid_list
+        {relation_tbl}_rowid_list = {self}.{dbself}.add_cleanly(
+            {RELATION_TABLE}, colnames, params_iter, get_rowid_from_superkey, superkey_paramx)
+        return {relation_tbl}_rowid_list
     # ENDBLOCK
     ''')
 

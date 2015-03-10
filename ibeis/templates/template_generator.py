@@ -18,6 +18,12 @@ CommandLine:
     python ibeis/templates/template_generator.py
     python -m ibeis.templates.template_generator --key featweight --write
     python -m ibeis.templates.template_generator --key featweight
+    python -m ibeis.templates.template_generator --key encounter
+    python -m ibeis.templates.template_generator --key encounter --onlyfn
+    python -m ibeis.templates.template_generator --key encounter --onlyfn --Tcfg with_native=False
+    python -m ibeis.templates.template_generator --key egr --Tcfg with_relations=True with_getters=True
+    python -m ibeis.templates.template_generator --key egr --Tcfg with_native=False
+
 
 TODO:
    * autogen testdata function
@@ -65,6 +71,7 @@ TBLNAME_LIST = [
     #const.FEATURE_WEIGHT_TABLE,
     #const.RESIDUAL_TABLE
     #const.ENCOUNTER_TABLE
+    #const.LBLIMAGE_TABLE
 ]
 
 multicolumns_dict = ut.odict([
@@ -111,16 +118,22 @@ class SHORTNAMES(object):
     DETECT     = 'detect'
     ENCOUNTER  = 'encounter'
     IMAGE      = 'image'
+    LBLIMAGE   = 'egr'
 
 depends_map = {
+    SHORTNAMES.LBLIMAGE  : None,
     SHORTNAMES.IMAGE     : None,
     SHORTNAMES.ENCOUNTER : None,
-    SHORTNAMES.ANNOT: None,
+    SHORTNAMES.ANNOT     : None,
     SHORTNAMES.CHIP:       SHORTNAMES.ANNOT,
     SHORTNAMES.PROBCHIP:   SHORTNAMES.CHIP,
     SHORTNAMES.FEAT:       SHORTNAMES.CHIP,
     SHORTNAMES.FEATWEIGHT: SHORTNAMES.FEAT,  # TODO: and PROBCHIP
     SHORTNAMES.RVEC:       SHORTNAMES.FEAT,
+}
+
+relationship_map = {
+    SHORTNAMES.LBLIMAGE: (SHORTNAMES.IMAGE, SHORTNAMES.ENCOUNTER),
 }
 
 # shortened tablenames
@@ -134,6 +147,8 @@ tablename2_tbl = {
     const.RESIDUAL_TABLE       : SHORTNAMES.RVEC,
     const.ENCOUNTER_TABLE      : SHORTNAMES.ENCOUNTER,
     const.IMAGE_TABLE          : SHORTNAMES.IMAGE,
+    const.LBLIMAGE_TABLE       : SHORTNAMES.LBLIMAGE
+
 }
 
 
@@ -345,10 +360,13 @@ def postprocess_and_combine_templates(autogen_modname, autogen_key,
                                       tblname2_functype2_func_list,
                                       flagskw):
     """ Sorts and combines augen function dictionary """
+    if ut.VERBOSE:
+        print('[TEMPLATE] postprocess_and_combine_templates(%r)' % (autogen_key,))
+
     func_name_list = []
     func_type_list = []
     func_code_list = []
-    func_tbl_list = []
+    func_tbl_list  = []
 
     #functype_set = set([])
     for tblname, functype2_funclist in six.iteritems(tblname2_functype2_func_list):
@@ -360,6 +378,9 @@ def postprocess_and_combine_templates(autogen_modname, autogen_key,
                 func_type_list.append(functype)
                 func_name_list.append(func_name)
                 func_code_list.append(func_code)
+
+    if ut.VERBOSE:
+        print('[TEMPLATE] len(func_name_list) = %r' % (len(func_name_list,)))
 
     # sort by multiple values
     #sorted_indexes = ut.list_argsort(func_tbl_list, func_name_list, func_type_list)
@@ -481,12 +502,12 @@ def replace_constant_varname(func_code, varname, valstr=None):
 def build_templated_funcs(ibs, autogen_modname, tblname_list, autogen_key,
                           flagdefault=True, flagskw={}):
     """ Builds lists of requested functions"""
-    print('BUILD_TEMPLATED_FUNCS')
-    print(' * autogen_modname=%r' % (autogen_modname,))
-    print(' * tblname_list=%r' % (tblname_list,))
-    print(' * autogen_key=%r' % (autogen_key,))
-    print(' * flagdefault=%r' % (flagdefault,))
-    print(' * flagskw=%r' % (flagskw,))
+    print('[TEMPLATE] build_templated_funcs')
+    print('  * autogen_modname=%r' % (autogen_modname,))
+    print('  * tblname_list=%r' % (tblname_list,))
+    print('  * autogen_key=%r' % (autogen_key,))
+    print('  * flagdefault=%r' % (flagdefault,))
+    print('  * flagskw=%r' % (flagskw,))
     #child = 'featweight'
     tblname2_functype2_func_list = ut.ddict(lambda: ut.ddict(list))
     # HACKED IN CONSTANTS
@@ -496,7 +517,8 @@ def build_templated_funcs(ibs, autogen_modname, tblname_list, autogen_key,
     ]
     # --- AUTOGENERATE FUNCTION TEXT ---
     for tablename in tblname_list:
-        print('building %r table' % (tablename,))
+        if ut.NOT_QUIET:
+            print('[TEMPLATE] building %r table' % (tablename,))
         tableinfo = get_tableinfo(tablename, ibs)
         tup = build_controller_table_funcs(tablename, tableinfo,
                                            autogen_modname,
@@ -544,6 +566,8 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     CommandLine:
         python -m ibeis.templates.template_generator
     """
+    if ut.VERBOSE:
+        print('[TEMPLATE] build_controller_table_funcs(%r)' % (tablename,))
     # +-----
     # Setup
     # +-----
@@ -625,6 +649,15 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     def set_multicol(multicol, MULTICOLNAMES):
         fmtdict['MULTICOLNAMES'] = str(multicolnames)
         fmtdict['multicol'] = multicol
+
+    def set_relation_tables(relation_tbl, relation_tables):
+        tbl1, tbl2 = relation_tables
+        fmtdict['relation_tbl'] = relation_tbl
+        fmtdict['RELATION_TABLE'] = tbl2_TABLE[relation_tbl]
+        fmtdict['tbl1'] = tbl1
+        fmtdict['tbl2'] = tbl2
+        fmtdict['TABLE1'] = tbl2_TABLE[tbl1]
+        fmtdict['TABLE2'] = tbl2_TABLE[tbl2]
     # L____________________________
 
     # +----------------------------
@@ -648,6 +681,8 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         func_code_fmtstr = Tdef.Tsetter_native_column
 
         """
+        if ut.VERBOSE:
+            print('[TEMPLATE] append_func()')
         #if func_type.find('add') < 0:
         #    return
         #type1, type2 = func_type.split('.')
@@ -758,7 +793,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
 
     tbl = tablename2_tbl[tablename]
     # Build dependency path
-    depends_list = build_depends_path(tbl)
+    depends_list    = build_depends_path(tbl)
 
     #=========================================
     # THIS IS WHERE THE TEMPLATES ARE FORMATED
@@ -771,11 +806,12 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     with_fromsuperkey = flagskw.get('with_fromsuperkey', flagdefault)
     with_configs      = flagskw.get('with_configs', flagdefault)
 
-    with_columns      = flagskw.get('with_columns', True)
-    with_multicolumns = flagskw.get('with_multicolumns', True)
-    with_parentleaf   = flagskw.get('with_parentleaf', True)
-    with_rootleaf     = flagskw.get('with_rootleaf', True)
-    with_native       = flagskw.get('with_native', True)
+    with_columns      = flagskw.get('with_columns', flagdefault)
+    with_multicolumns = flagskw.get('with_multicolumns', flagdefault)
+    with_parentleaf   = flagskw.get('with_parentleaf', flagdefault)
+    with_rootleaf     = flagskw.get('with_rootleaf', flagdefault)
+    with_native       = flagskw.get('with_native', flagdefault)
+    with_relations    = flagskw.get('with_relations', flagdefault)
 
     # Setup
     build_rowid_constants(depends_list)
@@ -811,6 +847,27 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
             append_func('1_RL.ider',    Tdef.Tider_rl_dependant_all_rowids)
         if with_getters:
             append_func('1_RL.getter_rowids',  Tdef.Tgetter_rl_dependant_rowids)
+
+    # ----------------------------
+    # Many to Many Relationships
+    # ----------------------------
+    if with_relations:
+        if ut.VERBOSE:
+            print('[TEMPLATE] Building Many to Many Relationships tbl=%r' % (tbl,))
+        relation_tables = relationship_map.get(tbl, None)
+        if relation_tables is not None:
+            (tbl1, tbl2) = relation_tables
+            set_relation_tables(tbl, relation_tables)
+            if with_adders:
+                append_func('3_RELATE.adder', Tdef.Tadder_relationship)
+            # Add both directions in relationships
+            for count, direction in enumerate([1, -1], start=1):
+                relation_tables = relationship_map.get(tbl, None)[::direction]
+                set_relation_tables(tbl, relation_tables)
+                if with_deleters:
+                    append_func('3_RELATE{count}.deleter'.format(count=count), Tdef.Tdeleter_table1_relation)
+                if with_getters:
+                    append_func('3_RELATE{count}.getter'.format(count=count), Tdef.Tgetter_table1_rowids)
 
     # ------------------
     #  Native Noncolumn
@@ -886,7 +943,7 @@ def get_autogen_text(
     CommandLine:
         python ibeis/templates/template_generator.py
     """
-    print('GET_AUTGEN_TEXT')
+    print('[TEMPLATE] get_autogen_text()')
     # Filepath info
     modpath_info = get_autogen_modpaths(parent_module, autogen_key, flagskw)
     autogen_fpath, autogen_rel_fpath, autogen_modname = modpath_info
@@ -926,7 +983,7 @@ def main(ibs, verbose=None):
         python dev.py --db testdb1 --cmd
         %run dev.py --db testdb1 --cmd
     """
-    print('TEMPLAT_GENERATOR MAIN')
+    print('\n\n[TEMPLATE] main()')
     # Parse command line args
     onlyfuncname = ut.get_argflag(('--onlyfuncname', '--onlyfn'),
                                   help_='if specified only prints the function signatures')
@@ -981,15 +1038,18 @@ def main(ibs, verbose=None):
         parent_module, tblname_list=tblname_list, autogen_key=autogen_key,
         flagdefault=flagdefault, flagskw=flagskw)
 
+    print('[TEMPLATE] Finished text generation...')
+
     # output to disk or stdout
     if onlyfuncname:
         print('\n'.join([line for line in autogen_text.splitlines() if
               line.startswith('def ')]))
     else:
         if not ut.QUIET and (not dowrite or verbose):
+            print('[TEMPLATE] Dumping autogenerated text...\n+---\n')
             print(autogen_text)
             if not dowrite:
-                print('\n...would write to: %s' % autogen_fpath)
+                print('\nL___\n...would write to: %s' % autogen_fpath)
     if dowrite:
         ut.write_to(autogen_fpath, autogen_text)
     #return locals()

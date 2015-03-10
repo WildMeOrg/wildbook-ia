@@ -740,7 +740,7 @@ class QueryResult(__OBJECT_BASE__):
         from ibeis.viz import viz_matches
         return viz_matches.show_matches(ibs, qres, aid, *args, qreq_=qreq_, **kwargs)
 
-    def dump_top_match(qres, ibs, qreq_=None, *args, **kwargs):
+    def dump_top_match(qres, ibs, qreq_=None, fnum=None, *args, **kwargs):
         """
         CommandLine:
             python -m ibeis.model.hots.hots_query_result --test-dump_top_match --show
@@ -777,25 +777,34 @@ class QueryResult(__OBJECT_BASE__):
             >>>     ut.startfile(img_fpath, quote=True)
             >>> #pt.show_if_requested()
         """
+        aid = qres.get_top_aids(ibs)[0]
+        return qres.dump_match_img(ibs, aid, qreq_=qreq_, fnum=fnum, *args, **kwargs)
+
+    def dump_match_img(qres, ibs, aid, qreq_=None, fnum=None, *args, **kwargs):
         import plottool as pt
         # Pop save kwargs from kwargs
-        save_keys = ['dpi', 'figsize', 'saveax', 'fpath', 'fpath_strict']
+        save_keys = ['dpi', 'figsize', 'saveax', 'fpath', 'fpath_strict', 'verbose']
         save_vals = ut.dict_take_pop(kwargs, save_keys, None)
         savekw = dict(zip(save_keys, save_vals))
         fpath = savekw.pop('fpath')
         if fpath is None and 'fpath_strict' not in savekw:
             savekw['usetitle'] = True
         # Make new figure
-        fnum = pt.next_fnum()
-        fig = pt.figure(fnum=fnum, doclf=True, docla=True)
-        aid = qres.get_top_aids(ibs)[0]
+        if fnum is None:
+            fnum = pt.next_fnum()
+        #fig = pt.figure(fnum=fnum, doclf=True, docla=True)
+        from matplotlib import pyplot as plt
+        fig = plt.figure(fnum)
+        fig.clf()
         # Draw Matches
-        ax, xywh1, xywh2 = qres.show_matches(ibs, aid, colorbar_=False, qreq_=qreq_, **kwargs)
-        pt.set_figtitle(qres.make_smaller_title())
+        ax, xywh1, xywh2 = qres.show_matches(ibs, aid, colorbar_=False, qreq_=qreq_, fnum=fnum, **kwargs)
+        if not kwargs.get('notitle', False):
+            pt.set_figtitle(qres.make_smaller_title())
         # Adjust
         #pt.adjust_subplots(0, 0, 1, 1, 0, 0)
         # Save Figure
         # Setting fig=fig might make the dpi and figsize code not work
+        img_fpath = 'fsd'
         img_fpath = pt.save_figure(fpath=fpath, fig=fig, **savekw)
         #if False:
         #    ut.startfile(img_fpath)

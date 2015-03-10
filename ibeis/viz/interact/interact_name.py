@@ -329,7 +329,13 @@ class MatchVerificationInteraction(AbstractInteraction):
 
         if self.qres is not None:
             print("DRAWING QRES")
-            self.qres.show_matches(self.ibs, self.aid2, fnum=self.fnum, pnum=(1, nCols, 1), draw_fmatch=True)
+            pnum = (1, nCols, 1)
+            if not fulldraw:
+                # not doing full draw so we have to clear any axes
+                # that are here already manually
+                ax = self.fig.add_subplot(*pnum)
+                self.clear_parent_axes(ax)
+            self.qres.show_matches(self.ibs, self.aid2, fnum=self.fnum, pnum=pnum, draw_fmatch=True, colorbar_=False)
 
         # For each row
         for rowx, aid_list in enumerate(row_aids_list):
