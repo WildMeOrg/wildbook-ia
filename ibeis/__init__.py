@@ -44,9 +44,6 @@ from ibeis.dev import sysres
 from ibeis import control
 from ibeis import ibsfuncs
 from ibeis import dbio
-
-#from ibeis import model
-#from ibeis import viz
 #from ibeis import web
 
 from ibeis.dev import sysres
@@ -63,6 +60,15 @@ def import_subs():
     from ibeis import viz
     from ibeis import web
     from ibeis import gui
+    from ibeis import templates
+
+#import_subs()
+#from ibeis import gui
+#from ibeis import model
+#from ibeis import templates
+#from ibeis import viz
+#from ibeis import web
+
 
 #class _VizProxy(object):
 #    def __init__(self):

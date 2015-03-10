@@ -15,8 +15,9 @@ Concepts:
              * colname: stores the actual column name like 'feature_rowid'
 
 CommandLine:
-    python ibeis/control/template_generator.py
-    python -m ibeis.control.template_generator --key featweight --write
+    python ibeis/templates/template_generator.py
+    python -m ibeis.templates.template_generator --key featweight --write
+    python -m ibeis.templates.template_generator --key featweight
 
 TODO:
    * autogen testdata function
@@ -31,7 +32,7 @@ import utool  # NOQA
 import utool as ut
 from ibeis import constants as const
 from os.path import dirname, join, relpath  # NOQA
-import ibeis.control.template_definitions as Tdef
+from ibeis.templates import template_definitions as Tdef
 
 
 STRIP_DOCSTR   = False
@@ -190,7 +191,7 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
     Format the template into a function and apply postprocessing
 
     CommandLine:
-        python ibeis/control/template_generator.py
+        python ibeis/templates/template_generator.py
     """
     func_code = func_code_fmtstr.format(**fmtdict)
     func_code = remove_sentinals(func_code)
@@ -458,7 +459,7 @@ def find_valstr(func_code, varname_):
 def replace_constant_varname(func_code, varname, valstr=None):
     """
     Example:
-        >>> from ibeis.control.template_generator import *
+        >>> from ibeis.templates.template_generator import *
         >>> func_code = Tdef.Tsetter_native_multicolumn
         >>> new_func_code = replace_constant_varname(func_code, 'id_iter')
         >>> new_func_code = replace_constant_varname(new_func_code, 'colnames')
@@ -541,7 +542,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         tuple: (functype2_func_list, constant_list)
 
     CommandLine:
-        python -m ibeis.control.template_generator
+        python -m ibeis.templates.template_generator
     """
     # +-----
     # Setup
@@ -883,7 +884,7 @@ def get_autogen_text(
         tuple : (autogen_fpath, autogen_text)
 
     CommandLine:
-        python ibeis/control/template_generator.py
+        python ibeis/templates/template_generator.py
     """
     print('GET_AUTGEN_TEXT')
     # Filepath info
@@ -906,7 +907,7 @@ def main(ibs, verbose=None):
     MAIN FUNCTION
 
     CommandLine:
-        python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.control.template_generator')"
+        python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
 
         sh Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True
         sh Tgen.sh --tbls annotations --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
@@ -919,9 +920,9 @@ def main(ibs, verbose=None):
         sh Tgen.sh --key chip --Tcfg with_setters=False with_getters=False with_adders=True
         sh Tgen.sh --key feat --onlyfn
 
-        python -m ibeis.control.template_generator
-        python -m ibeis.control.template_generator --dump-autogen-controller
-        gvim ibeis/control/_autogen_default_funcs.py
+        python -m ibeis.templates.template_generator
+        python -m ibeis.templates.template_generator --dump-autogen-controller
+        gvim ibeis/templates/_autogen_default_funcs.py
         python dev.py --db testdb1 --cmd
         %run dev.py --db testdb1 --cmd
     """
@@ -997,10 +998,10 @@ def main(ibs, verbose=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python ibeis/control/template_generator.py
-        python ibeis/control/template_generator.py --dump-autogen-controller
+        python ibeis/templates/template_generator.py
+        python ibeis/templates/template_generator.py --dump-autogen-controller
 
-        python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.control.template_generator')"
+        python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
         chmod +x Tgen.sh
 
         Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True

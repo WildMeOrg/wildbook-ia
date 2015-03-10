@@ -58,7 +58,7 @@ def get_chips(ibs, aid_list, in_image=False, qreq_=None, **kwargs):
     #if 'chip' in kwargs:
         #return kwargs['chip']
     if in_image:
-        return ibs.get_annot_images(aid_list, qreq_=qreq_)
+        return ibs.get_annot_images(aid_list)
     else:
         return ibs.get_annot_chips(aid_list, qreq_=qreq_)
 

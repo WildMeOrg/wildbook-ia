@@ -325,7 +325,7 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
 
 
 @__injectable
-def assert_valid_species(ibs, species_list, iswarning=True):
+def assert_valid_species_texts(ibs, species_list, iswarning=True):
     if ut.NO_ASSERTS:
         return
     try:
@@ -3032,12 +3032,12 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
     w, tier_w_list, infeasible_w = make_knapsack_params(N, levels_per_tier_list)
 
     qual2_weight = {
-        const.QUAL_PERFECT : w + tier_w_list[0] + tier_w_list[1],
-        const.QUAL_GOOD    : w + tier_w_list[0],
-        const.QUAL_OK      : w + tier_w_list[1],
-        const.QUAL_UNKNOWN : w + tier_w_list[1],
-        const.QUAL_POOR    : w + tier_w_list[2],
-        const.QUAL_JUNK    : infeasible_w,
+        const.QUAL_EXCELLENT : w + tier_w_list[0] + tier_w_list[1],
+        const.QUAL_GOOD      : w + tier_w_list[0],
+        const.QUAL_OK        : w + tier_w_list[1],
+        const.QUAL_UNKNOWN   : w + tier_w_list[1],
+        const.QUAL_POOR      : w + tier_w_list[2],
+        const.QUAL_JUNK      : infeasible_w,
     }
     # this probably broke with the introduction of 2 more tiers
     oldflag_offset = (

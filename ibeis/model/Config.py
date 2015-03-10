@@ -604,7 +604,6 @@ class QueryConfig(ConfigBase):
         # causes some bug in Preference widget if these don't have underscore
         query_cfg._featweight_cfg = FeatureWeightConfig(**kwargs)
         query_cfg.use_cache = False
-        query_cfg.num_results = 6
         # Start of pipeline
         query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk']
         query_cfg.pipeline_root = 'vsmany'
@@ -954,8 +953,8 @@ class ChipConfig(ConfigBase):
         cc_cfg.update(**kwargs)
 
     def get_cfgstr_list(cc_cfg, **kwargs):
-        chip_cfgstr = []
         if kwargs.get('use_chip', True):
+            chip_cfgstr = []
             #assert cc_cfg.chipfmt[0] == '.'
             chip_cfgstr += [cc_cfg.chipfmt[1:].lower()] * (cc_cfg.chipfmt != '.png')
             chip_cfgstr += ['histeq']  * cc_cfg.histeq
@@ -967,7 +966,10 @@ class ChipConfig(ConfigBase):
             chip_cfgstr += ['maxcont'] * cc_cfg.maxcontrast
             isOrig = cc_cfg.chip_sqrt_area is None or cc_cfg.chip_sqrt_area  <= 0
             chip_cfgstr += ['szorig'] if isOrig else ['sz%r' % cc_cfg.chip_sqrt_area]
-        return ['_CHIP(', (','.join(chip_cfgstr)), ')']
+            chip_cfgstr_list = ['_CHIP(', (','.join(chip_cfgstr)), ')']
+        else:
+            chip_cfgstr_list = []
+        return chip_cfgstr_list
 
 
 @six.add_metaclass(ConfigMetaclass)

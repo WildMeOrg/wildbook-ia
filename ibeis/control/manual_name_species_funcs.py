@@ -114,8 +114,33 @@ def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
 
 @register_ibs_method
 def sanatize_species_texts(ibs, species_text_list):
-    """ changes unknown species to the unknown value """
-    ibsfuncs.assert_valid_species(ibs, species_text_list, iswarning=True)
+    """ changes unknown species to the unknown value
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        species_text_list (list):
+
+    Returns:
+        list: species_text_list_
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-sanatize_species_texts
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> species_text_list = ['foo', 'bar', 'zebra_plains']
+        >>> # execute function
+        >>> species_text_list_ = sanatize_species_texts(ibs, species_text_list)
+        >>> # verify results
+        >>> result = str(species_text_list_)
+        >>> print(result)
+        ['____', '____', 'zebra_plains']
+    """
+    ibsfuncs.assert_valid_species_texts(ibs, species_text_list, iswarning=True)
     def _sanatize_species_text(species_text):
         if species_text is None:
             return None

@@ -307,11 +307,29 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
     Returns:
         tuple: candidate_matches = (qaid_arr, aid_arr, score_arr, rank_arr)
 
-    Example:
+    Example0:
         >>> from ibeis.dev.results_organizer import *  # NOQA
-        >>> qaid2_qres = '?'
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid_list = ibs.get_valid_aids()[0:5]
+        >>> daid_list = ibs.get_valid_aids()[0:20]
+        >>> qaid2_qres = ibs._query_chips4(qaid_list, daid_list)
         >>> ranks_lt = 5
         >>> directed = True
+        >>> name_scoring = False
+        >>> candidate_matches = get_automatch_candidates(qaid2_qres, ranks_lt, directed)
+        >>> print(candidate_matches)
+
+    Example1:
+        >>> from ibeis.dev.results_organizer import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid_list = ibs.get_valid_aids()[0:5]
+        >>> daid_list = ibs.get_valid_aids()[0:20]
+        >>> qaid2_qres = ibs._query_chips4(qaid_list, daid_list)
+        >>> ranks_lt = 5
+        >>> directed = False
+        >>> name_scoring = False
         >>> candidate_matches = get_automatch_candidates(qaid2_qres, ranks_lt, directed)
         >>> print(candidate_matches)
     """
@@ -349,18 +367,46 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
     if not directed:
         #nodes = np.unique(directed_edges.flatten())
         directed_edges = np.vstack((qaid_arr, aid_arr)).T
-        flipped = qaid_arr < aid_arr
-        # standardize edge order
-        edges_dupl = directed_edges.copy()
-        edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
-        # Find unique row indexes
-        unique_rowx = utool.unique_row_indexes(edges_dupl)
-        #edges_unique = edges_dupl[unique_rowx]
-        #flipped_unique = flipped[unique_rowx]
-        qaid_arr  = qaid_arr[unique_rowx]
-        aid_arr   = aid_arr[unique_rowx]
-        score_arr = score_arr[unique_rowx]
-        rank_arr  = rank_arr[unique_rowx]
+        import vtool as vt
+        idx1, idx2 = vt.intersect2d_indices(directed_edges, directed_edges[:, ::-1])
+
+        def cmopute_edge_ids(edges):
+            # construct a unique id for every edge
+            ncols = edges.shape[1]
+            # get the number of decimal places to shift
+            exp_step = np.ceil(np.log10(edges.max()))
+            offsets = [int(10 ** (ix * exp_step)) for ix in reversed(range(0, ncols))]
+            edgeid_list = np.array([sum([e * offset for e, offset in zip(edge, offsets)]) for edge in edges])
+            return edgeid_list
+
+        def find_best_undirected_edge_indexes(directed_edges, score_arr):
+            flipped = qaid_arr < aid_arr
+            # standardize edge order
+            edges_dupl = directed_edges.copy()
+            edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
+            edgeid_list = cmopute_edge_ids(edges_dupl)
+            unique_edgeids, groupxs = vt.group_indices(edgeid_list)
+            # if there is more than one edge in a group take the one with the highest score
+            score_groups = vt.apply_grouping(score_arr, groupxs)
+            unique_edge_xs = np.array(sorted([groupx[score_group.argmax()] for groupx, score_group in zip(groupxs, score_groups)]))
+            return unique_edge_xs
+
+        unique_rowx = find_best_undirected_edge_indexes(directed_edges, score_arr)
+
+        OLD = False
+        if OLD:
+            flipped = qaid_arr < aid_arr
+            # standardize edge order
+            edges_dupl = directed_edges.copy()
+            edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
+            # Find unique row indexes
+            unique_rowx = utool.unique_row_indexes(edges_dupl)
+            #edges_unique = edges_dupl[unique_rowx]
+            #flipped_unique = flipped[unique_rowx]
+        qaid_arr  = qaid_arr.take(unique_rowx)
+        aid_arr   = aid_arr.take(unique_rowx)
+        score_arr = score_arr.take(unique_rowx)
+        rank_arr  = rank_arr.take(unique_rowx)
 
     candidate_matches = (qaid_arr, aid_arr, score_arr, rank_arr)
 

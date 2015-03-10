@@ -378,12 +378,15 @@ def make_annot_cfpath_list(ibs, aid_list, qreq_=None):
         >>> fname = '\n'.join(map(basename, cfpath_list))
         >>> result = fname
         >>> print(result)
-        chip_aid=1_bbox=(0,0,1047,715)_theta=0.0tau_gid=1_CHIP(sz450).png
+        chip_avuuid=8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_CHIP(sz450).png
 
+    chip_aid=1_bbox=(0,0,1047,715)_theta=0.0tau_gid=1_CHIP(sz450).png
     """
     cfname_fmt = get_chip_fname_fmt(ibs, qreq_=qreq_)
     chipdir = ibs.get_chipdir()
-    cfpath_list = format_aid_bbox_theta_gid_fnames(ibs, aid_list, cfname_fmt, chipdir)
+    #cfpath_list = format_aid_bbox_theta_gid_fnames(ibs, aid_list, cfname_fmt, chipdir)
+    annot_visual_uuid_list  = ibs.get_annot_visual_uuids(aid_list)
+    cfpath_list = [ut.unixjoin(chipdir, cfname_fmt.format(avuuid=avuuid)) for avuuid in annot_visual_uuid_list]
     return cfpath_list
 
 
@@ -404,7 +407,9 @@ def get_chip_fname_fmt(ibs, qreq_=None):
         >>> cfname_fmt = get_chip_fname_fmt(ibs)
         >>> result = cfname_fmt
         >>> print(result)
-        chip_aid=%d_bbox=%s_theta=%s_gid=%d_CHIP(sz450).png
+        chip_avuuid={avuuid}_CHIP(sz450).png
+
+    chip_aid=%d_bbox=%s_theta=%s_gid=%d_CHIP(sz450).png
     """
     if qreq_ is not None:
         chip_cfgstr = qreq_.qparams.chip_cfgstr
@@ -418,7 +423,8 @@ def get_chip_fname_fmt(ibs, qreq_=None):
     #cfname_fmt = ''.join(['chip_auuid_%s' , suffix])
     #cfname_fmt = ''.join(['chip_aid=%d_auuid=%s' , suffix])
     # TODO: can use visual_uuids instead
-    cfname_fmt = ''.join(['chip_aid=%d_bbox=%s_theta=%s_gid=%d' , suffix])
+    #cfname_fmt = ''.join(['chip_aid=%d_bbox=%s_theta=%s_gid=%d' , suffix])
+    cfname_fmt = ''.join(['chip_avuuid={avuuid}' , suffix])
     return cfname_fmt
 
 
