@@ -115,7 +115,7 @@ def setup_actions_menu(mainwin, back):
         name='actionQuery',
         text='Query Single Annotation',
         shortcut='Q',
-        slot_fn=back.query)
+        slot_fn=functools.partial(back.compute_queries, use_visual_selection=True))
     #mainwin.menuActions.addSeparator()
     #mainwin.menuActions.newAction(
     #    name='actionReselect_ANNOTATION',

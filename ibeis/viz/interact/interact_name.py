@@ -156,6 +156,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.update_callback = update_callback  # if something like qt needs a manual refresh on change
         self.backend_callback = backend_callback
         self.qres_callback = kwargs.get('qres_callback', None)
+        self.qres = kwargs.get('qres', None)
         self.infer_data()
         if dodraw:
             self.show_page(bring_to_front=True)
@@ -316,7 +317,8 @@ class MatchVerificationInteraction(AbstractInteraction):
         # Variables we will work with to paint a pretty picture
         ibs = self.ibs
         nRows = self.nRows
-        nCols = self.nCols
+        colpad = 1 if  self.qres is not None else 0
+        nCols = self.nCols + colpad
 
         # Distinct color for every unique name
         unique_nids = ut.unique_ordered(ibs.get_annot_name_rowids(self.all_aid_list, distinguish_unknowns=False))
@@ -324,6 +326,11 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.nid2_color = dict(zip(unique_nids, unique_colors))
 
         row_aids_list = self.get_row_aids_list()
+
+        if self.qres is not None:
+            print("DRAWING QRES")
+            self.qres.show_matches(self.ibs, self.aid2, fnum=self.fnum, pnum=(1, nCols, 1), draw_fmatch=True)
+
         # For each row
         for rowx, aid_list in enumerate(row_aids_list):
             offset = rowx * nCols + 1
@@ -331,8 +338,8 @@ class MatchVerificationInteraction(AbstractInteraction):
                 continue
             #ibsfuncs.assert_valid_aids(ibs, groundtruth)
             # For each column
-            for colx, aid in enumerate(aid_list):
-                if colx >= self.nCols:
+            for colx, aid in enumerate(aid_list, start=colpad):
+                if colx >= nCols:
                     break
                 try:
                     nid = ibs.get_annot_name_rowids(aid)
@@ -348,7 +355,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                 px = colx + offset
                 ax = self.plot_chip(int(aid), nRows, nCols, px, color=color, fulldraw=fulldraw)
                 # If there are still more in this row to display
-                if colx + 1 < len(aid_list) and colx + 1 >= self.nCols:
+                if colx + 1 < len(aid_list) and colx + 1 >= nCols:
                     total_indices = len(aid_list)
                     current_index = self.col_offset_list[rowx] + 1
                     next_text = 'next\n%d/%d' % (current_index, total_indices)
@@ -483,6 +490,10 @@ class MatchVerificationInteraction(AbstractInteraction):
             accum[0] += 1
             return hr_slot(accum[0])
 
+        def next_rect2(accum=[-1]):
+            accum[0] += 1
+            return hl_slot2(accum[0])
+
         ibs = self.ibs
         name1, name2 = self.name1, self.name2
         nid1_is_known = not ibs.is_nid_unknown(self.nid1)
@@ -514,9 +525,10 @@ class MatchVerificationInteraction(AbstractInteraction):
             callback = functools.partial(self.merge_all_into_nid, self.nid2)
             self.append_button(join2_text, callback=callback, rect=next_rect())
         ###
-        self.append_button('close', callback=self.close_, rect=hl_slot2(0))
-        self.append_button('review', callback=self.review, rect=hl_slot2(1))
-        self.append_button('reset', callback=self.reset_all_names, rect=hl_slot2(2))
+        self.append_button('close', callback=self.close_, rect=next_rect2())
+        if self.qres_callback is not None:
+            self.append_button('review', callback=self.review, rect=next_rect2())
+        self.append_button('reset', callback=self.reset_all_names, rect=next_rect2())
         self.dbname = ibs.get_dbname()
         self.vsstr = ibsfuncs.vsstr(self.aid1, self.aid2)
         figtitle_fmt = '''
@@ -627,7 +639,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         ax = event.inaxes
         if ih.clicked_inside_axis(event):
             viztype = vh.get_ibsdat(ax, 'viztype')
-            #print_(' viztype=%r' % viztype)
+            print_(' viztype=%r' % viztype)
             if viztype == 'chip':
                 aid = vh.get_ibsdat(ax, 'aid')
                 #print('... aid=%r' % aid)
@@ -648,6 +660,8 @@ class MatchVerificationInteraction(AbstractInteraction):
                         self.ibs, aid, self.fig.canvas, qpoint, refresh_func=self.show_page)
                     #ibs.print_annotation_table()
                 #print(ut.dict_str(event.__dict__))
+            elif viztype == 'matches':
+                self.qres.ishow_matches(self.ibs, self.aid2, fnum=None, mode=0)
 
 if __name__ == '__main__':
     """

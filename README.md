@@ -889,6 +889,8 @@ dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_i
 
 dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db GZ_ALL --allgt
 
+
+python dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db PZ_Master0 --allgt
 ```
 
 #---------------

@@ -213,32 +213,6 @@ class MainWindowBackend(QtCore.QObject):
         interact.ishow_name(back.ibs, nid, **kwargs)
         pass
 
-    def show_qres(back, qres, **kwargs):
-        top_aids = kwargs.get('top_aids', 6)
-        # SHOW MATPLOTLIB RESULTS (NO DECISION INTERACTIONS)
-        kwargs['annot_mode'] = kwargs.get('annot_mode', 2)
-        kwargs['top_aids'] = top_aids
-        kwargs['sidebyside'] = True
-        kwargs['show_query'] = False
-        #kwargs['sidebyside'] = False
-        #kwargs['show_query'] = True
-        kwargs['in_image'] = False
-        if ut.get_argflag(('--show-mplres',)):
-            qres.ishow_top(back.ibs, **kwargs)
-
-        #interact.ishow_matches(back.ibs, qres, **kwargs)
-        # HACK SHOW QT RESULTS
-        if not ut.get_argflag(('--noshow-qtres',)):
-            from ibeis.gui import inspect_gui
-            qaid2_qres = {qres.qaid: qres}
-            backend_callback = back.front.update_tables
-            back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qaid2_qres,
-                                                            callback=backend_callback,
-                                                            ranks_lt=top_aids,)
-            back.qres_wgt1.show()
-            back.qres_wgt1.raise_()
-        pass
-
     def show_hough_image(back, gid, **kwargs):
         viz.show_hough_image(back.ibs, gid, **kwargs)
         viz.draw()
@@ -256,6 +230,56 @@ class MainWindowBackend(QtCore.QObject):
     def show_probability_chip(back, cid, **kwargs):
         viz.show_probability_chip(back.ibs, cid, **kwargs)
         viz.draw()
+
+    @blocking_slot()
+    def review_queries(back, qaid2_qres=None, **kwargs):
+        eid = back.get_selected_eid()
+        if eid not in back.encounter_query_results:
+            raise guiexcept.InvalidRequest('Queries have not been computed yet')
+        if qaid2_qres is None:
+            qaid2_qres = back.encounter_query_results[eid]
+        # review_kw = {
+        #     'on_change_callback': back.front.update_tables,
+        #     'nPerPage': 6,
+        # }
+        ibs = back.ibs
+        # Matplotlib QueryResults interaction
+        #from ibeis.viz.interact import interact_qres2
+        #back.query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, **review_kw)
+        #back.query_review.show()
+        # Qt QueryResults Interaction
+        from ibeis.gui import inspect_gui
+        backend_callback = back.front.update_tables
+        ranks_lt = ibs.cfg.other_cfg.ranks_lt
+        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, callback=backend_callback, ranks_lt=ranks_lt)
+        back.qres_wgt.show()
+        back.qres_wgt.raise_()
+
+    #def show_qres(back, qres, **kwargs):
+    #    top_aids = kwargs.get('top_aids', 6)
+    #    # SHOW MATPLOTLIB RESULTS (NO DECISION INTERACTIONS)
+    #    if ut.get_argflag(('--show-mplres',)):
+    #        kwargs['annot_mode'] = kwargs.get('annot_mode', 2)
+    #        kwargs['top_aids'] = top_aids
+    #        kwargs['sidebyside'] = True
+    #        kwargs['show_query'] = False
+    #        #kwargs['sidebyside'] = False
+    #        #kwargs['show_query'] = True
+    #        kwargs['in_image'] = False
+    #        qres.ishow_top(back.ibs, **kwargs)
+
+    #    #interact.ishow_matches(back.ibs, qres, **kwargs)
+    #    # HACK SHOW QT RESULTS
+    #    if not ut.get_argflag(('--noshow-qtres',)):
+    #        from ibeis.gui import inspect_gui
+    #        qaid2_qres = {qres.qaid: qres}
+    #        backend_callback = back.front.update_tables
+    #        back.qres_wgt1 = inspect_gui.QueryResultsWidget(back.ibs, qaid2_qres,
+    #                                                        callback=backend_callback,
+    #                                                        ranks_lt=top_aids,)
+    #        back.qres_wgt1.show()
+    #        back.qres_wgt1.raise_()
+    #    pass
 
     #----------------------
     # State Management Functions (ewww... state)
@@ -358,6 +382,7 @@ class MainWindowBackend(QtCore.QObject):
             back.sel_nids = sel_nids
             back.ibswgt.set_status_text(gh.NAMES_TREE, repr(sel_nids,))
         if sel_qres is not None:
+            raise NotImplementedError('no select qres implemented')
             back.sel_sel_qres = sel_qres
 
     #@backblock
@@ -693,7 +718,10 @@ class MainWindowBackend(QtCore.QObject):
         ibs.cfg.save()
 
     def get_selected_species(back):
-        return back.ibs.cfg.detect_cfg.species_text
+        species_text = back.ibs.cfg.detect_cfg.species_text
+        if species_text == 'none':
+            species_text = None
+        return species_text
 
     @blocking_slot()
     def change_query_mode(back, index, value):
@@ -861,44 +889,49 @@ class MainWindowBackend(QtCore.QObject):
         if not back.are_you_sure(**confirm_kw):
             raise guiexcept.UserCancel
 
-    @blocking_slot()
-    def query(back, aid=None, refresh=True, query_mode=None, **kwargs):
-        """ Action -> Query
+    #@blocking_slot()
+    #def query(back, aid=None, refresh=True, query_mode=None, **kwargs):
+    #    """ Action -> Query
 
-        queries a single annotation vs the exemplars or intra encounter
+    #    queries a single annotation vs the exemplars or intra encounter
+    #    """
+    #    if aid is None:
+    #        aid = back.get_selected_aid()
+    #    eid = back._eidfromkw(kwargs)
+    #    print('------')
+    #    print('\n\n[back] query: eid=%r, mode=%r' % (eid, back.query_mode))
+    #    if query_mode is None:
+    #        query_mode = back.query_mode
+    #    # Get the query annotation ids to search
+    #    qaid_list = [aid]
+    #    daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
+    #    back.confirm_query_dialog(daid_list, qaid_list)
+    #    # Get the database annotation ids to be searched
+    #    # Execute Query
+    #    if len(daid_list) == 0:
+    #        raise guiexcept.InvalidRequest('No exemplars set for this species')
+    #    qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
+    #    if query_mode == const.INTRA_ENC_KEY:
+    #        # HACK IN ENCOUNTER INFO
+    #        for qres in six.itervalues(qaid2_qres):
+    #            qres.eid = eid
+    #    qres = qaid2_qres[aid]
+    #    #back._set_selection(sel_qres=[qres])
+    #    if refresh:
+    #        #back.populate_tables(qres=True, default=False)
+    #        back.review_queries(qaid2_qres, eid=eid)
+
+    @blocking_slot()
+    def compute_queries(back, refresh=True, query_mode=None, query_is_known=None, qaid_list=None, use_visual_selection=False, **kwargs):
         """
-        if aid is None:
-            aid = back.get_selected_aid()
-        eid = back._eidfromkw(kwargs)
-        print('------')
-        print('\n\n[back] query: eid=%r, mode=%r' % (eid, back.query_mode))
-        if query_mode is None:
-            query_mode = back.query_mode
-        # Get the query annotation ids to search
-        qaid_list = [aid]
-        daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
-        back.confirm_query_dialog(daid_list, qaid_list)
-        # Get the database annotation ids to be searched
-        # Execute Query
-        if len(daid_list) == 0:
-            raise guiexcept.InvalidRequest('No exemplars set for this species')
-        qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
-        if query_mode == const.INTRA_ENC_KEY:
-            # HACK IN ENCOUNTER INFO
-            for qres in six.itervalues(qaid2_qres):
-                qres.eid = eid
-        qres = qaid2_qres[aid]
-        back._set_selection(sel_qres=[qres])
-        if refresh:
-            #back.populate_tables(qres=True, default=False)
-            back.show_qres(qres)
-
-    @blocking_slot()
-    def compute_queries(back, refresh=True, query_mode=None, query_is_known=None, **kwargs):
-        """ Batch -> Compute OldStyle Queries
+        Batch -> Compute OldStyle Queries
+        and Actions -> Query
 
         Computes query results for all annotations in an encounter.
         Results are either vs-exemplar or intra-encounter
+
+        CommandLine:
+            ./main.py --query 1 -y
         """
         eid = back._eidfromkw(kwargs)
         print('------')
@@ -909,7 +942,14 @@ class MainWindowBackend(QtCore.QObject):
         #back.compute_feats(refresh=False, **kwargs)
         # Get the query annotation ids to search and
         # the database annotation ids to be searched
-        qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
+        if qaid_list is None:
+            if use_visual_selection:
+                # old style Actions->Query execution
+                qaid_list = [back.get_selected_aid()]
+                #qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
+            else:
+                # if not visual selection, then qaids are selected by encounter
+                qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
         daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
         if len(qaid_list) == 0:
             raise guiexcept.InvalidRequest('No unknown query exemplars')
@@ -921,7 +961,7 @@ class MainWindowBackend(QtCore.QObject):
                 qres.eid = eid
         back.encounter_query_results[eid].update(qaid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
-        back.review_queries(eid=eid)
+        back.review_queries(qaid2_qres=qaid2_qres, eid=eid)
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))
@@ -982,28 +1022,6 @@ class MainWindowBackend(QtCore.QObject):
         #TODO fix names tree thingie
         back.front.set_table_tab(NAMES_TREE)
         iautomatch.exec_interactive_incremental_queries(back.ibs, qaid_list, back=back)
-
-    @blocking_slot()
-    def review_queries(back, **kwargs):
-        eid = back.get_selected_eid()
-        if eid not in back.encounter_query_results:
-            raise guiexcept.InvalidRequest('Queries have not been computed yet')
-        qaid2_qres = back.encounter_query_results[eid]
-        # review_kw = {
-        #     'on_change_callback': back.front.update_tables,
-        #     'nPerPage': 6,
-        # }
-        ibs = back.ibs
-        # Matplotlib QueryResults interaction
-        #from ibeis.viz.interact import interact_qres2
-        #back.query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, **review_kw)
-        #back.query_review.show()
-        # Qt QueryResults Interaction
-        from ibeis.gui import inspect_gui
-        backend_callback = back.front.update_tables
-        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, callback=backend_callback)
-        back.qres_wgt.show()
-        back.qres_wgt.raise_()
 
     @blocking_slot()
     def review_detections(back, **kwargs):
@@ -1337,7 +1355,6 @@ class MainWindowBackend(QtCore.QObject):
     def import_images_from_file_with_smart(back, gpath_list=None, refresh=True, as_annots=False):
         """ File -> Import Images From File with smart"""
         print('[back] import_images_from_file_with_smart')
-        # gpath_list = ['/Datasets/PZ_Master/_ibsdb/images/0ad1b79c-23fc-574d-0d29-42a3a7f07ee1.jpg', '/Datasets/PZ_Master/_ibsdb/images/0ad6ceab-2c8c-a146-5c79-44988f370228.jpg', '/Datasets/PZ_Master/_ibsdb/images/0ad629d9-761c-adbc-4bc3-d58f6685b563.jpg', '/Datasets/PZ_Master/_ibsdb/images/0ad7618d-fb02-4dc1-e3f7-96b65bbf8b2c.jpg']
         gid_list = back.import_images_from_file(gpath_list=gpath_list, refresh=refresh,
                                                 as_annots=as_annots, clock_offset=False)
         back._add_images_with_smart_patrol(gid_list, refresh=refresh)

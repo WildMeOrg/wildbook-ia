@@ -541,6 +541,9 @@ class IBEISController(object):
     def get_chipdir(ibs):
         return ibs.chipdir
 
+    def get_probchip_dir(ibs):
+        return join(ibs.get_cachedir(), 'prob_chips')
+
     def get_fig_dir(ibs):
         """
         Returns:
