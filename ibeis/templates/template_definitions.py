@@ -1,8 +1,8 @@
 """
 CommandLine:
     # Regenerate command
-    python ibeis/control/template_generator.py
-    python ibeis/control/template_generator.py --dump-autogen-controller
+    python ibeis/templates/template_generator.py
+    python ibeis/templates/template_generator.py --dump-autogen-controller
 """
 import utool as ut
 
@@ -25,8 +25,8 @@ Theader_ibeiscontrol = ut.codeblock(
         autogen_key = {autogen_key}
 
     ToRegenerate:
-        python -m ibeis.control.template_generator --key {autogen_key}
-        python -m ibeis.control.template_generator --key {autogen_key} --write
+        python -m ibeis.templates.template_generator --key {autogen_key}
+        python -m ibeis.templates.template_generator --key {autogen_key} --write
     """
     from __future__ import absolute_import, division, print_function
     import functools  # NOQA
@@ -63,7 +63,7 @@ Theader_ibeiscontrol = ut.codeblock(
 
 """
 CommandLine:
-    python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.control.template_generator')"
+    python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
     sh Tgen.sh --key chip --Tcfg with_setters=False with_getters=False  with_adders=True
     sh Tgen.sh --key feat --Tcfg with_setters=False with_getters=False  with_adders=True
     sh Tgen.sh --key featweight --Tcfg with_setters=False with_getters=False  with_adders=True

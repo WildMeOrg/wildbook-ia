@@ -40,15 +40,15 @@ VIEWTEXT_TO_YAW_RADIANS = OrderedDict([
 #    'backright'  : 'backright',
 #}
 
-QUAL_PERFECT = 'perfect'
-QUAL_GOOD    = 'good'
-QUAL_OK      = 'ok'
-QUAL_POOR    = 'poor'
-QUAL_JUNK    = 'junk'
-QUAL_UNKNOWN = 'UNKNOWN'
+QUAL_EXCELLENT = 'excellent'
+QUAL_GOOD      = 'good'
+QUAL_OK        = 'ok'
+QUAL_POOR      = 'poor'
+QUAL_JUNK      = 'junk'
+QUAL_UNKNOWN   = 'UNKNOWN'
 
 QUALITY_INT_TO_TEXT = OrderedDict([
-    (5,  QUAL_PERFECT,),
+    (5,  QUAL_EXCELLENT,),
     (4,  QUAL_GOOD,),
     (3,  QUAL_OK,),
     (2,  QUAL_POOR,),
