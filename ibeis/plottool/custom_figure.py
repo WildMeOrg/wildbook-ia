@@ -168,7 +168,7 @@ def sanatize_img_ext(ext, defaultext=None):
     return ext
 
 
-def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext):
+def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose):
     if fpath is None:
         # Find the title
         fpath = sanatize_img_fname(fig.canvas.get_window_title())
@@ -190,7 +190,8 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext):
     # Format safely
     fname_fmt = '{fname}_{size_suffix}{ext}'
     fmt_dict = dict(fname=fname, ext=ext, size_suffix=size_suffix)
-    print('[custom_figure] Formating long name')
+    if verbose > 0:
+        print('[custom_figure] Formating long name')
     fname_clean = ut.long_fname_format(fname_fmt, fmt_dict, ['size_suffix', 'fname'], max_len=155, hashlen=8)
     # Normalize extension
     fpath_clean = join(dpath, fname_clean)
@@ -219,6 +220,7 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwr
     References:
         for saving only a specific Axes
         http://stackoverflow.com/questions/4325733/save-a-subplot-in-matplotlib
+        http://robotics.usc.edu/~ampereir/wordpress/?p=626
     """
     if dpi is None:
         dpi = DPI
@@ -230,18 +232,38 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwr
             defaultext = '.jpg'
     fig, fnum = prepare_figure_for_save(fnum, dpi, figsize, fig)
     if fpath_strict is None:
-        fpath_clean = prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext)
+        fpath_clean = prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose)
     else:
         fpath_clean = fpath_strict
     savekw = {'dpi': dpi}
-    print('saveax = %r' % (saveax,))
+    if verbose > 1:
+        print('[pt.save_figure] saveax = %r' % (saveax,))
 
-    if saveax is not None:
-        print("\n[pt] SAVING ONLY EXTENT\n")
+    if saveax is not None and saveax is not False:
+        if verbose > 0:
+            print("\n[pt.save_figure] SAVING ONLY EXTENT saveax=%r\n" % (saveax,))
         if saveax is True:
             saveax = plt.gca()
+        #ut.embed()
+        #saveax.set_aspect('auto')
+        import plottool as pt
+        import numpy as np
+        xy, w, h = pt.get_axis_xy_width_height(saveax)
+        ar = np.abs(w / h)
+        if verbose == 2:
+            print('[pt.save_figure] saveax xywh = %r' % ((xy, w, h),))
+            print('[pt.save_figure] saveax ar = %.2f' % (ar,))
+        saveax.set_aspect('equal')
+        # extent is bbox in the form [[x0, y0], [x1, y1]]
         extent = saveax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+        if verbose == 2:
+            print('[pt.save_figure] bbox ar = %.2f' % np.abs((extent.width / extent.height,)))
+        #extent = saveax.get_window_extent().transformed(fig.transFigure.inverted())
+        #print('[df2] bbox ar = %.2f' % np.abs((extent.width / extent.height,)))
         savekw['bbox_inches'] = extent.expanded(1.0, 1.0)
+        if verbose == 2:
+            print('[pt.save_figure] savekw = ' + ut.dict_str(savekw))
+        #ut.embed()
 
     #fname_clean = split(fpath_clean)[1]
     #adjust_subplots()
@@ -249,13 +271,17 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwr
         warnings.filterwarnings('ignore', category=DeprecationWarning)
         if overwrite or not exists(fpath_clean):
             if verbose == 2:
-                print('[df2] save_figure() full=%r' % (fpath_clean,))
+                print('[pt.save_figure] save_figure() full=%r' % (fpath_clean,))
             elif verbose == 1:
                 fpathndir = ut.path_ndir_split(fpath_clean, 5)
-                print('[df2] save_figure() ndir=%r' % (fpathndir))
+                print('[pt.save_figure] save_figure() ndir=%r' % (fpathndir))
+            #fig.savefig(fpath_clean)
+            if verbose > 0:
+                print('[pt.save_figure] savekw = ' + ut.dict_str(savekw))
             fig.savefig(fpath_clean, **savekw)
         else:
-            print('[df2] not overwriteing')
+            if verbose > 0:
+                print('[pt.save_figure] not overwriteing')
     return fpath_clean
 
 

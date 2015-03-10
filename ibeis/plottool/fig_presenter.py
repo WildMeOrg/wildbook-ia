@@ -19,6 +19,9 @@ from guitool.__PYQT__.QtCore import Qt
 SLEEP_TIME = .05
 __QT4_WINDOW_LIST__ = []
 ut.noinject(__name__, '[fig_presenter]')
+
+
+VERBOSE = ut.get_argflag(('--verbose-fig', '--verbfig', '--verb-pt'))
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[fig_presenter]', DEBUG=True)
 
 
@@ -88,6 +91,8 @@ def get_all_qt4_wins():
 
 
 def all_figures_show():
+    if VERBOSE:
+        print('all_figures_show')
     if '--noshow' not in sys.argv:
         for fig in get_all_figures():
             time.sleep(SLEEP_TIME)
@@ -198,6 +203,8 @@ def close_figure(fig):
 
 
 def bring_to_front(fig):
+    if VERBOSE:
+        print('[pt] bring_to_front')
     #what is difference between show and show normal?
     qtwin = fig.canvas.manager.window
     qtwin.raise_()
@@ -211,25 +218,35 @@ def bring_to_front(fig):
 
 
 def show():
+    if VERBOSE:
+        print('[pt] show')
     all_figures_show()
     all_figures_bring_to_front()
     #plt.show()
 
 
 def reset():
+    if VERBOSE:
+        print('[pt] reset')
     close_all_figures()
 
 
 def draw():
+    if VERBOSE:
+        print('[pt] draw')
     all_figures_show()
 
 
 def update():
+    if VERBOSE:
+        print('[pt] update')
     draw()
     all_figures_bring_to_front()
 
 
 def iupdate():
+    if VERBOSE:
+        print('[pt] iupdate')
     if ut.inIPython():
         update()
 
@@ -242,6 +259,8 @@ def present(*args, **kwargs):
 
     basically calls show if not embeded.
     """
+    if VERBOSE:
+        print('[pt] present')
     if '--noshow' not in sys.argv:
         #print('[fig_presenter] Presenting figures...')
         #with warnings.catch_warnings():

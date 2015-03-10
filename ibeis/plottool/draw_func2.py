@@ -99,6 +99,8 @@ set_xticks   = custom_figure.set_xticks
 set_ylabel   = custom_figure.set_ylabel
 set_yticks   = custom_figure.set_yticks
 
+VERBOSE = ut.get_argflag(('--verbose-df2', '--verb-pt'))
+
 #================
 # GLOBALS
 #================
@@ -154,6 +156,9 @@ def show_was_requested():
 
 
 def show_if_requested():
+    if VERBOSE:
+        print('[pt] show_if_requested()')
+
     if ut.inIPython():
         import plottool as pt
         pt.iup()
@@ -201,9 +206,9 @@ def add_alpha(colors):
 
 
 def get_axis_xy_width_height(ax=None, xaug=0, yaug=0, waug=0, haug=0):
+    """ gets geometry of a subplot """
     if ax is None:
         ax = gca()
-    'gets geometry of a subplot'
     autoAxis = ax.axis()
     xy     = (autoAxis[0] + xaug, autoAxis[2] + yaug)
     width  = (autoAxis[1] - autoAxis[0]) + waug
