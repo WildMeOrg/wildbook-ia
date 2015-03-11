@@ -4,17 +4,16 @@ provides common methods for api_tree_view and api_table_view
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtGui
 from guitool.__PYQT__.QtCore import Qt
-from six.moves import range
+import functools
 from guitool import qtype
-from guitool.api_thumb_delegate import APIThumbDelegate
-from guitool.api_button_delegate import APIButtonDelegate
-#import guitool
-#from guitool.guitool_decorators import signal_, slot_
-from guitool.guitool_main import get_qtapp
-from guitool.guitool_misc import get_view_selection_as_str
+from guitool import api_button_delegate
+from guitool import api_thumb_delegate
+from guitool import guitool_main
+from guitool import guitool_misc
+from six.moves import range, reduce  # NOQA
 import utool
 import utool as ut
-from functools import partial
+import operator
 
 # Valid API Models
 from guitool.stripe_proxy_model import StripeProxyModel
@@ -32,7 +31,7 @@ VERBOSE = utool.VERBOSE or VERBOSE_QT or VERBOSE_ITEM_VIEW
 API_VIEW_BASE = QtGui.QAbstractItemView
 register_view_method = utool.make_class_method_decorator(API_VIEW_BASE, __name__)
 
-injectviewinstance = partial(utool.inject_instance, classtype=API_VIEW_BASE)
+injectviewinstance = functools.partial(utool.inject_instance, classtype=API_VIEW_BASE)
 
 
 VALID_API_MODELS = (FilterProxyModel, StripeProxyModel, APIItemModel)
@@ -58,6 +57,69 @@ class APIItemView(API_VIEW_BASE):
 
 
 @register_view_method
+def _init_itemview_behavior(view):
+    """
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> # TODO figure out how to test these
+        >>> from guitool.api_item_view import *  # NOQA
+        >>> from guitool import api_table_view
+        >>> from guitool import api_tree_view
+        >>> view = api_table_view.APITableView()
+        >>> view = api_tree_view.APITreeView()
+
+    References:
+        http://qt-project.org/doc/qt-4.8/qabstractitemview.html
+    """
+    # http://stackoverflow.com/questions/28680150/qtgui-qtableview-shows-data-in-background-while-a-cell-being-edited-pyqt4
+    view.setAutoFillBackground(True)
+
+    view.setWordWrap(True)
+
+    # Selection behavior
+    #view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+    #view.setSelectionBehavior(QtGui.QAbstractItemView.SelectColumns)
+    view.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
+
+    # Selection behavior
+    # view.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+    # view.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
+    # view.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
+    # view.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
+    view.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+
+    # Allow sorting by column
+    view.setSortingEnabled(True)
+
+    # Edit Triggers
+    #view.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)  # No Editing
+    #view.setEditTriggers(QtGui.QAbstractItemView.SelectedClicked)
+    #QtGui.QAbstractItemView.NoEditTriggers  |  # 0
+    #QtGui.QAbstractItemView.CurrentChanged  |  # 1
+    #QtGui.QAbstractItemView.DoubleClicked   |  # 2
+    #QtGui.QAbstractItemView.SelectedClicked |  # 4
+    #QtGui.QAbstractItemView.EditKeyPressed  |  # 8
+    #QtGui.QAbstractItemView.AnyKeyPressed      # 16
+    #view._defaultEditTriggers = QtGui.QAbstractItemView.AllEditTriggers
+
+    bitwise_or = operator.__or__
+    chosen_triggers = [
+        #QtGui.QAbstractItemView.NoEditTriggers,
+        #QtGui.QAbstractItemView.CurrentChanged,
+        QtGui.QAbstractItemView.DoubleClicked,
+        QtGui.QAbstractItemView.SelectedClicked,
+        QtGui.QAbstractItemView.EditKeyPressed,
+        QtGui.QAbstractItemView.AnyKeyPressed,
+    ]
+    view._defaultEditTriggers = reduce(bitwise_or, chosen_triggers)
+    #view._defaultEditTriggers = QtGui.QAbstractItemView.NoEditTriggers
+    view.setEditTriggers(view._defaultEditTriggers)
+    # TODO: Figure out how to not edit when you are selecting
+    #view.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
+
+
+@register_view_method
 def infer_delegates(view, **headers):
     """ Infers which columns should be given item delegates """
     get_thumb_size = headers.get('get_thumb_size', None)
@@ -69,12 +131,12 @@ def infer_delegates(view, **headers):
         if coltype in  qtype.QT_PIXMAP_TYPES:
             if VERBOSE:
                 print('[view] colx=%r is a PIXMAP' % colx)
-            thumb_delegate = APIThumbDelegate(view, get_thumb_size)
+            thumb_delegate = api_thumb_delegate.APIThumbDelegate(view, get_thumb_size)
             view.setItemDelegateForColumn(colx, thumb_delegate)
         elif coltype in qtype.QT_BUTTON_TYPES:
             if VERBOSE:
                 print('[view] colx=%r is a BUTTON' % colx)
-            button_delegate = APIButtonDelegate(view)
+            button_delegate = api_button_delegate.APIButtonDelegate(view)
             view.setItemDelegateForColumn(colx, button_delegate)
         else:
             if VERBOSE:
@@ -122,6 +184,13 @@ def hide_cols(view):
     duplicated_hidden_list = view.col_hidden_list * num_duplicates
     for col, hidden in enumerate(duplicated_hidden_list):
         view.setColumnHidden(col, hidden)
+
+
+#@register_view_method
+#def clear_selection(view):
+#    #print('[api_item_view] clear_selection()')
+#    selection_model = view.selectionModel()
+#    selection_model.clearSelection()
 
 
 @register_view_method
@@ -200,10 +269,10 @@ def copy_selection_to_clipboard(view):
     """ Copys selected grid to clipboard """
     if VERBOSE:
         print('[guitool] Copying selection to clipboard')
-    copy_str = get_view_selection_as_str(view)
+    copy_str = guitool_misc.get_view_selection_as_str(view)
     #copy_qstr = QtCore.Q__String(copy_str)
     copy_qstr = str(copy_str)
-    clipboard = get_qtapp().clipboard()
+    clipboard = guitool_main.get_qtapp().clipboard()
     if VERBOSE:
         print(copy_str)
     clipboard.setText(copy_qstr)

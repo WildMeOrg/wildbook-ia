@@ -30,8 +30,7 @@ class APITableView(API_VIEW_BASE):
         API_VIEW_BASE.__init__(view, parent)
         # Implicitly inject common APIItemView functions
         api_item_view.injectviewinstance(view)
-        #utool.inject_instance(view, API_VIEW_BASE)
-        # Allow sorting by column
+        view._init_itemview_behavior()
         view._init_table_behavior()
         view._init_header_behavior()
         view.col_hidden_list = []
@@ -46,39 +45,12 @@ class APITableView(API_VIEW_BASE):
     def _init_table_behavior(view):
         """ Table behavior
 
-        References:
-            http://qt-project.org/doc/qt-4.8/qabstractitemview.html
+        SeeAlso:
+            api_item_view._init_itemview_behavior
         """
+        # Allow sorting by column
         view.setCornerButtonEnabled(False)
-        view.setWordWrap(True)
-        view.setSortingEnabled(True)
         view.setShowGrid(True)
-
-        # Selection behavior
-        #view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        #view.setSelectionBehavior(QtGui.QAbstractItemView.SelectColumns)
-        view.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
-
-        # Selection behavior
-        # view.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        # view.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
-        view.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        # view.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
-        #view.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
-
-        # Edit Triggers
-        #view.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)  # No Editing
-        #view.setEditTriggers(QtGui.QAbstractItemView.SelectedClicked)
-        #QtGui.QAbstractItemView.NoEditTriggers  |  # 0
-        #QtGui.QAbstractItemView.CurrentChanged  |  # 1
-        #QtGui.QAbstractItemView.DoubleClicked   |  # 2
-        #QtGui.QAbstractItemView.SelectedClicked |  # 4
-        #QtGui.QAbstractItemView.EditKeyPressed  |  # 8
-        #QtGui.QAbstractItemView.AnyKeyPressed      # 16
-        view._defaultEditTriggers = QtGui.QAbstractItemView.AllEditTriggers
-        view.setEditTriggers(view._defaultEditTriggers)
-        # TODO: Figure out how to not edit when you are selecting
-        #view.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
 
         view.setIconSize(QtCore.QSize(64, 64))
 
@@ -138,10 +110,6 @@ class APITableView(API_VIEW_BASE):
         #print('editing ok')
         view.setEditTriggers(view._defaultEditTriggers)
         API_VIEW_BASE.mouseReleaseEvent(view, event)
-
-    def clearSelection(view, *args, **kwargs):
-        print('[table_view] clear selection')
-        API_VIEW_BASE.clearSelection(view, *args, **kwargs)
 
     #---------------
     # Slots

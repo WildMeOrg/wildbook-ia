@@ -32,8 +32,7 @@ class APITreeView(API_VIEW_BASE):
         API_VIEW_BASE.__init__(view, parent)
         # Implicitly inject common APIItemView functions
         api_item_view.injectviewinstance(view)
-        #utool.inject_instance(view, API_VIEW_BASE)
-        # Allow sorting by column
+        view._init_itemview_behavior()
         view._init_tree_behavior()
         view.col_hidden_list = []
         ##view._init_header_behavior()
@@ -48,11 +47,12 @@ class APITreeView(API_VIEW_BASE):
     #---------------
 
     def _init_tree_behavior(view):
-        """ Tree behavior """
-        view.setWordWrap(True)
-        view.setSortingEnabled(True)
-        view._defaultEditTriggers = QtGui.QAbstractItemView.AllEditTriggers
-        view.setEditTriggers(view._defaultEditTriggers)
+        """ Tree behavior
+
+        SeeAlso:
+            api_item_view._init_itemview_behavior
+        """
+        pass
 
     def _init_header_behavior(view):
         """ Header behavior

@@ -118,6 +118,7 @@ class APIItemModel(API_MODEL_BASE):
     """
     _rows_updated = signal_(str, int)
     EditableItemColor = QtGui.QColor(242, 242, 255)
+    #EditableItemColor = QtGui.QColor(200, 200, 255)
     TrueItemColor     = QtGui.QColor(230, 250, 230)
     FalseItemColor    = QtGui.QColor(250, 230, 230)
 
@@ -520,6 +521,8 @@ class APIItemModel(API_MODEL_BASE):
     @default_method_decorator
     def _get_level(model, qtindex):
         node = qtindex.internalPointer()
+        if node is None:
+            return -1
         level = node.get_level()
         #level = model.col_level_list[column]
         return level
@@ -947,7 +950,7 @@ class APIItemModel(API_MODEL_BASE):
         # Return flags based on column properties (like type, and editable)
         col      = qtindex.column()
         type_    = model._get_type(col)
-        editable = model.col_edit_list[col]
+        editable = model.col_edit_list[col] and model._get_level(qtindex) == model.col_level_list[col]
         if type_ in qtype.QT_IMAGE_TYPES:
             #return Qt.NoItemFlags
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
