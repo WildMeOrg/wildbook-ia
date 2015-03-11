@@ -879,8 +879,9 @@ def update_1_3_6(db, ibs=None):
     # instead of adding a specific many to many mapping relate images to both parties
     # and contributors
     db.modify_table(const.IMAGE_TABLE, [
-        (None, 'image_party_rowid',  'INTEGER', None),
+        (None, 'party_rowid',  'INTEGER', None),
     ],
+        extern_tables=[const.PARTY_TABLE],
         # TODO: add in many to 1 attribute mapping
     )
 

@@ -166,6 +166,8 @@ class SQLDatabaseController(object):
         db._ensure_metadata_table()
 
         # standard metadata table keys for each docstr
+        # TODO: generalize the places that use this so to add a new cannonical
+        # metadata field it is only necessary to append to this list.
         db.table_metadata_keys = [
             'constraint',
             'dependson',
@@ -173,6 +175,7 @@ class SQLDatabaseController(object):
             'relates',
             'shortname',
             'superkeys',
+            'extern_tables'
         ]
 
     def get_fpath(db):
@@ -760,7 +763,7 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def add_table(db, tablename=None, coldef_list=None, table_constraints=None, docstr='', superkey_colnames_list=None,
-                  dependson=None, relates=None, shortname=None):
+                  dependson=None, relates=None, shortname=None, extern_tables=None):
         """
         add_table
 
@@ -833,11 +836,13 @@ class SQLDatabaseController(object):
             db.set_metadata_val(tablename + '_relates', repr(relates))
         if shortname is not None:
             db.set_metadata_val(tablename + '_shortname', repr(relates))
+        if extern_tables is not None:
+            db.set_metadata_val(tablename + '_extern_tables', repr(extern_tables))
 
     @default_decorator
     def modify_table(db, tablename=None, colmap_list=None, table_constraints=None,
                      docstr=None, superkey_colnames_list=None, tablename_new=None,
-                     dependson=None, relates=None, shortname=None):
+                     dependson=None, relates=None, shortname=None, extern_tables=None):
         """
         function to modify the schema - only columns that are being added, removed or changed need to be enumerated
 
@@ -962,6 +967,7 @@ class SQLDatabaseController(object):
                      dependson=dependson,
                      relates=relates,
                      shortname=shortname,
+                     extern_tables=extern_tables,
                      )
 
         # Copy data

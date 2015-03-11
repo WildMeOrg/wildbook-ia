@@ -37,6 +37,7 @@ CommandLine:
     python -m ibeis.templates.template_generator --key match --Tcfg strip_docstr=True strip_eager=True strip_nparams=True
 
     python -m ibeis.templates.template_generator --key images --funcname-filter party
+    python -m ibeis.templates.template_generator --key images --funcname-filter party
     python -m ibeis.templates.template_generator --key party
 
 TODO:
@@ -347,7 +348,6 @@ def get_tableinfo(tablename, ibs=None):
     ignorecolnames = tblname2_ignorecolnames.get(tablename, [])
     other_colnames = [colname for colname in other_colnames
                       if colname not in set(ignorecolnames)]
-    #ut.embed()
     tableinfo = (dbself, all_colnames, superkey_colnames, primarykey_colnames, other_colnames)
     return tableinfo
 
@@ -528,11 +528,7 @@ def replace_constant_varname(func_code, varname, valstr=None):
 
 def build_templated_funcs(ibs, autogen_modname, tblname_list, autogen_key,
                           flagdefault=True, flagskw={},
-                          tbl2_TABLE=None,
-                          tablename2_tbl=None,
-                          depends_map=None,
-                          relationship_map=None,
-                          ):
+                          table_structure={}):
     """ Builds lists of requested functions"""
     print('[TEMPLATE] build_templated_funcs')
     print('  * autogen_modname=%r' % (autogen_modname,))
@@ -558,10 +554,9 @@ def build_templated_funcs(ibs, autogen_modname, tblname_list, autogen_key,
             autogen_key,
             flagdefault=flagdefault,
             flagskw=flagskw,
-            tbl2_TABLE=tbl2_TABLE,
-            tablename2_tbl=tablename2_tbl,
-            depends_map=depends_map,
-            relationship_map=relationship_map,)
+            table_structure=table_structure,
+            # HACK DONT PASS IBS IN THE FUTURE
+            ibs=ibs)
         functype2_func_list, constant_list = tup
         constant_list_.extend(constant_list)
         tblname2_functype2_func_list[tablename] = functype2_func_list
@@ -591,11 +586,7 @@ def get_autogen_modpaths(parent_module, autogen_key='default', flagskw={}):
 
 def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
                                  autogen_key, flagdefault=True, flagskw={},
-                                 tbl2_TABLE=None,
-                                 tablename2_tbl=None,
-                                 depends_map=None,
-                                 relationship_map=None,
-                                 ):
+                                 table_structure={}, ibs=None):
     """
     BIG FREAKING FUNCTION THAT REALIZES TEMPLATES
 
@@ -608,6 +599,12 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     CommandLine:
         python -m ibeis.templates.template_generator
     """
+    tbl2_TABLE       = table_structure['tbl2_TABLE']
+    tablename2_tbl   = table_structure['tablename2_tbl']
+    depends_map      = table_structure['depends_map']
+    relationship_map = table_structure['relationship_map']
+    externtbl_map    = table_structure['externtbl_map']
+
     if ut.VERBOSE:
         print('[TEMPLATE] build_controller_table_funcs(%r)' % (tablename,))
     # +-----
@@ -749,9 +746,10 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
             # Format the template into a function and apply postprocessing
             func_code = format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict)
             # HACK to remove double table names like: get_chip_chip_width
-            single_tbl = fmtdict['tbl']
-            double_tbl = single_tbl + '_' + single_tbl
-            func_code = func_code.replace(double_tbl, single_tbl)
+            for single_tbl in ut.filter_Nones((fmtdict['tbl'], fmtdict.get('externtbl', None))):
+                #single_tbl = fmtdict['tbl']
+                double_tbl = single_tbl + '_' + single_tbl
+                func_code = func_code.replace(double_tbl, single_tbl)
             # HACK for plural bbox
             for bad_plural, good_plural in PLURAL_FIX_LIST:
                 func_code = func_code.replace(bad_plural, good_plural)
@@ -765,9 +763,6 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
                 if re.search(funcname_filter, func_name) is None:
                     return
             #if func_name == 'get_featweight_fgweights':
-            #    ut.embed()
-            #
-            #
             # <HACKS>
             #print(tablename)
             if tablename == const.ANNOTATION_TABLE:
@@ -945,6 +940,19 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         # Only dependants have native configs
         if len(depends_list) > 1 and with_configs:
             append_func('2_Native.config_getter', Tdef.Tcfg_rowid_getter)
+        if True:
+            # many to one table relationships
+            extern_tables = externtbl_map[tablename]
+            if extern_tables is not None:
+                for extern_tbl in extern_tables:
+                    fmtdict['externtbl'] = extern_tbl
+                    tup = get_tableinfo(extern_tbl, ibs)
+                    extern_dbself, extern_all_colnames, extern_superkey_colnames, extern_primarykey_colnames, extern_other_colnames = tup
+                    externcol_list = list(extern_superkey_colnames) + list(extern_other_colnames)
+                    for externcol in externcol_list:
+                        fmtdict['externcol'] = externcol
+                        #constant_list.append(externcol.upper() + ' = \'%s\'' % (externcol,))
+                        append_func('4_Extern.getter', Tdef.Tgetter_extern)
 
     # ------------------
     #  Column Properties
@@ -969,7 +977,6 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
             if with_setters and  tablename not in readonly_set:
                 # Setter template: columns
                 if with_native:
-                    #ut.embed()
                     append_func('2_Native.setter', Tdef.Tsetter_native_column)
             constant_list.append(COLNAME + ' = \'%s\'' % (colname,))
             append_constant(COLNAME, colname)
@@ -999,10 +1006,7 @@ def get_autogen_text(
         autogen_key='default',
         flagdefault=True,
         flagskw={},
-        tbl2_TABLE=None,
-        tablename2_tbl=None,
-        depends_map=None,
-        relationship_map=None,):
+        table_structure={}):
     """
     autogenerated text main entry point
 
@@ -1020,10 +1024,7 @@ def get_autogen_text(
     tfunctup = build_templated_funcs(
         ibs, autogen_modname, tblname_list, autogen_key,
         flagdefault=flagdefault, flagskw=flagskw,
-        tbl2_TABLE=tbl2_TABLE,
-        tablename2_tbl=tablename2_tbl,
-        depends_map=depends_map,
-        relationship_map=relationship_map,)
+        table_structure=table_structure)
     constant_list_, tblname2_functype2_func_list = tfunctup
     # Combine into a text file
     autogen_text = postprocess_and_combine_templates(
@@ -1051,6 +1052,11 @@ def parse_table_structure(ibs):
                             for tablename in ibs.db.get_table_names()}
     relationship_map.update({tablename: ibs.dbcache.get_metadata_val(tablename + '_relates', eval_=True)
                              for tablename in ibs.dbcache.get_table_names()})
+    # Parse the many to one relationships
+    externtbl_map      = {tablename: ibs.db.get_metadata_val(tablename + '_extern_tables', eval_=True)
+                          for tablename in ibs.db.get_table_names()}
+    externtbl_map.update({tablename: ibs.dbcache.get_metadata_val(tablename + '_extern_tables', eval_=True)
+                          for tablename in ibs.dbcache.get_table_names()})
 
     tbl2_tablename = ut.invert_dict(tablename2_tbl)
     import operator
@@ -1058,8 +1064,16 @@ def parse_table_structure(ibs):
     tbl2_TABLE = {key: 'const.' + ut.get_varname_from_locals(val, const.__dict__, cmpfunc_=operator.eq)
                     for key, val in six.iteritems(tbl2_tablename)}
 
-    #ut.embed()
-    return tablename2_tbl, depends_map, relationship_map, tbl2_tablename, tbl2_TABLE
+    table_structure = {
+        'tablename2_tbl'   : tablename2_tbl,
+        'depends_map'      : depends_map,
+        'relationship_map' : relationship_map,
+        'tbl2_tablename'   : tbl2_tablename,
+        'tbl2_TABLE'       : tbl2_TABLE,
+        'externtbl_map'    : externtbl_map,
+    }
+
+    return table_structure
 
 
 def main(ibs, verbose=None):
@@ -1093,7 +1107,7 @@ def main(ibs, verbose=None):
     dowrite = ut.get_argflag(('-w', '--write', '--dump-autogen-controller'))
     autogen_key = ut.get_argval(('--key',), type_=str, default='default')
 
-    tablename2_tbl, depends_map, relationship_map, tbl2_tablename, tbl2_TABLE = parse_table_structure(ibs)
+    table_structure = parse_table_structure(ibs)
 
     if verbose is None:
         verbose = not dowrite
@@ -1101,6 +1115,8 @@ def main(ibs, verbose=None):
     if autogen_key == 'default':
         default_tblname_list = TBLNAME_LIST
     else:
+        tbl2_tablename = table_structure['tbl2_tablename']
+        tablename2_tbl = table_structure['tablename2_tbl']
         if autogen_key in tbl2_tablename:
             default_tblname_list = [tbl2_tablename[autogen_key], ]
         elif autogen_key in tablename2_tbl:
@@ -1145,10 +1161,7 @@ def main(ibs, verbose=None):
     autogen_fpath, autogen_text = get_autogen_text(
         parent_module, tblname_list=tblname_list, autogen_key=autogen_key,
         flagdefault=flagdefault, flagskw=flagskw,
-        tbl2_TABLE=tbl2_TABLE,
-        tablename2_tbl=tablename2_tbl,
-        depends_map=depends_map,
-        relationship_map=relationship_map)
+        table_structure=table_structure)
 
     print('[TEMPLATE] Finished text generation...')
 
