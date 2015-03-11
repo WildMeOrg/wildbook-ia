@@ -385,7 +385,7 @@ def _get_all_contributor_rowids(ibs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_contributor_funcs import *  # NOQA
+        >>> from ibeis.control.manual_meta_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> ibs._get_all_contributor_rowids()
     """
