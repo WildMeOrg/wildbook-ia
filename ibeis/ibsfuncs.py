@@ -3175,6 +3175,47 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
     return annotmatch_reviewed_list
 
 
+def learn_k():
+    pass
+    # load a dataset
+    # ibs =
+    # use experiment harness to run several values of K
+    # varydict = {'K': 4, 7, 10, 13, 16, 19, 22, 25}
+    # take subsets of daids to vary dbsizes
+    # and run those
+    # get output:
+    K_list      = np.array([  4,   4,    4,   7,   7,    7,   10,  10,   10,   13,  13,   13])
+    nDaids_list = np.array([100, 500, 1000, 100, 500, 1000,  100, 500, 1000,  100, 500, 1000])
+    nError_list = np.array([  3,   5,   10,   4,   5,   40,   20,   9,   43,   90,  20,    1])
+
+    import vtool as vt
+    unique_k, groupxs = vt.group_indices(K_list)
+    nError_groups = vt.apply_grouping(nError_list, groupxs)
+    nDaids_groups = vt.apply_grouping(nDaids_list, groupxs)
+    unique_daids = [nDaids[nErrors.argmin()] for nErrors, nDaids in zip(nError_groups, nDaids_groups)]
+
+    from scipy.optimize import curve_fit
+    # http://stackoverflow.com/questions/22240280/least-squares-fit-to-a-straight-line-python-code
+    #A = unique_daids
+    #B = unique_k
+    def f(x, A, B):
+        return A * x + B
+    slope, intercept = curve_fit(f, unique_daids, unique_k)[0]
+
+    domain = np.linspace(1, 1000)
+    value = f(domain, slope, intercept)
+
+    import plottool as pt
+    fig = pt.gcf()
+    fig.clf()
+    pt.plt.scatter(nDaids_list, K_list, s=(nError_list.max() - nError_list) + 20)
+    pt.plot(unique_daids, unique_k)
+    pt.plot(domain, value)
+    pt.draw()
+
+    #np.linalg.lstsq(
+
+
 if __name__ == '__main__':
     """
     CommandLine:

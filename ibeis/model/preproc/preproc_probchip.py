@@ -23,6 +23,8 @@ import vtool
 import numpy as np
 import vtool as vt
 from os.path import exists
+import vtool.chip as ctool
+import vtool.image as gtool
 # VTool
 #import vtool.chip as ctool
 #import vtool.image as gtool
@@ -297,11 +299,21 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
     return probchip_fpath_list_
 
 
+def gen_detectchip(tup):
+    r"""
+    Parallel worker. Crops chip out of an image, applies filters, etc
+    """
+    cfpath, gfpath, bbox, theta, new_size, filter_list = tup
+    chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
+    gtool.imwrite(cfpath, chipBGR)
+    return cfpath
+
+
 def compute_extramargin_detectchip(ibs, aid_list, qreq_=None, species=None, FACTOR=4):
     #from vtool import chip as ctool
     #from vtool import image as gtool
     arg_list, newsize_list, halfoffset_cs_list = get_extramargin_detectchip_info(ibs, aid_list, qreq_=qreq_, species=species, FACTOR=FACTOR)
-    detectchip_extramargin_fpath_list = list(ut.generate(preproc_chip.gen_chip, arg_list, ordered=True))
+    detectchip_extramargin_fpath_list = list(ut.generate(gen_detectchip, arg_list, ordered=True))
     probchip_extramargin_fpath_list   = [fpath.replace('detectchip', 'probchip') for fpath in detectchip_extramargin_fpath_list]
     return detectchip_extramargin_fpath_list, probchip_extramargin_fpath_list, halfoffset_cs_list
     #probchip_extramargin_fpath_list = []
