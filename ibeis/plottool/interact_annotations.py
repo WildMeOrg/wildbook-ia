@@ -51,7 +51,13 @@ ADD_RECTANGLE_HOTKEY      = 'ctrl+a'  # 'ctrl+d'
 ADD_RECTANGLE_FULL_HOTKEY = 'ctrl+f'
 DEL_RECTANGLE_HOTKEY      = 'ctrl+d'  # 'ctrl+r'
 TOGGLE_LABEL_HOTKEY       = 'ctrl+t'
-#
+
+HACK_OFF_SPECIES_TYPING = True
+if HACK_OFF_SPECIES_TYPING:
+    ADD_RECTANGLE_HOTKEY      = 'a'  # 'ctrl+d'
+    ADD_RECTANGLE_FULL_HOTKEY = 'f'
+    DEL_RECTANGLE_HOTKEY      = 'd'  # 'ctrl+r'
+    TOGGLE_LABEL_HOTKEY       = 't'
 
 NEXT_IMAGE_HOTKEYS  = ['right', 'pagedown']
 PREV_IMAGE_HOTKEYS  = ['left', 'pageup']
@@ -765,7 +771,7 @@ class ANNOTATIONInteraction(object):
         """
         Callback whenever a key is pressed
         """
-        if ut.VERBOSE:
+        if ut.VERBOSE or True:
             print('[interact_annot] key_press_callback')
             print('[interact_annot] Got key: %r' % event.key)
         if not event.inaxes:
@@ -837,9 +843,10 @@ class ANNOTATIONInteraction(object):
                         self._currently_selected_poly.tcindex])
         #TODO: Similar functionality for shift+tab to go backwards
 
-        match = re.match('^.$', event.key)
-        if match:
-            handle_label_typing(match.group(0))
+        if not HACK_OFF_SPECIES_TYPING:
+            match = re.match('^.$', event.key)
+            if match:
+                handle_label_typing(match.group(0))
 
         # NEXT ANND PREV COMMAND
         print('[interact_annot] Got key: %r' % event.key)
@@ -1350,6 +1357,8 @@ def test_interact_annots():
 
 if __name__ == '__main__':
     """
+    CommandLine:
+        python -m plottool.interact_annotations --test-test_interact_annots --show
     CommandLine:
         python -m plottool.interact_annotations
         python -m plottool.interact_annotations --allexamples
