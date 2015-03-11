@@ -52,6 +52,7 @@ IMAGE_TIME_POSIX      = 'image_time_posix'
 IMAGE_LOCATION_CODE   = 'image_location_code'
 IMAGE_TIMEDELTA_POSIX = 'image_timedelta_posix'
 PARTY_ROWID           = 'party_rowid'
+CONTRIBUTOR_ROWID     = 'contributor_rowid'
 
 
 @register_ibs_method
@@ -655,12 +656,36 @@ def get_image_uuids(ibs, gid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_image_contributor_rowid(ibs, gid_list):
-    """
+def get_image_contributor_rowid(ibs, image_rowid_list, eager=True, nInput=None):
+    """ contributor_rowid_list <- image.contributor_rowid[image_rowid_list]
+
+    gets data from the "native" column "contributor_rowid" in the "image" table
+
+    Args:
+        image_rowid_list (list):
+
     Returns:
-        list_ (list): a list of image contributor rowids by gid """
-    contrib_rowid_list = ibs.db.get(const.IMAGE_TABLE, ('contributor_rowid',), gid_list)
-    return contrib_rowid_list
+        list: contributor_rowid_list - list of image contributor rowids by gid
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = contributor_rowid
+        tbl = image
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_images_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> eager = True
+        >>> contributor_rowid_list = ibs.get_image_contributor_rowid(image_rowid_list, eager=eager)
+        >>> assert len(image_rowid_list) == len(contributor_rowid_list)
+    """
+    id_iter = image_rowid_list
+    colnames = (CONTRIBUTOR_ROWID,)
+    contributor_rowid_list = ibs.db.get(
+        const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return contributor_rowid_list
 
 
 @register_ibs_method
@@ -2079,6 +2104,7 @@ def delete_empty_eids(ibs):
 
 
 @register_ibs_method
+@getter_1to1
 def get_image_party_rowids(ibs, image_rowid_list, eager=True, nInput=None):
     """ party_rowid_list <- image.party_rowid[image_rowid_list]
 
@@ -2112,6 +2138,7 @@ def get_image_party_rowids(ibs, image_rowid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+@getter_1to1
 def get_image_party_tag(ibs, image_rowid_list, eager=True, nInput=None):
     """ party_tag_list <- image.party_tag[image_rowid_list]
 
@@ -2144,6 +2171,7 @@ def get_image_party_tag(ibs, image_rowid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+@setter
 def set_image_party_rowids(ibs, image_rowid_list, party_rowid_list, duplicate_behavior='error'):
     """ party_rowid_list -> image.party_rowid[image_rowid_list]
 
@@ -2160,6 +2188,39 @@ def set_image_party_rowids(ibs, image_rowid_list, party_rowid_list, duplicate_be
     colnames = (PARTY_ROWID,)
     ibs.db.set(const.IMAGE_TABLE, colnames, party_rowid_list,
                id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+@getter_1to1
+def get_image_contributor_tag(ibs, image_rowid_list, eager=True, nInput=None):
+    """ contributor_tag_list <- image.contributor_tag[image_rowid_list]
+
+    Args:
+        image_rowid_list (list):
+
+    Returns:
+        list: contributor_tag_list
+
+    TemplateInfo:
+        Tgetter_extern
+        tbl = image
+        externtbl = contributor
+        externcol = contributor_tag
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_images_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> eager = True
+        >>> contributor_tag_list = ibs.get_image_contributor_tag(image_rowid_list, eager=eager)
+        >>> assert len(image_rowid_list) == len(contributor_tag_list)
+    """
+    contributor_rowid_list = ibs.get_image_contributor_rowid(
+        image_rowid_list, eager=eager, nInput=nInput)
+    contributor_tag_list = ibs.get_contributor_tag(
+        contributor_rowid_list, eager=eager, nInput=nInput)
+    return contributor_tag_list
 
 
 def testdata_ibs():

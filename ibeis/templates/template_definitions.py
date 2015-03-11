@@ -614,7 +614,7 @@ Tgetter_table_column = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @getter
-    def get_{tbl}_{col}s({self}, {tbl}_rowid_list, eager=True, nInput=None):
+    def get_{tbl}_{col}({self}, {tbl}_rowid_list, eager=True, nInput=None):
         """ {col}_list <- {tbl}.{col}[{tbl}_rowid_list]
 
         gets data from the "native" column "{col}" in the "{tbl}" table
@@ -636,7 +636,7 @@ Tgetter_table_column = ut.codeblock(
             >>> {self}, qreq_ = testdata_ibs()
             >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()
             >>> eager = True
-            >>> {col}_list = {self}.get_{tbl}_{col}s({tbl}_rowid_list, eager=eager)
+            >>> {col}_list = {self}.get_{tbl}_{col}({tbl}_rowid_list, eager=eager)
             >>> assert len({tbl}_rowid_list) == len({col}_list)
         """
         id_iter = {tbl}_rowid_list
@@ -675,7 +675,7 @@ Tgetter_extern = ut.codeblock(
             >>> {externcol}_list = {self}.get_{tbl}_{externcol}({tbl}_rowid_list, eager=eager)
             >>> assert len({tbl}_rowid_list) == len({externcol}_list)
         """
-        {externtbl}_rowid_list = {self}.get_{tbl}_{externtbl}_rowids({tbl}_rowid_list, eager=eager, nInput=nInput)
+        {externtbl}_rowid_list = {self}.get_{tbl}_{externtbl}_rowid({tbl}_rowid_list, eager=eager, nInput=nInput)
         {externcol}_list = {self}.get_{externtbl}_{externcol}({externtbl}_rowid_list, eager=eager, nInput=nInput)
         return {externcol}_list
     # ENDBLOCK

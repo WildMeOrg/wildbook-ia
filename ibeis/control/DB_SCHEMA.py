@@ -881,7 +881,8 @@ def update_1_3_6(db, ibs=None):
     db.modify_table(const.IMAGE_TABLE, [
         (None, 'party_rowid',  'INTEGER', None),
     ],
-        extern_tables=[const.PARTY_TABLE],
+        shortname='image',
+        extern_tables=[const.PARTY_TABLE, const.CONTRIBUTOR_TABLE],
         # TODO: add in many to 1 attribute mapping
     )
 

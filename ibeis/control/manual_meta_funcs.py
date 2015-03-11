@@ -343,14 +343,60 @@ def get_contributor_uuid(ibs, contrib_rowid_list):
     return contrib_uuid_list
 
 
+#@register_ibs_method
+#def get_contributor_tag(ibs, contrib_rowid_list):
+#    """
+#    Returns:
+#        contrib_tag_list (list):  a contributor's tag """
+#    contrib_tag_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_tag',), contrib_rowid_list)
+#    return contrib_tag_list
+
+CONFIG_ROWID                 = 'config_rowid'
+CONTRIBUTOR_LOCATION_CITY    = 'contributor_location_city'
+CONTRIBUTOR_LOCATION_COUNTRY = 'contributor_location_country'
+CONTRIBUTOR_LOCATION_STATE   = 'contributor_location_state'
+CONTRIBUTOR_LOCATION_ZIP     = 'contributor_location_zip'
+CONTRIBUTOR_NAME_FIRST       = 'contributor_name_first'
+CONTRIBUTOR_NAME_LAST        = 'contributor_name_last'
+CONTRIBUTOR_NOTE             = 'contributor_note'
+CONTRIBUTOR_ROWID            = 'contributor_rowid'
+CONTRIBUTOR_TAG              = 'contributor_tag'
+CONTRIBUTOR_UUID             = 'contributor_uuid'
+FEATWEIGHT_ROWID             = 'featweight_rowid'
+
+
 @register_ibs_method
 @getter_1to1
-def get_contributor_tag(ibs, contrib_rowid_list):
-    """
+def get_contributor_tag(ibs, contributor_rowid_list, eager=True, nInput=None):
+    """ contributor_tag_list <- contributor.contributor_tag[contributor_rowid_list]
+
+    gets data from the "native" column "contributor_tag" in the "contributor" table
+
+    Args:
+        contributor_rowid_list (list):
+
     Returns:
-        contrib_tag_list (list):  a contributor's tag """
-    contrib_tag_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_tag',), contrib_rowid_list)
-    return contrib_tag_list
+        list: contributor_tag_list -  a contributor's tag
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = contributor_tag
+        tbl = contributor
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_contributor_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> contributor_rowid_list = ibs._get_all_contributor_rowids()
+        >>> eager = True
+        >>> contributor_tag_list = ibs.get_contributor_tag(contributor_rowid_list, eager=eager)
+        >>> assert len(contributor_rowid_list) == len(contributor_tag_list)
+    """
+    id_iter = contributor_rowid_list
+    colnames = (CONTRIBUTOR_TAG,)
+    contributor_tag_list = ibs.db.get(
+        const.CONTRIBUTOR_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return contributor_tag_list
 
 
 @register_ibs_method

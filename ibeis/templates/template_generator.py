@@ -36,12 +36,13 @@ CommandLine:
     python -m ibeis.templates.template_generator --key party_contrib_relation --Tcfg strip_docstr=True strip_eager=True strip_nparams=True
     python -m ibeis.templates.template_generator --key match --Tcfg strip_docstr=True strip_eager=True strip_nparams=True
 
-    python -m ibeis.templates.template_generator --key images --funcname-filter party --Tcfg with_api_cache=False with_deleters=False
-    python -m ibeis.templates.template_generator --key images --funcname-filter party --Tcfg with_api_cache=False with_deleters=False
     python -m ibeis.templates.template_generator --key party --Tcfg with_api_cache=False with_deleters=False
     python -m ibeis.templates.template_generator --key party --Tcfg with_api_cache=False with_deleters=False --write
     python -m ibeis.templates.template_generator --key annotmatch
     --Tcfg with_api_cache=False with_deleters=False --write
+
+    python -m ibeis.templates.template_generator --key images --funcname-filter party --Tcfg with_api_cache=False with_deleters=False
+    python -m ibeis.templates.template_generator --key images --funcname-filter contrib --Tcfg with_api_cache=False with_deleters=False
 
 TODO:
    * autogen testdata function
@@ -629,6 +630,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     depends_map      = table_structure['depends_map']
     relationship_map = table_structure['relationship_map']
     externtbl_map    = table_structure['externtbl_map']
+    tbl2_tablename   = table_structure['tbl2_tablename']
 
     if ut.VERBOSE:
         print('[TEMPLATE] build_controller_table_funcs(%r)' % (tablename,))
@@ -961,11 +963,12 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         with_extern = True
         if with_extern:
             # many to one table relationships
-            extern_tables = externtbl_map[tablename]
+            extern_tables = externtbl_map[tbl]
             if extern_tables is not None:
                 for extern_tbl in extern_tables:
                     fmtdict['externtbl'] = extern_tbl
-                    tup = get_tableinfo(extern_tbl, ibs)
+                    extern_table = tbl2_tablename[extern_tbl]
+                    tup = get_tableinfo(extern_table, ibs)
                     extern_dbself, extern_all_colnames, extern_superkey_colnames, extern_primarykey_colnames, extern_other_colnames = tup
                     externcol_list = list(extern_superkey_colnames) + list(extern_other_colnames)
                     for externcol in externcol_list:
@@ -1060,7 +1063,7 @@ def parse_table_structure(ibs):
     print('[TEMPLATE] parse_table_structure()')
     # hack tablenames to be singular
     import re
-    keep_plural_hacks = ['species', 'annotations', 'feature_weights']
+    keep_plural_hacks = ['species']
     ignore_table_hacks = ['keys', 'metadata']
 
     def get_tablename_tbl(db, tablename):
@@ -1101,10 +1104,18 @@ def parse_table_structure(ibs):
     depends_map.update({tbl: get_tbl_depends(ibs.dbcache, tbl) for tbl in dbcache_tbl_list})
 
     def get_tbl_relationship(tbl, db):
+        tablename = tbl2_tablename[tbl]
         relates = db.get_metadata_val(tablename + '_relates', eval_=True)
         if relates is not None:
             relates = ut.dict_take(tablename2_tbl, relates)
         return relates
+
+    def get_tbl_externtbls(tbl, db):
+        tablename = tbl2_tablename[tbl]
+        externtbls = db.get_metadata_val(tablename + '_extern_tables', eval_=True)
+        if externtbls is not None:
+            externtbls = ut.dict_take(tablename2_tbl, externtbls)
+        return externtbls
 
     # Parse relationships out of the SQL Schemas
     relationship_map = {tbl: get_tbl_relationship(tbl, ibs.db)
@@ -1112,10 +1123,10 @@ def parse_table_structure(ibs):
     relationship_map.update({tbl: get_tbl_relationship(tbl, ibs.dbcache)
                              for tbl in dbcache_tbl_list})
     # Parse the many to one relationships
-    externtbl_map      = {tablename: ibs.db.get_metadata_val(tablename + '_extern_tables', eval_=True)
-                          for tablename in ibs.db.get_table_names()}
-    externtbl_map.update({tablename: ibs.dbcache.get_metadata_val(tablename + '_extern_tables', eval_=True)
-                          for tablename in ibs.dbcache.get_table_names()})
+    externtbl_map      = {tbl: get_tbl_externtbls(tbl, ibs.db)
+                          for tbl in db_tbl_list}
+    externtbl_map.update({tbl: get_tbl_externtbls(tbl, ibs.dbcache)
+                          for tbl in dbcache_tbl_list})
 
     import operator
     # I'm not sure why is is not working
