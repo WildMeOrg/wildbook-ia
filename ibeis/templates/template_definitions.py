@@ -177,7 +177,7 @@ Tadder_native = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @adder
-    def add_{tbl}s({self}, {allcols}):
+    def add_{tbl}({self}, {allcol_args}):
         """
         Returns:
             returns {tbl}_rowid_list of added (or already existing {tbl}s)
@@ -186,17 +186,14 @@ Tadder_native = ut.codeblock(
             Tadder_native
             tbl = {tbl}
         """
-        # UNFINISHED
-        raise NotImplementedError('this code is a stub, you must populate it')
-        from ibeis.model.preproc import preproc_{tbl}
-        proptup_gen = preproc_{tbl}.generate_{tbl}_properties({self}, {allcols})
+        # WORK IN PROGRESS
+        colnames = ({allCOLNAMES},)
         params_iter = (
-            ({all_propnames})
-            for ({all_propnames},) in
-            zip({parent}_rowid_list, proptup_gen)
+            ({allcol_items},)
+            for ({allcol_items},) in
+            zip({allcol_args})
         )
-        colnames = {all_propnames}
-        {tbl}_rowid_list = {self}.{dbself}.add_cleanly({LEAF_TABLE}, colnames, params_iter, get_rowid_from_superkey)
+        {tbl}_rowid_list = {self}.{dbself}.add_cleanly({TABLE}, colnames, params_iter, get_rowid_from_superkey)
         return {tbl}_rowid_list
     # ENDBLOCK
     '''

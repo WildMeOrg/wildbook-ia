@@ -2,7 +2,7 @@
 Module Licence and docstring
 """
 from __future__ import absolute_import, division, print_function
-from ibeis import constants
+from ibeis import constants as const
 try:
     from ibeis.control import DBCACHE_SCHEMA_CURRENT
     UPDATE_CURRENT  = DBCACHE_SCHEMA_CURRENT.update_current
@@ -27,7 +27,7 @@ def update_1_0_0(db, ibs=None):
     # SECOND ORDER           #
     ##########################
     # TODO: constraint needs modification
-    db.add_table(constants.CHIP_TABLE, (
+    db.add_table(const.CHIP_TABLE, (
         ('chip_rowid',                   'INTEGER PRIMARY KEY'),
         ('annot_rowid',                  'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
@@ -39,7 +39,7 @@ def update_1_0_0(db, ibs=None):
         docstr='''
         Used to store *processed* annots as chips''')
 
-    db.add_table(constants.FEATURE_TABLE, (
+    db.add_table(const.FEATURE_TABLE, (
         ('feature_rowid',                'INTEGER PRIMARY KEY'),
         ('chip_rowid',                   'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
@@ -62,7 +62,7 @@ def update_1_0_0(db, ibs=None):
 def update_1_0_1(db, ibs=None):
     # When you're ready to make this schema update go live, simply
     # bump ibs.dbcache_version_expected in the controller to '1.0.1'
-    db.add_table(constants.RESIDUAL_TABLE, (
+    db.add_table(const.RESIDUAL_TABLE, (
         ('residual_rowid',               'INTEGER PRIMARY KEY'),
         ('feature_rowid',                'INTEGER NOT NULL'),
         ('config_rowid',                 'INTEGER DEFAULT 0'),
@@ -79,7 +79,7 @@ def update_1_0_1(db, ibs=None):
 def update_1_0_2(db, ibs=None):
     # Change name of feature_sifts to feature_vecs and
     # add new column for feature_forground_weight
-    db.modify_table(constants.FEATURE_TABLE, (
+    db.modify_table(const.FEATURE_TABLE, (
         ('feature_sifts',   'feature_vecs',             '',      None),
         (           None,   'feature_forground_weight', 'NUMPY', None),
     ))
@@ -88,9 +88,9 @@ def update_1_0_2(db, ibs=None):
 @profile
 def update_1_0_3(db, ibs=None):
     # Move the forground weight column to a new table
-    db.drop_column(constants.FEATURE_TABLE, 'feature_forground_weight')
+    db.drop_column(const.FEATURE_TABLE, 'feature_forground_weight')
 
-    db.add_table(tablename=constants.FEATURE_WEIGHT_TABLE, coldef_list=(
+    db.add_table(tablename=const.FEATURE_WEIGHT_TABLE, coldef_list=(
         ('featweight_rowid',            'INTEGER PRIMARY KEY'),
         ('feature_rowid',               'INTEGER NOT NULL'),
         ('config_rowid',                'INTEGER DEFAULT 0'),
@@ -103,8 +103,17 @@ def update_1_0_3(db, ibs=None):
     )
 
     # Fix the superkeys for the residual table
-    db.modify_table(tablename=constants.RESIDUAL_TABLE, colmap_list=[],
+    db.modify_table(tablename=const.RESIDUAL_TABLE, colmap_list=[],
                     superkey_colnames_list=[('feature_rowid', 'config_rowid',)],)
+
+
+def update_1_0_4(db, ibs=None):
+    db.modify_table(const.CHIP_TABLE, dependson=const.ANNOTATION_TABLE)
+    db.modify_table(const.FEATURE_TABLE, dependson=const.CHIP_TABLE)
+    db.modify_table(const.FEATURE_WEIGHT_TABLE, dependson=const.FEATURE_TABLE)
+    #db.modify_table(const.FEATURE_WEIGHT_TABLE, dependson=[const.FEATURE_TABLE, const.PROBCHIP_TABLE])
+    #db.modify_table(const.RESIDUAL_TABLE, dependson=[const.FEATURE_TABLE, const.VOCAB_TABLE])
+    #db.modify_table(const.PROBCHIP_TABLE, dependson=[const.CHIP_TABLE])
 
 
 # ========================
@@ -112,7 +121,7 @@ def update_1_0_3(db, ibs=None):
 # ========================
 
 
-base = constants.BASE_DATABASE_VERSION
+base = const.BASE_DATABASE_VERSION
 VALID_VERSIONS = ut.odict([
     #version:   (Pre-Update Function,  Update Function,    Post-Update Function)
     (base   ,    (None,                 None,               None,)),
@@ -120,6 +129,7 @@ VALID_VERSIONS = ut.odict([
     ('1.0.1',    (None,                 update_1_0_1,       None,)),
     ('1.0.2',    (None,                 update_1_0_2,       None,)),
     ('1.0.3',    (None,                 update_1_0_3,       None,)),
+    ('1.0.4',    (None,                 update_1_0_4,       None,)),
 ])
 
 

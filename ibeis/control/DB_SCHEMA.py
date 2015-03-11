@@ -873,21 +873,30 @@ def update_1_3_6(db, ibs=None):
         superkey_colnames_list=[('party_tag',)],
         docstr='''
         Serves as a group for contributors
-        ''')
-
-    db.add_table(const.PARTY_CONTRIB_RELATION_TABLE, (
-        ('party_contrib_relation_rowid',               'INTEGER PRIMARY KEY'),
-        ('party_rowid',                                'INTEGER NOT NULL'),
-        ('contributor_rowid',                          'INTEGER NOT NULL'),
-    ),
-        superkey_colnames_list=[('party_rowid', 'contributor_rowid')],
-        relates=(const.PARTY_TABLE, const.CONTRIBUTOR_TABLE),
-        docstr='''
-        Relates parties and contributors
         ''',
     )
-    db.add_table(const.MATCH_TABLE, (
-        ('match_rowid',               'INTEGER PRIMARY KEY'),
+
+    # instead of adding a specific many to many mapping relate images to both parties
+    # and contributors
+    db.modify_table(const.IMAGE_TABLE, [
+        (None, 'image_party_rowid',  'INTEGER', None),
+    ],
+        # TODO: add in many to 1 attribute mapping
+    )
+
+    #db.add_table(const.PARTY_CONTRIB_RELATION_TABLE, (
+    #    ('party_contrib_relation_rowid',               'INTEGER PRIMARY KEY'),
+    #    ('party_rowid',                                'INTEGER NOT NULL'),
+    #    ('contributor_rowid',                          'INTEGER NOT NULL'),
+    #),
+    #    superkey_colnames_list=[('party_rowid', 'contributor_rowid')],
+    #    relates=(const.PARTY_TABLE, const.CONTRIBUTOR_TABLE),
+    #    docstr='''
+    #    Relates parties and contributors
+    #    ''',
+    #)
+    db.add_table(const.ANNOTMATCH_TABLE, (
+        ('annotmatch_rowid',          'INTEGER PRIMARY KEY'),
         ('annot_rowid1',              'INTEGER NOT NULL'),
         ('annot_rowid2',              'INTEGER NOT NULL'),
         ('match_truth',               'INTEGER DEFAULT 2'),
@@ -895,11 +904,28 @@ def update_1_3_6(db, ibs=None):
     ),
         superkey_colnames_list=[('annot_rowid1', 'annot_rowid2',)],
         relates=(const.ANNOTATION_TABLE, const.ANNOTATION_TABLE),
+        #shortname='annotmatch',
         docstr='''
         Sparsely stores explicit matching / not matching information. This
         serves as marking weather or not an annotation pair has been reviewed.
         ''',
     )
+
+    # add metadata props
+    db.modify_table(
+        const.EG_RELATION_TABLE,
+        shortname='egr',
+        relates=(const.IMAGE_TABLE, const.ENCOUNTER_TABLE))
+
+    db.modify_table(
+        const.AL_RELATION_TABLE,
+        shortname='alr',
+        relates=(const.ANNOTATION_TABLE, const.LBLANNOT_TABLE))
+
+    db.modify_table(
+        const.GL_RELATION_TABLE,
+        shortname='glr',
+        relates=(const.IMAGE_TABLE, const.LBLIMAGE_TABLE))
 
 # ========================
 # Valid Versions & Mapping

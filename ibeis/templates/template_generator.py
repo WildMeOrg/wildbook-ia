@@ -36,6 +36,9 @@ CommandLine:
     python -m ibeis.templates.template_generator --key party_contrib_relation --Tcfg strip_docstr=True strip_eager=True strip_nparams=True
     python -m ibeis.templates.template_generator --key match --Tcfg strip_docstr=True strip_eager=True strip_nparams=True
 
+    python -m ibeis.templates.template_generator --key images --funcname-filter party
+    python -m ibeis.templates.template_generator --key party
+
 TODO:
    * autogen testdata function
    * finish autogen chips and features
@@ -118,62 +121,62 @@ readonly_set = {
 
 
 # HACK
-class SHORTNAMES(object):
-    ANNOT      = 'annot'
-    CHIP       = 'chip'
-    PROBCHIP   = 'probchip'
-    FEAT       = 'feat'
-    FEATWEIGHT = 'featweight'
-    RVEC       = 'residual'  # 'rvec'
-    VOCABTRAIN = 'vocabtrain'
-    DETECT     = 'detect'
-    ENCOUNTER  = 'encounter'
-    IMAGE      = 'image'
-    MATCH      = 'match'
-    EGR        = 'egr'
-    PCR        = 'party_contrib_relation'
-    CONTRIB    = 'contributor'
-    PARTY      = 'party'
+#class SHORTNAMES(object):
+#    ANNOT      = 'annot'
+#    CHIP       = 'chip'
+#    PROBCHIP   = 'probchip'
+#    FEAT       = 'feat'
+#    FEATWEIGHT = 'featweight'
+#    RVEC       = 'residual'  # 'rvec'
+#    VOCABTRAIN = 'vocabtrain'
+#    DETECT     = 'detect'
+#    ENCOUNTER  = 'encounter'
+#    IMAGE      = 'image'
+#    MATCH      = 'annotmatch'
+#    EGR        = 'egr'
+#    PCR        = 'party_contrib_relation'
+#    CONTRIB    = 'contributor'
+#    PARTY      = 'party'
 
-depends_map = {
-    #SHORTNAMES.MATCH     : None,
-    #SHORTNAMES.EGR       : None,
-    #SHORTNAMES.PCR       : None,
-    #SHORTNAMES.IMAGE     : None,
-    #SHORTNAMES.ENCOUNTER : None,
-    #SHORTNAMES.ANNOT     : None,
-    SHORTNAMES.CHIP:       SHORTNAMES.ANNOT,
-    SHORTNAMES.PROBCHIP:   SHORTNAMES.CHIP,
-    SHORTNAMES.FEAT:       SHORTNAMES.CHIP,
-    SHORTNAMES.FEATWEIGHT: SHORTNAMES.FEAT,  # TODO: and PROBCHIP
-    SHORTNAMES.RVEC:       SHORTNAMES.FEAT,
-}
+#depends_map = {
+#    #SHORTNAMES.MATCH     : None,
+#    #SHORTNAMES.EGR       : None,
+#    #SHORTNAMES.PCR       : None,
+#    #SHORTNAMES.IMAGE     : None,
+#    #SHORTNAMES.ENCOUNTER : None,
+#    #SHORTNAMES.ANNOT     : None,
+#    SHORTNAMES.CHIP:       SHORTNAMES.ANNOT,
+#    SHORTNAMES.PROBCHIP:   SHORTNAMES.CHIP,
+#    SHORTNAMES.FEAT:       SHORTNAMES.CHIP,
+#    SHORTNAMES.FEATWEIGHT: SHORTNAMES.FEAT,  # TODO: and PROBCHIP
+#    SHORTNAMES.RVEC:       SHORTNAMES.FEAT,
+#}
 
-relationship_map = {
-    SHORTNAMES.EGR: (SHORTNAMES.IMAGE, SHORTNAMES.ENCOUNTER),
-    SHORTNAMES.PCR: (SHORTNAMES.PARTY, SHORTNAMES.CONTRIB),
-    SHORTNAMES.MATCH: (SHORTNAMES.ANNOT, SHORTNAMES.ANNOT),
-}
+#relationship_map = {
+#    SHORTNAMES.EGR: (SHORTNAMES.IMAGE, SHORTNAMES.ENCOUNTER),
+#    SHORTNAMES.PCR: (SHORTNAMES.PARTY, SHORTNAMES.CONTRIB),
+#    SHORTNAMES.MATCH: (SHORTNAMES.ANNOT, SHORTNAMES.ANNOT),
+#}
 
 # shortened tablenames
 # Maps full table names to short table names
-tablename2_tbl = {
-    const.MATCH_TABLE                  : SHORTNAMES.MATCH,
-    const.ANNOTATION_TABLE             : SHORTNAMES.ANNOT,
-    const.CHIP_TABLE                   : SHORTNAMES.CHIP,
-    const.PROBCHIP_TABLE               : SHORTNAMES.PROBCHIP,
-    const.FEATURE_TABLE                : SHORTNAMES.FEAT,
-    const.FEATURE_WEIGHT_TABLE         : SHORTNAMES.FEATWEIGHT,
-    const.RESIDUAL_TABLE               : SHORTNAMES.RVEC,
-    const.ENCOUNTER_TABLE              : SHORTNAMES.ENCOUNTER,
-    const.IMAGE_TABLE                  : SHORTNAMES.IMAGE,
-    #
-    const.EG_RELATION_TABLE            : SHORTNAMES.EGR,
-    const.PARTY_TABLE                  : SHORTNAMES.PARTY,
-    const.PARTY_CONTRIB_RELATION_TABLE : SHORTNAMES.PCR,
-    const.CONTRIBUTOR_TABLE            : SHORTNAMES.CONTRIB,
 
-}
+#tablename2_tbl = {
+#    const.MATCH_TABLE                  : SHORTNAMES.MATCH,
+#    const.ANNOTATION_TABLE             : SHORTNAMES.ANNOT,
+#    const.CHIP_TABLE                   : SHORTNAMES.CHIP,
+#    const.PROBCHIP_TABLE               : SHORTNAMES.PROBCHIP,
+#    const.FEATURE_TABLE                : SHORTNAMES.FEAT,
+#    const.FEATURE_WEIGHT_TABLE         : SHORTNAMES.FEATWEIGHT,
+#    const.RESIDUAL_TABLE               : SHORTNAMES.RVEC,
+#    const.ENCOUNTER_TABLE              : SHORTNAMES.ENCOUNTER,
+#    const.IMAGE_TABLE                  : SHORTNAMES.IMAGE,
+#    #
+#    const.EG_RELATION_TABLE            : SHORTNAMES.EGR,
+#    const.PARTY_TABLE                  : SHORTNAMES.PARTY,
+#    const.PARTY_CONTRIB_RELATION_TABLE : SHORTNAMES.PCR,
+#    const.CONTRIBUTOR_TABLE            : SHORTNAMES.CONTRIB,
+#}
 
 
 # FIXME: keys might conflict and need to be ordered
@@ -206,14 +209,6 @@ func_aliases = {
 }
 
 # mapping to variable names in const
-tbl2_tablename = ut.invert_dict(tablename2_tbl)
-#tbl2_TABLE = {key: ut.get_varname_from_locals(val, const.__dict__)
-#              for key, val in six.iteritems(tbl2_tablename)}
-# Lets just use strings in autogened files for now: TODO: use constant vars
-# later
-#tbl2_TABLE = {key: '\'%s\'' % (val,) for key, val in six.iteritems(tbl2_tablename)}
-tbl2_TABLE = {key: 'const.' + ut.get_varname_from_locals(val, const.__dict__)
-                for key, val in six.iteritems(tbl2_tablename)}
 
 
 def remove_sentinals(code_text):
@@ -237,9 +232,9 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
     func_code = remove_sentinals(func_code)
     # BOTH OPTIONS ARE NOT GARUENTEED TO WORK. If there are bugs here may be a
     # good place to look.
-    if flagskw['strip_nparams']:
+    if flagskw.get('strip_nparams', False):
         func_code = remove_kwarg('nInput', 'None', func_code)
-    if flagskw['strip_eager']:
+    if flagskw.get('strip_eager', False):
         func_code = remove_kwarg('eager', 'True', func_code)
     if REMOVE_QREQ:
         func_code = remove_kwarg('qreq_', 'None', func_code)
@@ -377,7 +372,7 @@ def parse_first_func_name(func_code):
     return func_name
 
 
-def build_depends_path(child):
+def build_depends_path(child, depends_map):
     #parent = depends_map[child]
     parent = depends_map.get(child, None)
     if parent is not None:
@@ -532,7 +527,12 @@ def replace_constant_varname(func_code, varname, valstr=None):
 
 
 def build_templated_funcs(ibs, autogen_modname, tblname_list, autogen_key,
-                          flagdefault=True, flagskw={}):
+                          flagdefault=True, flagskw={},
+                          tbl2_TABLE=None,
+                          tablename2_tbl=None,
+                          depends_map=None,
+                          relationship_map=None,
+                          ):
     """ Builds lists of requested functions"""
     print('[TEMPLATE] build_templated_funcs')
     print('  * autogen_modname=%r' % (autogen_modname,))
@@ -552,11 +552,16 @@ def build_templated_funcs(ibs, autogen_modname, tblname_list, autogen_key,
         if ut.NOT_QUIET:
             print('[TEMPLATE] building %r table' % (tablename,))
         tableinfo = get_tableinfo(tablename, ibs)
-        tup = build_controller_table_funcs(tablename, tableinfo,
-                                           autogen_modname,
-                                           autogen_key,
-                                           flagdefault=flagdefault,
-                                           flagskw=flagskw)
+        tup = build_controller_table_funcs(
+            tablename, tableinfo,
+            autogen_modname,
+            autogen_key,
+            flagdefault=flagdefault,
+            flagskw=flagskw,
+            tbl2_TABLE=tbl2_TABLE,
+            tablename2_tbl=tablename2_tbl,
+            depends_map=depends_map,
+            relationship_map=relationship_map,)
         functype2_func_list, constant_list = tup
         constant_list_.extend(constant_list)
         tblname2_functype2_func_list[tablename] = functype2_func_list
@@ -585,7 +590,12 @@ def get_autogen_modpaths(parent_module, autogen_key='default', flagskw={}):
 
 
 def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
-                                 autogen_key, flagdefault=True, flagskw={}):
+                                 autogen_key, flagdefault=True, flagskw={},
+                                 tbl2_TABLE=None,
+                                 tablename2_tbl=None,
+                                 depends_map=None,
+                                 relationship_map=None,
+                                 ):
     """
     BIG FREAKING FUNCTION THAT REALIZES TEMPLATES
 
@@ -610,6 +620,10 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         #return col
 
     (dbself, all_colnames, superkey_colnames, primarykey_colnames, other_colnames) = tableinfo
+
+    # not sure if this is kosher
+    other_colnames += superkey_colnames
+
     other_cols = list(map(lambda colname: colname2_col(colname, tablename), other_colnames))
     other_COLNAMES = list(map(lambda colname: colname.upper(), other_colnames))
     nonprimary_leaf_colnames = ut.setdiff_ordered(all_colnames, primarykey_colnames)
@@ -623,6 +637,15 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     # WE WILL DEFINE SEVERAL CLOSURES THAT USE THIS DICTIONARY
     fmtdict = {
     }
+
+    allcols = [colname for colname in all_colnames if colname not in primarykey_colnames]
+    allcol_items = ', '.join(allcols)
+    allcol_args = ', '.join([colname + '_list' for colname in allcols])
+    allCOLNAMES = ', '.join([colname.upper() for colname in allcols])
+
+    fmtdict['allcol_args'] = allcol_args
+    fmtdict['allcol_items'] = allcol_items
+    fmtdict['allCOLNAMES'] = allCOLNAMES
 
     fmtdict['nonprimary_leaf_colnames'] = nonprimary_leaf_colnames
     fmtdict['autogen_modname'] = autogen_modname
@@ -828,7 +851,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
 
     tbl = tablename2_tbl[tablename]
     # Build dependency path
-    depends_list    = build_depends_path(tbl)
+    depends_list    = build_depends_path(tbl, depends_map)
 
     #=========================================
     # THIS IS WHERE THE TEMPLATES ARE FORMATED
@@ -917,6 +940,8 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
             append_func('2_Native.ider', Tdef.Tider_all_rowids)
         if with_fromsuperkey:
             append_func('2_Native.fromsuperkey_getter', Tdef.Tgetter_native_rowid_from_superkey)
+        if with_adders:
+            append_func('2_Native.adder',   Tdef.Tadder_native)
         # Only dependants have native configs
         if len(depends_list) > 1 and with_configs:
             append_func('2_Native.config_getter', Tdef.Tcfg_rowid_getter)
@@ -973,7 +998,11 @@ def get_autogen_text(
         tblname_list=TBLNAME_LIST,
         autogen_key='default',
         flagdefault=True,
-        flagskw={}):
+        flagskw={},
+        tbl2_TABLE=None,
+        tablename2_tbl=None,
+        depends_map=None,
+        relationship_map=None,):
     """
     autogenerated text main entry point
 
@@ -990,13 +1019,47 @@ def get_autogen_text(
     # Build functions and constant containers
     tfunctup = build_templated_funcs(
         ibs, autogen_modname, tblname_list, autogen_key,
-        flagdefault=flagdefault, flagskw=flagskw)
+        flagdefault=flagdefault, flagskw=flagskw,
+        tbl2_TABLE=tbl2_TABLE,
+        tablename2_tbl=tablename2_tbl,
+        depends_map=depends_map,
+        relationship_map=relationship_map,)
     constant_list_, tblname2_functype2_func_list = tfunctup
     # Combine into a text file
     autogen_text = postprocess_and_combine_templates(
         autogen_modname, autogen_key, constant_list_, tblname2_functype2_func_list, flagskw)
     # Return path and text
     return autogen_fpath, autogen_text
+
+
+def parse_table_structure(ibs):
+    print('[TEMPLATE] parse_table_structure()')
+    tablename_list = ibs.db.get_table_names() + ibs.dbcache.get_table_names()
+    # hack tablenames to be singular
+    import re
+    keep_plural_hacks = ['species']
+    ignore_table_hacks = ['keys', 'metadata']
+    tablename2_tbl   = {tablename: re.sub('s$', '', tablename) if tablename not in keep_plural_hacks else tablename
+                        for tablename in tablename_list if tablename not in ignore_table_hacks}
+    # Parse dependencies out of the SQL Schemas
+    depends_map      = {tablename: ibs.db.get_metadata_val(tablename + '_dependson', eval_=True)
+                        for tablename in ibs.db.get_table_names()}
+    depends_map.update({tablename: ibs.dbcache.get_metadata_val(tablename + '_dependson', eval_=True)
+                        for tablename in ibs.dbcache.get_table_names()})
+    # Parse relationships out of the SQL Schemas
+    relationship_map = {tablename: ibs.db.get_metadata_val(tablename + '_relates', eval_=True)
+                            for tablename in ibs.db.get_table_names()}
+    relationship_map.update({tablename: ibs.dbcache.get_metadata_val(tablename + '_relates', eval_=True)
+                             for tablename in ibs.dbcache.get_table_names()})
+
+    tbl2_tablename = ut.invert_dict(tablename2_tbl)
+    import operator
+    # I'm not sure why is is not working
+    tbl2_TABLE = {key: 'const.' + ut.get_varname_from_locals(val, const.__dict__, cmpfunc_=operator.eq)
+                    for key, val in six.iteritems(tbl2_tablename)}
+
+    #ut.embed()
+    return tablename2_tbl, depends_map, relationship_map, tbl2_tablename, tbl2_TABLE
 
 
 def main(ibs, verbose=None):
@@ -1029,6 +1092,8 @@ def main(ibs, verbose=None):
                                   help_='if specified only prints the function signatures')
     dowrite = ut.get_argflag(('-w', '--write', '--dump-autogen-controller'))
     autogen_key = ut.get_argval(('--key',), type_=str, default='default')
+
+    tablename2_tbl, depends_map, relationship_map, tbl2_tablename, tbl2_TABLE = parse_table_structure(ibs)
 
     if verbose is None:
         verbose = not dowrite
@@ -1079,7 +1144,11 @@ def main(ibs, verbose=None):
     # Autogenerate text
     autogen_fpath, autogen_text = get_autogen_text(
         parent_module, tblname_list=tblname_list, autogen_key=autogen_key,
-        flagdefault=flagdefault, flagskw=flagskw)
+        flagdefault=flagdefault, flagskw=flagskw,
+        tbl2_TABLE=tbl2_TABLE,
+        tablename2_tbl=tablename2_tbl,
+        depends_map=depends_map,
+        relationship_map=relationship_map)
 
     print('[TEMPLATE] Finished text generation...')
 
@@ -1096,7 +1165,10 @@ def main(ibs, verbose=None):
     if dowrite:
         ut.write_to(autogen_fpath, autogen_text)
 
-    ibs.db.print_table_csv('metadata', exclude_columns=['metadata_value'])
+    #ibs.db.print_table_csv('metadata', exclude_columns=['metadata_value'])
+    #ibs.dbcache.print_table_csv('metadata', exclude_columns=['metadata_value'])
+    #ibs.dbcache.print_table_csv('metadata')
+
     #return locals()
 
 

@@ -100,6 +100,33 @@ class SQLAtomicContext(object):
             context.cur.close()
 
 
+def dev_test_new_schema_version(dbname, sqldb_dpath, sqldb_fname, version_current, version_next):
+    """ hacky function to ensure that only developer sees the development schema """
+    TESTING_NEW_SQL_VERSION = version_current != version_next
+    if TESTING_NEW_SQL_VERSION:
+        print('[sql] ATTEMPTING TO TEST NEW SQLDB VERSION')
+        devdb_list = ['PZ_MTEST', 'testdb1', 'testdb0', 'emptydatabase']
+        testing_newschmea = ut.is_developer() and dbname in devdb_list
+        #testing_newschmea = False
+        #ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
+        if testing_newschmea:
+            # Set to true until the schema module is good then continue tests with this set to false
+            testing_force_fresh = True or ut.get_argflag('--force-fresh')
+            # Work on a fresh schema copy when developing
+            dev_sqldb_fname = ut.augpath(sqldb_fname, '_develop_schema')
+            sqldb_fpath     = join(sqldb_dpath, sqldb_fname)
+            dev_sqldb_fpath = join(sqldb_dpath, dev_sqldb_fname)
+            ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
+            # Set testing schema version
+            #ibs.db_version_expected = '1.3.6'
+            print('[sql] TESTING NEW SQLDB VERSION: %r' % (version_next,))
+            #print('[sql] ... pass --force-fresh to reload any changes')
+            return version_next
+        else:
+            print('[ibs] NOT TESTING')
+    return version_current
+
+
 class SQLDatabaseController(object):
     """
     SQLDatabaseController an efficientish interface into SQL
@@ -702,11 +729,17 @@ class SQLDatabaseController(object):
         params = [key, val]
         db.executeone(operation, params, verbose=False)
 
-    def get_metadata_val(db, key):
+    def get_metadata_val(db, key, eval_=False):
         where_clause = 'metadata_key=?'
         colnames = ('metadata_value',)
         params_iter = [(key,)]
-        val = db.get_where(constants.METADATA_TABLE, colnames, params_iter, where_clause)[0]
+        vals = db.get_where(constants.METADATA_TABLE, colnames, params_iter, where_clause)
+        assert len(vals) == 1, 'duplicate keys in metadata table'
+        val = vals[0]
+        if eval_ and val is not None:
+            # eventually we will not have to worry about
+            # mid level representations by default, for now flag it
+            val = eval(val)
         return val
 
     #==============
@@ -802,10 +835,9 @@ class SQLDatabaseController(object):
             db.set_metadata_val(tablename + '_shortname', repr(relates))
 
     @default_decorator
-    def modify_table(db, tablename, colmap_list=None, table_constraints=None,
-                     docstr=None, superkey_colnames_list=None, tablename_new=None):
-        assert colmap_list is not None, 'must specify colmaplist'
-        assert tablename is not None, 'must specify tablename'
+    def modify_table(db, tablename=None, colmap_list=None, table_constraints=None,
+                     docstr=None, superkey_colnames_list=None, tablename_new=None,
+                     dependson=None, relates=None, shortname=None):
         """
         function to modify the schema - only columns that are being added, removed or changed need to be enumerated
 
@@ -843,7 +875,12 @@ class SQLDatabaseController(object):
             ...    docstr='Used to store the contributors to the project'
             ... )
         """
+        #assert colmap_list is not None, 'must specify colmaplist'
+        assert tablename is not None, 'tablename must be given'
         printDBG('[sql] schema modifying tablename=%r' % tablename)
+
+        if colmap_list is None:
+            colmap_list = []
 
         colname_list = db.get_column_names(tablename)
         colname_original_list = colname_list[:]
@@ -921,7 +958,11 @@ class SQLDatabaseController(object):
         db.add_table(tablename_temp, coldef_list,
                      table_constraints=table_constraints,
                      docstr=docstr,
-                     superkey_colnames_list=superkey_colnames_list)
+                     superkey_colnames_list=superkey_colnames_list,
+                     dependson=dependson,
+                     relates=relates,
+                     shortname=shortname,
+                     )
 
         # Copy data
         src_list = []
@@ -1030,16 +1071,18 @@ class SQLDatabaseController(object):
         db.executeone(operation, [], verbose=False)
 
         # Rename table's metadata
-        key_old_list = [
-            tablename_old + '_constraint',
-            tablename_old + '_docstr',
-            tablename_old + '_superkeys',
-        ]
-        key_new_list = [
-            tablename_new + '_constraint',
-            tablename_new + '_docstr',
-            tablename_new + '_superkeys',
-        ]
+        key_old_list = [tablename_old + '_' + suffix for suffix in db.table_metadata_keys]
+        key_new_list = [tablename_new + '_' + suffix for suffix in db.table_metadata_keys]
+        #key_old_list = [
+        #    tablename_old + '_constraint',
+        #    tablename_old + '_docstr',
+        #    tablename_old + '_superkeys',
+        #]
+        #key_new_list = [
+        #    tablename_new + '_constraint',
+        #    tablename_new + '_docstr',
+        #    tablename_new + '_superkeys',
+        #]
         id_iter = ((key,) for key in key_old_list)
         val_iter = ((key,) for key in key_new_list)
         colnames = ('metadata_key',)
