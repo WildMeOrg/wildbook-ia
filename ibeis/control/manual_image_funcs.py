@@ -674,7 +674,7 @@ def get_image_contributor_rowid(ibs, image_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_images_funcs import *  # NOQA
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> image_rowid_list = ibs._get_all_image_rowids()
         >>> eager = True
@@ -2123,7 +2123,7 @@ def get_image_party_rowids(ibs, image_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_images_funcs import *  # NOQA
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> image_rowid_list = ibs._get_all_image_rowids()
         >>> eager = True
@@ -2156,7 +2156,7 @@ def get_image_party_tag(ibs, image_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_images_funcs import *  # NOQA
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> image_rowid_list = ibs._get_all_image_rowids()
         >>> eager = True
@@ -2209,7 +2209,7 @@ def get_image_contributor_tag(ibs, image_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_images_funcs import *  # NOQA
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> image_rowid_list = ibs._get_all_image_rowids()
         >>> eager = True

@@ -365,6 +365,34 @@ CONTRIBUTOR_UUID             = 'contributor_uuid'
 FEATWEIGHT_ROWID             = 'featweight_rowid'
 
 
+def testdata_ibs():
+    import ibeis
+    ibs = ibeis.opendb('testdb1')
+    qreq_ = None
+    return ibs, qreq_
+
+
+@register_ibs_method
+def _get_all_contributor_rowids(ibs):
+    """ all_contributor_rowids <- contributor.get_all_rowids()
+
+    Returns:
+        list_ (list): unfiltered contributor_rowids
+
+    TemplateInfo:
+        Tider_all_rowids
+        tbl = contributor
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control._autogen_contributor_funcs import *  # NOQA
+        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs._get_all_contributor_rowids()
+    """
+    all_contributor_rowids = ibs.db.get_all_rowids(const.CONTRIBUTOR_TABLE)
+    return all_contributor_rowids
+
+
 @register_ibs_method
 @getter_1to1
 def get_contributor_tag(ibs, contributor_rowid_list, eager=True, nInput=None):
@@ -383,9 +411,12 @@ def get_contributor_tag(ibs, contributor_rowid_list, eager=True, nInput=None):
         col = contributor_tag
         tbl = contributor
 
+    CommandLine:
+        python -m ibeis.templates.template_generator --key contributor  --Tcfg with_api_cache=False with_deleters=False
+
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_contributor_funcs import *  # NOQA
+        >>> from ibeis.control.manual_meta_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> contributor_rowid_list = ibs._get_all_contributor_rowids()
         >>> eager = True
