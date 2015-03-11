@@ -900,8 +900,8 @@ def update_1_3_6(db, ibs=None):
         ('annotmatch_rowid',          'INTEGER PRIMARY KEY'),
         ('annot_rowid1',              'INTEGER NOT NULL'),
         ('annot_rowid2',              'INTEGER NOT NULL'),
-        ('match_truth',               'INTEGER DEFAULT 2'),
-        ('match_confidence',          'REAL'),
+        ('annotmatch_truth',          'INTEGER DEFAULT 2'),
+        ('annotmatch_confidence',     'REAL DEFAULT 0'),
     ),
         superkey_colnames_list=[('annot_rowid1', 'annot_rowid2',)],
         relates=(const.ANNOTATION_TABLE, const.ANNOTATION_TABLE),
@@ -927,6 +927,11 @@ def update_1_3_6(db, ibs=None):
         const.GL_RELATION_TABLE,
         shortname='glr',
         relates=(const.IMAGE_TABLE, const.LBLIMAGE_TABLE))
+
+    db.modify_table(
+        const.ANNOTATION_TABLE,
+        shortname='annot',
+    )
 
 # ========================
 # Valid Versions & Mapping

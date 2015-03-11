@@ -38,7 +38,10 @@ CommandLine:
 
     python -m ibeis.templates.template_generator --key images --funcname-filter party
     python -m ibeis.templates.template_generator --key images --funcname-filter party
-    python -m ibeis.templates.template_generator --key party
+    python -m ibeis.templates.template_generator --key party --Tcfg with_api_cache=False with_deleters=False
+    python -m ibeis.templates.template_generator --key party --Tcfg with_api_cache=False with_deleters=False --write
+    python -m ibeis.templates.template_generator --key annotmatch
+    --Tcfg with_api_cache=False with_deleters=False --write
 
 TODO:
    * autogen testdata function
@@ -282,6 +285,7 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
     # add decorators
     # HACK IN API_CACHE decorators
     with_api_cache = flagskw.get('with_api_cache', WITH_API_CACHE)
+    with_web_api = flagskw.get('with_web_api', True)
     if with_api_cache:
         if func_type == '2_Native.getter_col':
             func_code = '@accessor_decors.cache_getter({TABLE}, {COLNAME})\n'.format(**fmtdict) + func_code
@@ -289,12 +293,25 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
             func_code = '@accessor_decors.cache_invalidator({TABLE})\n'.format(**fmtdict) + func_code
         if func_type == '2_Native.setter':
             func_code = '@accessor_decors.cache_invalidator({TABLE}, {COLNAME}, native_rowids=True)\n'.format(**fmtdict) + func_code
+    if with_web_api:
+        if func_type == '2_Native.adder':
+            func_code = '@register_route(\'/{tbl}/\', methods=[\'POST\'])\n'.format(**fmtdict) + func_code
+        if func_type == '2_Native.getter_col':
+            func_code = '@register_route(\'/{tbl}/{col}/\', methods=[\'GET\'])\n'.format(**fmtdict) + func_code
+        if func_type == '2_Native.ider':
+            func_code = '@register_route(\'/{tbl}/\', methods=[\'GET\'])\n'.format(**fmtdict) + func_code
+        if func_type == '2_Native.deleter':
+            func_code = '@register_route(\'/{tbl}/\', methods=[\'DELETE\'])\n'.format(**fmtdict) + func_code
+        if func_type == '2_Native.setter':
+            func_code = '@register_route(\'/{tbl}/{col}/\', methods=[\'PUT\'])\n'.format(**fmtdict) + func_code
     # Need to register all function with ibs
     if flagskw.get('with_decor', WITH_DECOR):
         func_code = '@register_ibs_method\n' + func_code
     # ensure pep8 formating
     if flagskw.get('with_pep8', WITH_PEP8):
         func_code = ut.autofix_codeblock(func_code).strip()
+    if ut.VERBOSE:
+        print('fmtdict = ' + ut.align(ut.dict_str(fmtdict), ':'))
     return func_code
 
 
@@ -376,7 +393,7 @@ def build_depends_path(child, depends_map):
     #parent = depends_map[child]
     parent = depends_map.get(child, None)
     if parent is not None:
-        return build_depends_path(parent) + [child]
+        return build_depends_path(parent, depends_map) + [child]
     else:
         return [child]
     #depends_list = ['annot', 'chip', 'feat', 'featweight']
@@ -453,6 +470,13 @@ def postprocess_and_combine_templates(autogen_modname, autogen_key,
     if flagskw.get('with_header', True):
         fmtdict = dict(timestamp=ut.get_timestamp('printable'),
                        autogen_key=autogen_key)
+        argv_tail = ut.get_argv_tail('template_generator.py')
+        argv_tail_str =  ' '.join(argv_tail)
+        #print('!!!!!!!')
+        #print(argv_tail_str)
+        #print('!!!!!!!')
+        fmtdict['argv_tail_str1'] = argv_tail_str.replace(' --write', '').replace(' --diff', '') + ' --diff'
+        fmtdict['argv_tail_str2'] = argv_tail_str.replace(' --write', '').replace(' --diff', '') + ' --write'
         # Nope the following may not be true:
         #if len(tblname2_functype2_func_list) == 1:
         #    # hack to make this wrt to a single table.
@@ -610,19 +634,11 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     # +-----
     # Setup
     # +-----
-    def colname2_col(colname, tablename):
-        # col is a short alias for colname
-        return colname
-        #col = colname.replace(ut.singular_string(tablename) + '_', '')
-        #return col
 
     (dbself, all_colnames, superkey_colnames, primarykey_colnames, other_colnames) = tableinfo
 
     # not sure if this is kosher
-    other_colnames += superkey_colnames
-
-    other_cols = list(map(lambda colname: colname2_col(colname, tablename), other_colnames))
-    other_COLNAMES = list(map(lambda colname: colname.upper(), other_colnames))
+    #other_colnames += superkey_colnames
     nonprimary_leaf_colnames = ut.setdiff_ordered(all_colnames, primarykey_colnames)
     leaf_other_propnames = ', '.join(other_colnames)
     #leaf_other_propname_lists = ', '.join([colname + '_list' for colname in other_colnames])
@@ -940,7 +956,9 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         # Only dependants have native configs
         if len(depends_list) > 1 and with_configs:
             append_func('2_Native.config_getter', Tdef.Tcfg_rowid_getter)
-        if True:
+
+        with_extern = True
+        if with_extern:
             # many to one table relationships
             extern_tables = externtbl_map[tablename]
             if extern_tables is not None:
@@ -964,22 +982,26 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         if ut.VERBOSE:
             print('[TEMPLATE]  * Building column funcs len(other_colnames) = %r' % (len(other_colnames),))
         # For each column property
-        for colname, col, COLNAME in zip(other_colnames, other_cols, other_COLNAMES):
-            if is_disabled_by_multicol(colname):
-                continue
-            set_col(col, COLNAME)
-            if with_getters:
-                # Getter template: columns
-                if with_col_rootleaf:
-                    append_func('1_RL.getter_col', Tdef.Tgetter_rl_pclines_dependant_column)
-                if with_native:
-                    append_func('2_Native.getter_col', Tdef.Tgetter_table_column)
-            if with_setters and  tablename not in readonly_set:
-                # Setter template: columns
-                if with_native:
-                    append_func('2_Native.setter', Tdef.Tsetter_native_column)
-            constant_list.append(COLNAME + ' = \'%s\'' % (colname,))
-            append_constant(COLNAME, colname)
+        def col_generator(_list):
+            # FIXME: clean up this generator func
+            for colname in _list:
+                COLNAME = colname.upper()
+                if is_disabled_by_multicol(colname):
+                    continue
+                set_col(colname, COLNAME)
+                constant_list.append(COLNAME + ' = \'%s\'' % (colname,))
+                append_constant(COLNAME, colname)
+                yield colname
+        if with_getters and with_col_rootleaf:
+            for colname in col_generator(list(other_colnames)):
+                append_func('1_RL.getter_col', Tdef.Tgetter_rl_pclines_dependant_column)
+        if with_getters and with_native:
+            for colname in col_generator(list(other_colnames) + list(superkey_colnames)):
+                append_func('2_Native.getter_col', Tdef.Tgetter_table_column)
+        if with_setters and with_native and  tablename not in readonly_set:
+            # Setter template: columns
+            for colname in col_generator(list(other_colnames)):
+                append_func('2_Native.setter', Tdef.Tsetter_native_column)
 
     if with_multicolumns:
         # For each multicolumn property
@@ -1035,30 +1057,65 @@ def get_autogen_text(
 
 def parse_table_structure(ibs):
     print('[TEMPLATE] parse_table_structure()')
-    tablename_list = ibs.db.get_table_names() + ibs.dbcache.get_table_names()
     # hack tablenames to be singular
     import re
-    keep_plural_hacks = ['species']
+    keep_plural_hacks = ['species', 'annotations', 'feature_weights']
     ignore_table_hacks = ['keys', 'metadata']
-    tablename2_tbl   = {tablename: re.sub('s$', '', tablename) if tablename not in keep_plural_hacks else tablename
-                        for tablename in tablename_list if tablename not in ignore_table_hacks}
+
+    def get_tablename_tbl(db, tablename):
+        shortname = db.get_metadata_val(tablename + '_shortname', eval_=True)
+        if shortname is not None:
+            tbl = shortname
+        else:
+            if tablename not in keep_plural_hacks:
+                tbl = re.sub('s$', '', tablename)
+            else:
+                tbl = tablename
+        return tbl
+
+    db_tablename_list = [tablename for tablename in ibs.db.get_table_names() if tablename not in ignore_table_hacks]
+    dbcache_tablename_list = [tablename for tablename in ibs.dbcache.get_table_names() if tablename not in ignore_table_hacks]
+
+    tablename2_tbl = {tablename: get_tablename_tbl(ibs.db, tablename) for tablename in db_tablename_list}
+    tablename2_tbl.update({tablename: get_tablename_tbl(ibs.dbcache, tablename) for tablename in dbcache_tablename_list})
+    # more hacks
+    tablename2_tbl[const.FEATURE_WEIGHT_TABLE] = 'featweight'
+    tablename2_tbl[const.ANNOTATION_TABLE] = 'annot'
+    tablename2_tbl[const.FEATURE_TABLE] = 'feat'
+    #
+    tbl2_tablename = ut.invert_dict(tablename2_tbl)
+    db_tbl_list      = [tablename2_tbl.get(tablename, tablename) for tablename in db_tablename_list]
+    dbcache_tbl_list = [tablename2_tbl.get(tablename, tablename) for tablename in dbcache_tablename_list]
+
     # Parse dependencies out of the SQL Schemas
-    depends_map      = {tablename: ibs.db.get_metadata_val(tablename + '_dependson', eval_=True)
-                        for tablename in ibs.db.get_table_names()}
-    depends_map.update({tablename: ibs.dbcache.get_metadata_val(tablename + '_dependson', eval_=True)
-                        for tablename in ibs.dbcache.get_table_names()})
+    def get_tbl_depends(db, tbl):
+        tablename = tbl2_tablename[tbl]
+        depends = db.get_metadata_val(tablename + '_dependson', eval_=True)
+        if depends is None:
+            return None
+        if isinstance(depends, six.string_types):
+            return tablename2_tbl.get(depends, depends)
+        return depends
+    depends_map      = {tbl: get_tbl_depends(ibs.db, tbl) for tbl in db_tbl_list}
+    depends_map.update({tbl: get_tbl_depends(ibs.dbcache, tbl) for tbl in dbcache_tbl_list})
+
+    def get_tbl_relationship(tbl, db):
+        relates = db.get_metadata_val(tablename + '_relates', eval_=True)
+        if relates is not None:
+            relates = ut.dict_take(tablename2_tbl, relates)
+        return relates
+
     # Parse relationships out of the SQL Schemas
-    relationship_map = {tablename: ibs.db.get_metadata_val(tablename + '_relates', eval_=True)
-                            for tablename in ibs.db.get_table_names()}
-    relationship_map.update({tablename: ibs.dbcache.get_metadata_val(tablename + '_relates', eval_=True)
-                             for tablename in ibs.dbcache.get_table_names()})
+    relationship_map = {tbl: get_tbl_relationship(tbl, ibs.db)
+                        for tbl in db_tbl_list}
+    relationship_map.update({tbl: get_tbl_relationship(tbl, ibs.dbcache)
+                             for tbl in dbcache_tbl_list})
     # Parse the many to one relationships
     externtbl_map      = {tablename: ibs.db.get_metadata_val(tablename + '_extern_tables', eval_=True)
                           for tablename in ibs.db.get_table_names()}
     externtbl_map.update({tablename: ibs.dbcache.get_metadata_val(tablename + '_extern_tables', eval_=True)
                           for tablename in ibs.dbcache.get_table_names()})
 
-    tbl2_tablename = ut.invert_dict(tablename2_tbl)
     import operator
     # I'm not sure why is is not working
     tbl2_TABLE = {key: 'const.' + ut.get_varname_from_locals(val, const.__dict__, cmpfunc_=operator.eq)
@@ -1072,6 +1129,7 @@ def parse_table_structure(ibs):
         'tbl2_TABLE'       : tbl2_TABLE,
         'externtbl_map'    : externtbl_map,
     }
+    print('table_structure = ' + ut.dict_str(table_structure))
 
     return table_structure
 
@@ -1105,6 +1163,8 @@ def main(ibs, verbose=None):
     onlyfuncname = ut.get_argflag(('--onlyfuncname', '--onlyfn'),
                                   help_='if specified only prints the function signatures')
     dowrite = ut.get_argflag(('-w', '--write', '--dump-autogen-controller'))
+    show_diff = ut.get_argflag('--diff')
+    dowrite = dowrite and not show_diff
     autogen_key = ut.get_argval(('--key',), type_=str, default='default')
 
     table_structure = parse_table_structure(ibs)
@@ -1136,9 +1196,9 @@ def main(ibs, verbose=None):
     # Processes command line args
     if len(template_flags) > 0:
         flagdefault = True
-        flagskw['with_decor'] = False
-        flagskw['with_footer'] = False
-        flagskw['with_header'] = False
+        flagskw['with_decor'] = flagdefault
+        flagskw['with_footer'] = flagdefault
+        flagskw['with_header'] = flagdefault
         flagskw.update(ut.parse_cfgstr_list(template_flags))
         for flag in six.iterkeys(flagskw):
             if flagskw[flag] in ['True', 'On', '1']:
@@ -1175,6 +1235,12 @@ def main(ibs, verbose=None):
             if not dowrite:
                 ut.print_python_code(autogen_text)
                 print('\nL___\n...would write to: %s' % autogen_fpath)
+            if show_diff:
+                if ut.checkpath(autogen_fpath):
+                    prev_text = ut.read_from(autogen_fpath)
+                    textdiff = ut.util_str.get_textdiff(prev_text, autogen_text, mode=1)
+                    ut.print_difftext(textdiff)
+                pass
     if dowrite:
         ut.write_to(autogen_fpath, autogen_text)
 

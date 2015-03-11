@@ -29,8 +29,10 @@ Theader_ibeiscontrol = ut.codeblock(
         autogen_key = {autogen_key}
 
     ToRegenerate:
-        python -m ibeis.templates.template_generator --key {autogen_key}
-        python -m ibeis.templates.template_generator --key {autogen_key} --write
+        # REM python -m ibeis.templates.template_generator --key {autogen_key}
+        # REM python -m ibeis.templates.template_generator --key {autogen_key} --write
+        python -m ibeis.templates.template_generator {argv_tail_str1}
+        python -m ibeis.templates.template_generator {argv_tail_str2}
     """
     from __future__ import absolute_import, division, print_function
     import functools  # NOQA
@@ -40,12 +42,13 @@ Theader_ibeiscontrol = ut.codeblock(
     # REM dont circular import
     # REM from ibeis.control.IBEISControl import IBEISController
     import utool as ut
-    from ibeis.control.controller_inject import make_ibs_register_decorator
-    from ibeis.control import accessor_decors
+    from ibeis.control import controller_inject
+    from ibeis.control import accessor_decors  # NOQA
     print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_{autogen_key}]')
 
     # Create dectorator to inject functions in this module into the IBEISController
-    CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
+    CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
+    register_route = controller_inject.get_ibeis_flask_route()
 
 
     # REM def get_autogen_testdata():
@@ -193,6 +196,7 @@ Tadder_native = ut.codeblock(
             for ({allcol_items},) in
             zip({allcol_args})
         )
+        get_rowid_from_superkey = {self}.get_{tbl}_rowid_from_superkey
         {tbl}_rowid_list = {self}.{dbself}.add_cleanly({TABLE}, colnames, params_iter, get_rowid_from_superkey)
         return {tbl}_rowid_list
     # ENDBLOCK

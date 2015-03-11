@@ -6,6 +6,46 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[controller_inject]
 
 #INJECTED_MODULES = []
 
+flaskapp = None
+
+
+def translate_ibeis_webcall(func, *args, **kwargs):
+    from flask import request, make_response
+    rowid_list = request.form.get('rowid_list')
+    output = func(rowid_list, args)
+    responce = make_response(output)
+    return responce
+
+
+def ensure_flaskapp():
+    global flaskapp
+    if flaskapp is None:
+        import flask
+        port = 5398
+        flaskapp = flask.Flask(port)
+    return flaskapp
+
+
+def get_ibeis_flask_route():
+    WEB = False
+    if WEB:
+        flaskapp = ensure_flaskapp()
+        def register_route(rule, **options):
+            # accpet args to flask.route
+            def regsiter_closure(func):
+                # make translation function in closure scope
+                # and register it with flask.
+                @flaskapp.route(rule, **options)
+                def translated_call(*args, **kwargs):
+                    return translate_ibeis_webcall(func, *args, **kwargs)
+                # return the original unmodified function
+                return func
+            return regsiter_closure
+        return register_route
+
+    else:
+        return ut.dummy_args_decor
+
 
 def make_ibs_register_decorator(modname):
     """

@@ -41,6 +41,8 @@ from ibeis.model.hots import pipeline
 
 # Pyinstaller hacks
 from ibeis.control import _autogen_featweight_funcs  # NOQA
+from ibeis.control import _autogen_party_funcs  # NOQA
+from ibeis.control import _autogen_annotmatch_funcs  # NOQA
 from ibeis.control import manual_ibeiscontrol_funcs  # NOQA
 from ibeis.control import manual_meta_funcs  # NOQA
 from ibeis.control import manual_lbltype_funcs  # NOQA
@@ -57,6 +59,8 @@ from ibeis.control import manual_feat_funcs  # NOQA
 # Shiny new way to inject external functions
 autogenmodname_list = [
     '_autogen_featweight_funcs',
+    '_autogen_party_funcs',
+    '_autogen_annotmatch_funcs',
     #'_autogen_annot_funcs',
     'manual_ibeiscontrol_funcs',
     'manual_meta_funcs',

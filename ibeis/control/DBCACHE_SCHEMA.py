@@ -110,7 +110,7 @@ def update_1_0_3(db, ibs=None):
 def update_1_0_4(db, ibs=None):
     db.modify_table(const.CHIP_TABLE, dependson=const.ANNOTATION_TABLE)
     db.modify_table(const.FEATURE_TABLE, dependson=const.CHIP_TABLE)
-    db.modify_table(const.FEATURE_WEIGHT_TABLE, dependson=const.FEATURE_TABLE)
+    db.modify_table(const.FEATURE_WEIGHT_TABLE, dependson=const.FEATURE_TABLE, shortname='featweight')
     #db.modify_table(const.FEATURE_WEIGHT_TABLE, dependson=[const.FEATURE_TABLE, const.PROBCHIP_TABLE])
     #db.modify_table(const.RESIDUAL_TABLE, dependson=[const.FEATURE_TABLE, const.VOCAB_TABLE])
     #db.modify_table(const.PROBCHIP_TABLE, dependson=[const.CHIP_TABLE])
