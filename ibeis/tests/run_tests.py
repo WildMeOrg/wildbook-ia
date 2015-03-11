@@ -18,6 +18,8 @@ def ensure_testing_data():
 
 
 def run_tests():
+    # DONT USE THESE FLAGS
+    #print('--testall and --testslow give you more tests')
     # starts logging for tests
     import ibeis
     ibeis._preload()
