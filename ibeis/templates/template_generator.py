@@ -43,6 +43,8 @@ CommandLine:
 
     python -m ibeis.templates.template_generator --key images --funcname-filter party --Tcfg with_api_cache=False with_deleters=False
     python -m ibeis.templates.template_generator --key images --funcname-filter contrib --Tcfg with_api_cache=False with_deleters=False
+    python -m ibeis.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=False
+
 
 TODO:
    * autogen testdata function
@@ -649,6 +651,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     leaf_props = '_'.join(other_colnames)
     # TODO: handle more than one superkey_colnames
     superkey_args = ', '.join([colname + '_list' for colname in superkey_colnames])
+    superkey_COLNAMES = ', '.join([colname.upper() for colname in superkey_colnames])
 
     # WE WILL DEFINE SEVERAL CLOSURES THAT USE THIS DICTIONARY
     fmtdict = {
@@ -670,6 +673,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     #fmtdict['leaf_other_propname_lists'] = leaf_other_propname_lists
     fmtdict['leaf_props'] = leaf_props
     fmtdict['superkey_args'] = superkey_args
+    fmtdict['superkey_COLNAMES'] = superkey_COLNAMES
     fmtdict['self'] = 'ibs'
     fmtdict['dbself'] = dbself
 
@@ -930,17 +934,20 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         if relation_tables is not None:
             (tbl1, tbl2) = relation_tables
             set_relation_tables(tbl, relation_tables)
-            if with_adders:
-                append_func('3_RELATE.adder', Tdef.Tadder_relationship)
-            # Add both directions in relationships
-            for count, direction in enumerate([1, -1], start=1):
-                relation_tables_ = relationship_map.get(tbl, None)[::direction]
-                set_relation_tables(tbl, relation_tables_)
-                if with_deleters:
-                    append_func('3_RELATE{count}.deleter'.format(count=count), Tdef.Tdeleter_table1_relation)
-                if with_getters:
-                    append_func('3_RELATE{count}.getter'.format(count=count), Tdef.Tgetter_table1_rowids)
-                    pass
+            if tbl1 != tbl2:
+                # FIXME: hack
+                if with_adders:
+                    append_func('3_RELATE.adder', Tdef.Tadder_relationship)
+                # Add both directions in relationships
+                for count, direction in enumerate([1, -1], start=1):
+                    relation_tables_ = relationship_map.get(tbl, None)[::direction]
+                    (tbl1, tbl2) = relation_tables_
+                    set_relation_tables(tbl, relation_tables_)
+                    if with_deleters:
+                        append_func('3_RELATE{count}.deleter'.format(count=count), Tdef.Tdeleter_table1_relation)
+                    if with_getters:
+                        append_func('3_RELATE{count}.getter'.format(count=count), Tdef.Tgetter_table1_rowids)
+                        pass
 
     # ------------------
     #  Native Noncolumn

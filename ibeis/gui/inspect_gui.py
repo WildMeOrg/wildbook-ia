@@ -22,6 +22,7 @@ import guitool
 import numpy as np
 import six
 import utool
+#from ibeis import constants as const
 import utool as ut
 from ibeis.gui import guiexcept
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[inspect_gui]')
@@ -284,6 +285,8 @@ def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False):
         assert len(aid_list) == len(nid_list), 'list must correspond'
         if not dryrun:
             ibs.set_annot_name_rowids(aid_list, nid_list)
+            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
+            #ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_MATCH, [1.0])
         # Return the new annots in this name
         _aids_list = ibs.get_name_aids(nid_list)
         _combo_aids_list = [_aids + [aid] for _aids, aid, in zip(_aids_list, aid_list)]
@@ -366,6 +369,8 @@ def mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False):
         print('... _set_annot_name_rowids(%r, %r)' % (aid_list, nid_list))
         if not dryrun:
             ibs.set_annot_name_rowids(aid_list, nid_list)
+            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
+            #ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_NOT_MATCH, [1.0])
     nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
     if nid1 == nid2:
         print('images are marked as having the same name... we must tread carefully')
@@ -621,10 +626,12 @@ def get_reviewed_status(ibs, aid_pair):
     assert not utool.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
     assert not utool.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
     #text  = ibsfuncs.vsstr(aid1, aid2)
-    text = ibs.get_match_text(aid1, aid2)
-    if text is None:
-        raise AssertionError('impossible state inspect_gui')
-    return 'No'
+    annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
+    return 'Yes' if annotmach_reviewed else 'No'
+    #text = ibs.get_match_text(aid1, aid2)
+    #if text is None:
+    #    raise AssertionError('impossible state inspect_gui')
+    #return 'No'
 
 
 def get_match_status_bgrole(ibs, aid_pair):
@@ -639,10 +646,16 @@ def get_match_status_bgrole(ibs, aid_pair):
 def get_reviewed_status_bgrole(ibs, aid_pair):
     """ Background role for status column """
     aid1, aid2 = aid_pair
+    truth = ibs.get_match_truth(aid1, aid2)
+    annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
+    #truth = ibs.get_annot_pair_truth([aid1], [aid2])[0]
+    #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
+    lighten_amount = .35 if annotmach_reviewed else .9
+    truth_color = vh.get_truth_color(truth, base255=True, lighten_amount=lighten_amount)
     #truth = ibs.get_match_truth(aid1, aid2)
     #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
     #truth_color = vh.get_truth_color(truth, base255=True, lighten_amount=0.35)
-    return (255, 255, 255)
+    return truth_color
 
 
 def get_buttontup(ibs, qtindex):

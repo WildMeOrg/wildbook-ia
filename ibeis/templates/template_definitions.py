@@ -197,7 +197,9 @@ Tadder_native = ut.codeblock(
             zip({allcol_args})
         )
         get_rowid_from_superkey = {self}.get_{tbl}_rowid_from_superkey
-        {tbl}_rowid_list = {self}.{dbself}.add_cleanly({TABLE}, colnames, params_iter, get_rowid_from_superkey)
+        # FIXME: encode superkey paramx
+        superkey_paramx = (0, 1)
+        {tbl}_rowid_list = {self}.{dbself}.add_cleanly({TABLE}, colnames, params_iter, get_rowid_from_superkey, superkey_paramx)
         return {tbl}_rowid_list
     # ENDBLOCK
     '''
@@ -831,7 +833,7 @@ Tgetter_native_rowid_from_superkey = ut.codeblock(
         colnames = ({TBL}_ROWID,)
         # FIXME: col_rowid is not correct
         params_iter = zip({superkey_args})
-        andwhere_colnames = [{superkey_args}]
+        andwhere_colnames = [{superkey_COLNAMES}]
         {tbl}_rowid_list = {self}.{dbself}.get_where2(
             {TABLE}, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
         return {tbl}_rowid_list
@@ -850,7 +852,7 @@ Tsetter_native_column = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @setter
-    def set_{tbl}_{col}s({self}, {tbl}_rowid_list, {col}_list, duplicate_behavior='error'):
+    def set_{tbl}_{col}({self}, {tbl}_rowid_list, {col}_list, duplicate_behavior='error'):
         """ {col}_list -> {tbl}.{col}[{tbl}_rowid_list]
 
         Args:
@@ -872,7 +874,7 @@ Tsetter_native_column = ut.codeblock(
 Tsetter_native_multicolumn = ut.codeblock(
     r'''
     # STARTBLOCK
-    def set_{tbl}_{multicol}s({self}, {tbl}_rowid_list, {multicol}_list, duplicate_behavior='error'):
+    def set_{tbl}_{multicol}({self}, {tbl}_rowid_list, {multicol}_list, duplicate_behavior='error'):
         """ {multicol}_list -> {tbl}.{multicol}[{tbl}_rowid_list]
 
         Tsetter_native_multicolumn

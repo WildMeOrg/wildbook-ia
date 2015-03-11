@@ -3138,6 +3138,43 @@ def detect_join_cases(ibs):
     #return qres_list
 
 
+@__injectable
+def mark_annot_pair_as_reviewed(ibs, aid1, aid2):
+    """ denote that this match was reviewed and keep whatever status it is given """
+    isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
+    if isunknown1 or isunknown2:
+        truth = const.TRUTH_UNKNOWN
+    else:
+        nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
+        truth = const.TRUTH_UNKNOWN if (nid1 == nid2) else const.TRUTH_NOT_MATCH
+    ibs.add_or_update_annotmatch(aid1, aid2, truth, [1.0])
+
+
+@__injectable
+def add_or_update_annotmatch(ibs, aid1, aid2, truth, confidence):
+    annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]
+    # TODO: sql add or update?
+    if annotmatch_rowid is not None:
+        ibs.set_annotmatch_truth([annotmatch_rowid], [1])
+        ibs.set_annotmatch_confidence([annotmatch_rowid], [1.0])
+    else:
+        ibs.add_annotmatch([aid1], [aid2], [truth], [1.0])
+
+
+@__injectable
+def get_annot_pair_truth(ibs, aid1_list, aid2_list):
+    annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
+    annotmatch_truth_list  = ibs.get_annotmatch_truth(annotmatch_rowid_list)
+    return annotmatch_truth_list
+
+
+@__injectable
+def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
+    annotmatch_truth_list = ibs.get_annot_pair_truth(aid1_list, aid2_list)
+    annotmatch_reviewed_list = [truth is not None for truth in annotmatch_truth_list]
+    return annotmatch_reviewed_list
+
+
 if __name__ == '__main__':
     """
     CommandLine:

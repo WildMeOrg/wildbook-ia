@@ -545,6 +545,11 @@ class MatchVerificationInteraction(AbstractInteraction):
         figtitle = figtitle_fmt.format(**self.__dict__)  # sexy: using obj dict as fmtkw
         pt.set_figtitle(figtitle)
 
+    def on_close(self, event=None):
+        super(MatchVerificationInteraction, self).on_close(event)
+        # closing this gui means you have reviewed the annotation.
+        self.ibs.mark_annot_pair_as_reviewed(self.aid1, self.aid2)
+
     def unname_annotation(self, aid, event=None):
         if ut.VERBOSE:
             print('remove name')
@@ -668,6 +673,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                 #print(ut.dict_str(event.__dict__))
             elif viztype == 'matches':
                 self.qres.ishow_matches(self.ibs, self.aid2, fnum=None, mode=0)
+
 
 if __name__ == '__main__':
     """
