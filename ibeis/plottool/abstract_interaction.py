@@ -113,5 +113,5 @@ class AbstractInteraction(object):
         fig_presenter.close_figure(self.fig)
 
     def on_close(self, event=None):
-        print('handling close')
+        print('[pt] handling close')
         unregister_interaction(self)
