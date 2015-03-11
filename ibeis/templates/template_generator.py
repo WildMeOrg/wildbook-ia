@@ -36,8 +36,8 @@ CommandLine:
     python -m ibeis.templates.template_generator --key party_contrib_relation --Tcfg strip_docstr=True strip_eager=True strip_nparams=True
     python -m ibeis.templates.template_generator --key match --Tcfg strip_docstr=True strip_eager=True strip_nparams=True
 
-    python -m ibeis.templates.template_generator --key images --funcname-filter party
-    python -m ibeis.templates.template_generator --key images --funcname-filter party
+    python -m ibeis.templates.template_generator --key images --funcname-filter party --Tcfg with_api_cache=False with_deleters=False
+    python -m ibeis.templates.template_generator --key images --funcname-filter party --Tcfg with_api_cache=False with_deleters=False
     python -m ibeis.templates.template_generator --key party --Tcfg with_api_cache=False with_deleters=False
     python -m ibeis.templates.template_generator --key party --Tcfg with_api_cache=False with_deleters=False --write
     python -m ibeis.templates.template_generator --key annotmatch
@@ -72,7 +72,8 @@ USE_FUNCTYPE_HEADERS = False  # True
 REMOVE_QREQ = False  # False
 WITH_PEP8 = True
 WITH_DECOR = True
-WITH_API_CACHE = True
+WITH_API_CACHE = False
+WITH_WEB_API = False
 
 
 #STRIP_DOCSTR   = True
@@ -285,7 +286,7 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
     # add decorators
     # HACK IN API_CACHE decorators
     with_api_cache = flagskw.get('with_api_cache', WITH_API_CACHE)
-    with_web_api = flagskw.get('with_web_api', True)
+    with_web_api = flagskw.get('with_web_api', WITH_WEB_API)
     if with_api_cache:
         if func_type == '2_Native.getter_col':
             func_code = '@accessor_decors.cache_getter({TABLE}, {COLNAME})\n'.format(**fmtdict) + func_code
