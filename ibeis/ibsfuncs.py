@@ -961,11 +961,7 @@ def is_nid_unknown(ibs, nid_list):
 @__injectable
 def get_match_text(ibs, aid1, aid2):
     truth = ibs.get_match_truth(aid1, aid2)
-    text = {
-        2: 'NEW Match ',
-        0: 'JOIN Match ',
-        1: 'SPLIT Match ',
-    }.get(truth, None)
+    text = const.TRUTH_INT_TO_TEXT.get(truth, None)
     return text
 
 

@@ -1,4 +1,8 @@
 """
+TODO:
+    I've decided that I dont like the plural function names.
+    We will move to singular function names.
+
 CommandLine:
     # Regenerate command
     python ibeis/templates/template_generator.py
@@ -93,10 +97,10 @@ Tadder_pl_dependant = ut.codeblock(
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
             >>> {self}, qreq_ = testdata_ibs()
-            # REM >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[::3]
+            # REM >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[:2]
             # REM HACK
             >>> from ibeis import constants as const
-            >>> {root}_rowid_list = {self}.get_valid_{root}_rowids(species=const.Species.ZEB_PLAIN)[::3]
+            >>> {root}_rowid_list = {self}.get_valid_{root}_rowids(species=const.Species.ZEB_PLAIN)[:2]
             >>> if '{root}' != '{parent}':
             ...     {parent}_rowid_list = {self}.get_{root}_{parent}_rowids({root}_rowid_list, qreq_=qreq_, ensure=True)
             >>> {leaf}_rowid_list = {self}.add_{parent}_{leaf}s({parent}_rowid_list, qreq_=qreq_)
@@ -222,7 +226,7 @@ Tadder_rl_dependant = ut.codeblock(
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
             >>> {self}, qreq_ = testdata_ibs()
-            >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[::3]
+            >>> {root}_rowid_list = {self}._get_all_{root}_rowids()[:2]
             >>> {leaf}_rowid_list = {self}.add_{root}_{leaf}s({root}_rowid_list, qreq_=qreq_)
             >>> assert len({leaf}_rowid_list) == len({root}_rowid_list)
             >>> ut.assert_all_not_None({leaf}_rowid_list)
@@ -364,7 +368,7 @@ Tdeleter_pl_depenant = ut.codeblock(
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
             >>> {self}, qreq_ = testdata_ibs()
-            >>> {parent}_rowid_list = {self}._get_all_{parent}_rowids()[::3]
+            >>> {parent}_rowid_list = {self}._get_all_{parent}_rowids()[:2]
             >>> {self}.delete_{parent}_{leaf}({parent}_rowid_list, qreq_=qreq_)
         """
         if ut.VERBOSE:
@@ -400,13 +404,11 @@ Tdeleter_native_tbl = ut.codeblock(
             Tdeleter_native_tbl
             tbl = {tbl}
 
-        Tdeleter_native_tbl
-
         Example:
             >>> # ENABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
             >>> {self}, qreq_ = testdata_ibs()
-            >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()[::3]
+            >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()[:2]
             >>> {self}.delete_{tbl}({tbl}_rowid_list)
         """
         from ibeis.model.preproc import preproc_{tbl}
@@ -865,9 +867,13 @@ Tdeleter_table1_relation = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @deleter
-    def delete_{tbl1}_relations({self}, {tbl1}_rowid_list):
+    def delete_{tbl1}_{relation_tbl}_relation({self}, {tbl1}_rowid_list):
         """
-        Deletes the relationship between an {tbl} row and a label
+        Deletes the relationship between an {tbl1} and {tbl2}
+
+        TemplateInfo:
+            Tdeleter_relationship
+            tbl = {relation_tbl}
         """
         {relation_tbl}_rowids_list = {self}.get_{tbl1}_{relation_tbl}_rowids({tbl1}_rowid_list)
         {relation_tbl}_rowid_list = ut.flatten({relation_tbl}_rowids_list)
@@ -881,13 +887,21 @@ Tgetter_table1_rowids = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @deleter
-    def delete_{tbl1}_relations({self}, {tbl1}_rowid_list):
+    def get_{tbl1}_{relation_tbl}_rowids({self}, {tbl1}_rowid_list):
         """
-        Deletes the relationship between an {tbl} row and a label
+        Returns:
+            list of lists: {relation_tbl}_rowids_list
+
+        TemplateInfo:
+            Tgetter_relationship
+            tbl = {relation_tbl}
         """
-        {relation_tbl}_rowids_list = {self}.get_{tbl1}_{relation_tbl}_rowids({tbl1}_rowid_list)
-        {relation_tbl}_rowid_list = ut.flatten({relation_tbl}_rowids_list)
-        {self}.{dbself}.delete_rowids({RELATION_TABLE}, {relation_tbl}_rowid_list)
+        colnames = ('{relation_tbl}_rowid',)
+        params_iter = {tbl1}_rowid_list
+        where_clause = '{tbl2}_rowid=?'
+        {relation_tbl}_rowids_list = ibs.db.get_where({RELATION_TABLE}, colnames, params_iter,
+                                      where_clause, unpack_scalars=False)
+        return {relation_tbl}_rowids_list
     # ENDBLOCK
     '''
 )
@@ -896,7 +910,7 @@ Tadder_relationship = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @adder
-    def add_{tbl1}_{tbl2}_relationship({self}, {tbl1}_rowid_list, {tbl2}_rowid_list):
+    def add_{relation_tbl}_{tbl1}_{tbl2}_relation({self}, {tbl1}_rowid_list, {tbl2}_rowid_list):
         """
         Adds a relationship between an image and encounter
 
@@ -905,6 +919,7 @@ Tadder_relationship = ut.codeblock(
 
         TemplateInfo:
             Tadder_relationship
+            tbl = {relation_tbl}
         """
         colnames = ('{tbl1}_rowid', '{tbl2}_rowid',)
         params_iter = list(zip({tbl1}_rowid_list, {tbl2}_rowid_list))

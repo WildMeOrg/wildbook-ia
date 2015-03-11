@@ -261,10 +261,10 @@ expand_special_colnames(constants.ROSEMARY_ANNOT_METADATA)
 
 
 def get_redirects(ibs):
-    '''
+    """
         Allows one to specify a column in a particular table to redirect the view
         to a different view (like a link in HTML to a different page)
-    '''
+    """
     redirects = {}
     # Annotation redirects
     # redirects[ANNOTATION_TABLE] = {

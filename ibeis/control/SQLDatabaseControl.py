@@ -138,6 +138,16 @@ class SQLDatabaseController(object):
         db.optimize()
         db._ensure_metadata_table()
 
+        # standard metadata table keys for each docstr
+        db.table_metadata_keys = [
+            'constraint',
+            'dependson',
+            'docstr',
+            'relates',
+            'shortname',
+            'superkeys',
+        ]
+
     def get_fpath(db):
         return db.fpath
 
@@ -161,15 +171,16 @@ class SQLDatabaseController(object):
         db.get_db_version(ensure=True)
 
     def get_db_version(db, ensure=True):
-        metadata_key_list = ['database_version']
-        params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
-        where_clause = 'metadata_key=?'
-        # list of relationships for each image
-        metadata_value_list = db.get_where(constants.METADATA_TABLE,
-                                           ('metadata_value',), params_iter,
-                                           where_clause, unpack_scalars=True)
-        assert len(metadata_value_list) == 1, 'duplicate database_version keys in database'
-        version = metadata_value_list[0]
+        version = db.get_metadata_val('database_version')
+        #metadata_key_list = ['database_version']
+        #params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
+        #where_clause = 'metadata_key=?'
+        ## list of relationships for each image
+        #metadata_value_list = db.get_where(constants.METADATA_TABLE,
+        #                                   ('metadata_value',), params_iter,
+        #                                   where_clause, unpack_scalars=True)
+        #assert len(metadata_value_list) == 1, 'duplicate database_version keys in database'
+        #version = metadata_value_list[0]
         if version is None and ensure:
             version = constants.BASE_DATABASE_VERSION
             colnames = ['metadata_key', 'metadata_value']
@@ -564,7 +575,159 @@ class SQLDatabaseController(object):
     #=========
 
     @default_decorator
-    def add_table(db, tablename=None, coldef_list=None, table_constraints=None, docstr='', superkey_colnames_list=None):
+    def executeone(db, operation, params=(), auto_commit=True, eager=True,
+                   verbose=VERBOSE_SQL):
+        with SQLExecutionContext(db, operation, nInput=1) as context:
+            try:
+                result_iter = context.execute_and_generate_results(params)
+                result_list = list(result_iter)
+            except Exception as ex:
+                utool.printex(ex, key_list=[(str, 'operation'), 'params'])
+                # utool.sys.exit(1)
+                raise
+        return result_list
+
+    @default_decorator
+    #@utool.memprof
+    def executemany(db, operation, params_iter, auto_commit=True,
+                    verbose=VERBOSE_SQL, unpack_scalars=True, nInput=None,
+                    eager=True):
+        # --- ARGS PREPROC ---
+        # Aggresively compute iterator if the nInput is not given
+        if nInput is None:
+            if isinstance(params_iter, (list, tuple)):
+                nInput = len(params_iter)
+            else:
+                if VERBOSE_SQL:
+                    print('[sql!] WARNING: aggressive eval of params_iter because nInput=None')
+                params_iter = list(params_iter)
+                nInput  = len(params_iter)
+        else:
+            if VERBOSE_SQL:
+                print('[sql] Taking params_iter as iterator')
+
+        # Do not compute executemany without params
+        if nInput == 0:
+            if VERBOSE_SQL:
+                print('[sql!] WARNING: dont use executemany'
+                      'with no params use executeone instead.')
+            return []
+        # --- SQL EXECUTION ---
+        contextkw = {
+            'nInput': nInput,
+            'start_transaction': True,
+            'verbose': verbose,
+        }
+
+        with SQLExecutionContext(db, operation, **contextkw) as context:
+            #try:
+            if eager:
+                #if utool.DEBUG2:
+                #    print('--------------')
+                #    print('+++ eager eval')
+                #    print(operation)
+                #    print('+++ eager eval')
+                #results_iter = list(
+                    #map(
+                    #    list,
+                    #    (context.execute_and_generate_results(params) for params in params_iter)
+                    #)
+                #)  # list of iterators
+                results_iter = [list(context.execute_and_generate_results(params)) for params in params_iter]
+                if unpack_scalars:
+                    results_iter = list(map(_unpacker, results_iter))  # list of iterators
+                results_list = list(results_iter)  # Eager evaluation
+            else:
+                #if utool.DEBUG2:
+                #    print('--------------')
+                #    print(' +++ lazy eval')
+                #    print(operation)
+                #    print(' +++ lazy eval')
+                def tmpgen(context):
+                    # Temporary hack to turn off eager_evaluation
+                    for params in params_iter:
+                        # Eval results per query yeild per iter
+                        results = list(context.execute_and_generate_results(params))
+                        if unpack_scalars:
+                            yield _unpacker(results)
+                        else:
+                            yield results
+                results_list = tmpgen(context)
+            #except Exception as ex:
+            #    utool.printex(ex)
+            #    raise
+        return results_list
+
+    #@default_decorator
+    #def commit(db):
+    #    db.connection.commit()
+
+    @default_decorator
+    def dump_to_file(db, file_, auto_commit=True, schema_only=False):
+        if VERBOSE_SQL:
+            print('[sql.dump]')
+        if auto_commit:
+            db.connection.commit()
+            #db.commit(verbose=False)
+        for line in db.connection.iterdump():
+            if schema_only and line.startswith('INSERT'):
+                continue
+            file_.write('%s\n' % line)
+
+    @default_decorator
+    def dump_to_string(db, auto_commit=True, schema_only=False):
+        retStr = ''
+        if VERBOSE_SQL:
+            print('[sql.dump]')
+        if auto_commit:
+            db.connection.commit()
+            #db.commit(verbose=False)
+        for line in db.connection.iterdump():
+            if schema_only and line.startswith('INSERT'):
+                continue
+            retStr += '%s\n' % line
+        return retStr
+
+    #=========
+    # SQLDB METADATA
+    #=========
+
+    def set_metadata_val(db, key, val):
+        fmtkw = {
+            'tablename': constants.METADATA_TABLE,
+            'columns': 'metadata_key, metadata_value'
+        }
+        op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
+        operation = op_fmtstr.format(**fmtkw)
+        params = [key, val]
+        db.executeone(operation, params, verbose=False)
+
+    def get_metadata_val(db, key):
+        where_clause = 'metadata_key=?'
+        colnames = ('metadata_value',)
+        params_iter = [(key,)]
+        val = db.get_where(constants.METADATA_TABLE, colnames, params_iter, where_clause)[0]
+        return val
+
+    #==============
+    # SCHEMA MODIFICATION
+    #==============
+
+    @default_decorator
+    def add_column(db, tablename, colname, coltype):
+        printDBG('[sql] add column=%r of type=%r to tablename=%r' % (colname, coltype, tablename))
+        fmtkw = {
+            'tablename': tablename,
+            'colname': colname,
+            'coltype': coltype,
+        }
+        op_fmtstr = 'ALTER TABLE {tablename} ADD COLUMN {colname} {coltype}'
+        operation = op_fmtstr.format(**fmtkw)
+        db.executeone(operation, [], verbose=False)
+
+    @default_decorator
+    def add_table(db, tablename=None, coldef_list=None, table_constraints=None, docstr='', superkey_colnames_list=None,
+                  dependson=None, relates=None, shortname=None):
         """
         add_table
 
@@ -621,51 +784,22 @@ class SQLDatabaseController(object):
 
         if docstr is not None:
             # Insert or replace docstr in metadata table
-            fmtkw = {
-                'tablename': constants.METADATA_TABLE,
-                'columns': 'metadata_key, metadata_value'
-            }
-            op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
-            operation = op_fmtstr.format(**fmtkw)
-            params = [tablename + '_docstr', docstr]
-            db.executeone(operation, params, verbose=False)
+            db.set_metadata_val(tablename + '_docstr', docstr)
 
         if len(table_constraints) > 0:
             # Insert or replace constraint in metadata table
-            fmtkw = {
-                'tablename': constants.METADATA_TABLE,
-                'columns': 'metadata_key, metadata_value'
-            }
-            op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
-            operation = op_fmtstr.format(**fmtkw)
-            params = [tablename + '_constraint', ';'.join(table_constraints)]
-            db.executeone(operation, params, verbose=False)
+            db.set_metadata_val(tablename + '_constraint', ';'.join(table_constraints))
 
         if superkey_colnames_list is not None:
             # have the metadata table keep track of table superkeys
             # Insert or replace superkeys in metadata table
-            fmtkw = {
-                'tablename': constants.METADATA_TABLE,
-                'columns': 'metadata_key, metadata_value'
-            }
-            op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
-            operation = op_fmtstr.format(**fmtkw)
-            #superkey_colnames_list_repr = ';'.join(superkey_colnames_list)
-            superkey_colnames_list_repr = repr(superkey_colnames_list)
-            params = [tablename + '_superkeys', superkey_colnames_list_repr]
-            db.executeone(operation, params, verbose=False)
-
-    @default_decorator
-    def add_column(db, tablename, colname, coltype):
-        printDBG('[sql] add column=%r of type=%r to tablename=%r' % (colname, coltype, tablename))
-        fmtkw = {
-            'tablename': tablename,
-            'colname': colname,
-            'coltype': coltype,
-        }
-        op_fmtstr = 'ALTER TABLE {tablename} ADD COLUMN {colname} {coltype}'
-        operation = op_fmtstr.format(**fmtkw)
-        db.executeone(operation, [], verbose=False)
+            db.set_metadata_val(tablename + '_superkeys', repr(superkey_colnames_list))
+        if dependson is not None:
+            db.set_metadata_val(tablename + '_dependson', repr(dependson))
+        if relates is not None:
+            db.set_metadata_val(tablename + '_relates', repr(relates))
+        if shortname is not None:
+            db.set_metadata_val(tablename + '_shortname', repr(relates))
 
     @default_decorator
     def modify_table(db, tablename, colmap_list=None, table_constraints=None,
@@ -941,124 +1075,10 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def drop_column(db, tablename, colname):
-        # DATABASE TABLE CACHES ARE UPDATED WITH modify_table
+        """ # DATABASE TABLE CACHES ARE UPDATED WITH modify_table """
         db.modify_table(tablename, (
             (colname, None, '', None),
         ))
-
-    @default_decorator
-    def executeone(db, operation, params=(), auto_commit=True, eager=True,
-                   verbose=VERBOSE_SQL):
-        with SQLExecutionContext(db, operation, nInput=1) as context:
-            try:
-                result_iter = context.execute_and_generate_results(params)
-                result_list = list(result_iter)
-            except Exception as ex:
-                utool.printex(ex, key_list=[(str, 'operation'), 'params'])
-                # utool.sys.exit(1)
-                raise
-        return result_list
-
-    @default_decorator
-    #@utool.memprof
-    def executemany(db, operation, params_iter, auto_commit=True,
-                    verbose=VERBOSE_SQL, unpack_scalars=True, nInput=None,
-                    eager=True):
-        # --- ARGS PREPROC ---
-        # Aggresively compute iterator if the nInput is not given
-        if nInput is None:
-            if isinstance(params_iter, (list, tuple)):
-                nInput = len(params_iter)
-            else:
-                if VERBOSE_SQL:
-                    print('[sql!] WARNING: aggressive eval of params_iter because nInput=None')
-                params_iter = list(params_iter)
-                nInput  = len(params_iter)
-        else:
-            if VERBOSE_SQL:
-                print('[sql] Taking params_iter as iterator')
-
-        # Do not compute executemany without params
-        if nInput == 0:
-            if VERBOSE_SQL:
-                print('[sql!] WARNING: dont use executemany'
-                      'with no params use executeone instead.')
-            return []
-        # --- SQL EXECUTION ---
-        contextkw = {
-            'nInput': nInput,
-            'start_transaction': True,
-            'verbose': verbose,
-        }
-
-        with SQLExecutionContext(db, operation, **contextkw) as context:
-            #try:
-            if eager:
-                #if utool.DEBUG2:
-                #    print('--------------')
-                #    print('+++ eager eval')
-                #    print(operation)
-                #    print('+++ eager eval')
-                #results_iter = list(
-                    #map(
-                    #    list,
-                    #    (context.execute_and_generate_results(params) for params in params_iter)
-                    #)
-                #)  # list of iterators
-                results_iter = [list(context.execute_and_generate_results(params)) for params in params_iter]
-                if unpack_scalars:
-                    results_iter = list(map(_unpacker, results_iter))  # list of iterators
-                results_list = list(results_iter)  # Eager evaluation
-            else:
-                #if utool.DEBUG2:
-                #    print('--------------')
-                #    print(' +++ lazy eval')
-                #    print(operation)
-                #    print(' +++ lazy eval')
-                def tmpgen(context):
-                    # Temporary hack to turn off eager_evaluation
-                    for params in params_iter:
-                        # Eval results per query yeild per iter
-                        results = list(context.execute_and_generate_results(params))
-                        if unpack_scalars:
-                            yield _unpacker(results)
-                        else:
-                            yield results
-                results_list = tmpgen(context)
-            #except Exception as ex:
-            #    utool.printex(ex)
-            #    raise
-        return results_list
-
-    #@default_decorator
-    #def commit(db):
-    #    db.connection.commit()
-
-    @default_decorator
-    def dump_to_file(db, file_, auto_commit=True, schema_only=False):
-        if VERBOSE_SQL:
-            print('[sql.dump]')
-        if auto_commit:
-            db.connection.commit()
-            #db.commit(verbose=False)
-        for line in db.connection.iterdump():
-            if schema_only and line.startswith('INSERT'):
-                continue
-            file_.write('%s\n' % line)
-
-    @default_decorator
-    def dump_to_string(db, auto_commit=True, schema_only=False):
-        retStr = ''
-        if VERBOSE_SQL:
-            print('[sql.dump]')
-        if auto_commit:
-            db.connection.commit()
-            #db.commit(verbose=False)
-        for line in db.connection.iterdump():
-            if schema_only and line.startswith('INSERT'):
-                continue
-            retStr += '%s\n' % line
-        return retStr
 
     #==============
     # CONVINENCE
@@ -1118,7 +1138,8 @@ class SQLDatabaseController(object):
         line_list.append('\n')
         line_list.append('def update_current(db, ibs=None):')
         # Define what tab space we want to save
-        tab = ' ' * 4
+        tab1 = ' ' * 4
+        tab2 = ' ' * 8
         # Function content
         first = True
         for tablename in sorted(db.get_table_names()):
@@ -1134,9 +1155,9 @@ class SQLDatabaseController(object):
                     break
             # assert constant_name is not None, "Table name does not exists in constants"
             if constant_name is not None:
-                line_list.append('%sdb.add_table(const.%s, (' % (tab, constant_name, ))
+                line_list.append(tab1 + 'db.add_table(const.%s, [' % (constant_name, ))
             else:
-                line_list.append('%sdb.add_table(%r, (' % (tab, tablename, ))
+                line_list.append(tab1 + 'db.add_table(%r, [' % (tablename,))
             column_list = db.get_columns(tablename)
             for column in column_list:
                 col_name = ('%r,' % str(column[1])).ljust(32)
@@ -1147,12 +1168,23 @@ class SQLDatabaseController(object):
                     col_type += " NOT NULL"
                 elif column[4] is not None:
                     col_type += " DEFAULT " + str(column[4])  # Specify default value
-                line_list.append('%s%s(%s%r),' % (tab, tab, col_name, col_type, ))
-            line_list.append('%s),' % tab)
+                line_list.append(tab2 + '(%s%r),' % (col_name, col_type, ))
+            line_list.append(tab1 + '],')
             superkey_colnames_list = db.get_table_superkeys(tablename)
             docstr = db.get_table_docstr(tablename)
-            line_list.append('%s%ssuperkey_colnames_list=%r,' % (tab, tab, superkey_colnames_list, ))
-            line_list.append('%s%sdocstr=\'\'\'%s\'\'\')' % (tab, tab, docstr, ))
+            # Append metadata values
+            line_list.append(tab2 + 'superkey_colnames_list=%r,' % (superkey_colnames_list, ))
+            line_list.append(tab2 + 'docstr=' + ut.TRIPLE_SINGLE_QUOTE + docstr + ut.TRIPLE_SINGLE_QUOTE + ',')
+            # Hack out docstr and superkeys for now
+            for suffix in db.table_metadata_keys:
+                if suffix in ['docstr', 'superkeys']:
+                    continue
+                key = tablename + '_' + suffix
+                val = db.get_metadata_val(key)
+                if val is not None:
+                    line_list.append(tab2 + '%s=\'%s\',' % (suffix, val))
+            line_list.append(tab1 + ')')
+
         line_list.append('')
         return '\n'.join(line_list)
 
@@ -1200,11 +1232,12 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def get_table_constraints(db, tablename):
-        where_clause = 'metadata_key=?'
-        colnames = ('metadata_value',)
-        data = [(tablename + '_constraint',)]
-        constraint = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)
-        constraint = constraint[0]
+        constraint = db.get_metadata_val(tablename + '_constraint')
+        #where_clause = 'metadata_key=?'
+        #colnames = ('metadata_value',)
+        #data = [(tablename + '_constraint',)]
+        #constraint = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)
+        #constraint = constraint[0]
         if constraint is None:
             return None
         else:
@@ -1233,10 +1266,11 @@ class SQLDatabaseController(object):
             [('lbltype_rowid', 'lblimage_value')]
         """
         assert tablename in db.get_table_names(), 'tablename=%r is not a part of this database' % (tablename,)
-        where_clause = 'metadata_key=?'
-        colnames = ('metadata_value',)
-        data = [(tablename + '_superkeys',)]
-        superkey_colnames_list_repr = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)[0]
+        #where_clause = 'metadata_key=?'
+        #colnames = ('metadata_value',)
+        #data = [(tablename + '_superkeys',)]
+        #superkey_colnames_list_repr = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)[0]
+        superkey_colnames_list_repr = db.get_metadata_val(tablename + '_superkeys')
         # These asserts might not be valid, but in that case this function needs
         # to be rewritten under a different name
         #assert len(superkey_colnames_list) == 1, 'INVALID DEVELOPER ASSUMPTION IN SQLCONTROLLER. MORE THAN 1 SUPERKEY'
@@ -1294,11 +1328,12 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def get_table_docstr(db, tablename):
-        where_clause = 'metadata_key=?'
-        colnames = ('metadata_value',)
-        data = [(tablename + '_docstr',)]
-        docstr = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)
-        return docstr[0]
+        docstr = db.get_metadata_val(tablename + '_docstr')
+        #where_clause = 'metadata_key=?'
+        #colnames = ('metadata_value',)
+        #data = [(tablename + '_docstr',)]
+        #docstr = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)[0]
+        return docstr
 
     @default_decorator
     def get_columns(db, tablename):

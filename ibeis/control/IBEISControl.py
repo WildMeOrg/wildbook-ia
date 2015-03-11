@@ -348,8 +348,9 @@ class IBEISController(object):
         #ibs.db_version_expected = '1.1.1'
         ibs.db_version_expected = '1.3.5'
         # TODO: add this functionality to SQLController
-        TESTING_NEW_SQL_VERSION = False
+        TESTING_NEW_SQL_VERSION = True
         if TESTING_NEW_SQL_VERSION:
+            print('[ibs] ATTEMPTING TO TEST NEW SQLDB VERSION')
             devdb_list = ['PZ_MTEST', 'testdb1', 'testdb0', 'emptydatabase']
             testing_newschmea = ut.is_developer() and ibs.get_dbname() in devdb_list
             #testing_newschmea = False
@@ -363,7 +364,12 @@ class IBEISController(object):
                 dev_sqldb_fpath = join(ibs.get_ibsdir(), dev_sqldb_fname)
                 ut.copy(sqldb_fpath, dev_sqldb_fpath, overwrite=testing_force_fresh)
                 # Set testing schema version
-                ibs.db_version_expected = '1.3.5'
+                ibs.db_version_expected = '1.3.6'
+                print('[ibs] TESTING NEW SQLDB VERSION: %r' % (ibs.db_version_expected,))
+                #print('[ibs] ... pass --force-fresh to reload any changes')
+            else:
+                print('[ibs] NOT TESTING')
+
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,
                                               text_factory=const.__STR__,
                                               inmemory=False)

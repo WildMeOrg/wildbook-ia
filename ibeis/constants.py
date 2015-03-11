@@ -169,9 +169,13 @@ METADATA_TABLE       = 'metadata'
 NAME_TABLE_v121      = 'name'
 NAME_TABLE_v130      = 'names'
 NAME_TABLE           = NAME_TABLE_v130
+MATCH_TABLE          = 'match'
 SPECIES_TABLE        = 'species'
 RESIDUAL_TABLE       = 'residuals'
 VERSIONS_TABLE       = 'versions'
+#
+PARTY_CONTRIB_RELATION_TABLE = 'party_contrib_relation'
+PARTY_TABLE                  = 'party'
 #################################################################
 
 
@@ -328,6 +332,17 @@ def get_working_species_set():
         ]
     return working_species_tups
 
+
+TRUTH_UNKNOWN = 2
+TRUTH_MATCH = 1
+TRUTH_NOT_MATCH = 0
+
+
+TRUTH_INT_TO_TEXT = {
+    TRUTH_UNKNOWN   : 'Not Matched',  # 'Unknown',
+    TRUTH_NOT_MATCH : 'Not Matched',
+    TRUTH_MATCH     : 'Matched',
+}
 
 # clean namespace
 #del utool

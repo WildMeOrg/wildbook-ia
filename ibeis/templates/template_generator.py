@@ -14,6 +14,11 @@ Concepts:
          EG:
              * colname: stores the actual column name like 'feature_rowid'
 
+
+CommandLine:
+    # for current schema
+    python -m ibeis.control.DB_SCHEMA --test-test_db_schema
+
 CommandLine:
     python ibeis/templates/template_generator.py
     python -m ibeis.templates.template_generator --key featweight --write
@@ -24,6 +29,12 @@ CommandLine:
     python -m ibeis.templates.template_generator --key egr --Tcfg with_relations=True with_getters=True
     python -m ibeis.templates.template_generator --key egr --Tcfg with_native=False
 
+    python -m ibeis.templates.template_generator --key match --Tcfg with_native=False
+    python -m ibeis.templates.template_generator --key party --Tcfg with_native=False
+    python -m ibeis.templates.template_generator --key party_contrib_relation
+
+    python -m ibeis.templates.template_generator --key party_contrib_relation --Tcfg strip_docstr=True strip_eager=True strip_nparams=True
+    python -m ibeis.templates.template_generator --key match --Tcfg strip_docstr=True strip_eager=True strip_nparams=True
 
 TODO:
    * autogen testdata function
@@ -49,8 +60,8 @@ USE_ALIASES = True
 USE_FUNCTYPE_HEADERS = False  # True
 
 
-REMOVE_NPARAMS = False  # True
-REMOVE_EAGER = False  # True
+#strip_nparams = False  # True
+#strip_eager = False  # True
 REMOVE_QREQ = False  # False
 WITH_PEP8 = True
 WITH_DECOR = True
@@ -118,13 +129,19 @@ class SHORTNAMES(object):
     DETECT     = 'detect'
     ENCOUNTER  = 'encounter'
     IMAGE      = 'image'
-    LBLIMAGE   = 'egr'
+    MATCH      = 'match'
+    EGR        = 'egr'
+    PCR        = 'party_contrib_relation'
+    CONTRIB    = 'contributor'
+    PARTY      = 'party'
 
 depends_map = {
-    SHORTNAMES.LBLIMAGE  : None,
-    SHORTNAMES.IMAGE     : None,
-    SHORTNAMES.ENCOUNTER : None,
-    SHORTNAMES.ANNOT     : None,
+    #SHORTNAMES.MATCH     : None,
+    #SHORTNAMES.EGR       : None,
+    #SHORTNAMES.PCR       : None,
+    #SHORTNAMES.IMAGE     : None,
+    #SHORTNAMES.ENCOUNTER : None,
+    #SHORTNAMES.ANNOT     : None,
     SHORTNAMES.CHIP:       SHORTNAMES.ANNOT,
     SHORTNAMES.PROBCHIP:   SHORTNAMES.CHIP,
     SHORTNAMES.FEAT:       SHORTNAMES.CHIP,
@@ -133,21 +150,28 @@ depends_map = {
 }
 
 relationship_map = {
-    SHORTNAMES.LBLIMAGE: (SHORTNAMES.IMAGE, SHORTNAMES.ENCOUNTER),
+    SHORTNAMES.EGR: (SHORTNAMES.IMAGE, SHORTNAMES.ENCOUNTER),
+    SHORTNAMES.PCR: (SHORTNAMES.PARTY, SHORTNAMES.CONTRIB),
+    SHORTNAMES.MATCH: (SHORTNAMES.ANNOT, SHORTNAMES.ANNOT),
 }
 
 # shortened tablenames
 # Maps full table names to short table names
 tablename2_tbl = {
-    const.ANNOTATION_TABLE     : SHORTNAMES.ANNOT,
-    const.CHIP_TABLE           : SHORTNAMES.CHIP,
-    const.PROBCHIP_TABLE       : SHORTNAMES.PROBCHIP,
-    const.FEATURE_TABLE        : SHORTNAMES.FEAT,
-    const.FEATURE_WEIGHT_TABLE : SHORTNAMES.FEATWEIGHT,
-    const.RESIDUAL_TABLE       : SHORTNAMES.RVEC,
-    const.ENCOUNTER_TABLE      : SHORTNAMES.ENCOUNTER,
-    const.IMAGE_TABLE          : SHORTNAMES.IMAGE,
-    const.LBLIMAGE_TABLE       : SHORTNAMES.LBLIMAGE
+    const.MATCH_TABLE                  : SHORTNAMES.MATCH,
+    const.ANNOTATION_TABLE             : SHORTNAMES.ANNOT,
+    const.CHIP_TABLE                   : SHORTNAMES.CHIP,
+    const.PROBCHIP_TABLE               : SHORTNAMES.PROBCHIP,
+    const.FEATURE_TABLE                : SHORTNAMES.FEAT,
+    const.FEATURE_WEIGHT_TABLE         : SHORTNAMES.FEATWEIGHT,
+    const.RESIDUAL_TABLE               : SHORTNAMES.RVEC,
+    const.ENCOUNTER_TABLE              : SHORTNAMES.ENCOUNTER,
+    const.IMAGE_TABLE                  : SHORTNAMES.IMAGE,
+    #
+    const.EG_RELATION_TABLE            : SHORTNAMES.EGR,
+    const.PARTY_TABLE                  : SHORTNAMES.PARTY,
+    const.PARTY_CONTRIB_RELATION_TABLE : SHORTNAMES.PCR,
+    const.CONTRIBUTOR_TABLE            : SHORTNAMES.CONTRIB,
 
 }
 
@@ -169,6 +193,7 @@ variable_aliases = {
     'residualvecs'                : 'rvec_arr',
     'verts'                       : 'vert_arr',
     'posixs'                      : 'posix',
+    'party_contrib_relation_rowid'  : 'pcr_rowid',
 }
 
 
@@ -212,9 +237,9 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
     func_code = remove_sentinals(func_code)
     # BOTH OPTIONS ARE NOT GARUENTEED TO WORK. If there are bugs here may be a
     # good place to look.
-    if REMOVE_NPARAMS:
+    if flagskw['strip_nparams']:
         func_code = remove_kwarg('nInput', 'None', func_code)
-    if REMOVE_EAGER:
+    if flagskw['strip_eager']:
         func_code = remove_kwarg('eager', 'True', func_code)
     if REMOVE_QREQ:
         func_code = remove_kwarg('qreq_', 'None', func_code)
@@ -281,6 +306,8 @@ def get_tableinfo(tablename, ibs=None):
     """
     Gets relevant info from the sql controller and dependency graph
     """
+    if ut.NOT_QUIET:
+        print('[TEMPLATE] get_tableinfo (ibs=%r)' % (ibs,))
     dbself = None
     tableinfo = None
     if ibs is not None:
@@ -297,7 +324,9 @@ def get_tableinfo(tablename, ibs=None):
             sqldb = ibs.dbcache
             dbself = 'dbcache'
         else:
-            print('WARNING unknown tablename=%r' % tablename)
+            print('[TEMPLATE] WARNING unknown tablename=%r' % tablename)
+            print('[TEMPLATE] Known db tables = ' + ut.list_str(valid_db_tablenames))
+            print('[TEMPLATE] Known dbcache tables = ' + ut.list_str(valid_dbcache_tablenames))
 
         if sqldb is not None:
             all_colnames = sqldb.get_column_names(tablename)
@@ -315,6 +344,8 @@ def get_tableinfo(tablename, ibs=None):
         if tablename == const.FEATURE_WEIGHT_TABLE:
             dbself = 'dbcache'
             all_colnames = ['feature_weight_fg']
+        if tablename == const.PARTY_CONTRIB_RELATION_TABLE:
+            dbself = 'db'
     if tablename == const.RESIDUAL_TABLE:
         other_colnames.append('rvecs')
     # hack out a few colnames
@@ -347,7 +378,8 @@ def parse_first_func_name(func_code):
 
 
 def build_depends_path(child):
-    parent = depends_map[child]
+    #parent = depends_map[child]
+    parent = depends_map.get(child, None)
     if parent is not None:
         return build_depends_path(parent) + [child]
     else:
@@ -507,7 +539,7 @@ def build_templated_funcs(ibs, autogen_modname, tblname_list, autogen_key,
     print('  * tblname_list=%r' % (tblname_list,))
     print('  * autogen_key=%r' % (autogen_key,))
     print('  * flagdefault=%r' % (flagdefault,))
-    print('  * flagskw=%r' % (flagskw,))
+    print('  * flagskw=%s' % (ut.dict_str(flagskw),))
     #child = 'featweight'
     tblname2_functype2_func_list = ut.ddict(lambda: ut.ddict(list))
     # HACKED IN CONSTANTS
@@ -652,6 +684,9 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
 
     def set_relation_tables(relation_tbl, relation_tables):
         tbl1, tbl2 = relation_tables
+        #print('---')
+        #print('tbl1 = %r' % (tbl1,))
+        #print('tbl2 = %r' % (tbl2,))
         fmtdict['relation_tbl'] = relation_tbl
         fmtdict['RELATION_TABLE'] = tbl2_TABLE[relation_tbl]
         fmtdict['tbl1'] = tbl1
@@ -681,8 +716,8 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         func_code_fmtstr = Tdef.Tsetter_native_column
 
         """
-        if ut.VERBOSE:
-            print('[TEMPLATE] append_func()')
+        #if ut.VERBOSE:
+        #    print('[TEMPLATE] append_func()')
         #if func_type.find('add') < 0:
         #    return
         #type1, type2 = func_type.split('.')
@@ -853,7 +888,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     # ----------------------------
     if with_relations:
         if ut.VERBOSE:
-            print('[TEMPLATE] Building Many to Many Relationships tbl=%r' % (tbl,))
+            print('[TEMPLATE]  * Building many-to-many relationships')
         relation_tables = relationship_map.get(tbl, None)
         if relation_tables is not None:
             (tbl1, tbl2) = relation_tables
@@ -862,17 +897,20 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
                 append_func('3_RELATE.adder', Tdef.Tadder_relationship)
             # Add both directions in relationships
             for count, direction in enumerate([1, -1], start=1):
-                relation_tables = relationship_map.get(tbl, None)[::direction]
-                set_relation_tables(tbl, relation_tables)
+                relation_tables_ = relationship_map.get(tbl, None)[::direction]
+                set_relation_tables(tbl, relation_tables_)
                 if with_deleters:
                     append_func('3_RELATE{count}.deleter'.format(count=count), Tdef.Tdeleter_table1_relation)
                 if with_getters:
                     append_func('3_RELATE{count}.getter'.format(count=count), Tdef.Tgetter_table1_rowids)
+                    pass
 
     # ------------------
     #  Native Noncolumn
     # ------------------
     if with_native:
+        if ut.VERBOSE:
+            print('[TEMPLATE]  * Building native non-column funcs')
         if with_deleters:
             append_func('2_Native.deleter', Tdef.Tdeleter_native_tbl)
         if with_iders:
@@ -890,6 +928,8 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     with_col_rootleaf = len(depends_list) > 1 and with_rootleaf
 
     if with_columns:
+        if ut.VERBOSE:
+            print('[TEMPLATE]  * Building column funcs len(other_colnames) = %r' % (len(other_colnames),))
         # For each column property
         for colname, col, COLNAME in zip(other_colnames, other_cols, other_COLNAMES):
             if is_disabled_by_multicol(colname):
@@ -998,6 +1038,8 @@ def main(ibs, verbose=None):
     else:
         if autogen_key in tbl2_tablename:
             default_tblname_list = [tbl2_tablename[autogen_key], ]
+        elif autogen_key in tablename2_tbl:
+            default_tblname_list = [autogen_key, ]
         else:
             raise AssertionError('unknown autogen_key=%r. known tables are %r' %
                                  (autogen_key, list(tbl2_tablename.keys())))
@@ -1012,7 +1054,7 @@ def main(ibs, verbose=None):
 
     # Processes command line args
     if len(template_flags) > 0:
-        flagdefault = False
+        flagdefault = True
         flagskw['with_decor'] = False
         flagskw['with_footer'] = False
         flagskw['with_header'] = False
@@ -1027,6 +1069,7 @@ def main(ibs, verbose=None):
                 #flagskw[flag] = False
     else:
         flagdefault = True
+    #flagskw = ut.parse_dict_from_argv(flagskw)
 
     for tblname in tblname_list:
         assert tblname in tablename2_tbl
@@ -1042,16 +1085,18 @@ def main(ibs, verbose=None):
 
     # output to disk or stdout
     if onlyfuncname:
-        print('\n'.join([line for line in autogen_text.splitlines() if
-              line.startswith('def ')]))
+        text = ('\n'.join([line for line in autogen_text.splitlines() if line.startswith('def ')]))
+        ut.print_python_code(text)
     else:
         if not ut.QUIET and (not dowrite or verbose):
             print('[TEMPLATE] Dumping autogenerated text...\n+---\n')
-            print(autogen_text)
             if not dowrite:
+                ut.print_python_code(autogen_text)
                 print('\nL___\n...would write to: %s' % autogen_fpath)
     if dowrite:
         ut.write_to(autogen_fpath, autogen_text)
+
+    ibs.db.print_table_csv('metadata', exclude_columns=['metadata_value'])
     #return locals()
 
 
@@ -1071,6 +1116,6 @@ if __name__ == '__main__':
     """
     if 'ibs' not in vars():
         import ibeis
-        ibs = ibeis.opendb('emptydatabase', allow_newdir=True)
+        ibs = ibeis.opendb('emptydatabase', allow_newdir=True, delete_ibsdir=True)
     main(ibs)
     #exec(ut.execstr_dict(locals_))

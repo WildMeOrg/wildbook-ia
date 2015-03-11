@@ -23,6 +23,7 @@ from plottool import interact_helpers as ih
 from plottool import plot_helpers as ph
 from ibeis import viz
 from ibeis.model.hots import scoring
+from ibeis.model.hots import hstypes
 from ibeis.model.hots import chip_match
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_hough
@@ -88,20 +89,32 @@ class MatchInteraction(object):
         # Unpack Args
         if aid2 is None:
             index = 0
+            # FIXME: no sortself
             cm.sortself()
             self.rank = index
         else:
-            index = cm.daid2_idx[aid2]
+            index = cm.daid2_idx.get(aid2, None)
             # TODO: rank?
             self.rank = None
-        self.qaid  = self.cm.qaid
-        self.daid  = self.cm.daid_list[index]
-        self.fm    = self.cm.fm_list[index]
-        self.fk    = self.cm.fk_list[index]
-        self.fsv   = self.cm.fsv_list[index]
-        self.fs    = None if self.cm.fs_list is None else self.cm.fs_list[index]
-        self.score = None if self.cm.score_list is None else self.cm.score_list[index]
-        self.H1    = None if self.cm.H_list is None else cm.H_list[index]
+        if index is not None:
+            self.qaid  = self.cm.qaid
+            self.daid  = self.cm.daid_list[index]
+            self.fm    = self.cm.fm_list[index]
+            self.fk    = self.cm.fk_list[index]
+            self.fsv   = self.cm.fsv_list[index]
+            self.fs    = None if self.cm.fs_list is None else self.cm.fs_list[index]
+            self.score = None if self.cm.score_list is None else self.cm.score_list[index]
+            self.H1    = None if self.cm.H_list is None else cm.H_list[index]
+        else:
+            self.qaid  = self.cm.qaid
+            self.daid  = aid2
+            self.fm    = np.empty((0, 2), dtype=hstypes.FM_DTYPE)
+            self.fk    = np.empty(0, dtype=hstypes.FK_DTYPE)
+            self.fsv   = np.empty((0, 2), dtype=hstypes.FS_DTYPE)
+            self.fs    = None
+            self.score = None
+            self.H1    = None
+
         # Read properties
         self.rchip1, self.rchip2 = ibs.get_annot_chips([self.qaid, self.daid])
         # Begin Interaction

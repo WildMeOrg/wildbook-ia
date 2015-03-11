@@ -4,31 +4,25 @@ This module controls the GUI backend.  It is the layer between the GUI frontend
 gui components is written or called from here
 """
 from __future__ import absolute_import, division, print_function
-# Python
 import six
 import sys
-from six.moves import zip
-from os.path import exists, join
 import functools
-# GUITool
 import guitool
-from guitool.__PYQT__ import QtCore
+import utool as ut
 from guitool import slot_, signal_, cast_from_qt
-# PlotTool
-from plottool import fig_presenter
-# IBEIS
-from ibeis import ibsfuncs, sysres
-from ibeis.gui import newgui
-from ibeis.gui import guiheaders as gh
-from ibeis import viz
-from ibeis.viz import interact
+from guitool.__PYQT__ import QtCore
 from ibeis import constants as const
+from ibeis import ibsfuncs, sysres
+from ibeis import viz
 from ibeis.control import IBEISControl
 from ibeis.gui import clock_offset_gui
 from ibeis.gui import guiexcept
-# Utool
-#import utool
-import utool as ut
+from ibeis.gui import guiheaders as gh
+from ibeis.gui import newgui
+from ibeis.viz import interact
+from os.path import exists, join
+from plottool import fig_presenter
+from six.moves import zip
 (print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[back]', DEBUG=False)
 
