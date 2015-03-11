@@ -3184,6 +3184,20 @@ def learn_k():
     # take subsets of daids to vary dbsizes
     # and run those
     # get output:
+
+    varydict = {
+        'K': [4, 7, 10, 13, 16, 19, 22, 25],
+        #'nDaids': [20, 100, 250, 500, 750, 1000],
+    }
+    nError_list = []
+    varied_dict = ut.all_dict_combinations(varydict)
+    qaids = sample()
+    for cfgdict in varied_dict:
+        daids = sample()
+        ibs.query_chips(qaids, daids, cfgdict=cfgdict)
+        nErrors = None
+        nError_list.append(nErrors)
+
     K_list      = np.array([  4,   4,    4,   7,   7,    7,   10,  10,   10,   13,  13,   13])
     nDaids_list = np.array([100, 500, 1000, 100, 500, 1000,  100, 500, 1000,  100, 500, 1000])
     nError_list = np.array([  3,   5,   10,   4,   5,   40,   20,   9,   43,   90,  20,    1])
