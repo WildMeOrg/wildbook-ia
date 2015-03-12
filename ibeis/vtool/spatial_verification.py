@@ -114,6 +114,15 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
         >>> print(result)
         f@2l62+2!ppow8yw
 
+    Timeit:
+        import numba
+        build_lstsqrs_Mx9_numba = numba.jit(build_lstsqrs_Mx9)
+        out1 = build_lstsqrs_Mx9_numba(xy1_mn, xy2_mn)
+        out2 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
+        assert np.all(out1 == out2)
+        %timeit build_lstsqrs_Mx9_numba(xy1_mn, xy2_mn)
+        %timeit build_lstsqrs_Mx9(xy1_mn, xy2_mn)
+
     Ignore:
         http://docs.opencv.org/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html#findhomography
         cv2.findHomography(xy1_mn.T, xy2_mn.T)

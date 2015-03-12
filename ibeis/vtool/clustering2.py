@@ -542,6 +542,10 @@ def group_indices(idx2_groupid):
         >>> print(result)
         (array([ 24, 129, 659, 822]), [array([ 0,  4, 10]), array([1]), array([2, 3, 5, 6, 8, 9]), array([7])])
 
+    Timeit:
+        import numba
+        group_indices_numba = numba.jit(group_indices)
+        group_indices_numba(idx2_groupid)
 
     SeeAlso:
         apply_grouping

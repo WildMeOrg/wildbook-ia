@@ -146,7 +146,12 @@ def get_exist(data, key):
 
 
 def convert_degrees(value):
-    """Helper function to convert the GPS coordinates stored in the EXIF to degress in float format"""
+    """
+    Helper function to convert the GPS coordinates stored in the EXIF to degress in float format
+
+    References:
+        http://en.wikipedia.org/wiki/Geographic_coordinate_conversion
+    """
     d0 = value[0][0]
     d1 = value[0][1]
     d = float(d0) / float(d1)
@@ -159,18 +164,28 @@ def convert_degrees(value):
     s1 = value[2][1]
     s = float(s0) / float(s1)
 
-    return d + (m / 60.0) + (s / 3600.0)
+    degrees_float = d + (m / 60.0) + (s / 3600.0)
+    return degrees_float
 
 
-GPSLATITUDE_CODE = GPS_TAG_TO_GPSID['GPSLatitude']
-GPSLATITUDEREF_CODE = GPS_TAG_TO_GPSID['GPSLatitudeRef']
-GPSLONGITUDE_CODE = GPS_TAG_TO_GPSID['GPSLongitude']
+GPSLATITUDE_CODE     = GPS_TAG_TO_GPSID['GPSLatitude']
+GPSLATITUDEREF_CODE  = GPS_TAG_TO_GPSID['GPSLatitudeRef']
+GPSLONGITUDE_CODE    = GPS_TAG_TO_GPSID['GPSLongitude']
 GPSLONGITUDEREF_CODE = GPS_TAG_TO_GPSID['GPSLongitudeRef']
 
 
 @profile
 def get_lat_lon(exif_dict, default=(-1, -1)):
-    """Returns the latitude and longitude, if available, from the provided exif_data2 (obtained through exif_data2 above)"""
+    """
+    Returns the latitude and longitude, if available, from the provided exif_data2 (obtained through exif_data2 above)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.exif import *  # NOQA
+        >>> image_fpath = ut.grab_file_url('http://images.summitpost.org/original/769474.JPG')
+        >>> exif_dict = get_exif_dict(Image.open(image_fpath))
+
+    """
     if GPSINFO_CODE in exif_dict:
         gps_info = exif_dict[GPSINFO_CODE]
 
@@ -182,14 +197,20 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
             gps_latitude_ref  = gps_info[GPSLATITUDEREF_CODE]
             gps_longitude     = gps_info[GPSLONGITUDE_CODE]
             gps_longitude_ref = gps_info[GPSLONGITUDEREF_CODE]
-            lat = convert_degrees(gps_latitude)
-            if gps_latitude_ref != 'N':
-                lat = 0 - lat
+            try:
+                lat = convert_degrees(gps_latitude)
+                if gps_latitude_ref != 'N':
+                    lat = 0 - lat
 
-            lon = convert_degrees(gps_longitude)
-            if gps_longitude_ref != 'E':
-                lon = 0 - lon
-            return lat, lon
+                lon = convert_degrees(gps_longitude)
+                if gps_longitude_ref != 'E':
+                    lon = 0 - lon
+                return lat, lon
+            except ZeroDivisionError:
+                # FIXME: -1, -1 is not a good invalid GPS
+                # Find out what the divide by zero really means
+                # currently we think it just is bad gps data
+                pass
     return default
 
 
@@ -197,31 +218,6 @@ def get_unixtime(exif_dict, default=-1):
     exiftime  = exif_dict.get(DATETIMEORIGINAL_TAGID, default)
     unixtime = util_time.exiftime_to_unixtime(exiftime)  # convert to unixtime
     return unixtime
-
-
-@profile
-def get_lat_lon2(exif_data2):
-    """Returns the latitude and longitude, if available, from the provided exif_data2 (obtained through exif_data2 above)"""
-    lat = -1.0
-    lon = -1.0
-
-    if 'GPSInfo' in exif_data2:
-        gps_info = exif_data2['GPSInfo']
-
-        gps_latitude      = gps_info.get('GPSLatitude', None)
-        gps_latitude_ref  = gps_info.get('GPSLatitudeRef', None)
-        gps_longitude     = gps_info.get('GPSLongitude', None)
-        gps_longitude_ref = gps_info.get('GPSLongitudeRef', None)
-
-        if gps_latitude and gps_latitude_ref and gps_longitude and gps_longitude_ref:
-            lat = convert_degrees(gps_latitude)
-            if gps_latitude_ref != 'N':
-                lat = 0 - lat
-
-            lon = convert_degrees(gps_longitude)
-            if gps_longitude_ref != 'E':
-                lon = 0 - lon
-    return lat, lon
 
 
 def parse_exif_unixtime(image_fpath):
