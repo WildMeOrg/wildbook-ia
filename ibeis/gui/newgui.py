@@ -23,8 +23,7 @@ from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
 import six
 from ibeis.viz.interact import interact_annotations2
-from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE,
-                                  NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)
+from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE, ENCOUNTER_TABLE)  # NOQA
 from ibeis.gui.models_and_views import (IBEISStripeModel, IBEISTableView,
                                         IBEISItemModel, IBEISTreeView,
                                         EncTableModel, EncTableView,
@@ -65,6 +64,20 @@ class APITabWidget(QtGui.QTabWidget):
         tabwgt._sizePolicy = guitool.newSizePolicy(tabwgt, horizontalStretch=horizontalStretch)
         tabwgt.setSizePolicy(tabwgt._sizePolicy)
         #tabwgt.currentChanged.connect(tabwgt.setCurrentIndex)
+        tabwgt.currentChanged.connect(tabwgt._on_change)
+
+    @slot_(int)
+    def _on_change(tabwgt, index):
+        """ Switch to the current encounter tab """
+        print('[apitab] _onchange(index=%r)' % (index,))
+        tblname = tabwgt.ibswgt.tblname_list[index]
+        print('[apitab] _onchange(tblname=%r)' % (tblname,))
+        tabwgt.ibswgt.back._clear_selection()
+        view = tabwgt.ibswgt.views[tblname]
+        selected = view.selectionModel().selection()
+        deselected = QtGui.QItemSelection()
+        tabwgt.ibswgt.update_selection(selected, deselected)
+        #tabwgt.ibswgt.back.update_selection_texts()
 
     #def setCurrentIndex(tabwgt, index):
     #    tblname = tabwgt.ibswgt.tblname_list[index]
@@ -239,8 +252,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt.modelview_defs.append((IMAGE_GRID, IBEISTableWidget, IBEISStripeModel, IBEISTableView))
         # ADD ANNOT GRID
         if not (ut.get_argflag('--noannottbl') or ut.get_argflag('--onlyimgtbl')):
-            ibswgt.tblname_list.append(ANNOTATION_TABLE)
-            ibswgt.modelview_defs.append((ANNOTATION_TABLE, IBEISTableWidget, IBEISItemModel, IBEISTableView))
+            ibswgt.tblname_list.append(gh.ANNOTATION_TABLE)
+            ibswgt.modelview_defs.append((gh.ANNOTATION_TABLE, IBEISTableWidget, IBEISItemModel, IBEISTableView))
         # ADD NAME TREE
         if not (ut.get_argflag('--nonametree') or ut.get_argflag('--onlyimgtbl')):
             ibswgt.tblname_list.append(NAMES_TREE)
@@ -263,18 +276,95 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         for tblname in ibswgt.super_tblname_list:
             tblview = ibswgt.views[tblname]
             tblview.doubleClicked.connect(ibswgt.on_doubleclick)
-            tblview.clicked.connect(ibswgt.on_click)
+            #tblview.clicked.connect(ibswgt.on_click)
             tblview.contextMenuClicked.connect(ibswgt.on_contextMenuClicked)
-            tblview.selectionModel().selectionChanged.connect(ibswgt.update_selection)
+            if tblname != gh.ENCOUNTER_TABLE:
+                tblview.selectionModel().selectionChanged.connect(ibswgt.update_selection)
             #front.printSignal.connect(back.backend_print)
             #front.raiseExceptionSignal.connect(back.backend_exception)
             # CONNECT HOOK TO GET NUM ROWS
             tblview.rows_updated.connect(ibswgt.on_rows_updated)
 
+    @slot_(QtGui.QItemSelection, QtGui.QItemSelection)
     def update_selection(ibswgt, selected, deselected):
-        print('selected = ' + str(selected.indexes()))
-        print('deselected = ' + str(deselected.indexes()))
+        """
+        Quirky behavior: if you select two columns in a row and then unselect
+        only one, the whole row is unselected, because this function only deals
+        with deltas.
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.gui.newgui import *  # NOQA
+            >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
+            >>> ibswgt.set_table_tab(gh.NAMES_TREE)
+            >>> view = ibswgt.views[gh.NAMES_TREE]
+            >>> view.expandAll()
+            >>> AUTOSELECT = False
+            >>> if AUTOSELECT:
+            ...     view.selectAll()
+            >>> selmodel = view.selectionModel()
+            >>> selected = selmodel.selection()
+            >>> deselected = QtGui.QItemSelection()
+            >>> # verify results
+            >>> print(result)
+
+        """
+        #print('selected = ' + str(selected.indexes()))
+        #print('deselected = ' + str(deselected.indexes()))
+        deselected_model_index_list_ = deselected.indexes()
+        selected_model_index_list_   = selected.indexes()
+
+        def get_selection_info(model_index_list_):
+            model_index_list = [qtindex for qtindex in model_index_list_ if qtindex.isValid()]
+            model_list       = [qtindex.model() for qtindex in model_index_list]
+            tablename_list   = [model.name for model in model_list]
+            level_list       = [model._get_level(qtindex) for model, qtindex in zip(model_list, model_index_list)]
+            rowid_list       = [model._get_row_id(qtindex) for model, qtindex in zip(model_list, model_index_list)]
+            table_key_list = list(zip(tablename_list, level_list))
+            return table_key_list, rowid_list
+
+        select_table_key_list, select_rowid_list = get_selection_info(selected_model_index_list_)
+        deselect_table_key_list, deselect_rowid_list = get_selection_info(deselected_model_index_list_)
+
+        table_key2_selected_rowids   = dict(ut.group_items(select_rowid_list, select_table_key_list))
+        table_key2_deselected_rowids = dict(ut.group_items(deselect_rowid_list, deselect_table_key_list))
+
+        table_key2_selected_rowids   = {key: set(val) for key, val in six.iteritems(table_key2_selected_rowids)}
+        table_key2_deselected_rowids = {key: set(val) for key, val in six.iteritems(table_key2_deselected_rowids)}
+        if ut.VERBOSE:
+            print('table_key2_selected_rowids = ' + ut.dict_str(table_key2_selected_rowids))
+            print('table_key2_deselected_rowids = ' + ut.dict_str(table_key2_deselected_rowids))
+
+        gh_const_tablename_map = {
+            (IMAGE_TABLE, 0)         : const.IMAGE_TABLE,
+            (IMAGE_GRID, 0)          : const.IMAGE_TABLE,
+            (gh.ANNOTATION_TABLE, 0) : const.ANNOTATION_TABLE,
+            (NAME_TABLE, 0)          : const.NAME_TABLE,
+            (NAMES_TREE, 0)          : const.NAME_TABLE,
+            (NAMES_TREE, 1)          : const.ANNOTATION_TABLE,
+        }
+        # here tablename is a backend const tablename
+        for table_key, id_list in six.iteritems(table_key2_deselected_rowids):
+            tablename = gh_const_tablename_map[table_key]
+            ibswgt.back._set_selection3(tablename, id_list, mode='diff')
+        for table_key, id_list in six.iteritems(table_key2_selected_rowids):
+            tablename = gh_const_tablename_map[table_key]
+            ibswgt.back._set_selection3(tablename, id_list, mode='add')
+        ibswgt.back.update_selection_texts()
+
         #tblview.selectionModel().selectedIndexes()
+
+    def select_table_id(ibswgt, table_key, level, id_, eid):
+        select_func_dict = {
+            (IMAGE_TABLE, 0)         : ibswgt.back.select_gid,
+            (IMAGE_GRID, 0)          : ibswgt.back.select_gid,
+            (gh.ANNOTATION_TABLE, 0) : ibswgt.back.select_aid,
+            (NAME_TABLE, 0)          : ibswgt.back.select_nid,
+            (NAMES_TREE, 0)          : ibswgt.back.select_nid,
+            (NAMES_TREE, 1)          : ibswgt.back.select_aid,
+        }
+        select_func = select_func_dict[(table_key, level)]
+        select_func(id_, eid, show=False)
 
     def _init_components(ibswgt):
         """ Defines gui components """
@@ -317,22 +407,30 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         _NEWLBL = functools.partial(guitool.newLabel, ibswgt)
         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
         _COMBO  = functools.partial(guitool.newComboBox, ibswgt)
-        _NEWTEXT = functools.partial(guitool.newLineEdit, ibswgt, enabled=False)
+        _NEWTEXT = functools.partial(guitool.newLineEdit, ibswgt)
 
         primary_fontkw = dict(bold=True, pointSize=11)
         secondary_fontkw = dict(bold=False, pointSize=9)
         advanced_fontkw = dict(bold=False, pointSize=8, italic=True)
         identify_color = (255, 150, 0)
 
+        ibswgt.tablename_to_status_widget_index = {
+            ENCOUNTER_TABLE: 1,
+            IMAGE_TABLE: 3,
+            IMAGE_GRID: 3,
+            gh.ANNOTATION_TABLE: 5,
+            NAMES_TREE: 7,
+            NAME_TABLE: 7,
+        }
         ibswgt.status_widget_list = [
             _NEWLBL('Selected Encounter: ', fontkw=secondary_fontkw, align='right'),
-            _NEWTEXT(),
+            _NEWTEXT(enabled=True, readOnly=True),
             _NEWLBL('Selected Image: ', fontkw=secondary_fontkw, align='right'),
-            _NEWTEXT(),
+            _NEWTEXT(enabled=True, readOnly=True),
             _NEWLBL('Selected Annotation: ', fontkw=secondary_fontkw, align='right'),
-            _NEWTEXT(),
+            _NEWTEXT(enabled=True, readOnly=True, editingFinishedSlot=ibswgt.selected_annotation_editing_finished),
             _NEWLBL('Selected Name: ', fontkw=secondary_fontkw, align='right'),
-            _NEWTEXT(),
+            _NEWTEXT(enabled=True, readOnly=True),
         ]
 
         back = ibswgt.back
@@ -438,24 +536,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         for widget in ibswgt.status_widget_list:
             ibswgt.selectionStatusLayout.addWidget(widget)
 
-    def _init_redirects(ibswgt):
-        """
-        redirects allows user to go from a row of a table to corresponding rows
-        of other tables
-        """
-        redirects = gh.get_redirects(ibswgt.ibs)
-        for src_table in redirects.keys():
-            for src_table_name in redirects[src_table].keys():
-                dst_table, mapping_func = redirects[src_table][src_table_name]
-                src_table_col = gh.TABLE_COLNAMES[src_table].index(src_table_name)
-                ibswgt.register_redirect(src_table, src_table_col, dst_table, mapping_func)
-
     def changing_models_gen(ibswgt, tblnames=None):
         """
         Loops over tablenames emitting layoutChanged at the end for each
         """
-        if tblnames is None:
-            tblnames = ibswgt.super_tblname_list
+        tblnames = ibswgt.super_tblname_list if tblnames is None else tblnames
         print('[newgui] changing_models_gen(tblnames=%r)' % (tblnames,))
         model_list = [ibswgt.models[tblname] for tblname in tblnames]
         #model_list = [ibswgt.models[tblname] for tblname in tblnames if ibswgt.views[tblname].isVisible()]
@@ -496,7 +581,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             with ut.Timer('make headers'):
                 header_dict = gh.make_ibeis_headers_dict(ibswgt.ibs)
             # Enable the redirections between tables
-            ibswgt._init_redirects()
+            #ibswgt._init_redirects()
             title = ibsfuncs.get_title(ibswgt.ibs)
             ibswgt.setWindowTitle(title)
             if ut.VERBOSE:
@@ -552,8 +637,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     def _change_enc(ibswgt, eid):
         print('[newgui] _change_enc(%r)' % eid)
+        for tblname in ibswgt.tblname_list:
+            view = ibswgt.views[tblname]
+            view.clearSelection()
         for tblname in ibswgt.changing_models_gen(tblnames=ibswgt.tblname_list):
-            ibswgt.views[tblname]._change_enc(eid)
+            view = ibswgt.views[tblname]
+            view._change_enc(eid)
             #ibswgt.models[tblname]._change_enc(eid)  # the view should take care of this call
         try:
             #if eid is None:
@@ -592,19 +681,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         return index
 
     def set_status_text(ibswgt, key, text):
-        key_to_index = {
-            ENCOUNTER_TABLE: 1,
-            IMAGE_TABLE: 3,
-            IMAGE_GRID: 3,
-            ANNOTATION_TABLE: 5,
-            NAMES_TREE: 7,
-            NAME_TABLE: 7,
-        }
         #printDBG('set_status_text[%r] = %r' % (index, text))
-        index = key_to_index[key]
+        index = ibswgt.tablename_to_status_widget_index[key]
         ibswgt.status_widget_list[index].setText(text)
 
     def set_table_tab(ibswgt, tblname):
+        """
+        Programmatically change to Image, ImageGrid, Annotation, or Names table tab
+        """
         print('[newgui] set_table_tab: %r ' % (tblname,))
         index = ibswgt.get_table_tab_index(tblname)
         ibswgt._tab_table_wgt.setCurrentIndex(index)
@@ -621,24 +705,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         enctext = ibswgt.ibs.get_encounter_enctext(eid)
         #ibswgt.back.select_eid(eid)
         ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
-
-    def register_redirect(ibswgt, src_table, src_table_col, dst_table, mapping_func):
-        if src_table not in ibswgt.redirects.keys():
-            ibswgt.redirects[src_table] = {}
-        ibswgt.redirects[src_table][src_table_col] = (dst_table, mapping_func)
-
-    def select_table_id(ibswgt, table_key, level, id_, eid):
-        select_func_dict = {
-            (IMAGE_TABLE, 0)      : ibswgt.back.select_gid,
-            (IMAGE_GRID, 0)       : ibswgt.back.select_gid,
-            (ANNOTATION_TABLE, 0) : ibswgt.back.select_aid,
-            (NAME_TABLE, 0)       : ibswgt.back.select_nid,
-            (NAMES_TREE, 0)       : ibswgt.back.select_nid,
-            (NAME_TABLE, 1)       : ibswgt.back.select_aid,
-            (NAMES_TREE, 1)       : ibswgt.back.select_aid,
-        }
-        select_func = select_func_dict[(table_key, level)]
-        select_func(id_, eid, show=False)
 
     def spawn_edit_image_annotation_interaction_from_aid(ibswgt, aid, eid):
         """
@@ -784,6 +850,22 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     # SLOTS
     #------------
 
+    @slot_(str)
+    def selected_annotation_editing_finished(ibswgt):
+        index = ibswgt.tablename_to_status_widget_index[gh.ANNOTATION_TABLE]
+        text = ibswgt.status_widget_list[index].text()
+        ibswgt.select_table_indicies_from_text(gh.ANNOTATION_TABLE, text)
+
+    def select_table_indicies_from_text(ibswgt, tablename, text):
+        print('new text: %r' % (text,))
+        try:
+            id_list = eval(text)  # NOQA
+        except Exception as ex:
+            ut.printex(ex, iswarning=True)
+            pass
+        else:
+            pass
+
     @slot_(str, int)
     def on_rows_updated(ibswgt, tblname, nRows):
         """
@@ -803,33 +885,31 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # CHANGE TAB NAME TO SHOW NUMBER OF ROWS
         ibswgt._tab_table_wgt.setTabText(index, text)
 
+    def goto_table_id(ibswgt, tablename, _id):
+        ibswgt.set_table_tab(tablename)
+        view = ibswgt.views[tablename]
+        view.select_row_from_id(_id, scroll=True)
+
     @slot_(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuClicked(ibswgt, qtindex, pos):
         """
         Right click anywhere in the GUI
         Context menus on right click of a table
         """
+        if not qtindex.isValid():
+            return
+
         def _goto_image_image(gid):
-            ibswgt.set_table_tab(IMAGE_TABLE)
-            imgtbl = ibswgt.views[IMAGE_TABLE]
-            imgtbl.select_row_from_id(gid, scroll=True)
+            ibswgt.goto_table_id(IMAGE_TABLE, gid)
 
         def _goto_annot_image(aid):
-            ibswgt.set_table_tab(IMAGE_TABLE)
-            imgtbl = ibswgt.views[IMAGE_TABLE]
-            gid = ibswgt.back.ibs.get_annot_gids(aid)
-            imgtbl.select_row_from_id(gid, scroll=True)
+            ibswgt.goto_table_id(IMAGE_TABLE, ibswgt.back.ibs.get_annot_gids(aid))
 
         def _goto_annot_annot(aid):
-            ibswgt.set_table_tab(ANNOTATION_TABLE)
-            imgtbl = ibswgt.views[ANNOTATION_TABLE]
-            imgtbl.select_row_from_id(aid, scroll=True)
+            ibswgt.goto_table_id(gh.ANNOTATION_TABLE, aid)
 
         def _goto_annot_name(aid):
-            ibswgt.set_table_tab(NAMES_TREE)
-            nametree = ibswgt.views[NAMES_TREE]
-            nid = ibswgt.back.ibs.get_annot_nids(aid)
-            nametree.select_row_from_id(nid, scroll=True)
+            ibswgt.goto_table_id(NAMES_TREE, ibswgt.back.ibs.get_annot_nids(aid))
 
         #printDBG('[newgui] contextmenu')
         model = qtindex.model()
@@ -930,6 +1010,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 gid = id_list[0]
                 eid = model.eid
                 context_options += [
+                    ('Go to image in Images Table',
+                        lambda: _goto_image_image(gid)),
+                    ('----', lambda: None),
                     ('View image',
                         lambda: ibswgt.back.select_gid(gid, eid, show=True)),
                     ('View detection image (Hough) [dev]',
@@ -938,9 +1021,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.back.add_annotation_from_image([gid])),
                     ('Run detection on image (can cause duplicates)',
                         lambda: ibswgt.back.run_detection_on_images([gid])),
-                    ('----', lambda: None),
-                    ('Go to image in Images Table',
-                        lambda: _goto_image_image(gid)),
                 ]
             # Special condition for encounters
             if current_enctext != const.NEW_ENCOUNTER_ENCTEXT:
@@ -968,12 +1048,18 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.back.delete_image(gid)),
                 ]
         # ---- ANNOTATION CONTEXT ----
-        elif model.name == ANNOTATION_TABLE:
+        elif model.name == gh.ANNOTATION_TABLE:
             # Conditional context menu
             if len(id_list) == 1:
                 aid = id_list[0]
                 eid = model.eid
                 context_options += [
+                    ('----', lambda: None),
+                    ('Go to image',
+                        lambda: _goto_annot_image(aid)),
+                    ('Go to name',
+                        lambda: _goto_annot_name(aid)),
+                    ('----', lambda: None),
                     ('Edit Annotation in Image',
                         lambda: ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, eid)),
                     ('----', lambda: None),
@@ -983,11 +1069,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
                     ('View detection chip (probability) [dev]',
                         lambda: ibswgt.back.show_probability_chip(aid)),
-                    ('----', lambda: None),
-                    ('Go to image',
-                        lambda: _goto_annot_image(aid)),
-                    ('Go to name',
-                        lambda: _goto_annot_name(aid)),
                     ('----', lambda: None),
                     ('Unset annotation\'s name',
                         lambda: ibswgt.back.unset_names([aid])),
@@ -1005,53 +1086,15 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 aid = id_list[0]
                 eid = model.eid
                 context_options += [
-                    ('View annotation', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
-                    ('View image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
-                    ('----', lambda: None),
                     ('Go to image', lambda: _goto_annot_image(aid)),
                     ('Go to annotation', lambda: _goto_annot_annot(aid)),
+                    ('----', lambda: None),
+                    ('View annotation', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                    ('View image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
                 ]
         # Show the context menu
         if len(context_options) > 0:
             guitool.popup_menu(tblview, pos, context_options)
-
-    @slot_(QtCore.QModelIndex)
-    def on_click(ibswgt, qtindex):
-        """
-        Clicking anywhere in the GUI
-        """
-        #printDBG('on_click')
-        model = qtindex.model()
-        id_ = model._get_row_id(qtindex)
-        #model_name = model.name
-        #print('clicked: %s' + ut.dict_str(locals()))
-        try:
-            dst_table, mapping_func = ibswgt.redirects[model.name][qtindex.column()]
-            dst_id = mapping_func(id_)
-            print("[on_click] Redirecting to: %r" % (dst_table, ))
-            print("[on_click]     Mapping %r -> %r" % (id_, dst_id, ))
-            ibswgt.set_table_tab(dst_table)
-            ibswgt.views[dst_table].select_row_from_id(id_, scroll=True)
-            return None
-        except Exception as ex:
-            if ut.VERYVERBOSE:
-                ut.printex(ex, 'no redirect listed for this table', iswarning=True)
-            # No redirect listed for this table
-            pass
-
-        # If no link, process normally
-        if model.name == ENCOUNTER_TABLE:
-            pass
-            #printDBG('clicked encounter')
-        else:
-            table_key = model.name
-            # FIXME: stripe model needs to forward get_level
-            if not hasattr(model, '_get_level'):
-                level = 0
-            else:
-                level = model._get_level(qtindex)
-            eid = model.eid
-            ibswgt.select_table_id(table_key, level, id_, eid)
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick(ibswgt, qtindex):
@@ -1070,7 +1113,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             if (model.name == IMAGE_TABLE) or (model.name == IMAGE_GRID):
                 gid = id_
                 ibswgt.spawn_edit_image_annotation_interaction(model, qtindex, gid, eid)
-            elif model.name == ANNOTATION_TABLE:
+            elif model.name == gh.ANNOTATION_TABLE:
                 aid = id_
                 ibswgt.back.select_aid(aid, eid)
             elif model.name == NAME_TABLE:
@@ -1110,6 +1153,68 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         print('[drop_event] gpath_list=%r' % (gpath_list,))
         if len(gpath_list) > 0:
             ibswgt.back.import_images_from_file(gpath_list=gpath_list)
+
+    def register_redirect(ibswgt, src_table, src_table_col, dst_table, mapping_func):
+        if src_table not in ibswgt.redirects.keys():
+            ibswgt.redirects[src_table] = {}
+        ibswgt.redirects[src_table][src_table_col] = (dst_table, mapping_func)
+
+    def _init_redirects(ibswgt):
+        """
+        redirects allows user to go from a row of a table to corresponding rows
+        of other tables
+        """
+        redirects = gh.get_redirects(ibswgt.ibs)
+        for src_table in redirects.keys():
+            for src_table_name in redirects[src_table].keys():
+                dst_table, mapping_func = redirects[src_table][src_table_name]
+                src_table_col = gh.TABLE_COLNAMES[src_table].index(src_table_name)
+                ibswgt.register_redirect(src_table, src_table_col, dst_table, mapping_func)
+
+    @slot_(QtCore.QModelIndex)
+    def on_click(ibswgt, qtindex):
+        """
+        Clicking anywhere in the GUI
+
+        DOENT DO ANYTHING ANYMORE SELECTION MODEL USED INSTEAD
+
+        DEPRICATE
+        """
+        return
+        #printDBG('on_click')
+        model = qtindex.model()
+        id_ = model._get_row_id(qtindex)
+        #model_name = model.name
+        #print('clicked: %s' + ut.dict_str(locals()))
+        if False:
+            try:
+                dst_table, mapping_func = ibswgt.redirects[model.name][qtindex.column()]
+                dst_id = mapping_func(id_)
+                print("[on_click] Redirecting to: %r" % (dst_table, ))
+                print("[on_click]     Mapping %r -> %r" % (id_, dst_id, ))
+                ibswgt.set_table_tab(dst_table)
+                ibswgt.views[dst_table].select_row_from_id(id_, scroll=True)
+                return None
+            except Exception as ex:
+                print('no redirects')
+                if ut.VERYVERBOSE:
+                    ut.printex(ex, 'no redirect listed for this table', iswarning=True)
+                # No redirect listed for this table
+                pass
+
+        # If no link, process normally
+        if model.name == ENCOUNTER_TABLE:
+            pass
+            #printDBG('clicked encounter')
+        else:
+            table_key = model.name
+            # FIXME: stripe model needs to forward get_level
+            if not hasattr(model, '_get_level'):
+                level = 0
+            else:
+                level = model._get_level(qtindex)
+            eid = model.eid
+            ibswgt.select_table_id(table_key, level, id_, eid)
 
 
 ######################

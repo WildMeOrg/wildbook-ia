@@ -297,6 +297,7 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs = ibs
         # register self with the ibeis controller
         back.register_self()
+        # deselect
         back._set_selection(sel_gids=[], sel_aids=[], sel_nids=[],
                             sel_eids=[None])
         back.front.connect_ibeis_control(ibs)
@@ -325,12 +326,12 @@ class MainWindowBackend(QtCore.QObject):
         return gid
 
     @ut.indent_func
-    def get_selected_aid(back):
+    def get_selected_aids(back):
         """ selected annotation id """
         if len(back.sel_aids) == 0:
             raise guiexcept.InvalidRequest('There are no selected ANNOTATIONs')
-        aid = back.sel_aids[0]
-        return aid
+        #aid = back.sel_aids[0]
+        return back.sel_aids
 
     @ut.indent_func
     def get_selected_eid(back):
@@ -356,25 +357,101 @@ class MainWindowBackend(QtCore.QObject):
     # Selection Functions
     #--------------------------------------------------------------------------
 
+    def _set_selection2(back, tablename, id_list, mode='set'):
+        # here tablename is a backend const tablename
+
+        def set_collections(old, aug):
+            return ut.ensure_iterable(aug)
+
+        def add_collections(old, aug):
+            return list(set(old) | set(ut.ensure_iterable(aug)))
+
+        def diff_collections(old, aug):
+            return list(set(old) - set(ut.ensure_iterable(aug)))
+
+        modify_collections = {'set': set_collections,
+                              'add': add_collections,
+                              'diff': diff_collections}[mode]
+
+        attr_map = {
+            const.ANNOTATION_TABLE : 'sel_aids',
+            const.IMAGE_TABLE      : 'sel_gids',
+            const.NAME_TABLE       : 'sel_nids',
+        }
+        attr = attr_map[tablename]
+        new_id_list = modify_collections(getattr(back, attr), id_list)
+        setattr(back, attr, new_id_list)
+
+    def _set_selection3(back, tablename, id_list, mode='set'):
+        if tablename == const.ANNOTATION_TABLE:
+            aid_list = ut.ensure_iterable(id_list)
+            nid_list = back.ibs.get_annot_nids(aid_list)
+            gid_list = back.ibs.get_annot_gids(aid_list)
+        elif tablename == const.IMAGE_TABLE:
+            gid_list = ut.ensure_iterable(id_list)
+            aid_list = ut.flatten(back.ibs.get_image_aids(gid_list))
+            nid_list = back.ibs.get_annot_nids(aid_list)
+        elif tablename == const.NAME_TABLE:
+            nid_list = ut.ensure_iterable(id_list)
+            aid_list = ut.flatten(back.ibs.get_name_aids(nid_list))
+            gid_list = back.ibs.get_annot_gids(aid_list)
+        back._set_selection2(const.ANNOTATION_TABLE, aid_list, mode)
+        back._set_selection2(const.NAME_TABLE, nid_list, mode)
+        back._set_selection2(const.IMAGE_TABLE, gid_list, mode)
+
+    def _clear_selection(back):
+        back.sel_aids = []
+        back.sel_gids = []
+        back.sel_nids = []
+
+    def update_selection_texts(back):
+        if back.ibs is None:
+            return
+        sel_enctexts = back.ibs.get_encounter_enctext(back.sel_eids)
+        if sel_enctexts == [None]:
+            sel_enctexts = []
+        else:
+            sel_enctexts = map(str, sel_enctexts)
+        back.ibswgt.set_status_text(gh.ENCOUNTER_TABLE, repr(sel_enctexts,))
+        back.ibswgt.set_status_text(gh.IMAGE_TABLE, repr(back.sel_gids,))
+        back.ibswgt.set_status_text(gh.ANNOTATION_TABLE, repr(back.sel_aids,))
+        back.ibswgt.set_status_text(gh.NAMES_TREE, repr(back.sel_nids,))
+
     def _set_selection(back, sel_gids=None, sel_aids=None, sel_nids=None,
-                       sel_qres=None, sel_eids=None, **kwargs):
+                       sel_qres=None, sel_eids=None, mode='set', **kwargs):
+        def modify_collection_attr(self, attr, aug, mode):
+            aug = ut.ensure_iterable(aug)
+            old = getattr(self, attr)
+            if mode == 'set':
+                new = aug
+            elif mode == 'add':
+                new = list(set(old) + set(aug))
+            elif mode == 'remove':
+                new = list(set(old) - set(aug))
+            else:
+                raise AssertionError('uknown mode=%r' % (mode,))
+            setattr(self, attr, new)
+
         if sel_eids is not None:
+            sel_eids = ut.ensure_iterable(sel_eids)
             back.sel_eids = sel_eids
-            sel_enctexts = back.ibs.get_encounter_enctext(sel_eids)
+            sel_enctexts = back.ibs.get_encounter_enctext(back.sel_eids)
             if sel_enctexts == [None]:
                 sel_enctexts = []
             else:
                 sel_enctexts = map(str, sel_enctexts)
             back.ibswgt.set_status_text(gh.ENCOUNTER_TABLE, repr(sel_enctexts,))
         if sel_gids is not None:
-            back.sel_gids = sel_gids
-            back.ibswgt.set_status_text(gh.IMAGE_TABLE, repr(sel_gids,))
+            modify_collection_attr(back, 'sel_gids', sel_gids, mode)
+            back.ibswgt.set_status_text(gh.IMAGE_TABLE, repr(back.sel_gids,))
         if sel_aids is not None:
+            sel_aids = ut.ensure_iterable(sel_aids)
             back.sel_aids = sel_aids
-            back.ibswgt.set_status_text(gh.ANNOTATION_TABLE, repr(sel_aids,))
+            back.ibswgt.set_status_text(gh.ANNOTATION_TABLE, repr(back.sel_aids,))
         if sel_nids is not None:
+            sel_nids = ut.ensure_iterable(sel_nids)
             back.sel_nids = sel_nids
-            back.ibswgt.set_status_text(gh.NAMES_TREE, repr(sel_nids,))
+            back.ibswgt.set_status_text(gh.NAMES_TREE, repr(back.sel_nids,))
         if sel_qres is not None:
             raise NotImplementedError('no select qres implemented')
             back.sel_sel_qres = sel_qres
@@ -388,7 +465,7 @@ class MainWindowBackend(QtCore.QObject):
         else:
             prefix = ''
         print(prefix + '[back] select encounter eid=%r' % (eid))
-        back._set_selection(sel_eids=(eid,), **kwargs)
+        back._set_selection(sel_eids=eid, **kwargs)
 
     #@backblock
     def select_gid(back, gid, eid=None, show=True, sel_aids=None, **kwargs):
@@ -401,7 +478,7 @@ class MainWindowBackend(QtCore.QObject):
             else:
                 sel_aids = []
         print('[back] select_gid(gid=%r, eid=%r, sel_aids=%r)' % (gid, eid, sel_aids))
-        back._set_selection(sel_gids=(gid,), sel_aids=sel_aids, sel_eids=[eid], **kwargs)
+        back._set_selection(sel_gids=gid, sel_aids=sel_aids, sel_eids=eid, **kwargs)
         if show:
             back.show_image(gid, sel_aids=sel_aids)
 
@@ -416,7 +493,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] select aid=%r, eid=%r' % (aid, eid))
         gid = back.ibs.get_annot_gids(aid)
         nid = back.ibs.get_annot_name_rowids(aid)
-        back._set_selection(sel_aids=(aid,), sel_gids=[gid], sel_nids=[nid], sel_eids=[eid], **kwargs)
+        back._set_selection(sel_aids=aid, sel_gids=gid, sel_nids=nid, sel_eids=eid, **kwargs)
         if show and show_annotation:
             back.show_annotation(aid, **kwargs)
 
@@ -425,7 +502,7 @@ class MainWindowBackend(QtCore.QObject):
         """ Table Click -> Name Table """
         nid = cast_from_qt(nid)
         print('[back] select nid=%r, eid=%r' % (nid, eid))
-        back._set_selection(sel_nids=(nid,), sel_eids=[eid], **kwargs)
+        back._set_selection(sel_nids=nid, sel_eids=eid, **kwargs)
         if show and show_name:
             back.show_name(nid, **kwargs)
 
@@ -441,26 +518,8 @@ class MainWindowBackend(QtCore.QObject):
     #--------------------------------------------------------------------------
 
     @blocking_slot()
-    def add_annot(back, gid=None, bbox=None, theta=0.0, refresh=True):
-        """ Action -> Add ANNOTATION"""
-        print('[back] add_annot')
-        if gid is None:
-            gid = back.get_selected_gid()
-        if bbox is None:
-            bbox = back.select_bbox(gid)
-        #printDBG('[back.add_annot] * adding bbox=%r' % (bbox,))
-        aid = back.ibs.add_annots([gid], [bbox], [theta])[0]
-        #printDBG('[back.add_annot] * added aid=%r' % (aid,))
-        if refresh:
-            back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
-            #back.show_image(gid)
-            pass
-        back.select_gid(gid, sel_aids=[aid])
-        return aid
-
-    @blocking_slot()
     def add_annotation_from_image(back, gid_list, refresh=True):
-        """ Action -> Add Annotation from Image"""
+        """ Context -> Add Annotation from Image"""
         print('[back] add_annotation_from_image')
         size_list = back.ibs.get_image_sizes(gid_list)
         bbox_list = [ (0, 0, w, h) for (w, h) in size_list ]
@@ -468,27 +527,6 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs.add_annots(gid_list, bbox_list, theta_list)
         if refresh:
             back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
-
-    @blocking_slot()
-    def reselect_annotation(back, aid=None, bbox=None, refresh=True, **kwargs):
-        """ Action -> Reselect ANNOTATION"""
-        if aid is None:
-            aid = back.get_selected_aid()
-        gid = back.ibs.get_annot_gids(aid)
-        if bbox is None:
-            bbox = back.select_bbox(gid)
-        print('[back] reselect_annotation')
-        back.ibs.set_annot_bboxes([aid], [bbox])
-        if refresh:
-            back.front.update_tables([gh.ANNOTATION_TABLE])
-            back.show_image(gid)
-
-    @blocking_slot()
-    def reselect_ori(back, aid=None, theta=None, **kwargs):
-        """ Action -> Reselect ORI"""
-        print('[back] reselect_ori')
-        raise NotImplementedError()
-        pass
 
     @blocking_slot()
     def delete_image_annotations(back, gid_list):
@@ -500,20 +538,21 @@ class MainWindowBackend(QtCore.QObject):
         """ Action -> Delete Chip"""
         print('[back] delete_annot, aid_list = %r' % (aid_list, ))
         if aid_list is None:
-            aid_list = [back.get_selected_aid()]
-        if not back.are_you_sure():
+            aid_list = back.get_selected_aids()
+        if not back.are_you_sure(use_msg='Delete %d annotations?' % (len(aid_list))):
             return
+        back._set_selection3(const.ANNOTATION_TABLE, aid_list, mode='diff')
         # get the image-id of the annotation we are deleting
-        gid_list = back.ibs.get_annot_gids(aid_list)
+        #gid_list = back.ibs.get_annot_gids(aid_list)
         # delete the annotation
         back.ibs.delete_annots(aid_list)
         # Select only one image
-        try:
-            if len(gid_list) > 0:
-                gid = gid_list[0]
-        except AttributeError:
-            gid = gid_list
-        back.select_gid(gid, show=False)
+        #try:
+        #    if len(gid_list) > 0:
+        #        gid = gid_list[0]
+        #except AttributeError:
+        #    gid = gid_list
+        #back.select_gid(gid, show=False)
         # update display, to show image without the deleted annotation
         back.front.update_tables()
 
@@ -883,38 +922,6 @@ class MainWindowBackend(QtCore.QObject):
         if not back.are_you_sure(**confirm_kw):
             raise guiexcept.UserCancel
 
-    #@blocking_slot()
-    #def query(back, aid=None, refresh=True, query_mode=None, **kwargs):
-    #    """ Action -> Query
-
-    #    queries a single annotation vs the exemplars or intra encounter
-    #    """
-    #    if aid is None:
-    #        aid = back.get_selected_aid()
-    #    eid = back._eidfromkw(kwargs)
-    #    print('------')
-    #    print('\n\n[back] query: eid=%r, mode=%r' % (eid, back.query_mode))
-    #    if query_mode is None:
-    #        query_mode = back.query_mode
-    #    # Get the query annotation ids to search
-    #    qaid_list = [aid]
-    #    daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
-    #    back.confirm_query_dialog(daid_list, qaid_list)
-    #    # Get the database annotation ids to be searched
-    #    # Execute Query
-    #    if len(daid_list) == 0:
-    #        raise guiexcept.InvalidRequest('No exemplars set for this species')
-    #    qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
-    #    if query_mode == const.INTRA_ENC_KEY:
-    #        # HACK IN ENCOUNTER INFO
-    #        for qres in six.itervalues(qaid2_qres):
-    #            qres.eid = eid
-    #    qres = qaid2_qres[aid]
-    #    #back._set_selection(sel_qres=[qres])
-    #    if refresh:
-    #        #back.populate_tables(qres=True, default=False)
-    #        back.review_queries(qaid2_qres, eid=eid)
-
     @blocking_slot()
     def compute_queries(back, refresh=True, query_mode=None, query_is_known=None, qaid_list=None, use_visual_selection=False, **kwargs):
         """
@@ -939,7 +946,7 @@ class MainWindowBackend(QtCore.QObject):
         if qaid_list is None:
             if use_visual_selection:
                 # old style Actions->Query execution
-                qaid_list = [back.get_selected_aid()]
+                qaid_list = back.get_selected_aids()
                 #qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
             else:
                 # if not visual selection, then qaids are selected by encounter

@@ -106,27 +106,12 @@ def setup_file_menu(mainwin, back):
 def setup_actions_menu(mainwin, back):
     """ ACTIONS MENU """
     mainwin.menuActions = guitool.newMenu(mainwin, mainwin.menubar, 'menuActions', 'Actions')
-#    mainwin.menuActions.newAction(
-#        name='actionAdd_ANNOTATION',
-#        text='Add ANNOTATION',
-#        shortcut='A',
-#        slot_fn=back.add_annot)
     mainwin.menuActions.newAction(
         name='actionQuery',
         text='Query Single Annotation',
         shortcut='Q',
         slot_fn=functools.partial(back.compute_queries, use_visual_selection=True))
     #mainwin.menuActions.addSeparator()
-    #mainwin.menuActions.newAction(
-    #    name='actionReselect_ANNOTATION',
-    #    text='Reselect ANNOTATION Bbox',
-    #    shortcut='Ctrl+R',
-    #    slot_fn=back.reselect_annotation)
-    #mainwin.menuActions.newAction(
-    #    name='actionReselect_Ori',
-    #    text='Reselect ANNOTATION Orientation',
-    #    shortcut='Ctrl+Shift+O',
-    #    slot_fn=back.reselect_ori)
     #mainwin.menuActions.addSeparator()
     #mainwin.menuActions.newAction(
     #    name='actionNext',
