@@ -179,12 +179,19 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
     """
     Returns the latitude and longitude, if available, from the provided exif_data2 (obtained through exif_data2 above)
 
+    CommandLine:
+        python -m vtool.exif --test-get_lat_lon
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.exif import *  # NOQA
+        >>> import numpy as np
         >>> image_fpath = ut.grab_file_url('http://images.summitpost.org/original/769474.JPG')
         >>> exif_dict = get_exif_dict(Image.open(image_fpath))
-
+        >>> latlon = get_lat_lon(exif_dict)
+        >>> result = np.array_str(np.array(latlon), precision=3)
+        >>> print(result)
+        [ 41.89   12.486]
     """
     if GPSINFO_CODE in exif_dict:
         gps_info = exif_dict[GPSINFO_CODE]
