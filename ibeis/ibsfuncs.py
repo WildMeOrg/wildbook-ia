@@ -2139,15 +2139,17 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
 def get_annot_rowid_sample(ibs, per_name=1, min_ngt=1, seed=0, aid_list=None,
                            stagger_names=False):
     r"""
+    Gets a sampling of annotations
+
     Args:
-        ibs (IBEISController):  ibeis controller object
-        per_name (int):
-        min_ngt (int):
-        seed (int):
-        aid_list (list):
+        per_name (int): number of annotations per name
+        min_ngt (int): any name with less than this number of annotation is filtered out
+        seed (int): random seed
+        aid_list (list): base aid_list to start with. If None get_valid_aids is used
+        stagger_names (bool): if True staggers the order of the returned sample
 
     Returns:
-        ?: sample_aids
+        list: sample_aids
 
     CommandLine:
         python -m ibeis.ibsfuncs --test-get_annot_rowid_sample
@@ -2157,29 +2159,28 @@ def get_annot_rowid_sample(ibs, per_name=1, min_ngt=1, seed=0, aid_list=None,
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> per_name = 100
-        >>> min_ngt = 1
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> per_name = 3
+        >>> min_ngt = 2
         >>> seed = 0
         >>> # execute function
-        >>> sample_aids = ibs.get_annot_rowid_sample(per_name, min_ngt, seed)
-        >>> # verify results
-        >>> # FIXME
-        >>> #result = str(sample_aids)
-        >>> #print(result)
+        >>> sample_aid_list = ibs.get_annot_rowid_sample(per_name, min_ngt, seed)
+        >>> result = ut.hashstr_arr(sample_aid_list)
+        arr((66)crj9l5jde@@hdmlp)
     """
     #qaids = ibs.get_easy_annot_rowids()
     if aid_list is None:
         aid_list = np.array(ibs.get_valid_aids())
     grouped_aids_, unique_nids = ibs.group_annots_by_name(aid_list, distinguish_unknowns=False)
     grouped_aids = list(filter(lambda x: len(x) > min_ngt, grouped_aids_))
+    sample_aids_list = ut.sample_lists(grouped_aids, num=per_name, seed=seed)
     if stagger_names:
         from six.moves import zip_longest
-        sample_aids = ut.filter_Nones(ut.iflatten(zip_longest(*ut.sample_lists(grouped_aids, num=per_name, seed=seed))))
+        sample_aid_list = ut.filter_Nones(ut.iflatten(zip_longest(*sample_aids_list)))
     else:
-        sample_aids = ut.flatten(ut.sample_lists(grouped_aids, num=per_name, seed=seed))
+        sample_aid_list = ut.flatten(sample_aids_list)
 
-    return sample_aids
+    return sample_aid_list
 
 
 @__injectable
@@ -3178,7 +3179,8 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
 def learn_k():
     pass
     # load a dataset
-    # ibs =
+    import ibeis
+    ibs = ibeis.opendb('PZ_MTEST')
     # use experiment harness to run several values of K
     # varydict = {'K': 4, 7, 10, 13, 16, 19, 22, 25}
     # take subsets of daids to vary dbsizes
@@ -3189,14 +3191,16 @@ def learn_k():
         'K': [4, 7, 10, 13, 16, 19, 22, 25],
         #'nDaids': [20, 100, 250, 500, 750, 1000],
     }
+    nDaids_basis = [20, 100, 250, 500, 750, 1000]
     nError_list = []
     varied_dict = ut.all_dict_combinations(varydict)
-    qaids = sample()
-    for cfgdict in varied_dict:
+    qaids = ut.flatten(ibs.get_annot_groundtruth_sample(ibs.get_valid_aids(), per_name=1, isexemplar=None))
+    for nDaids in nDaids_basis:
         daids = sample()
-        ibs.query_chips(qaids, daids, cfgdict=cfgdict)
-        nErrors = None
-        nError_list.append(nErrors)
+        for cfgdict in varied_dict:
+            ibs.query_chips(qaids, daids, cfgdict=cfgdict)
+            nErrors = None
+            nError_list.append(nErrors)
 
     K_list      = np.array([  4,   4,    4,   7,   7,    7,   10,  10,   10,   13,  13,   13])
     nDaids_list = np.array([100, 500, 1000, 100, 500, 1000,  100, 500, 1000,  100, 500, 1000])

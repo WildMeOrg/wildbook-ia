@@ -64,13 +64,15 @@ class APITabWidget(QtGui.QTabWidget):
         tabwgt._sizePolicy = guitool.newSizePolicy(tabwgt, horizontalStretch=horizontalStretch)
         tabwgt.setSizePolicy(tabwgt._sizePolicy)
         #tabwgt.currentChanged.connect(tabwgt.setCurrentIndex)
-        tabwgt.currentChanged.connect(tabwgt._on_change)
+        tabwgt.currentChanged.connect(tabwgt._on_tabletab_change)
+        tabwgt.current_tblname = None
 
     @slot_(int)
-    def _on_change(tabwgt, index):
+    def _on_tabletab_change(tabwgt, index):
         """ Switch to the current encounter tab """
         print('[apitab] _onchange(index=%r)' % (index,))
         tblname = tabwgt.ibswgt.tblname_list[index]
+        tabwgt.current_tblname = tblname
         print('[apitab] _onchange(tblname=%r)' % (tblname,))
         tabwgt.ibswgt.back._clear_selection()
         view = tabwgt.ibswgt.views[tblname]
@@ -101,14 +103,14 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         enc_tabwgt.setSizePolicy(sizePolicy)
 
         enc_tabwgt.tabCloseRequested.connect(enc_tabwgt._close_tab)
-        enc_tabwgt.currentChanged.connect(enc_tabwgt._on_change)
+        enc_tabwgt.currentChanged.connect(enc_tabwgt._on_enctab_change)
 
         enc_tabwgt.eid_list = []
         # TURNING ON / OFF ALL IMAGES
         # enc_tabwgt._add_enc_tab(-1, const.ALL_IMAGE_ENCTEXT)
 
     @slot_(int)
-    def _on_change(enc_tabwgt, index):
+    def _on_enctab_change(enc_tabwgt, index):
         """ Switch to the current encounter tab """
         print('[encounter_tab_widget] _onchange(index=%r)' % (index,))
         if 0 <= index and index < len(enc_tabwgt.eid_list):
@@ -159,7 +161,7 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
             index = enc_tabwgt.eid_list.index(eid)
 
         enc_tabwgt.setCurrentIndex(index)
-        enc_tabwgt._on_change(index)
+        enc_tabwgt._on_enctab_change(index)
 
     def _update_enc_tab_name(enc_tabwgt, eid, enctext):
         for index, _id in enumerate(enc_tabwgt.eid_list):
@@ -428,7 +430,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             _NEWLBL('Selected Image: ', fontkw=secondary_fontkw, align='right'),
             _NEWTEXT(enabled=True, readOnly=True),
             _NEWLBL('Selected Annotation: ', fontkw=secondary_fontkw, align='right'),
-            _NEWTEXT(enabled=True, readOnly=True, editingFinishedSlot=ibswgt.selected_annotation_editing_finished),
+            _NEWTEXT(enabled=True, readOnly=False, editingFinishedSlot=ibswgt.selected_annotation_editing_finished),
             _NEWLBL('Selected Name: ', fontkw=secondary_fontkw, align='right'),
             _NEWTEXT(enabled=True, readOnly=True),
         ]
@@ -856,15 +858,31 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         text = ibswgt.status_widget_list[index].text()
         ibswgt.select_table_indicies_from_text(gh.ANNOTATION_TABLE, text)
 
-    def select_table_indicies_from_text(ibswgt, tablename, text):
-        print('new text: %r' % (text,))
+    def select_table_indicies_from_text(ibswgt, tblname, text):
+        #print('new text: %r' % (text,))
+        to_backend_tablename = {
+            gh.ANNOTATION_TABLE : const.ANNOTATION_TABLE,
+            gh.NAMES_TREE       : const.NAME_TABLE,
+            gh.IMAGE_TABLE      : const.IMAGE_TABLE,
+        }
+        backend_tablename = to_backend_tablename[tblname]
         try:
-            id_list = eval(text)  # NOQA
+            id_list = ut.ensure_iterable(eval(text))  # NOQA
         except Exception as ex:
             ut.printex(ex, iswarning=True)
-            pass
         else:
+            #print(id_list)
+            ibswgt.back._set_selection3(backend_tablename, id_list, mode='set')
             pass
+
+        if len(id_list) == 1 and ibswgt._tab_table_wgt.current_tblname == tblname:
+            view = ibswgt.views[tblname]
+            view.select_row_from_id(id_list[0])
+            pass
+        #if goto_table_id:
+        #    pass
+        ibswgt.back.update_selection_texts()
+        #pass
 
     @slot_(str, int)
     def on_rows_updated(ibswgt, tblname, nRows):
@@ -899,13 +917,13 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if not qtindex.isValid():
             return
 
-        def _goto_image_image(gid):
+        def _goto_image(gid):
             ibswgt.goto_table_id(IMAGE_TABLE, gid)
 
         def _goto_annot_image(aid):
-            ibswgt.goto_table_id(IMAGE_TABLE, ibswgt.back.ibs.get_annot_gids(aid))
+            _goto_image(ibswgt.back.ibs.get_annot_gids(aid))
 
-        def _goto_annot_annot(aid):
+        def _goto_annot(aid):
             ibswgt.goto_table_id(gh.ANNOTATION_TABLE, aid)
 
         def _goto_annot_name(aid):
@@ -1011,7 +1029,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 eid = model.eid
                 context_options += [
                     ('Go to image in Images Table',
-                        lambda: _goto_image_image(gid)),
+                        lambda: ibswgt.goto_table_id(IMAGE_TABLE, gid)),
                     ('----', lambda: None),
                     ('View image',
                         lambda: ibswgt.back.select_gid(gid, eid, show=True)),
@@ -1087,7 +1105,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 eid = model.eid
                 context_options += [
                     ('Go to image', lambda: _goto_annot_image(aid)),
-                    ('Go to annotation', lambda: _goto_annot_annot(aid)),
+                    ('Go to annotation', lambda: _goto_annot(aid)),
                     ('----', lambda: None),
                     ('View annotation', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
                     ('View image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),

@@ -1972,6 +1972,8 @@ def set_encounter_smart_xml_fnames(ibs, encounter_rowid_list, encounter_smart_xm
 def get_image_timedelta_posix(ibs, image_rowid_list, eager=True):
     """ image_timedelta_posix_list <- image.image_timedelta_posix[image_rowid_list]
 
+    # TODO: INTEGRATE THIS FUNCTION. CURRENTLY OFFSETS ARE ENCODIED DIRECTLY IN UNIXTIME
+
     gets data from the "native" column "image_timedelta_posix" in the "image" table
 
     Args:
