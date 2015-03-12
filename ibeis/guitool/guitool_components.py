@@ -177,7 +177,10 @@ def newTextEdit(parent, visible=True):
     return outputEdit
 
 
-def newLineEdit(parent, text=None, enabled=True, align='center', textChangedSlot=None, visible=True, fontkw={}):
+def newLineEdit(parent, text=None, enabled=True, align='center',
+                textChangedSlot=None, textEditedSlot=None,
+                editingFinishedSlot=None, visible=True, readOnly=False,
+                fontkw={}):
     """ This is a text line
 
     Example:
@@ -199,9 +202,13 @@ def newLineEdit(parent, text=None, enabled=True, align='center', textChangedSlot
         widget.setText(text)
     widget.setEnabled(enabled)
     widget.setAlignment(ALIGN_DICT[align])
-
+    widget.setReadOnly(readOnly)
     if textChangedSlot is not None:
-        widget.textChangedSlot.connect(textChangedSlot)
+        widget.textChanged.connect(textChangedSlot)
+    if editingFinishedSlot is not None:
+        widget.editingFinished.connect(editingFinishedSlot)
+    if textEditedSlot is not None:
+        widget.textEdited.connect(textEditedSlot)
 
     #outputEdit.setAcceptRichText(False)
     #outputEdit.setVisible(visible)

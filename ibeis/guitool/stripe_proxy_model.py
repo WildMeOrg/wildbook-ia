@@ -131,6 +131,9 @@ class StripeProxyModel(STRIP_PROXY_SIX_BASE):  # (STRIPE_PROXY_BASE, metaclass=S
     def _get_row_id(self, proxyIndex):
         return self.sourceModel()._get_row_id(self.mapToSource(proxyIndex))
 
+    def _get_level(self, proxyIndex):
+        return self.sourceModel()._get_level(self.mapToSource(proxyIndex))
+
     def _get_adjacent_qtindex(self, proxyIndex, *args, **kwargs):
         qtindex = self.mapToSource(proxyIndex)
         next_qtindex = self.sourceModel()._get_adjacent_qtindex(qtindex, *args, **kwargs)

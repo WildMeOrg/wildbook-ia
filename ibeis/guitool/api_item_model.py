@@ -7,7 +7,6 @@ from guitool.guitool_decorators import checks_qt_error, signal_  # NOQA
 from six.moves import zip  # builtins
 #from utool._internal.meta_util_six import get_funcname
 import functools
-import utool
 import utool as ut
 #from .api_thumb_delegate import APIThumbDelegate
 #import numpy as np
@@ -15,21 +14,21 @@ import utool as ut
 #printDBG = lambda *args: None
 # UTOOL PRINT STATEMENTS CAUSE RACE CONDITIONS IN QT THAT CAN LEAD TO SEGFAULTS
 # DO NOT INJECT THEM IN GUITOOL
-#(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIItemModel]', DEBUG=False)
+#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[APIItemModel]', DEBUG=False)
 ut.noinject(__name__, '[APIItemModel]', DEBUG=False)
 
 profile = ut.profile
 
 API_MODEL_BASE = QtCore.QAbstractItemModel
 
-VERBOSE = utool.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
+VERBOSE = ut.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
 
 
 try:
     # TODO Cyth should take care of this stuff
     # also, it should be a function level import not module?
-    #if not utool.get_argflag('--nocyth'):
-    if utool.get_argflag('--cyth'):
+    #if not ut.get_argflag('--nocyth'):
+    if ut.get_argflag('--cyth'):
         from guitool import api_tree_node_cython as _atn
     else:
         raise ImportError('')
@@ -45,7 +44,7 @@ class ChangeLayoutContext(object):
     Context manager emitting layoutChanged before body,
     not updating durring body, and then updating after body.
     """
-    @utool.accepts_scalar_input
+    @ut.accepts_scalar_input
     def __init__(self, model_list, *args):
         #print('Changing: %r' % (model_list,))
         self.model_list = list(model_list) + list(args)
@@ -221,27 +220,27 @@ class APIItemModel(API_MODEL_BASE):
             print('[APIItemModel] +-----------')
             print('[APIItemModel] _update_rows')
         # this is not slow
-        #with utool.Timer('update_rows'):
+        #with ut.Timer('update_rows'):
         #printDBG('UPDATE ROWS!')
         #print('UPDATE ROWS!')
         #print('num_rows=%r' % len(model.col_level_list))
         #print('UPDATE model(%s) rows' % model.name)
         #print('[api_model] UPDATE ROWS: %r' % (model.name,))
-        #print(utool.get_caller_name(range(4, 12)))
+        #print(ut.get_caller_name(range(4, 12)))
         if len(model.col_level_list) == 0:
             return
         #old_root = model.root_node  # NOQA
         if rebuild_structure:
-            #with utool.Timer('[%s] _update_rows: %r' %
+            #with ut.Timer('[%s] _update_rows: %r' %
             #                 ('cyth' if _atn.CYTHONIZED else 'pyth',
             #                  model.name,), newline=False):
                 model.root_node = _atn.build_internal_structure(model)
         #print('-----')
         #def lazy_update_rows():
-        #    with utool.Timer('lazy updater: %r' % (model.name,)):
+        #    with ut.Timer('lazy updater: %r' % (model.name,)):
         #        printDBG('[model] calling lazy updater: %r' % (model.name,))
         # REMOVING LAZY FUNCTION BECAUSE IT MIGHT HAVE CAUSED PROBLEMS
-        #with utool.Timer('[%s] _update_rows2: %r' %
+        #with ut.Timer('[%s] _update_rows2: %r' %
         #                 ('cyth' if _atn.CYTHONIZED else 'pyth',
         #                  model.name,), newline=False):
         if VERBOSE:
@@ -271,7 +270,7 @@ class APIItemModel(API_MODEL_BASE):
             if level == 0:
                 model.root_node.set_children(nodes)
             # end sort
-        if utool.USE_ASSERT:
+        if ut.USE_ASSERT:
             assert nodes is not None, 'no indices'
         model.level_index_list = nodes
         #if VERBOSE:
@@ -299,7 +298,7 @@ class APIItemModel(API_MODEL_BASE):
     def lazy_checks(model):
         if model.lazy_updater is not None:
             print('[model] lazy update %r caller %r: ' %
-                  (model.name, utool.get_caller_name(N=range(4))))
+                  (model.name, ut.get_caller_name(N=range(4))))
             model.lazy_updater()
             model.lazy_updater = None
 
@@ -310,10 +309,10 @@ class APIItemModel(API_MODEL_BASE):
             print('[APIItemModel] _set_iders')
         if iders is None:
             iders = []
-        if utool.USE_ASSERT:
-            assert utool.is_list(iders), 'bad type: %r' % type(iders)
+        if ut.USE_ASSERT:
+            assert ut.is_list(iders), 'bad type: %r' % type(iders)
             for index, ider in enumerate(iders):
-                assert utool.is_funclike(ider), 'bad type at index %r: %r' % (index, type(ider))
+                assert ut.is_funclike(ider), 'bad type at index %r: %r' % (index, type(ider))
         #printDBG('NEW IDER')
         model.iders = iders
 
@@ -325,7 +324,7 @@ class APIItemModel(API_MODEL_BASE):
             col_name_list = []
         if col_type_list is None:
             col_type_list = []
-        if utool.USE_ASSERT:
+        if ut.USE_ASSERT:
             assert len(col_name_list) == len(col_type_list), \
                 'inconsistent colnametype'
         model.col_name_list = col_name_list
@@ -335,7 +334,7 @@ class APIItemModel(API_MODEL_BASE):
     def _set_col_nice(model, col_nice_list=None):
         if col_nice_list is None:
             col_nice_list = model.col_name_list[:]
-        if utool.USE_ASSERT:
+        if ut.USE_ASSERT:
             assert len(model.col_name_list) == len(col_nice_list), \
                 'inconsistent colnice'
         model.col_nice_list = col_nice_list
@@ -344,7 +343,7 @@ class APIItemModel(API_MODEL_BASE):
     def _set_col_edit(model, col_edit_list=None):
         if col_edit_list is None:
             col_edit_list = [False] * len(model.col_name_list)
-        if utool.USE_ASSERT:
+        if ut.USE_ASSERT:
             assert len(model.col_name_list) == len(col_edit_list), \
                 'inconsistent coledit'
         model.col_edit_list = col_edit_list
@@ -355,7 +354,7 @@ class APIItemModel(API_MODEL_BASE):
             print('[APIItemModel] _set_col_setter')
         if col_setter_list is None:
             col_setter_list = []
-        if utool.USE_ASSERT:
+        if ut.USE_ASSERT:
             assert len(model.col_name_list) == len(col_setter_list), \
                 'inconsistent colsetter'
         model.col_setter_list = col_setter_list
@@ -366,7 +365,7 @@ class APIItemModel(API_MODEL_BASE):
             print('[APIItemModel] _set_col_getter')
         if col_getter_list is None:
             col_getter_list = []
-        if utool.USE_ASSERT:
+        if ut.USE_ASSERT:
             assert len(model.col_name_list) == len(col_getter_list), \
                 'inconsistent colgetter'
         model.col_getter_list = col_getter_list
@@ -377,7 +376,7 @@ class APIItemModel(API_MODEL_BASE):
         if col_bgrole_getter_list is None:
             model.col_bgrole_getter_list = [None] * len(model.col_name_list)
         else:
-            if utool.USE_ASSERT:
+            if ut.USE_ASSERT:
                 assert len(col_bgrole_getter_list) == len(model.col_name_list), \
                     'inconsistent col_bgrole_getter_list'
             model.col_bgrole_getter_list = col_bgrole_getter_list
@@ -388,7 +387,7 @@ class APIItemModel(API_MODEL_BASE):
         if col_visible_list is None:
             model.col_visible_list = [True] * len(model.col_name_list)
         else:
-            if utool.USE_ASSERT:
+            if ut.USE_ASSERT:
                 assert len(col_visible_list) == len(model.col_name_list), \
                     'inconsistent col_visible_list'
             model.col_visible_list = col_visible_list
@@ -399,7 +398,7 @@ class APIItemModel(API_MODEL_BASE):
             print('[APIItemModel] _set_col_level')
         if col_level_list is None:
             col_level_list = [0] * len(model.col_name_list)
-        if utool.USE_ASSERT:
+        if ut.USE_ASSERT:
             assert len(model.col_name_list) == len(col_level_list), \
                 'inconsistent collevel'
         model.col_level_list = col_level_list
@@ -408,10 +407,10 @@ class APIItemModel(API_MODEL_BASE):
     def _set_sort(model, col_sort_index, col_sort_reverse=False, rebuild_structure=False):
         if VERBOSE:
             print('[APIItemModel] _set_sort')
-        #with utool.Timer('set_sort'):
+        #with ut.Timer('set_sort'):
         #printDBG('SET SORT')
         if len(model.col_name_list) > 0:
-            if utool.USE_ASSERT:
+            if ut.USE_ASSERT:
                 assert isinstance(col_sort_index, int) and col_sort_index < len(model.col_name_list), \
                     'sort index out of bounds by: %r' % col_sort_index
             model.col_sort_index = col_sort_index
@@ -428,7 +427,7 @@ class APIItemModel(API_MODEL_BASE):
         #N = range(0, 10)  # NOQA
         if force or (not model._abouttochange and not model._changeblocked):
             #printDBG('ABOUT TO CHANGE: %r' % (model.name,))
-            #printDBG('caller=%r' % (utool.get_caller_name(N=N)))
+            #printDBG('caller=%r' % (ut.get_caller_name(N=N)))
             model._abouttochange = True
             model.layoutAboutToBeChanged.emit()
             return True
@@ -441,7 +440,7 @@ class APIItemModel(API_MODEL_BASE):
         #N = range(0, 10)  # NOQA
         if force or (model._abouttochange and not model._changeblocked):
             #printDBG('LAYOUT CHANGED:  %r' % (model.name,))
-            #printDBG('caller=%r' % (utool.get_caller_name(N=N)))
+            #printDBG('caller=%r' % (ut.get_caller_name(N=N)))
             #model._abouttochange = False
             model._abouttochange = False
             #printDBG('CHANGE: CACHE INVALIDATED!')
@@ -450,7 +449,7 @@ class APIItemModel(API_MODEL_BASE):
             return True
         else:
             #printDBG('NOT CHANGING')
-            #print('NOT LAYOU CHANGED: %r, caller=%r' % (model.name, utool.get_caller_name(N=N)))
+            #print('NOT LAYOU CHANGED: %r, caller=%r' % (model.name, ut.get_caller_name(N=N)))
             return False
 
     @default_method_decorator
@@ -503,7 +502,7 @@ class APIItemModel(API_MODEL_BASE):
         # <HACK>
         # Hacked to only work on tables. Should be in terms of qtindex
         row = qtindex.row()
-        if utool.USE_ASSERT:
+        if ut.USE_ASSERT:
             assert max(model.col_level_list) == 0, "Must be a table. Input is a tree"
         col = model.col_name_list.index(colname)
         id_ = model.root_node[row].get_id()
@@ -533,7 +532,7 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_col_align(model, col):
-        if utool.USE_ASSERT:
+        if ut.USE_ASSERT:
             assert col is not None, 'bad column'
         raise NotImplementedError('_get_col_align')
 
@@ -544,16 +543,16 @@ class APIItemModel(API_MODEL_BASE):
         """
         if qtindex.isValid():
             node = qtindex.internalPointer()
-            if utool.USE_ASSERT:
+            if ut.USE_ASSERT:
                 try:
                     assert isinstance(node, _atn.TreeNode), 'type(node)=%r, node=%r' % (type(node), node)
                 except AssertionError as ex:
-                    utool.printex(ex, 'error in _get_row_id', keys=['model', 'qtindex', 'node'])
+                    ut.printex(ex, 'error in _get_row_id', keys=['model', 'qtindex', 'node'])
                     raise
             try:
                 id_ = node.get_id()
             except AttributeError as ex:
-                utool.printex(ex, key_list=['node', 'model', 'qtindex'])
+                ut.printex(ex, key_list=['node', 'model', 'qtindex'])
                 raise
             return id_
 
@@ -565,16 +564,16 @@ class APIItemModel(API_MODEL_BASE):
         node = qtindex.internalPointer()
         # check node
         try:
-            if utool.USE_ASSERT:
+            if ut.USE_ASSERT:
                 assert isinstance(node, _atn.TreeNode), type(node)
         except AssertionError as ex:
-            utool.printex(ex, key_list=['node'], pad_stdout=True)
+            ut.printex(ex, key_list=['node'], pad_stdout=True)
             raise
         # get node parent
         try:
             node_parent = node.get_parent()
         except Exception as ex:
-            utool.printex(ex, key_list=['node'], reraise=False, pad_stdout=True)
+            ut.printex(ex, key_list=['node'], reraise=False, pad_stdout=True)
             raise
         # parent_node check
         if node_parent is None:
@@ -627,8 +626,8 @@ class APIItemModel(API_MODEL_BASE):
             #data = getter((row_id,), **kwargs)[0]
             data = getter(row_id, **kwargs)
         except Exception as ex:
-            utool.printex(ex, 'problem getting in column %r' % (col,))
-            #getting from: %r' % utool.util_str.get_callable_name(getter))
+            ut.printex(ex, 'problem getting in column %r' % (col,))
+            #getting from: %r' % ut.util_str.get_callable_name(getter))
             raise
         # <HACK: MODEL_CACHE>
         #cachekey = (row_id, col)
@@ -738,7 +737,7 @@ class APIItemModel(API_MODEL_BASE):
             # This is a child level > 0 index
             parent_node = parent.internalPointer()
             node = parent_node[row]
-            if utool.USE_ASSERT:
+            if ut.USE_ASSERT:
                 assert isinstance(parent_node, _atn.TreeNode), type(parent_node)
                 assert isinstance(node, _atn.TreeNode), type(node)
             return model.createIndex(row, column, object=node)
@@ -803,7 +802,7 @@ class APIItemModel(API_MODEL_BASE):
                 value = Qt.AlignRight | Qt.AlignVCenter
             elif type_ in qtype.QT_BUTTON_TYPES:
                 value = Qt.AlignRight | Qt.AlignVCenter
-            elif type_ in utool.VALID_FLOAT_TYPES:
+            elif type_ in ut.VALID_FLOAT_TYPES:
                 value = Qt.AlignRight | Qt.AlignVCenter
             else:
                 value = Qt.AlignHCenter | Qt.AlignVCenter
@@ -897,7 +896,7 @@ class APIItemModel(API_MODEL_BASE):
             return True
         except Exception as ex:
             #value = str(value.toString())  # NOQA
-            utool.printex(ex, 'ignoring setData', '[model]', tb=True,
+            ut.printex(ex, 'ignoring setData', '[model]', tb=True,
                           key_list=['value'], iswarning=True)
             return False
 
@@ -956,7 +955,7 @@ class APIItemModel(API_MODEL_BASE):
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         elif not editable:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
-        elif type_ in utool.VALID_BOOL_TYPES:
+        elif type_ in ut.VALID_BOOL_TYPES:
             return Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
         else:
             return Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable
