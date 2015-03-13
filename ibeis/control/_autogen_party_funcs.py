@@ -98,7 +98,7 @@ def get_party_rowid_from_superkey(ibs, party_tag_list, eager=True, nInput=None):
     colnames = (PARTY_ROWID,)
     # FIXME: col_rowid is not correct
     params_iter = zip(party_tag_list)
-    andwhere_colnames = [party_tag_list]
+    andwhere_colnames = (PARTY_TAG, )
     party_rowid_list = ibs.db.get_where2(
         const.PARTY_TABLE, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
     return party_rowid_list
