@@ -3196,8 +3196,8 @@ def learn_k():
     pass
     # load a dataset
     import ibeis
-    #dbname = 'PZ_MTEST'
-    dbname = 'PZ_Master0'
+    dbname = 'PZ_MTEST'
+    #dbname = 'PZ_Master0'
     ibs = ibeis.opendb(dbname)
     # use experiment harness to run several values of K
     # varydict = {'K': 4, 7, 10, 13, 16, 19, 22, 25}
@@ -3228,7 +3228,7 @@ def learn_k():
         'K': [1, 2, 3, 4, 8, 10, 13, 15],
         #'nDaids': [20, 100, 250, 500, 750, 1000],
     }
-    nDaids_basis = [20, 50, 100, 200, 250, 300, 350, 400, 500, 600, 750, 800, 900, 1000, 1500]
+    nDaids_basis = [20, 30, 50, 75, 100, 200, 250, 300, 350, 400, 500, 600, 750, 800, 900, 1000, 1500]
     varied_dict = ut.all_dict_combinations(varydict)
 
     nError_list  = []
@@ -3254,7 +3254,7 @@ def learn_k():
             print('nDaids = %r' % nDaids)
             for cfgdict in ut.ProgressIter(varied_dict, lbl='testing cfgdict'):
                 qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
-                qres_list = ibs.query_chips(qreq_=qreq_)
+                qres_list = ibs.query_chips(qreq_=qreq_, verbose=ut.VERBOSE)
                 gt_ranks_list = [qres.get_gt_ranks(ibs=ibs) for qres in qres_list]
                 incorrect_list = [len(gt_ranks) == 0 or min(gt_ranks) != 0 for gt_ranks in gt_ranks_list]
                 nErrors = sum(incorrect_list)
@@ -3271,6 +3271,7 @@ def learn_k():
         nDaids_list = np.array(nDaids_list)
         K_list = np.array([cfgdict['K'] for cfgdict in cfgdict_list])
 
+    import scipy as sp
     import vtool as vt
     #unique_k, groupxs = vt.group_indices(K_list)
     unique_nDaids, groupxs = vt.group_indices(nDaids_list)
@@ -3280,13 +3281,58 @@ def learn_k():
     unique_k = [Ks_[nErrors_.argmin()] for Ks_, nErrors_ in zip(Ks_groups, nError_groups)]
     #unique_nDaids = [nDaids_[nErrors_.argmin()] for nErrors_, nDaids_ in zip(nError_groups, nDaids_groups)]
 
-    import scipy.optimize as spopt
+    import plottool as pt
+    from mpl_toolkits.mplot3d import Axes3D  # NOQA
+    pt.plt.figure(2)
+    fig = pt.gcf()
+    fig.clf()
+    error_scale =  nError_list / nError_list.max()
+    pt.plt.scatter(nDaids_list, K_list, s=(error_scale * 1000) + 20)
+    pt.plot(unique_nDaids, unique_k)
+    pt.set_xlabel('nDaids')
+    pt.set_ylabel('K')
+    pt.draw()
+
+    #interpolate_points =
+
+    nonuniform_grid = np.vstack([nDaids_list, K_list]).T
+    import fractions
+    from six.moves import reduce
+    # Convert our non-uniform grid into a uniform grid using gcd
+    pt.plt.figure(12)
+    pt.gcf().clf()
+    uniform_grid_steps = [reduce(fractions.gcd, np.unique(nonuniform_dim).tolist()) for nonuniform_dim in nonuniform_grid.T]
+    uniform_grid_min = nonuniform_grid.min(axis=0)
+    uniform_grid_max = nonuniform_grid.max(axis=0)
+    uniform_basis = [np.arange(min_, max_ + step_, step_) for min_, max_, step_ in zip(uniform_grid_min, uniform_grid_max, uniform_grid_steps)]
+    uniform_grid_shape = tuple([basis.size for basis in uniform_basis][::-1])
+    interpolated_positions = np.vstack([_pts.flatten() for _pts in np.meshgrid(*uniform_basis)]).T
+    interpolated_error = sp.interpolate.griddata(nonuniform_grid, nError_list, interpolated_positions, method='linear')
+
+    #pt.plot_surface3d(interpolated_positions.T[0], interpolated_positions.T[1], interpolated_error)
+    #pt.plot_surface3d(interpolated_positions.T[0], interpolated_positions.T[1], interpolated_error)
+    ax = pt.plot_surface3d(
+        interpolated_positions.T[0].reshape(uniform_grid_shape),
+        interpolated_positions.T[1].reshape(uniform_grid_shape),
+        interpolated_error.reshape(uniform_grid_shape),
+        xlabel='nDaids',
+        ylabel='K',
+        zlabel='error',
+        rstride=1,
+        cstride=1,
+    )
+    ax.scatter(nonuniform_grid.T[0], nonuniform_grid.T[1], nError_list, s=(error_scale * 100) + 20, c='r')
+    pt.draw()
+
+    #import scipy.interpolate as spinterp
+    #import scipy.optimize as spopt
+
     # http://stackoverflow.com/questions/22240280/least-squares-fit-to-a-straight-line-python-code
     #A = unique_nDaids
     #B = unique_k
     def compute_K(x, A, B):
         return A * x + B
-    slope, intercept = spopt.curve_fit(compute_K, unique_nDaids, unique_k)[0]
+    slope, intercept = sp.optimize.curve_fit(compute_K, unique_nDaids, unique_k)[0]
 
     def compute_K2(x, A):
         return A[0] * x + A[1]
@@ -3309,24 +3355,13 @@ def learn_k():
         total_error = sum([compute_dense_error(nDaids, compute_K(nDaids, *args)) for nDaids in unique_nDaids])
         return total_error
 
-    spopt.fmin(objective_func, (.5, 0))
+    sp.optimize.fmin(objective_func, (.5, 0))
 
     #http://docs.scipy.org/doc/scipy-0.14.0/reference/optimize.html
 
     domain = np.linspace(1, max(unique_nDaids))
     value = objective_func(domain, slope, intercept)
-
-    import plottool as pt
-    from mpl_toolkits.mplot3d import Axes3D  # NOQA
-    fig = pt.gcf()
-    fig.clf()
-    error_scale =  1 - nError_list / nError_list.max()
-    pt.plt.scatter(nDaids_list, K_list, s=(error_scale * 1000) + 20)
-    pt.plot(unique_nDaids, unique_k)
     pt.plot(domain, value)
-    pt.set_xlabel('nDaids')
-    pt.set_ylabel('K')
-    pt.draw()
 
     pt.figure(fnum=10)
     #import matplotlib as mpl
@@ -3339,6 +3374,7 @@ def learn_k():
         nDaids_list.reshape(shape),
         error_scale.reshape(shape),
     )
+
     #if False:
     #fig = plt.figure()
     #ax = fig.add_subplot(111, projection='3d')

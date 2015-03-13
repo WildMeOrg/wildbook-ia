@@ -895,6 +895,10 @@ python dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:a
 
 # Test hack orientation
 python dev.py -t custom:augment_queryside_hack=True --db PZ_MTEST --allgt --index 0:1 --noqcache --verbose
+python dev.py -t custom:augment_queryside_hack=True --db PZ_MTEST --allgt --index 0:1 --noqcache --verbose --va --show
+
+python dev.py -t custom custom:augment_queryside_hack=True --db PZ_MTEST --allgt 
+--noqcache --verbose --va --show
 
 --va --show
 ```
