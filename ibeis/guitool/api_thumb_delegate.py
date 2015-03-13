@@ -827,7 +827,7 @@ Traceback (most recent call last):
   File "/home/joncrall/code/guitool/guitool/api_item_model.py", line 619, in _get_data
     data = getter(row_id, **kwargs)
   File "/home/joncrall/code/ibeis/ibeis/control/manual_chip_funcs.py", line 260, in get_annot_chip_thumbtup
-    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize, qreq_=qreq_)
+    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize,
   File "/home/joncrall/code/ibeis/ibeis/control/manual_chip_funcs.py", line 220, in get_annot_chip_thumbpath
     thumb_suffix = '_' + str(thumbsize) + const.CHIP_THUMB_SUFFIX
 RuntimeError: maximum recursion depth exceeded while getting the str of an object
@@ -979,7 +979,7 @@ Traceback (most recent call last):
   File "/home/joncrall/code/guitool/guitool/api_item_model.py", line 619, in _get_data
     data = getter(row_id, **kwargs)
   File "/home/joncrall/code/ibeis/ibeis/control/manual_chip_funcs.py", line 260, in get_annot_chip_thumbtup
-    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize, qreq_=qreq_)
+    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize,
   File "/home/joncrall/code/ibeis/ibeis/control/manual_chip_funcs.py", line 221, in get_annot_chip_thumbpath
     annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)
   File "/home/joncrall/code/utool/utool/util_decor.py", line 90, in wrp_noexectb
@@ -1141,7 +1141,7 @@ Traceback (most recent call last):
   File "/home/joncrall/code/guitool/guitool/api_item_model.py", line 619, in _get_data
     data = getter(row_id, **kwargs)
   File "/home/joncrall/code/ibeis/ibeis/control/manual_chip_funcs.py", line 260, in get_annot_chip_thumbtup
-    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize, qreq_=qreq_)
+    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize,
   File "/home/joncrall/code/ibeis/ibeis/control/manual_chip_funcs.py", line 221, in get_annot_chip_thumbpath
     annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)
   File "/home/joncrall/code/utool/utool/util_decor.py", line 90, in wrp_noexectb
@@ -1307,7 +1307,7 @@ Traceback (most recent call last):
   File "/home/joncrall/code/guitool/guitool/api_item_model.py", line 619, in _get_data
     data = getter(row_id, **kwargs)
   File "/home/joncrall/code/ibeis/ibeis/control/manual_chip_funcs.py", line 260, in get_annot_chip_thumbtup
-    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize, qreq_=qreq_)
+    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize,
   File "/home/joncrall/code/ibeis/ibeis/control/manual_chip_funcs.py", line 221, in get_annot_chip_thumbpath
     annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)
   File "/home/joncrall/code/ibeis/ibeis/control/manual_annot_funcs.py", line 943, in get_annot_visual_uuids
