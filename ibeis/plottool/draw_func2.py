@@ -2174,7 +2174,7 @@ def param_plot_iterator(param_list, fnum=None, projection=None):
         yield param
 
 
-def plot_surface3d(xgrid, ygrid, zdata, *args, **kwargs):
+def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None, *args, **kwargs):
     from mpl_toolkits.mplot3d import Axes3D  # NOQA
     ax = plt.gca(projection='3d')
     title = kwargs.pop('title', None)
@@ -2182,6 +2182,13 @@ def plot_surface3d(xgrid, ygrid, zdata, *args, **kwargs):
     #ax.plot_trisurf(xgrid, ygrid, zdata, *args, **kwargs)
     if title is not None:
         ax.set_title(title)
+    if xlabel is not None:
+        ax.set_xlabel(xlabel)
+    if ylabel is not None:
+        ax.set_ylabel(ylabel)
+    if zlabel is not None:
+        ax.set_zlabel(zlabel)
+    return ax
 #L_____
 
 if __name__ == '__main__':
