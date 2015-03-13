@@ -68,6 +68,7 @@ class PATH_NAMES(object):
     cache      = '_ibeis_cache'
     backups    = '_ibeis_backups'
     chips      = 'chips'
+    figures    = 'figures'
     flann      = 'flann'
     images     = 'images'
     trees      = 'trees'
@@ -85,6 +86,7 @@ class REL_PATHS(object):
     """ all paths are relative to ibs.dbdir """
     _ibsdb   = PATH_NAMES._ibsdb
     trashdir = PATH_NAMES.trashdir
+    figures  = join(_ibsdb, PATH_NAMES.figures)
     cache    = join(_ibsdb, PATH_NAMES.cache)
     backups  = join(_ibsdb, PATH_NAMES.backups)
     chips    = join(_ibsdb, PATH_NAMES.chips)

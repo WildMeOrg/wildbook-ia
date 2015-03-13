@@ -56,9 +56,11 @@ def sync_ibeisdb(remote_uri, dbname, mode='pull'):
     exclude_dirs = [
         ut.ensure_unixslash(ibeis.const.REL_PATHS.chips),
         ut.ensure_unixslash(ibeis.const.REL_PATHS.cache),
+        ut.ensure_unixslash(ibeis.const.REL_PATHS.backups),
+        ut.ensure_unixslash(ibeis.const.REL_PATHS.figures),
         #'_ibsdb/_ibeis_cache',
         #'_ibsdb/chips',
-        './images',
+        './images',  # the hotspotter images dir
     ]
     local_uri = ut.ensure_unixslash(ibeis.sysres.get_workdir())
     if ut.WIN32:
