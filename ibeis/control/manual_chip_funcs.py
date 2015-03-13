@@ -39,7 +39,7 @@ CONFIG_ROWID  = 'config_rowid'
 
 @register_ibs_method
 @adder
-def add_annot_chips(ibs, aid_list, qreq_=None, verbose=not ut.QUIET, return_num_dirty=False):
+def add_annot_chips(ibs, aid_list, config2_=None, verbose=not ut.QUIET, return_num_dirty=False):
     """ annot.chip.add(aid_list)
 
     CRITICAL FUNCTION MUST EXIST FOR ALL DEPENDANTS
@@ -62,41 +62,41 @@ def add_annot_chips(ibs, aid_list, qreq_=None, verbose=not ut.QUIET, return_num_
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()[::3]
-        >>> chip_rowid_list = ibs.add_annot_chips(aid_list, qreq_=qreq_)
+        >>> chip_rowid_list = ibs.add_annot_chips(aid_list, config2_=config2_)
         >>> assert len(chip_rowid_list) == len(aid_list)
         >>> ut.assert_all_not_None(chip_rowid_list)
 
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()[0:10]
         >>> sub_aid_list1 = aid_list[0:6]
         >>> sub_aid_list2 = aid_list[5:7]
         >>> sub_aid_list3 = aid_list[0:7]
-        >>> sub_chip_rowid_list1 = ibs.get_annot_chip_rowids(sub_aid_list1, qreq_=qreq_, ensure=True)
-        >>> ibs.get_annot_chip_rowids(sub_aid_list1, qreq_=qreq_, ensure=True)
-        >>> sub_chip_rowid_list1, num_dirty0 = ibs.add_annot_chips(sub_aid_list1, qreq_=qreq_, return_num_dirty=True)
+        >>> sub_chip_rowid_list1 = ibs.get_annot_chip_rowids(sub_aid_list1, config2_=config2_, ensure=True)
+        >>> ibs.get_annot_chip_rowids(sub_aid_list1, config2_=config2_, ensure=True)
+        >>> sub_chip_rowid_list1, num_dirty0 = ibs.add_annot_chips(sub_aid_list1, config2_=config2_, return_num_dirty=True)
         >>> assert num_dirty0 == 0
         >>> ut.assert_all_not_None(sub_chip_rowid_list1)
         >>> ibs.delete_annot_chips(sub_aid_list2)
         >>> #ibs.delete_annot_chip(sub_aid_list2)?
-        >>> sub_chip_rowid_list3 = ibs.get_annot_chip_rowids(sub_aid_list3, qreq_=qreq_, ensure=False)
+        >>> sub_chip_rowid_list3 = ibs.get_annot_chip_rowids(sub_aid_list3, config2_=config2_, ensure=False)
         >>> # Only the last two should be None
         >>> ut.assert_all_not_None(sub_chip_rowid_list3[0:5], 'sub_chip_rowid_list3[0:5])')
         >>> assert sub_chip_rowid_list3[5:7] == [None, None]
-        >>> sub_chip_rowid_list3_ensured, num_dirty1 = ibs.add_annot_chips(sub_aid_list3, qreq_=qreq_, return_num_dirty=True)
+        >>> sub_chip_rowid_list3_ensured, num_dirty1 = ibs.add_annot_chips(sub_aid_list3, config2_=config2_, return_num_dirty=True)
         >>> assert num_dirty1 == 2, 'Only two params should have been computed here'
         >>> ut.assert_all_not_None(sub_chip_rowid_list3_ensured)
     """
     from ibeis.model.preproc import preproc_chip
     ut.assert_all_not_None(aid_list, ' annot_rowid_list')
     # Get requested configuration id
-    config_rowid = ibs.get_chip_config_rowid(qreq_=qreq_)
+    config_rowid = ibs.get_chip_config_rowid(config2_=config2_)
     # Find leaf rowids that need to be computed
-    initial_chip_rowid_list = get_annot_chip_rowids_(ibs, aid_list, qreq_=qreq_)
+    initial_chip_rowid_list = get_annot_chip_rowids_(ibs, aid_list, config2_=config2_)
     # Get corresponding "dirty" parent rowids
     isdirty_list = ut.flag_None_items(initial_chip_rowid_list)
     dirty_aid_list = ut.filter_items(aid_list, isdirty_list)
@@ -109,8 +109,8 @@ def add_annot_chips(ibs, aid_list, qreq_=None, verbose=not ut.QUIET, return_num_
         # Dependant columns do not need true from_superkey getters.
         # We can use the Tgetter_pl_dependant_rowids_ instead
         get_rowid_from_superkey = functools.partial(
-            ibs.get_annot_chip_rowids_, qreq_=qreq_)
-        proptup_gen = preproc_chip.generate_chip_properties(ibs, dirty_aid_list, qreq_=qreq_)
+            ibs.get_annot_chip_rowids_, config2_=config2_)
+        proptup_gen = preproc_chip.generate_chip_properties(ibs, dirty_aid_list, config2_=config2_)
         dirty_params_iter = (
             (aid, config_rowid, chip_uri, chip_width, chip_height)
             for aid, (chip_uri, chip_width, chip_height,) in
@@ -130,7 +130,7 @@ def add_annot_chips(ibs, aid_list, qreq_=None, verbose=not ut.QUIET, return_num_
 
 
 @register_ibs_method
-def get_annot_chip_rowids(ibs, aid_list, qreq_=None, ensure=False, eager=True, nInput=None):
+def get_annot_chip_rowids(ibs, aid_list, config2_=None, ensure=True, eager=True, nInput=None):
     """ chip_rowid_list <- annot.chip.rowids[aid_list]
 
     get chip rowids of annot under the current state configuration
@@ -150,7 +150,7 @@ def get_annot_chip_rowids(ibs, aid_list, qreq_=None, ensure=False, eager=True, n
 
     Timeit:
         >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> # Test to see if there is any overhead to injected vs native functions
         >>> %timeit get_annot_chip_rowids(ibs, aid_list)
         >>> %timeit ibs.get_annot_chip_rowids(aid_list)
@@ -158,22 +158,22 @@ def get_annot_chip_rowids(ibs, aid_list, qreq_=None, ensure=False, eager=True, n
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()
         >>> ensure = False
-        >>> chip_rowid_list = ibs.get_annot_chip_rowids(aid_list, qreq_, ensure)
+        >>> chip_rowid_list = ibs.get_annot_chip_rowids(aid_list, config2_, ensure)
         >>> assert len(chip_rowid_list) == len(aid_list)
     """
     if ensure:
-        chip_rowid_list = add_annot_chips(ibs, aid_list, qreq_=qreq_)
+        chip_rowid_list = add_annot_chips(ibs, aid_list, config2_=config2_)
     else:
         chip_rowid_list = get_annot_chip_rowids_(
-            ibs, aid_list, qreq_=qreq_, eager=eager, nInput=nInput)
+            ibs, aid_list, config2_=config2_, eager=eager, nInput=nInput)
     return chip_rowid_list
 
 
 @register_ibs_method
-def get_annot_chip_rowids_(ibs, aid_list, qreq_=None, eager=True, nInput=None):
+def get_annot_chip_rowids_(ibs, aid_list, config2_=None, eager=True, nInput=None):
     """
     equivalent to get_annot_chip_rowids_ except ensure is constrained
     to be False.
@@ -185,7 +185,7 @@ def get_annot_chip_rowids_(ibs, aid_list, qreq_=None, eager=True, nInput=None):
         Tgetter_pl_dependant_rowids_
     """
     colnames = (CHIP_ROWID,)
-    config_rowid = ibs.get_chip_config_rowid(qreq_=qreq_)
+    config_rowid = ibs.get_chip_config_rowid(config2_=config2_)
     andwhere_colnames = (ANNOT_ROWID, CONFIG_ROWID,)
     params_iter = ((aid, config_rowid,) for aid in aid_list)
     chip_rowid_list = ibs.dbcache.get_where2(
@@ -195,7 +195,7 @@ def get_annot_chip_rowids_(ibs, aid_list, qreq_=None, eager=True, nInput=None):
 
 @register_ibs_method
 @getter_1to1
-def get_annot_chip_fpaths(ibs, aid_list, ensure=True, qreq_=None):
+def get_annot_chip_fpaths(ibs, aid_list, ensure=True, config2_=None):
     """
     Returns the cached chip uri based off of the current
     configuration.
@@ -203,14 +203,120 @@ def get_annot_chip_fpaths(ibs, aid_list, ensure=True, qreq_=None):
     Returns:
         chip_fpath_list (list): cfpaths defined by ANNOTATIONs
     """
-    cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, qreq_=qreq_)
+    cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, config2_=config2_)
     chip_fpath_list = ibs.get_chip_uris(cid_list)
     return chip_fpath_list
 
 
 @register_ibs_method
 @getter_1to1
-def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, qreq_=None):
+def get_annot_chips(ibs, aid_list, ensure=True, config2_=None):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+        ensure (bool):  eager evaluation if True
+        config2_ (QueryRequest):  query request object with hyper-parameters
+
+    Returns:
+        list: chip_list
+
+    CommandLine:
+        python -m ibeis.control.manual_chip_funcs --test-get_annot_chips
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:5]
+        >>> ensure = True
+        >>> config2_ = None
+        >>> chip_list = get_annot_chips(ibs, aid_list, ensure, config2_)
+        >>> chip_sum_list = list(map(np.sum, chip_list))
+        >>> ut.assert_almost_eq(chip_sum_list, [96053500, 65152954, 67223241, 109358624, 73995960], 2000)
+        >>> print(chip_sum_list)
+    """
+    ut.assert_all_not_None(aid_list, 'aid_list')
+    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, config2_=config2_)
+    chip_list = ibs.get_chips(cid_list, ensure=ensure)
+    return chip_list
+
+
+@register_ibs_method
+@getter_1to1
+#@cache_getter(const.ANNOTATION_TABLE, 'chipsizes')
+def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
+    """
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+        ensure (bool):  eager evaluation if True
+
+    Returns:
+        list: chipsz_list - the (width, height) of computed annotation chips.
+
+    CommandLine:
+        python -m ibeis.control.manual_chip_funcs --test-get_annot_chip_sizes
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[0:3]
+        >>> ensure = True
+        >>> # execute function
+        >>> chipsz_list = get_annot_chip_sizes(ibs, aid_list, ensure)
+        >>> # verify results
+        >>> result = str(chipsz_list)
+        >>> print(result)
+        [(545, 372), (603, 336), (520, 390)]
+    """
+    cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, config2_=config2_)
+    chipsz_list = ibs.get_chip_sizes(cid_list)
+    return chipsz_list
+
+
+@register_ibs_method
+def get_annot_chip_dlensqrd(ibs, aid_list, config2_=None):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):
+
+    Returns:
+        list: topx2_dlen_sqrd
+
+    CommandLine:
+        python -m ibeis.control.manual_chip_funcs --test-get_annot_chip_dlensqrd
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> config2_ = None
+        >>> # execute function
+        >>> topx2_dlen_sqrd = ibs.get_annot_chip_dlensqrd(aid_list, config2_=config2_)
+        >>> # verify results
+        >>> result = str(topx2_dlen_sqrd)
+        >>> print(result)
+        [435409, 476505, 422500, 422500, 422500, 437924, 405000, 405000, 447805, 420953, 405008, 406265, 512674]
+    """
+    topx2_dlen_sqrd = [
+        ((w ** 2) + (h ** 2))
+        for (w, h) in ibs.get_annot_chip_sizes(aid_list, config2_=config2_)
+    ]
+    return topx2_dlen_sqrd
+
+
+@register_ibs_method
+@getter_1to1
+def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, config2_=None):
     """
     just constructs the path. does not compute it. that is done by
     api_thumb_delegate
@@ -227,7 +333,7 @@ def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, qreq_=None):
 
 @register_ibs_method
 @getter_1to1
-def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, qreq_=None):
+def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
     """ get chip thumb info
 
     Args:
@@ -258,10 +364,10 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, qreq_=None):
     #thumbsize = 256
     if thumbsize is None:
         thumbsize = ibs.cfg.other_cfg.thumb_size
-    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize, qreq_=qreq_)
+    thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize, config2_=config2_)
     #print(thumb_gpaths)
-    chip_paths = ibs.get_annot_chip_fpaths(aid_list, ensure=True, qreq_=qreq_)
-    chipsize_list = ibs.get_annot_chip_sizes(aid_list, ensure=False, qreq_=qreq_)
+    chip_paths = ibs.get_annot_chip_fpaths(aid_list, ensure=True, config2_=config2_)
+    chipsize_list = ibs.get_annot_chip_sizes(aid_list, ensure=False, config2_=config2_)
     thumbtup_list = [
         (thumb_path, chip_path, chipsize, [], [])
         for (thumb_path, chip_path, chipsize) in
@@ -270,112 +376,6 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, qreq_=None):
     #if not isiterable:
     #    return thumbtup_list[0]
     return thumbtup_list
-
-
-@register_ibs_method
-@getter_1to1
-def get_annot_chips(ibs, aid_list, ensure=True, qreq_=None):
-    r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid_list (int):  list of annotation ids
-        ensure (bool):  eager evaluation if True
-        qreq_ (QueryRequest):  query request object with hyper-parameters
-
-    Returns:
-        list: chip_list
-
-    CommandLine:
-        python -m ibeis.control.manual_chip_funcs --test-get_annot_chips
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[0:5]
-        >>> ensure = True
-        >>> qreq_ = None
-        >>> chip_list = get_annot_chips(ibs, aid_list, ensure, qreq_)
-        >>> chip_sum_list = list(map(np.sum, chip_list))
-        >>> ut.assert_almost_eq(chip_sum_list, [96053500, 65152954, 67223241, 109358624, 73995960], 2000)
-        >>> print(chip_sum_list)
-    """
-    ut.assert_all_not_None(aid_list, 'aid_list')
-    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, qreq_=qreq_)
-    chip_list = ibs.get_chips(cid_list, ensure=ensure)
-    return chip_list
-
-
-@register_ibs_method
-@getter_1to1
-#@cache_getter(const.ANNOTATION_TABLE, 'chipsizes')
-def get_annot_chip_sizes(ibs, aid_list, ensure=True, qreq_=None):
-    """
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid_list (int):  list of annotation ids
-        ensure (bool):  eager evaluation if True
-
-    Returns:
-        list: chipsz_list - the (width, height) of computed annotation chips.
-
-    CommandLine:
-        python -m ibeis.control.manual_chip_funcs --test-get_annot_chip_sizes
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[0:3]
-        >>> ensure = True
-        >>> # execute function
-        >>> chipsz_list = get_annot_chip_sizes(ibs, aid_list, ensure)
-        >>> # verify results
-        >>> result = str(chipsz_list)
-        >>> print(result)
-        [(545, 372), (603, 336), (520, 390)]
-    """
-    cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, qreq_=qreq_)
-    chipsz_list = ibs.get_chip_sizes(cid_list)
-    return chipsz_list
-
-
-@register_ibs_method
-def get_annot_chip_dlensqrd(ibs, aid_list, qreq_=None):
-    r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid_list (list):
-
-    Returns:
-        list: topx2_dlen_sqrd
-
-    CommandLine:
-        python -m ibeis.control.manual_chip_funcs --test-get_annot_chip_dlensqrd
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> qreq_ = None
-        >>> # execute function
-        >>> topx2_dlen_sqrd = ibs.get_annot_chip_dlensqrd(aid_list, qreq_=qreq_)
-        >>> # verify results
-        >>> result = str(topx2_dlen_sqrd)
-        >>> print(result)
-        [435409, 476505, 422500, 422500, 422500, 437924, 405000, 405000, 447805, 420953, 405008, 406265, 512674]
-    """
-    topx2_dlen_sqrd = [
-        ((w ** 2) + (h ** 2))
-        for (w, h) in ibs.get_annot_chip_sizes(aid_list, qreq_=qreq_)
-    ]
-    return topx2_dlen_sqrd
 
 
 @register_ibs_method
@@ -389,9 +389,9 @@ def delete_annot_chip_thumbs(ibs, aid_list, quiet=False):
 
 @register_ibs_method
 @deleter
-def delete_annot_chips(ibs, aid_list, qreq_=None):
+def delete_annot_chips(ibs, aid_list, config2_=None):
     """ Clears annotation data (does not remove the annotation) """
-    _cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False, qreq_=qreq_)
+    _cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False, config2_=config2_)
     cid_list = ut.filter_Nones(_cid_list)
     ibs.delete_chips(cid_list)
     # HACK FIX: if annot chips are None then the image thumbnail
@@ -420,7 +420,7 @@ def _get_all_chip_rowids(ibs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> ibs._get_all_chip_rowids()
     """
     all_chip_rowids = ibs.dbcache.get_all_rowids(const.CHIP_TABLE)
@@ -429,10 +429,10 @@ def _get_all_chip_rowids(ibs):
 
 @register_ibs_method
 @ider
-def get_valid_cids(ibs, qreq_=None):
+def get_valid_cids(ibs, config2_=None):
     """ Valid chip rowids of the current configuration """
     # FIXME: configids need reworking
-    chip_config_rowid = ibs.get_chip_config_rowid(qreq_=qreq_)
+    chip_config_rowid = ibs.get_chip_config_rowid(config2_=config2_)
     cid_list = ibs.dbcache.get_all_rowids_where(const.FEATURE_TABLE, 'config_rowid=?', (chip_config_rowid,))
     return cid_list
 
@@ -440,7 +440,7 @@ def get_valid_cids(ibs, qreq_=None):
 @register_ibs_method
 @deleter
 #@cache_invalidator(const.CHIP_TABLE)
-def delete_chips(ibs, cid_list, verbose=ut.VERBOSE, qreq_=None):
+def delete_chips(ibs, cid_list, verbose=ut.VERBOSE, config2_=None):
     """ deletes images from the database that belong to gids"""
     from ibeis.model.preproc import preproc_chip
     if verbose:
@@ -448,12 +448,12 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE, qreq_=None):
     # Delete sql-external (on-disk) information
     preproc_chip.on_delete(ibs, cid_list)
     # Delete sql-dependencies
-    fid_list = ut.filter_Nones(ibs.get_chip_feat_rowids(cid_list, qreq_=qreq_, ensure=False))
+    fid_list = ut.filter_Nones(ibs.get_chip_feat_rowids(cid_list, config2_=config2_, ensure=False))
     aid_list = ibs.get_chip_aids(cid_list)
     gid_list = ibs.get_annot_gids(aid_list)
     ibs.delete_image_thumbs(gid_list)
     ibs.delete_annot_chip_thumbs(aid_list)
-    ibs.delete_features(fid_list, qreq_=qreq_)
+    ibs.delete_features(fid_list, config2_=config2_)
     # Delete chips from sql
     ibs.dbcache.delete_rowids(const.CHIP_TABLE, cid_list)
 
@@ -467,17 +467,19 @@ def get_chip_aids(ibs, cid_list):
 
 @register_ibs_method
 @default_decorator
-def get_chip_config_rowid(ibs, qreq_=None):
+def get_chip_config_rowid(ibs, config2_=None):
     """ # FIXME: Configs are still handled poorly
 
     This method deviates from the rest of the controller methods because it
     always returns a scalar instead of a list. I'm still not sure how to
     make it more ibeisy
     """
-    if qreq_ is not None:
+    if config2_ is not None:
         # TODO store config_rowid in qparams
         # Or find better way to do this in general
-        chip_cfg_suffix = qreq_.qparams.chip_cfgstr
+        #chip_cfg_suffix = config2_.qparams.chip_cfgstr
+        chip_cfg_suffix = config2_.get('chip_cfgstr')
+        assert chip_cfg_suffix is not None
     else:
         chip_cfg_suffix = ibs.cfg.chip_cfg.get_cfgstr()
     chip_cfg_rowid = ibs.add_config(chip_cfg_suffix)
@@ -546,8 +548,8 @@ def get_chips(ibs, cid_list, ensure=True):
 def testdata_ibs():
     import ibeis
     ibs = ibeis.opendb('testdb1')
-    qreq_ = None
-    return ibs, qreq_
+    config2_ = None
+    return ibs, config2_
 
 
 if __name__ == '__main__':

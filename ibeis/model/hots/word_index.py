@@ -1,4 +1,6 @@
 """
+TODO: DEPRICATE OR REFACTOR INTO SMK
+
 python -c "import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.word_index))"
 python -m doctest -v ibeis/model/hots/word_index.py
 python -m doctest ibeis/model/hots/word_index.py
@@ -68,7 +70,7 @@ def new_ibeis_windex(ibs, daid_list):
     IBEIS interface into word_index
 
     >>> from ibeis.model.hots.word_index import *  # NOQA
-    >>> windex, qreq_, ibs = test_windex() # doctest: +ELLIPSIS
+    >>> windex, qreq_, ibs = test_windex()
 
     """
     daids_hashid = ibs.get_annot_hashid_visual_uuid(daid_list, 'D')
@@ -104,7 +106,7 @@ class WordIndex(object):
 
     Example:
         >>> from ibeis.model.hots.word_index import *  # NOQA
-        >>> windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS
+        >>> windex, qreq_, ibs = test_windex()
     """
 
     def __init__(windex, ax2_aid, idx2_vec, idx2_ax, idx2_fx, flann):
@@ -132,10 +134,9 @@ class WordIndex(object):
 
         Example:
             >>> from ibeis.model.hots.word_index import *  # NOQA
-            >>> windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS
+            >>> windex, qreq_, ibs = test_windex()
             >>> new_aid_list = [2, 3, 4]
-            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
-            >>> new_vecs_list = ibs.get_annot_vecs(new_aid_list, qreq_=qreq_)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> K = 2
             >>> checks = 1028
             >>> (qfx2_idx, qfx2_dist) = windex.knn(qfx2_vec, K, checks=checks)
@@ -152,10 +153,10 @@ class WordIndex(object):
         """
         Example:
             >>> from ibeis.model.hots.word_index import *  # NOQA
-            >>> windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS
+            >>> windex, qreq_, ibs = test_windex()
             >>> new_aid_list = [2, 3, 4]
-            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
-            >>> new_vecs_list = ibs.get_annot_vecs(new_aid_list, qreq_=qreq_)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
+            >>> new_vecs_list = ibs.get_annot_vecs(new_aid_list, config2_=qreq_.get_internal_data_config2())
             >>> K = 2
             >>> checks = 1028
             >>> (qfx2_idx1, qfx2_dist1) = windex.knn(qfx2_vec, K, checks=checks)

@@ -102,7 +102,7 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
 
 
 # CHIP INTERACTION 2
-def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, qreq_=None, **kwargs):
+def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None, **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -141,9 +141,9 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, qreq_=None, **kwargs):
 
     def _select_fxth_kpt(fx):
         # Get the fx-th keypiont
-        chip = ibs.get_annot_chips(aid, qreq_=qreq_)
-        kp = ibs.get_annot_kpts(aid, qreq_=qreq_)[fx]
-        sift = ibs.get_annot_vecs(aid, qreq_=qreq_)[fx]
+        chip = ibs.get_annot_chips(aid, config2_=config2_)
+        kp = ibs.get_annot_kpts(aid, config2_=config2_)[fx]
+        sift = ibs.get_annot_vecs(aid, config2_=config2_)[fx]
         # Draw chip + keypoints + highlighted plots
         _chip_view(pnum=(2, 1, 1), sel_fx=fx)
         # Draw the selected feature plots
@@ -156,7 +156,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, qreq_=None, **kwargs):
         kwargs['pts'] = mode_ptr[0]  == 2
         df2.figure(fnum=fnum, pnum=pnum, docla=True, doclf=True)
         # Toggle no keypoints view
-        viz.show_chip(ibs, aid, fnum=fnum, pnum=pnum, qreq_=qreq_, **kwargs)
+        viz.show_chip(ibs, aid, fnum=fnum, pnum=pnum, config2_=config2_, **kwargs)
         df2.set_figtitle('Chip View')
 
     def _on_chip_click(event):
@@ -183,7 +183,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, qreq_=None, **kwargs):
                     _chip_view(**kwargs)
                     ih.disconnect_callback(fig, 'button_press_event')
                 elif viztype == 'chip':
-                    kpts = ibs.get_annot_kpts(aid, qreq_=qreq_)
+                    kpts = ibs.get_annot_kpts(aid, config2_=config2_)
                     if len(kpts) > 0:
                         fx = vt.nearest_point(x, y, kpts, conflict_mode='next')[0]
                         print('... clicked fx=%r' % fx)

@@ -20,7 +20,6 @@ def test_problem_featweight(ibs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
-        auuid (?):
 
     CommandLine:
         python -m ibeis.model.preproc.preproc_featweight --test-test_problem_featweight
@@ -58,7 +57,7 @@ def test_problem_featweight(ibs):
 def test_featweight_worker(ibs, qreq_):
     aid_list            = qreq_.get_external_qaids()
     kpts_list           = ibs.get_annot_kpts(aid_list)
-    chipsize_list       = ibs.get_annot_chip_sizes(aid_list, qreq_=qreq_)
+    chipsize_list       = ibs.get_annot_chip_sizes(aid_list, config2_=qreq_.qparams)
     probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, lazy=False)
     probchip_list       = [vtimage.imread(fpath, grayscale=True) if exists(fpath) else None
                            for fpath in probchip_fpath_list]
@@ -78,7 +77,8 @@ def test_featweight_worker(ibs, qreq_):
             #weights_thresh    = [ 0.09, 0.09,  0.09]
             #ut.assert_almost_eq(weights_03_test, weights_03_target, weights_thresh)
             ut.assert_inbounds(weights_03_test, 0, 1)
-            break
+            if not ut.show_was_requested():
+                break
         if ut.show_was_requested():
             import plottool as pt
             sfx, sfy = (probchip.shape[1] / chipsize[0], probchip.shape[0] / chipsize[1])
@@ -87,9 +87,9 @@ def test_featweight_worker(ibs, qreq_):
             fnum = 1
             pt.figure(fnum=fnum, doclf=True)
             ###
-            pt.imshow(ibs.get_annot_chips(aid, qreq_=qreq_), pnum=pnum_(0), fnum=fnum)
+            pt.imshow(ibs.get_annot_chips(aid, config2_=qreq_.qparams), pnum=pnum_(0), fnum=fnum)
             ###
-            pt.imshow(ibs.get_annot_chips(aid, qreq_=qreq_), pnum=pnum_(1), fnum=fnum)
+            pt.imshow(ibs.get_annot_chips(aid, config2_=qreq_.qparams), pnum=pnum_(1), fnum=fnum)
             color_list = pt.draw_kpts2(kpts, weights=weights, ell_alpha=.3, cmap_='jet')
             cb = pt.colorbar(weights, color_list)
             cb.set_label('featweights')
@@ -187,7 +187,7 @@ def gen_featweight_worker(tup):
     return (aid, weights)
 
 
-def compute_fgweights(ibs, aid_list, qreq_=None):
+def compute_fgweights(ibs, aid_list, config2_=None):
     """
 
     Example:
@@ -196,7 +196,7 @@ def compute_fgweights(ibs, aid_list, qreq_=None):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[1:2]
-        >>> qreq_ = None
+        >>> config2_ = None
         >>> featweight_list = compute_fgweights(ibs, aid_list)
         >>> result = np.array_str(featweight_list[0][0:3], precision=3)
         >>> print(result)
@@ -205,15 +205,15 @@ def compute_fgweights(ibs, aid_list, qreq_=None):
     """
     nTasks = len(aid_list)
     print('[preproc_featweight.compute_fgweights] Preparing to compute %d fgweights' % (nTasks,))
-    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, qreq_=qreq_)
-    chipsize_list = ibs.get_annot_chip_sizes(aid_list, qreq_=qreq_)
+    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, config2_=config2_)
+    chipsize_list = ibs.get_annot_chip_sizes(aid_list, config2_=config2_)
 
     if ut.DEBUG2:
         from PIL import Image
         probchip_size_list = [Image.open(fpath).size for fpath in probchip_fpath_list]
         assert chipsize_list == probchip_size_list, 'probably need to clear chip or probchip cache'
 
-    kpts_list = ibs.get_annot_kpts(aid_list, qreq_=qreq_)
+    kpts_list = ibs.get_annot_kpts(aid_list, config2_=config2_)
     # Force grayscale reading of chips
     probchip_list = [vtimage.imread(fpath, grayscale=True) if exists(fpath) else None
                      for fpath in probchip_fpath_list]
@@ -230,7 +230,7 @@ def compute_fgweights(ibs, aid_list, qreq_=None):
     return featweight_list
 
 
-def generate_featweight_properties(ibs, feat_rowid_list, qreq_=None):
+def generate_featweight_properties(ibs, feat_rowid_list, config2_=None):
     """
     Args:
         ibs (IBEISController):
@@ -262,7 +262,7 @@ def generate_featweight_properties(ibs, feat_rowid_list, qreq_=None):
     #aid_list = ibs.get_chip_aids(cid_list)
     chip_rowid_list = ibs.dbcache.get(const.FEATURE_TABLE, ('chip_rowid',), feat_rowid_list)
     aid_list = ibs.dbcache.get(const.CHIP_TABLE, ('annot_rowid',), chip_rowid_list)
-    featweight_list = compute_fgweights(ibs, aid_list, qreq_=qreq_)
+    featweight_list = compute_fgweights(ibs, aid_list, config2_=config2_)
     return zip(featweight_list)
 
 
@@ -284,7 +284,7 @@ def generate_featweight_properties(ibs, feat_rowid_list, qreq_=None):
 #        >>> probchip_fname_iter = get_annot_probchip_fname_iter(ibs, aid_list)
 #        >>> probchip_fname_list = list(probchip_fname_iter)
 #    """
-#    cfpath_list = ibs.get_annot_chip_fpaths(aid_list, qreq_=qreq_)
+#    cfpath_list = ibs.get_annot_chip_fpaths(aid_list, config2_=config2_)
 #    cfname_list = [splitext(basename(cfpath))[0] for cfpath in cfpath_list]
 #    suffix = ibs.cfg.detect_cfg.get_cfgstr()
 #    ext = '.png'
@@ -305,7 +305,7 @@ def generate_featweight_properties(ibs, feat_rowid_list, qreq_=None):
 #        fw_cfg.sqrt_area   = 800
 
 
-def on_delete(ibs, featweight_rowid_list, qreq_=None):
+def on_delete(ibs, featweight_rowid_list, config2_=None):
     # no external data to remove
     return 0
 

@@ -1,4 +1,6 @@
 """
+TODO: DEPRICATE
+
 handles the "special" more complex vs-one re-ranked query
 
 # Write some alias for ourselves
@@ -700,7 +702,7 @@ def get_extern_distinctiveness(qreq_, qres, **kwargs):
     daid_list = list(six.iterkeys(qres.aid2_fsv))
     # Find subset of features to get distinctivness of
     qfxs_list = [qres.aid2_fm[daid].T[0] for daid in daid_list]
-    query_vecs = qreq_.ibs.get_annot_vecs(qres.qaid, qreq_=qreq_)
+    query_vecs = qreq_.ibs.get_annot_vecs(qres.qaid, config2_=qreq_.qparams)
     # there might be duplicate feature indexes in the list of feature index
     # lists. We can use to perform neighbor lookup more efficiently by only
     # performing a single query per feature index. Utool does the mapping for us

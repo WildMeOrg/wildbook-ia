@@ -7,6 +7,20 @@ from ibeis.viz import viz_helpers as vh
     __name__, '[viz_matches]', DEBUG=False)
 
 
+def _get_annot_pair_info(ibs, aid1, aid2, qreq_, draw_fmatches):
+    query_config2_ = None if qreq_ is None else qreq_.get_external_query_config2()
+    data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
+
+    rchip1 = vh.get_chips(ibs, [aid1], config2_=query_config2_)[0]
+    rchip2 = vh.get_chips(ibs, [aid2], config2_=data_config2_)[0]
+    if draw_fmatches:
+        kpts1 = vh.get_kpts(ibs, [aid1], config2_=query_config2_)[0]
+        kpts2 = vh.get_kpts(ibs, [aid2], config2_=data_config2_)[0]
+    else:
+        kpts1, kpts2 = None, None
+    return rchip1, rchip2, kpts1, kpts2
+
+
 @utool.indent_func
 def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
                   H1=None, H2=None, qreq_=None, **kwargs):
@@ -18,11 +32,7 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
     in_image = kwargs.get('in_image', False)
     draw_fmatches = kwargs.get('draw_fmatches', True)
     # Read query and result info (chips, names, ...)
-    rchip1, rchip2 = vh.get_chips(ibs, [aid1, aid2], qreq_=qreq_, **kwargs)
-    if draw_fmatches:
-        kpts1, kpts2 = vh.get_kpts( ibs, [aid1, aid2], qreq_=qreq_, **kwargs)
-    else:
-        kpts1, kpts2 = None, None
+    rchip1, rchip2, kpts1, kpts2 = _get_annot_pair_info(ibs, aid1, aid2, qreq_, draw_fmatches)
 
     # Build annotation strings / colors
     lbl1 = 'q' + vh.get_aidstrs(aid1)
@@ -130,7 +140,8 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
             xywh2 = (0,  0, w, h)
 
         if not show_query and xywh1 is None:
-            kpts2, = ibs.get_annot_kpts((aid2,), qreq_=qreq_)
+            data_config2 = None if qreq_ is None else qreq_.get_external_data_config2()
+            kpts2 = ibs.get_annot_kpts([aid2], config2_=data_config2)[0]
             #df2.draw_kpts2(kpts2.take(fm.T[1], axis=0))
             # Draw any selected matches
             #sm_kw = dict(rect=True, colors=df2.BLUE)
@@ -198,11 +209,7 @@ def show_matches(ibs, qres, aid2, sel_fm=[], qreq_=None, **kwargs):
     fm = qres.aid2_fm.get(aid2, [])
     fs = qres.aid2_fs.get(aid2, [])
     # Read query and result info (chips, names, ...)
-    rchip1, rchip2 = vh.get_chips(ibs, [aid1, aid2], qreq_=qreq_, **kwargs)
-    if draw_fmatches:
-        kpts1, kpts2 = vh.get_kpts( ibs, [aid1, aid2], qreq_=qreq_, **kwargs)
-    else:
-        kpts1, kpts2 = None, None
+    rchip1, rchip2, kpts1, kpts2 = _get_annot_pair_info(ibs, aid1, aid2, qreq_, draw_fmatches)
 
     # Build annotation strings / colors
     lbl1 = 'q' + vh.get_aidstrs(aid1)
@@ -246,96 +253,107 @@ def annotate_matches(ibs, qres, aid2,
     Helper function
     Draws annotation on top of a matching chip plot
 
+    DEPRICATE
+
     does not draw feature matches. that is done in plottool.draw_func2.show_chipmatch2
     this handles things like the labels and borders based on
     groundtruth score
     """
     # TODO Use this function when you clean show_matches
-    in_image    = kwargs.get('in_image', False)
-    show_query  = kwargs.get('show_query', True)
-    draw_border = kwargs.get('draw_border', True)
-    draw_lbl    = kwargs.get('draw_lbl', True)
-
-    printDBG('[viz] annotate_matches()')
+    fm = qres.aid2_fm.get(aid2, [])
+    fs = qres.aid2_fs.get(aid2, [])
     aid1 = qres.qaid
-    truth = ibs.get_match_truth(aid1, aid2)
-    truth_color = vh.get_truth_color(truth)
-    # Build title
-    title = vh.get_query_text(ibs, qres, aid2, truth, **kwargs)
-    # Build xlbl
-    ax = df2.gca()
-    ph.set_plotdat(ax, 'viztype', 'matches')
-    ph.set_plotdat(ax, 'qaid', aid1)
-    ph.set_plotdat(ax, 'aid1', aid1)
-    ph.set_plotdat(ax, 'aid2', aid2)
-    if draw_lbl:
-        name1, name2 = ibs.get_annot_names([aid1, aid2])
-        nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2], distinguish_unknowns=False)
-        #lbl1 = repr(name1)  + ' : ' + 'q' + vh.get_aidstrs(aid1)
-        #lbl2 = repr(name2)  + ' : ' +  vh.get_aidstrs(aid2)
-        lbl1_list = []
-        lbl2_list = []
-        if kwargs.get('show_aid', True):
-            lbl1_list.append('q' + vh.get_aidstrs(aid1))
-            lbl2_list.append(vh.get_aidstrs(aid2))
-        if kwargs.get('show_name', True):
-            lbl1_list.append(repr(name1))
-            lbl2_list.append(repr(name2))
-        if kwargs.get('show_nid', True):
-            lbl1_list.append(vh.get_nidstrs(nid1))
-            lbl2_list.append(vh.get_nidstrs(nid2))
-        lbl1 = ' : '.join(lbl1_list)
-        lbl2 = ' : '.join(lbl2_list)
-    else:
-        lbl1, lbl2 = None, None
-    if vh.NO_LBL_OVERRIDE:
-        title = ''
-    df2.set_title(title, ax)
-    # Plot annotations over images
-    if in_image:
-        bbox1, bbox2 = vh.get_bboxes(ibs, [aid1, aid2], [offset1, offset2])
-        theta1, theta2 = ibs.get_annot_thetas([aid1, aid2])
-        # HACK!
-        if show_query:
-            df2.draw_bbox(bbox1, bbox_color=df2.ORANGE, lbl=lbl1, theta=theta1)
-        bbox_color2 = truth_color if draw_border else df2.ORANGE
-        df2.draw_bbox(bbox2, bbox_color=bbox_color2, lbl=lbl2, theta=theta2)
-    else:
-        xy, w, h = df2.get_axis_xy_width_height(ax)
-        bbox2 = (xy[0], xy[1], w, h)
-        theta2 = 0
+    #truth = ibs.get_match_truth(aid1, aid2)
+    #title = vh.get_query_text(ibs, qres, aid2, truth, **kwargs)
+    score = qres.get_aid_scores([aid2])[0]
+    rawscore = qres.get_aid_scores([aid2], rawscore=True)[0]
+    aid2_raw_rank = qres.get_aid_ranks([aid2])[0]
 
-        if xywh2 is None:
-            #xywh2 = (xy[0], xy[1], w, h)
-            # weird when sidebyside is off y seems to be inverted
-            xywh2 = (0,  0, w, h)
+    return annotate_matches2(ibs, aid1, aid2, fm, fs, offset1, offset2, xywh2, xywh1, qreq_, score=score, rawscore=rawscore, aid2_raw_rank=aid2_raw_rank, **kwargs)
 
-        if not show_query and xywh1 is None:
-            fm = qres.aid2_fm.get(aid2, [])
-            fs = qres.aid2_fs.get(aid2, [])
-            kpts2, = ibs.get_annot_kpts((aid2,), qreq_=qreq_)
-            #df2.draw_kpts2(kpts2.take(fm.T[1], axis=0))
-            # Draw any selected matches
-            #sm_kw = dict(rect=True, colors=df2.BLUE)
-            df2.plot_fmatch(None, xywh2, None, kpts2, fm, fs=fs, **kwargs)
-        if draw_border:
-            df2.draw_border(ax, truth_color, 4, offset=offset2)
-        if draw_lbl:
-            # Custom user lbl for chips 1 and 2
-            if show_query:
-                (x1, y1, w1, h1) = xywh1
-                df2.absolute_lbl(x1 + w1, y1, lbl1)
-            (x2, y2, w2, h2) = xywh2
-            df2.absolute_lbl(x2 + w2, y2, lbl2)
-        # No matches draw a red box
-    if aid2 not in qres.aid2_fm or len(qres.aid2_fm[aid2]) == 0:
-        if draw_border:
-            df2.draw_boxedX(bbox2, theta=theta2)
+    #in_image    = kwargs.get('in_image', False)
+    #show_query  = kwargs.get('show_query', True)
+    #draw_border = kwargs.get('draw_border', True)
+    #draw_lbl    = kwargs.get('draw_lbl', True)
+
+    #printDBG('[viz] annotate_matches()')
+    #truth_color = vh.get_truth_color(truth)
+    ## Build title
+    ## Build xlbl
+    #ax = df2.gca()
+    #ph.set_plotdat(ax, 'viztype', 'matches')
+    #ph.set_plotdat(ax, 'qaid', aid1)
+    #ph.set_plotdat(ax, 'aid1', aid1)
+    #ph.set_plotdat(ax, 'aid2', aid2)
+    #if draw_lbl:
+    #    name1, name2 = ibs.get_annot_names([aid1, aid2])
+    #    nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2], distinguish_unknowns=False)
+    #    #lbl1 = repr(name1)  + ' : ' + 'q' + vh.get_aidstrs(aid1)
+    #    #lbl2 = repr(name2)  + ' : ' +  vh.get_aidstrs(aid2)
+    #    lbl1_list = []
+    #    lbl2_list = []
+    #    if kwargs.get('show_aid', True):
+    #        lbl1_list.append('q' + vh.get_aidstrs(aid1))
+    #        lbl2_list.append(vh.get_aidstrs(aid2))
+    #    if kwargs.get('show_name', True):
+    #        lbl1_list.append(repr(name1))
+    #        lbl2_list.append(repr(name2))
+    #    if kwargs.get('show_nid', True):
+    #        lbl1_list.append(vh.get_nidstrs(nid1))
+    #        lbl2_list.append(vh.get_nidstrs(nid2))
+    #    lbl1 = ' : '.join(lbl1_list)
+    #    lbl2 = ' : '.join(lbl2_list)
+    #else:
+    #    lbl1, lbl2 = None, None
+    #if vh.NO_LBL_OVERRIDE:
+    #    title = ''
+    #df2.set_title(title, ax)
+    ## Plot annotations over images
+    #if in_image:
+    #    bbox1, bbox2 = vh.get_bboxes(ibs, [aid1, aid2], [offset1, offset2])
+    #    theta1, theta2 = ibs.get_annot_thetas([aid1, aid2])
+    #    # HACK!
+    #    if show_query:
+    #        df2.draw_bbox(bbox1, bbox_color=df2.ORANGE, lbl=lbl1, theta=theta1)
+    #    bbox_color2 = truth_color if draw_border else df2.ORANGE
+    #    df2.draw_bbox(bbox2, bbox_color=bbox_color2, lbl=lbl2, theta=theta2)
+    #else:
+    #    xy, w, h = df2.get_axis_xy_width_height(ax)
+    #    bbox2 = (xy[0], xy[1], w, h)
+    #    theta2 = 0
+
+    #    if xywh2 is None:
+    #        #xywh2 = (xy[0], xy[1], w, h)
+    #        # weird when sidebyside is off y seems to be inverted
+    #        xywh2 = (0,  0, w, h)
+
+    #    if not show_query and xywh1 is None:
+    #        data_config2 = None if qreq_ is None else qreq_.get_external_data_config2()
+    #        kpts2 = ibs.get_annot_kpts([aid2], config2_=data_config2)[0]
+    #        #df2.draw_kpts2(kpts2.take(fm.T[1], axis=0))
+    #        # Draw any selected matches
+    #        #sm_kw = dict(rect=True, colors=df2.BLUE)
+    #        df2.plot_fmatch(None, xywh2, None, kpts2, fm, fs=fs, **kwargs)
+    #    if draw_border:
+    #        df2.draw_border(ax, truth_color, 4, offset=offset2)
+    #    if draw_lbl:
+    #        # Custom user lbl for chips 1 and 2
+    #        if show_query:
+    #            (x1, y1, w1, h1) = xywh1
+    #            df2.absolute_lbl(x1 + w1, y1, lbl1)
+    #        (x2, y2, w2, h2) = xywh2
+    #        df2.absolute_lbl(x2 + w2, y2, lbl2)
+    #    # No matches draw a red box
+    #if fm is None or len(fm) == 0:
+    #    if draw_border:
+    #        df2.draw_boxedX(bbox2, theta=theta2)
 
 
 if __name__ == '__main__':
     """
     CommandLine:
+        python -m ibeis.viz.viz_matches --test-show_matches --show
+
         python -m ibeis.viz.viz_matches
         python -m ibeis.viz.viz_matches --allexamples
         python -m ibeis.viz.viz_matches --allexamples --noface --nosrc

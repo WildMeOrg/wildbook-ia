@@ -181,7 +181,7 @@ def request_ibeis_mindexer(qreq_, index_method='multi', verbose=True):
             nn_indexer_list.append(nnindexer)
     #if len(unknown_aids) > 0:
     #    print('[mindex] building unknown forest')
-    #    unknown_vecs_list = ibs.get_annot_vecs(overflow_aids, qreq_=qreq_)
+    #    unknown_vecs_list = ibs.get_annot_vecs(overflow_aids, config2_=qreq_.get_internal_data_config2())
     #    unknown_index = NeighborIndex(overflow_aids, unknown_vecs_list)
     #    extra_indexes.append(unknown_index)
     ##print('[mindex] building normalizer forest')  # TODO
@@ -239,7 +239,7 @@ class MultiNeighborIndex(object):
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
-            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> (qfx2_idx_list, qfx2_dist_list) = mxer.multi_knn(qfx2_vec, K)
             >>> shape_list = list(map(np.shape, qfx2_idx_list))
             >>> d1_list = ut.get_list_column(shape_list, 0)
@@ -270,7 +270,7 @@ class MultiNeighborIndex(object):
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
-            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
             >>> print(qfx2_imx.shape)
             >>> assert qfx2_imx.shape[1] == 18
@@ -487,7 +487,7 @@ class MultiNeighborIndex(object):
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3, 1028
-            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
             >>> genlist_ = list(mxer.iter_subindexers(qfx2_imx))
             >>> covered = np.zeros(qfx2_imx.shape)
@@ -539,7 +539,7 @@ class MultiNeighborIndex(object):
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
             >>> qaid = 1
-            >>> qfx2_vec = ibs.get_annot_vecs(qaid, qreq_=qreq_)
+            >>> qfx2_vec = ibs.get_annot_vecs(qaid, config2_=qreq_.get_internal_query_config2())
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
             >>> qfx2_aid = mxer.get_nn_aids(qfx2_imx)
             >>> gt_aids = ibs.get_annot_groundtruth(qaid)
@@ -575,7 +575,7 @@ class MultiNeighborIndex(object):
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
-            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
             >>> qfx2_fgw = mxer.get_nn_featxs(qfx2_imx)
             >>> result = np.array_str(qfx2_fgw)
@@ -604,7 +604,7 @@ class MultiNeighborIndex(object):
             >>> import numpy as np
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
-            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> (qfx2_imx, qfx2_dist) = mxer.knn(qfx2_vec, K)
             >>> qfx2_fgw = mxer.get_nn_fgws(qfx2_imx)
             >>> result = np.array_str(qfx2_fgw)
@@ -623,7 +623,7 @@ class MultiNeighborIndex(object):
             >>> from ibeis.model.hots.multi_index import *  # NOQA
             >>> mxer, qreq_, ibs = testdata_mindexer()
             >>> K = 3
-            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> (qfx2_dist_, qfx2_idx_,  qfx2_fx_, qfx2_ax_, qfx2_rankx_, qfx2_treex_,) = mxer.knn2(qfx2_vec, K)
         """
         qfx2_idx_list   = []

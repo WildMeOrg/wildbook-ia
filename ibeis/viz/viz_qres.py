@@ -277,7 +277,8 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
                 viz_matches.show_matches(ibs, qres, aid, qreq_=qreq_, **_kwshow)
             else:
                 # Draw each match by themselves
-                viz_chip.show_chip(ibs, aid, annote=False, qreq_=qreq_, **_kwshow)
+                data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
+                viz_chip.show_chip(ibs, aid, annote=False, data_config2_=data_config2_, **_kwshow)
                 viz_matches.annotate_matches(ibs, qres, aid, qreq_=qreq_, **_kwshow)
 
         if DEBUG_SHOW_QRES:
@@ -285,8 +286,9 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
         if aid_list is None:
             return
         # Do lazy load before show
-        vh.get_chips(ibs, aid_list, qreq_=qreq_, **kwargs)
-        vh.get_kpts(ibs, aid_list, qreq_=qreq_, **kwargs)
+        data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
+        ibs.get_annot_chips(aid_list, config2_=data_config2_, ensure=True)
+        ibs.get_annot_kpts(aid_list, config2_=data_config2_, ensure=True)
         for ox, aid in enumerate(aid_list):
             plotx = ox + plotx_shift + 1
             pnum = (rowcols[0], rowcols[1], plotx)

@@ -139,7 +139,7 @@ from ibeis.model.hots import distinctiveness_normalizer as dcvs_normer
 
 #@ut.time_func
 @register_ibs_method
-def get_annot_kpts_distinctiveness(ibs, aid_list, qreq_=None, **kwargs):
+def get_annot_kpts_distinctiveness(ibs, aid_list, config2_=None, **kwargs):
     """
     very hacky, but cute way to cache keypoint distinctivness
 
@@ -160,7 +160,7 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, qreq_=None, **kwargs):
         >>> from ibeis.model.hots import distinctiveness_normalizer
         >>> import ibeis
         >>> import numpy as np
-        >>> qreq_ = None
+        >>> config2_ = None
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids(species=const.Species.ZEB_PLAIN)
@@ -179,7 +179,7 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, qreq_=None, **kwargs):
     # per-species disinctivness wrapper around ibeis cached function
     # get feature rowids
     aid_list = np.array(aid_list)
-    fid_list = np.array(ibs.get_annot_feat_rowids(aid_list, ensure=True, eager=True, nInput=None, qreq_=qreq_))
+    fid_list = np.array(ibs.get_annot_feat_rowids(aid_list, ensure=True, eager=True, nInput=None, config2_=config2_))
     species_rowid_list = np.array(ibs.get_annot_species_rowids(aid_list))
     # Compute distinctivness separately for each species
     unique_sids, groupxs = vt.group_indices(species_rowid_list)

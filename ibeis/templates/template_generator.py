@@ -72,7 +72,7 @@ USE_FUNCTYPE_HEADERS = False  # True
 
 #strip_nparams = False  # True
 #strip_eager = False  # True
-REMOVE_QREQ = False  # False
+REMOVE_CONFIG2_ = False  # False
 WITH_PEP8 = True
 WITH_DECOR = True
 WITH_API_CACHE = False
@@ -244,9 +244,9 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
         func_code = remove_kwarg('nInput', 'None', func_code)
     if flagskw.get('strip_eager', False):
         func_code = remove_kwarg('eager', 'True', func_code)
-    if REMOVE_QREQ:
-        func_code = remove_kwarg('qreq_', 'None', func_code)
-        func_code = func_code.replace('if qreq_ is not None', 'if False')
+    if REMOVE_CONFIG2_:
+        func_code = remove_kwarg('config2_', 'None', func_code)
+        func_code = func_code.replace('if config2_ is not None', 'if False')
     if STRIP_COMMENTS:
         func_code = ut.strip_line_comments(func_code)
     if flagskw.get('strip_docstr', STRIP_DOCSTR):
@@ -1008,6 +1008,9 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
                 append_func('1_RL.getter_col', Tdef.Tgetter_rl_pclines_dependant_column)
         if with_getters and with_native:
             for colname in col_generator(list(other_colnames) + list(superkey_colnames)):
+                if colname == 'config_rowid':
+                    # HACK
+                    continue
                 append_func('2_Native.getter_col', Tdef.Tgetter_table_column)
         if with_setters and with_native and  tablename not in readonly_set:
             # Setter template: columns
@@ -1183,6 +1186,8 @@ def main(ibs, verbose=None):
                                   help_='if specified only prints the function signatures')
     dowrite = ut.get_argflag(('-w', '--write', '--dump-autogen-controller'))
     show_diff = ut.get_argflag('--diff')
+    num_context_lines = ut.get_argval('--diff', type_=int, default=None)
+    show_diff = show_diff or num_context_lines is not None
     dowrite = dowrite and not show_diff
     autogen_key = ut.get_argval(('--key',), type_=str, default='default')
 
@@ -1257,7 +1262,8 @@ def main(ibs, verbose=None):
             if show_diff:
                 if ut.checkpath(autogen_fpath):
                     prev_text = ut.read_from(autogen_fpath)
-                    textdiff = ut.util_str.get_textdiff(prev_text, autogen_text, mode=1)
+                    textdiff = ut.util_str.get_textdiff(prev_text, autogen_text, num_context_lines=num_context_lines)
+                    #textdiff = ut.util_str.get_textdiff(prev_text, autogen_text, num_context_lines=None)
                     ut.print_difftext(textdiff)
                 pass
     if dowrite:

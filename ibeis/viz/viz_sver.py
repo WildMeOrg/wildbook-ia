@@ -8,10 +8,10 @@ import plottool.draw_sv as draw_sv
 WRITE_SV_DEBUG = utool.get_argflag('--write-sv-debug')
 
 
-def _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, qreq_=None):
+def _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, config2_=None):
     """ Compiles IBEIS information into info suitable for plottool """
-    chip1, chip2 = ibs.get_annot_chips([aid1, aid2], qreq_=qreq_)
-    kpts1, kpts2 = ibs.get_annot_kpts([aid1, aid2], qreq_=qreq_)
+    chip1, chip2 = ibs.get_annot_chips([aid1, aid2], config2_=config2_)
+    kpts1, kpts2 = ibs.get_annot_kpts([aid1, aid2], config2_=config2_)
     aid2_fm = chipmatch_FILT.aid2_fm
     #aid2_fs = chipmatch_FILT.aid2_fs
     #aid2_fk = chipmatch_FILT.aid2_fk
@@ -43,7 +43,7 @@ def _compute_svvars(ibs, aid1):
 
 
 @utool.indent_func
-def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, qreq_=None, **kwargs):
+def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=None, **kwargs):
     """
     Compiles IBEIS information and sends it to plottool
 
@@ -67,7 +67,7 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, qreq_=None,
     #print(utool.func_str(show_sv, kwargs=locals()))
     if chipmatch_FILT is None or aid2_svtup is None:
         chipmatch_FILT, aid2_svtup = _compute_svvars(ibs, aid1)
-    sv_vartup = _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, qreq_=qreq_)
+    sv_vartup = _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, config2_=config2_)
     (chip1, chip2, kpts1, kpts2, fm, homog_tup, aff_tup) = sv_vartup
     if WRITE_SV_DEBUG:
         keys = ('chip1', 'chip2', 'kpts1', 'kpts2', 'fm', 'homog_tup', 'aff_tup')

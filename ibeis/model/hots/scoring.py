@@ -209,16 +209,16 @@ def sift_selectivity_score(vecs1_m, vecs2_m, cos_power=3.0, dtype=np.float64):
 
 
 @profile
-def get_kpts_distinctiveness(qreq_, aid_list, config={}):
+def get_kpts_distinctiveness(ibs, aid_list, config2_=None, config={}):
     """
     per-species disinctivness wrapper around ibeis cached function
     """
     dcvs_kw = distinctiveness_normalizer.DCVS_DEFAULT.updated_cfgdict(config)
-    dstncvs_list = qreq_.ibs.get_annot_kpts_distinctiveness(aid_list, qreq_=qreq_, **dcvs_kw)
+    dstncvs_list = ibs.get_annot_kpts_distinctiveness(aid_list, config2_=config2_, **dcvs_kw)
     return dstncvs_list
 
 
-def get_annot_kpts_baseline_weights(qreq_, aid_list, config={}):
+def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
     r"""
     Args:
         qreq_ (QueryRequest):  query request object with hyper-parameters
@@ -238,7 +238,8 @@ def get_annot_kpts_baseline_weights(qreq_, aid_list, config={}):
         >>> aid_list = cm.daid_list
         >>> config = qreq_.qparams
         >>> # execute function
-        >>> weights_list = get_annot_kpts_baseline_weights(qreq_, aid_list, config)
+        >>> config2_ = qreq.qparams
+        >>> weights_list = get_annot_kpts_baseline_weights(ibs, aid_list, config2_, config)
         >>> # verify results
         >>> result = str(weights_list)
         >>> print(result)
@@ -249,10 +250,10 @@ def get_annot_kpts_baseline_weights(qreq_, aid_list, config={}):
     fg_on = config.get('fg_on')
     weight_lists = []
     if dcvs_on:
-        qdstncvs_list = get_kpts_distinctiveness(qreq_, aid_list, config)
+        qdstncvs_list = get_kpts_distinctiveness(ibs, aid_list, config2_, config)
         weight_lists.append(qdstncvs_list)
     if fg_on:
-        qfgweight_list = qreq_.ibs.get_annot_fgweights(aid_list, ensure=True, qreq_=qreq_)
+        qfgweight_list = ibs.get_annot_fgweights(aid_list, ensure=True, config2_=config2_)
         weight_lists.append(qfgweight_list)
     # geometric mean of the selected weights
     baseline_weights_list = [spmstat.gmean(weight_tup) for weight_tup in zip(*weight_lists)]
@@ -411,10 +412,10 @@ def general_coverage_mask_generator(make_mask_func, qreq_, qaid, id_list, fm_lis
         print('[acov] make_mask_func = %r' % (make_mask_func,))
         print('[acov] cov_cfg = %s' % (ut.dict_str(cov_cfg),))
     # Distinctivness and foreground weight
-    qweights = get_annot_kpts_baseline_weights(qreq_, [qaid], config)[0]
+    qweights = get_annot_kpts_baseline_weights(qreq_.ibs, [qaid], config2_=qreq_.get_external_query_config2(), config=config)[0]
     # Denominator weight mask
-    chipsize    = qreq_.ibs.get_annot_chip_sizes(qaid, qreq_=qreq_)
-    qkpts       = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
+    chipsize    = qreq_.ibs.get_annot_chip_sizes(qaid, config2_=qreq_.get_external_query_config2())
+    qkpts       = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_external_query_config2())
     weight_mask = make_mask_func(qkpts, chipsize, qweights, resize=False, **cov_cfg)
     # Prealloc data for loop
     weight_mask_m = weight_mask.copy()
@@ -556,10 +557,10 @@ def show_annot_weights(qreq_, aid, config={}):
     """
     #import plottool as pt
     fnum = 1
-    chipsize = qreq_.ibs.get_annot_chip_sizes(aid, qreq_=qreq_)
-    chip  = qreq_.ibs.get_annot_chips(aid, qreq_=qreq_)
-    qkpts = qreq_.ibs.get_annot_kpts(aid, qreq_=qreq_)
-    weights = get_annot_kpts_baseline_weights(qreq_, [aid], config)[0]
+    chipsize = qreq_.ibs.get_annot_chip_sizes(aid, config2_=qreq_.get_external_query_config2())
+    chip  = qreq_.ibs.get_annot_chips(aid, config2_=qreq_.get_external_query_config2())
+    qkpts = qreq_.ibs.get_annot_kpts(aid, config2_=qreq_.get_external_query_config2())
+    weights = get_annot_kpts_baseline_weights(qreq_.ibs, [aid], config2_=qreq_.get_external_query_config2(), config=config)[0]
     make_mask_func, cov_cfg = get_mask_func(config)
     mask = make_mask_func(qkpts, chipsize, weights, resize=True, **cov_cfg)
     coverage_kpts.show_coverage_map(chip, mask, None, qkpts, fnum, ell_alpha=.2, show_mask_kpts=False)

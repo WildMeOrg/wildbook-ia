@@ -666,7 +666,16 @@ def get_annot_groundfalse(ibs, aid_list, is_exemplar=None, valid_aids=None,
     Returns:
         groundfalse_list (list): a list of aids which are known to be different for each
 
-    input aid
+    #Example:
+    #    >>> # ENABLE_DOCTEST
+    #    >>> import ibeis
+    #    >>> ibs = ibeis.opendb('PZ_MTEST')
+    #    >>> aid_list = ibs.get_valid_aids()
+    #    >>> is_exemplar, noself, daid_list = None, True, None
+    #    >>> groundfalse_list = ibs.get_annot_groundfalse(aid_list)
+    #    >>> result = str(groundtruth_list)
+    #    >>> print(result)
+
     """
     if valid_aids is None:
         # get all valid aids if not specified

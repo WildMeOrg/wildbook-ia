@@ -117,7 +117,7 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
     # Database feature index to chip index
     for qaid, nns in zip(qaid_list, nns_list):
         (qfx2_idx, qfx2_dist) = nns
-        qfx2_qvec = qreq_.ibs.get_annot_vecs(qaid, qreq_=qreq_)[np.newaxis, :, :]
+        qfx2_qvec = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.get_internal_query_config2())[np.newaxis, :, :]
         # database forground weights
         # avoid using K due to its more dynamic nature by using -Knorm
         qfx2_dvec = qreq_.indexer.get_nn_vecs(qfx2_idx.T[:-Knorm])
@@ -152,7 +152,7 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
         # database forground weights
         qfx2_dfgw = qreq_.indexer.get_nn_fgws(qfx2_idx.T[0:-Knorm].T)
         # query forground weights
-        qfx2_qfgw = qreq_.ibs.get_annot_fgweights([qaid], ensure=False, qreq_=qreq_)[0]
+        qfx2_qfgw = qreq_.ibs.get_annot_fgweights([qaid], ensure=False, config2_=qreq_.get_internal_query_config2())[0]
         # feature match forground weight
         qfx2_fgvote_weight = np.sqrt(qfx2_qfgw[:, None] * qfx2_dfgw)
         fgvotes_list.append(qfx2_fgvote_weight)
@@ -174,7 +174,7 @@ def distinctiveness_match_weighter(qreq_):
     dstcnvs_normer = qreq_.dstcnvs_normer
     assert dstcnvs_normer is not None
     qaid_list = qreq_.get_external_qaids()
-    vecs_list = qreq_.ibs.get_annot_vecs(qaid_list, qreq_=qreq_)
+    vecs_list = qreq_.ibs.get_annot_vecs(qaid_list, config2_=qreq_.get_internal_query_config2())
     dstcvs_list = []
     for vecs in vecs_list:
         qfx2_vec = vecs
@@ -543,7 +543,7 @@ def gravity_match_weighter(nns_list, nnvalid0_list, qreq_):
     raise NotImplementedError('have not finished gv weighting')
     #qfx2_nnkpts = qreq_.indexer.get_nn_kpts(qfx2_nnidx)
     #qfx2_nnori = ktool.get_oris(qfx2_nnkpts)
-    #qfx2_kpts  = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)  # FIXME: Highly inefficient
+    #qfx2_kpts  = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_internal_query_config2())  # FIXME: Highly inefficient
     #qfx2_oris  = ktool.get_oris(qfx2_kpts)
     ## Get the orientation distance
     #qfx2_oridist = vt.rowwise_oridist(qfx2_nnori, qfx2_oris)

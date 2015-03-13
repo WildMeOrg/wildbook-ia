@@ -171,11 +171,20 @@ def augment_nnindexer_experiment(update=True):
     ZEB_PLAIN = ibeis.const.Species.ZEB_PLAIN
     #ibs = ibeis.opendb('PZ_MTEST')
     ibs = ibeis.opendb('PZ_Master0')
+    mode = 2
+    if mode == 1:
+        ibs = ibeis.opendb(db='PZ_MTEST')
+        initial = 1
+        addition_stride = 4
+        max_ceiling = 10000
+    elif mode == 2:
+        #ibs = ibeis.opendb(db='GZ_ALL')
+        ibs = ibeis.opendb(db='PZ_Master0')
+        initial = 128
+        addition_stride = 64
+        max_ceiling = 10000
     all_daids = ibs.get_valid_aids(species=ZEB_PLAIN)
     qreq_ = ibs.new_query_request(all_daids, all_daids)
-    initial = 128
-    addition_stride = 64
-    max_ceiling = 10000
     max_num = min(max_ceiling, len(all_daids))
 
     # Clear Caches

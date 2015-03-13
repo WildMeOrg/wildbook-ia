@@ -607,11 +607,14 @@ class QueryConfig(ConfigBase):
         # Start of pipeline
         query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk']
         query_cfg.pipeline_root = 'vsmany'
+        # <Hack Paramaters>
         query_cfg.with_metadata = False
+        query_cfg.augment_queryside_hack = False
         query_cfg.return_expanded_nns = False  # for hacky distinctivness
         query_cfg.use_external_distinctiveness = False  # for distinctivness model
         query_cfg.codename = 'None'
         query_cfg.species_code = '____'  # TODO: make use of this
+        # </Hack Paramaters>
         #if ut.is_developer():
         #    query_cfg.pipeline_root = 'smk'
         # Depends on feature config
@@ -649,6 +652,10 @@ class QueryConfig(ConfigBase):
             raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
         if kwargs.get('use_featweight', True):
             cfgstr_list += query_cfg._featweight_cfg.get_cfgstr_list(**kwargs)
+
+        if query_cfg.augment_queryside_hack:
+            # HACK
+            cfgstr_list += ['_HACK(augment_queryside)']
         return cfgstr_list
 
     def update_query_cfg(query_cfg, **cfgdict):
@@ -895,6 +902,7 @@ class FeatureConfig(ConfigBase):
 
     def get_cfgstr_list(feat_cfg, **kwargs):
         if kwargs.get('use_feat', True):
+            import pyhesaff
             feat_cfgstrs = ['_FEAT(']
             feat_cfgstrs += [feat_cfg.feat_type]
             #feat_cfgstrs += [',%r_%r' % (feat_cfg.scale_min, feat_cfg.scale_max)]
@@ -907,7 +915,6 @@ class FeatureConfig(ConfigBase):
                 'maxIterations': 'nIter',
             }
             ignore = []
-            import pyhesaff
             ignore_if_default = set(pyhesaff.get_hesaff_default_params().keys())
             def _gen():
                 for param in feat_cfg._iterparams():

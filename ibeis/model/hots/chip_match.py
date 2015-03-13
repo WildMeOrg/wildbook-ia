@@ -570,14 +570,14 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             if qreq_.qparams.pipeline_root == 'vsone':
                 assert len(external_qaids) == 1, 'only one external qaid for vsone'
                 if strict or qreq_.indexer is not None:
-                    nExternalQVecs = qreq_.ibs.get_annot_vecs(external_qaids[0], qreq_=qreq_).shape[0]
+                    nExternalQVecs = qreq_.ibs.get_annot_vecs(external_qaids[0], config2_=qreq_.get_external_query_config2()).shape[0]
                     assert qreq_.indexer.idx2_vec.shape[0] == nExternalQVecs, (
                         'did not index query descriptors properly')
                 if verbose:
                     print('[cm] vsone daids are ok are ok')
 
-            nFeats1 = qreq_.ibs.get_annot_num_feats(cm.qaid, qreq_=qreq_)
-            nFeats2_list = np.array(qreq_.ibs.get_annot_num_feats(cm.daid_list, qreq_=qreq_))
+            nFeats1 = qreq_.ibs.get_annot_num_feats(cm.qaid, config2_=qreq_.get_external_query_config2())
+            nFeats2_list = np.array(qreq_.ibs.get_annot_num_feats(cm.daid_list, config2_=qreq_.get_external_data_config2()))
             try:
                 assert ut.list_issubset(cm.daid_list, external_daids), 'cmtup_old must be subset of daids'
             except AssertionError as ex:

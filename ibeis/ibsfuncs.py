@@ -2137,7 +2137,7 @@ def get_upsize_data(ibs, qaid_list, daid_list=None, num_samp=5, clamp_gt=1,
 
 @__injectable
 def get_annot_rowid_sample(ibs, per_name=1, min_ngt=1, seed=0, aid_list=None,
-                           stagger_names=False):
+                           stagger_names=False, distinguish_unknowns=False):
     r"""
     Gets a sampling of annotations
 
@@ -2145,8 +2145,9 @@ def get_annot_rowid_sample(ibs, per_name=1, min_ngt=1, seed=0, aid_list=None,
         per_name (int): number of annotations per name
         min_ngt (int): any name with less than this number of annotation is filtered out
         seed (int): random seed
-        aid_list (list): base aid_list to start with. If None get_valid_aids is used
-        stagger_names (bool): if True staggers the order of the returned sample
+        aid_list (list): base aid_list to start with. If None
+        get_valid_aids(nojunk=True) is used stagger_names (bool): if True
+        staggers the order of the returned sample
 
     Returns:
         list: sample_aids
@@ -2170,8 +2171,8 @@ def get_annot_rowid_sample(ibs, per_name=1, min_ngt=1, seed=0, aid_list=None,
     """
     #qaids = ibs.get_easy_annot_rowids()
     if aid_list is None:
-        aid_list = np.array(ibs.get_valid_aids())
-    grouped_aids_, unique_nids = ibs.group_annots_by_name(aid_list, distinguish_unknowns=False)
+        aid_list = np.array(ibs.get_valid_aids(nojunk=True))
+    grouped_aids_, unique_nids = ibs.group_annots_by_name(aid_list, distinguish_unknowns=distinguish_unknowns)
     grouped_aids = list(filter(lambda x: len(x) > min_ngt, grouped_aids_))
     sample_aids_list = ut.sample_lists(grouped_aids, num=per_name, seed=seed)
     if stagger_names:
@@ -3177,58 +3178,173 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
 
 
 def learn_k():
+    r"""
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-learn_k --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> # build test data
+        >>> # execute function
+        >>> result = learn_k()
+        >>> # verify results
+        >>> print(result)
+        >>> import plottool as pt
+        >>> pt.show_if_requested()
+    """
     pass
     # load a dataset
     import ibeis
-    ibs = ibeis.opendb('PZ_MTEST')
+    #dbname = 'PZ_MTEST'
+    dbname = 'PZ_Master0'
+    ibs = ibeis.opendb(dbname)
     # use experiment harness to run several values of K
     # varydict = {'K': 4, 7, 10, 13, 16, 19, 22, 25}
     # take subsets of daids to vary dbsizes
     # and run those
     # get output:
 
+    #target_nDaids = 50
+
+    ##def get_test_daids(ibs, qaids, target_nDaids):
+    #    # gets 1 groundtruth per name and then pads the database size with
+    #    # nonmatching annotations
+    def get_set_groundfalse(ibs, qaids):
+        # get groundfalse annots relative to the entire set
+        valid_nids = ibs.get_valid_nids()
+        qnids = ibs.get_annot_nids(qaids)
+        nid_list = list(set(valid_nids) - set(qnids))
+        aids_list = ibs.get_name_aids(nid_list)
+        return ut.flatten(aids_list)
+
+    # determanism
+    import random
+    np.random.seed(0)
+    random.seed(0)
+
     varydict = {
-        'K': [4, 7, 10, 13, 16, 19, 22, 25],
+        #'K': [4, 7, 10, 13, 16, 19, 22, 25][:4],
+        'K': [1, 2, 3, 4, 8, 10, 13, 15],
         #'nDaids': [20, 100, 250, 500, 750, 1000],
     }
-    nDaids_basis = [20, 100, 250, 500, 750, 1000]
-    nError_list = []
+    nDaids_basis = [20, 50, 100, 200, 250, 300, 350, 400, 500, 600, 750, 800, 900, 1000, 1500]
     varied_dict = ut.all_dict_combinations(varydict)
-    qaids = ut.flatten(ibs.get_annot_groundtruth_sample(ibs.get_valid_aids(), per_name=1, isexemplar=None))
-    for nDaids in nDaids_basis:
-        daids = sample()
-        for cfgdict in varied_dict:
-            ibs.query_chips(qaids, daids, cfgdict=cfgdict)
-            nErrors = None
-            nError_list.append(nErrors)
 
-    K_list      = np.array([  4,   4,    4,   7,   7,    7,   10,  10,   10,   13,  13,   13])
-    nDaids_list = np.array([100, 500, 1000, 100, 500, 1000,  100, 500, 1000,  100, 500, 1000])
-    nError_list = np.array([  3,   5,   10,   4,   5,   40,   20,   9,   43,   90,  20,    1])
+    nError_list  = []
+    nDaids_list  = []
+    cfgdict_list = []
+
+    qaids_all = ibs.filter_junk_annotations(ibs.get_annot_rowid_sample(per_name=1, min_ngt=2, distinguish_unknowns=True))
+    qaids = qaids_all[::2]
+    print('nQaids = %r' % len(qaids))
+    daids_gt_sample = ut.flatten(ibs.get_annot_groundtruth_sample(qaids, isexemplar=None))
+    daids_gf_all = get_set_groundfalse(ibs, qaids)
+    ut.assert_eq(len(daids_gt_sample), len(qaids), 'missing gt')
+    for target_nDaids in ut.ProgressIter(nDaids_basis, lbl='testing dbsize'):
+        print('---------------------------')
+        # Sample one match from the groundtruth with padding
+        daids_gf_sample = ut.random_sample(daids_gf_all, max(0, target_nDaids - len(daids_gt_sample)))
+        daids = sorted(daids_gt_sample + daids_gf_sample)
+        nDaids = len(daids)
+        if target_nDaids != nDaids:
+            continue
+
+        with ut.Indenter('[nDaids=%r]' % (nDaids)):
+            print('nDaids = %r' % nDaids)
+            for cfgdict in ut.ProgressIter(varied_dict, lbl='testing cfgdict'):
+                qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
+                qres_list = ibs.query_chips(qreq_=qreq_)
+                gt_ranks_list = [qres.get_gt_ranks(ibs=ibs) for qres in qres_list]
+                incorrect_list = [len(gt_ranks) == 0 or min(gt_ranks) != 0 for gt_ranks in gt_ranks_list]
+                nErrors = sum(incorrect_list)
+                nError_list.append(nErrors)
+                nDaids_list.append(nDaids)
+                cfgdict_list.append(cfgdict.copy())
+
+    if False:
+        K_list      = np.array([  4,   4,    4,   7,   7,    7,   10,  10,   10,   13,  13,   13])
+        nDaids_list = np.array([100, 500, 1000, 100, 500, 1000,  100, 500, 1000,  100, 500, 1000])
+        nError_list = np.array([  3,   5,   10,   4,   5,   40,   20,   9,   43,   90,  20,    1])
+    else:
+        nError_list = np.array(nError_list)
+        nDaids_list = np.array(nDaids_list)
+        K_list = np.array([cfgdict['K'] for cfgdict in cfgdict_list])
 
     import vtool as vt
-    unique_k, groupxs = vt.group_indices(K_list)
+    #unique_k, groupxs = vt.group_indices(K_list)
+    unique_nDaids, groupxs = vt.group_indices(nDaids_list)
     nError_groups = vt.apply_grouping(nError_list, groupxs)
-    nDaids_groups = vt.apply_grouping(nDaids_list, groupxs)
-    unique_daids = [nDaids[nErrors.argmin()] for nErrors, nDaids in zip(nError_groups, nDaids_groups)]
+    #nDaids_groups = vt.apply_grouping(nDaids_list, groupxs)
+    Ks_groups = vt.apply_grouping(K_list, groupxs)
+    unique_k = [Ks_[nErrors_.argmin()] for Ks_, nErrors_ in zip(Ks_groups, nError_groups)]
+    #unique_nDaids = [nDaids_[nErrors_.argmin()] for nErrors_, nDaids_ in zip(nError_groups, nDaids_groups)]
 
-    from scipy.optimize import curve_fit
+    import scipy.optimize as spopt
     # http://stackoverflow.com/questions/22240280/least-squares-fit-to-a-straight-line-python-code
-    #A = unique_daids
+    #A = unique_nDaids
     #B = unique_k
-    def f(x, A, B):
+    def compute_K(x, A, B):
         return A * x + B
-    slope, intercept = curve_fit(f, unique_daids, unique_k)[0]
+    slope, intercept = spopt.curve_fit(compute_K, unique_nDaids, unique_k)[0]
 
-    domain = np.linspace(1, 1000)
-    value = f(domain, slope, intercept)
+    def compute_K2(x, A):
+        return A[0] * x + A[1]
+
+    def compute_dense_error(nDaids, K):
+        # todo bilinear interpolation
+        idxs = nDaids_list == nDaids
+        tmp_errs = nError_list.compress(idxs)
+        tmp_ks = K_list.compress(idxs)
+        k_dist = np.abs(tmp_ks - K)
+        kx1, kx2 = k_dist.argsort()[0:2]
+        total_k_dist = k_dist[kx1] + k_dist[kx2]
+        kx1_weight = k_dist[kx1] / total_k_dist
+        kx2_weight = k_dist[kx2] / total_k_dist
+        error = kx1_weight * tmp_errs[kx1] + kx2_weight * tmp_errs[kx2]
+        return error
+
+    def objective_func(*args):
+        print(args)
+        total_error = sum([compute_dense_error(nDaids, compute_K(nDaids, *args)) for nDaids in unique_nDaids])
+        return total_error
+
+    spopt.fmin(objective_func, (.5, 0))
+
+    #http://docs.scipy.org/doc/scipy-0.14.0/reference/optimize.html
+
+    domain = np.linspace(1, max(unique_nDaids))
+    value = objective_func(domain, slope, intercept)
 
     import plottool as pt
+    from mpl_toolkits.mplot3d import Axes3D  # NOQA
     fig = pt.gcf()
     fig.clf()
-    pt.plt.scatter(nDaids_list, K_list, s=(nError_list.max() - nError_list) + 20)
-    pt.plot(unique_daids, unique_k)
+    error_scale =  1 - nError_list / nError_list.max()
+    pt.plt.scatter(nDaids_list, K_list, s=(error_scale * 1000) + 20)
+    pt.plot(unique_nDaids, unique_k)
     pt.plot(domain, value)
+    pt.set_xlabel('nDaids')
+    pt.set_ylabel('K')
+    pt.draw()
+
+    pt.figure(fnum=10)
+    #import matplotlib as mpl
+    shape = (len(np.unique(K_list)), len(np.unique(unique_nDaids)))[::-1]
+    fig = pt.plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    #ax.plot_surface3d([1, 2, 1, 2], [1, 1, 2, 2], [1, 2, 3, 4], rstride=1, cstride=1)
+    ax.scatteer(
+        K_list.reshape(shape),
+        nDaids_list.reshape(shape),
+        error_scale.reshape(shape),
+    )
+    #if False:
+    #fig = plt.figure()
+    #ax = fig.add_subplot(111, projection='3d')
+    #ax.plot_surface3d([1, 2, 1, 2], [1, 1, 2, 2], [1, 2, 3, 4], rstride=1, cstride=1)
+    #ax.scatter([1, 2, 1, 2], [1, 1, 2, 2], [1, 2, 3, 4])
+    #, rstride=1, cstride=1, cmap=mpl.cm.coolwarm)
     pt.draw()
 
     #np.linalg.lstsq(

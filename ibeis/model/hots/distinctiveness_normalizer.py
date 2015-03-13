@@ -257,7 +257,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             >>> from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA
             >>> dstcnvs_normer, qreq_ = testdata_distinctiveness()
             >>> qaid = qreq_.get_external_qaids()[0]
-            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qaid, qreq_=qreq_)
+            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.qparams)
             >>> default_dict = {'dcvs_power': .25, 'dcvs_K': 5, 'dcvs_max_clip': .5}
             >>> kwargs = ut.argparse_dict(default_dict)
             >>> qfx2_dstncvs = dstcnvs_normer.get_distinctiveness(qfx2_vec, **kwargs)
@@ -268,7 +268,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             >>>     # Show distinctivness on an animal and a corresponding graph
             >>>     import plottool as pt
             >>>     chip = qreq_.ibs.get_annot_chips(qaid)
-            >>>     qfx2_kpts = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
+            >>>     qfx2_kpts = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.qparams)
             >>>     show_chip_distinctiveness_plot(chip, qfx2_kpts, qfx2_dstncvs)
             >>>     #pt.figure(2)
             >>>     #pt.show_all_colormaps()

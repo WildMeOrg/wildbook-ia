@@ -36,7 +36,7 @@ FEAT_ROWID        = 'feature_rowid'
 @register_ibs_method
 @deleter
 #@accessor_decors.dev_cache_invalidator(const.FEAT, 'feature_rowid')
-def delete_annot_feats(ibs, aid_list, qreq_=None):
+def delete_annot_feats(ibs, aid_list, config2_=None):
     """ annot.feat.delete(aid_list)
 
     Args:
@@ -54,19 +54,19 @@ def delete_annot_feats(ibs, aid_list, qreq_=None):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_feat_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()[:1]
-        >>> fids_list = ibs.get_annot_feat_rowids(aid_list, qreq_=qreq_, ensure=True)
-        >>> num_deleted1 = ibs.delete_annot_feats(aid_list, qreq_=qreq_)
+        >>> fids_list = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, ensure=True)
+        >>> num_deleted1 = ibs.delete_annot_feats(aid_list, config2_=config2_)
         >>> ut.assert_eq(num_deleted1, len(fids_list))
-        >>> num_deleted2 = ibs.delete_annot_feats(aid_list, qreq_=qreq_)
+        >>> num_deleted2 = ibs.delete_annot_feats(aid_list, config2_=config2_)
         >>> ut.assert_eq(num_deleted2, 0)
     """
     if ut.VERBOSE:
         print('[ibs] deleting %d annots leaf nodes' % len(aid_list))
     # Delete any dependants
     _feat_rowid_list = ibs.get_annot_feat_rowids(
-        aid_list, qreq_=qreq_, ensure=False)
+        aid_list, config2_=config2_, ensure=False)
     feat_rowid_list = ut.filter_Nones(_feat_rowid_list)
     num_deleted = ibs.delete_feats(feat_rowid_list)
     return num_deleted
@@ -74,9 +74,9 @@ def delete_annot_feats(ibs, aid_list, qreq_=None):
 
 @register_ibs_method
 @getter_1to1
-def get_annot_feat_rowids(ibs, aid_list, ensure=False, eager=True, nInput=None, qreq_=None):
-    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
-    fid_list = ibs.get_chip_feat_rowids(cid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
+def get_annot_feat_rowids(ibs, aid_list, ensure=True, eager=True, nInput=None, config2_=None):
+    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, config2_=config2_)
+    fid_list = ibs.get_chip_feat_rowids(cid_list, ensure=ensure, eager=eager, nInput=nInput, config2_=config2_)
     return fid_list
 
 
@@ -85,14 +85,14 @@ def get_annot_feat_rowids(ibs, aid_list, ensure=False, eager=True, nInput=None, 
 @getter_1toM
 #@cache_getter(const.ANNOTATION_TABLE, 'kpts')
 def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
-                   qreq_=None):
+                   config2_=None):
     """
     Args:
         aid_list (int):  list of annotation ids
         ensure (bool):  eager evaluation if True
         eager (bool):
         nInput (None):
-        qreq_ (QueryRequest):  query request object with hyper-parameters
+        config2_ (QueryRequest):  query request object with hyper-parameters
 
     Returns:
         kpts_list (list): annotation descriptor keypoints
@@ -119,13 +119,13 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
         >>> print('qreq2 params: ' + qreq2_.qparams.feat_cfgstr)
         >>> print('id(qreq1): ' + str(id(qreq1_)))
         >>> print('id(qreq2): ' + str(id(qreq2_)))
-        >>> print('feat_config_rowid1 = %r' % (ibs.get_feat_config_rowid(qreq_=qreq1_),))
-        >>> print('feat_config_rowid2 = %r' % (ibs.get_feat_config_rowid(qreq_=qreq2_),))
+        >>> print('feat_config_rowid1 = %r' % (ibs.get_feat_config_rowid(config2_=qreq1_),))
+        >>> print('feat_config_rowid2 = %r' % (ibs.get_feat_config_rowid(config2_=qreq2_),))
         >>> # Force recomputation of features
         >>> with ut.Indenter('[DELETE1]'):
-        ...     ibs.delete_annot_feats(aid_list, qreq_=qreq1_)
+        ...     ibs.delete_annot_feats(aid_list, config2_=qreq1_)
         >>> with ut.Indenter('[DELETE2]'):
-        ...     ibs.delete_annot_feats(aid_list, qreq_=qreq2_)
+        ...     ibs.delete_annot_feats(aid_list, config2_=qreq2_)
         >>> eager, ensure, nInput = True, True, None
         >>> # execute function
         >>> with ut.Indenter('[GET1]'):
@@ -136,12 +136,12 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
         >>> assert not np.all(vt.get_oris(kpts1_list[0]) == 0)
         >>> assert np.all(vt.get_oris(kpts2_list[0]) == 0)
         >>> ut.quit_if_noshow()
-        >>> #ibeis.viz.viz_chip.show_chip(ibs, aid_list[0], qreq_=qreq1_, ori=True)
-        >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], qreq_=qreq1_, ori=True, fnum=1)
-        >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], qreq_=qreq2_, ori=True, fnum=2)
+        >>> #ibeis.viz.viz_chip.show_chip(ibs, aid_list[0], config2_=qreq1_, ori=True)
+        >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq1_.qparams, ori=True, fnum=1)
+        >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq2_.qparams, ori=True, fnum=2)
         >>> ut.show_if_requested()
     """
-    fid_list  = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
+    fid_list  = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, config2_=config2_)
     kpts_list = ibs.get_feat_kpts(fid_list, eager=eager, nInput=nInput)
     return kpts_list
 
@@ -149,20 +149,20 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
 @register_ibs_method
 @getter_1toM
 def get_annot_vecs(ibs, aid_list, ensure=True, eager=True, nInput=None,
-                   qreq_=None):
+                   config2_=None):
     """
     Returns:
         vecs_list (list): annotation descriptor vectors
     """
-    fid_list  = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
+    fid_list  = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, config2_=config2_)
     vecs_list = ibs.get_feat_vecs(fid_list, eager=eager, nInput=nInput)
     return vecs_list
 
 
 @register_ibs_method
 @getter_1to1
-def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None,
-                        qreq_=None):
+def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
+                        config2_=None):
     """
     Args:
         aid_list (list):
@@ -190,7 +190,7 @@ def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None,
 
     [1257, 920, 1342]
     """
-    fid_list = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, nInput=nInput, qreq_=qreq_)
+    fid_list = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, nInput=nInput, config2_=config2_)
     nFeats_list = ibs.get_num_feats(fid_list)
     return nFeats_list
 
@@ -201,17 +201,17 @@ def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None,
 
 #@register_ibs_method
 #@adder
-#def add_chip_feats(ibs, cid_list, force=False, qreq_=None):
+#def add_chip_feats(ibs, cid_list, force=False, config2_=None):
 #    """ Computes the features for every chip without them """
 #    from ibeis.model.preproc import preproc_feat
-#    fid_list = ibs.get_chip_fids(cid_list, ensure=False, qreq_=qreq_)
+#    fid_list = ibs.get_chip_fids(cid_list, ensure=False, config2_=config2_)
 #    dirty_cids = ut.get_dirty_items(cid_list, fid_list)
 #    if len(dirty_cids) > 0:
 #        #if ut.VERBOSE:
 #        print('[ibs] adding %d / %d features' % (len(dirty_cids), len(cid_list)))
-#        params_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids, qreq_=qreq_)
+#        params_iter = preproc_feat.add_feat_params_gen(ibs, dirty_cids, config2_=config2_)
 #        colnames = (CHIP_ROWID, 'config_rowid', FEAT_NUM_FEAT, FEAT_KPTS, FEAT_VECS)
-#        get_rowid_from_superkey = functools.partial(ibs.get_chip_fids, ensure=False, qreq_=qreq_)
+#        get_rowid_from_superkey = functools.partial(ibs.get_chip_fids, ensure=False, config2_=config2_)
 #        fid_list = ibs.dbcache.add_cleanly(const.FEATURE_TABLE, colnames, params_iter, get_rowid_from_superkey)
 
 #    return fid_list
@@ -219,7 +219,7 @@ def get_annot_num_feats(ibs, aid_list, ensure=False, eager=True, nInput=None,
 
 @register_ibs_method
 @deleter
-def delete_chip_feats(ibs, chip_rowid_list, qreq_=None):
+def delete_chip_feats(ibs, chip_rowid_list, config2_=None):
     """ chip.feat.delete(chip_rowid_list)
 
     Args:
@@ -232,15 +232,15 @@ def delete_chip_feats(ibs, chip_rowid_list, qreq_=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> chip_rowid_list = ibs._get_all_chip_rowids()[::3]
-        >>> ibs.delete_chip_feats(chip_rowid_list, qreq_=qreq_)
+        >>> ibs.delete_chip_feats(chip_rowid_list, config2_=config2_)
     """
     if ut.VERBOSE:
         print('[ibs] deleting %d chips leaf nodes' % len(chip_rowid_list))
     # Delete any dependants
     _feat_rowid_list = ibs.get_chip_feat_rowids(
-        chip_rowid_list, qreq_=qreq_, ensure=False)
+        chip_rowid_list, config2_=config2_, ensure=False)
     feat_rowid_list = ut.filter_Nones(_feat_rowid_list)
     num_deleted = ibs.delete_feats(feat_rowid_list)
     return num_deleted
@@ -248,7 +248,7 @@ def delete_chip_feats(ibs, chip_rowid_list, qreq_=None):
 
 @register_ibs_method
 @adder
-def add_chip_feats(ibs, chip_rowid_list, qreq_=None, verbose=not ut.QUIET, return_num_dirty=False):
+def add_chip_feats(ibs, chip_rowid_list, config2_=None, verbose=not ut.QUIET, return_num_dirty=False):
     """ chip.feat.add(chip_rowid_list)
 
     CRITICAL FUNCTION MUST EXIST FOR ALL DEPENDANTS
@@ -271,42 +271,42 @@ def add_chip_feats(ibs, chip_rowid_list, qreq_=None, verbose=not ut.QUIET, retur
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_feat_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> chip_rowid_list = ibs._get_all_chip_rowids()[::3]
-        >>> feat_rowid_list = ibs.add_chip_feats(chip_rowid_list, qreq_=qreq_)
+        >>> feat_rowid_list = ibs.add_chip_feats(chip_rowid_list, config2_=config2_)
         >>> assert len(feat_rowid_list) == len(chip_rowid_list)
         >>> ut.assert_all_not_None(feat_rowid_list)
 
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_feat_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> chip_rowid_list = ibs._get_all_chip_rowids()[0:10]
         >>> sub_chip_rowid_list1 = chip_rowid_list[0:6]
         >>> sub_chip_rowid_list2 = chip_rowid_list[5:7]
         >>> sub_chip_rowid_list3 = chip_rowid_list[0:7]
-        >>> sub_feat_rowid_list1 = ibs.get_chip_feat_rowids(sub_chip_rowid_list1, qreq_=qreq_, ensure=True)
-        >>> ibs.get_chip_feat_rowids(sub_chip_rowid_list1, qreq_=qreq_, ensure=True)
-        >>> sub_feat_rowid_list1, num_dirty0 = ibs.add_chip_feats(sub_chip_rowid_list1, qreq_=qreq_, return_num_dirty=True)
+        >>> sub_feat_rowid_list1 = ibs.get_chip_feat_rowids(sub_chip_rowid_list1, config2_=config2_, ensure=True)
+        >>> ibs.get_chip_feat_rowids(sub_chip_rowid_list1, config2_=config2_, ensure=True)
+        >>> sub_feat_rowid_list1, num_dirty0 = ibs.add_chip_feats(sub_chip_rowid_list1, config2_=config2_, return_num_dirty=True)
         >>> assert num_dirty0 == 0
         >>> ut.assert_all_not_None(sub_feat_rowid_list1)
         >>> ibs.delete_chip_feats(sub_chip_rowid_list2)
         >>> #ibs.delete_chip_feat(sub_chip_rowid_list2)?
-        >>> sub_feat_rowid_list3 = ibs.get_chip_feat_rowids(sub_chip_rowid_list3, qreq_=qreq_, ensure=False)
+        >>> sub_feat_rowid_list3 = ibs.get_chip_feat_rowids(sub_chip_rowid_list3, config2_=config2_, ensure=False)
         >>> # Only the last two should be None
         >>> ut.assert_all_not_None(sub_feat_rowid_list3[0:5], 'sub_feat_rowid_list3[0:5])')
         >>> assert sub_feat_rowid_list3[5:7] == [None, None]
-        >>> sub_feat_rowid_list3_ensured, num_dirty1 = ibs.add_chip_feats(sub_chip_rowid_list3, qreq_=qreq_,  return_num_dirty=True)
+        >>> sub_feat_rowid_list3_ensured, num_dirty1 = ibs.add_chip_feats(sub_chip_rowid_list3, config2_=config2_,  return_num_dirty=True)
         >>> assert num_dirty1 == 2, 'Only two params should have been computed here'
         >>> ut.assert_all_not_None(sub_feat_rowid_list3_ensured)
     """
     from ibeis.model.preproc import preproc_feat
     ut.assert_all_not_None(chip_rowid_list, ' chip_rowid_list')
     # Get requested configuration id
-    config_rowid = ibs.get_feat_config_rowid(qreq_=qreq_)
+    config_rowid = ibs.get_feat_config_rowid(config2_=config2_)
     # Find leaf rowids that need to be computed
     initial_feat_rowid_list = get_chip_feat_rowids_(
-        ibs, chip_rowid_list, qreq_=qreq_)
+        ibs, chip_rowid_list, config2_=config2_)
     # Get corresponding "dirty" parent rowids
     isdirty_list = ut.flag_None_items(initial_feat_rowid_list)
     dirty_chip_rowid_list = ut.filter_items(chip_rowid_list, isdirty_list)
@@ -319,9 +319,9 @@ def add_chip_feats(ibs, chip_rowid_list, qreq_=None, verbose=not ut.QUIET, retur
         # Dependant columns do not need true from_superkey getters.
         # We can use the Tgetter_pl_dependant_rowids_ instead
         get_rowid_from_superkey = functools.partial(
-            ibs.get_chip_feat_rowids_, qreq_=qreq_)
+            ibs.get_chip_feat_rowids_, config2_=config2_)
         proptup_gen = preproc_feat.generate_feat_properties(
-            ibs, dirty_chip_rowid_list, qreq_=qreq_)
+            ibs, dirty_chip_rowid_list, config2_=config2_)
         dirty_params_iter = (
             (chip_rowid, config_rowid, feature_nFeat,
              feature_kpt_arr, feature_vec_arr)
@@ -344,7 +344,7 @@ def add_chip_feats(ibs, chip_rowid_list, qreq_=None, verbose=not ut.QUIET, retur
 @register_ibs_method
 @getter_1to1
 #@accessor_decors.dev_cache_getter(const.CHIP_TABLE, 'feature_rowid')
-def get_chip_feat_rowids(ibs, chip_rowid_list, qreq_=None, ensure=False, eager=True, nInput=None):
+def get_chip_feat_rowids(ibs, chip_rowid_list, config2_=None, ensure=False, eager=True, nInput=None):
     """ feat_rowid_list <- chip.feat.rowids[chip_rowid_list]
 
     get feat rowids of chip under the current state configuration
@@ -364,7 +364,7 @@ def get_chip_feat_rowids(ibs, chip_rowid_list, qreq_=None, ensure=False, eager=T
 
     Timeit:
         >>> from ibeis.control.manual_feat_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> # Test to see if there is any overhead to injected vs native functions
         >>> %timeit get_chip_feat_rowids(ibs, chip_rowid_list)
         >>> %timeit ibs.get_chip_feat_rowids(chip_rowid_list)
@@ -372,23 +372,23 @@ def get_chip_feat_rowids(ibs, chip_rowid_list, qreq_=None, ensure=False, eager=T
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_feat_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> chip_rowid_list = ibs._get_all_chip_rowids()
         >>> ensure = False
-        >>> feat_rowid_list = ibs.get_chip_feat_rowids(chip_rowid_list, qreq_, ensure)
+        >>> feat_rowid_list = ibs.get_chip_feat_rowids(chip_rowid_list, config2_, ensure)
         >>> assert len(feat_rowid_list) == len(chip_rowid_list)
     """
     if ensure:
-        feat_rowid_list = add_chip_feats(ibs, chip_rowid_list, qreq_=qreq_)
+        feat_rowid_list = add_chip_feats(ibs, chip_rowid_list, config2_=config2_)
     else:
         feat_rowid_list = get_chip_feat_rowids_(
-            ibs, chip_rowid_list, qreq_=qreq_, eager=eager, nInput=nInput)
+            ibs, chip_rowid_list, config2_=config2_, eager=eager, nInput=nInput)
     return feat_rowid_list
 
 
 @register_ibs_method
 @getter_1to1
-def get_chip_feat_rowids_(ibs, chip_rowid_list, qreq_=None, eager=True, nInput=None):
+def get_chip_feat_rowids_(ibs, chip_rowid_list, config2_=None, eager=True, nInput=None):
     """
     equivalent to get_chip_feat_rowids_ except ensure is constrained
     to be False.
@@ -400,7 +400,7 @@ def get_chip_feat_rowids_(ibs, chip_rowid_list, qreq_=None, eager=True, nInput=N
         Tgetter_pl_dependant_rowids_
     """
     colnames = (FEAT_ROWID,)
-    config_rowid = ibs.get_feat_config_rowid(qreq_=qreq_)
+    config_rowid = ibs.get_feat_config_rowid(config2_=config2_)
     andwhere_colnames = (CHIP_ROWID, CONFIG_ROWID,)
     params_iter = ((chip_rowid, config_rowid,)
                    for chip_rowid in chip_rowid_list)
@@ -410,18 +410,18 @@ def get_chip_feat_rowids_(ibs, chip_rowid_list, qreq_=None, eager=True, nInput=N
 
 
 #@register_ibs_method
-#def get_chip_feat_rowids(ibs, cid_list, ensure=True, eager=True, nInput=None, qreq_=None):
+#def get_chip_feat_rowids(ibs, cid_list, ensure=True, eager=True, nInput=None, config2_=None):
 #    # alias for get_chip_fids
-#    return get_chip_fids(ibs, cid_list, ensure=ensure, eager=eager, nInput=nInput, qreq_=qreq_)
+#    return get_chip_fids(ibs, cid_list, ensure=ensure, eager=eager, nInput=nInput, config2_=config2_)
 
 
 #@register_ibs_method
 #@getter_1to1
 #@accessor_decors.dev_cache_getter(const.CHIP_TABLE, 'feature_rowid')
-#def get_chip_fids(ibs, cid_list, ensure=True, eager=True, nInput=None, qreq_=None):
+#def get_chip_fids(ibs, cid_list, ensure=True, eager=True, nInput=None, config2_=None):
 #    if ensure:
-#        ibs.add_chip_feats(cid_list, qreq_=qreq_)
-#    feat_config_rowid = ibs.get_feat_config_rowid(qreq_=qreq_)
+#        ibs.add_chip_feats(cid_list, config2_=config2_)
+#    feat_config_rowid = ibs.get_feat_config_rowid(config2_=config2_)
 #    colnames = ('feature_rowid',)
 #    where_clause = CHIP_ROWID + '=? AND config_rowid=?'
 #    params_iter = ((cid, feat_config_rowid) for cid in cid_list)
@@ -455,10 +455,10 @@ def _get_all_feat_rowids(ibs):
 
 @register_ibs_method
 @ider
-def get_valid_fids(ibs, qreq_=None):
+def get_valid_fids(ibs, config2_=None):
     """ Valid feature rowids of the current configuration """
     # FIXME: configids need reworking
-    feat_config_rowid = ibs.get_feat_config_rowid(qreq_=qreq_)
+    feat_config_rowid = ibs.get_feat_config_rowid(config2_=config2_)
     fid_list = ibs.dbcache.get_all_rowids_where(const.FEATURE_TABLE, 'config_rowid=?', (feat_config_rowid,))
     return fid_list
 
@@ -466,7 +466,7 @@ def get_valid_fids(ibs, qreq_=None):
 @register_ibs_method
 @deleter
 @accessor_decors.cache_invalidator(const.FEATURE_TABLE)
-def delete_features(ibs, feat_rowid_list, qreq_=None):
+def delete_features(ibs, feat_rowid_list, config2_=None):
     """ deletes images from the database that belong to fids"""
     from ibeis.model.preproc import preproc_feat
     if ut.VERBOSE:
@@ -474,7 +474,7 @@ def delete_features(ibs, feat_rowid_list, qreq_=None):
     # remove non-sql external dependeinces of these rowids
     preproc_feat.on_delete(ibs, feat_rowid_list)
     # remove dependants of these rowids
-    featweight_rowid_list = ut.filter_Nones(ibs.get_feat_featweight_rowids(feat_rowid_list, qreq_=qreq_, ensure=False))
+    featweight_rowid_list = ut.filter_Nones(ibs.get_feat_featweight_rowids(feat_rowid_list, config2_=config2_, ensure=False))
     ibs.delete_featweight(featweight_rowid_list)
     # remove these rowids
     ibs.dbcache.delete_rowids(const.FEATURE_TABLE, feat_rowid_list)
@@ -485,15 +485,15 @@ def delete_features(ibs, feat_rowid_list, qreq_=None):
 @register_ibs_method
 @deleter
 @accessor_decors.cache_invalidator(const.FEATURE_TABLE)
-def delete_feats(ibs, feat_rowid_list, qreq_=None):
+def delete_feats(ibs, feat_rowid_list, config2_=None):
     """ alias """
-    num_deleted = delete_features(ibs, feat_rowid_list, qreq_=qreq_)
+    num_deleted = delete_features(ibs, feat_rowid_list, config2_=config2_)
     return num_deleted
 
 
 @register_ibs_method
 @default_decorator
-def get_feat_config_rowid(ibs, qreq_=None):
+def get_feat_config_rowid(ibs, config2_=None):
     """
     Returns the feature configuration id based on the cfgstr
     defined by ibs.cfg.feat_cfg.get_cfgstr()
@@ -502,14 +502,17 @@ def get_feat_config_rowid(ibs, qreq_=None):
     used in ibeis.model.preproc.preproc_feats in the param
     generator. (that should probably be moved into the controller)
     """
-    if qreq_ is not None:
+    if config2_ is not None:
         # TODO store config_rowid in qparams
         # Or find better way to do this in general
-        feat_cfg_suffix = qreq_.qparams.feat_cfgstr
+        #feat_cfg_suffix = config2_.qparams.feat_cfgstr
+        #feat_cfg_suffix = config2_.qparams.feat_cfgstr
+        feat_cfg_suffix = config2_.get('feat_cfgstr')
+        assert feat_cfg_suffix is not None
     else:
         feat_cfg_suffix = ibs.cfg.feat_cfg.get_cfgstr()
     #print(feat_cfg_suffix)
-    #print(qreq_)
+    #print(config2_)
     feat_cfg_rowid = ibs.add_config(feat_cfg_suffix)
     return feat_cfg_rowid
 
@@ -554,8 +557,8 @@ def get_num_feats(ibs, fid_list, eager=True, nInput=None):
 def testdata_ibs():
     import ibeis
     ibs = ibeis.opendb('testdb1')
-    qreq_ = None
-    return ibs, qreq_
+    config2_ = None
+    return ibs, config2_
 
 
 if __name__ == '__main__':

@@ -1,3 +1,6 @@
+"""
+TODO: DEPRICATE QRES IN FAVOR OF CHIP_MATCH
+"""
 from __future__ import absolute_import, division, print_function
 import utool
 import utool as ut  # NOQA
@@ -793,8 +796,7 @@ class QueryResult(__OBJECT_BASE__):
         if fnum is None:
             fnum = pt.next_fnum()
         #fig = pt.figure(fnum=fnum, doclf=True, docla=True)
-        from matplotlib import pyplot as plt
-        fig = plt.figure(fnum)
+        fig = pt.plt.figure(fnum)
         fig.clf()
         # Draw Matches
         ax, xywh1, xywh2 = qres.show_matches(ibs, aid, colorbar_=False, qreq_=qreq_, fnum=fnum, **kwargs)

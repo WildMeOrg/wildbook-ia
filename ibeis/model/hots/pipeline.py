@@ -137,7 +137,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     if verbose:
         assert ibs is qreq_.ibs
         print('\n\n[hs] +--- STARTING HOTSPOTTER PIPELINE ---')
-        print(qreq_.get_infostr())
+        print(ut.indent(qreq_.get_infostr(), '[hs] '))
 
     qreq_.lazy_load(verbose=verbose)
 
@@ -361,7 +361,7 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     # For each internal query annotation
     internal_qaids = qreq_.get_internal_qaids()
     # Find the nearest neighbors of each descriptor vector
-    qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids, qreq_=qreq_)
+    qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids, config2_=qreq_.get_internal_query_config2())
     # Mark progress ane execute nearest indexer nearest neighbor code
     progkw = dict(freq=20, time_thresh=2.5)
     qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, **progkw)
@@ -627,8 +627,8 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list, q
         >>> # check results
         >>> (valid_daid, valid_qfx, valid_dfx, valid_scorevec, valid_rank) = valid_match_tup
         >>> assert ut.list_allsame(list(map(len, valid_match_tup))), 'need same num rows'
-        >>> ut.assert_inbounds(valid_qfx, -1, qreq_.ibs.get_annot_num_feats(qaid, qreq_=qreq_))
-        >>> ut.assert_inbounds(valid_dfx, -1, np.array(qreq_.ibs.get_annot_num_feats(valid_daid, qreq_=qreq_)))
+        >>> ut.assert_inbounds(valid_qfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))
+        >>> ut.assert_inbounds(valid_dfx, -1, np.array(qreq_.ibs.get_annot_num_feats(valid_daid, config2_=qreq_.qparams)))
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -641,8 +641,8 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list, q
         >>> # check results
         >>> (valid_daid, valid_qfx, valid_dfx, valid_scorevec, valid_rank) = valid_match_tup
         >>> assert ut.list_allsame(list(map(len, valid_match_tup))), 'need same num rows'
-        >>> ut.assert_inbounds(valid_dfx, -1, qreq_.ibs.get_annot_num_feats(qaid, qreq_=qreq_))
-        >>> ut.assert_inbounds(valid_qfx, -1, qreq_.ibs.get_annot_num_feats(daid, qreq_=qreq_))
+        >>> ut.assert_inbounds(valid_dfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))
+        >>> ut.assert_inbounds(valid_qfx, -1, qreq_.ibs.get_annot_num_feats(daid, config2_=qreq_.qparams))
     """
     # TODO: unpacking can be external
     Knorm = qreq_.qparams.Knorm
@@ -779,10 +779,10 @@ def sver_single_chipmatch(qreq_, cm):
     sver_weighting  = qreq_.qparams.sver_weighting
     # Precompute sver cmtup_old
     #daid2_svtup = {} if qreq_.qparams.with_metadata else None
-    kpts1 = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
-    kpts2_list = qreq_.ibs.get_annot_kpts(cm.daid_list, qreq_=qreq_)
+    kpts1 = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_external_query_config2())
+    kpts2_list = qreq_.ibs.get_annot_kpts(cm.daid_list, config2_=qreq_.get_external_data_config2())
     if use_chip_extent:
-        top_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(cm.daid_list, qreq_=qreq_)
+        top_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(cm.daid_list, config2_=qreq_.get_external_data_config2())
     else:
         top_dlen_sqrd_list = compute_matching_dlen_extent(qreq_, cm.fm_list, kpts2_list)
     #
@@ -873,7 +873,7 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
         >>> cm = cm_list[0]
         >>> cm.sortself()
         >>> fm_list = cm.fm_list
-        >>> kpts_list = qreq_.ibs.get_annot_kpts(cm.daid_list, qreq_=qreq_)
+        >>> kpts_list = qreq_.ibs.get_annot_kpts(cm.daid_list, config2_=qreq_.get_external_data_config2())
         >>> topx2_dlen_sqrd = compute_matching_dlen_extent(qreq_, fm_list, kpts_list)
         >>> ut.assert_inbounds(np.sqrt(topx2_dlen_sqrd)[0:5], 600, 800)
 
@@ -967,7 +967,7 @@ def chipmatch_to_resdict(qreq_, cm_list, verbose=VERB_PIPELINE):
 
     """
     if verbose:
-        print('[hs] Step 6) Convert cmtup_old -> qres')
+        print('[hs] Step 6) Convert chipmatch -> qres')
     # Matchable daids
     external_qaids   = qreq_.get_external_qaids()
     # Create the result structures for each query.

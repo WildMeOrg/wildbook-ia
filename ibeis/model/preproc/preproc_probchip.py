@@ -55,7 +55,7 @@ def postprocess_dev():
     pass
 
 
-def group_aids_by_featweight_species(ibs, aid_list, qreq_=None):
+def group_aids_by_featweight_species(ibs, aid_list, config2_=None):
     """ helper
 
     Example:
@@ -63,14 +63,15 @@ def group_aids_by_featweight_species(ibs, aid_list, qreq_=None):
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> qreq_ = None
+        >>> config2_ = None
         >>> aid_list = ibs.get_valid_aids()
-        >>> grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, qreq_)
+        >>> grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, config2_)
     """
-    if qreq_ is None:
+    if config2_ is None:
         featweight_species = ibs.cfg.featweight_cfg.featweight_species
     else:
-        featweight_species = qreq_.qparams.featweight_species
+        featweight_species = config2_.get('featweight_species')
+        assert featweight_species is not None
     if featweight_species == 'uselabel':
         # Use the labeled species for the detector
         species_list = ibs.get_annot_species_texts(aid_list)
@@ -86,7 +87,7 @@ def group_aids_by_featweight_species(ibs, aid_list, qreq_=None):
     return grouped_aids, unique_species
 
 
-def get_probchip_fname_fmt(ibs, qreq_=None, species=None):
+def get_probchip_fname_fmt(ibs, config2_=None, species=None):
     """ Returns format of probability chip file names
 
     Args:
@@ -101,7 +102,7 @@ def get_probchip_fname_fmt(ibs, qreq_=None, species=None):
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> from ibeis.model.preproc import preproc_chip
         >>> ibs, aid_list = preproc_chip.testdata_ibeis()
-        >>> qreq_ = None
+        >>> config2_ = None
         >>> probchip_fname_fmt = get_probchip_fname_fmt(ibs)
         >>> #want = 'probchip_aid=%d_bbox=%s_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png'
         >>> #assert probchip_fname_fmt == want, probchip_fname_fmt
@@ -111,16 +112,17 @@ def get_probchip_fname_fmt(ibs, qreq_=None, species=None):
 
     probchip_aid=%d_bbox=%s_theta=%s_gid=%d_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png
     """
-    cfname_fmt = preproc_chip.get_chip_fname_fmt(ibs, qreq_=qreq_)
+    cfname_fmt = preproc_chip.get_chip_fname_fmt(ibs, config2_=config2_)
 
-    if qreq_ is None:
+    if config2_ is None:
         # FIXME FIXME FIXME: ugly, bad code that wont generalize at all.
         # you can compute probchips correctly only once, if you change anything
         # you have to delete your cache.
         probchip_cfgstr = ibs.cfg.featweight_cfg.get_cfgstr(use_feat=False, use_chip=False)
     else:
-        probchip_cfgstr = qreq_.qparams.probchip_cfgstr
-        #raise NotImplementedError('qreq_ is not None')
+        probchip_cfgstr = config2_.get('probchip_cfgstr')
+        assert probchip_cfgstr is not None
+        #raise NotImplementedError('config2_ is not None')
 
     suffix = probchip_cfgstr
     if species is not None:
@@ -133,7 +135,7 @@ def get_probchip_fname_fmt(ibs, qreq_=None, species=None):
     return probchip_fname_fmt
 
 
-def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None, species=None):
+def get_annot_probchip_fpath_list(ibs, aid_list, config2_=None, species=None):
     """ Build probability chip file paths based on the current IBEIS configuration
 
     Args:
@@ -149,7 +151,7 @@ def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None, species=None):
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> from os.path import basename
         >>> ibs, aid_list = preproc_chip.testdata_ibeis()
-        >>> qreq_ = None
+        >>> config2_ = None
         >>> probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)
         >>> result = ut.relpath_unix(probchip_fpath_list[1], ibs.get_dbdir())
         >>> print(result)
@@ -160,7 +162,7 @@ def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None, species=None):
     ibs.probchipdir = ibs.get_probchip_dir()
     cachedir = ibs.get_probchip_dir()
     ut.ensuredir(cachedir)
-    probchip_fname_fmt = get_probchip_fname_fmt(ibs, qreq_=qreq_, species=species)
+    probchip_fname_fmt = get_probchip_fname_fmt(ibs, config2_=config2_, species=species)
     #probchip_fpath_list = preproc_chip.format_aid_bbox_theta_gid_fnames(
     #    ibs, aid_list, probchip_fname_fmt, cachedir)
     annot_visual_uuid_list  = ibs.get_annot_visual_uuids(aid_list)
@@ -168,7 +170,7 @@ def get_annot_probchip_fpath_list(ibs, aid_list, qreq_=None, species=None):
     return probchip_fpath_list
 
 
-def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
+def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
     """ Computes probability chips using pyrf
 
     CommandLine:
@@ -180,10 +182,10 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qreq_ = None
+        >>> config2_ = None
         >>> lazy = True
         >>> aid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)[0:4]
-        >>> probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, qreq_, lazy=lazy)
+        >>> probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, config2_, lazy=lazy)
         >>> result = ut.list_str(probchip_fpath_list_)
         >>> print(result)
 
@@ -192,10 +194,10 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> qreq_ = None
+        >>> config2_ = None
         >>> lazy = False
         >>> aid_list = ibs.get_valid_aids(species=ibeis.const.Species.ZEB_PLAIN)
-        >>> probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, qreq_, lazy=lazy)
+        >>> probchip_fpath_list_ = compute_and_write_probchip(ibs, aid_list, config2_, lazy=lazy)
         >>> result = ut.list_str(probchip_fpath_list_)
         >>> print(result)
 
@@ -204,7 +206,7 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
         #probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)
     """
     # Get probchip dest information (output path)
-    grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, qreq_)
+    grouped_aids, unique_species = group_aids_by_featweight_species(ibs, aid_list, config2_)
     nSpecies = len(unique_species)
     nTasks = len(aid_list)
     print('[preproc_probchip.compute_and_write_probchip] Preparing to compute %d probchips of %d species' % (nTasks, nSpecies))
@@ -220,7 +222,7 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
             print('[preproc_probchip] |--------------------')
         if len(aids) == 0:
             continue
-        probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, qreq_=qreq_, species=species)
+        probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, config2_=config2_, species=species)
 
         if lazy:
             # Filter out probchips that are already on disk
@@ -241,8 +243,8 @@ def compute_and_write_probchip(ibs, aid_list, qreq_=None, lazy=True):
             (detectchip_extramargin_fpath_list,
              probchip_extramargin_fpath_list,
              halfoffset_cs_list,
-             ) = compute_extramargin_detectchip(ibs, dirty_aids, qreq_=qreq_, species=species, FACTOR=4)
-            #dirty_cfpath_list  = ibs.get_annot_chip_fpaths(dirty_aids, ensure=True, qreq_=qreq_)
+             ) = compute_extramargin_detectchip(ibs, dirty_aids, config2_=config2_, species=species, FACTOR=4)
+            #dirty_cfpath_list  = ibs.get_annot_chip_fpaths(dirty_aids, ensure=True, config2_=config2_)
             config = {
                 'scale_list': [1.0],
                 'output_gpath_list': probchip_extramargin_fpath_list,
@@ -309,10 +311,10 @@ def gen_detectchip(tup):
     return cfpath
 
 
-def compute_extramargin_detectchip(ibs, aid_list, qreq_=None, species=None, FACTOR=4):
+def compute_extramargin_detectchip(ibs, aid_list, config2_=None, species=None, FACTOR=4):
     #from vtool import chip as ctool
     #from vtool import image as gtool
-    arg_list, newsize_list, halfoffset_cs_list = get_extramargin_detectchip_info(ibs, aid_list, qreq_=qreq_, species=species, FACTOR=FACTOR)
+    arg_list, newsize_list, halfoffset_cs_list = get_extramargin_detectchip_info(ibs, aid_list, config2_=config2_, species=species, FACTOR=FACTOR)
     detectchip_extramargin_fpath_list = list(ut.generate(gen_detectchip, arg_list, ordered=True))
     probchip_extramargin_fpath_list   = [fpath.replace('detectchip', 'probchip') for fpath in detectchip_extramargin_fpath_list]
     return detectchip_extramargin_fpath_list, probchip_extramargin_fpath_list, halfoffset_cs_list
@@ -326,7 +328,7 @@ def compute_extramargin_detectchip(ibs, aid_list, qreq_=None, species=None, FACT
     #    probchip_extramargin_fpath_list.append(cfpath)
 
 
-def get_extramargin_detectchip_info(ibs, aid_list, qreq_=None, species=None, FACTOR=4):
+def get_extramargin_detectchip_info(ibs, aid_list, config2_=None, species=None, FACTOR=4):
     r"""
     CommandLine:
         python -m ibeis.model.preproc.preproc_probchip --test-get_extramargin_detectchip_info --show
@@ -396,13 +398,13 @@ def get_extramargin_detectchip_info(ibs, aid_list, qreq_=None, species=None, FAC
     ]
 
     # TODO: make this work
-    probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list, qreq_=qreq_, species=species)
+    probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list, config2_=config2_, species=species)
     #probchip_extramargin_fpath_list = [ut.augpath(fpath, '_extramargin') for fpath in probchip_fpath_list]
     detectchip_extramargin_fpath_list = [ut.augpath(fpath, '_extramargin').replace('probchip', 'detectchip')
                                          for fpath in probchip_fpath_list]
     # # filter by species and add a suffix for the probchip_input
     # # also compute a probchip fpath with an expanded suffix for the detector
-    #probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, qreq_=None, species=species)
+    #probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, config2_=None, species=species)
     # Then crop the output and write that as the real probchip
 
     filtlist_iter = ([] for _ in range(len(aid_list)))

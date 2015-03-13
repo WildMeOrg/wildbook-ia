@@ -1,4 +1,7 @@
 """
+TODO:
+    Remove Bloat
+
 module which handles the building and caching of individual flann indexes
 
 
@@ -306,9 +309,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         >>> # build test data
         >>> ZEB_PLAIN = ibeis.const.Species.ZEB_PLAIN
         >>> ibs = ibeis.opendb('testdb1')
-        >>> use_memcache = True
-        >>> verbose = True
-        >>> max_covers = None
+        >>> use_memcache, max_covers, verbose = True, None, True
         >>> daid_list = ibs.get_valid_aids(species=ZEB_PLAIN)[0:6]
         >>> qreq_ = ibs.new_query_request(daid_list, daid_list)
         >>> qreq_.qparams.min_reindex_thresh = 1
@@ -336,7 +337,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
     """
     global NEIGHBOR_CACHE
     min_reindex_thresh = qreq_.qparams.min_reindex_thresh
-    new_aid_list, covered_aids_list = group_daids_by_cached_nnindexer(
+    new_daid_list, covered_aids_list = group_daids_by_cached_nnindexer(
         qreq_, daid_list, min_reindex_thresh, max_covers=1)
     can_augment = (
         len(covered_aids_list) > 0 and
@@ -347,7 +348,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         #with ut.PrintStartEndContext('AUGMENTING NNINDEX', verbose=verbose):
         #    with ut.Indenter('|  '):
         print('[aug] Augmenting index %r old daids with %d new daids' %
-              (len(covered_aids), len(new_aid_list)))
+              (len(covered_aids), len(new_daid_list)))
         # Load the base covered indexer
         # THIS SHOULD LOAD NOT REBUILD IF THE UUIDS ARE COVERED
         base_nnindexer = request_memcached_ibeis_nnindexer(qreq_, covered_aids,
@@ -358,9 +359,9 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
             print('Removing key from memcache')
             NEIGHBOR_CACHE[base_nnindexer.cfgstr] = None
             del NEIGHBOR_CACHE[base_nnindexer.cfgstr]
-        new_vecs_list = qreq_.ibs.get_annot_vecs(new_aid_list, qreq_=qreq_)
-        new_fgws_list = get_fgweights_hack(qreq_, new_aid_list)
-        base_nnindexer.add_support(new_aid_list, new_vecs_list, new_fgws_list, verbose=True)
+
+        new_vecs_list, new_fgws_list = get_support_data(qreq_, new_daid_list)
+        base_nnindexer.add_support(new_daid_list, new_vecs_list, new_fgws_list, verbose=True)
         # FIXME: pointer issues
         nnindexer = base_nnindexer
         # Change to the new cfgstr
@@ -474,12 +475,10 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
     flann_params = qreq_.qparams.flann_params
     flann_params['checks'] = qreq_.qparams.checks
     # Get annot descriptors to index
-    aid_list = daid_list
-    vecs_list = qreq_.ibs.get_annot_vecs(aid_list, qreq_=qreq_)
-    fgws_list = get_fgweights_hack(qreq_, aid_list)
+    vecs_list, fgws_list = get_support_data(qreq_, daid_list)
     try:
         nnindexer = new_neighbor_index(
-            aid_list, vecs_list, fgws_list, flann_params, cachedir,
+            daid_list, vecs_list, fgws_list, flann_params, cachedir,
             cfgstr=cfgstr, verbose=verbose)
     except Exception as ex:
         ut.printex(ex, True, msg_='cannot build inverted index',
@@ -495,7 +494,7 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
 
 
 @profile
-def group_daids_by_cached_nnindexer(qreq_, aid_list, min_reindex_thresh,
+def group_daids_by_cached_nnindexer(qreq_, daid_list, min_reindex_thresh,
                                     max_covers=None):
     r"""
     FIXME: This function is slow due to ibs.get_annot_aids_from_visual_uuid
@@ -519,15 +518,15 @@ def group_daids_by_cached_nnindexer(qreq_, aid_list, min_reindex_thresh,
         >>> # STEP 0: CLEAR THE CACHE
         >>> clear_uuid_cache(qreq_)
         >>> # STEP 1: ASSERT EMPTY INDEX
-        >>> aid_list = ibs.get_valid_aids(species=ZEB_PLAIN)[0:3]
+        >>> daid_list = ibs.get_valid_aids(species=ZEB_PLAIN)[0:3]
         >>> uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(
-        ...     qreq_, aid_list, min_reindex_thresh, max_covers)
+        ...     qreq_, daid_list, min_reindex_thresh, max_covers)
         >>> result1 = uncovered_aids, covered_aids_list
         >>> ut.assert_eq(result1, ([1, 2, 3], []), 'pre request')
         >>> # TEST 2: SHOULD MAKE 123 COVERED
-        >>> nnindexer = request_memcached_ibeis_nnindexer(qreq_, aid_list)
+        >>> nnindexer = request_memcached_ibeis_nnindexer(qreq_, daid_list)
         >>> uncovered_aids, covered_aids_list = group_daids_by_cached_nnindexer(
-        ...     qreq_, aid_list, min_reindex_thresh, max_covers)
+        ...     qreq_, daid_list, min_reindex_thresh, max_covers)
         >>> result2 = uncovered_aids, covered_aids_list
         >>> ut.assert_eq(result2, ([], [[1, 2, 3]]), 'post request')
     """
@@ -536,7 +535,7 @@ def group_daids_by_cached_nnindexer(qreq_, aid_list, min_reindex_thresh,
     uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
     candidate_uuids = read_uuid_map(uuid_map_fpath, min_reindex_thresh)
     # find a maximum independent set cover of the requested annotations
-    annot_vuuid_list = ibs.get_annot_visual_uuids(aid_list)  # 3.2 %
+    annot_vuuid_list = ibs.get_annot_visual_uuids(daid_list)  # 3.2 %
     covertup = ut.greedy_max_inden_setcover(
         candidate_uuids, annot_vuuid_list, max_covers)  # 0.2 %
     uncovered_vuuids, covered_vuuids_list, accepted_keys = covertup
@@ -608,21 +607,27 @@ def get_fgweights_hack(qreq_, daid_list):
     # <HACK:featweight>
     if qreq_.qparams.fg_on:
         fgws_list = qreq_.ibs.get_annot_fgweights(
-            daid_list, qreq_=qreq_, ensure=True)
+            daid_list, config2_=qreq_.get_internal_data_config2(), ensure=True)
     else:
         fgws_list = None
     return fgws_list
     # </HACK:featweight>
 
 
+def get_support_data(qreq_, daid_list):
+    vecs_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.get_internal_data_config2())
+    fgws_list = get_fgweights_hack(qreq_, daid_list)
+    return vecs_list, fgws_list
+
+
 @profile
-def new_neighbor_index(aid_list, vecs_list, fgws_list, flann_params, cachedir,
+def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
                        cfgstr, verbose=True):
     """
     constructs neighbor index independent of ibeis
 
     Args:
-        aid_list (list):
+        daid_list (list):
         vecs_list (list):
         fgws_list (list):
         flann_params (dict):
@@ -648,16 +653,14 @@ def new_neighbor_index(aid_list, vecs_list, fgws_list, flann_params, cachedir,
         >>> cachedir     = qreq_.ibs.get_flann_cachedir()
         >>> flann_params = qreq_.qparams.flann_params
         >>> # Get annot descriptors to index
-        >>> aid_list = daid_list
-        >>> vecs_list = qreq_.ibs.get_annot_vecs(aid_list, qreq_=qreq_)
-        >>> fgws_list = get_fgweights_hack(qreq_, aid_list)
+        >>> vecs_list, fgws_list = get_support_data(qreq_, daid_list)
         >>> # execute function
-        >>> nnindexer = new_neighbor_index(aid_list, vecs_list, fgws_list, flann_params, cachedir, cfgstr, verbose=True)
+        >>> nnindexer = new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir, cfgstr, verbose=True)
 
     """
     nnindexer = NeighborIndex(flann_params, cfgstr)
     # Initialize neighbor with unindexed data
-    nnindexer.init_support(aid_list, vecs_list, fgws_list, verbose=verbose)
+    nnindexer.init_support(daid_list, vecs_list, fgws_list, verbose=verbose)
     # Load or build the indexing structure
     nnindexer.load_or_build(cachedir, verbose=verbose)
     return nnindexer
@@ -739,7 +742,7 @@ class NeighborIndex(object):
         nnindexer.max_distance_sqrd = nnindexer.max_distance ** 2
 
     @profile
-    def add_support(nnindexer, new_aid_list, new_vecs_list, new_fgws_list,
+    def add_support(nnindexer, new_daid_list, new_vecs_list, new_fgws_list,
                     verbose=True):
         """
         adds support data (aka data to be indexed)
@@ -748,19 +751,18 @@ class NeighborIndex(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
             >>> nnindexer, qreq_, ibs = test_nnindexer()
-            >>> new_aid_list = [2, 3, 4]
-            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
-            >>> new_vecs_list = ibs.get_annot_vecs(new_aid_list, qreq_=qreq_)
-            >>> new_fgws_list = ibs.get_annot_fgweights(new_aid_list, qreq_=qreq_)
+            >>> new_daid_list = [2, 3, 4]
             >>> K = 2
+            >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> (qfx2_idx1, qfx2_dist1) = nnindexer.knn(qfx2_vec, K)
-            >>> nnindexer.add_support(new_aid_list, new_vecs_list, new_fgws_list)
+            >>> new_vecs_list, new_fgws_list = get_support_data(qreq_, new_daid_list)
+            >>> nnindexer.add_support(new_daid_list, new_vecs_list, new_fgws_list)
             >>> (qfx2_idx2, qfx2_dist2) = nnindexer.knn(qfx2_vec, K)
             >>> assert qfx2_idx2.max() > qfx2_idx1.max()
         """
         nAnnots = nnindexer.num_indexed_annots()
         nVecs = nnindexer.num_indexed_vecs()
-        nNewAnnots = len(new_aid_list)
+        nNewAnnots = len(new_daid_list)
         new_ax_list = np.arange(nAnnots, nAnnots + nNewAnnots)
         new_idx2_vec, new_idx2_ax, new_idx2_fx = \
                 invert_index(new_vecs_list, new_ax_list)
@@ -768,7 +770,6 @@ class NeighborIndex(object):
         if verbose or ut.VERYVERBOSE:
             print('[nnindex] Adding %d vecs from %d annots to nnindex with %d vecs and %d annots' %
                   (nNewVecs, nNewAnnots, nVecs, nAnnots))
-        new_idx2_fgw = np.hstack(new_fgws_list)
         print('STACKING')
         # Stack inverted information
         ##---
@@ -777,19 +778,23 @@ class NeighborIndex(object):
         # Try to hack in a way to keep the old memory
         old_idx2_vec = nnindexer.idx2_vec
         nnindexer.old_vecs.append(old_idx2_vec)
-        nnindexer.old_vecs.append(new_idx2_fgw)
+        if nnindexer.idx2_fgw is not None:
+            new_idx2_fgw = np.hstack(new_fgws_list)
+            nnindexer.old_vecs.append(new_idx2_fgw)
         ##---
-        _ax2_aid = np.hstack((nnindexer.ax2_aid, new_aid_list))
+        _ax2_aid = np.hstack((nnindexer.ax2_aid, new_daid_list))
         _idx2_ax = np.hstack((nnindexer.idx2_ax, new_idx2_ax))
         _idx2_fx = np.hstack((nnindexer.idx2_fx, new_idx2_fx))
         _idx2_vec = np.vstack((old_idx2_vec, new_idx2_vec))
-        _idx2_fgw = np.hstack((nnindexer.idx2_fgw, new_idx2_fgw))
+        if nnindexer.idx2_fgw is not None:
+            _idx2_fgw = np.hstack((nnindexer.idx2_fgw, new_idx2_fgw))
         print('REPLACING')
         nnindexer.ax2_aid  = _ax2_aid
         nnindexer.idx2_ax  = _idx2_ax
         nnindexer.idx2_vec = _idx2_vec
         nnindexer.idx2_fx  = _idx2_fx
-        nnindexer.idx2_fgw = _idx2_fgw
+        if nnindexer.idx2_fgw is not None:
+            nnindexer.idx2_fgw = _idx2_fgw
         #nnindexer.idx2_kpts   = None
         #nnindexer.idx2_oris   = None
         # Add new points to flann structure
@@ -919,7 +924,7 @@ class NeighborIndex(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
             >>> nnindexer, qreq_, ibs = test_nnindexer()
-            >>> qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)
+            >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> K = 2
             >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K)
             >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
@@ -999,7 +1004,7 @@ class NeighborIndex(object):
             >>> cfgdict = dict()
             >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', cfgdict=cfgdict, preload=True)
             >>> nnindexer = qreq_.indexer
-            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids()[0], qreq_=qreq_)
+            >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qreq_.get_internal_qaids()[0], config2_=qreq_.get_internal_query_config2())
             >>> num_neighbors = 4
             >>> (qfx2_nnidx, qfx2_dist) = nnindexer.knn(qfx2_vec, num_neighbors)
             >>> qfx2_aid = nnindexer.get_nn_aids(qfx2_nnidx)
@@ -1028,7 +1033,7 @@ class NeighborIndex(object):
         return qfx2_fx
 
     def get_nn_fgws(nnindexer, qfx2_nnidx):
-        """
+        r"""
         Args:
             qfx2_nnidx : (N x K) qfx2_idx[n][k] is the index of the kth
                                   approximate nearest data vector
@@ -1163,9 +1168,7 @@ def request_background_nnindexer(qreq_, daid_list):
     # Grab the keypoints names and image ids before query time?
     flann_params =  qreq_.qparams.flann_params
     # Get annot descriptors to index
-    aid_list = daid_list
-    vecs_list = qreq_.ibs.get_annot_vecs(aid_list)
-    fgws_list = get_fgweights_hack(qreq_, aid_list)
+    vecs_list, fgws_list = get_support_data(qreq_, daid_list)
     # Dont hash rowids when given enough info in nnindex_cfgstr
     flann_params['cores'] = 2  # Only ues a few cores in the background
     # Build/Load the flann index
@@ -1176,13 +1179,13 @@ def request_background_nnindexer(qreq_, daid_list):
     # set temporary attribute for when the thread finishes
     finishtup = (uuid_map_fpath, daids_hashid, visual_uuid_list, min_reindex_thresh)
     CURRENT_THREAD = ut.spawn_background_process(
-        background_flann_func, cachedir, aid_list, vecs_list, fgws_list,
+        background_flann_func, cachedir, daid_list, vecs_list, fgws_list,
         flann_params, cfgstr)
 
     CURRENT_THREAD.finishtup = finishtup
 
 
-def background_flann_func(cachedir, aid_list, vecs_list, fgws_list, flann_params, cfgstr,
+def background_flann_func(cachedir, daid_list, vecs_list, fgws_list, flann_params, cfgstr,
                           uuid_map_fpath, daids_hashid,
                           visual_uuid_list, min_reindex_thresh):
     """ FIXME: Duplicate code """
@@ -1191,7 +1194,7 @@ def background_flann_func(cachedir, aid_list, vecs_list, fgws_list, flann_params
     #nntool.flann_cache(idx2_vec, **flannkw)
     nnindexer = NeighborIndex(flann_params, cfgstr)
     # Initialize neighbor with unindexed data
-    nnindexer.init_support(aid_list, vecs_list, fgws_list, verbose=True)
+    nnindexer.init_support(daid_list, vecs_list, fgws_list, verbose=True)
     # Load or build the indexing structure
     nnindexer.load_or_build(cachedir, verbose=True)
     if len(visual_uuid_list) > min_reindex_thresh:

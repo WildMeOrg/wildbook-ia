@@ -112,6 +112,7 @@ def show_image(ibs, gid, sel_aids=[], fnum=None,
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # VIZ_TEST
         >>> from ibeis.viz.viz_image import *  # NOQA
         >>> import ibeis
         >>> # build test data

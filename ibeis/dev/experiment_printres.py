@@ -713,7 +713,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, cfg
 
     # Save DEFAULT=True
 
-    def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), qreq_=None, **dumpkw):
+    def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), config2_=None, **dumpkw):
         print('[PRINT_RESULTS] show_chip(aid=%r) prefix=%r' % (aid, prefix))
         from ibeis import viz
         # only dump a chip that hasn't been dumped yet
@@ -723,13 +723,13 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, cfg
         fulldir = join(figdir, dumpkw['subdir'])
         if DUMP_PROBCHIP:
             # just copy it
-            probchip_fpath = ibs.get_annot_probchip_fpaths([aid], qreq_=qreq_)[0]
+            probchip_fpath = ibs.get_annot_probchip_fpaths([aid], config2_=config2_)[0]
             ut.copy(probchip_fpath, fulldir, overwrite=False)
         if DUMP_REGCHIP:
-            chip_fpath = ibs.get_annot_chip_fpaths([aid], qreq_=qreq_)[0]
+            chip_fpath = ibs.get_annot_chip_fpaths([aid], config2_=config2_)[0]
             ut.copy(chip_fpath, fulldir, overwrite=False)
 
-        viz.show_chip(ibs, aid, in_image=in_image, qreq_=qreq_)
+        viz.show_chip(ibs, aid, in_image=in_image, config2_=config2_)
         if rank is not None:
             prefix += 'rank%d_' % rank
         df2.set_figtitle(prefix + ibs.annotstr(aid))
@@ -848,20 +848,20 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, cfg
             print('[harn] drawing extra plots')
 
             if DUMP_QANNOT:
-                _show_chip(qres.qaid, 'QUERY_', qreq_=qreq_, **dumpkw)
-                _show_chip(qres.qaid, 'QUERY_CXT_', in_image=True, qreq_=qreq_, **dumpkw)
+                _show_chip(qres.qaid, 'QUERY_', config2_=qreq_.qparams, **dumpkw)
+                _show_chip(qres.qaid, 'QUERY_CXT_', in_image=True, config2_=qreq_.get_external_query_config2(), **dumpkw)
 
             if DUMP_QANNOT_DUMP_GT:
                 gtaids = ibs.get_annot_groundtruth(qres.qaid)
                 for aid in gtaids:
                     rank = qres.get_aid_ranks(aid)
-                    _show_chip(aid, 'GT_CXT_', rank=rank, in_image=True, qreq_=qreq_, **dumpkw)
+                    _show_chip(aid, 'GT_CXT_', rank=rank, in_image=True, config2_=qreq_.get_external_data_config2(), **dumpkw)
 
             if DUMP_TOP_CONTEXT:
                 topids = qres.get_top_aids(num=3)
                 for aid in topids:
                     rank = qres.get_aid_ranks(aid)
-                    _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, qreq_=qreq_, **dumpkw)
+                    _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, config2_=qreq_.get_external_data_config2(), **dumpkw)
         flush_copy_tasks()
     # </FOR RCITER>
 

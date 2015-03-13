@@ -10,8 +10,19 @@ import copy
 import six
 import utool as ut
 import numpy as np
+import warnings
 from ibeis.model.hots import hots_query_result
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[qreq]')
+
+VERBOSE = ut.VERBOSE or ut.get_argflag(('--verbose-qreq', '--verbqreq'))
+
+
+def testdata_newqreq(defaultdb):
+    import ibeis
+    ibs = ibeis.opendb(defaultdb=defaultdb)
+    qaid_list = [1]
+    daid_list = [1, 2, 3, 4, 5]
+    return ibs, qaid_list, daid_list
 
 
 @profile
@@ -22,55 +33,68 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
 
     CommandLine:
         python -m ibeis.model.hots.query_request --test-new_ibeis_query_request
+        python -m ibeis.model.hots.query_request --test-new_ibeis_query_request:2
 
-    Example1:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.query_request import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='PZ_MTEST')
-        >>> qaids = [1]
-        >>> daids = [1, 2, 3, 4, 5]
+        >>> ibs, qaid_list, daid_list = testdata_newqreq('PZ_MTEST')
+        >>> unique_species = None
+        >>> verbose = ut.NOT_QUIET
         >>> cfgdict = {'sv_on': False, 'fg_on': True}
         >>> # Execute test
-        >>> qreq_ = new_ibeis_query_request(ibs, qaids, daids, cfgdict=cfgdict)
+        >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> # Check Results
         >>> print(qreq_.qparams.query_cfgstr)
         >>> assert qreq_.qparams.sv_on is False, (
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
-        >>> datahashid = qreq_.get_data_hashid()
-        >>> dbname = ibs.get_dbname()
-        >>> result = dbname + datahashid
+        >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
         PZ_MTEST_DSUUIDS((5)@n7v0df!&j5o8pni)
 
         PZ_MTEST_DSUUIDS((5)q87ho9a0@9s02imh)
 
-    Example2:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.query_request import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='NAUT_test')
-        >>> qaids = [1]
-        >>> daids = [1, 2, 3, 4, 5]
+        >>> ibs, qaid_list, daid_list = testdata_newqreq('NAUT_test')
+        >>> unique_species = None
+        >>> verbose = ut.NOT_QUIET
         >>> cfgdict = {'sv_on': True, 'fg_on': True}
         >>> # Execute test
-        >>> qreq_ = new_ibeis_query_request(ibs, qaids, daids, cfgdict=cfgdict)
+        >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> # Check Results.
         >>> # Featweight should be off because there is no Naut detector
         >>> print(qreq_.qparams.query_cfgstr)
         >>> assert qreq_.qparams.sv_on is True, (
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
-        >>> datahashid = qreq_.get_data_hashid()
-        >>> dbname = ibs.get_dbname()
-        >>> result = dbname + datahashid
+        >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
         NAUT_test_DSUUIDS((5)&flvjboruwyi08%t)
 
     NAUT_test_DSUUIDS((5)4e972cjxcj30a8u1)
     NAUT_test_DSUUIDS((5)8l4exo@+@b+kh9!!)
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.query_request import *  # NOQA
+        >>> ibs, qaid_list, daid_list = testdata_newqreq('PZ_MTEST')
+        >>> unique_species = None
+        >>> verbose = ut.NOT_QUIET
+        >>> cfgdict = {'sv_on': False, 'augment_queryside_hack': True}
+        >>> # Execute test
+        >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
+        >>> # Check Results.
+        >>> # Featweight should be off because there is no Naut detector
+        >>> print(qreq_.qparams.query_cfgstr)
+        >>> assert qreq_.qparams.sv_on is False, (
+        ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
+        >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
+        >>> print(result)
+        PZ_MTEST_DSUUIDS((5)@n7v0df!&j5o8pni)
     """
     if verbose:
-        print(' --- New IBEIS QRequest --- ')
+        print('[qreq] +--- New IBEIS QRequest --- ')
     cfg     = ibs.cfg.query_cfg
     qresdir = ibs.get_qres_cachedir()
     cfgdict = {} if cfgdict is None else cfgdict.copy()
@@ -81,15 +105,30 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         unique_species_ = unique_species
     # </HACK>
     qparams = query_params.QueryParams(cfg, cfgdict)
+    #
+    # <HACK>
+    # MAKE A SECOND CONFIG FOR QUERIES AND DATABASE VECTORS ONLY
+    # allow query and database annotations to have different feature configs
+    if qparams.augment_queryside_hack:
+        query_cfgdict = cfgdict.copy()
+        query_cfgdict['augment_orientation'] = True
+        query_config2_ = query_params.QueryParams(cfg, query_cfgdict)
+    else:
+        query_config2_ = qparams
+    # </HACK>
+    data_config2_ = qparams
     qreq_ = QueryRequest(qaid_list, daid_list, qparams, qresdir, ibs)
-    if verbose:
-        print(' * query_cfgstr = %s' % (qreq_.qparams.query_cfgstr,))
+    qreq_.query_config2_ = query_config2_
+    qreq_.data_config2_ = data_config2_
     qreq_.unique_species = unique_species_  # HACK
+    if verbose:
+        print('[qreq] * query_cfgstr = %s' % (qreq_.qparams.query_cfgstr,))
+        print('[qreq] L___ New IBEIS QRequest ___ ')
     return qreq_
 
 
 @profile
-def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids):
+def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids, verbose=VERBOSE):
     """
     HACK turns of featweights if they cannot be applied
     """
@@ -100,31 +139,22 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids):
     candetect = (len(unique_species) == 1 and
                  ibs.has_species_detector(unique_species[0]))
     if not candetect:
-        print('HACKING FG_WEIGHT OFF (database species is not supported)')
+        print('[qreq] HACKING FG_WEIGHT OFF (database species is not supported)')
         if len(unique_species) != 1:
-            print('  * len(unique_species) = %r' % len(unique_species))
+            print('[qreq]  * len(unique_species) = %r' % len(unique_species))
         else:
-            print('  * unique_species = %r' % (unique_species,))
-        print('  * valid species = %r' % (ibs.get_species_with_detectors(),))
+            print('[qreq]  * unique_species = %r' % (unique_species,))
+        print('[qreq]  * valid species = %r' % (ibs.get_species_with_detectors(),))
         #cfg._featweight_cfg.featweight_enabled = 'ERR'
         cfgdict['featweight_enabled'] = 'ERR'
         cfgdict['fg_on'] = False
     else:
         #print(ibs.get_annot_species_texts(aid_list))
-        print('NO NEED TO HACK. FG_WEIGHT CAN BE ON, unique_species=%r' % (unique_species,))
+        if verbose:
+            print('[qreq] Using fgweights of unique_species=%r' % (unique_species,))
         pass
         #, aid_list=%r' % (unique_species, aid_list))
     return unique_species
-
-
-#def qreq_shallow_copy(qreq_, qx=None, dx=None):
-#    #[qx:qx + 1]
-#    #[qx:qx + 1]
-#    qreq_copy  = QueryRequest(qaid_list, quuid_list, daid_list, duuid_list,
-#                              qreq_.qparams, qreq_.qresdir, qreq_.ibs)
-#    qreq_copy.unique_species = qreq_.unique_species  # HACK
-#    qreq_copy.ibs = qreq_.ibs
-#    return qreq_copy
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -238,7 +268,6 @@ class QueryRequest(object):
         qreq_.internal_daids = np.delete(qreq_.internal_daids, delete_indices)
         # TODO: multi-indexer delete support
         if qreq_.indexer is not None:
-            import warnings
             warnings.warn('Implement point removal from trees')
             qreq_.indexer.remove_ibeis_support(qreq_, remove_daids)
 
@@ -416,6 +445,18 @@ class QueryRequest(object):
     def get_internal_quuids(qreq_):
         return qreq_.ibs.get_annot_semantic_uuids(qreq_.get_internal_qaids())
 
+    def get_internal_data_config2(qreq_):
+        return qreq_.data_config2_ if qreq_.qparams.vsmany else qreq_.query_config2_
+
+    def get_internal_query_config2(qreq_):
+        return qreq_.query_config2_ if qreq_.qparams.vsmany else qreq_.data_config2_
+
+    def get_external_data_config2(qreq_):
+        return qreq_.data_config2_
+
+    def get_external_query_config2(qreq_):
+        return qreq_.query_config2_
+
     # --- EXTERNAL INTERFACE ---
 
     def get_unique_species(qreq_):
@@ -541,11 +582,14 @@ class QueryRequest(object):
         #with ut.EmbedOnException():
         if verbose:
             print('[qreq] ensure_featweights')
-        internal_qaids = qreq_.get_internal_qaids()
-        internal_daids = qreq_.get_internal_daids()
-        # TODO: pass qreq_ down so the right parameters are computed
-        qreq_.ibs.get_annot_fgweights(internal_qaids, ensure=True, qreq_=qreq_)
-        qreq_.ibs.get_annot_fgweights(internal_daids, ensure=True, qreq_=qreq_)
+        #internal_qaids = qreq_.get_internal_qaids()
+        #internal_daids = qreq_.get_internal_daids()
+        #qreq_.ibs.get_annot_fgweights(internal_qaids, ensure=True, config2_=qreq_.qparams)
+        #qreq_.ibs.get_annot_fgweights(internal_daids, ensure=True, config2_=qreq_.qparams)
+        external_qaids = qreq_.get_external_qaids()
+        external_daids = qreq_.get_external_daids()
+        qreq_.ibs.get_annot_fgweights(external_qaids, ensure=True, config2_=qreq_.get_external_query_config2())
+        qreq_.ibs.get_annot_fgweights(external_daids, ensure=True, config2_=qreq_.get_external_data_config2())
 
     @profile
     def load_indexer(qreq_, verbose=True, force=False):

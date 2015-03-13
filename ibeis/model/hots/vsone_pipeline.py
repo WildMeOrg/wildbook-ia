@@ -175,8 +175,8 @@ def marge_matches_lists(fmfs_A, fmfs_B):
 
 
 def get_selectivity_score_list(qreq_, qaid, daid_list, fm_list, cos_power):
-    vecs1 = qreq_.ibs.get_annot_vecs(qaid, qreq_=qreq_)
-    vecs2_list = qreq_.ibs.get_annot_vecs(daid_list, qreq_=qreq_)
+    vecs1 = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.get_external_query_config2())
+    vecs2_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.get_external_data_config2())
     vecs1_m_iter = (vecs1.take(fm.T[0], axis=0) for fm in fm_list)
     vecs2_m_iter = (vecs2.take(fm.T[1], axis=0) for fm, vecs2 in zip(fm_list, vecs2_list))
     # Rescore constrained using selectivity function
@@ -189,6 +189,7 @@ def get_selectivity_score_list(qreq_, qaid, daid_list, fm_list, cos_power):
 def sver_fmfs_merge(qreq_, qaid, daid_list, fmfs_merge, config={}):
     from vtool import spatial_verification as sver
     # params
+    # TODO: rectify with sver_single_chipmatch
     # TODO paramaterize better
     xy_thresh    = config.get('xy_thresh') * 1.5
     scale_thresh = config.get('scale_thresh') * 2
@@ -197,9 +198,9 @@ def sver_fmfs_merge(qreq_, qaid, daid_list, fmfs_merge, config={}):
     # input data
     fm_list, fs_list = fmfs_merge
     fsv_list   = matching.ensure_fsv_list(fs_list)
-    kpts1      = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)
-    kpts2_list = qreq_.ibs.get_annot_kpts(daid_list, qreq_=qreq_)
-    chip2_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(daid_list, qreq_=qreq_)  # chip diagonal length
+    kpts1      = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_external_query_config2())
+    kpts2_list = qreq_.ibs.get_annot_kpts(daid_list, config2_=qreq_.get_external_data_config2())
+    chip2_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(daid_list, config2_=qreq_.get_external_data_config2())  # chip diagonal length
     res_list = []
     # homog_inliers
     for kpts2, chip2_dlen_sqrd, fm, fsv in zip(kpts2_list, chip2_dlen_sqrd_list, fm_list, fsv_list):
@@ -261,7 +262,7 @@ def refine_matches(qreq_, prior_cm, config={}):
     # THIS CAUSES THE ISSUE
     #prior_cm.fs_list = prior_cm.fsv_list
     #return prior_cm
-    if qreq_.ibs.get_annot_num_feats(prior_cm.qaid, qreq_=qreq_) == 0:
+    if qreq_.ibs.get_annot_num_feats(prior_cm.qaid, config2_=qreq_.qparams) == 0:
         num_daids = len(prior_cm.daid_list)
         empty_unscored_cm = chip_match.ChipMatch2.from_unscored(
             prior_cm, ut.alloc_lists(num_daids), ut.alloc_lists(num_daids), ut.alloc_lists(num_daids))
@@ -363,8 +364,8 @@ def single_vsone_rerank(qreq_, prior_cm, config={}):
         unscored_cm.score_coverage(qreq_)
     else:
         # Apply score weights
-        data_baseline_weight_list = scoring.get_annot_kpts_baseline_weights(qreq_, unscored_cm.daid_list, config)
-        query_baseline_weight = scoring.get_annot_kpts_baseline_weights(qreq_, [unscored_cm.qaid], config)[0]
+        data_baseline_weight_list = scoring.get_annot_kpts_baseline_weights(qreq_.ibs, unscored_cm.daid_list, config2_=qreq_.get_external_data_config2(), config=config)
+        query_baseline_weight = scoring.get_annot_kpts_baseline_weights(qreq_.ibs, [unscored_cm.qaid], config2_=qreq_.get_external_query_config2(), config=config)[0]
         qfx_list = [fm.T[0] for fm in unscored_cm.fm_list]
         dfx_list = [fm.T[1] for fm in unscored_cm.fm_list]
 
@@ -426,8 +427,8 @@ def compute_query_unconstrained_matches(qreq_, qaid, daid_list, config):
     """
     unc_ratio_thresh = config['unc_ratio_thresh']
     #, .625)
-    qvecs = qreq_.ibs.get_annot_vecs(qaid, qreq_=qreq_)
-    dvecs_list = qreq_.ibs.get_annot_vecs(daid_list, qreq_=qreq_)
+    qvecs = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.get_external_query_config2())
+    dvecs_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.get_external_data_config2())
     print(len(qvecs))
     flann = quick_vsone_flann(qreq_.ibs.get_flann_cachedir(), qvecs)
     rat_kwargs = {
@@ -482,11 +483,11 @@ def compute_query_constrained_matches(qreq_, qaid, daid_list, H_list, config):
     scr_norm_xy_min      = config.get('scr_norm_xy_min', 0.1)
     scr_norm_xy_max      = config.get('scr_norm_xy_max', 1.0)
     scr_norm_xy_bounds = (scr_norm_xy_min, scr_norm_xy_max)
-    vecs1 = qreq_.ibs.get_annot_vecs(qaid, qreq_=qreq_)
-    kpts1 = qreq_.ibs.get_annot_kpts(qaid)
-    vecs2_list = qreq_.ibs.get_annot_vecs(daid_list, qreq_=qreq_)
-    kpts2_list = qreq_.ibs.get_annot_kpts(daid_list, qreq_=qreq_)
-    chip2_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(daid_list, qreq_=qreq_)  # chip diagonal length
+    vecs1 = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.get_external_query_config2())
+    kpts1 = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_external_query_config2())
+    vecs2_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.get_external_data_config2())
+    kpts2_list = qreq_.ibs.get_annot_kpts(daid_list, config2_=qreq_.get_external_data_config2())
+    chip2_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(daid_list, config2_=qreq_.get_external_data_config2())  # chip diagonal length
     # build flann for query vectors
     flann = quick_vsone_flann(qreq_.ibs.get_flann_cachedir(), vecs1)
     # match database chips to query chip

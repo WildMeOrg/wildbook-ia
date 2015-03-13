@@ -6,6 +6,8 @@ normalizations.
 
 TODO:
     * Have controller delete cached chip_fpath if there is a cache miss.
+    * T_ExternFileGetter
+DONE:
     * Implemented funcs based on custom qparams in non None `qreq_` objects
 """
 from __future__ import absolute_import, division, print_function
@@ -53,7 +55,7 @@ def read_chip_fpath(ibs, cid_list, **kwargs):
 # OLD FUNCTIONALITY TO DEPRICATE
 #--------------------------
 
-def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, qreq_=None):
+def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None):
     r"""
     ----------------------
     Found 1 line(s) in 'ibeis/model/preproc/preproc_chip.py':
@@ -69,7 +71,7 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, qreq_=None):
         except AssertionError as ex:
             ut.printex(ex, key_list=['aid_list'])
             raise
-    cfpath_list = make_annot_cfpath_list(ibs, aid_list, qreq_=qreq_)
+    cfpath_list = make_annot_cfpath_list(ibs, aid_list, config2_=config2_)
     try:
         if ensure:
             chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
@@ -92,7 +94,7 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, qreq_=None):
     return chip_list
 
 
-def compute_and_write_chips_lazy(ibs, aid_list, qreq_=None):
+def compute_and_write_chips_lazy(ibs, aid_list, config2_=None):
     r"""Spanws compute chip procesess if a chip does not exist on disk
 
     DEPRICATE
@@ -106,7 +108,7 @@ def compute_and_write_chips_lazy(ibs, aid_list, qreq_=None):
     if ut.VERBOSE:
         print('[preproc_chip] compute_and_write_chips_lazy')
     # Mark which aid's need their chips computed
-    cfpath_list = make_annot_cfpath_list(ibs, aid_list, qreq_=qreq_)
+    cfpath_list = make_annot_cfpath_list(ibs, aid_list, config2_=config2_)
     exists_flags = [exists(cfpath) for cfpath in cfpath_list]
     invalid_aids = ut.get_dirty_items(aid_list, exists_flags)
     if ut.VERBOSE:
@@ -118,7 +120,7 @@ def compute_and_write_chips_lazy(ibs, aid_list, qreq_=None):
 
 #  ^^ OLD FUNCS ^^
 
-def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
+def compute_or_read_chip_images(ibs, cid_list, ensure=True, config2_=None):
     """Reads chips and tries to compute them if they do not exist
 
     Args:
@@ -188,7 +190,7 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, qreq_=None):
     return chip_list
 
 
-def generate_chip_properties(ibs, aid_list, qreq_=None):
+def generate_chip_properties(ibs, aid_list, config2_=None):
     r"""
     Computes parameters for SQLController adding
 
@@ -198,7 +200,7 @@ def generate_chip_properties(ibs, aid_list, qreq_=None):
     Args:
         ibs (IBEISController):
         aid_list (list):
-        qreq_ (QueryRequest):
+        config2_ (QueryRequest):
 
     Example:
         >>> # ENABLE DOCTEST
@@ -216,7 +218,7 @@ def generate_chip_properties(ibs, aid_list, qreq_=None):
     try:
         # the old function didn't even call this
         print('[generate_chip_properties] Requested params for %d chips ' % (len(aid_list)))
-        cfpath_list = compute_and_write_chips(ibs, aid_list, qreq_=qreq_)
+        cfpath_list = compute_and_write_chips(ibs, aid_list, config2_=config2_)
         for cfpath, aid in zip(cfpath_list, aid_list):
             # Can be made faster by getting size from generator
             pil_chip = gtool.open_pil_image(cfpath)
@@ -245,7 +247,7 @@ def gen_chip(tup):
     return cfpath
 
 
-def compute_and_write_chips(ibs, aid_list, qreq_=None):
+def compute_and_write_chips(ibs, aid_list, config2_=None):
     r"""Spawns compute compute chip processess.
 
     Args:
@@ -259,7 +261,7 @@ def compute_and_write_chips(ibs, aid_list, qreq_=None):
         >>> # SLOW_DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from os.path import basename
-        >>> qreq_ = None
+        >>> config2_ = None
         >>> ibs, aid_list = testdata_ibeis()
         >>> # delete chips
         >>> ibs.delete_annot_chips(aid_list)
@@ -280,11 +282,13 @@ def compute_and_write_chips(ibs, aid_list, qreq_=None):
     ut.ensuredir(ibs.get_chipdir())
     # CONFIG INFO
     # Get chip configuration information
-    if qreq_ is not None:
-        chip_cfg_dict  = qreq_.qparams.chip_cfg_dict
-        chip_sqrt_area = qreq_.qparams.chip_sqrt_area
+    if config2_ is not None:
+        chip_cfg_dict  = config2_.get('chip_cfg_dict')
+        chip_sqrt_area = config2_.get('chip_sqrt_area')
+        assert chip_sqrt_area is not None
+        assert chip_cfg_dict is not None
     else:
-        # use ibs if qreq_ is None
+        # use ibs if config2_ is None
         chip_sqrt_area = ibs.cfg.chip_cfg.chip_sqrt_area
         chip_cfg_dict = ibs.cfg.chip_cfg.to_dict()
     # Get chip dest information (output path),
@@ -292,7 +296,7 @@ def compute_and_write_chips(ibs, aid_list, qreq_=None):
     # Get how big to resize each chip, etc...
     nChips = len(aid_list)
     filter_list = ctool.get_filter_list(chip_cfg_dict)
-    cfpath_list = make_annot_cfpath_list(ibs, aid_list, qreq_=qreq_)
+    cfpath_list = make_annot_cfpath_list(ibs, aid_list, config2_=config2_)
     gfpath_list = ibs.get_annot_image_paths(aid_list)
     bbox_list   = ibs.get_annot_bboxes(aid_list)
     theta_list  = ibs.get_annot_thetas(aid_list)
@@ -321,7 +325,7 @@ def compute_and_write_chips(ibs, aid_list, qreq_=None):
     return cfpath_list
 
 
-def on_delete(ibs, cid_list):
+def on_delete(ibs, cid_list, config2_=None):
     r"""
     Cleans up chips on disk.  Called on delete from sql controller.
 
@@ -334,12 +338,12 @@ def on_delete(ibs, cid_list):
         >>> from ibeis.model.preproc import preproc_chip
         >>> ibs, aid_list = preproc_chip.testdata_ibeis()
         >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)
-        >>> assert len(ut.filter_Nones(cid_list)) == len(cid_list)
+        >>> ut.assert_eq(len(ut.filter_Nones(cid_list)), len(cid_list), var1_name='nchips')
         >>> # Run test function
         >>> nRemoved1 = preproc_chip.on_delete(ibs, cid_list)
-        >>> assert nRemoved1 == len(cid_list), 'nRemoved=%r, target=%r' % (nRemoved1,  len(cid_list))
+        >>> ut.assert_eq(nRemoved1, len(cid_list), var1_name='nRemoved1', var2_name='target')
         >>> nRemoved2 = preproc_chip.on_delete(ibs, cid_list)
-        >>> assert nRemoved2 == 0, 'nRemoved=%r' % (nRemoved2,)
+        >>> ut.assert_eq(nRemoved2, 0, var1_name='nRemoved2', var2_name='target')
         >>> # We have done a bad thing at this point. SQL still thinks chips exist
         >>> cid_list2 = ibs.get_annot_chip_rowids(aid_list, ensure=False)
         >>> ibs.delete_chips(cid_list2)
@@ -353,7 +357,7 @@ def on_delete(ibs, cid_list):
 #---------------
 
 
-def make_annot_cfpath_list(ibs, aid_list, qreq_=None):
+def make_annot_cfpath_list(ibs, aid_list, config2_=None):
     r"""
     Build chip file paths based on the current IBEIS configuration
 
@@ -382,7 +386,7 @@ def make_annot_cfpath_list(ibs, aid_list, qreq_=None):
 
     chip_aid=1_bbox=(0,0,1047,715)_theta=0.0tau_gid=1_CHIP(sz450).png
     """
-    cfname_fmt = get_chip_fname_fmt(ibs, qreq_=qreq_)
+    cfname_fmt = get_chip_fname_fmt(ibs, config2_=config2_)
     chipdir = ibs.get_chipdir()
     #cfpath_list = format_aid_bbox_theta_gid_fnames(ibs, aid_list, cfname_fmt, chipdir)
     annot_visual_uuid_list  = ibs.get_annot_visual_uuids(aid_list)
@@ -390,7 +394,7 @@ def make_annot_cfpath_list(ibs, aid_list, qreq_=None):
     return cfpath_list
 
 
-def get_chip_fname_fmt(ibs, qreq_=None):
+def get_chip_fname_fmt(ibs, config2_=None):
     r"""Returns format of chip file names
 
     Args:
@@ -411,8 +415,9 @@ def get_chip_fname_fmt(ibs, qreq_=None):
 
     chip_aid=%d_bbox=%s_theta=%s_gid=%d_CHIP(sz450).png
     """
-    if qreq_ is not None:
-        chip_cfgstr = qreq_.qparams.chip_cfgstr
+    if config2_ is not None:
+        chip_cfgstr = config2_.get('chip_cfgstr')
+        assert chip_cfgstr is not None
     else:
         chip_cfgstr = ibs.cfg.chip_cfg.get_cfgstr()   # algo settings cfgstr
     chip_ext = ibs.cfg.chip_cfg['chipfmt']  # png / jpeg (BUGS WILL BE INTRODUCED IF THIS CHANGES)
