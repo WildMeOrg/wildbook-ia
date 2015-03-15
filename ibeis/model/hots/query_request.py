@@ -98,6 +98,14 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     cfg     = ibs.cfg.query_cfg
     qresdir = ibs.get_qres_cachedir()
     cfgdict = {} if cfgdict is None else cfgdict.copy()
+
+    DYNAMIC_K = False
+    if DYNAMIC_K and 'K' not in cfgdict:
+        model_params = [0.2,  0.5]
+        from ibeis.dev.optimize_k import compute_K
+        nDaids = len(daid_list)
+        cfgdict['K'] = compute_K(nDaids, model_params)
+
     # <HACK>
     if unique_species is None:
         unique_species_ = apply_species_with_detector_hack(ibs, cfgdict, qaid_list, daid_list)
