@@ -230,7 +230,7 @@ def database_init(app):
         if not all([viewpoint is -1 for viewpoint in viewpoint_list]):
             print("WARNING: NOT ALL ANNOT THETAS ARE NULLED")
             raw_input("Enter to null annot thetas...")
-            app.ibs.set_annot_viewpoint(aid_list, [None] * len(aid_list))
+            app.ibs.set_annot_yaws(aid_list, [None] * len(aid_list))
             # Grab ALL viewpoints
     elif app.round == 2:
         # Detection Review
