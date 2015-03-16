@@ -15,10 +15,10 @@
       Path: {{ image_path }}
       <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block;">
       <div style="text-align: center; color: #aaa;">
-        <span>Hard to tell?  <a href="/turk/detection.html?gid={{ gid }}&refer=viewpoint&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
+        <span>Hard to tell?  <a href="/turk/detection?gid={{ gid }}&refer=viewpoint&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
       </div>
       <br/>
-      <form method="post" action="/submit/viewpoint.html">
+      <form method="post" action="/submit/viewpoint">
         <input type="text" name="viewpoint-aid" value="{{ aid }}" style="display: none;" readonly>
         Degrees: <span id="label-degrees"></span> | Radians: <span id="label-radians1"></span> (&pi; * <span id="label-radians2"></span>) 
         <br/>

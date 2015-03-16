@@ -1,0 +1,14 @@
+{
+    "name": "countUp.js",
+    "version": "1.3.2",
+    "main": "countUp.js",
+    "author": "Jamie Perkins",
+    "ignore": [
+        "CHANGELOG.md",
+        "LICENSE.md",
+        "README.md",
+        "countUp.coffee",
+        "component.json",
+        "index.html"
+    ]
+}

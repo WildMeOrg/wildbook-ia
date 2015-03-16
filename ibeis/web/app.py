@@ -18,9 +18,9 @@ from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, Species
 import utool
 import utool as ut
 # Web Internal
-from ibeis.web import appfuncs, navbar, DBWEB_SCHEMA
+from ibeis.web import appfuncs as ap
+from ibeis.web import DBWEB_SCHEMA
 # Others
-from datetime import date
 import random
 from os.path import join
 from ibeis.web.DBWEB_SCHEMA import VIEWPOINT_TABLE
@@ -30,24 +30,58 @@ import ibeis.constants as const
 BROWSER = ut.get_argflag('--browser')
 DEFAULT_PORT = 5000
 app = flask.Flask(__name__)
-global_args = {
-    'NAVBAR': navbar.NavbarClass(),
-    'YEAR':   date.today().year,
-}
 
 
 ################################################################################
 
 
 @app.route('/')
-@app.route('/<filename>.html')
-def root(filename=''):
-    return template('', filename)
+@app.route('/<filename>')
+def root(filename=None):
+    return ap.template(None, filename)
+
+
+@app.route('/view')
+def view():
+    eid_list = app.ibs.get_valid_eids()
+    gid_list = app.ibs.get_valid_gids()
+    aid_list = app.ibs.get_valid_aids()
+    return ap.template('view',
+                       eid_list=eid_list,
+                       num_eids=len(eid_list),
+                       gid_list=gid_list,
+                       num_gids=len(gid_list),
+                       aid_list=aid_list,
+                       num_aids=len(aid_list))
+
+
+@app.route('/view/encounters')
+def view_encoutners():
+    eid_list = app.ibs.get_valid_eids()
+    return ap.template('view', 'encounters',
+                       eid_list=eid_list,
+                       num_eids=len(eid_list))
+
+
+@app.route('/view/images')
+def view_images():
+    gid_list = app.ibs.get_valid_gids()
+    return ap.template('view', 'images',
+                       gid_list=gid_list,
+                       num_gids=len(gid_list))
+
+
+@app.route('/view/annotations')
+def view_annotations():
+    aid_list = app.ibs.get_valid_aids()
+    return ap.template('view', 'annotations',
+                       aid_list=aid_list,
+                       num_aids=len(aid_list))
 
 
 @app.route('/turk')
-@app.route('/turk/<filename>.html')
-def turk(filename=''):
+@app.route('/turk/<filename>')
+def turk(filename=None):
     if 'refer' in request.args.keys():
         refer = request.args['refer']
     else:
@@ -58,13 +92,13 @@ def turk(filename=''):
             gid = int(request.args['gid'])
         else:
             with SQLAtomicContext(app.db):
-                gid = appfuncs.get_next_detection_turk_candidate(app)
+                gid = ap.get_next_detection_turk_candidate(app)
         finished = gid is None
         review = 'review' in request.args.keys()
         if not finished:
             gpath = app.ibs.get_image_paths(gid)
-            image = appfuncs.open_oriented_image(gpath)
-            image_src = appfuncs.embed_image_html(image, filter_width=False)
+            image = ap.open_oriented_image(gpath)
+            image_src = ap.embed_image_html(image, filter_width=False)
             # Get annotations
             width, height = app.ibs.get_image_sizes(gid)
             scale_factor = 700.0 / float(width)
@@ -100,54 +134,54 @@ def turk(filename=''):
             refer_aid = request.args['refer_aid']
         else:
             refer_aid = None
-        return template('turk', filename,
-                        gid=gid,
-                        species=species,
-                        image_path=gpath,
-                        image_src=image_src,
-                        finished=finished,
-                        annotation_list=annotation_list,
-                        refer=refer,
-                        refer_aid=refer_aid,
-                        display_instructions=display_instructions,
-                        display_species_examples=display_species_examples,
-                        review=review)
+        return ap.template('turk', filename,
+                           gid=gid,
+                           species=species,
+                           image_path=gpath,
+                           image_src=image_src,
+                           finished=finished,
+                           annotation_list=annotation_list,
+                           refer=refer,
+                           refer_aid=refer_aid,
+                           display_instructions=display_instructions,
+                           display_species_examples=display_species_examples,
+                           review=review)
     elif filename == 'viewpoint':
         if 'aid' in request.args.keys():
             aid = int(request.args['aid'])
         else:
             with SQLAtomicContext(app.db):
-                aid = appfuncs.get_next_viewpoint_turk_candidate(app)
+                aid = ap.get_next_viewpoint_turk_candidate(app)
         value = request.args.get('value', None)
         review = 'review' in request.args.keys()
         finished = aid is None
         if not finished:
             gid       = app.ibs.get_annot_gids(aid)
             gpath     = app.ibs.get_annot_chip_fpaths(aid)
-            image     = appfuncs.open_oriented_image(gpath)
-            image_src = appfuncs.embed_image_html(image)
+            image     = ap.open_oriented_image(gpath)
+            image_src = ap.embed_image_html(image)
         else:
-            print("\nADMIN: http://%s:%s/turk/viewpoint-commit.html\n" % (app.server_ip_address, app.port))
+            print("\nADMIN: http://%s:%s/turk/viewpoint-commit\n" % (app.server_ip_address, app.port))
             gid       = None
             gpath     = None
             image_src = None
         display_instructions = request.cookies.get('viewpoint_instructions_seen', 0) == 0
-        return template('turk', filename,
-                        aid=aid,
-                        gid=gid,
-                        value=value,
-                        image_path=gpath,
-                        image_src=image_src,
-                        finished=finished,
-                        refer=refer,
-                        display_instructions=display_instructions,
-                        review=review)
+        return ap.template('turk', filename,
+                           aid=aid,
+                           gid=gid,
+                           value=value,
+                           image_path=gpath,
+                           image_src=image_src,
+                           finished=finished,
+                           refer=refer,
+                           display_instructions=display_instructions,
+                           review=review)
     elif filename == 'viewpoint-commit':
         # Things that need to be committed
         where_clause = "viewpoint_value_avg>=?"
-        viewpoint_rowid_list = appfuncs.get_viewpoint_rowids_where(app, where_clause=where_clause, params=[0.0])
-        aid_list = appfuncs.get_viewpoint_aid(app, viewpoint_rowid_list)
-        viewpoint_list = appfuncs.get_viewpoint_values_from_aids(app, aid_list, 'viewpoint_value_avg')
+        viewpoint_rowid_list = ap.get_viewpoint_rowids_where(app, where_clause=where_clause, params=[0.0])
+        aid_list = ap.get_viewpoint_aid(app, viewpoint_rowid_list)
+        viewpoint_list = ap.get_viewpoint_values_from_aids(app, aid_list, 'viewpoint_value_avg')
         def convert_old_viewpoint_to_yaw(view_angle):
             """ we initially had viewpoint coordinates inverted
 
@@ -178,50 +212,50 @@ def turk(filename=''):
         count = len(aid_list)
         # Flagged aids
         where_clause = "viewpoint_value_2!=? AND viewpoint_value_avg=?"
-        viewpoint_rowid_list = appfuncs.get_viewpoint_rowids_where(app, where_clause=where_clause, params=[-1.0, -1.0])
-        flagged_aid_list = appfuncs.get_viewpoint_aid(app, viewpoint_rowid_list)
+        viewpoint_rowid_list = ap.get_viewpoint_rowids_where(app, where_clause=where_clause, params=[-1.0, -1.0])
+        flagged_aid_list = ap.get_viewpoint_aid(app, viewpoint_rowid_list)
         # Skipped aids
         where_clause = "viewpoint_value_2!=? AND viewpoint_value_avg=?"
-        viewpoint_rowid_list = appfuncs.get_viewpoint_rowids_where(app, where_clause=where_clause, params=[-1.0, -2.0])
-        skipped_aid_list = appfuncs.get_viewpoint_aid(app, viewpoint_rowid_list)
+        viewpoint_rowid_list = ap.get_viewpoint_rowids_where(app, where_clause=where_clause, params=[-1.0, -2.0])
+        skipped_aid_list = ap.get_viewpoint_aid(app, viewpoint_rowid_list)
         # Return output
         return "Commiting %d viewpoints to the database...<br/>Flagged: %r<br/>Skipped: %r" % (count, flagged_aid_list, skipped_aid_list)
     else:
-        return template('turk', filename)
+        return ap.template('turk', filename)
 
 
-@app.route('/submit/viewpoint.html', methods=['POST'])
+@app.route('/submit/viewpoint', methods=['POST'])
 def submit_viewpoint():
     aid = int(request.form['viewpoint-aid'])
     value = int(request.form['viewpoint-value'])
     turk_id = request.cookies.get('turk_id', -1)
     if random.randint(0, 40) == 0:
         print("!!!!!DETECTION QUALITY CONTROL!!!!!")
-        url = 'http://%s:%s/turk/viewpoint.html?aid=%s&value=%s&turk_id=%s&review=true' % (app.server_ip_address, app.port, aid, value, turk_id)
+        url = 'http://%s:%s/turk/viewpoint?aid=%s&value=%s&turk_id=%s&review=true' % (app.server_ip_address, app.port, aid, value, turk_id)
         import webbrowser
         webbrowser.open(url)
     if request.form['viewpoint-submit'].lower() == 'skip':
         value = -2
     # Get current values
-    value_1 = appfuncs.get_viewpoint_values_from_aids(app, [aid], 'viewpoint_value_1')[0]
-    value_2 = appfuncs.get_viewpoint_values_from_aids(app, [aid], 'viewpoint_value_2')[0]
+    value_1 = ap.get_viewpoint_values_from_aids(app, [aid], 'viewpoint_value_1')[0]
+    value_2 = ap.get_viewpoint_values_from_aids(app, [aid], 'viewpoint_value_2')[0]
     if value_1 is None:
-        appfuncs.set_viewpoint_values_from_aids(app, [aid], [value], 'viewpoint_value_1')
+        ap.set_viewpoint_values_from_aids(app, [aid], [value], 'viewpoint_value_1')
         value_1 = value
     elif value_2 is None:
-        appfuncs.set_viewpoint_values_from_aids(app, [aid], [value], 'viewpoint_value_2')
+        ap.set_viewpoint_values_from_aids(app, [aid], [value], 'viewpoint_value_2')
         value_2 = value
         if value_1 >= 0 and value_2 >= 0:
             # perform check against two viewpoint annotations
             if abs(value_1 - value_2) <= 45:
                 value = (value_1 + value_2) / 2
-                appfuncs.set_viewpoint_values_from_aids(app, [aid], [value], 'viewpoint_value_avg')
+                ap.set_viewpoint_values_from_aids(app, [aid], [value], 'viewpoint_value_avg')
             else:
                 # We don't need to do anything here, viewpoints are promoted out of the error state (default) if consistent
                 print('[web] FLAGGED - VIEWPOINTS INCONSISTENT')
         else:
             print('[web] SKIPPED - VIEWPOINTS UNSURE')
-            appfuncs.set_viewpoint_values_from_aids(app, [aid], [-2], 'viewpoint_value_avg')
+            ap.set_viewpoint_values_from_aids(app, [aid], [-2], 'viewpoint_value_avg')
     else:
         print('[web] SKIPPED - TOO MANY VIEWPOINTS')
     print("[web] turk_id: %s, aid: %d, value: %d | %s %s" % (turk_id, aid, value, value_1, value_2))
@@ -229,20 +263,20 @@ def submit_viewpoint():
     return redirect(url_for('turk', filename='viewpoint'))
 
 
-@app.route('/submit/detection.html', methods=['POST'])
+@app.route('/submit/detection', methods=['POST'])
 def submit_detection():
     gid = int(request.form['detection-gid'])
     turk_id = request.cookies.get('turk_id', -1)
     if random.randint(0, 10) == 0:
         print("!!!!!DETECTION QUALITY CONTROL!!!!!")
-        url = 'http://%s:%s/turk/detection.html?gid=%s&turk_id=%s&review=true' % (app.server_ip_address, app.port, gid, turk_id)
+        url = 'http://%s:%s/turk/detection?gid=%s&turk_id=%s&review=true' % (app.server_ip_address, app.port, gid, turk_id)
         import webbrowser
         webbrowser.open(url)
     aid_list = app.ibs.get_image_aids(gid)
     count = 1
     if request.form['detection-submit'].lower() == 'skip':
         count = -1
-    appfuncs.set_review_count_from_gids(app, [gid], [count])
+    ap.set_review_count_from_gids(app, [gid], [count])
     if count == 1:
         width, height = app.ibs.get_image_sizes(gid)
         scale_factor = float(width) / 700.0
@@ -269,10 +303,10 @@ def submit_detection():
         print("[web] turk_id: %s, gid: %d, bbox_list: %r, species_list: %r" % (turk_id, gid, annotation_list, species_list))
         aid_list_new = app.ibs.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
         app.ibs.set_image_reviewed([gid], [1])
-        appfuncs.replace_aids(app, aid_list, aid_list_new)
+        ap.replace_aids(app, aid_list, aid_list_new)
     else:
         app.ibs.set_image_reviewed([gid], [0])
-        viewpoint_rowids = appfuncs.get_viewpoint_rowids_from_aid(aid_list, app)
+        viewpoint_rowids = ap.get_viewpoint_rowids_from_aid(aid_list, app)
         app.db.delete_rowids(VIEWPOINT_TABLE, viewpoint_rowids)
     if 'refer' in request.args.keys() and request.args['refer'] == 'viewpoint':
         return redirect(url_for('turk', filename='viewpoint'))
@@ -280,7 +314,7 @@ def submit_detection():
         return redirect(url_for('turk', filename='detection'))
 
 
-@app.route('/ajax/cookie.html')
+@app.route('/ajax/cookie')
 def set_cookie():
     response = make_response('true')
     try:
@@ -309,7 +343,7 @@ def api(function=None):
         template['status']['code'] = 'USAGE: /api/[ibeis_function_name].json'
     else:
         function = function.lower()
-        if appfuncs.check_valid_function_name(function):
+        if ap.check_valid_function_name(function):
             function = 'app.ibs.%s' % function
             exists = True
             try:
@@ -328,20 +362,6 @@ def api(function=None):
             template['status']['success'] = False
             template['status']['code'] = 'ERROR: Specified IBEIS function not valid Python function'
     return json.dumps(template)
-
-
-################################################################################
-
-
-def template(template_directory='', template_filename='', **kwargs):
-    if len(template_filename) == 0:
-        template_filename = 'index'
-    template_ = join(template_directory, template_filename + '.html')
-    # Update global args with the template's args
-    _global_args = dict(global_args)
-    _global_args.update(kwargs)
-    print(template_)
-    return flask.render_template(template_, **_global_args)
 
 
 ################################################################################
@@ -418,7 +438,7 @@ def start_from_terminal():
     app.round = opts.round
     print(app.round)
     app.ibs = ibeis.opendb(db=opts.db)
-    start_tornado(app, opts.port, database_init=appfuncs.database_init)
+    start_tornado(app, opts.port, database_init=ap.database_init)
 
 
 def start_from_ibeis(ibs, port=DEFAULT_PORT):
@@ -446,7 +466,7 @@ def start_from_ibeis(ibs, port=DEFAULT_PORT):
     print("DEFAULT SPECIES: %r" % (app.default_species))
     app.ibs = ibs
     app.round = params.args.round
-    start_tornado(app, port, database_init=appfuncs.database_init)
+    start_tornado(app, port, database_init=ap.database_init)
 
 
 if __name__ == '__main__':
