@@ -263,6 +263,7 @@ def plot_search_surface(known_nd_data, known_target_points, given_data_dims, opt
 def learn_k():
     r"""
     CommandLine:
+        python -m ibeis.dev.optimize_k --test-learn_k
         python -m ibeis.dev.optimize_k --test-learn_k --show
 
     Example:
@@ -273,6 +274,7 @@ def learn_k():
         >>> # execute function
         >>> known_nd_data, known_target_points, given_data_dims, opt_model_params = learn_k()
         >>> # verify results
+        >>> ut.quit_if_noshow()
         >>> plot_search_surface(known_nd_data, known_target_points, given_data_dims, opt_model_params)
         >>> pt.all_figures_bring_to_front()
         >>> pt.show_if_requested()
