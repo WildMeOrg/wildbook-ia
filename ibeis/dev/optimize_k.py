@@ -15,8 +15,8 @@ import six
 def evaluate_training_data():
     # load a dataset
     #dbname = 'PZ_MTEST'
-    dbname = 'GZ_ALL'
-    #dbname = 'PZ_Master0'
+    #dbname = 'GZ_ALL'
+    dbname = 'PZ_Master0'
     ibs = ibeis.opendb(dbname)
 
     def get_set_groundfalse(ibs, qaids):

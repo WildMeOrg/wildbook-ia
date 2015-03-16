@@ -106,8 +106,9 @@ def compute_nsum_score(cm, qreq_=None):
         >>> ut.quit_if_noshow()
         >>> cm.show_ranked_matches(qreq_)
     """
-    HACK_SINGLE_ORI = qreq_ is not None and qreq_.qparams.augment_queryside_hack
+    HACK_SINGLE_ORI =  qreq_ is not None and qreq_.qparams.augment_queryside_hack
     if HACK_SINGLE_ORI:
+        # keypoints with the same xy can only have one of them vote
         #qreq_ = None
         qkpts1 = qreq_.ibs.get_annot_kpts(cm.qaid, config2_=qreq_.get_external_query_config2())
         #print(vt.get_oris(qkpts1))
