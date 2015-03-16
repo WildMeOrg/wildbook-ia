@@ -7,12 +7,15 @@ import plottool as pt
 import random
 import scipy as sp
 import utool as ut
+from six.moves import builtins
+import six
 (print, print_, printDBG, rrr, profile) = ut.inject( __name__, '[optimze_k]', DEBUG=False)
 
 
 def evaluate_training_data():
     # load a dataset
-    dbname = 'PZ_MTEST'
+    #dbname = 'PZ_MTEST'
+    dbname = 'GZ_ALL'
     #dbname = 'PZ_Master0'
     ibs = ibeis.opendb(dbname)
 
@@ -141,7 +144,7 @@ def minimize_compute_K_params(known_nd_data, known_target_points, given_data_dim
     """
     poly_degree = 1
     mode = 'brute'
-    mode = 'simplex'
+    #mode = 'simplex'
 
     if poly_degree == 2:
         initial_model_params = [0, 0.2,  0.5]  # a guess
@@ -159,8 +162,6 @@ def minimize_compute_K_params(known_nd_data, known_target_points, given_data_dim
         ranges = [slice(-2, 2, .1) for _ in range(poly_degree)]
         #raise AssertionError('Unknown poly_degree=%r' % (poly_degree,))
 
-    from six.moves import builtins
-    import six
     infiter = builtins.iter(int, 1)
     # TODO: progress iter for unknown size
     if mode == 'brute':
@@ -249,7 +250,7 @@ def plot_search_surface(known_nd_data, known_target_points, given_data_dims, opt
         ymin = min(ymin, ydata.min())
         zmin = min(zmin, zdata.min())
         zmax = max(zmax, zdata.max())
-        #ax.scatter(xdata, ydata, zdata, s=100, c=pt.ORANGE)
+        ax.scatter(xdata, ydata, zdata, s=100, c=pt.ORANGE)
         #[t.set_color('white') for t in ax.xaxis.get_ticklines()]
         #[t.set_color('white') for t in ax.xaxis.get_ticklabels()]
     ax.set_aspect('auto')
@@ -270,14 +271,15 @@ def learn_k():
         >>> import plottool as pt
         >>> # build test data
         >>> # execute function
-        >>> result = learn_k()
+        >>> known_nd_data, known_target_points, given_data_dims, opt_model_params = learn_k()
         >>> # verify results
-        >>> print(result)
+        >>> plot_search_surface(known_nd_data, known_target_points, given_data_dims, opt_model_params)
+        >>> pt.all_figures_bring_to_front()
         >>> pt.show_if_requested()
     """
     # Compute Training Data
-    #nDaids_list, K_list, nError_list = evaluate_training_data()
-    nDaids_list, K_list, nError_list = test_training_data()
+    nDaids_list, K_list, nError_list = evaluate_training_data()
+    #nDaids_list, K_list, nError_list = test_training_data()
     #unique_nDaids = np.unique(nDaids_list)
 
     # Alias to general optimization problem
@@ -289,11 +291,7 @@ def learn_k():
 
     # Minimize K params
     opt_model_params = minimize_compute_K_params(known_nd_data, known_target_points, given_data_dims)
-    # Plot search space and K with learned model params
-    plot_search_surface(known_nd_data, known_target_points, given_data_dims, opt_model_params)
-    #ut.embed()
-
-    pt.all_figures_bring_to_front()
+    return known_nd_data, known_target_points, given_data_dims, opt_model_params
 
 if __name__ == '__main__':
     """
