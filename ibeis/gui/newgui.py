@@ -485,12 +485,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             bgcolor=identify_color,
             fgcolor=(0, 0, 0), fontkw=primary_fontkw)
 
+        hack_enabled_machines = [
+            'ibeis.cs.uic.edu',
+        ]
+        enable_complete = ut.get_computer_name() in hack_enabled_machines
+
         ibswgt.reviewed_button = _NEWBUT(
             '5) Complete',
             ibswgt.back.encounter_reviewed_all_images,
             bgcolor=color_funcs.adjust_hsv_of_rgb255((0, 232, 211), 0., -.9, 0.),
             fontkw=primary_fontkw,
-            enabled=False)
+            enabled=enable_complete)
 
         ibswgt.control_widget_lists = [
             [
