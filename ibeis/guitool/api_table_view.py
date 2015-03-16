@@ -78,6 +78,10 @@ class APITableView(API_VIEW_BASE):
         #horizontalHeader.setCascadingSectionResizes(True)
         # Columns moveable
         horizontalHeader.setMovable(True)
+        view.registered_single_keys = []
+
+    def connect_single_key_to_slot(view, key, func):
+        view.registered_single_keys.append((key, func))
 
     #---------------
     # Qt Overrides
@@ -93,7 +97,11 @@ class APITableView(API_VIEW_BASE):
         if event.matches(QtGui.QKeySequence.Copy):
             #print('Received Ctrl+C in View')
             view.copy_selection_to_clipboard()
-        #print ('[view] keyPressEvent: %s' % event.key())
+        print ('[view] keyPressEvent: %s' % event.key())
+        for key, func in view.registered_single_keys:
+            print(key)
+            if event.key() == key:
+                func(view, event)
 
     def mouseMoveEvent(view, event):
         assert isinstance(event, QtGui.QMouseEvent)
