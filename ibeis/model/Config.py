@@ -996,7 +996,7 @@ class DetectionConfig(ConfigBase):
         detect_cfg.detector    = 'rf'
         # detect_cfg.scale_list  = '1.3, 1.2, 1.1, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1'
         # detect_cfg.scale_list  = '1.15, 1.0, 0.85, 0.7, 0.55, 0.4, 0.25, 0.10'
-        detect_cfg.scale_list  = '1.0, 0.80, 0.65, 0.50, 0.40, 0.30, 0.20, 0.10'
+        detect_cfg.scale_list  = '1.25, 1.0, 0.80, 0.65, 0.50, 0.40, 0.30, 0.20, 0.10'
         detect_cfg.trees_path  = ''
         detect_cfg.detectimg_sqrt_area = 800
         detect_cfg.update(**kwargs)
