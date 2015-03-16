@@ -341,7 +341,7 @@ TRUTH_NOT_MATCH = 0
 
 
 TRUTH_INT_TO_TEXT = {
-    TRUTH_UNKNOWN   : 'Not Matched',  # 'Unknown',
+    TRUTH_UNKNOWN   : 'Unknown',
     TRUTH_NOT_MATCH : 'Not Matched',
     TRUTH_MATCH     : 'Matched',
 }

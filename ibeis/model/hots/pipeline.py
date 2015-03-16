@@ -274,10 +274,11 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         # Faster way
         internal_data_gids  = qreq_.ibs.get_annot_gids(internal_daids)
         internal_query_gids = qreq_.ibs.get_annot_gids(internal_qaids)
-        contact_aids_list = [
-            internal_daids.compress(internal_data_gids == gid)
-            for gid in internal_query_gids
-        ]
+        with ut.embed_on_exception_context:
+            contact_aids_list = [
+                internal_daids.compress(internal_data_gids == gid)
+                for gid in internal_query_gids
+            ]
         _impossible_daid_lists.append(contact_aids_list)
         EXTEND_TO_OTHER_CONTACT_GT = False
         # Also cannot match any aids with a name of an annotation in this image

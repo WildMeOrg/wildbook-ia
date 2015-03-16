@@ -197,7 +197,7 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.nAnnotPerNameSVER = 6
         #sv_cfg.prescore_method = 'csum'
         sv_cfg.prescore_method = 'nsum'
-        sv_cfg.use_chip_extent = False  # BAD CONFIG?
+        sv_cfg.use_chip_extent = True  # BAD CONFIG?
         sv_cfg.sver_weighting = False  # weight feature scores with sver errors
         sv_cfg.update(**kwargs)
 
@@ -210,8 +210,8 @@ class SpatialVerifyConfig(ConfigBase):
             '_SV(',
             thresh_str,
             'minIn=%d,' % (sv_cfg.min_nInliers,),
-            'nRR=%d,' % (sv_cfg.nNameShortlistSVER,),
-            'nRR=%d,' % (sv_cfg.nNameShortlistSVER,),
+            'nNRR=%d,' % (sv_cfg.nNameShortlistSVER,),
+            'nARR=%d,' % (sv_cfg.nAnnotPerNameSVER,),
             sv_cfg.prescore_method, ',',
             'cdl,' * sv_cfg.use_chip_extent,  # chip diag len
             '+w,' * sv_cfg.sver_weighting,  # chip diag len
@@ -1074,6 +1074,7 @@ class OtherConfig(ConfigBase):
         other_cfg.location_for_names = 'IBEIS'
         #other_cfg.location_for_names = 'MUGU'
         other_cfg.smart_enabled = True
+        other_cfg.hots_batch_size = 256
         other_cfg.update(**kwargs)
 
     #def get_cfgstr_list(nn_cfg):
@@ -1167,22 +1168,40 @@ def load_named_config(cfgname, dpath, use_config_cache=False):
         if not use_config_cache:
             raise Exception('force config cache miss')
         # Get current "schema"
-        #tmp = _default_config(cfg, cfgname, new=True)
-        #current_itemset = tmp.parse_items()
-        #current_keyset = list(ut.get_list_column(current_itemset, 0))
+        tmp = _default_config(cfg, cfgname, new=True)
+        current_itemset = tmp.parse_items()
+        current_keyset = list(ut.get_list_column(current_itemset, 0))
         # load saved preferences
         cfg.load()
         # Check if loaded schema has changed
-        #loaded_keyset = list(ut.get_list_column(cfg.parse_items(), 0))
-        #missing_keys = set(current_keyset) - set(loaded_keyset)
-        #if len(missing_keys) != 0:
-        #    missing_vals = ut.dict_take(dict(current_itemset), missing_keys)
-        #    update_items = list(zip(missing_keys, missing_vals))
+        loaded_keyset = list(ut.get_list_column(cfg.parse_items(), 0))
+        missing_keys = set(current_keyset) - set(loaded_keyset)
+        if len(missing_keys) != 0:
+            # Bring over new values into old structure
+            tmp.update(**dict(cfg.parse_items()))
+            cfg = tmp
+            #missing_vals = ut.dict_take(dict(current_itemset), missing_keys)
+            #def find_cfgkey_parent(tmp, key):
+            #    subconfig_list = []
+            #    for attr in dir(tmp):
+            #        if attr == key:
+            #            return tmp
+            #        child = getattr(tmp, attr)
+            #        if isinstance(child, ConfigBase):
+            #            subconfig_list.append(child)
+            #    for subconfig in subconfig_list:
+            #        found = find_cfgkey_parent(subconfig, key)
+            #        if found is not None:
+            #            return found
+            #missing_parents = [find_cfgkey_parent(tmp, key) for key in missing_keys]
+            #for parent, key, val in zip(missing_parents, missing_keys, missing_vals):
+            #    setattr(parent, key, val)
         #    # TODO: Finishme update the out of data preferences
         #    pass
         if ut.NOT_QUIET:
             print('[Config] successfully loaded config cfgname=%r' % (cfgname,))
-    except Exception:
+    except Exception as ex:
+        ut.printex(ex, iswarning=True)
         # Totally new completely default preferences
         cfg = _default_config(cfg, cfgname)
     # Hack in cfgname
