@@ -319,7 +319,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
 
     def evaluate_nsum_score(cm, qreq_):
         cm.evaluate_dnids(qreq_.ibs)
-        nsum_nid_list, nsum_score_list = name_scoring.compute_nsum_score(cm)
+        nsum_nid_list, nsum_score_list = name_scoring.compute_nsum_score(cm, qreq_=qreq_)
         assert np.all(cm.unique_nids == nsum_nid_list), 'name score not in alignment'
         cm.nsum_score_list = nsum_score_list
 
@@ -625,7 +625,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         fsv  = None if cm.fsv_list is None else cm.fsv_list[idx]
         fs   = None if fsv is None else fsv.prod(axis=1)
         showkw = dict(fm=fm, fs=fs, H1=H1, fnum=fnum, pnum=pnum, **kwargs)
-        viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, **showkw)
+        viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_, **showkw)
 
     def show_ranked_matches(cm, qreq_, clip_top=6, *args, **kwargs):
         idx_list  = ut.listclip(cm.argsort(), clip_top)

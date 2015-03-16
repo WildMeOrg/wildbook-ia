@@ -52,7 +52,7 @@ def testdata_chipmatch():
 
 
 @profile
-def compute_nsum_score(cm):
+def compute_nsum_score(cm, qreq_=None):
     r"""
     nsum
 
@@ -65,7 +65,7 @@ def compute_nsum_score(cm):
     CommandLine:
         python -m ibeis.model.hots.name_scoring --test-compute_nsum_score
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.name_scoring import *  # NOQA
         >>> # build test data
@@ -79,7 +79,7 @@ def compute_nsum_score(cm):
             np.array([ 4.,  7.,  5.], dtype=np.float32),
         )
 
-    Example:
+    Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.name_scoring import *  # NOQA
         >>> #ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])
@@ -92,28 +92,86 @@ def compute_nsum_score(cm):
         >>> flags = (nsum_nid_list == cm.qnid)
         >>> assert nsum_score_list[flags].max() > nsum_score_list[~flags].max(), 'is this truely a hard case?'
         >>> assert nsum_score_list[flags].max() > 1.3, 'score should be higher for 18'
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.name_scoring import *  # NOQA
+        >>> #ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])
+        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18], cfgdict=dict(augment_queryside_hack=True))
+        >>> cm = cm_list[0]
+        >>> cm.score_nsum(qreq_)
+        >>> #cm.evaluate_dnids(qreq_.ibs)
+        >>> #cm.qnid = 1   # Hack for testdb1 names
+        >>> #nsum_nid_list, nsum_score_list = compute_nsum_score(cm, qreq_=qreq_)
+        >>> ut.quit_if_noshow()
+        >>> cm.show_ranked_matches(qreq_)
     """
+    HACK_SINGLE_ORI =  qreq_ is not None and qreq_.qparams.augment_queryside_hack
+    if HACK_SINGLE_ORI:
+        # keypoints with the same xy can only have one of them vote
+        #qreq_ = None
+        qkpts1 = qreq_.ibs.get_annot_kpts(cm.qaid, config2_=qreq_.get_external_query_config2())
+        #print(vt.get_oris(qkpts1))
+        def compute_unique_data_ids(data):
+            """
+            Example:
+                >>> # DISABLE_DOCTEST
+                >>> data = np.array([[0, 0], [0, 1], [1, 1], [0, 0], [.534432, .432432], [.534432, .432432]])
+                >>> dataid_list = compute_unique_data_ids(data)
+                >>> print(dataid_list)
+                >>> print(len(np.unique(dataid_list)))
+                >>> print(len((dataid_list)))
+            """
+            # construct a unique id for every edge
+            hashable_rows = [tuple(row_.tolist()) for row_ in data]
+            iddict_ = {}
+            for row in hashable_rows:
+                if row not in iddict_:
+                    iddict_[row] = len(iddict_)
+            dataid_list = ut.dict_take(iddict_, hashable_rows)
+            return dataid_list
+        data = vt.get_xys(qkpts1).T
+        kpts_xyid_list = np.array(compute_unique_data_ids(data))
+        #fx1_list
     fs_list = cm.get_fsv_prod_list()
     fx1_list = [fm.T[0] for fm in cm.fm_list]
     # Group annotation matches by name
     nsum_nid_list, name_groupxs = vt.group_indices(cm.dnid_list)
     name_grouped_fx1_list = vt.apply_grouping_(fx1_list, name_groupxs)
     name_grouped_fs_list  = vt.apply_grouping_(fs_list,  name_groupxs)
-    # Stack up all matches to a particular name
-    name_grouped_fx1_flat = (map(np.hstack, name_grouped_fx1_list))
-    name_grouped_fs_flat  = (map(np.hstack, name_grouped_fs_list))
-    # Group matches to a particular name by query feature index
-    fx1_groupxs_list = (vt.group_indices(fx1_flat)[1] for fx1_flat in name_grouped_fx1_flat)
-    feat_grouped_fs_list = list(
-        vt.apply_grouping(fs_flat, fx1_groupxs)
-        for fs_flat, fx1_groupxs in zip(name_grouped_fs_flat, fx1_groupxs_list)
-    )
-    # Prevent a feature from voting twice:
-    # take only the max score that a query feature produced
-    best_fs_list = list(
-        np.array([fs_group.max() for fs_group in feat_grouped_fs])
-        for feat_grouped_fs in feat_grouped_fs_list
-    )
+    if HACK_SINGLE_ORI:
+        # Stack up all matches to a particular name
+        name_grouped_fx1_flat = (map(np.hstack, name_grouped_fx1_list))
+        name_grouped_fs_flat  = (map(np.hstack, name_grouped_fs_list))
+        # Make nested group for every name by query feature index (accounting for duplicate orientation)
+        name_grouped_xyid_flat = (kpts_xyid_list.take(fx1) for fx1 in name_grouped_fx1_flat)
+        xyid_groupxs_list = (vt.group_indices(xyid_flat)[1] for xyid_flat in name_grouped_xyid_flat)
+        feat_grouped_fs_list = list(
+            vt.apply_grouping(fs_flat, fx1_groupxs)
+            for fs_flat, fx1_groupxs in zip(name_grouped_fs_flat, xyid_groupxs_list)
+        )
+        # Prevent a feature from voting twice:
+        # take only the max score that a query feature produced
+        best_fs_list = list(
+            np.array([fs_group.max() for fs_group in feat_grouped_fs])
+            for feat_grouped_fs in feat_grouped_fs_list
+        )
+    else:
+        # Stack up all matches to a particular name
+        name_grouped_fx1_flat = (map(np.hstack, name_grouped_fx1_list))
+        name_grouped_fs_flat  = (map(np.hstack, name_grouped_fs_list))
+        # Make nested group for every name by query feature index
+        fx1_groupxs_list = (vt.group_indices(fx1_flat)[1] for fx1_flat in name_grouped_fx1_flat)
+        feat_grouped_fs_list = list(
+            vt.apply_grouping(fs_flat, fx1_groupxs)
+            for fs_flat, fx1_groupxs in zip(name_grouped_fs_flat, fx1_groupxs_list)
+        )
+        # Prevent a feature from voting twice:
+        # take only the max score that a query feature produced
+        best_fs_list = list(
+            np.array([fs_group.max() for fs_group in feat_grouped_fs])
+            for feat_grouped_fs in feat_grouped_fs_list
+        )
     nsum_score_list = np.array([fs.sum() for fs in best_fs_list])
     # DO NOT Return sorted by the name score
     #name_score_sortx = nsum_score_list.argsort()[::-1]
