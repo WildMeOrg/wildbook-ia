@@ -88,6 +88,7 @@ def fix_pz_master():
     8694 8699 8700 8702 8703 8712 8714 8715 8719 8724 8728 8729 8731 8733 8734
     8736
     """
+
     qaids_ = map(int, filter(len, qaids_str.replace('\n', ' ').split(' ')))
 
     import ibeis
@@ -99,8 +100,10 @@ def fix_pz_master():
     #ibs.cfg.save()
     daids = ibs.get_valid_aids(nojunk=True)
     qaids = ibs.filter_junk_annotations(qaids_)
+
+    qaids = qaids[0:64]
     qreq_ = ibs.new_query_request(qaids, daids)
-    qreq_.lazy_load()
+    #qreq_.lazy_load()
     qres_list = ibs.query_chips(qreq_=qreq_, verbose=True)
 
     qres_wgt = inspect_gui.launch_review_matches_interface(ibs, qres_list, dodraw=ut.show_was_requested())

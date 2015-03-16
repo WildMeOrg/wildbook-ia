@@ -364,11 +364,11 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
     rank_arr  = rank_arr[sortx]
 
     if filter_reviewed:
-        is_reviewed = np.array(ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(), aid_arr.tolist()))
-        qaid_arr = qaid_arr.compress(is_reviewed)
-        aid_arr = aid_arr.compress(is_reviewed)
-        qaid_arr = score_arr.compress(is_reviewed)
-        rank_arr = rank_arr.compress(is_reviewed)
+        is_unreviewed = ~np.array(ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(), aid_arr.tolist()))
+        qaid_arr  = qaid_arr.compress(is_unreviewed)
+        aid_arr   = aid_arr.compress(is_unreviewed)
+        score_arr = score_arr.compress(is_unreviewed)
+        rank_arr  = rank_arr.compress(is_unreviewed)
 
     # Remove directed edges
     if not directed:

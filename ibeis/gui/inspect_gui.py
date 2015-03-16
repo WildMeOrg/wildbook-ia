@@ -76,6 +76,8 @@ class QueryResultsWidget(APIItemWidget):
                                     model_class=CustomFilterModel)
         else:
             APIItemWidget.__init__(qres_wgt, parent=parent)
+
+        #qres_wgt.altkey_shortcut = QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ALT), qres_wgt, qres_wgt.on_alt_pressed, context=QtCore..Qt.WidgetShortcut)
         qres_wgt.button_list = None
         qres_wgt.show_new = True
         qres_wgt.show_join = True
@@ -91,6 +93,8 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.callback = callback
         qres_wgt.view.setColumnHidden(0, False)
         qres_wgt.view.setColumnHidden(1, False)
+        #qres_wgt.view.connect_single_key_to_slot(QtCore.Qt.ALT, qres_wgt.on_alt_pressed)
+        qres_wgt.view.connect_single_key_to_slot(16777251, qres_wgt.on_alt_pressed)
         if parent is None:
             # Register parentless QWidgets
             fig_presenter.register_qt4_win(qres_wgt)
@@ -205,6 +209,18 @@ class QueryResultsWidget(APIItemWidget):
     @guitool.slot_(QtCore.QModelIndex)
     def _on_activated(iqrw, qtindex):
         print('Activated: ' + str(qtype.qindexinfo(qtindex)))
+        pass
+
+    @guitool.slot_()
+    def on_alt_pressed(iqrw, view, event):
+        selected_qtindex_list = view.selectedIndexes()
+        if len(selected_qtindex_list) == 1:
+            # popup context menu on alt
+            qtindex = selected_qtindex_list[0]
+            qrect = view.visualRect(qtindex)
+            pos = qrect.center()
+            iqrw.on_contextMenuRequested(qtindex, pos)
+        #print('fds')
         pass
 
     @guitool.slot_(QtCore.QModelIndex, QtCore.QPoint)
@@ -700,6 +716,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
 
     CommandLine:
         python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --cmd
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -773,9 +790,11 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     if ut.VERBOSE:
         print('[inspect] make_qres_api')
     ibs.cfg.other_cfg.ranks_lt = 2
+    # only filter big queries
+    filter_reviewed = len(qaid2_qres) > 6
     ranks_lt = ranks_lt if ranks_lt is not None else ibs.cfg.other_cfg.ranks_lt
     candidate_matches = results_organizer.get_automatch_candidates(
-        qaid2_qres, ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs, directed=False)
+        qaid2_qres, ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs, directed=False, filter_reviewed=filter_reviewed)
     # Get extra info
     (qaids, aids, scores, ranks) = candidate_matches
 

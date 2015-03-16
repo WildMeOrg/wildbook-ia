@@ -21,7 +21,7 @@ def _get_annot_pair_info(ibs, aid1, aid2, qreq_, draw_fmatches):
     return rchip1, rchip2, kpts1, kpts2
 
 
-@utool.indent_func
+#@utool.indent_func
 def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
                   H1=None, H2=None, qreq_=None, **kwargs):
     """
@@ -83,7 +83,7 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
     draw_border = kwargs.get('draw_border', True)
     draw_lbl    = kwargs.get('draw_lbl', True)
 
-    printDBG('[viz] annotate_matches2()')
+    #printDBG('[viz] annotate_matches2()')
     truth = ibs.get_match_truth(aid1, aid2)
     truth_color = vh.get_truth_color(truth)
     # Build title
@@ -91,7 +91,7 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
     #score         = kwargs.pop('score', None)
     #rawscore      = kwargs.pop('rawscore', None)
     #aid2_raw_rank = kwargs.pop('aid2_raw_rank', None)
-    print(kwargs)
+    #print(kwargs)
     title = vh.get_query_text(ibs, None, aid2, truth, qaid=aid1, **kwargs)
     # Build xlbl
     ax = df2.gca()

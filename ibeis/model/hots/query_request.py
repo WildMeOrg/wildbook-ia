@@ -652,8 +652,8 @@ class QueryRequest(object):
         qaid_internal = qreq_.get_internal_qaids()
         daid_internal = qreq_.get_internal_daids()
         qd_intersection = ut.intersect_ordered(daid_internal, qaid_internal)
-        app(' * len(internal_qaids) = %r' % len(daid_internal))
-        app(' * len(internal_daids) = %r' % len(qaid_internal))
+        app(' * len(internal_daids) = %r' % len(daid_internal))
+        app(' * len(internal_qaids) = %r' % len(qaid_internal))
         app(' * len(qd_intersection) = %r' % len(qd_intersection))
         infostr = '\n'.join(infostr_list)
         return infostr
