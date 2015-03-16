@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block content %}
+
+  <style>
+    .total-label
+    {
+      font-size: 100px;
+      margin: 0;
+      text-align: center;
+      color: #4d63bc;
+    }
+    th.no-items
+    {
+      text-align: center;
+      padding: 25px 0px !important;
+      font-size: 20px;
+      font-weight: 200;
+      font-style: italic;
+    }
+  </style>
+
+  <div class="row marketing">
+    <div class="col-lg-12">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Username</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if num_gids == 0 %}
+            <tr>
+              <th class="no-items" colspan="4">Sorry, no images to display</th>
+            </tr>
+          {% else %}
+            {% for gid in gid_list %}
+            <tr>
+              <th scope="row">{{ gid }}</th>
+              <td>Mark</td>
+              <td>Otto</td>
+              <td>@mdo</td>
+            </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+{% endblock %}
+{% block content_custom_javascript %}
+<script type="text/javascript">
+  var encounterNumber  = new countUp("encounter-total",  0, {{ num_eids }}, 0, 3.0);
+  var imageNumber      = new countUp("image-total",      0, {{ num_gids }}, 0, 3.0);
+  var annotationNumber = new countUp("annotation-total", 0, {{ num_aids }}, 0, 3.0);
+  encounterNumber.start();
+  imageNumber.start();
+  annotationNumber.start();
+</script>  
+{% endblock %}

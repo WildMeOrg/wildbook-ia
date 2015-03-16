@@ -4,7 +4,7 @@
   <div class="alert alert-info text-center" role="alert">
     Congratulations, turking is completed.  Thank you!
     <br/>
-    <a href="/turk/viewpoint.html">Continue by turking viewpoints</a>
+    <a href="/turk/viewpoint">Continue by turking viewpoints</a>
   </div>
   {% else %}
   <div class="row">
@@ -22,7 +22,7 @@
         <span>highlight and press 'b' to send an annotation to the back</a></span>
       </div>
       <br/>
-      <form method="post" action="/submit/detection.html{% if refer != None %}?refer={{ refer }}{% endif %}" id="detection-form">
+      <form method="post" action="/submit/detection{% if refer != None %}?refer={{ refer }}{% endif %}" id="detection-form">
         <input type="text" name="detection-gid" value="{{ gid }}" style="display: none;" readonly>
         <div class="row">
           <div class="col-lg-2">
@@ -30,7 +30,7 @@
           </div>
           <div class="col-lg-8" style="text-align:center;">
             {% if refer == 'viewpoint' %}
-              <a href="/turk/viewpoint.html{% if refer_aid != None %}?aid={{ refer_aid }}{% endif %}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back to aid: {{ refer_aid }}</a>
+              <a href="/turk/viewpoint{% if refer_aid != None %}?aid={{ refer_aid }}{% endif %}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back to aid: {{ refer_aid }}</a>
             {% endif %}
           </div>
           <div class="col-lg-2">

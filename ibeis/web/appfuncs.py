@@ -6,6 +6,12 @@ from functools import partial
 import random
 from ibeis.web.DBWEB_SCHEMA import VIEWPOINT_TABLE, REVIEW_TABLE
 import ibeis.constants as const
+from ibeis.web import navbar
+from flask import render_template
+# Others
+from os.path import join
+from datetime import date
+
 
 ORIENTATIONS = {   # used in apply_orientation
     2: (Image.FLIP_LEFT_RIGHT,),
@@ -15,6 +21,11 @@ ORIENTATIONS = {   # used in apply_orientation
     6: (Image.ROTATE_270,),
     7: (Image.FLIP_LEFT_RIGHT, Image.ROTATE_270),
     8: (Image.ROTATE_90,)
+}
+
+global_args = {
+    'NAVBAR': navbar.NavbarClass(),
+    'YEAR':   date.today().year,
 }
 
 
@@ -63,6 +74,19 @@ def embed_image_html(image, filter_width=True):
 
 def check_valid_function_name(string):
     return all([ char.isalpha() or char == '_' or char.isalnum() for char in string])
+
+
+def template(template_directory=None, template_filename=None, **kwargs):
+    if template_directory is None:
+        template_directory = ''
+    if template_filename is None:
+        template_filename = 'index'
+    template_ = join(template_directory, template_filename + '.html')
+    # Update global args with the template's args
+    _global_args = dict(global_args)
+    _global_args.update(kwargs)
+    print(template_)
+    return render_template(template_, **_global_args)
 
 
 ################################################################################

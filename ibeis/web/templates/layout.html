@@ -9,9 +9,9 @@
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
     <title>IBEIS Web Interface</title>
     
-  	<link rel="stylesheet" href="http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='include/jquery-ui-rotatable/jquery.ui.rotatable.css') }}">
-  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+  	<link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery.ui.rotatable.css') }}">
+  	<link rel="stylesheet" href="{{ url_for('static', filename='include/bootstrap/bootstrap.min.css') }}">
   	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block content_custom_css %}{% endblock %}
   </head>
@@ -38,11 +38,12 @@
       </div>
     </div> <!-- /container -->
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>    
-    <script src="https://code.jquery.com/ui/1.11.2/jquery-ui.min.js"></script>
-    <script src="{{ url_for('static', filename='include/jquery-ui-rotatable/jquery.ui.rotatable.js') }}"></script>
-  	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-  	<script src="{{ url_for('static', filename='javascript/script.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='javascript/jquery.min.js') }}"></script>    
+    <script type="text/javascript" src="{{ url_for('static', filename='javascript/jquery-ui.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='javascript/jquery.ui.rotatable.min.js') }}"></script>
+  	<script type="text/javascript" src="{{ url_for('static', filename='include/bootstrap/bootstrap.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='include/countUp.js/countUp.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='javascript/script.js') }}"></script>
     {% block content_custom_javascript %}{% endblock %}
   </body> 
 </html>

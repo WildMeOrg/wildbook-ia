@@ -5,6 +5,7 @@ class NavbarClass(object):
     def __init__(nav):
         nav.item_list = [
             ('',     'Home'),
+            ('view', 'View'),
             ('turk', 'Turk'),
             ('api',  'API'),
         ]
