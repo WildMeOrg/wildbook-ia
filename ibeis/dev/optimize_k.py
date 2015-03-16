@@ -266,7 +266,7 @@ def learn_k():
         python -m ibeis.dev.optimize_k --test-learn_k --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.dev.optimize_k import *  # NOQA
         >>> import plottool as pt
         >>> # build test data

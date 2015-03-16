@@ -29,6 +29,8 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
     Have the qres version be a wrapper
     Integrate ChipMatch2
     """
+    if qreq_ is None:
+        print('[viz_matches] WARNING: qreq_ is None')
     in_image = kwargs.get('in_image', False)
     draw_fmatches = kwargs.get('draw_fmatches', True)
     # Read query and result info (chips, names, ...)
