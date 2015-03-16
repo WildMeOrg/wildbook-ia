@@ -519,7 +519,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
 
 
 #@ut.indent_func('[bc]')
-#@profile
+@profile
 def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, verbose=VERB_PIPELINE):
     """
     pipeline step 4 - builds sparse chipmatches
@@ -609,6 +609,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_
     #return cm_list
 
 
+@profile
 def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list):
     """
     builds sparse iterator that generates feature match pairs, scores, and ranks

@@ -635,7 +635,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         idx_list = ut.dict_take(cm.daid2_idx, daids)
         cm.show_index_matches(qreq_, idx_list, *args, **kwargs)
 
-    def show_index_matches(cm, qreq_, idx_list, fnum=None, figtitle=None):
+    def show_index_matches(cm, qreq_, idx_list, fnum=None, figtitle=None, **kwargs):
         import plottool as pt
         if fnum is None:
             fnum = pt.next_fnum()
@@ -644,7 +644,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         for idx in idx_list:
             daid  = cm.daid_list[idx]
             pnum = next_pnum()
-            cm.show_single(qreq_, daid, fnum=fnum, pnum=pnum)
+            cm.show_single(qreq_, daid, fnum=fnum, pnum=pnum, **kwargs)
             score = vt.trytake(cm.score_list, idx)
             annot_score = vt.trytake(cm.annot_score_list, idx)
             score_str = ('score = %.3f' % (score,)

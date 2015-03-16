@@ -12,13 +12,10 @@ import six
 (print, print_, printDBG, rrr, profile) = ut.inject( __name__, '[optimze_k]', DEBUG=False)
 
 
-def evaluate_training_data():
+def evaluate_training_data(ibs, varydict, nDaids_basis):
     # load a dataset
     #dbname = 'PZ_MTEST'
     #dbname = 'GZ_ALL'
-    dbname = 'PZ_Master0'
-    ibs = ibeis.opendb(dbname)
-
     def get_set_groundfalse(ibs, qaids):
         # get groundfalse annots relative to the entire set
         valid_nids = ibs.get_valid_nids()
@@ -30,18 +27,11 @@ def evaluate_training_data():
     # determanism
     np.random.seed(0)
     random.seed(0)
-
-    varydict = {
-        #'K': [4, 7, 10, 13, 16, 19, 22, 25][:4],
-        'K': [1, 2, 3, 4, 8, 10, 13, 15],
-        #'nDaids': [20, 100, 250, 500, 750, 1000],
-    }
-    nDaids_basis = [20, 30, 50, 75, 100, 200, 250, 300, 350, 400, 500, 600, 750, 800, 900, 1000, 1500]
-    varied_dict = ut.all_dict_combinations(varydict)
+    cfgdict_list = ut.all_dict_combinations(varydict)
 
     nError_list  = []
     nDaids_list  = []
-    cfgdict_list = []
+    cfgdict_list2 = []
 
     qaids_all = ibs.filter_junk_annotations(ibs.get_annot_rowid_sample(per_name=1, min_ngt=2, distinguish_unknowns=True))
     qaids = qaids_all[::2]
@@ -60,7 +50,7 @@ def evaluate_training_data():
 
         with ut.Indenter('[nDaids=%r]' % (nDaids)):
             print('nDaids = %r' % nDaids)
-            for cfgdict in ut.ProgressIter(varied_dict, lbl='testing cfgdict'):
+            for cfgdict in ut.ProgressIter(cfgdict_list, lbl='testing cfgdict'):
                 qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
                 qres_list = ibs.query_chips(qreq_=qreq_, verbose=ut.VERBOSE)
                 gt_ranks_list = [qres.get_gt_ranks(ibs=ibs) for qres in qres_list]
@@ -68,18 +58,52 @@ def evaluate_training_data():
                 nErrors = sum(incorrect_list)
                 nError_list.append(nErrors)
                 nDaids_list.append(nDaids)
-                cfgdict_list.append(cfgdict.copy())
+                cfgdict_list2.append(cfgdict.copy())
 
     nError_list = np.array(nError_list)
     nDaids_list = np.array(nDaids_list)
-    K_list = np.array([cfgdict['K'] for cfgdict in cfgdict_list])
+    K_list = np.array([cfgdict['K'] for cfgdict in cfgdict_list2])
     return nDaids_list, K_list, nError_list
 
 
-def test_training_data():
-    K_list      = np.array([  1,   1,    1,   4,   4,    4,   7,   7,    7,   10,  10,   10,   13,  13,   13])
-    nDaids_list = np.array([100, 500, 1000, 100, 500, 1000, 100, 500, 1000,  100, 500, 1000,  100, 500, 1000])
-    nError_list = np.array([  5,  54,  130,  50,  50,   70,  14,  54,   40,   20,   9,   43,   90,  20,  130])
+def test_training_data(varydict, nDaids_basis):
+    varydict['nDaids'] = nDaids_basis
+    cfgdict_list = ut.all_dict_combinations(varydict)
+    K_list = ut.get_list_column(cfgdict_list, 'K')
+    nDaids_list = ut.get_list_column(cfgdict_list, 'nDaids')
+    max_error = min(nDaids_basis)
+    nError_perterb = np.random.rand(len(K_list))
+
+    #def distance_point_polynomial(point, poly_coeff):
+    #    """
+    #    References:
+    #        http://kitchingroup.cheme.cmu.edu/blog/2013/02/14/Find-the-minimum-distance-from-a-point-to-a-curve/
+    #    """
+    #    def f(x):
+    #        return x ** 2
+    #    def objective(X, *args):
+    #        point = args[0]
+    #        x, y = X
+    #        px, py = point
+    #        return np.sqrt((x - px) ** 2 + (y - py) ** 2)
+    #    def c1(X, *args):
+    #        x, y = X
+    #        return f(x) - y
+    #    X = sp.optimize.fmin_cobyla(objective, x0=[0.5, 0.5], args=(point,), cons=[c1], disp=False)
+    #    return X
+    #point_list = np.array([point for point in zip(nDaids_list, K_list)])
+    #poly_coeff = [0.2,  0.5]  # K model_params
+    #closest_point_list = np.array([distance_point_polynomial(point, poly_coeff) for point in point_list])
+    #dist_list = np.sqrt(((point_list - closest_point_list) ** 2).sum(axis=1))
+    #nError_list = max_error * dist_list / dist_list.max() + nError_perterb
+    nError_list = (np.array(nDaids_list) * .00001)
+    nError_list /= nError_list.max()
+    nError_list *= (max_error - 2)
+    nError_list += 1 + nError_perterb
+
+    #K_list      = np.array([  1,   1,    1,   4,   4,    4,   7,   7,    7,   10,  10,   10,   13,  13,   13])
+    #nDaids_list = np.array([100, 500, 1000, 100, 500, 1000, 100, 500, 1000,  100, 500, 1000,  100, 500, 1000])
+    #nError_list = np.array([  5,  54,  130,  50,  50,   70,  14,  54,   40,   20,   9,   43,   90,  20,  130])
     return nDaids_list, K_list, nError_list
 
 
@@ -155,7 +179,8 @@ def minimize_compute_K_params(known_nd_data, known_target_points, given_data_dim
         initial_model_params = [  6.73655087e-05,   9.25]
         initial_model_params = [  0,   10]
         #initial_model_params = [0.02,  0.5]
-        ranges = (slice(0, 1, .01), slice(0, 10, .1))
+        fidelity = 10
+        ranges = (slice(0, 1, .01 * fidelity), slice(0, 10, .1 * fidelity))
     else:
         assert poly_degree > 2
         initial_model_params = [0 for _ in range(poly_degree)]
@@ -225,7 +250,7 @@ def plot_search_surface(known_nd_data, known_target_points, given_data_dims, opt
         xlabel='nDaids',
         ylabel='K',
         zlabel='error',
-        dark=False,
+        #dark=False,
     )
     ax.scatter(known_nd_data.T[0], known_nd_data.T[1], known_target_points, s=100, c=pt.YELLOW)
 
@@ -265,6 +290,7 @@ def learn_k():
     CommandLine:
         python -m ibeis.dev.optimize_k --test-learn_k
         python -m ibeis.dev.optimize_k --test-learn_k --show
+        python -m ibeis.dev.optimize_k --test-learn_k --show --dummy
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -280,8 +306,19 @@ def learn_k():
         >>> pt.show_if_requested()
     """
     # Compute Training Data
-    nDaids_list, K_list, nError_list = evaluate_training_data()
-    #nDaids_list, K_list, nError_list = test_training_data()
+    varydict = {
+        #'K': [4, 7, 10, 13, 16, 19, 22, 25][:4],
+        'K': [1, 2, 3, 4, 8, 10, 13, 15],
+        #'nDaids': [20, 100, 250, 500, 750, 1000],
+    }
+    nDaids_basis = [20, 30, 50, 75, 100, 200, 250, 300, 350, 400, 500, 600, 750, 800, 900, 1000, 1500]
+    DUMMY = ut.get_argflag('--dummy')
+    if DUMMY:
+        nDaids_list, K_list, nError_list = test_training_data(varydict, nDaids_basis)
+    else:
+        dbname = 'PZ_Master0'
+        ibs = ibeis.opendb(dbname)
+        nDaids_list, K_list, nError_list = evaluate_training_data(ibs, varydict, nDaids_basis)
     #unique_nDaids = np.unique(nDaids_list)
 
     # Alias to general optimization problem

@@ -1120,8 +1120,42 @@ def update_query_config(cfg, **kwargs):
 
 
 def load_named_config(cfgname, dpath, use_config_cache=False):
-    """ hack 12-30-2014 """
+    """ hack 12-30-2014
+
+    Args:
+        cfgname (str):
+        dpath (str):
+        use_config_cache (bool):
+
+    Returns:
+        Config: cfg
+
+    CommandLine:
+        python -m ibeis.model.Config --test-load_named_config
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.Config import *  # NOQA
+        >>> from ibeis.model.Config import _default_config  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_Master0')
+        >>> #ibs.cfg.save()
+        >>> # build test data
+        >>> cfgname = 'zebra_plains'
+        >>> dpath = ibs.get_dbdir()
+        >>> use_config_cache = True
+        >>> # execute function
+        >>> cfg = load_named_config(cfgname, dpath, use_config_cache)
+        >>> #
+        >>> keys1 = ut.get_list_column(cfg.parse_items(), 0)
+        >>> keys2 = ut.get_list_column(ibs.cfg.parse_items(), 0)
+        >>> symdiff = set(keys1) ^ set(keys2)
+        >>> # verify results
+        >>> result = str(cfg)
+        >>> print(result)
+    """
     if cfgname is None:
+        # TODO: find last cfgname
         cfgname = 'cfg'
     fpath = join(dpath, cfgname) + '.cPkl'
     if not ut.QUIET:
@@ -1132,7 +1166,20 @@ def load_named_config(cfgname, dpath, use_config_cache=False):
         # Use pref cache
         if not use_config_cache:
             raise Exception('force config cache miss')
+        # Get current "schema"
+        #tmp = _default_config(cfg, cfgname, new=True)
+        #current_itemset = tmp.parse_items()
+        #current_keyset = list(ut.get_list_column(current_itemset, 0))
+        # load saved preferences
         cfg.load()
+        # Check if loaded schema has changed
+        #loaded_keyset = list(ut.get_list_column(cfg.parse_items(), 0))
+        #missing_keys = set(current_keyset) - set(loaded_keyset)
+        #if len(missing_keys) != 0:
+        #    missing_vals = ut.dict_take(dict(current_itemset), missing_keys)
+        #    update_items = list(zip(missing_keys, missing_vals))
+        #    # TODO: Finishme update the out of data preferences
+        #    pass
         if ut.NOT_QUIET:
             print('[Config] successfully loaded config cfgname=%r' % (cfgname,))
     except Exception:

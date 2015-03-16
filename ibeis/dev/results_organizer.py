@@ -292,7 +292,7 @@ def organize_results(ibs, qaid2_qres):
 
 
 def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
-                             name_scoring=False, ibs=None):
+                             name_scoring=False, ibs=None, filter_reviewed=False):
     """
     Returns a list of matches that should be inspected
     This function is more lightweight than orgres or allres.
@@ -362,6 +362,13 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
     aid_arr   = aid_arr[sortx]
     score_arr = score_arr[sortx]
     rank_arr  = rank_arr[sortx]
+
+    if filter_reviewed:
+        is_reviewed = np.array(ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(), aid_arr.tolist()))
+        qaid_arr = qaid_arr.compress(is_reviewed)
+        aid_arr = aid_arr.compress(is_reviewed)
+        qaid_arr = score_arr.compress(is_reviewed)
+        rank_arr = rank_arr.compress(is_reviewed)
 
     # Remove directed edges
     if not directed:

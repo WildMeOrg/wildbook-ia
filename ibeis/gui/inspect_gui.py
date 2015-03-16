@@ -213,9 +213,21 @@ class QueryResultsWidget(APIItemWidget):
         guitool.popup_menu(iqrw, qpos, [
             ('Show feature matches', lambda: show_match_at(iqrw, qtindex)),
             ('Inspect Match Candidates', lambda: review_match_at(iqrw, qtindex)),
+            ('Mark as &Reviewed', lambda: mark_pair_as_reviewed(iqrw, qtindex)),
             ('Mark as &True Match.', lambda: mark_pair_as_positive_match(iqrw, qtindex)),
             ('Mark as &False Match.', lambda: mark_pair_as_negative_match(iqrw, qtindex)),
         ])
+
+
+def mark_pair_as_reviewed(qres_wgt, qtindex):
+    """
+    Sets the reviewed flag to whatever the current truth status is
+    """
+    model = qtindex.model()
+    qaid  = model.get_header_data('qaid', qtindex)
+    daid  = model.get_header_data('aid', qtindex)
+    ibs = qres_wgt.ibs
+    ibs.mark_annot_pair_as_reviewed(qaid, daid)
 
 
 def mark_pair_as_positive_match(qres_wgt, qtindex):

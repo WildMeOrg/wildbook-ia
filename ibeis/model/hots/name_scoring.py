@@ -64,6 +64,7 @@ def compute_nsum_score(cm, qreq_=None):
 
     CommandLine:
         python -m ibeis.model.hots.name_scoring --test-compute_nsum_score
+        python -m ibeis.model.hots.name_scoring --test-compute_nsum_score:2
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -104,7 +105,7 @@ def compute_nsum_score(cm, qreq_=None):
         >>> #cm.qnid = 1   # Hack for testdb1 names
         >>> #nsum_nid_list, nsum_score_list = compute_nsum_score(cm, qreq_=qreq_)
         >>> ut.quit_if_noshow()
-        >>> cm.show_ranked_matches(qreq_)
+        >>> cm.show_ranked_matches(qreq_, ori=True)
     """
     HACK_SINGLE_ORI =  qreq_ is not None and qreq_.qparams.augment_queryside_hack
     if HACK_SINGLE_ORI:
