@@ -2174,12 +2174,19 @@ def param_plot_iterator(param_list, fnum=None, projection=None):
         yield param
 
 
-def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None, *args, **kwargs):
+def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None, wire=False, *args, **kwargs):
+    """
+    References:
+        http://matplotlib.org/mpl_toolkits/mplot3d/tutorial.html
+    """
     from mpl_toolkits.mplot3d import Axes3D  # NOQA
     ax = plt.gca(projection='3d')
     title = kwargs.pop('title', None)
-    ax.plot_surface(xgrid, ygrid, zdata, *args, **kwargs)
-    #ax.plot_trisurf(xgrid, ygrid, zdata, *args, **kwargs)
+    if wire:
+        ax.plot_wireframe(xgrid, ygrid, zdata, *args, **kwargs)
+    else:
+        ax.plot_surface(xgrid, ygrid, zdata, *args, **kwargs)
+        #ax.plot_trisurf(xgrid.flatten(), ygrid.flatten(), zdata.flatten(), *args, **kwargs)
     if title is not None:
         ax.set_title(title)
     if xlabel is not None:

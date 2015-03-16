@@ -117,7 +117,8 @@ def set_plotdat(ax, key, val):
 def del_plotdat(ax, key):
     """ sets internal property to a matplotlib axis """
     _plotdat = get_plotdat_dict(ax)
-    del _plotdat[key]
+    if key in _plotdat:
+        del _plotdat[key]
 
 
 def get_plotdat_dict(ax):
