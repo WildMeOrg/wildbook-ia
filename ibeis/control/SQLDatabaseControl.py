@@ -1614,9 +1614,14 @@ class SQLDatabaseController(object):
         tablename_list = [tablename for tablename in all_tablename_list if tablename not in ignore_tables]
         hacked_order = {'contributors': 0, 'configs': 1, 'party': 0, 'names': 0, 'species': 0, 'images': 2, 'encounters': 2, 'encounter_image_relationship': 3, 'annotations': 3, 'annotmatch': 3}
         tablename_list = sorted(tablename_list, key=lambda x: hacked_order.get(x, 9))
+        """
         tablename_iter = iter(tablename_list)
+        """
         for tablename in tablename_list:
+          with ut.embed_on_exception_context:
+            """
             tablename = tablename_iter.next()
+            """
             print(tablename)
             new_transferdata = db_src.get_table_new_transferdata(tablename)
             column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list = new_transferdata
@@ -1647,7 +1652,7 @@ class SQLDatabaseController(object):
 
             # cleanly add new data to db
             superkey_colnames_list = db.get_table_superkey_colnames(tablename)
-            if tablename == 'configs':
+            if str(tablename) == str('configs'):
                 # HACK
                 # Ignore contributor for configs for now
                 superkey_colnames_list = [('config_suffix',)]

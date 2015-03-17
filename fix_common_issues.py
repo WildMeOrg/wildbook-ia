@@ -31,3 +31,15 @@ for modname in modlist:
         import utool as ut
         ut.cmd(install_cmd, shell=True)
         sys.exit(0)
+
+
+"""
+References:
+    http://superuser.com/questions/345719/how-to-chmod-and-chown-hidden-files-in-linux
+
+shopt -s dotglob
+cd /opt/ibeis
+sudo chown -R jasonp:ibeis *
+sudo chmod -R 775 *
+shopt -u dotglob
+"""
