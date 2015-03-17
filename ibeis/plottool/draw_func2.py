@@ -387,7 +387,7 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
         if flipy:
             ax.invert_yaxis()
         if dark:
-            dark_background()
+            dark_background(ax)
     else:
         # No data, draw big red x
         draw_boxedX()
@@ -687,6 +687,7 @@ def dark_background(ax=None, doubleit=False):
     from mpl_toolkits.mplot3d import Axes3D
     if isinstance(ax, Axes3D):
         ax.set_axis_bgcolor(bgcolor)
+        ax.tick_params(colors='white')
         return
     xy, width, height = get_axis_xy_width_height(ax)
     if doubleit:
@@ -2174,7 +2175,8 @@ def param_plot_iterator(param_list, fnum=None, projection=None):
         yield param
 
 
-def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None, wire=False, *args, **kwargs):
+def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None,
+                   wire=False, dark=False, rstride=1, cstride=1, *args, **kwargs):
     """
     References:
         http://matplotlib.org/mpl_toolkits/mplot3d/tutorial.html
@@ -2183,9 +2185,9 @@ def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None, w
     ax = plt.gca(projection='3d')
     title = kwargs.pop('title', None)
     if wire:
-        ax.plot_wireframe(xgrid, ygrid, zdata, *args, **kwargs)
+        ax.plot_wireframe(xgrid, ygrid, zdata, rstride=rstride, cstride=cstride, *args, **kwargs)
     else:
-        ax.plot_surface(xgrid, ygrid, zdata, *args, **kwargs)
+        ax.plot_surface(xgrid, ygrid, zdata, rstride=rstride, cstride=cstride, *args, **kwargs)
         #ax.plot_trisurf(xgrid.flatten(), ygrid.flatten(), zdata.flatten(), *args, **kwargs)
     if title is not None:
         ax.set_title(title)
@@ -2195,6 +2197,8 @@ def plot_surface3d(xgrid, ygrid, zdata, xlabel=None, ylabel=None, zlabel=None, w
         ax.set_ylabel(ylabel)
     if zlabel is not None:
         ax.set_zlabel(zlabel)
+    if dark is True:
+        dark_background()
     return ax
 #L_____
 
