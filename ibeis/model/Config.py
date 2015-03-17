@@ -1201,7 +1201,8 @@ def load_named_config(cfgname, dpath, use_config_cache=False):
         if ut.NOT_QUIET:
             print('[Config] successfully loaded config cfgname=%r' % (cfgname,))
     except Exception as ex:
-        ut.printex(ex, iswarning=True)
+        if ut.VERBOSE:
+            ut.printex(ex, iswarning=True)
         # Totally new completely default preferences
         cfg = _default_config(cfg, cfgname)
     # Hack in cfgname

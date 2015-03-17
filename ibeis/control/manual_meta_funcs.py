@@ -229,27 +229,19 @@ def ensure_contributor_rowids(ibs, user_prompt=False):
     if not ut.QUIET:
         print('[ensure_contributor_rowids] Ensuring all images have contributors for dbname=%r' % (ibs.get_dbname()))
     contrib_rowid_list = ibs.get_valid_contrib_rowids()
-    if len(contrib_rowid_list) == 0:
-        if not ut.QUIET:
-            print('[ensure_contributor_rowids] No contributors found')
-        contrib_rowid = ibs.add_new_temp_contributor(offset=0)
-        print('[collect_transfer_data] New contributor\'s contrib_rowid: %s' % (contrib_rowid,))
-        ibs.set_config_contributor_unassigned(contrib_rowid)
-        ibs.set_image_contributor_unassigned(contrib_rowid)
+    unassigned_gid_list = ibs.get_all_uncontributed_images()
+    if not ut.QUIET:
+        print('[ensure_contributor_rowids] %d Contributors exist. %d images are unassigned' %
+              (len(contrib_rowid_list), len(unassigned_gid_list)))
+    if len(unassigned_gid_list) > 0:
+        new_contrib_rowid = ibs.add_new_temp_contributor(offset=len(contrib_rowid_list))
+        # SET UNASSIGNED IMAGE CONTRIBUTORS
+        ibs.set_image_contributor_rowid(unassigned_gid_list, [new_contrib_rowid] * len(unassigned_gid_list))
         ibs.ensure_encounter_configs_populated()
-    else:
-        # make sure that all images have assigned contributors
-        unassigned_gid_list = ibs.get_all_uncontributed_images()
-        if len(unassigned_gid_list) > 0:
-            if not ut.QUIET:
-                print('[ensure_contributor_rowids] Contributors exist but %d images are unassigned' % (len(unassigned_gid_list)))
-            # Get new non-conflicting contributor for unassigned images
-            new_contrib_rowid = ibs.add_new_temp_contributor(offset=len(contrib_rowid_list))
-            contrib_rowid_list = list([new_contrib_rowid]) * len(unassigned_gid_list)
-            ibs.set_config_contributor_rowid(unassigned_gid_list, contrib_rowid_list)
-        else:
-            if not ut.QUIET:
-                print('[ensure_contributor_rowids] All clean. All images have contributors.')
+    # make sure that all images have assigned contributors
+    # Get new non-conflicting contributor for unassigned images
+    #contrib_rowid_list = list([new_contrib_rowid]) * len(unassigned_gid_list)
+    #ibs.set_config_contributor_rowid(unassigned_gid_list, contrib_rowid_list)
     return ibs.get_valid_contrib_rowids()
 
 
@@ -257,11 +249,15 @@ def ensure_contributor_rowids(ibs, user_prompt=False):
 def get_all_uncontributed_images(ibs):
     gid_list = ibs.get_valid_gids()
     contrib_rowid_list = ibs.get_image_contributor_rowid(gid_list)
-    unassigned_gid_list = [
-        gid
-        for gid, _contrib_rowid in zip(gid_list, contrib_rowid_list)
-        if _contrib_rowid is None
-    ]
+    is_unassigned = [contrib_rowid is None for contrib_rowid in contrib_rowid_list]
+    unassigned_gid_list = ut.filter_items(gid_list, is_unassigned)
+    #sum(is_unassigned)
+    #len(is_unassignd)
+    #unassigned_gid_list = [
+    #    gid
+    #    for gid, _contrib_rowid in zip(gid_list, contrib_rowid_list)
+    #    if _contrib_rowid is None
+    #]
     return unassigned_gid_list
 
 
@@ -269,11 +265,13 @@ def get_all_uncontributed_images(ibs):
 def get_all_uncontributed_configs(ibs):
     config_rowid_list = ibs.get_valid_configids()
     contrib_rowid_list = ibs.get_config_contributor_rowid(config_rowid_list)
-    unassigned_config_rowid_list = [
-        config_rowid
-        for config_rowid, _contrib_rowid in zip(config_rowid_list, contrib_rowid_list)
-        if _contrib_rowid is None
-    ]
+    isunassigned_list = [_contrib_rowid is None for _contrib_rowid in contrib_rowid_list]
+    unassigned_config_rowid_list = ut.filter_items(contrib_rowid_list, isunassigned_list)
+    #unassigned_config_rowid_list = [
+    #    config_rowid
+    #    for config_rowid, _contrib_rowid in zip(config_rowid_list, contrib_rowid_list)
+    #    if _contrib_rowid is None
+    #]
     return unassigned_config_rowid_list
 
 
@@ -286,21 +284,16 @@ def set_config_contributor_unassigned(ibs, contrib_rowid):
 
 
 @register_ibs_method
-def set_image_contributor_unassigned(ibs, contrib_rowid):
-    unassigned_gid_list = ibs.get_all_uncontributed_images()
-    contrib_rowid_list = [contrib_rowid] * len(unassigned_gid_list)
-    ibs.set_image_contributor_rowid(unassigned_gid_list, contrib_rowid_list)
-
-
-@register_ibs_method
 def ensure_encounter_configs_populated(ibs):
     eid_list = ibs.get_valid_eids()
     config_rowid_list = ibs.get_encounter_configid(eid_list)
-    unassigned_eid_list = [
-        eid
-        for eid, config_rowid in zip(eid_list, config_rowid_list)
-        if config_rowid is None
-    ]
+    isunassigned_list = [config_rowid is None for config_rowid in config_rowid_list]
+    unassigned_eid_list = ut.filter_items(eid_list, isunassigned_list)
+    #unassigned_eid_list = [
+    #    eid
+    #    for eid, config_rowid in zip(eid_list, config_rowid_list)
+    #    if config_rowid is None
+    #]
     id_iter = ((eid,) for eid in unassigned_eid_list)
     config_rowid_list = list([ibs.MANUAL_CONFIGID]) * len(unassigned_eid_list)
     val_list = ((config_rowid,) for config_rowid in config_rowid_list)
@@ -567,8 +560,10 @@ def get_contributor_eids(ibs, config_rowid_list):
 @getter_1to1
 def get_contributor_gids(ibs, contrib_rowid_list):
     """
+    TODO: Template 1_M reverse getter
+
     Returns:
-        gid_list (list):  eids for a contributor """
+        gid_list (list):  gids for a contributor """
     gid_list = ibs.db.get(const.IMAGE_TABLE, ('image_rowid',), contrib_rowid_list, id_colname='contributor_rowid', unpack_scalars=False)
     return gid_list
 

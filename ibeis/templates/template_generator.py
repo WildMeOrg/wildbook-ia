@@ -1139,9 +1139,11 @@ def parse_table_structure(ibs):
                           for tbl in dbcache_tbl_list})
 
     import operator
-    # I'm not sure why is is not working
+    # I'm not sure why "is" is not working
     tbl2_TABLE = {key: 'const.' + ut.get_varname_from_locals(val, const.__dict__, cmpfunc_=operator.eq)
                     for key, val in six.iteritems(tbl2_tablename)}
+    # HACK
+    tbl2_TABLE['name'] = 'const.NAME_TABLE'
 
     table_structure = {
         'tablename2_tbl'   : tablename2_tbl,
@@ -1218,8 +1220,9 @@ def main(ibs, verbose=None):
     flagskw['mod_fname']  = ut.get_argval(('--mod-fname', '--modfname'), type_=str, default=None)
 
     # Processes command line args
+    #flagdefault = not ut.get_argflag(('--invert', '-v'))
+    flagdefault = True
     if len(template_flags) > 0:
-        flagdefault = True
         flagskw['with_decor'] = flagdefault
         flagskw['with_footer'] = flagdefault
         flagskw['with_header'] = flagdefault
@@ -1232,8 +1235,6 @@ def main(ibs, verbose=None):
             else:
                 pass
                 #flagskw[flag] = False
-    else:
-        flagdefault = True
     #flagskw = ut.parse_dict_from_argv(flagskw)
 
     for tblname in tblname_list:

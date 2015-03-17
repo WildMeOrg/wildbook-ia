@@ -1,3 +1,8 @@
+"""
+python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
+sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=False --modfname manual_name_species_funcs
+
+"""
 from __future__ import absolute_import, division, print_function
 # TODO: Fix this name it is too special case
 import uuid
@@ -24,18 +29,39 @@ ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
 NAME_ROWID          = 'name_rowid'
 SPECIES_ROWID       = 'species_rowid'
 
-NAME_UUID = 'name_uuid'
-NAME_TEXT = 'name_text'
+NAME_UUID       = 'name_uuid'
+NAME_TEXT       = 'name_text'
 NAME_ALIAS_TEXT = 'name_alias_text'
-NAME_NOTE = 'name_note'
-SPECIES_UUID = 'species_uuid'
-SPECIES_TEXT = 'species_text'
-SPECIES_NOTE = 'species_note'
+NAME_NOTE       = 'name_note'
+SPECIES_UUID    = 'species_uuid'
+SPECIES_TEXT    = 'species_text'
+SPECIES_NOTE    = 'species_note'
+NAME_TEMP_FLAG  = 'name_temp_flag'
+
+
+def testdata_ibs(defaultdb='testdb1'):
+    import ibeis
+    ibs = ibeis.opendb(defaultdb=defaultdb)
+    config2_ = None  # qreq_.qparams
+    return ibs, config2_
 
 
 @register_ibs_method
 @ider
 def _get_all_known_name_rowids(ibs):
+    """
+    Returns:
+        list_ (list): all nids of known animals
+        (does not include unknown names)
+    """
+    #all_known_nids = ibs._get_all_known_lblannot_rowids(const.INDIVIDUAL_KEY)
+    all_known_nids = ibs.db.get_all_rowids(const.NAME_TABLE)
+    return all_known_nids
+
+
+@register_ibs_method
+@ider
+def _get_all_name_rowids(ibs):
     """
     Returns:
         list_ (list): all nids of known animals
@@ -647,6 +673,61 @@ def get_name_num_exemplar_annotations(ibs, nid_list):
         list_ (list):  the number of annotations, which are exemplars for each name
     """
     return list(map(len, ibs.get_name_exemplar_aids(nid_list)))
+
+
+@register_ibs_method
+def get_name_temp_flag(ibs, name_rowid_list, eager=True, nInput=None):
+    """ name_temp_flag_list <- name.name_temp_flag[name_rowid_list]
+
+    gets data from the "native" column "name_temp_flag" in the "name" table
+
+    Args:
+        name_rowid_list (list):
+
+    Returns:
+        list: name_temp_flag_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = name_temp_flag
+        tbl = name
+
+    CommandLine:
+        python -m ibeis.control.manual_name_species_funcs --test-get_name_temp_flag
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> ibs, config2_ = testdata_ibs()
+        >>> name_rowid_list = ibs._get_all_name_rowids()
+        >>> eager = True
+        >>> name_temp_flag_list = ibs.get_name_temp_flag(name_rowid_list, eager=eager)
+        >>> assert len(name_rowid_list) == len(name_temp_flag_list)
+    """
+    id_iter = name_rowid_list
+    colnames = (NAME_TEMP_FLAG,)
+    name_temp_flag_list = ibs.db.get(
+        const.NAME_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return name_temp_flag_list
+
+
+@register_ibs_method
+def set_name_temp_flag(ibs, name_rowid_list, name_temp_flag_list, duplicate_behavior='error'):
+    """ name_temp_flag_list -> name.name_temp_flag[name_rowid_list]
+
+    Args:
+        name_rowid_list
+        name_temp_flag_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = name
+        col = name_temp_flag
+    """
+    id_iter = name_rowid_list
+    colnames = (NAME_TEMP_FLAG,)
+    ibs.db.set(const.NAME_TABLE, colnames, name_temp_flag_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
 
 
 @register_ibs_method

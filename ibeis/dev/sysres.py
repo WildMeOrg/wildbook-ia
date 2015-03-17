@@ -341,6 +341,29 @@ def is_hsinternal(dbdir):
 
 
 def get_ibsdb_list(workdir=None):
+    r"""
+    Lists the available ibeis database inside of a work directory
+
+    Args:
+        workdir (None):
+
+    Returns:
+        IBEISController: ibsdb_list -  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.dev.sysres --test-get_ibsdb_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.dev.sysres import *  # NOQA
+        >>> # build test data
+        >>> workdir = None
+        >>> # execute function
+        >>> ibsdb_list = get_ibsdb_list(workdir)
+        >>> # verify results
+        >>> result = str(ibsdb_list)
+        >>> print(result)
+    """
     import numpy as np
     if workdir is None:
         workdir = get_workdir()
