@@ -1,47 +1,49 @@
 {% extends "layout.html" %}
-{% block content %}
+{% block content_custom_css %}
+<style>
+  .total-label
+  {
+    font-size: 100px;
+    margin: 0;
+    text-align: center;
+    color: #4d63bc;
+  }
 
-  <style>
-    .total-label
-    {
-      font-size: 100px;
-      margin: 0;
-      text-align: center;
-      color: #4d63bc;
-    }
-    th.no-items
-    {
-      text-align: center;
-      padding: 25px 0px !important;
-      font-size: 20px;
-      font-weight: 200;
-      font-style: italic;
-    }
-  </style>
+  th.no-items
+  {
+    text-align: center;
+    padding: 25px 0px !important;
+    font-size: 20px;
+    font-weight: 200;
+    font-style: italic;
+  }
+</style>
+{% endblock %}
+{% block content %}
 
   <div class="row marketing">
     <div class="col-lg-12">
       <table class="table table-striped">
         <thead>
           <tr>
-            <th>#</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Username</th>
+            <th>EID</th>
+            <th>Encounter Text</th>
+            <th>Number of Images</th>
+            <th>Encounter Start</th>
           </tr>
         </thead>
         <tbody>
-          {% if num_eids == 0 %}
+          {% if num_encounters == 0 %}
             <tr>
               <th class="no-items" colspan="4">Sorry, no encounters to display</th>
             </tr>
           {% else %}
-            {% for eid in eid_list %}
+            {% for (eid, enctext, num_gids, start) in encounter_list %}
             <tr>
-              <th scope="row">{{ eid }}</th>
-              <td>Mark</td>
-              <td>Otto</td>
-              <td>@mdo</td>
+              <th scope="row"><a href="{{ url_for('view_images') }}?eid={{ eid }}">{{ eid }}</a></th>
+              <td>{{ enctext }}</td>
+              <td>{{ num_gids }}</td>
+              <td>{{ start }}</td>
             </tr>
             {% endfor %}
           {% endif %}
@@ -53,11 +55,5 @@
 {% endblock %}
 {% block content_custom_javascript %}
 <script type="text/javascript">
-  var encounterNumber  = new countUp("encounter-total",  0, {{ num_eids }}, 0, 3.0);
-  var imageNumber      = new countUp("image-total",      0, {{ num_gids }}, 0, 3.0);
-  var annotationNumber = new countUp("annotation-total", 0, {{ num_aids }}, 0, 3.0);
-  encounterNumber.start();
-  imageNumber.start();
-  annotationNumber.start();
 </script>  
 {% endblock %}

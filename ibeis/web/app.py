@@ -58,17 +58,36 @@ def view():
 @app.route('/view/encounters')
 def view_encoutners():
     eid_list = app.ibs.get_valid_eids()
+    encounter_list = zip(
+        eid_list,
+        app.ibs.get_encounter_enctext(eid_list),
+        app.ibs.get_encounter_num_gids(eid_list),
+        app.ibs.get_encounter_start_time_posix(eid_list),
+    )
+    # ut.unixtime_to_datetime(
     return ap.template('view', 'encounters',
-                       eid_list=eid_list,
-                       num_eids=len(eid_list))
+                       encounter_list=encounter_list,
+                       num_encounters=len(encounter_list))
 
 
 @app.route('/view/images')
 def view_images():
-    gid_list = app.ibs.get_valid_gids()
+    eid = None
+    if 'eid' in request.args.keys():
+        eid = int(request.args['eid'])
+    gid_list = app.ibs.get_valid_gids(eid=eid)
+    image_list = zip(
+        gid_list,
+        app.ibs.get_image_gnames(gid_list),
+        app.ibs.get_image_unixtime(gid_list),
+        ut.tupstr(app.ibs.get_image_gps(gid_list)),
+        app.ibs.get_image_party_tag(gid_list),
+        app.ibs.get_image_contributor_tag(gid_list),
+        app.ibs.get_image_notes(gid_list),
+    )
     return ap.template('view', 'images',
-                       gid_list=gid_list,
-                       num_gids=len(gid_list))
+                       image_list=image_list,
+                       num_images=len(image_list))
 
 
 @app.route('/view/annotations')
@@ -324,6 +343,14 @@ def set_cookie():
     except:
         print("COOKIE FAILED: %r" % (request.args, ))
         return make_response('false')
+
+
+@app.route('/ajax/image/src/<gid>')
+def image_src(gid=None):
+    gpath = app.ibs.get_image_paths(gid)
+    image = ap.open_oriented_image(gpath)
+    image_src = ap.embed_image_html(image, filter_width=False)
+    return image_src
 
 
 @app.route('/api')
