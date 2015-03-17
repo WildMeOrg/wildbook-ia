@@ -46,9 +46,9 @@ def ensure_flatlistlike(input_):
     return list(iter_)
 
 
-@ut.indent_func
+#@ut.indent_func
 @profile
-def get_test_qaids(ibs):
+def get_test_qaids(ibs, default_qaids=None):
     """ Gets test annot_rowids based on command line arguments """
     #def get_allowed_qaids(ibs):
     available_qaids = []
@@ -66,7 +66,7 @@ def get_test_qaids(ibs):
 
     valid_aids = ibs.get_valid_aids(nojunk=ut.get_argflag('--junk'))
     if valid_aids == 0:
-        print('no annotations available')
+        print('[get_test_qaids] no annotations available')
 
     # ALL CASES
     if params.args.all_cases:
@@ -82,8 +82,7 @@ def get_test_qaids(ibs):
     if params.args.all_gt_cases:
         has_gt_list = ibs.get_annot_has_groundtruth(valid_aids)
         hasgt_aids = ut.filter_items(valid_aids, has_gt_list)
-        print('Adding all %d/%d ground-truthed test cases' % (len(hasgt_aids),
-                                                              len(valid_aids)))
+        print('[get_test_qaids] Adding all %d/%d ground-truthed test cases' % (len(hasgt_aids), len(valid_aids)))
         available_qaids.extend(hasgt_aids)
 
     # INDEX SUBSET
@@ -95,13 +94,16 @@ def get_test_qaids(ibs):
         #printDBG('Chosen qindexes=%r' % (qindexes,))
         #printDBG('available_qaids = %r' % available_qaids[0:5])
         _test_qaids = [available_qaids[qx] for qx in qindexes if qx < len(available_qaids)]
-        print('Chose subset of size %d/%d' % (len(_test_qaids), len(available_qaids)))
+        print('[get_test_qaids] Chose subset of size %d/%d' % (len(_test_qaids), len(available_qaids)))
         available_qaids = _test_qaids
         #printDBG('available_qaids = %r' % available_qaids)
     # DEFAULT [0]
     elif len(available_qaids) == 0 and len(valid_aids) > 0:
-        printDBG('no hard or gt aids. Defaulting to the first ANNOTATION')
-        available_qaids = valid_aids[0:1]
+        print('[get_test_qaids] no hard or gt aids. Defaulting to the first ANNOTATION')
+        #available_qaids = valid_aids[0:1]
+        available_qaids = default_qaids
+    if available_qaids is None:
+        available_qaids = [1]
 
     if not ut.get_argflag('--junk'):
         available_qaids = ibs.filter_junk_annotations(available_qaids)

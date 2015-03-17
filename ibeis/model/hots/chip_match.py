@@ -36,6 +36,54 @@ def test_from_qres(qres):
     pass
 
 
+def timing_vsmany_match_tup():
+    """
+
+        CommandLine:
+            python -m ibeis.model.hots.chip_match --test-timing_vsmany_match_tup
+            utprof.py -m ibeis.model.hots.chip_match --test-timing_vsmany_match_tup --verbose
+
+        Timeit::
+            %timeit np.ascontiguousarray(np.hstack((valid_qfx[:, None], valid_dfx[:, None])))
+            %timeit np.ascontiguousarray(np.vstack((valid_qfx, valid_dfx)).T)
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> cm = timing_vsmany_match_tup()
+            >>> print(cm)
+    """
+    import numpy as np
+    # build test data
+    cls = ChipMatch2
+    size = 3000
+    valid_match_tup = (
+        np.array([534, 744, 458, 532, 707, 443] * size),
+        np.array([  0,   0,   0, 885, 885, 885] * size),
+        np.array([  7,  19, 624, 550, 584, 929] * size),
+        np.array([[ 0.09632111,  0.43708295],
+                  [ 0.03178215,  0.66673464],
+                  [ 0.01823044,  0.69417661],
+                  [ 0.00674248,  0.95885468],
+                  [ 0.00422287,  0.96921086],
+                  [ 0.00284576,  0.94884723]]  * size, dtype=np.float32),
+        np.array([1, 2, 3, 2, 3, 4]  * size, dtype=np.int16)
+    )
+    qaid = 1
+    fsv_col_lbls = None
+    # execute function
+    for x in range(0, 10):
+        valid_match_tup = (
+            (1000 * np.abs(np.random.randn(size) + .5)).astype(np.int32),
+            (1000 * np.random.rand(size)).astype(np.int32),
+            (1000 * np.random.rand(size)).astype(np.int32),
+            np.random.rand(size, 2),
+            (1000 * np.random.rand(size)).astype(np.int16)
+        )
+        cm = cls.from_vsmany_match_tup(valid_match_tup, qaid, fsv_col_lbls)
+    return cm
+
+
 @six.add_metaclass(ut.ReloadingMetaclass)
 class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
     """
@@ -46,6 +94,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
     # Alternative  Cosntructors
 
     @classmethod
+    @profile
     def from_qres(cls, qres):
         r"""
         """
@@ -57,12 +106,13 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         qaid        = qres.qaid
         cmtup_old = (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_)
         fsv_col_lbls = qres.filtkey_list
-        cm = ChipMatch2.from_cmtup_old(cmtup_old, qaid, fsv_col_lbls)
+        cm = cls.from_cmtup_old(cmtup_old, qaid, fsv_col_lbls)
         fs_list = [fsv.T[cm.fsv_col_lbls.index('lnbnn')] for fsv in cm.fsv_list]
         cm.fs_list = fs_list
         return cm
 
     @classmethod
+    @profile
     def from_unscored(cls, prior_cm, fm_list, fs_list, H_list=None, fsv_col_lbls=None):
         qaid = prior_cm.qaid
         daid_list = prior_cm.daid_list
@@ -74,23 +124,37 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         #score_list = [fsv.prod(axis=1).sum() for fsv in fsv_list]
         score_list = [-1 for fsv in fsv_list]
         #fsv.prod(axis=1).sum() for fsv in fsv_list]
-        cm = ChipMatch2(qaid, daid_list, fm_list, fsv_list, None, score_list, H_list, fsv_col_lbls)
+        cm = cls(qaid, daid_list, fm_list, fsv_list, None, score_list, H_list, fsv_col_lbls)
         cm.fs_list = fs_list
         return cm
 
     @classmethod
+    @profile
     def from_vsmany_match_tup(cls, valid_match_tup, qaid=None, fsv_col_lbls=None):
+        r"""
+        Args:
+            valid_match_tup (tuple):
+            qaid (int):  query annotation id
+            fsv_col_lbls (None):
+
+        Returns:
+            ChipMatch2: cm
+        """
+        # CONTIGUOUS ARRAYS MAKE A HUGE DIFFERENCE
         # Vsmany - create new cmtup_old
         (valid_daid, valid_qfx, valid_dfx, valid_scorevec, valid_rank) = valid_match_tup
-        valid_fm = np.vstack((valid_qfx, valid_dfx)).T
+        #valid_fm = np.vstack((valid_qfx, valid_dfx)).T
+        valid_fm = np.ascontiguousarray(np.hstack((valid_qfx[:, None], valid_dfx[:, None])))
         daid_list, daid_groupxs = vt.group_indices(valid_daid)
         fm_list  = vt.apply_grouping(valid_fm, daid_groupxs)
-        fsv_list = vt.apply_grouping(valid_scorevec, daid_groupxs)
+        #fsv_list = vt.apply_grouping(valid_scorevec, daid_groupxs)
+        fsv_list = vt.apply_grouping(np.ascontiguousarray(valid_scorevec), daid_groupxs)
         fk_list  = vt.apply_grouping(valid_rank, daid_groupxs)
-        cm = ChipMatch2(qaid, daid_list, fm_list, fsv_list, fk_list, fsv_col_lbls=fsv_col_lbls)
+        cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list, fsv_col_lbls=fsv_col_lbls)
         return cm
 
     @classmethod
+    @profile
     def from_vsone_match_tup(cls, valid_match_tup_list, daid_list=None, qaid=None, fsv_col_lbls=None):
         assert all(list(map(ut.list_allsame, ut.get_list_column(valid_match_tup_list, 0)))),\
             'internal daids should not have different daids for vsone'
@@ -99,7 +163,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         fm_list  = [np.vstack(dfx_qfx).T for dfx_qfx in zip(dfx_list, qfx_list)]
         fsv_list = ut.get_list_column(valid_match_tup_list, 3)
         fk_list  = ut.get_list_column(valid_match_tup_list, 4)
-        cm = ChipMatch2(qaid, daid_list, fm_list, fsv_list, fk_list, fsv_col_lbls=fsv_col_lbls)
+        cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list, fsv_col_lbls=fsv_col_lbls)
         return cm
 
     # Standard Contstructor

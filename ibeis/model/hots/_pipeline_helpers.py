@@ -142,7 +142,25 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
         if dbname is not None:
             defaultdb = dbname
         dbname = ut.get_argval('--db', str, defaultdb)
-        qaid_list = ut.get_argval(('--qaid_list', '--qaid'), list, qaid_list)
+
+    ibs = ibeis.opendb(dbname)
+
+    if qaid_list is None:
+        if dbname == 'testdb1':
+            default_qaid_list = [1]
+        if dbname == 'GZ_ALL':
+            default_qaid_list = [1032]
+        if dbname == 'PZ_ALL':
+            default_qaid_list = [1, 3, 5, 9]
+        else:
+            default_qaid_list = [1]
+    else:
+        default_qaid_list = qaid_list
+
+    if cmdline_ok:
+        from ibeis.dev import main_helpers
+        qaid_list = main_helpers.get_test_qaids(ibs, default_qaids=default_qaid_list)
+        #qaid_list = ut.get_argval(('--qaid_list', '--qaid'), list, qaid_list)
         daid_list = ut.get_argval(('--daid_list', '--daids'), list, daid_list)
         #if 'codename' not in cfgdict:
         # Allow commond line specification of all query params
@@ -159,16 +177,6 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
     else:
         cfgdict_ = cfgdict
 
-    ibs = ibeis.opendb(dbname)
-    if qaid_list is None:
-        if dbname == 'testdb1':
-            qaid_list = [1]
-        if dbname == 'GZ_ALL':
-            qaid_list = [1032]
-        if dbname == 'PZ_ALL':
-            qaid_list = [1, 3, 5, 9]
-        else:
-            qaid_list = [1]
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
         if dbname == 'testdb1':

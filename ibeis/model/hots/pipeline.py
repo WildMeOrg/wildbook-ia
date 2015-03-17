@@ -617,6 +617,7 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list, q
 
     CommandLine:
         python -m ibeis.model.hots.pipeline --test-get_sparse_matchinfo_nonagg
+        utprof.py -m ibeis.model.hots.pipeline --test-get_sparse_matchinfo_nonagg
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -664,8 +665,10 @@ def get_sparse_matchinfo_nonagg(qreq_, qfx2_idx, qfx2_valid0, qfx2_score_list, q
     # annot_rowids, feature indexes, and all scores
     valid_daid  = qfx2_daid.take(flat_validx, axis=None)
     valid_dfx   = qfx2_dfx.take(flat_validx, axis=None)
-    valid_scorevec = np.vstack([qfx2_score.take(flat_validx)
-                                for qfx2_score in qfx2_score_list]).T
+    #valid_scorevec = np.vstack([qfx2_score.take(flat_validx)
+    #                            for qfx2_score in qfx2_score_list]).T
+    valid_scorevec = np.hstack([qfx2_score.take(flat_validx)[:, None]
+                                for qfx2_score in qfx2_score_list])
     # The q/d's are all internal here, thus in vsone they swap
     valid_match_tup = (valid_daid, valid_qfx, valid_dfx, valid_scorevec, valid_rank)
     return valid_match_tup
@@ -946,6 +949,7 @@ def chipmatch_to_resdict(qreq_, cm_list, verbose=VERB_PIPELINE):
         utprof.py -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict
         python -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict
         python -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict:1
+        utprof.py -m ibeis.model.hots.pipeline --test-chipmatch_to_resdict --GZ_ALL --allgt
 
     Example:
         >>> # ENABLE_DOCTEST
