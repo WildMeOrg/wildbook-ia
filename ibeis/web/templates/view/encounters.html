@@ -30,6 +30,8 @@
             <th>Encounter Text</th>
             <th>Number of Images</th>
             <th>Encounter Start</th>
+            <th>Images</th>
+            <th>Annotations</th>
           </tr>
         </thead>
         <tbody>
@@ -44,6 +46,8 @@
               <td>{{ enctext }}</td>
               <td>{{ num_gids }}</td>
               <td>{{ start }}</td>
+              <td><a href="{{ url_for('view_images') }}?eid={{ eid }}">Review</a></td>
+              <td><a href="{{ url_for('view_annotations') }}?eid={{ eid }}">Review</a></td>
             </tr>
             {% endfor %}
           {% endif %}
