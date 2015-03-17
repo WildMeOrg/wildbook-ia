@@ -41,6 +41,7 @@
             <th>Party</th>
             <th>Contributor</th>
             <th>Notes</th>
+            <th>Annotations</th>
           </tr>
         </thead>
         <tbody>
@@ -59,6 +60,7 @@
               <td>{{ party }}</td>
               <td>{{ contributor }}</td>
               <td>{{ notes }}</td>
+              <td><a href="{{ url_for('view_annotations') }}?gid={{ gid }}">Review</a></td>
             </tr>
             {% endfor %}
           {% endif %}
@@ -76,11 +78,12 @@
 
   function lazy_load_images()
   {
-    while(requests.length > buffer)
+    while(loading.length > buffer)
     {
-      requests[0].abort();
-      removeIndexFromArray(0, requests);
-      removeIndexFromArray(0, loading);
+      index = loading.length - 1;
+      requests[index].abort();
+      removeIndexFromArray(index, requests);
+      removeIndexFromArray(index, loading);
     }
 
     $(".ajax-image-load").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
@@ -91,7 +94,7 @@
   function load_image_src(element)
   {
     var gid = $(element).attr('gid');
-    if(!contains(loading, gid) && requests.length <= buffer)
+    if(!contains(loading, gid) && loading.length <= buffer)
     {
       request = $.ajax( "/ajax/image/src/" + gid )
       .done(function( response ) {

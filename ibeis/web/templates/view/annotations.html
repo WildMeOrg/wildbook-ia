@@ -50,7 +50,7 @@
           {% else %}
             {% for (aid, src, name, exemplar, species, viewpoint, quality) in annotation_list %}
             <tr>
-              <th scope="row">{{ aid }}</th>
+              <th scope="row"><a href="{{ url_for('turk', filename='viewpoint') }}?gid={{ aid }}">{{ aid }}</a></th>
               <td><img class="ajax-image-load ajax-image-unloaded" src="" aid="{{ aid }}" /></td>
               <td>{{ src }}</td>
               <td>{{ name }}</td>
@@ -69,17 +69,18 @@
 {% endblock %}
 {% block content_custom_javascript %}
 <script type="text/javascript">
-  var loading = [];
+var loading = [];
   var requests = [];
   var buffer = 5;
 
   function lazy_load_images()
   {
-    while(requests.length > buffer)
+    while(loading.length > buffer)
     {
-      requests[0].abort();
-      removeIndexFromArray(0, requests);
-      removeIndexFromArray(0, loading);
+      index = loading.length - 1;
+      requests[index].abort();
+      removeIndexFromArray(index, requests);
+      removeIndexFromArray(index, loading);
     }
 
     $(".ajax-image-load").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
