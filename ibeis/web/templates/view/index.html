@@ -1,15 +1,16 @@
 {% extends "layout.html" %}
+{% block content_custom_css %}
+<style>
+  .total-label
+  {
+    font-size: 100px;
+    margin: 0;
+    text-align: center;
+    color: #4d63bc;
+  }
+</style>
+{% endblock %}
 {% block content %}
-
-  <style>
-    .total-label
-    {
-      font-size: 100px;
-      margin: 0;
-      text-align: center;
-      color: #4d63bc;
-    }
-  </style>
 
   <div class="row marketing">
     <div class="col-lg-4">
@@ -31,9 +32,9 @@
 {% endblock %}
 {% block content_custom_javascript %}
 <script type="text/javascript">
-  var encounterNumber  = new countUp("encounter-total",  0, {{ num_eids }}, 0, 3.0);
-  var imageNumber      = new countUp("image-total",      0, {{ num_gids }}, 0, 3.0);
-  var annotationNumber = new countUp("annotation-total", 0, {{ num_aids }}, 0, 3.0);
+  var encounterNumber  = new countUp("encounter-total",  0, {{ num_eids }}, 0, 2.0);
+  var imageNumber      = new countUp("image-total",      0, {{ num_gids }}, 0, 2.0);
+  var annotationNumber = new countUp("annotation-total", 0, {{ num_aids }}, 0, 2.0);
   encounterNumber.start();
   imageNumber.start();
   annotationNumber.start();
