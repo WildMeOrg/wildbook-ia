@@ -650,6 +650,8 @@ def apply_grouping(items, groupxs):
         >>> print(result)
         [array([8, 5, 6]), array([1, 5, 8, 7]), array([5, 3, 0, 9])]
     """
+    # SHOULD DO A CONTIGUOUS CHECK HERE
+    #items_ = np.ascontiguousarray(items)
     return [items.take(xs, axis=0) for xs in groupxs]
     #return [items[idxs] for idxs in groupxs]
 
