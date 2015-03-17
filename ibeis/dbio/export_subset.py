@@ -1137,6 +1137,7 @@ def merge_databases2(ibs_src, ibs_dst):
     gid_list = ibs_src.get_valid_gids()
     imgpath_list = ibs_src.get_image_paths(gid_list)
     dst_imgdir = ibs_dst.get_imgdir()
+    # TODO: better utool
     for imgpath in ut.ProgressIter(imgpath_list, lbl='copying images'):
         ut.copy(imgpath, dst_imgdir, overwrite=False, verbose=ut.VERBOSE)
     ibs_dst.db.merge_databases_new(ibs_src.db)
@@ -1220,28 +1221,23 @@ def merge_databases2(ibs_src, ibs_dst):
 def MERGE_NNP_MASTER_SCRIPT():
     from ibeis.dbio.export_subset import *  # NOQA
     import ibeis
-    gid_list                 = None
-    back                     =None
-    user_prompt              =False
-    bulk_conflict_resolution ='ignore'
-
     # Step 1
     ibs_src = ibeis.opendb('NNP_initial')
     ibs_dst = ibeis.opendb('GZC_NNP_MERGE2', allow_newdir=True)
     merge_databases2(ibs_src, ibs_dst)
 
-    # Step 2
-    ibs_src = ibeis.opendb('GZC')
-    ibs_dst = ibeis.opendb('GZC_NNP_MERGE', allow_newdir=False)
+    ## Step 2
+    #ibs_src = ibeis.opendb('GZC')
+    #ibs_dst = ibeis.opendb('GZC_NNP_MERGE', allow_newdir=False)
 
-    # Check
-    ibs1 = ibeis.opendb('NNP_initial')
-    ibs2 = ibeis.opendb('GZC')
-    ibs3 = ibs_dst
+    ## Check
+    #ibs1 = ibeis.opendb('NNP_initial')
+    #ibs2 = ibeis.opendb('GZC')
+    #ibs3 = ibs_dst
 
-    print(ibs1.get_image_time_statstr())
-    print(ibs2.get_image_time_statstr())
-    print(ibs3.get_image_time_statstr())
+    #print(ibs1.get_image_time_statstr())
+    #print(ibs2.get_image_time_statstr())
+    #print(ibs3.get_image_time_statstr())
 """
 
 

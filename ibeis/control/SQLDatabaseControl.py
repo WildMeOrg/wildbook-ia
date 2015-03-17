@@ -1641,6 +1641,11 @@ class SQLDatabaseController(object):
                 _iter = zip(extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list)
                 new_extern_rowid_list = []
                 for colx, extern_superkey_colname, extern_superkey_colval, extern_tablename, extern_primarycolname in _iter:
+                    if str(tablename) == str('configs'):
+                        # HACK: Remove contrib from configs
+                        extern_superkey_colval = [tup[1] for tup in extern_superkey_colval]
+                        extern_superkey_colname = extern_superkey_colname[1:]
+                    #if len(extern_superkey_colval) > 1:
                     _params_iter = list(zip(extern_superkey_colval))
                     new_extern_rowids = db.get_rowid_from_superkey(extern_tablename, _params_iter, superkey_colnames=extern_superkey_colname)
                     new_extern_rowid_list.append(new_extern_rowids)
