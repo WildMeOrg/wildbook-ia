@@ -998,6 +998,15 @@ def update_1_3_7(db, ibs=None):
         }
     )
 
+
+def update_1_3_8(db, ibs=None):
+    # Encounters only care about their text again as a uuid
+    db.modify_table(
+        const.ENCOUNTER_TABLE,
+        superkey_colnames_list=[('encounter_text',)],
+    )
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1024,6 +1033,7 @@ VALID_VERSIONS = utool.odict([
     ('1.3.5',    (None,                 update_1_3_5,       None          )),
     ('1.3.6',    (None,                 update_1_3_6,       None          )),
     ('1.3.7',    (None,                 update_1_3_7,       None          )),
+    ('1.3.8',    (None,                 update_1_3_8,       None          )),
 ])
 
 

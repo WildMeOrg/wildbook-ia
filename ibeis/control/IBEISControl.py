@@ -350,11 +350,11 @@ class IBEISController(object):
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
-        ibs.db_version_expected = '1.3.7'
+        ibs.db_version_expected = '1.3.8'
         # TODO: add this functionality to SQLController
         ibs.db_version_expected = sqldbc.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_ibsdir(),
-            ibs.sqldb_fname, ibs.db_version_expected, '1.3.7')
+            ibs.sqldb_fname, ibs.db_version_expected, '1.3.8')
         #TESTING_NEW_SQL_VERSION = True
         #if TESTING_NEW_SQL_VERSION:
         #    print('[ibs] ATTEMPTING TO TEST NEW SQLDB VERSION')
