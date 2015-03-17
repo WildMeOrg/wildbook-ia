@@ -12,7 +12,7 @@ import six
 (print, print_, printDBG, rrr, profile) = ut.inject( __name__, '[optimze_k]', DEBUG=False)
 
 
-def evaluate_training_data(ibs, varydict, nDaids_basis):
+def collect_ibeis_training_annotations(ibs, nDaids_basis, verbose=True):
     # load a dataset
     #dbname = 'PZ_MTEST'
     #dbname = 'GZ_ALL'
@@ -27,11 +27,6 @@ def evaluate_training_data(ibs, varydict, nDaids_basis):
     # determanism
     np.random.seed(0)
     random.seed(0)
-    cfgdict_list = ut.all_dict_combinations(varydict)
-
-    nError_list  = []
-    nDaids_list  = []
-    cfgdict_list2 = []
 
     qaids_all = ibs.filter_junk_annotations(ibs.get_annot_rowid_sample(per_name=1, min_ngt=2, distinguish_unknowns=True))
     qaids = qaids_all[::2]
@@ -39,6 +34,8 @@ def evaluate_training_data(ibs, varydict, nDaids_basis):
     daids_gt_sample = ut.flatten(ibs.get_annot_groundtruth_sample(qaids, isexemplar=None))
     daids_gf_all = get_set_groundfalse(ibs, qaids)
     ut.assert_eq(len(daids_gt_sample), len(qaids), 'missing gt')
+    daids_list = []
+
     for target_nDaids in ut.ProgressIter(nDaids_basis, lbl='testing dbsize'):
         print('---------------------------')
         # Sample one match from the groundtruth with padding
@@ -47,12 +44,23 @@ def evaluate_training_data(ibs, varydict, nDaids_basis):
         nDaids = len(daids)
         if target_nDaids != nDaids:
             continue
+        daids_list.append(daids)
+    return qaids, daids_list
 
+
+def evaluate_training_data(ibs, qaids, daids_list, varydict, nDaids_basis, verbose=True):
+    nError_list  = []
+    nDaids_list  = []
+    cfgdict_list2 = []
+    cfgdict_list = ut.all_dict_combinations(varydict)
+    for daids in ut.ProgressIter(daids_list, lbl='testing dbsize'):
+        nDaids = len(daids)
+        print('\n---------------------------')
         with ut.Indenter('[nDaids=%r]' % (nDaids)):
             print('nDaids = %r' % nDaids)
             for cfgdict in ut.ProgressIter(cfgdict_list, lbl='testing cfgdict'):
-                qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
-                qres_list = ibs.query_chips(qreq_=qreq_, verbose=ut.VERBOSE)
+                qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict, verbose=verbose)
+                qres_list = ibs.query_chips(qreq_=qreq_, verbose=verbose)
                 gt_ranks_list = [qres.get_gt_ranks(ibs=ibs) for qres in qres_list]
                 incorrect_list = [len(gt_ranks) == 0 or min(gt_ranks) != 0 for gt_ranks in gt_ranks_list]
                 nErrors = sum(incorrect_list)
@@ -128,7 +136,8 @@ def interpolate_error(known_nd_data, known_targets, unknown_nd_data):
     References:
         http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.interpolate.griddata.html
     """
-    method = 'cubic'  # {'linear', 'nearest', 'cubic'}
+    #method = 'cubic'  # {'linear', 'nearest', 'cubic'}
+    method = 'linear'  # {'linear', 'nearest', 'cubic'}
     interpolated_targets = sp.interpolate.griddata(known_nd_data, known_targets, unknown_nd_data, method=method)
     interpolated_targets[np.isnan(interpolated_targets)] = known_targets.max() * 2
     return interpolated_targets
@@ -250,6 +259,11 @@ def plot_search_surface(known_nd_data, known_target_points, given_data_dims, opt
         xlabel='nDaids',
         ylabel='K',
         zlabel='error',
+        rstride=1, cstride=1,
+        cmap=pt.plt.get_cmap('jet'),
+        wire=True,
+        #norm=pt.mpl.colors.Normalize(0, 1),
+        #shade=False,
         #dark=False,
     )
     ax.scatter(known_nd_data.T[0], known_nd_data.T[1], known_target_points, s=100, c=pt.YELLOW)
@@ -282,6 +296,8 @@ def plot_search_surface(known_nd_data, known_target_points, given_data_dims, opt
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
     ax.set_zlim(zmin, zmax)
+    import matplotlib.ticker as mtick
+    ax.zaxis.set_major_formatter(mtick.FormatStrFormatter('%.2f'))
     return ax
 
 
@@ -311,14 +327,22 @@ def learn_k():
         'K': [1, 2, 3, 4, 8, 10, 13, 15],
         #'nDaids': [20, 100, 250, 500, 750, 1000],
     }
-    nDaids_basis = [20, 30, 50, 75, 100, 200, 250, 300, 350, 400, 500, 600, 750, 800, 900, 1000, 1500]
+    nDaids_basis = [20, 30, 50, 75, 100, 200, 250, 300, 325, 350, 400, 500, 600, 750, 800, 900, 1000, 1500]
     DUMMY = ut.get_argflag('--dummy')
     if DUMMY:
         nDaids_list, K_list, nError_list = test_training_data(varydict, nDaids_basis)
+        nError_list = nError_list.astype(np.float32) / nError_list.max()
     else:
-        dbname = 'PZ_Master0'
+        dbname = ut.get_argval('--db', default='PZ_Master0')
         ibs = ibeis.opendb(dbname)
-        nDaids_list, K_list, nError_list = evaluate_training_data(ibs, varydict, nDaids_basis)
+        verbose = False
+        qaids, daids_list = collect_ibeis_training_annotations(ibs, nDaids_basis, verbose=verbose)
+        nDaids_list, K_list, nError_list = evaluate_training_data(ibs, qaids, daids_list, varydict, nDaids_basis, verbose=verbose)
+        nError_list = nError_list.astype(np.float32) / len(qaids)
+        print('\nFinished Get Training Data')
+        print('len(qaids) = %r' % (len(qaids)))
+        print(ut.get_stats_str(nError_list))
+
     #unique_nDaids = np.unique(nDaids_list)
 
     # Alias to general optimization problem
