@@ -3177,6 +3177,17 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
     return annotmatch_reviewed_list
 
 
+@__injectable
+def get_image_time_statstr(ibs, gid_list=None):
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+    unixtime_list_ = ibs.get_image_unixtime(gid_list)
+    utvalid_list   = [time != -1 for time in unixtime_list_]
+    unixtime_list  = ut.filter_items(unixtime_list_, utvalid_list)
+    unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True)
+    return unixtime_statstr
+
+
 if __name__ == '__main__':
     """
     CommandLine:

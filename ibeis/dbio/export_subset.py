@@ -1191,14 +1191,25 @@ def merge_databases(ibs_src, ibs_dst, gid_list=None, back=None, user_prompt=Fals
 
 """
 def MERGE_NNP_MASTER_SCRIPT():
+    from ibeis.dbio.export_subset import *  # NOQA
     import ibeis
-    ibs_src = ibeis.opendb('NNP_Master')
     gid_list                 = None
     back                     =None
     user_prompt              =False
     bulk_conflict_resolution ='ignore'
 
-    ibs_dst = ibeis.opendb('GZC_NNP_MERGE')
+    # Step 1
+    ibs_src = ibeis.opendb('NNP_Master')
+    ibs_dst = ibeis.opendb('GZC_NNP_MERGE', allow_newdir=True)
+
+    # Step 2
+    ibs_src = ibeis.opendb('GZC')
+    ibs_dst = ibeis.opendb('GZC_NNP_MERGE', allow_newdir=False)
+
+    # Check
+    ibs1 = ibeis.opendb('NNP_Master')
+    ibs2 = ibeis.opendb('GZC')
+    ibs3 = ibs_dst
 """
 
 

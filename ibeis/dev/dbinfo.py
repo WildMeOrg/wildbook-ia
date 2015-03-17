@@ -251,10 +251,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     multiton_stats  = ut.get_stats_str(multiton_nid2_nannots, newlines=True)
 
     # Time stats
-    unixtime_list_ = ibs.get_image_unixtime(valid_gids)
-    utvalid_list   = [time != -1 for time in unixtime_list_]
-    unixtime_list  = ut.filter_items(unixtime_list_, utvalid_list)
-    unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True)
+    unixtime_statstr = ibs.get_image_time_statstr(valid_gids)
 
     # GPS stats
     gps_list_ = ibs.get_image_gps(valid_gids)
