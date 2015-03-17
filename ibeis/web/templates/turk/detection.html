@@ -22,15 +22,15 @@
         <span>highlight and press 'b' to send an annotation to the back</a></span>
       </div>
       <br/>
-      <form method="post" action="/submit/detection{% if refer != None %}?refer={{ refer }}{% endif %}" id="detection-form">
+      <form method="post" action="/submit/detection{% if eid %}?eid={{ eid }}{% endif %}{% if refer %}?refer={{ refer }}{% endif %}" id="detection-form">
         <input type="text" name="detection-gid" value="{{ gid }}" style="display: none;" readonly>
         <div class="row">
           <div class="col-lg-2">
-            <input type="submit" name="detection-submit" id="turk-submit-skip"   class="btn btn-default pull-left"  value="Skip">
+            <!-- <input type="submit" name="detection-submit" id="turk-submit-skip"   class="btn btn-default pull-left"  value="Skip"> -->
           </div>
           <div class="col-lg-8" style="text-align:center;">
             {% if refer == 'viewpoint' %}
-              <a href="/turk/viewpoint{% if refer_aid != None %}?aid={{ refer_aid }}{% endif %}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back to aid: {{ refer_aid }}</a>
+              <a href="/turk/viewpoint{% if refer_aid %}?aid={{ refer_aid }}{% endif %}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back to aid: {{ refer_aid }}</a>
             {% endif %}
           </div>
           <div class="col-lg-2">
