@@ -1240,6 +1240,7 @@ def MERGE_NNP_MASTER_SCRIPT():
     ibs_src1 = ibeis.opendb('NNP_initial')
     ibs_src2 = ibeis.opendb('GZC')
     ibs_dst = ibeis.opendb('GZC_NNP_MERGE2', allow_newdir=True)
+
     merge_databases2(ibs_src1, ibs_dst)
     merge_databases2(ibs_src2, ibs_dst)
 

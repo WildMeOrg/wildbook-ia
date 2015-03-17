@@ -668,7 +668,14 @@ class SQLDatabaseController(object):
                 #)  # list of iterators
                 results_iter = [list(context.execute_and_generate_results(params)) for params in params_iter]
                 if unpack_scalars:
-                    results_iter = list(map(_unpacker, results_iter))  # list of iterators
+                    #results_iter = list(map(_unpacker, results_iter))  # list of iterators
+                    try:
+                        results_iter = [_unpacker(results_) for resultx, results_ in enumerate(results_iter)]
+                    except AssertionError:
+                        print('resultx = %r' % (resultx,))
+                        if isinstance(params_iter, list):
+                            print('params = %r' % (params_iter[resultx]))
+                        raise
                 results_list = list(results_iter)  # Eager evaluation
             else:
                 #if utool.DEBUG2:

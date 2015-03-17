@@ -46,7 +46,7 @@ def _results_gen(cur, get_last_id=False):
 def _unpacker(results_):
     """ HELPER: Unpacks results if unpack_scalars is True """
     results = None if len(results_) == 0 else results_[0]
-    assert len(results_) < 2, 'throwing away results! { %r }' % (results_)
+    assert len(results_) < 2, 'throwing away results! { %r }' % (results_,)
     return results
 
 
