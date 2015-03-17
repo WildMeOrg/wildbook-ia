@@ -15,14 +15,14 @@
       Path: {{ image_path }}
       <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block;">
       <div style="text-align: center; color: #aaa;">
-        <span>Hard to tell?  <a href="/turk/detection?gid={{ gid }}&refer=viewpoint&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
+        <span>Hard to tell?  <a href="/turk/detection?gid={{ gid }}&refer=viewpoint&refer_aid={{ aid }}{% if eid %}&eid={{ eid }}{% endif %}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
       </div>
       <br/>
-      <form method="post" action="/submit/viewpoint">
+      <form method="post" action="/submit/viewpoint{% if eid %}?eid={{ eid }}{% endif %}">
         <input type="text" name="viewpoint-aid" value="{{ aid }}" style="display: none;" readonly>
         Degrees: <span id="label-degrees"></span> | Radians: <span id="label-radians1"></span> (&pi; * <span id="label-radians2"></span>) 
         <br/>
-        <input type="range" name="viewpoint-value" id="slider-viewpoint" value="{% if value != None %}{{ value }}{% else %}0{% endif %}" min="0" max="359" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <input type="range" name="viewpoint-value" id="slider-viewpoint" value="{% if value %}{{ value }}{% else %}0{% endif %}" min="0" max="359" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
         <div class="row-custom-expand">
           <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-left"            ></span></div>
           <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-down rotate-45"  ></span></div>
@@ -34,7 +34,7 @@
           <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-left rotate-45"    ></span></div>
         </div>
         <br/>
-        <input type="submit" name="viewpoint-submit" id="turk-submit-skip"   class="btn btn-default pull-left"  value="Skip">
+        <!-- <input type="submit" name="viewpoint-submit" id="turk-submit-skip"   class="btn btn-default pull-left"  value="Skip"> -->
         <input type="submit" name="viewpoint-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
       </form
       <br/>

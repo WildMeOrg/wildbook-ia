@@ -34,9 +34,8 @@ app = flask.Flask(__name__)
 
 
 @app.route('/')
-@app.route('/<filename>')
-def root(filename=None):
-    return ap.template(None, filename)
+def root():
+    return ap.template(None)
 
 
 @app.route('/view')
@@ -55,7 +54,12 @@ def view():
 
 @app.route('/view/encounters')
 def view_encoutners():
-    eid_list = app.ibs.get_valid_eids()
+    filtered = True
+    if 'eid' in request.args.keys():
+        eid_list = map(int, request.args['eid'].strip().split(','))
+    else:
+        eid_list = app.ibs.get_valid_eids()
+        filtered = False
     datetime_list = [
         ut.unixtime_to_datetime(start_time_posix)
         if start_time_posix is not None
@@ -70,16 +74,25 @@ def view_encoutners():
         datetime_list,
     )
     return ap.template('view', 'encounters',
+                       filtered=filtered,
+                       eid_list=eid_list,
+                       num_eids=len(eid_list),
                        encounter_list=encounter_list,
                        num_encounters=len(encounter_list))
 
 
 @app.route('/view/images')
 def view_images():
-    eid_list = [None]
-    if 'eid' in request.args.keys():
+    filtered = True
+    eid_list = []
+    if 'gid' in request.args.keys():
+        gid_list = map(int, request.args['gid'].strip().split(','))
+    elif 'eid' in request.args.keys():
         eid_list = map(int, request.args['eid'].strip().split(','))
-    gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid) for eid in eid_list ])
+        gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid) for eid in eid_list ])
+    else:
+        gid_list = app.ibs.get_valid_gids()
+        filtered = False
     datetime_list = [
         ut.unixtime_to_datetime(image_unixtime)
         if image_unixtime is not None
@@ -97,19 +110,32 @@ def view_images():
         app.ibs.get_image_notes(gid_list),
     )
     return ap.template('view', 'images',
+                       filtered=filtered,
+                       eid_list=eid_list,
+                       num_eids=len(eid_list),
+                       gid_list=gid_list,
+                       num_gids=len(gid_list),
                        image_list=image_list,
                        num_images=len(image_list))
 
 
 @app.route('/view/annotations')
 def view_annotations():
-    gid_list = None
-    if 'eid' in request.args.keys():
-        eid_list = map(int, request.args['eid'].strip().split(','))
-        gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid) for eid in eid_list ])
+    filtered = True
+    eid_list = []
+    gid_list = []
+    if 'aid' in request.args.keys():
+        aid_list = map(int, request.args['aid'].strip().split(','))
     elif 'gid' in request.args.keys():
         gid_list = map(int, request.args['gid'].strip().split(','))
-    aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+        aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+    elif 'eid' in request.args.keys():
+        eid_list = map(int, request.args['eid'].strip().split(','))
+        gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid) for eid in eid_list ])
+        aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+    else:
+        aid_list = app.ibs.get_valid_aids()
+        filtered = False
     annotation_list = zip(
         aid_list,
         app.ibs.get_annot_image_names(aid_list),
@@ -120,35 +146,41 @@ def view_annotations():
         app.ibs.get_annot_quality_texts(aid_list),
     )
     return ap.template('view', 'annotations',
+                       filtered=filtered,
+                       eid_list=eid_list,
+                       num_eids=len(eid_list),
+                       gid_list=gid_list,
+                       num_gids=len(gid_list),
+                       aid_list=aid_list,
+                       num_aids=len(aid_list),
                        annotation_list=annotation_list,
                        num_annotations=len(annotation_list))
 
 
 @app.route('/turk')
-@app.route('/turk/<filename>')
-def turk(filename=None):
-    if filename == 'detection':
-        return turk_detection()
-    elif filename == 'viewpoint':
-        return turk_viewpoint()
-    else:
-        return ap.template('turk', filename)
+def turk():
+    eid = None
+    if 'eid' in request.args.keys():
+        eid = int(request.args['eid'])
+    return ap.template('turk', None, eid=eid)
 
 
+@app.route('/turk/detection')
 def turk_detection():
+    eid = None
+    refer = None
+    refer_aid = None
     if 'refer' in request.args.keys():
         refer = request.args['refer']
-    else:
-        refer = None
     if refer is not None and 'refer_aid' in request.args.keys():
         refer_aid = request.args['refer_aid']
-    else:
-        refer_aid = None
+    if 'eid' in request.args.keys():
+        eid = int(request.args['eid'])
     if 'gid' in request.args.keys():
         gid = int(request.args['gid'])
     else:
         with SQLAtomicContext(app.db):
-            gid_list = app.ibs.get_valid_gids()
+            gid_list = app.ibs.get_valid_gids(eid=eid)
             reviewed_list = app.ibs.get_image_reviewed(gid_list)
             flag_list = [ reviewed == 0 for reviewed in reviewed_list ]
             gid_list_ = ut.filter_items(gid_list, flag_list)
@@ -194,6 +226,7 @@ def turk_detection():
         image_src = None
         annotation_list = []
     return ap.template('turk', 'detection',
+                       eid=eid,
                        gid=gid,
                        species=species,
                        image_path=gpath,
@@ -207,17 +240,20 @@ def turk_detection():
                        review=review)
 
 
+@app.route('/turk/viewpoint')
 def turk_viewpoint():
+    eid = None
+    refer = None
     if 'refer' in request.args.keys():
         refer = request.args['refer']
-    else:
-        refer = None
-
+    if 'eid' in request.args.keys():
+        eid = int(request.args['eid'])
     if 'aid' in request.args.keys():
         aid = int(request.args['aid'])
     else:
         with SQLAtomicContext(app.db):
-            aid_list = app.ibs.get_valid_aids()
+            gid_list = app.ibs.get_valid_gids(eid=eid)
+            aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
             reviewed_list = app.ibs.get_annot_yaws(aid_list)
             flag_list = [ reviewed is None for reviewed in reviewed_list ]
             aid_list_ = ut.filter_items(aid_list, flag_list)
@@ -235,13 +271,13 @@ def turk_viewpoint():
         image     = ap.open_oriented_image(gpath)
         image_src = ap.embed_image_html(image)
     else:
-        print("\nADMIN: http://%s:%s/submit/viewpoint\n" % (app.server_ip_address, app.port))
         gid       = None
         gpath     = None
         image_src = None
     return ap.template('turk', 'viewpoint',
-                       aid=aid,
+                       eid=eid,
                        gid=gid,
+                       aid=aid,
                        value=value,
                        image_path=gpath,
                        image_src=image_src,
@@ -253,6 +289,9 @@ def turk_viewpoint():
 
 @app.route('/submit/detection', methods=['POST'])
 def submit_detection():
+    eid = None
+    if 'eid' in request.args.keys():
+        eid = int(request.args['eid'])
     gid = int(request.form['detection-gid'])
     turk_id = request.cookies.get('turk_id', -1)
     aid_list = app.ibs.get_image_aids(gid)
@@ -283,13 +322,16 @@ def submit_detection():
     app.ibs.set_image_reviewed([gid], [1])
     print("[web] turk_id: %s, gid: %d, bbox_list: %r, species_list: %r" % (turk_id, gid, annotation_list, species_list))
     if 'refer' in request.args.keys() and request.args['refer'] == 'viewpoint':
-        return redirect(url_for('turk', filename='viewpoint'))
+        return redirect(url_for('turk_viewpoint', eid=eid))
     else:
-        return redirect(url_for('turk', filename='detection'))
+        return redirect(url_for('turk_detection', eid=eid))
 
 
 @app.route('/submit/viewpoint', methods=['POST'])
 def submit_viewpoint():
+    eid = None
+    if 'eid' in request.args.keys():
+        eid = int(request.args['eid'])
     aid = int(request.form['viewpoint-aid'])
     value = int(request.form['viewpoint-value'])
     turk_id = request.cookies.get('turk_id', -1)
@@ -321,7 +363,7 @@ def submit_viewpoint():
     app.ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
     print("[web] turk_id: %s, aid: %d, yaw: %d" % (turk_id, aid, yaw))
     # Return HTML
-    return redirect(url_for('turk', filename='viewpoint'))
+    return redirect(url_for('turk_viewpoint', eid=eid))
 
 
 @app.route('/ajax/cookie')
@@ -449,14 +491,8 @@ def start_from_terminal():
         '--db',
         help='specify an IBEIS database',
         type='str', default='testdb0')
-    parser.add_option(
-        '--round',
-        help='specify the round of turking',
-        type='int', default='1')
 
     opts, args = parser.parse_args()
-    app.round = opts.round
-    print(app.round)
     app.ibs = ibeis.opendb(db=opts.db)
     start_tornado(app, opts.port)
 
@@ -465,7 +501,6 @@ def start_from_ibeis(ibs, port=DEFAULT_PORT):
     '''
     Parse command line options and start the server.
     '''
-    from ibeis import params
     dbname = ibs.get_dbname()
     if dbname == "CHTA_Master":
         app.default_species = Species.CHEETAH
@@ -481,11 +516,14 @@ def start_from_ibeis(ibs, port=DEFAULT_PORT):
         app.default_species = Species.ZEB_PLAIN
     elif dbname == "WD_Master":
         app.default_species = Species.WILDDOG
+    elif dbname == "NNP_Master":
+        app.default_species = Species.ZEB_PLAIN
+    elif dbname == "GZC":
+        app.default_species = Species.ZEB_PLAIN
     else:
         app.default_species = None
     print("DEFAULT SPECIES: %r" % (app.default_species))
     app.ibs = ibs
-    app.round = params.args.round
     start_tornado(app, port)
 
 
