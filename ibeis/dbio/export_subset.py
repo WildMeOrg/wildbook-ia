@@ -1115,6 +1115,31 @@ def merge_databases(ibs_src, ibs_dst, gid_list=None, back=None, user_prompt=Fals
     ibs_dst.notify_observers()
 
 
+def merge_databases2(ibs_src, ibs_dst):
+    """ new way of merging using the non-hacky sql table merge that is only working due to major hacks
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+        >>> import ibeis
+        >>> #ibs_dst = ibeis.opendb(dbdir='testdb_dst')
+        >>> ibs_src = ibeis.opendb(db='testdb1')
+        >>> # OPEN A CLEAN DATABASE
+        >>> #delete_ibsdir = True
+        >>> delete_ibsdir = False
+        >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst', allow_newdir=True, delete_ibsdir=delete_ibsdir)
+    """
+    ibs_src.ensure_contributor_rowids()
+    ibs_dst.ensure_contributor_rowids()
+    # Hack move of the external data
+    gid_list = ibs_src.get_valid_gids()
+    imgpath_list = ibs_src.get_image_paths(gid_list)
+    dst_imgdir = ibs_dst.get_imgdir()
+    for imgpath in ut.ProgressIter(imgpath_list, lbl='copying images'):
+        ut.copy(imgpath, dst_imgdir, overwrite=False, verbose=ut.VERBOSE)
+    ibs_dst.db.merge_databases_new(ibs_src.db)
+
+
 # RELEVANT LEGACY CODE FOR IMAGE MERGING
 # def check_conflicts(ibs_src, ibs_dst, transfer_data):
 #     """
@@ -1210,6 +1235,10 @@ def MERGE_NNP_MASTER_SCRIPT():
     ibs1 = ibeis.opendb('NNP_Master')
     ibs2 = ibeis.opendb('GZC')
     ibs3 = ibs_dst
+
+    print(ibs1.get_image_time_statstr())
+    print(ibs2.get_image_time_statstr())
+    print(ibs3.get_image_time_statstr())
 """
 
 

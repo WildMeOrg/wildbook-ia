@@ -26,12 +26,25 @@ profile = utool.profile
 
 NAME_TABLE_v121   = const.NAME_TABLE_v121
 NAME_TABLE_v130   = const.NAME_TABLE_v130
-ANNOT_VISUAL_UUID = 'annot_visual_uuid'
+ANNOT_VISUAL_UUID   = 'annot_visual_uuid'
 ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
-ANNOT_UUID        = 'annot_uuid'
-ANNOT_YAW         = 'annot_yaw'
-ANNOT_VIEWPOINT   = 'annot_viewpoint'
-
+ANNOT_UUID          = 'annot_uuid'
+ANNOT_YAW           = 'annot_yaw'
+ANNOT_VIEWPOINT     = 'annot_viewpoint'
+NAME_ROWID          = 'name_rowid'
+SPECIES_ROWID       = 'species_rowid'
+IMAGE_ROWID         = 'image_rowid'
+ANNOT_ROWID         = 'annot_rowid'
+ANNOT_PARENT_ROWID  = 'annot_parent_rowid'
+NAME_TEXT           = 'name_text'
+SPECIES_TEXT        = 'species_text'
+ANNOT_ROWID1        = 'annot_rowid1'
+ANNOT_ROWID2        = 'annot_rowid2'
+PARTY_ROWID         = 'party_rowid'
+PARTY_TAG           = 'party_tag'
+CONFIG_ROWID        = 'config_rowid'
+IMAGE_UUID          = 'image_uuid'
+CONFIG_SUFFIX       = 'config_suffix'
 
 # =======================
 # Schema Version 1.0.0
@@ -41,8 +54,8 @@ ANNOT_VIEWPOINT   = 'annot_viewpoint'
 @profile
 def update_1_0_0(db, ibs=None):
     db.add_table(const.IMAGE_TABLE, (
-        ('image_rowid',                  'INTEGER PRIMARY KEY'),
-        ('image_uuid',                   'UUID NOT NULL'),
+        (IMAGE_ROWID,                   'INTEGER PRIMARY KEY'),
+        (IMAGE_UUID,                     'UUID NOT NULL'),
         ('image_uri',                    'TEXT NOT NULL'),
         ('image_ext',                    'TEXT NOT NULL'),
         ('image_original_name',          'TEXT NOT NULL'),  # We could parse this out of original_path
@@ -55,7 +68,7 @@ def update_1_0_0(db, ibs=None):
         ('image_toggle_reviewed',        'INTEGER DEFAULT 0'),
         ('image_note',                   'TEXT',),
     ),
-        superkey_colnames_list=[('image_uuid',)],
+        superkey_colnames_list=[(IMAGE_UUID,)],
         docstr='''
         First class table used to store image locations and meta-data''')
 
@@ -82,10 +95,10 @@ def update_1_0_0(db, ibs=None):
         lbltype_rowid''')
 
     db.add_table(const.CONFIG_TABLE, (
-        ('config_rowid',                 'INTEGER PRIMARY KEY'),
-        ('config_suffix',                'TEXT NOT NULL'),
+        (CONFIG_ROWID,                 'INTEGER PRIMARY KEY'),
+        (CONFIG_SUFFIX,                'TEXT NOT NULL'),
     ),
-        superkey_colnames_list=[('config_suffix',)],
+        superkey_colnames_list=[(CONFIG_SUFFIX,)],
         docstr='''
         Used to store the ids of algorithm configurations that generate
         annotation lblannots.  Each user will have a config id for manual
@@ -95,7 +108,7 @@ def update_1_0_0(db, ibs=None):
     # FIRST ORDER            #
     ##########################
     db.add_table(const.ANNOTATION_TABLE, (
-        ('annot_rowid',                  'INTEGER PRIMARY KEY'),
+        (ANNOT_ROWID,                    'INTEGER PRIMARY KEY'),
         (ANNOT_UUID,                     'UUID NOT NULL'),
         ('image_rowid',                  'INTEGER NOT NULL'),
         ('annot_xtl',                    'INTEGER NOT NULL'),
@@ -240,7 +253,7 @@ def post_1_2_0(db, ibs=None):
 
         aid_list = ibs.get_valid_aids()
         #ibs.get_annot_name_rowids(aid_list)
-        #ANNOT_PARENT_ROWID      = 'annot_parent_rowid'
+        #
         #ANNOT_ROWID             = 'annot_rowid'
         ANNOTATION_TABLE        = 'annotations'
         ANNOT_SEMANTIC_UUID     = 'annot_semantic_uuid'
@@ -604,7 +617,7 @@ def update_1_1_0(db, ibs=None):
     ),
         table_constraints=[],
         # FIXME: This change may have broken things
-        superkey_colnames_list=[('contributor_uuid', 'config_suffix',)]
+        superkey_colnames_list=[('contributor_uuid', CONFIG_SUFFIX,)]
     )
 
     # Add config to encounters
@@ -633,7 +646,7 @@ def update_1_1_1(db, ibs=None):
         ('contributor_uuid', 'contributor_rowid', '', None),
     ),
         table_constraints=[],
-        superkey_colnames_list=[('contributor_rowid', 'config_suffix',)]
+        superkey_colnames_list=[('contributor_rowid', CONFIG_SUFFIX,)]
     )
 
     # Change type of column
@@ -677,10 +690,10 @@ def update_1_2_1(db, ibs=None):
     db.add_table(NAME_TABLE_v121, (
         ('name_rowid',               'INTEGER PRIMARY KEY'),
         ('name_uuid',                'UUID NOT NULL'),
-        ('name_text',                'TEXT NOT NULL'),
+        (NAME_TEXT,                  'TEXT NOT NULL'),
         ('name_note',                'TEXT'),
     ),
-        superkey_colnames_list=[('name_text',)],
+        superkey_colnames_list=[(NAME_TEXT,)],
         docstr='''
         Stores the individual animal names
         ''')
@@ -688,10 +701,10 @@ def update_1_2_1(db, ibs=None):
     db.add_table(const.SPECIES_TABLE, (
         ('species_rowid',               'INTEGER PRIMARY KEY'),
         ('species_uuid',                'UUID NOT NULL'),
-        ('species_text',                'TEXT NOT NULL'),
+        (SPECIES_TEXT,                  'TEXT NOT NULL'),
         ('species_note',                'TEXT'),
     ),
-        superkey_colnames_list=[('species_text',)],
+        superkey_colnames_list=[(SPECIES_TEXT,)],
         docstr='''
         Stores the different animal species
         ''')
@@ -761,6 +774,7 @@ def update_1_3_1(db, ibs=None):
             # change type of annot_visual_uuid
             (ANNOT_VISUAL_UUID, '', 'UUID NOT NULL', None),
         ],
+        # ERROR: this should have been ANNOT_SEMANTIC_UUID
         superkey_colnames_list=[(ANNOT_UUID,), (ANNOT_VISUAL_UUID,)])
     #pass
 
@@ -867,10 +881,10 @@ def update_1_3_6(db, ibs=None):
     # Add table for explicit annotation-vs-annotation match information
 
     db.add_table(const.PARTY_TABLE, (
-        ('party_rowid',               'INTEGER PRIMARY KEY'),
-        ('party_tag',                 'TEXT NOT NULL'),
+        (PARTY_ROWID,               'INTEGER PRIMARY KEY'),
+        (PARTY_TAG,                 'TEXT NOT NULL'),
     ),
-        superkey_colnames_list=[('party_tag',)],
+        superkey_colnames_list=[(PARTY_TAG,)],
         docstr='''
         Serves as a group for contributors
         ''',
@@ -899,8 +913,8 @@ def update_1_3_6(db, ibs=None):
     #)
     db.add_table(const.ANNOTMATCH_TABLE, (
         ('annotmatch_rowid',          'INTEGER PRIMARY KEY'),
-        ('annot_rowid1',              'INTEGER NOT NULL'),
-        ('annot_rowid2',              'INTEGER NOT NULL'),
+        (ANNOT_ROWID1,                'INTEGER NOT NULL'),
+        (ANNOT_ROWID2,                'INTEGER NOT NULL'),
         ('annotmatch_truth',          'INTEGER DEFAULT 2'),
         ('annotmatch_confidence',     'REAL DEFAULT 0'),
     ),
@@ -934,6 +948,56 @@ def update_1_3_6(db, ibs=None):
         shortname='annot',
     )
 
+
+def update_1_3_7(db, ibs=None):
+    # Part of the dependsmap property might be infered, but at least the keys and tables are needed.
+    db.modify_table(
+        const.ANNOTATION_TABLE,
+        extern_tables=[const.NAME_TABLE, const.SPECIES_TABLE, const.IMAGE_TABLE],
+        superkey_colnames_list=[(ANNOT_UUID,), (ANNOT_VISUAL_UUID,)],
+        dependsmap={
+            IMAGE_ROWID        : (const.IMAGE_TABLE,      (IMAGE_ROWID,),   (IMAGE_UUID,)),
+            NAME_ROWID         : (const.NAME_TABLE,       (NAME_ROWID,),    (NAME_TEXT,)),
+            SPECIES_ROWID      : (const.SPECIES_TABLE,    (SPECIES_ROWID,), (SPECIES_TEXT,)),
+            ANNOT_PARENT_ROWID : (const.ANNOTATION_TABLE, (ANNOT_ROWID,),   (ANNOT_VISUAL_UUID,)),
+        }
+    )
+    db.modify_table(
+        const.ANNOTMATCH_TABLE,
+        dependsmap={
+            ANNOT_ROWID1: (const.ANNOTATION_TABLE, (ANNOT_ROWID,),   (ANNOT_VISUAL_UUID,)),
+            ANNOT_ROWID2: (const.ANNOTATION_TABLE, (ANNOT_ROWID,),   (ANNOT_VISUAL_UUID,)),
+        }
+    )
+    db.modify_table(
+        const.IMAGE_TABLE,
+        dependsmap={
+            'party_rowid':       (const.PARTY_TABLE,       ('party_rowid',),          (PARTY_TAG,)),
+            'contributor_rowid': (const.CONTRIBUTOR_TABLE, ('contributor_rowid',),    ('contributor_tag',)),
+        }
+    )
+    db.modify_table(
+        const.CONFIG_TABLE,
+        dependsmap={
+            'contributor_rowid':       (const.CONTRIBUTOR_TABLE,       ('contributor_rowid',),          ('contributor_tag',)),
+        }
+    )
+
+    db.modify_table(
+        const.ENCOUNTER_TABLE,
+        dependsmap={
+            'config_rowid':       (const.CONFIG_TABLE,       ('config_rowid',),          ('contributor_rowid', CONFIG_SUFFIX,)),
+        }
+    )
+
+    db.modify_table(
+        const.EG_RELATION_TABLE,
+        dependsmap={
+            'image_rowid':       (const.IMAGE_TABLE,     (IMAGE_ROWID,),   (IMAGE_UUID,)),
+            'encounter_rowid':   (const.ENCOUNTER_TABLE,  ('encounter_rowid',),   ('encounter_text',)),
+        }
+    )
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -959,6 +1023,7 @@ VALID_VERSIONS = utool.odict([
     ('1.3.4',    (None,                 update_1_3_4,       post_1_3_4          )),
     ('1.3.5',    (None,                 update_1_3_5,       None          )),
     ('1.3.6',    (None,                 update_1_3_6,       None          )),
+    ('1.3.7',    (None,                 update_1_3_7,       None          )),
 ])
 
 

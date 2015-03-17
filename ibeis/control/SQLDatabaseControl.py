@@ -175,7 +175,8 @@ class SQLDatabaseController(object):
             'relates',
             'shortname',
             'superkeys',
-            'extern_tables'
+            'extern_tables',
+            'dependsmap',
         ]
 
     def get_fpath(db):
@@ -389,6 +390,8 @@ class SQLDatabaseController(object):
         # Check for duplicate inputs
         isunique_list = utool.flag_unique_items(list(zip(*superkey_lists)))
         # Check to see if this already exists in the database
+        #superkey_params_iter = list(zip(*superkey_lists))
+        # get_rowid_from_superkey functions take each list separately here
         rowid_list_ = get_rowid_from_superkey(*superkey_lists)
         isnew_list  = [rowid is None for rowid in rowid_list_]
         if VERBOSE_SQL and not all(isunique_list):
@@ -763,7 +766,7 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def add_table(db, tablename=None, coldef_list=None, table_constraints=None, docstr='', superkey_colnames_list=None,
-                  dependson=None, relates=None, shortname=None, extern_tables=None):
+                  dependson=None, relates=None, shortname=None, extern_tables=None, dependsmap=None):
         """
         add_table
 
@@ -805,6 +808,7 @@ class SQLDatabaseController(object):
                     colnames_str = ','.join(superkey_colnames)
                     unique_constraint = constraint_fmtstr.format(colnames_str=colnames_str)
                     table_constraints.append(unique_constraint)
+                table_constraints = ut.unique_keep_order2(table_constraints)
         except Exception as ex:
             utool.printex(ex, keys=locals().keys())
             raise
@@ -835,14 +839,16 @@ class SQLDatabaseController(object):
         if relates is not None:
             db.set_metadata_val(tablename + '_relates', repr(relates))
         if shortname is not None:
-            db.set_metadata_val(tablename + '_shortname', repr(relates))
+            db.set_metadata_val(tablename + '_shortname', repr(shortname))
         if extern_tables is not None:
             db.set_metadata_val(tablename + '_extern_tables', repr(extern_tables))
+        if dependsmap is not None:
+            db.set_metadata_val(tablename + '_dependsmap', repr(dependsmap))
 
     @default_decorator
     def modify_table(db, tablename=None, colmap_list=None, table_constraints=None,
                      docstr=None, superkey_colnames_list=None, tablename_new=None,
-                     dependson=None, relates=None, shortname=None, extern_tables=None):
+                     dependson=None, relates=None, shortname=None, extern_tables=None, dependsmap=None):
         """
         function to modify the schema - only columns that are being added, removed or changed need to be enumerated
 
@@ -968,6 +974,7 @@ class SQLDatabaseController(object):
                      relates=relates,
                      shortname=shortname,
                      extern_tables=extern_tables,
+                     dependsmap=dependsmap,
                      )
 
         # Copy data
@@ -1222,16 +1229,25 @@ class SQLDatabaseController(object):
             superkey_colnames_list = db.get_table_superkeys(tablename)
             docstr = db.get_table_docstr(tablename)
             # Append metadata values
+            specially_handled_table_metakeys = ['docstr', 'superkeys', 'constraint', 'dependsmap']
+            def quote_docstr(docstr):
+                _TSQ = ut.TRIPLE_SINGLE_QUOTE
+                return _TSQ + '\n' + ut.indent(docstr.strip(), tab2) + '\n' + tab2 + _TSQ
+            line_list.append(tab2 + 'docstr=' + quote_docstr(docstr) + ',')
             line_list.append(tab2 + 'superkey_colnames_list=%r,' % (superkey_colnames_list, ))
-            line_list.append(tab2 + 'docstr=' + ut.TRIPLE_SINGLE_QUOTE + docstr + ut.TRIPLE_SINGLE_QUOTE + ',')
+            line_list.append(tab2 + 'constraint=%r,' % (db.get_metadata_val(tablename + '_constraint'),))
             # Hack out docstr and superkeys for now
             for suffix in db.table_metadata_keys:
-                if suffix in ['docstr', 'superkeys']:
+                if suffix in specially_handled_table_metakeys:
                     continue
                 key = tablename + '_' + suffix
-                val = db.get_metadata_val(key)
+                val = db.get_metadata_val(key, eval_=True)
                 if val is not None:
-                    line_list.append(tab2 + '%s=\'%s\',' % (suffix, val))
+                    #ut.embed()
+                    line_list.append(tab2 + '%s=%r,' % (suffix, val))
+            dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True)
+            if dependsmap is not None:
+                line_list.append(tab2 + 'dependsmap=%s,' % (ut.align(ut.indent(ut.dict_str(dependsmap), tab2).lstrip(' '), ':'),))
             line_list.append(tab1 + ')')
 
         line_list.append('')
@@ -1457,6 +1473,203 @@ class SQLDatabaseController(object):
             ''' % (_column, _table))
         return column_vals
 
+    def get_table_column_data(db, tablename, exclude_columns=[]):
+        """
+        CommandLine:
+            python -m ibeis.control.SQLDatabaseControl --test-get_table_column_data
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> # build test data
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> db = ibs.db
+            >>> tablename = ibeis.const.ANNOTATION_TABLE
+            >>> exclude_columns = []
+            >>> # execute function
+            >>> column_list, column_names = db.get_table_column_data(tablename)
+            >>> # verify results
+        """
+        all_column_names = db.get_column_names(tablename)
+        isvalid_list = [name not in exclude_columns for name in all_column_names]
+        column_names = ut.filter_items(all_column_names, isvalid_list)
+        column_list = [db.get_column(tablename, name) for name in column_names if name not in exclude_columns]
+        return column_list, column_names
+
+    def get_table_new_transferdata(db, tablename, exclude_columns=[]):
+        """
+        CommandLine:
+            python -m ibeis.control.SQLDatabaseControl --test-get_table_column_data
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> # build test data
+            >>> import ibeis
+            >>> from ibeis import const
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> db = ibs.db
+            >>> exclude_columns = []
+            >>> tablename_list = [const.ANNOTATION_TABLE, const.IMAGE_TABLE, const.ENCOUNTER_TABLE, const.CONFIG_TABLE, const.NAME_TABLE, const.SPECIES_TABLE, const.CONTRIBUTOR_TABLE]
+            >>> tablename_list = ibs.db.get_table_names()
+            >>> for tablename in tablename_list:
+            ...     new_transferdata = db.get_table_new_transferdata(tablename)
+            ...     column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list = new_transferdata
+            ...     print('tablename = %r' % (tablename,))
+            ...     print('colnames = ' + ut.list_str(column_names))
+            ...     print('extern_colx_list = ' + ut.list_str(extern_colx_list))
+            ...     print('extern_superkey_colname_list = ' + ut.list_str(extern_superkey_colname_list))
+            ...     print('L___')
+        """
+        all_column_names = db.get_column_names(tablename)
+        isvalid_list = [name not in exclude_columns for name in all_column_names]
+        column_names = ut.filter_items(all_column_names, isvalid_list)
+        column_list = [db.get_column(tablename, name) for name in column_names if name not in exclude_columns]
+
+        extern_colx_list = []
+        extern_tablename_list  = []
+        extern_superkey_colname_list  = []
+        extern_superkey_colval_list = []
+        extern_primarycolnames_list = []
+        #extern_tables = db.get_metadata_val(tablename + '_extern_tables', eval_=True)
+        #if extern_tables is None:
+        #    extern_tables = []
+        #for extern_tablename in extern_tables:
+        #    # TODO: this should eventually be written with explicit dependency
+        #    # mapping from column names to external tables
+        #    extern_primary_colnames = db.get_table_primarykey_colnames(extern_tablename)
+        #    assert len(extern_primary_colnames) == 1
+        #    extern_colname = extern_primary_colnames[0]
+        #    colx = ut.listfind(column_names, extern_colname)
+        #    if colx is not None:
+        #        extern_rowids = column_list[colx]
+        #        extern_superkey_colnames_list = db.get_table_superkey_colnames(extern_tablename)
+        #        assert len(extern_superkey_colnames_list) == 1
+        #        extern_superkey_colnames = extern_superkey_colnames_list[0]
+        #        superkey_column = db.get(extern_tablename, extern_superkey_colnames, extern_rowids)
+        #        # Overwrite the rowids with the external superkey
+        #        overwrite_colx_list.append(colx)
+        #        overwrite_colname_list.append(extern_superkey_colnames)
+        #        overwrite_column_list.append(superkey_column)
+        #    else:
+        #        print('Error could not find: %r' % (extern_colname,))
+        dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True)
+        if dependsmap is not None:
+            for colname, (extern_tablename, extern_primary_colnames, extern_superkey_colnames) in six.iteritems(dependsmap):
+                #print(colname)
+                #print(extern_tablename)
+                #print(extern_primary_colnames)
+                #print(extern_superkey_colnames)
+                colx = ut.listfind(column_names, colname)
+                extern_rowids = column_list[colx]
+                superkey_column = db.get(extern_tablename, extern_superkey_colnames, extern_rowids)
+                extern_colx_list.append(colx)
+                extern_superkey_colname_list.append(extern_superkey_colnames)
+                extern_superkey_colval_list.append(superkey_column)
+                extern_tablename_list.append(extern_tablename)
+                extern_primarycolnames_list.append(extern_primary_colnames)
+
+        new_transferdata = column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list
+        return new_transferdata
+
+    def import_table_new_transferdata(tablename, new_transferdata):
+        pass
+
+    def merge_databases_new(db, db_src):
+        r"""
+        Copies over all non-rowid properties into another sql table. handles annotated dependenceis.
+        Does not handle external files
+        Could handle dependency tree order, but not yet implemented.
+
+        Args:
+            db_src (?):
+
+        Returns:
+            ?: sql_version
+
+        CommandLine:
+            python -m ibeis.control.SQLDatabaseControl --test-merge_databases_new
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> import ibeis
+            >>> #ibs_dst = ibeis.opendb(dbdir='testdb_dst')
+            >>> ibs_src = ibeis.opendb(db='testdb1')
+            >>> # OPEN A CLEAN DATABASE
+            >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst', allow_newdir=True, delete_ibsdir=True)
+            >>> ibs_src.ensure_contributor_rowids()
+            >>> # build test data
+            >>> db = ibs_dst.db
+            >>> db_src = ibs_src.db
+            >>> # execute function
+            >>> db.merge_databases_new(db_src)
+        """
+        all_tablename_list = db.get_table_names()
+        # HACK, fix order. TODO: infer this order correctly via dependency analysis
+        ignore_tables = ['metadata']
+        ignore_tables_hack = ['lblannot', 'lblimage', 'image_lblimage_relationship', 'annotation_lblannot_relationship', 'keys']
+        ignore_tables += ignore_tables_hack
+        tablename_list = [tablename for tablename in all_tablename_list if tablename not in ignore_tables]
+        hacked_order = {'contributors': 0, 'configs': 1, 'party': 0, 'names': 0, 'species': 0, 'images': 2, 'encounters': 2, 'encounter_image_relationship': 3, 'annotations': 3, 'annotmatch': 3}
+        tablename_list = sorted(tablename_list, key=lambda x: hacked_order.get(x, 9))
+        tablename_iter = iter(tablename_list)
+        for tablename in tablename_list:
+            tablename = tablename_iter.next()
+            print(tablename)
+            new_transferdata = db_src.get_table_new_transferdata(tablename)
+            column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list = new_transferdata
+            #new_extern_rowids_list = []
+            # HACK OUT THE ROWID COLUMN
+            #db.get_table_primarykey_colnames(tablename)
+            assert column_names[0].endswith('_rowid')
+            column_names_ = column_names[1:]
+            column_list_ = column_list[1:]
+            #ibs.db.get(const.CONFIG_TABLE, ('config_rowid',), cfgsuffix_list, id_colname='config_suffix')
+
+            if len(extern_colx_list) > 0:
+                # Resolve external superkey lookups
+                # CONFIGS MIGHT BE BROKEN HERE DUE TO HAVING A MUTLTIKEY-SUPERKEY
+                column_list_modified = column_list[:]  # NOQA
+                #get_rowid_from_superkey, superkey_paramx=(0,)
+                _iter = zip(extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list)
+                new_extern_rowid_list = []
+                for colx, extern_superkey_colname, extern_superkey_colval, extern_tablename, extern_primarycolname in _iter:
+                    _params_iter = list(zip(extern_superkey_colval))
+                    new_extern_rowids = db.get_rowid_from_superkey(extern_tablename, _params_iter, superkey_colnames=extern_superkey_colname)
+                    new_extern_rowid_list.append(new_extern_rowids)
+                for colx, new_extern_rowids in zip(extern_colx_list, new_extern_rowid_list):
+                    column_list_modified[colx] = new_extern_rowids
+            else:
+                column_list_modified = column_list
+                #new_extern_rowids_list.append(new_extern_rowids)
+
+            # cleanly add new data to db
+            superkey_colnames_list = db.get_table_superkey_colnames(tablename)
+            if tablename == 'configs':
+                # HACK
+                # Ignore contributor for configs for now
+                superkey_colnames_list = [('config_suffix',)]
+            superkey_paramxs_list = [[column_names_.index(str(superkey)) for superkey in  superkey_colnames] for superkey_colnames in superkey_colnames_list]
+            if tablename == 'annotations':
+                # use visual uuids for annots
+                superkey_paramx = superkey_paramxs_list[1]
+                superkey_colnames = superkey_colnames_list[1]
+                assert superkey_colnames == ('annot_visual_uuid',)
+            else:
+                assert len(superkey_colnames_list) == 1
+                superkey_paramx = superkey_paramxs_list[0]
+                superkey_colnames = superkey_colnames_list[0]
+            params_iter = list(zip(*column_list_))
+            def get_rowid_from_superkey(*superkey_column_list):
+                superkey_params_iter = zip(*superkey_column_list)
+                return db.get_rowid_from_superkey(tablename, superkey_params_iter, superkey_colnames=superkey_colnames)
+            new_rowid_list = db.add_cleanly(tablename, column_names_, params_iter, get_rowid_from_superkey=get_rowid_from_superkey, superkey_paramx=superkey_paramx)
+            new_rowid_list
+            #print(tablename)
+            #print(new_rowid_list)
+
     @default_decorator
     def get_table_csv(db, tablename, exclude_columns=[]):
         """ Conveinience: Converts a tablename to csv format
@@ -1472,11 +1685,13 @@ class SQLDatabaseController(object):
             python -m ibeis.control.SQLDatabaseControl --test-get_table_csv
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
             >>> # build test data
-            >>> db = '?'
-            >>> tablename = '?'
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> db = ibs.db
+            >>> tablename = ibeis.const.NAME_TABLE
             >>> exclude_columns = []
             >>> # execute function
             >>> csv_table = db.get_table_csv(tablename, exclude_columns)
@@ -1484,18 +1699,10 @@ class SQLDatabaseController(object):
             >>> result = str(csv_table)
             >>> print(result)
         """
-        column_names = db.get_column_names(tablename)
-        column_list = []
-        column_lbls = []
-        for name in column_names:
-            if name in exclude_columns:
-                continue
-            column_vals = db.get_column(tablename, name)
-            column_list.append(column_vals)
-            column_lbls.append(name.replace(tablename[:-1] + '_', ''))
-        # remove column prefix for more compact csvs
-
         #=None, column_list=[], header='', column_type=None
+        column_list, column_names = db.get_table_column_data(tablename, exclude_columns)
+        # remove column prefix for more compact csvs
+        column_lbls = [name.replace(tablename[:-1] + '_', '') for name in column_names]
         header = db.get_table_csv_header(tablename)
         csv_table = utool.make_csv_table(column_list, column_lbls, header)
         return csv_table
