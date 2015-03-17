@@ -58,13 +58,19 @@ def view():
 @app.route('/view/encounters')
 def view_encoutners():
     eid_list = app.ibs.get_valid_eids()
+    datetime_list = [
+        ut.unixtime_to_datetime(start_time_posix)
+        if start_time_posix is not None
+        else
+        '<i>Unknown Date / Time</i>'
+        for start_time_posix in app.ibs.get_encounter_start_time_posix(eid_list)
+    ]
     encounter_list = zip(
         eid_list,
         app.ibs.get_encounter_enctext(eid_list),
         app.ibs.get_encounter_num_gids(eid_list),
-        app.ibs.get_encounter_start_time_posix(eid_list),
+        datetime_list,
     )
-    # ut.unixtime_to_datetime(
     return ap.template('view', 'encounters',
                        encounter_list=encounter_list,
                        num_encounters=len(encounter_list))
@@ -72,15 +78,23 @@ def view_encoutners():
 
 @app.route('/view/images')
 def view_images():
-    eid = None
+    eid_list = [None]
     if 'eid' in request.args.keys():
-        eid = int(request.args['eid'])
-    gid_list = app.ibs.get_valid_gids(eid=eid)
+        eid_list = map(int, request.args['eid'].strip().split(','))
+    print('Loading eid_list: %r' % (eid_list, ))
+    gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid) for eid in eid_list ])
+    datetime_list = [
+        ut.unixtime_to_datetime(image_unixtime)
+        if image_unixtime is not None
+        else
+        '<i>Unknown Date / Time</i>'
+        for image_unixtime in app.ibs.get_image_unixtime(gid_list)
+    ]
     image_list = zip(
         gid_list,
         app.ibs.get_image_gnames(gid_list),
-        app.ibs.get_image_unixtime(gid_list),
-        ut.tupstr(app.ibs.get_image_gps(gid_list)),
+        datetime_list,
+        app.ibs.get_image_gps(gid_list),
         app.ibs.get_image_party_tag(gid_list),
         app.ibs.get_image_contributor_tag(gid_list),
         app.ibs.get_image_notes(gid_list),
@@ -92,10 +106,26 @@ def view_images():
 
 @app.route('/view/annotations')
 def view_annotations():
-    aid_list = app.ibs.get_valid_aids()
+    gid_list = None
+    if 'eid' in request.args.keys():
+        eid_list = map(int, request.args['eid'].strip().split(','))
+        gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid) for eid in eid_list ])
+    elif 'gid' in request.args.keys():
+        gid_list = map(int, request.args['gid'].strip().split(','))
+    print('Loading gid_list: %r' % (gid_list, ))
+    aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+    annotation_list = zip(
+        aid_list,
+        app.ibs.get_annot_image_names(aid_list),
+        app.ibs.get_annot_names(aid_list),
+        app.ibs.get_annot_exemplar_flags(aid_list),
+        app.ibs.get_annot_species_texts(aid_list),
+        app.ibs.get_annot_yaw_texts(aid_list),
+        app.ibs.get_annot_quality_texts(aid_list),
+    )
     return ap.template('view', 'annotations',
-                       aid_list=aid_list,
-                       num_aids=len(aid_list))
+                       annotation_list=annotation_list,
+                       num_annotations=len(annotation_list))
 
 
 @app.route('/turk')
@@ -348,9 +378,13 @@ def set_cookie():
 @app.route('/ajax/image/src/<gid>')
 def image_src(gid=None):
     gpath = app.ibs.get_image_paths(gid)
-    image = ap.open_oriented_image(gpath)
-    image_src = ap.embed_image_html(image, filter_width=False)
-    return image_src
+    return ap.return_src(gpath)
+
+
+@app.route('/ajax/annotation/src/<aid>')
+def annotation_src(aid=None):
+    gpath = app.ibs.get_annot_chip_fpaths(aid)
+    return ap.return_src(gpath)
 
 
 @app.route('/api')

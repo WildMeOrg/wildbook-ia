@@ -72,6 +72,12 @@ def embed_image_html(image, filter_width=True):
     return 'data:image/jpeg;base64,' + data
 
 
+def return_src(gpath):
+    image = open_oriented_image(gpath)
+    image_src = embed_image_html(image, filter_width=False)
+    return image_src
+
+
 def check_valid_function_name(string):
     return all([ char.isalpha() or char == '_' or char.isalnum() for char in string])
 
