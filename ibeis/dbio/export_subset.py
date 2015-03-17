@@ -1120,7 +1120,7 @@ def merge_databases2(ibs_src, ibs_dst):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+        >>> from ibeis.dbio.export_subset import *  # NOQA
         >>> import ibeis
         >>> #ibs_dst = ibeis.opendb(dbdir='testdb_dst')
         >>> ibs_src = ibeis.opendb(db='testdb1')
@@ -1128,17 +1128,34 @@ def merge_databases2(ibs_src, ibs_dst):
         >>> #delete_ibsdir = True
         >>> delete_ibsdir = False
         >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst', allow_newdir=True, delete_ibsdir=delete_ibsdir)
+
+    Example2:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.dbio.export_subset import *  # NOQA
+        >>> import ibeis
+        >>> #ibs_dst = ibeis.opendb(dbdir='testdb_dst')
+        >>> ibs_src = ibeis.opendb(db='PZ_MTEST')
+        >>> # OPEN A CLEAN DATABASE
+        >>> delete_ibsdir = True
+        >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst2', allow_newdir=True, delete_ibsdir=delete_ibsdir)
+        >>> merge_databases2(ibs_src, ibs_dst)
     """
     # TODO: ensure images are localized
     # otherwise this wont work
+    print('BEGIN MERGE OF %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname()))
+    #ibs_src.check_consistency()
+    #ibs_dst.check_consistency()
+    ibs_dst.update_annot_visual_uuids(ibs_dst.get_valid_aids())
+    ibs_src.update_annot_visual_uuids(ibs_src.get_valid_aids())
     ibs_src.ensure_contributor_rowids()
     ibs_dst.ensure_contributor_rowids()
     # Hack move of the external data
     gid_list = ibs_src.get_valid_gids()
     imgpath_list = ibs_src.get_image_paths(gid_list)
     dst_imgdir = ibs_dst.get_imgdir()
-    ut.copy_files_to(imgpath_list, dst_imgdir, overwrite=False, verbose=ut.VERBOSE)
+    ut.copy_files_to(imgpath_list, dst_imgdir, overwrite=False, verbose=True)
     ibs_dst.db.merge_databases_new(ibs_src.db)
+    print('FINISHED MERGE %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname()))
 
 
 # RELEVANT LEGACY CODE FOR IMAGE MERGING
@@ -1224,6 +1241,7 @@ def MERGE_NNP_MASTER_SCRIPT():
     ibs_src2 = ibeis.opendb('GZC')
     ibs_dst = ibeis.opendb('GZC_NNP_MERGE2', allow_newdir=True)
     merge_databases2(ibs_src1, ibs_dst)
+    merge_databases2(ibs_src2, ibs_dst)
 
     ## Step 2
     #ibs_src = ibeis.opendb('GZC')

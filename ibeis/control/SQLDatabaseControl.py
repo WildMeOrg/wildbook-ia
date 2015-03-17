@@ -1617,8 +1617,8 @@ class SQLDatabaseController(object):
         """
         tablename_iter = iter(tablename_list)
         """
+        #with ut.embed_on_exception_context:
         for tablename in tablename_list:
-          with ut.embed_on_exception_context:
             """
             tablename = tablename_iter.next()
             """

@@ -37,8 +37,8 @@ for modname in modlist:
 References:
     http://superuser.com/questions/345719/how-to-chmod-and-chown-hidden-files-in-linux
 
-shopt -s dotglob
 cd /opt/ibeis
+shopt -s dotglob
 sudo chown -R jasonp:ibeis *
 sudo chmod -R 775 *
 shopt -u dotglob
