@@ -40,9 +40,10 @@
   var encounterNumber  = new countUp("encounter-total",  0, {{ num_eids }}, 0, 2.0);
   var imageNumber      = new countUp("image-total",      0, {{ num_gids }}, 0, 2.0);
   var annotationNumber = new countUp("annotation-total", 0, {{ num_aids }}, 0, 2.0);
-  var annotationNumber = new countUp("names-total",      0, {{ num_nids }}, 0, 2.0);
+  var namesNumber      = new countUp("names-total",      0, {{ num_nids }}, 0, 2.0);
   encounterNumber.start();
   imageNumber.start();
   annotationNumber.start();
+  namesNumber.start();
 </script>  
 {% endblock %}
