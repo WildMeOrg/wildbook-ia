@@ -34,6 +34,12 @@ app = flask.Flask(__name__)
 ################################################################################
 
 
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'public, max-age=%d' % (60 * 60 * 24, )
+    return response
+
+
 @app.route('/')
 def root():
     return ap.template(None)
@@ -441,10 +447,10 @@ def set_cookie():
     response = make_response('true')
     try:
         response.set_cookie(request.args['name'], request.args['value'])
-        print('Set Cookie: %r -> %r' % (request.args['name'], request.args['value'], ))
+        print('[web] Set Cookie: %r -> %r' % (request.args['name'], request.args['value'], ))
         return response
     except:
-        print('COOKIE FAILED: %r' % (request.args, ))
+        print('[web] COOKIE FAILED: %r' % (request.args, ))
         return make_response('false')
 
 
@@ -470,9 +476,9 @@ def api(function=None):
             'code': '',
         },
     }
-    print('Function:', function)
-    print('POST:', dict(request.form))
-    print('GET:',  dict(request.args))
+    print('[web] Function:', function)
+    print('[web] POST:', dict(request.form))
+    print('[web] GET:',  dict(request.args))
     if function is None:
         template['status']['success'] = True
         template['status']['code'] = 'USAGE: /api/[ibeis_function_name].json'
@@ -570,6 +576,10 @@ def start_from_terminal():
 
     opts, args = parser.parse_args()
     app.ibs = ibeis.opendb(db=opts.db)
+    print('[web] Pre-computing all image thumbnails...')
+    app.ibs.compute_all_thumbs()
+    print('[web] Pre-computing all annotation chips...')
+    app.ibs.compute_all_chips()
     start_tornado(app, opts.port)
 
 
@@ -598,8 +608,12 @@ def start_from_ibeis(ibs, port=DEFAULT_PORT):
         app.default_species = Species.ZEB_PLAIN
     else:
         app.default_species = None
-    print('DEFAULT SPECIES: %r' % (app.default_species))
+    print('[web] DEFAULT SPECIES: %r' % (app.default_species))
     app.ibs = ibs
+    print('[web] Pre-computing all image thumbnails...')
+    app.ibs.compute_all_thumbs()
+    print('[web] Pre-computing all annotation chips...')
+    app.ibs.compute_all_chips()
     start_tornado(app, port)
 
 

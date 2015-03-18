@@ -91,7 +91,7 @@ def template(template_directory=None, template_filename=None, **kwargs):
     global_args['REFER_SRC_ENCODED'] = encode_refer_url(global_args['REFER_SRC_STR'])
     if 'refer' in request.args.keys():
         refer = request.args['refer']
-        print("REFER: %r" % (refer, ))
+        print('[web] REFER: %r' % (refer, ))
         global_args['REFER_DST_ENCODED'] = refer
         global_args['REFER_DST_STR'] = decode_refer_url(refer)
     if template_directory is None:
