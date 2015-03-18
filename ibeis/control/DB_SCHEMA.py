@@ -24,8 +24,8 @@ import utool
 profile = utool.profile
 
 
-NAME_TABLE_v121   = const.NAME_TABLE_v121
-NAME_TABLE_v130   = const.NAME_TABLE_v130
+NAME_TABLE_v121     = const.NAME_TABLE_v121
+NAME_TABLE_v130     = const.NAME_TABLE_v130
 ANNOT_VISUAL_UUID   = 'annot_visual_uuid'
 ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
 ANNOT_UUID          = 'annot_uuid'
@@ -45,6 +45,7 @@ PARTY_TAG           = 'party_tag'
 CONFIG_ROWID        = 'config_rowid'
 IMAGE_UUID          = 'image_uuid'
 CONFIG_SUFFIX       = 'config_suffix'
+ENCOUNTER_ROWID     = 'encounter_rowid'
 
 # =======================
 # Schema Version 1.0.0
@@ -68,17 +69,17 @@ def update_1_0_0(db, ibs=None):
         ('image_toggle_reviewed',        'INTEGER DEFAULT 0'),
         ('image_note',                   'TEXT',),
     ),
-        superkey_colnames_list=[(IMAGE_UUID,)],
+        superkeys=[(IMAGE_UUID,)],
         docstr='''
         First class table used to store image locations and meta-data''')
 
     db.add_table(const.ENCOUNTER_TABLE, (
-        ('encounter_rowid',              'INTEGER PRIMARY KEY'),
+        (ENCOUNTER_ROWID,                'INTEGER PRIMARY KEY'),
         ('encounter_uuid',               'UUID NOT NULL'),
         ('encounter_text',               'TEXT NOT NULL'),
         ('encounter_note',               'TEXT NOT NULL'),
     ),
-        superkey_colnames_list=[('encounter_text',)],
+        superkeys=[('encounter_text',)],
         docstr='''
         List of all encounters''')
 
@@ -87,7 +88,7 @@ def update_1_0_0(db, ibs=None):
         ('lbltype_text',                 'TEXT NOT NULL'),
         ('lbltype_default',              'TEXT NOT NULL'),
     ),
-        superkey_colnames_list=[('lbltype_text',)],
+        superkeys=[('lbltype_text',)],
         docstr='''
         List of keys used to define the categories of annotation lables, text
         is for human-readability. The lbltype_default specifies the
@@ -98,7 +99,7 @@ def update_1_0_0(db, ibs=None):
         (CONFIG_ROWID,                 'INTEGER PRIMARY KEY'),
         (CONFIG_SUFFIX,                'TEXT NOT NULL'),
     ),
-        superkey_colnames_list=[(CONFIG_SUFFIX,)],
+        superkeys=[(CONFIG_SUFFIX,)],
         docstr='''
         Used to store the ids of algorithm configurations that generate
         annotation lblannots.  Each user will have a config id for manual
@@ -122,7 +123,7 @@ def update_1_0_0(db, ibs=None):
         ('annot_exemplar_flag',          'INTEGER DEFAULT 0'),
         ('annot_note',                   'TEXT'),
     ),
-        superkey_colnames_list=[(ANNOT_UUID,)],
+        superkeys=[(ANNOT_UUID,)],
         docstr='''
         Mainly used to store the geometry of the annotation within its parent
         image The one-to-many relationship between images and annotations is
@@ -136,7 +137,7 @@ def update_1_0_0(db, ibs=None):
         ('lblimage_value',               'TEXT NOT NULL'),
         ('lblimage_note',                'TEXT'),
     ),
-        superkey_colnames_list=[('lbltype_rowid', 'lblimage_value',)],
+        superkeys=[('lbltype_rowid', 'lblimage_value',)],
         docstr='''
         Used to store the labels (attributes) of images''')
 
@@ -147,7 +148,7 @@ def update_1_0_0(db, ibs=None):
         ('lblannot_value',               'TEXT NOT NULL'),
         ('lblannot_note',                'TEXT'),
     ),
-        superkey_colnames_list=[('lbltype_rowid', 'lblannot_value',)],
+        superkeys=[('lbltype_rowid', 'lblannot_value',)],
         docstr='''
         Used to store the labels / attributes of annotations.
         E.G name, species ''')
@@ -164,7 +165,7 @@ def update_1_0_0(db, ibs=None):
         ('chip_width',                   'INTEGER NOT NULL'),
         ('chip_height',                  'INTEGER NOT NULL'),
     ),
-        superkey_colnames_list=[('annot_rowid', 'config_rowid',)],
+        superkeys=[('annot_rowid', 'config_rowid',)],
         docstr='''
         Used to store *processed* annots as chips''')
 
@@ -176,16 +177,16 @@ def update_1_0_0(db, ibs=None):
         ('feature_keypoints',            'NUMPY'),
         ('feature_sifts',                'NUMPY'),
     ),
-        superkey_colnames_list=[('chip_rowid, config_rowid',)],
+        superkeys=[('chip_rowid, config_rowid',)],
         docstr='''
         Used to store individual chip features (ellipses)''')
 
     db.add_table(const.EG_RELATION_TABLE, (
         ('egr_rowid',                    'INTEGER PRIMARY KEY'),
         ('image_rowid',                  'INTEGER NOT NULL'),
-        ('encounter_rowid',              'INTEGER'),
+        (ENCOUNTER_ROWID,                'INTEGER'),
     ),
-        superkey_colnames_list=[('image_rowid, encounter_rowid',)],
+        superkeys=[(IMAGE_ROWID, ENCOUNTER_ROWID,)],
         docstr='''
         Relationship between encounters and images (many to many mapping) the
         many-to-many relationship between images and encounters is encoded here
@@ -201,7 +202,7 @@ def update_1_0_0(db, ibs=None):
         ('config_rowid',                 'INTEGER DEFAULT 0'),
         ('glr_confidence',               'REAL DEFAULT 0.0'),
     ),
-        superkey_colnames_list=[('image_rowid', 'lblimage_rowid', 'config_rowid',)],
+        superkeys=[('image_rowid', 'lblimage_rowid', 'config_rowid',)],
         docstr='''
         Used to store one-to-many the relationship between images
         and labels''')
@@ -213,7 +214,7 @@ def update_1_0_0(db, ibs=None):
         ('config_rowid',                 'INTEGER DEFAULT 0'),
         ('alr_confidence',               'REAL DEFAULT 0.0'),
     ),
-        superkey_colnames_list=[('annot_rowid', 'lblannot_rowid', 'config_rowid',)],
+        superkeys=[('annot_rowid', 'lblannot_rowid', 'config_rowid',)],
         docstr='''
         Used to store one-to-many the relationship between annotations (annots)
         and labels''')
@@ -556,7 +557,7 @@ def update_1_0_1(db, ibs=None):
         ('contributor_location_zip',     'INTEGER'),
         ('contributor_note',             'INTEGER'),
     ),
-        superkey_colnames_list=[('contributor_rowid',)],
+        superkeys=[('contributor_rowid',)],
         docstr='''
         Used to store the contributors to the project
         ''')
@@ -589,8 +590,7 @@ def update_1_0_2(db, ibs=None):
         # add column to v1.0.1 at index 1
         (1, 'contributor_uuid', 'UUID NOT NULL', None),
     ),
-        table_constraints=[],
-        superkey_colnames_list=[('contributor_tag',)]
+        superkeys=[('contributor_tag',)]
     )
 
 # =======================
@@ -615,9 +615,8 @@ def update_1_1_0(db, ibs=None):
         # add column to v1.0.2 at index 1
         (1, 'contributor_uuid', 'UUID', None),
     ),
-        table_constraints=[],
         # FIXME: This change may have broken things
-        superkey_colnames_list=[('contributor_uuid', CONFIG_SUFFIX,)]
+        superkeys=[('contributor_uuid', CONFIG_SUFFIX,)]
     )
 
     # Add config to encounters
@@ -625,8 +624,7 @@ def update_1_1_0(db, ibs=None):
         # add column to v1.0.2 at index 2
         (2, 'config_rowid', 'INTEGER', None),
     ),
-        table_constraints=[],
-        superkey_colnames_list=[('encounter_uuid', 'encounter_text',)]
+        superkeys=[('encounter_uuid', 'encounter_text',)]
     )
 
     # Error in the drop table script, re-drop again from post_1_0_0 to kill table's metadata
@@ -645,8 +643,7 @@ def update_1_1_1(db, ibs=None):
         # rename column and change it's type
         ('contributor_uuid', 'contributor_rowid', '', None),
     ),
-        table_constraints=[],
-        superkey_colnames_list=[('contributor_rowid', CONFIG_SUFFIX,)]
+        superkeys=[('contributor_rowid', CONFIG_SUFFIX,)]
     )
 
     # Change type of column
@@ -693,7 +690,7 @@ def update_1_2_1(db, ibs=None):
         (NAME_TEXT,                  'TEXT NOT NULL'),
         ('name_note',                'TEXT'),
     ),
-        superkey_colnames_list=[(NAME_TEXT,)],
+        superkeys=[(NAME_TEXT,)],
         docstr='''
         Stores the individual animal names
         ''')
@@ -704,7 +701,7 @@ def update_1_2_1(db, ibs=None):
         (SPECIES_TEXT,                  'TEXT NOT NULL'),
         ('species_note',                'TEXT'),
     ),
-        superkey_colnames_list=[(SPECIES_TEXT,)],
+        superkeys=[(SPECIES_TEXT,)],
         docstr='''
         Stores the different animal species
         ''')
@@ -775,7 +772,7 @@ def update_1_3_1(db, ibs=None):
             (ANNOT_VISUAL_UUID, '', 'UUID NOT NULL', None),
         ],
         # ERROR: this should have been ANNOT_SEMANTIC_UUID
-        superkey_colnames_list=[(ANNOT_UUID,), (ANNOT_VISUAL_UUID,)])
+        superkeys=[(ANNOT_UUID,), (ANNOT_VISUAL_UUID,)])
     #pass
 
 
@@ -884,7 +881,7 @@ def update_1_3_6(db, ibs=None):
         (PARTY_ROWID,               'INTEGER PRIMARY KEY'),
         (PARTY_TAG,                 'TEXT NOT NULL'),
     ),
-        superkey_colnames_list=[(PARTY_TAG,)],
+        superkeys=[(PARTY_TAG,)],
         docstr='''
         Serves as a group for contributors
         ''',
@@ -905,7 +902,7 @@ def update_1_3_6(db, ibs=None):
     #    ('party_rowid',                                'INTEGER NOT NULL'),
     #    ('contributor_rowid',                          'INTEGER NOT NULL'),
     #),
-    #    superkey_colnames_list=[('party_rowid', 'contributor_rowid')],
+    #    superkeys=[('party_rowid', 'contributor_rowid')],
     #    relates=(const.PARTY_TABLE, const.CONTRIBUTOR_TABLE),
     #    docstr='''
     #    Relates parties and contributors
@@ -918,7 +915,7 @@ def update_1_3_6(db, ibs=None):
         ('annotmatch_truth',          'INTEGER DEFAULT 2'),
         ('annotmatch_confidence',     'REAL DEFAULT 0'),
     ),
-        superkey_colnames_list=[('annot_rowid1', 'annot_rowid2',)],
+        superkeys=[('annot_rowid1', 'annot_rowid2',)],
         relates=(const.ANNOTATION_TABLE, const.ANNOTATION_TABLE),
         #shortname='annotmatch',
         docstr='''
@@ -954,7 +951,7 @@ def update_1_3_7(db, ibs=None):
     db.modify_table(
         const.ANNOTATION_TABLE,
         extern_tables=[const.NAME_TABLE, const.SPECIES_TABLE, const.IMAGE_TABLE],
-        superkey_colnames_list=[(ANNOT_UUID,), (ANNOT_VISUAL_UUID,)],
+        superkeys=[(ANNOT_UUID,), (ANNOT_VISUAL_UUID,)],
         dependsmap={
             IMAGE_ROWID        : (const.IMAGE_TABLE,      (IMAGE_ROWID,),   (IMAGE_UUID,)),
             NAME_ROWID         : (const.NAME_TABLE,       (NAME_ROWID,),    (NAME_TEXT,)),
@@ -994,16 +991,35 @@ def update_1_3_7(db, ibs=None):
         const.EG_RELATION_TABLE,
         dependsmap={
             'image_rowid':       (const.IMAGE_TABLE,     (IMAGE_ROWID,),   (IMAGE_UUID,)),
-            'encounter_rowid':   (const.ENCOUNTER_TABLE,  ('encounter_rowid',),   ('encounter_text',)),
+            ENCOUNTER_ROWID:     (const.ENCOUNTER_TABLE,  (ENCOUNTER_ROWID,),   ('encounter_text',)),
         }
     )
 
 
 def update_1_3_8(db, ibs=None):
-    # Encounters only care about their text again as a uuid
+    # Encounters only care about their text again as a uuid We are removing
+    # config_rowid from encounters. Thus the dependency is not encoded
     db.modify_table(
         const.ENCOUNTER_TABLE,
-        superkey_colnames_list=[('encounter_text',)],
+        superkeys=[('encounter_text',)],
+    )
+
+
+def update_1_3_9(db, ibs=None):
+    # Remove contributors from configs
+    db.modify_table(
+        const.CONFIG_TABLE,
+        superkeys=[(CONFIG_SUFFIX,)]
+    )
+    # Add primary superkey to annotations table
+    db.modify_table(
+        const.ANNOTATION_TABLE,
+        primary_superkey=('annot_visual_uuid',),
+        docstr='''
+        Mainly used to store the geometry of the annotation within its parent
+        image The one-to-many relationship between images and annotations is
+        encoded here
+        '''
     )
 
 
@@ -1034,6 +1050,7 @@ VALID_VERSIONS = utool.odict([
     ('1.3.6',    (None,                 update_1_3_6,       None          )),
     ('1.3.7',    (None,                 update_1_3_7,       None          )),
     ('1.3.8',    (None,                 update_1_3_8,       None          )),
+    ('1.3.9',    (None,                 update_1_3_9,       None          )),
 ])
 
 
@@ -1063,9 +1080,26 @@ def test_db_schema():
     autogenerate = params.args.dump_autogen_schema
     n = utool.get_argval('-n', int, default=-1)
     db = _sql_helpers.get_nth_test_schema_version(DB_SCHEMA, n=n, autogenerate=autogenerate)
-    autogen_cmd = 'python -m ibeis.control.DB_SCHEMA --test-test_db_schema --force-incremental-db-update --dump-autogen-schema'
-    autogen_str = db.get_schema_current_autogeneration_str(autogen_cmd)
-    print(autogen_str)
+    autogen_cmd  = 'python -m ibeis.control.DB_SCHEMA --test-test_db_schema --force-incremental-db-update --dump-autogen-schema\n'
+    autogen_cmd += 'python -m ibeis.control.DB_SCHEMA --test-test_db_schema --force-incremental-db-update'
+    autogen_text = db.get_schema_current_autogeneration_str(autogen_cmd)
+
+    # TODO: generalize
+    import utool as ut
+
+    show_diff = ut.get_argflag('--diff')
+    num_context_lines = ut.get_argval('--diff', type_=int, default=None)
+    show_diff = show_diff or num_context_lines is not None
+
+    from os.path import dirname
+    if show_diff:
+        autogen_fpath = ut.unixjoin(dirname(__file__), 'DB_SCHEMA_CURRENT.py')
+        if ut.checkpath(autogen_fpath, verbose=True):
+            prev_text = ut.read_from(autogen_fpath)
+            textdiff = ut.util_str.get_textdiff(prev_text, autogen_text, num_context_lines=num_context_lines)
+            ut.print_difftext(textdiff)
+    else:
+        ut.util_print.print_python_code(autogen_text)
     print(' Run with --dump-autogen-schema to autogenerate latest schema version')
 
 

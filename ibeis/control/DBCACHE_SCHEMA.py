@@ -35,7 +35,7 @@ def update_1_0_0(db, ibs=None):
         ('chip_width',                   'INTEGER NOT NULL'),
         ('chip_height',                  'INTEGER NOT NULL'),
     ),
-        superkey_colnames_list=[('annot_rowid', 'config_rowid',)],
+        superkeys=[('annot_rowid', 'config_rowid',)],
         docstr='''
         Used to store *processed* annots as chips''')
 
@@ -48,7 +48,7 @@ def update_1_0_0(db, ibs=None):
         # Maybe change name to feature_vecs
         ('feature_sifts',                'NUMPY'),
     ),
-        superkey_colnames_list=[('chip_rowid, config_rowid',)],
+        superkeys=[('chip_rowid, config_rowid',)],
         docstr='''
         Used to store individual chip features (ellipses)''')
 
@@ -69,7 +69,7 @@ def update_1_0_1(db, ibs=None):
         ('residual_vector',              'NUMPY'),
     ),
         # TODO: Remove residual_rowid from being a superkey
-        superkey_colnames_list=[('residual_rowid', 'feature_rowid', 'config_rowid',)],
+        superkeys=[('residual_rowid', 'feature_rowid', 'config_rowid',)],
         docstr='''
         Used to store individual SMK/ASMK residual vectors for features''')
     pass
@@ -80,7 +80,7 @@ def update_1_0_2(db, ibs=None):
     # Change name of feature_sifts to feature_vecs and
     # add new column for feature_forground_weight
     db.modify_table(const.FEATURE_TABLE, (
-        ('feature_sifts',   'feature_vecs',             '',      None),
+        ('feature_sifts',   'feature_vecs',             'NUMPY', None),
         (           None,   'feature_forground_weight', 'NUMPY', None),
     ))
 
@@ -96,7 +96,7 @@ def update_1_0_3(db, ibs=None):
         ('config_rowid',                'INTEGER DEFAULT 0'),
         ('featweight_forground_weight', 'NUMPY'),
     ),
-        superkey_colnames_list=[('feature_rowid', 'config_rowid',)],
+        superkeys=[('feature_rowid', 'config_rowid',)],
         docstr='''
         Stores weightings of features based on the forground... etc
         '''
@@ -104,7 +104,7 @@ def update_1_0_3(db, ibs=None):
 
     # Fix the superkeys for the residual table
     db.modify_table(tablename=const.RESIDUAL_TABLE, colmap_list=[],
-                    superkey_colnames_list=[('feature_rowid', 'config_rowid',)],)
+                    superkeys=[('feature_rowid', 'config_rowid',)],)
 
 
 def update_1_0_4(db, ibs=None):
@@ -154,9 +154,23 @@ def test_dbcache_schema():
     autogenerate = params.args.dump_autogen_schema
     n = utool.get_argval('-n', int, default=-1)
     dbcache = _sql_helpers.get_nth_test_schema_version(DBCACHE_SCHEMA, n=n, autogenerate=autogenerate)
-    autogen_cmd = 'python -m ibeis.control.DBCACHE_SCHEMA --force-incremental-db-update --test-test_dbcache_schema --dump-autogen-schema'
-    autogen_str = dbcache.get_schema_current_autogeneration_str(autogen_cmd)
-    print(autogen_str)
+    autogen_cmd = 'python -m ibeis.control.DBCACHE_SCHEMA --force-incremental-db-update --test-test_dbcache_schema --dump-autogen-schema\n'
+    autogen_cmd += 'python -m ibeis.control.DBCACHE_SCHEMA --force-incremental-db-update --test-test_dbcache_schema'
+    autogen_text = dbcache.get_schema_current_autogeneration_str(autogen_cmd)
+
+    show_diff = ut.get_argflag('--diff')
+    num_context_lines = ut.get_argval('--diff', type_=int, default=None)
+    show_diff = show_diff or num_context_lines is not None
+
+    from os.path import dirname
+    if show_diff:
+        autogen_fpath = ut.unixjoin(dirname(__file__), 'DBCACHE_SCHEMA_CURRENT.py')
+        if ut.checkpath(autogen_fpath, verbose=True):
+            prev_text = ut.read_from(autogen_fpath)
+            textdiff = ut.util_str.get_textdiff(prev_text, autogen_text, num_context_lines=num_context_lines)
+            ut.print_difftext(textdiff)
+    else:
+        ut.util_print.print_python_code(autogen_text)
     print(' Run with --dump-autogen-schema to autogenerate latest schema version')
 
 

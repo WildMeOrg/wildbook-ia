@@ -181,6 +181,7 @@ def export_transfer_data(ibs_src, gid_list=None):
         >>> ibs_src = ibeis.opendb(db='testdb1')
         >>> bulk_conflict_resolution = 'ignore'
         >>> num = 5
+        >>> ibs_src.ensure_contributor_rowids(user_prompt=False)
         >>> gid_list = ibs_src.get_valid_gids()[0:num]
         >>> td = export_transfer_data(ibs_src, gid_list=gid_list)
         >>> assert len(td.contributor_td_list) == 1, 'more than 1 contrib'
@@ -1271,7 +1272,19 @@ def merge_databases2(ibs_src, ibs_dst):
 
 
 def test_merge():
+    r"""
+    CommandLine:
+        python -m ibeis.dbio.export_subset --test-test_merge
 
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> from ibeis.dbio.export_subset import *  # NOQA
+        >>> # build test data
+        >>> # execute function
+        >>> result = test_merge()
+        >>> # verify results
+        >>> print(result)
+    """
     from ibeis.dbio import export_subset
     import ibeis
     ibs1 = ibeis.opendb('testdb2')
@@ -1314,11 +1327,11 @@ def MERGE_NNP_MASTER_SCRIPT():
     from ibeis.dbio.export_subset import *  # NOQA
     import ibeis
     # Step 1
-    ibs_src1 = ibeis.opendb('NNP_initial')
-    ibs_src2 = ibeis.opendb('GZC')
-    ibs_dst = ibeis.opendb('NNP_Master2', allow_newdir=True)
-
+    ibs_src1 = ibeis.opendb('GZC')
+    ibs_dst = ibeis.opendb('NNP_Master3', allow_newdir=True)
     merge_databases2(ibs_src1, ibs_dst)
+
+    ibs_src2 = ibeis.opendb('NNP_initial')
     merge_databases2(ibs_src2, ibs_dst)
 
     ## Step 2

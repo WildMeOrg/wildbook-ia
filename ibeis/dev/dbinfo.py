@@ -126,10 +126,11 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         # Img with gps               = 0
         # Img with timestamp         = 13
         Img Time Stats               = {
-            'std' : '1:13:57',
-            'max' : '1969/12/31 21:30:13',
-            'mean': '1969/12/31 20:10:15',
-            'min' : '1969/12/31 19:01:41',
+            'std'  : '1:13:57',
+            'max'  : '1969/12/31 21:30:13',
+            'range': '2:28:32',
+            'mean' : '1969/12/31 20:10:15',
+            'min'  : '1969/12/31 19:01:41',
         }
         L============================
     """
