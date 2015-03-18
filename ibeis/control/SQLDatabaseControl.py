@@ -1580,8 +1580,8 @@ class SQLDatabaseController(object):
         new_transferdata = column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list
         return new_transferdata
 
-    def import_table_new_transferdata(tablename, new_transferdata):
-        pass
+    #def import_table_new_transferdata(tablename, new_transferdata):
+    #    pass
 
     def merge_databases_new(db, db_src):
         r"""
