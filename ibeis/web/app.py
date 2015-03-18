@@ -687,9 +687,9 @@ def start_from_ibeis(ibs, port=DEFAULT_PORT):
         app.default_species = Species.ZEB_PLAIN
     elif dbname == 'WD_Master':
         app.default_species = Species.WILDDOG
-    elif dbname == 'NNP_Master':
+    elif 'NNP_' in dbname:
         app.default_species = Species.ZEB_PLAIN
-    elif dbname == 'GZC':
+    elif 'GZC' in dbname:
         app.default_species = Species.ZEB_PLAIN
     else:
         app.default_species = None
