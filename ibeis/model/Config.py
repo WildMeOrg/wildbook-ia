@@ -152,6 +152,7 @@ class NNConfig(ConfigBase):
     def __init__(nn_cfg, **kwargs):
         super(NNConfig, nn_cfg).__init__()
         nn_cfg.K = 4
+        nn_cfg.use_k_padding = False  # TODO: force to false when in vsone
         #nn_cfg.min_reindex_thresh = 3  # 200  # number of annots before a new multi-indexer is built
         nn_cfg.min_reindex_thresh = 200  # number of annots before a new multi-indexer is built
         nn_cfg.max_subindexers = 2  # number of annots before a new multi-indexer is built
@@ -174,6 +175,7 @@ class NNConfig(ConfigBase):
                       nn_cfg.index_method,
                       ',K', str(nn_cfg.K),
                       '+', str(nn_cfg.Knorm),
+                      ',padk=%r' % (nn_cfg.use_k_padding),
                       ',', nn_cfg.normalizer_rule,
                       ',cks', str(nn_cfg.checks),
                       ')']

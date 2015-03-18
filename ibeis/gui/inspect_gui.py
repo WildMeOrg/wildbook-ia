@@ -64,7 +64,12 @@ class CustomFilterModel(FilterProxyModel):
 
 
 class QueryResultsWidget(APIItemWidget):
-    """ Window for gui inspection """
+    """ Window for gui inspection
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
+
+    """
 
     def __init__(qres_wgt, ibs, qaid2_qres, parent=None, callback=None,
                  name_scoring=False, **kwargs):
@@ -94,7 +99,10 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.view.setColumnHidden(0, False)
         qres_wgt.view.setColumnHidden(1, False)
         #qres_wgt.view.connect_single_key_to_slot(QtCore.Qt.ALT, qres_wgt.on_alt_pressed)
-        qres_wgt.view.connect_single_key_to_slot(16777251, qres_wgt.on_alt_pressed)
+        ALT_KEY = 16777251
+        #ut.embed()
+        qres_wgt.view.connect_single_key_to_slot(ALT_KEY, qres_wgt.on_alt_pressed)
+        qres_wgt.view.connect_keypress_to_slot(qres_wgt.on_special_key_pressed)
         if parent is None:
             # Register parentless QWidgets
             fig_presenter.register_qt4_win(qres_wgt)
@@ -162,7 +170,7 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.view.activated.connect(qres_wgt._on_activated)
 
     @guitool.slot_(QtCore.QModelIndex)
-    def _on_click(iqrw, qtindex):
+    def _on_click(qres_wgt, qtindex):
         #print('[qres_wgt] _on_click: ')
         #print('[qres_wgt] _on_click: ' + str(qtype.qindexinfo(qtindex)))
         col = qtindex.column()
@@ -170,68 +178,85 @@ class QueryResultsWidget(APIItemWidget):
         colname = model.get_header_name(col)
 
         if colname == MATCHED_STATUS_TEXT:
-            #qres_callback = partial(show_match_at, iqrw, qtindex)
-            #review_match_at(iqrw, qtindex, qres_callback=qres_callback)
-            review_match_at(iqrw, qtindex)
+            #qres_callback = partial(show_match_at, qres_wgt, qtindex)
+            #review_match_at(qres_wgt, qtindex, qres_callback=qres_callback)
+            review_match_at(qres_wgt, qtindex)
 
     @guitool.slot_(QtCore.QModelIndex)
-    def _on_doubleclick(iqrw, qtindex):
+    def _on_doubleclick(qres_wgt, qtindex):
         print('[qres_wgt] _on_doubleclick: ')
         print('[qres_wgt] DoubleClicked: ' + str(qtype.qindexinfo(qtindex)))
         col = qtindex.column()
         model = qtindex.model()
         colname = model.get_header_name(col)
         if colname != MATCHED_STATUS_TEXT:
-            return show_match_at(iqrw, qtindex)
+            return show_match_at(qres_wgt, qtindex)
         pass
 
     @guitool.slot_(QtCore.QModelIndex)
-    def _on_pressed(iqrw, qtindex):
+    def _on_pressed(qres_wgt, qtindex):
         print('[qres_wgt] _on_pressed: ')
-        def _check_for_double_click(iqrw, qtindex):
+        def _check_for_double_click(qres_wgt, qtindex):
             threshold = 0.20  # seconds
-            distance = utool.toc(iqrw.tt)
+            distance = utool.toc(qres_wgt.tt)
             #print('Pressed %r' % (distance,))
             col = qtindex.column()
             model = qtindex.model()
             colname = model.get_header_name(col)
             if distance <= threshold:
                 if colname == MATCHED_STATUS_TEXT:
-                    iqrw.view.clicked.emit(qtindex)
-                    iqrw._on_click(qtindex)
+                    qres_wgt.view.clicked.emit(qtindex)
+                    qres_wgt._on_click(qtindex)
                 else:
-                    #iqrw.view.doubleClicked.emit(qtindex)
-                    iqrw._on_doubleclick(qtindex)
-            iqrw.tt = utool.tic()
-        _check_for_double_click(iqrw, qtindex)
+                    #qres_wgt.view.doubleClicked.emit(qtindex)
+                    qres_wgt._on_doubleclick(qtindex)
+            qres_wgt.tt = utool.tic()
+        _check_for_double_click(qres_wgt, qtindex)
         pass
 
     @guitool.slot_(QtCore.QModelIndex)
-    def _on_activated(iqrw, qtindex):
+    def _on_activated(qres_wgt, qtindex):
         print('Activated: ' + str(qtype.qindexinfo(qtindex)))
         pass
 
     @guitool.slot_()
-    def on_alt_pressed(iqrw, view, event):
+    def on_alt_pressed(qres_wgt, view, event):
         selected_qtindex_list = view.selectedIndexes()
         if len(selected_qtindex_list) == 1:
             # popup context menu on alt
             qtindex = selected_qtindex_list[0]
             qrect = view.visualRect(qtindex)
             pos = qrect.center()
-            iqrw.on_contextMenuRequested(qtindex, pos)
-        #print('fds')
-        pass
+            qres_wgt.on_contextMenuRequested(qtindex, pos)
+
+    @guitool.slot_()
+    def on_special_key_pressed(qres_wgt, view, event):
+        selected_qtindex_list = view.selectedIndexes()
+        if len(selected_qtindex_list) == 1:
+            #print(event)
+            qtindex = selected_qtindex_list[0]
+            event_key = event.key()
+            if event_key == QtCore.Qt.Key_T:
+                #print('T')
+                mark_pair_as_positive_match(qres_wgt, qtindex)
+            elif event_key == QtCore.Qt.Key_R:
+                #print('R')
+                mark_pair_as_reviewed(qres_wgt, qtindex)
+            elif event_key == QtCore.Qt.Key_F:
+                #print('F')
+                mark_pair_as_negative_match(qres_wgt, qtindex)
+            #ut.embed()
+            qtindex.model().dataChanged.emit(qtindex, qtindex)
 
     @guitool.slot_(QtCore.QModelIndex, QtCore.QPoint)
-    def on_contextMenuRequested(iqrw, qtindex, qpos):
+    def on_contextMenuRequested(qres_wgt, qtindex, qpos):
         printDBG('[newgui] contextmenu')
-        guitool.popup_menu(iqrw, qpos, [
-            ('Show feature matches', lambda: show_match_at(iqrw, qtindex)),
-            ('Inspect Match Candidates', lambda: review_match_at(iqrw, qtindex)),
-            ('Mark as &Reviewed', lambda: mark_pair_as_reviewed(iqrw, qtindex)),
-            ('Mark as &True Match.', lambda: mark_pair_as_positive_match(iqrw, qtindex)),
-            ('Mark as &False Match.', lambda: mark_pair_as_negative_match(iqrw, qtindex)),
+        guitool.popup_menu(qres_wgt, qpos, [
+            ('Show feature matches', lambda: show_match_at(qres_wgt, qtindex)),
+            ('Inspect Match Candidates', lambda: review_match_at(qres_wgt, qtindex)),
+            ('Mark as &Reviewed', lambda: mark_pair_as_reviewed(qres_wgt, qtindex)),
+            ('Mark as &True Match.', lambda: mark_pair_as_positive_match(qres_wgt, qtindex)),
+            ('Mark as &False Match.', lambda: mark_pair_as_negative_match(qres_wgt, qtindex)),
         ])
 
 
@@ -326,6 +351,7 @@ def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False):
     if nid1 == nid2:
         print('...images already matched')
         status = None
+        ibs.mark_annot_pair_as_reviewed(aid1, aid2)
     else:
         isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
         if isunknown1 and isunknown2:
@@ -420,6 +446,7 @@ def mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False):
             status =  _set_annot_name_rowids([aid1, aid2], next_nids)
         elif not isunknown1 and not isunknown2:
             print('...nonmatch known1 and known2... nothing to do (yet)')
+            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
             status = None
         elif isunknown2 and not isunknown1:
             print('...nonmatch unknown2 -> newname and known1')
@@ -726,6 +753,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()[0:5]
         >>> daid_list = ibs.get_valid_aids()[0:20]
+        >>> ibs.delete_annotmatch(ibs._get_all_annotmatch_rowids())
         >>> main_locals = test_inspect_matches(ibs, qaid_list, daid_list)
         >>> main_execstr = ibeis.main_loop(main_locals)
         >>> if ut.show_was_requested():

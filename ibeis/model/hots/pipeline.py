@@ -244,7 +244,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         >>> species = ibeis.const.Species.ZEB_PLAIN
         >>> daids = ibs.get_valid_aids(species=species)
         >>> qaids = ibs.get_valid_aids(species=species)
-        >>> qreq_ = ibs.new_query_request(qaids, daids, cfgdict=dict(codename='vsmany', can_match_sameimg=False, can_match_samename=False))
+        >>> qreq_ = ibs.new_query_request(qaids, daids, cfgdict=dict(codename='vsmany', use_k_padding=True, can_match_sameimg=False, can_match_samename=False))
         >>> # execute function
         >>> impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
         >>> # verify results
@@ -255,8 +255,9 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
     if verbose:
         print('[hs] Step 0) Build impossible matches')
 
-    cant_match_sameimg  = not qreq_.qparams.can_match_sameimg
-    cant_match_samename = not qreq_.qparams.can_match_samename
+    can_match_sameimg  = qreq_.qparams.can_match_sameimg
+    can_match_samename = qreq_.qparams.can_match_samename
+    use_k_padding       = qreq_.qparams.use_k_padding
     cant_match_self     = True
     internal_qaids = qreq_.get_internal_qaids()
     internal_daids = qreq_.get_internal_daids()
@@ -264,11 +265,11 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
 
     _impossible_daid_lists = []
     if cant_match_self:
-        if not (cant_match_sameimg or cant_match_samename):
+        if can_match_sameimg and can_match_samename:
             # we can skip this if sameimg or samename is specified.
             # it will cover this case for us
             _impossible_daid_lists.append([[qaid] for qaid in internal_qaids])
-    if cant_match_sameimg:
+    if not can_match_sameimg:
         # slow way of getting contact_aids
         #contact_aids_list = qreq_.ibs.get_annot_contact_aids(internal_qaids)
         # Faster way
@@ -293,7 +294,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
             ]
             _impossible_daid_lists.append(contact_aids_gt_list)
 
-    if cant_match_samename:
+    if not can_match_samename:
         #internal_daids = qreq_.get_internal_daids()
         # slow way of getting gt_aids
         #gt_aids = qreq_.ibs.get_annot_groundtruth(internal_qaids, daid_list=internal_daids)
@@ -313,7 +314,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
     #    for impossible_daids in _impossible_daids_list]
 
     # TODO: we need to pad K for each bad annotation
-    if qreq_.qparams.vsone:
+    if qreq_.qparams.vsone or not use_k_padding:
         # dont pad vsone
         Kpad_list = [0 for _ in range(len(impossible_daids_list))]
     else:
@@ -401,7 +402,7 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
         ...    'first col should be all invalid because of self match')
         >>> assert not np.all(nnvalid0_list[0][:, 1]), (
         ...    'second col should have some good matches')
-        >>> ut.assert_inbounds(nnvalid0_list[0].sum(), 2000, 3000)
+        >>> ut.assert_inbounds(nnvalid0_list[0].sum(), 1900, 3000)
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -550,7 +551,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_
         >>> fm = cm_list[0].fm_list[cm_list[0].daid2_idx[2]]
         >>> num_matches = len(fm)
         >>> print('vsone num_matches = %r' % num_matches)
-        >>> ut.assert_inbounds(num_matches, 750, 800, 'vsmany nmatches out of bounds')
+        >>> ut.assert_inbounds(num_matches, 500, 800, 'vsmany nmatches out of bounds')
         >>> cm_list[0].testshow_single(qreq_)
 
     Example1:
