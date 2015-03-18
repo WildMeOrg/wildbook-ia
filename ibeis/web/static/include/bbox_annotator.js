@@ -285,7 +285,7 @@
         return true;
       });
       $("body").keydown(function(e) {
-        if(e.which === 27)
+        if(e.which === 27 || e.which === 75)
         {
           // Esc
           annotator.adding = false;
@@ -294,7 +294,7 @@
         
         switch (status) {
           case 'hold':
-            if (e.which === 27) {
+            if (e.which === 27 || e.which === 75) {
               data = selector.finish(options);
               annotator.adding = false;
               status = 'free';
@@ -312,7 +312,7 @@
               }   
               img_width = parseInt(annotator.image_frame.css('width'));
               img_height = parseInt(annotator.image_frame.css('height'));
-              if(e.which === 27)
+              if(e.which === 27 || e.which === 75)
               {
                 // Delete
                 active_box.detach();
