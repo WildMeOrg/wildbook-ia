@@ -13,15 +13,11 @@ import simplejson as json
 import ibeis
 from ibeis.control.SQLDatabaseControl import (SQLDatabaseController,  # NOQA
                                               SQLAtomicContext)
-from ibeis.control import _sql_helpers
 from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, Species
-import utool
 import utool as ut
 # Web Internal
 from ibeis.web import appfuncs as ap
-from ibeis.web import DBWEB_SCHEMA
 # Others
-from os.path import join
 import ibeis.constants as const
 import random
 
@@ -598,31 +594,12 @@ def error404(exception):
 ################################################################################
 
 
-def init_database(app, reset_db):
-    database_dir = utool.get_app_resource_dir('ibeis', 'web')
-    database_filename = 'app.sqlite3'
-    database_filepath = join(database_dir, database_filename)
-    utool.ensuredir(database_dir)
-    if reset_db:
-        utool.remove_file(database_filepath)
-    app.dbweb_version_expected = '1.0.0'
-    app.db = SQLDatabaseController(database_dir, database_filename)
-    _sql_helpers.ensure_correct_version(
-        app.ibs,
-        app.db,
-        app.dbweb_version_expected,
-        DBWEB_SCHEMA
-    )
-
-
 def start_tornado(app, port=5000, browser=BROWSER, blocking=False, reset_db=True):
     def _start_tornado():
         http_server = tornado.httpserver.HTTPServer(
             tornado.wsgi.WSGIContainer(app))
         http_server.listen(port)
         tornado.ioloop.IOLoop.instance().start()
-    # Open the web internal database
-    init_database(app, reset_db=reset_db)
     # Initialize the web server
     logging.getLogger().setLevel(logging.INFO)
     try:
