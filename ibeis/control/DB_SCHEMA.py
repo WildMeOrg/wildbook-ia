@@ -641,16 +641,16 @@ def update_1_1_1(db, ibs=None):
     # Change name of column
     db.modify_table(const.CONFIG_TABLE, (
         # rename column and change it's type
-        ('contributor_uuid', 'contributor_rowid', '', None),
+        ('contributor_uuid', 'contributor_rowid', 'INTEGER', None),
     ),
         superkeys=[('contributor_rowid', CONFIG_SUFFIX,)]
     )
 
     # Change type of column
-    db.modify_table(const.CONFIG_TABLE, (
-        # rename column and change it's type
-        ('contributor_rowid', '', 'INTEGER', None),
-    ))
+    #db.modify_table(const.CONFIG_TABLE, (
+    #    # rename column and change it's type
+    #    ('contributor_rowid', '', 'INTEGER', None),
+    #))
 
     # Change type of columns
     db.modify_table(const.CONTRIBUTOR_TABLE, (

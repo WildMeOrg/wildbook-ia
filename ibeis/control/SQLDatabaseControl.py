@@ -870,7 +870,7 @@ class SQLDatabaseController(object):
         insert = False
         for (src, dst, type_, map_) in colmap_list:
             #is_newcol = dst not in colname_list
-            #if dst == 'annot_visual_uuid':
+            #if dst == 'contributor_rowid':
             #    ut.embed()
             if (src is None or isinstance(src, int)):
                 # Add column
