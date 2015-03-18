@@ -345,8 +345,9 @@ def submit_detection():
     turk_id = request.cookies.get('turk_id', -1)
 
     if method.lower() == 'delete':
-        app.ibs.delete_images(gid)
-        print('[web] (DELETED) turk_id: %s, gid: %d' % (turk_id, gid, ))
+        # app.ibs.delete_images(gid)
+        # print('[web] (DELETED) turk_id: %s, gid: %d' % (turk_id, gid, ))
+        pass
     else:
         eid = request.args.get('eid', '')
         eid = None if eid == 'None' or eid == '' else int(eid)
