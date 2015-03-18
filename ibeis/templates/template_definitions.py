@@ -410,20 +410,23 @@ Tdeleter_native_tbl = ut.codeblock(
             tbl = {tbl}
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # DISABLE_DOCTEST
             >>> from {autogen_modname} import *  # NOQA
             >>> {self}, config2_ = testdata_ibs()
             >>> {tbl}_rowid_list = {self}._get_all_{tbl}_rowids()[:2]
-            >>> {self}.delete_{tbl}({tbl}_rowid_list)
+            >>> num_deleted = {self}.delete_{tbl}({tbl}_rowid_list)
+            >>> print('num_deleted = %r' % (num_deleted,))
         """
-        from ibeis.model.preproc import preproc_{tbl}
+        #from ibeis.model.preproc import preproc_{tbl}
+        {Tdeleter_native_tbl_import}
         if ut.VERBOSE:
             print('[{self}] deleting %d {tbl} rows' % len({tbl}_rowid_list))
         # Prepare: Delete externally stored data (if any)
-        preproc_{tbl}.on_delete({self}, {tbl}_rowid_list, config2_=config2_)
+        #preproc_{tbl}.on_delete({self}, {tbl}_rowid_list, config2_=config2_)
+        {Tdeleter_native_tbl_on_delete}
         # Finalize: Delete self
         {self}.{dbself}.delete_rowids({TABLE}, {tbl}_rowid_list)
-        num_deleted = len({tbl}_rowid_list)
+        num_deleted = len(ut.filter_Nones({tbl}_rowid_list))
         return num_deleted
     # ENDBLOCK
     '''

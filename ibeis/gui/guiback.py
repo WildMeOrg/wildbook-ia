@@ -1249,7 +1249,7 @@ class MainWindowBackend(QtCore.QObject):
             if new_dbname is None or len(new_dbname) == 0:
                 print('Abort new database. new_dbname=%r' % new_dbname)
                 return
-            new_dbdir_options = ['Choose Directory', 'My Work Dir'],
+            new_dbdir_options = ['Choose Directory', 'My Work Dir']
             reply = back.user_option(
                 msg='Where should I put the new database?',
                 title='Import Images',

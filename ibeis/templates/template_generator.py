@@ -736,6 +736,16 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         fmtdict['tbl2'] = tbl2
         fmtdict['TABLE1'] = tbl2_TABLE[tbl1]
         fmtdict['TABLE2'] = tbl2_TABLE[tbl2]
+
+    def set_deleter_info():
+        if flagskw.get('no_extern_deleters', False):
+            fmtdict['Tdeleter_native_tbl_import'] = '# NO EXTERN IMPORT'
+            fmtdict['Tdeleter_native_tbl_on_delete'] = '# NO EXTERN DELETE'
+        else:
+            Tdeleter_native_tbl_on_delete_fmtstr = 'from ibeis.model.preproc import preproc_{tbl}'
+            Tdeleter_native_tbl_on_delete_fmtstr = 'preproc_{tbl}.on_delete({self}, {tbl}_rowid_list, config2_=config2_)'
+            fmtdict['Tdeleter_native_tbl_import'] = Tdeleter_native_tbl_on_delete_fmtstr.format(**fmtdict)
+            fmtdict['Tdeleter_native_tbl_on_delete'] = Tdeleter_native_tbl_on_delete_fmtstr.format(**fmtdict)
     # L____________________________
 
     # +----------------------------
@@ -956,6 +966,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         if ut.VERBOSE:
             print('[TEMPLATE]  * Building native non-column funcs')
         if with_deleters:
+            set_deleter_info()
             append_func('2_Native.deleter', Tdef.Tdeleter_native_tbl)
         if with_iders:
             append_func('2_Native.ider', Tdef.Tider_all_rowids)
