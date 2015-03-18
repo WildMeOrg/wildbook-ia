@@ -611,6 +611,34 @@ def get_annot_gids(ibs, aid_list):
 
 
 @register_ibs_method
+@ut.accepts_numpy
+@getter_1to1
+#@cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
+def get_annot_eids(ibs, aid_list):
+    """
+    Get parent image rowids of annotations
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        gid_list (list):  image rowids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> result = get_annot_gids(ibs, aid_list)
+        >>> print(result)
+    """
+    gid_list = ibs.db.get(const.ANNOTATION_TABLE, ('image_rowid',), aid_list)
+    eids_list = ibs.get_image_eids(gid_list)
+    return eids_list
+
+
+@register_ibs_method
 @getter_1toM
 def get_annot_contact_aids(ibs, aid_list):
     """

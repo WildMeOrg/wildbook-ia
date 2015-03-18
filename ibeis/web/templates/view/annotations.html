@@ -28,13 +28,22 @@
 {% block content %}
   {% if filtered %}
     {% if num_eids > 0 %}
-      <div class="alert alert-info" role="alert">Filtering for eids: {{ eid_list }}</div>
+      <div class="alert alert-info" role="alert">
+        Filtering for eids: {{ eid_list }}
+        <a href="{{ url_for('view_annotations') }}" class="close"><span aria-hidden="true">&times;</span></a>
+      </div>
     {% endif %}
     {% if num_gids > 0 %}
-      <div class="alert alert-info" role="alert">Filtering for gids: {{ gid_list }}</div>
+      <div class="alert alert-info" role="alert">
+        Filtering for gids: {{ gid_list }}
+        <a href="{{ url_for('view_annotations') }}?eid={{ eid_list_str }}" class="close"><span aria-hidden="true">&times;</span></a>
+      </div>
     {% endif %}
     {% if num_aids > 0 %}
-      <div class="alert alert-info" role="alert">Filtering for aids: {{ aid_list }}</div>
+      <div class="alert alert-info" role="alert">
+        Filtering for aids: {{ aid_list }}
+        <a href="{{ url_for('view_annotations') }}?eid={{ eid_list_str }}" class="close"><span aria-hidden="true">&times;</span></a>
+      </div>
     {% endif %}
   {% endif %}
 
@@ -51,6 +60,8 @@
             <th>Species</th>
             <th>Viewpoint</th>
             <th>Quality</th>
+            <th>Image</th>
+            <th>Encounter</th>
           </tr>
         </thead>
         <tbody>
@@ -59,9 +70,9 @@
               <th class="no-items" colspan="99">Sorry, no annotations to display</th>
             </tr>
           {% else %}
-            {% for (aid, src, name, exemplar, species, viewpoint, quality, reviewed) in annotation_list %}
+            {% for (aid, gid, eid, src, name, exemplar, species, viewpoint, quality, reviewed) in annotation_list %}
             <tr {% if reviewed %}class="success"{% endif %}>
-              <th scope="row"><a href="{{ url_for('turk_viewpoint') }}?aid={{ aid }}">{{ aid }}</a></th>
+              <th scope="row"><a href="{{ url_for('turk_viewpoint') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ aid }}</a></th>
               <td><img class="ajax-image-load ajax-image-unloaded" src="" aid="{{ aid }}" /></td>
               <td>{{ src }}</td>
               <td>{{ name }}</td>
@@ -69,6 +80,8 @@
               <td>{{ species }}</td>
               <td>{{ viewpoint }}</td>
               <td>{{ quality }}</td>
+              <td><a href="{{ url_for('view_images') }}?gid={{ gid }}">Go to</a></td>
+              <td><a href="{{ url_for('view_images') }}?eid={{ eid }}">Go to</a></td>
             </tr>
             {% endfor %}
           {% endif %}

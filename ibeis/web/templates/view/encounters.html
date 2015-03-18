@@ -22,7 +22,10 @@
 {% block content %}
   {% if filtered %}
     {% if num_eids > 0 %}
-      <div class="alert alert-info" role="alert">Filtering for eids: {{ eid_list }}</div>
+      <div class="alert alert-info" role="alert">
+        Filtering for eids: {{ eid_list }}
+        <a href="{{ url_for('view_encounters') }}" class="close"><span aria-hidden="true">&times;</span></a>
+      </div>
     {% endif %}
   {% endif %}
 
