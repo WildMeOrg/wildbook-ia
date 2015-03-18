@@ -70,16 +70,10 @@ def _init_gui():
     return back
 
 
-def _init_web(ibs):
-    from ibeis import params
-    if params.args.webapp:
-        from ibeis.web import app
-        app.start_from_ibeis(ibs)
-
-
 #@profile
 def _init_ibeis(dbdir=None, verbose=None, use_cache=True):
     import utool as ut
+    from ibeis import params
     from ibeis.control import IBEISControl
     if verbose is None:
         verbose = ut.VERBOSE
@@ -91,6 +85,9 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True):
         ut.printWARN('[main!] WARNING args.dbdir is None')
     else:
         ibs = IBEISControl.request_IBEISController(dbdir=dbdir, use_cache=use_cache)
+        if params.args.webapp:
+            from ibeis.web import app
+            app.start_from_ibeis(ibs)
     return ibs
 
 
@@ -220,7 +217,6 @@ def main(gui=True, dbdir=None, defaultdb='cache',
         if gui and USE_GUI:
             back = _init_gui()
             back.connect_ibeis_control(ibs)
-        _init_web(ibs)
     except Exception as ex:
         print('[main()] IBEIS LOAD encountered exception: %s %s' % (type(ex), ex))
         raise
