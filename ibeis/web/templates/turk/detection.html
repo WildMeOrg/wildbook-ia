@@ -2,7 +2,7 @@
 {% block content %}
   {% if finished %}
   <div class="alert alert-info text-center" role="alert">
-    Congratulations, turking is completed.  Thank you!
+    Congratulations, detection turking is completed.  Thank you!
     <br/>
     <a href="{{ url_for('turk_viewpoint') }}?eid={{ eid }}">Continue by turking viewpoints</a>
   </div>
@@ -300,7 +300,7 @@
   {% endif %}
 {% endblock %}
 {% block content_custom_javascript %}  
-<script src="{{ url_for('static', filename='javascript/turk.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/turk-detection.js') }}"></script>
 <script src="{{ url_for('static', filename='include/bbox_annotator.js') }}"></script>
 <script type="text/javascript">  
   $(document).ready(function() {

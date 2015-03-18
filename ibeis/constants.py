@@ -52,6 +52,7 @@ QUALITY_INT_TO_TEXT = OrderedDict([
     (4,  QUAL_GOOD,),
     (3,  QUAL_OK,),
     (2,  QUAL_POOR,),
+    (1,  QUAL_JUNK,),
     (0,  QUAL_JUNK,),
     (-1, QUAL_UNKNOWN,),
 ])
