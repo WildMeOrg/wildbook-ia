@@ -1277,6 +1277,16 @@ def get_encounter_num_gids(ibs, eid_list):
 
 
 @register_ibs_method
+@getter_1to1
+def get_encounter_num_aids(ibs, eid_list):
+    """
+    Returns:
+        nGids_list (list): number of images in each encounter """
+    nAids_list = list(map(len, ibs.get_encounter_aids(eid_list)))
+    return nAids_list
+
+
+@register_ibs_method
 @getter_1toM
 def get_encounter_aids(ibs, eid_list):
     """

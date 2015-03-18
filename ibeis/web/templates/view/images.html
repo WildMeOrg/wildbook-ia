@@ -58,9 +58,9 @@
               <th class="no-items" colspan="99">Sorry, no images to display</th>
             </tr>
           {% else %}
-            {% for (gid, name, datetime, gps, party, contributor, notes) in image_list %}
-            <tr>
-              <th scope="row"><a href="{{ url_for('turk', filename='detection') }}?gid={{ gid }}">{{ gid }}</a></th>
+            {% for (gid, name, unixtime, datetime, gps, party, contributor, notes, reviewed) in image_list %}
+            <tr {% if reviewed %}class="success"{% endif %}>
+              <th scope="row"><a href="{{ url_for('turk_detection') }}?gid={{ gid }}">{{ gid }}</a></th>
               <td><img class="ajax-image-load ajax-image-unloaded" src="" gid="{{ gid }}" /></td>
               <td>{{ name }}</td>
               <td>{{ datetime }}</td>

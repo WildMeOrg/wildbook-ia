@@ -53,26 +53,52 @@ def view():
 
 
 @app.route('/view/encounters')
-def view_encoutners():
+def view_encounters():
+    def encounter_image_processed(eid):
+        gid_list = app.ibs.get_valid_gids(eid=eid)
+        images_reviewed = [ reviewed == 1 for reviewed in app.ibs.get_image_reviewed(gid_list) ]
+        return images_reviewed
+
+    def encounter_annot_processed(eid):
+        gid_list = app.ibs.get_valid_gids(eid=eid)
+        aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+        annots_reviewed = [ reviewed is not None for reviewed in app.ibs.get_annot_yaws(aid_list) ]
+        return annots_reviewed
+
+    def encounter_reviewed(eid):
+        images_reviewed = encounter_image_processed(eid)
+        annots_reviewed = encounter_annot_processed(eid)
+        return all(images_reviewed) and all(annots_reviewed)
+
     filtered = True
     if 'eid' in request.args.keys():
         eid_list = map(int, request.args['eid'].strip().split(','))
     else:
         eid_list = app.ibs.get_valid_eids()
         filtered = False
+    start_time_posix_list = app.ibs.get_encounter_start_time_posix(eid_list)
     datetime_list = [
         ut.unixtime_to_datetime(start_time_posix)
         if start_time_posix is not None
         else
         'Unknown'
-        for start_time_posix in app.ibs.get_encounter_start_time_posix(eid_list)
+        for start_time_posix in start_time_posix_list
     ]
+    image_processed_list = [ encounter_image_processed(eid).count(True) for eid in eid_list ]
+    annot_processed_list = [ encounter_annot_processed(eid).count(True) for eid in eid_list ]
+    reviewed_list = [ encounter_reviewed(eid) for eid in eid_list ]
     encounter_list = zip(
         eid_list,
         app.ibs.get_encounter_enctext(eid_list),
         app.ibs.get_encounter_num_gids(eid_list),
+        image_processed_list,
+        app.ibs.get_encounter_num_aids(eid_list),
+        annot_processed_list,
+        start_time_posix_list,
         datetime_list,
+        reviewed_list,
     )
+    encounter_list.sort(key=lambda t: t[6])
     return ap.template('view', 'encounters',
                        filtered=filtered,
                        eid_list=eid_list,
@@ -93,22 +119,26 @@ def view_images():
     else:
         gid_list = app.ibs.get_valid_gids()
         filtered = False
+    image_unixtime_list = app.ibs.get_image_unixtime(gid_list)
     datetime_list = [
         ut.unixtime_to_datetime(image_unixtime)
         if image_unixtime is not None
         else
         'Unknown'
-        for image_unixtime in app.ibs.get_image_unixtime(gid_list)
+        for image_unixtime in image_unixtime_list
     ]
     image_list = zip(
         gid_list,
         app.ibs.get_image_gnames(gid_list),
+        image_unixtime_list,
         datetime_list,
         app.ibs.get_image_gps(gid_list),
         app.ibs.get_image_party_tag(gid_list),
         app.ibs.get_image_contributor_tag(gid_list),
         app.ibs.get_image_notes(gid_list),
+        [ reviewed == 1 for reviewed in app.ibs.get_image_reviewed(gid_list) ],
     )
+    image_list.sort(key=lambda t: t[2])
     return ap.template('view', 'images',
                        filtered=filtered,
                        eid_list=eid_list,
@@ -144,7 +174,9 @@ def view_annotations():
         app.ibs.get_annot_species_texts(aid_list),
         app.ibs.get_annot_yaw_texts(aid_list),
         app.ibs.get_annot_quality_texts(aid_list),
+        [ reviewed is not None for reviewed in app.ibs.get_annot_yaws(aid_list) ],
     )
+    annotation_list.sort(key=lambda t: t[0])
     return ap.template('view', 'annotations',
                        filtered=filtered,
                        eid_list=eid_list,
@@ -380,7 +412,8 @@ def set_cookie():
 
 @app.route('/ajax/image/src/<gid>')
 def image_src(gid=None):
-    gpath = app.ibs.get_image_paths(gid)
+    # gpath = app.ibs.get_image_paths(gid)
+    gpath = app.ibs.get_image_thumbpath(gid)
     return ap.return_src(gpath)
 
 

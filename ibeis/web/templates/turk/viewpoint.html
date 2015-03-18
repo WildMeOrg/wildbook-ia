@@ -9,6 +9,10 @@
     <div class="col-lg-2"></div>
     
     <div class="col-lg-8">
+      {% if eid %}
+        <div class="alert alert-info" role="alert">Filtering for eid: <a href="{{ url_for('view_encounters') }}?eid={{ eid }}">{{ eid }}</a></div>
+      {% endif %}
+
       Aid: {{ aid }}
       <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span>
       <br/>

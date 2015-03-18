@@ -59,9 +59,9 @@
               <th class="no-items" colspan="99">Sorry, no annotations to display</th>
             </tr>
           {% else %}
-            {% for (aid, src, name, exemplar, species, viewpoint, quality) in annotation_list %}
-            <tr>
-              <th scope="row"><a href="{{ url_for('turk', filename='viewpoint') }}?gid={{ aid }}">{{ aid }}</a></th>
+            {% for (aid, src, name, exemplar, species, viewpoint, quality, reviewed) in annotation_list %}
+            <tr {% if reviewed %}class="success"{% endif %}>
+              <th scope="row"><a href="{{ url_for('turk_viewpoint') }}?aid={{ aid }}">{{ aid }}</a></th>
               <td><img class="ajax-image-load ajax-image-unloaded" src="" aid="{{ aid }}" /></td>
               <td>{{ src }}</td>
               <td>{{ name }}</td>
