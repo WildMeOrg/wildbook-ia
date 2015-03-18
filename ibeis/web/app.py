@@ -113,7 +113,7 @@ def view_encounters():
         datetime_list,
         reviewed_list,
     )
-    encounter_list.sort(key=lambda t: t[6])
+    encounter_list.sort(key=lambda t: t[7])
     return ap.template('view', 'encounters',
                        filtered=filtered,
                        eid_list=eid_list,
@@ -159,7 +159,7 @@ def view_images():
         app.ibs.get_image_notes(gid_list),
         [ reviewed == 1 for reviewed in app.ibs.get_image_reviewed(gid_list) ],
     )
-    image_list.sort(key=lambda t: t[2])
+    image_list.sort(key=lambda t: t[3])
     return ap.template('view', 'images',
                        filtered=filtered,
                        eid_list=eid_list,
