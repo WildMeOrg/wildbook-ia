@@ -459,6 +459,8 @@ def delete_annots(ibs, aid_list):
     # Delete chips and features first
     from ibeis.model.preproc import preproc_annot
     preproc_annot.on_delete(ibs, aid_list)
+    # TODO:
+    # delete parent rowid column if exists in annot table
     ibs.db.delete_rowids(const.ANNOTATION_TABLE, aid_list)
 
 

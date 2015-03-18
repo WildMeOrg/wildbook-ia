@@ -1115,8 +1115,41 @@ def merge_databases(ibs_src, ibs_dst, gid_list=None, back=None, user_prompt=Fals
     ibs_dst.notify_observers()
 
 
+def check_merge(ibs_src, ibs_dst):
+    aid_list1 = ibs_src.get_valid_aids()
+    gid_list1 = ibs_src.get_annot_gids(aid_list1)
+    ut.assert_all_not_None(gid_list1, 'gid_list1')
+    gname_list1 = ibs_src.get_image_uris(gid_list1)
+    image_uuid_list1 = ibs_src.get_image_uuids(gid_list1)
+    # Add all images from database 1 to database 2
+    gid_list2 = ibs_dst.get_image_gids_from_uuid(image_uuid_list1)
+    ut.assert_all_not_None(gid_list2, 'gid_list1')
+    gname_list2 = ibs_dst.get_image_uris(gid_list2)
+    ut.assert_lists_eq(gname_list1, gname_list2, 'faild gname')
+    # Image UUIDS should be consistent between databases
+    image_uuid_list2 = ibs_dst.get_image_uuids(gid_list2)
+    ut.assert_lists_eq(image_uuid_list1, image_uuid_list2, 'failed uuid')
+
+    aids_list1 = ibs_src.get_image_aids(gid_list1)
+    aids_list2 = ibs_dst.get_image_aids(gid_list2)
+
+    avuuids_list1 = ibs_src.unflat_map(ibs_src.get_annot_visual_uuids, aids_list1)
+    avuuids_list2 = ibs_dst.unflat_map(ibs_dst.get_annot_visual_uuids, aids_list2)
+
+    issubset_list = [set(avuuids1).issubset(set(avuuids2)) for avuuids1, avuuids2 in zip(avuuids_list1, avuuids_list2)]
+    assert all(issubset_list), 'ibs_src must be a subset of ibs_dst: issubset_list=%r' % (issubset_list,)
+    #aids_depth1 = ut.depth_profile(aids_list1)
+    #aids_depth2 = ut.depth_profile(aids_list2)
+    # depth might not be true if ibs_dst is not empty
+    #ut.assert_lists_eq(aids_depth1, aids_depth2, 'failed depth')
+    print('Merge seems ok...')
+
+
 def merge_databases2(ibs_src, ibs_dst):
     """ new way of merging using the non-hacky sql table merge that is only working due to major hacks
+
+    CommandLine:
+        python -m ibeis.dbio.export_subset --test-merge_databases2:0
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1128,6 +1161,8 @@ def merge_databases2(ibs_src, ibs_dst):
         >>> #delete_ibsdir = True
         >>> delete_ibsdir = False
         >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst', allow_newdir=True, delete_ibsdir=delete_ibsdir)
+        >>> check_merge(ibs_src, ibs_dst)
+        >>> ibs_dst.print_dbinfo()
 
     Example2:
         >>> # DISABLE_DOCTEST
@@ -1139,6 +1174,7 @@ def merge_databases2(ibs_src, ibs_dst):
         >>> delete_ibsdir = True
         >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst2', allow_newdir=True, delete_ibsdir=delete_ibsdir)
         >>> merge_databases2(ibs_src, ibs_dst)
+        >>> check_merge(ibs_src, ibs_dst)
     """
     # TODO: ensure images are localized
     # otherwise this wont work
@@ -1149,6 +1185,8 @@ def merge_databases2(ibs_src, ibs_dst):
     ibs_src.update_annot_visual_uuids(ibs_src.get_valid_aids())
     ibs_src.ensure_contributor_rowids()
     ibs_dst.ensure_contributor_rowids()
+    ibs_src.fix_invalid_annotmatches()
+    ibs_dst.fix_invalid_annotmatches()
     # Hack move of the external data
     gid_list = ibs_src.get_valid_gids()
     imgpath_list = ibs_src.get_image_paths(gid_list)
@@ -1232,10 +1270,45 @@ def merge_databases2(ibs_src, ibs_dst):
 #             count=count, averts1=averts1, averts2=averts2,)
 
 
+def test_merge():
+
+    from ibeis.dbio import export_subset
+    import ibeis
+    ibs1 = ibeis.opendb('testdb2')
+    ibs1.fix_invalid_annotmatches()
+    ibs_dst = ibeis.opendb(dbdir='TEST_MERGE2', allow_newdir=True, delete_ibsdir=True)
+    export_subset.merge_databases2(ibs1, ibs_dst)
+    #ibs_src = ibs1
+    check_merge(ibs1, ibs_dst)
+
+    ibs2 = ibeis.opendb('testdb1')
+    ibs1.print_dbinfo()
+    ibs2.print_dbinfo()
+    ibs_dst.print_dbinfo()
+
+    ibs_dst.print_dbinfo()
+
+    export_subset.merge_databases2(ibs2, ibs_dst)
+    #ibs_src = ibs2
+    check_merge(ibs2, ibs_dst)
+
+    ibs3 = ibeis.opendb('PZ_MTEST')
+    export_subset.merge_databases2(ibs3, ibs_dst)
+    #ibs_src = ibs2
+    check_merge(ibs3, ibs_dst)
+
+    ibs_dst.print_dbinfo()
+
+    #ibs_src.print_annotation_table(exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid', 'annot_exemplar_flag,'])
+    #ibs_dst.print_annotation_table()
+
+
 """
 def MERGE_NNP_MASTER_SCRIPT():
-    print(ut.truncate_str(ibs_dst.db.get_table_csv(ibeis.const.ANNOTATION_TABLE, exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
-    print(ut.truncate_str(ibs_src1.db.get_table_csv(ibeis.const.ANNOTATION_TABLE, exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
+    print(ut.truncate_str(ibs_dst.db.get_table_csv(ibeis.const.ANNOTATION_TABLE,
+        exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
+    print(ut.truncate_str(ibs_src1.db.get_table_csv(ibeis.const.ANNOTATION_TABLE,
+        exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
     print(ut.truncate_str(ibs_src1.db.get_table_csv(ibeis.const.ANNOTATION_TABLE), 10000))
 
     from ibeis.dbio.export_subset import *  # NOQA
@@ -1243,14 +1316,13 @@ def MERGE_NNP_MASTER_SCRIPT():
     # Step 1
     ibs_src1 = ibeis.opendb('NNP_initial')
     ibs_src2 = ibeis.opendb('GZC')
-    ibs_dst = ibeis.opendb('GZC_NNP_MERGE2', allow_newdir=True)
+    ibs_dst = ibeis.opendb('NNP_Master2', allow_newdir=True)
 
     merge_databases2(ibs_src1, ibs_dst)
     merge_databases2(ibs_src2, ibs_dst)
 
     ## Step 2
     #ibs_src = ibeis.opendb('GZC')
-    #ibs_dst = ibeis.opendb('GZC_NNP_MERGE', allow_newdir=False)
 
     ## Check
     ibs1 = ibeis.opendb('NNP_initial')

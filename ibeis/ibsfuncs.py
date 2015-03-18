@@ -577,11 +577,32 @@ def check_consistency(ibs, embed=False):
     check_image_consistency(ibs, gid_list)
     check_annot_consistency(ibs, aid_list)
     check_name_consistency(ibs, nid_list)
+    check_annotmatch_consistency(ibs)
     # Very slow check
     check_image_uuid_consistency(ibs, gid_list)
     if embed:
         ut.embed()
     print('[ibsfuncs] Finshed consistency check')
+
+
+@__injectable
+def check_annotmatch_consistency(ibs):
+    annomatch_rowids = ibs._get_all_annotmatch_rowids()
+    aid1_list = ibs.get_annotmatch_aid1(annomatch_rowids)
+    aid2_list = ibs.get_annotmatch_aid2(annomatch_rowids)
+    exists1_list = ibs.db.check_rowid_exists(const.ANNOTATION_TABLE, aid1_list)
+    exists2_list = ibs.db.check_rowid_exists(const.ANNOTATION_TABLE, aid2_list)
+    invalid_list = ut.not_list(ut.and_lists(exists1_list, exists2_list))
+    invalid_annotmatch_rowids = ut.filter_items(annomatch_rowids, invalid_list)
+    print('There are %d invalid annotmatch rowids' % (len(invalid_annotmatch_rowids),))
+    return invalid_annotmatch_rowids
+
+
+@__injectable
+def fix_invalid_annotmatches(ibs):
+    print('Fixing invalid annotmatches')
+    invalid_annotmatch_rowids = ibs.check_annotmatch_consistency()
+    ibs.delete_annotmatch(invalid_annotmatch_rowids)
 
 
 def fix_remove_visual_dupliate_annotations(ibs):
@@ -664,6 +685,7 @@ def fix_and_clean_database(ibs):
     ibs.fix_unknown_exemplars()
     ibs.fix_invalid_name_texts()
     ibs.fix_invalid_nids()
+    ibs.fix_invalid_annotmatches()
     ibs.update_annot_visual_uuids(ibs.get_valid_aids())
     ibs.delete_empty_nids()
     ibs.delete_empty_eids()
@@ -1608,6 +1630,14 @@ def print_image_table(ibs, **kwargs):
     """ Dumps chip table to stdout """
     print('\n')
     print(ibs.db.get_table_csv(const.IMAGE_TABLE, **kwargs))
+    #, exclude_columns=['image_rowid']))
+
+
+@__injectable
+def print_party_table(ibs, **kwargs):
+    """ Dumps chip table to stdout """
+    print('\n')
+    print(ibs.db.get_table_csv(const.PARTY_TABLE, **kwargs))
     #, exclude_columns=['image_rowid']))
 
 

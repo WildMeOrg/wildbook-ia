@@ -324,6 +324,11 @@ class SQLDatabaseController(object):
         '''
         return db._executeone_operation_fmt(operation_fmt, fmtdict, params, **kwargs)
 
+    def check_rowid_exists(db, tablename, rowid_iter, eager=True, **kwargs):
+        rowid_list1 = db.get(tablename, ('rowid',), rowid_iter)
+        exists_list = [rowid is not None for rowid in rowid_list1]
+        return exists_list
+
     def _add(db, tblname, colnames, params_iter, **kwargs):
         """ ADDER NOTE: use add_cleanly """
         fmtdict = {'tblname'  : tblname,
@@ -1584,7 +1589,10 @@ class SQLDatabaseController(object):
                 extern_tablename_list.append(extern_tablename)
                 extern_primarycolnames_list.append(extern_primary_colnames)
 
-        new_transferdata = column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list
+        new_transferdata = (column_list, column_names, extern_colx_list,
+                            extern_superkey_colname_list,
+                            extern_superkey_colval_list, extern_tablename_list,
+                            extern_primarycolnames_list)
         return new_transferdata
 
     #def import_table_new_transferdata(tablename, new_transferdata):
@@ -1619,6 +1627,20 @@ class SQLDatabaseController(object):
             >>> db_src = ibs_src.db
             >>> # execute function
             >>> db.merge_databases_new(db_src)
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> import ibeis
+            >>> ibs_src = ibeis.opendb(db='testdb2')
+            >>> # OPEN A CLEAN DATABASE
+            >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst2', allow_newdir=True, delete_ibsdir=True)
+            >>> ibs_src.ensure_contributor_rowids()
+            >>> # build test data
+            >>> db = ibs_dst.db
+            >>> db_src = ibs_src.db
+            >>> # execute function
+            >>> db.merge_databases_new(db_src)
         """
         all_tablename_list = db.get_table_names()
         # HACK, fix order. TODO: infer this order correctly via dependency analysis
@@ -1626,56 +1648,103 @@ class SQLDatabaseController(object):
         ignore_tables_hack = ['lblannot', 'lblimage', 'image_lblimage_relationship', 'annotation_lblannot_relationship', 'keys']
         ignore_tables += ignore_tables_hack
         tablename_list = [tablename for tablename in all_tablename_list if tablename not in ignore_tables]
-        hacked_order = {'contributors': 0, 'configs': 1, 'party': 0, 'names': 0, 'species': 0, 'images': 2, 'encounters': 2, 'encounter_image_relationship': 3, 'annotations': 3, 'annotmatch': 3}
+        hacked_order = {
+            'contributors': 0, 'configs': 1, 'party': 0, 'names': 0, 'species': 0,
+            'images': 2, 'encounters': 2, 'encounter_image_relationship': 3,
+            'annotations': 3, 'annotmatch': 3,
+        }
         tablename_list = sorted(tablename_list, key=lambda x: hacked_order.get(x, 9))
         """
         tablename_iter = iter(tablename_list)
         """
         #with ut.embed_on_exception_context:
+        verbose = True
+        veryverbose = True
+        #with ut.embed_on_exception_context:
         for tablename in tablename_list:
             """
             tablename = tablename_iter.next()
             """
-            print(tablename)
+            if verbose:
+                print('\n[sqlmerge] Merging tablename=%r' % (tablename,))
+            #if tablename == 'annotations':
+            #    break
+            # Collect the data from the source table that will be merged in
             new_transferdata = db_src.get_table_new_transferdata(tablename)
-            column_list, column_names, extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list = new_transferdata
+            (column_list, column_names,
+             # These fields are for external data dependencies. We need to find what the
+             # new rowids will be in the destintation database
+             extern_colx_list, extern_superkey_colname_list,
+             extern_superkey_colval_list, extern_tablename_list,
+             extern_primarycolnames_list
+             ) = new_transferdata
+            #
+            #
             #new_extern_rowids_list = []
             # HACK OUT THE ROWID COLUMN
             #db.get_table_primarykey_colnames(tablename)
             assert column_names[0].endswith('_rowid')
+            old_rowid_list = column_list[0]
+            del old_rowid_list
             column_names_ = column_names[1:]
             column_list_ = column_list[1:]
+            del column_list
+            del column_names
             #ibs.db.get(const.CONFIG_TABLE, ('config_rowid',), cfgsuffix_list, id_colname='config_suffix')
 
             if len(extern_colx_list) > 0:
+                if verbose:
+                    print('[sqlmerge] %s has %d externaly dependant columns to resolve' % (tablename, len(extern_colx_list)))
                 # Resolve external superkey lookups
                 # CONFIGS MIGHT BE BROKEN HERE DUE TO HAVING A MUTLTIKEY-SUPERKEY
-                column_list_modified = column_list[:]  # NOQA
+                modified_column_list_ = column_list_[:]  # NOQA
                 #get_rowid_from_superkey, superkey_paramx=(0,)
-                _iter = zip(extern_colx_list, extern_superkey_colname_list, extern_superkey_colval_list, extern_tablename_list, extern_primarycolnames_list)
                 new_extern_rowid_list = []
-                for colx, extern_superkey_colname, extern_superkey_colval, extern_tablename, extern_primarycolname in _iter:
+
+                # Find the mappings from the old tables rowids to the new tables rowids
+                for tup in zip(extern_colx_list, extern_superkey_colname_list,
+                               extern_superkey_colval_list,
+                               extern_tablename_list,
+                               extern_primarycolnames_list):
+                    colx, extern_superkey_colname, extern_superkey_colval, extern_tablename, extern_primarycolname = tup
+                    source_colname = column_names_[colx - 1]
+                    if veryverbose or verbose:
+                        if veryverbose:
+                            print(('[sqlmerge] * resolving source_colname=%r \n'
+                                   '                 via %r -> %r. colx=%r')
+                                  % (source_colname, extern_superkey_colname, extern_primarycolname, colx))
+                        elif verbose:
+                            print('[sqlmerge] * resolving %r via %r -> %r'
+                                  % (source_colname, extern_superkey_colname, extern_primarycolname))
                     if str(extern_tablename) == str('configs'):
                         # HACK: Remove contrib from configs
                         extern_superkey_colval = [tup[1] for tup in extern_superkey_colval]
+                        print('* HACK RESOLVE FOR CONFIGS %r[1:]' % (extern_superkey_colname,))
                         extern_superkey_colname = extern_superkey_colname[1:]
-                    #if len(extern_superkey_colval) > 1:
+                    #if source_colname == 'image_rowid':
+                    #    break
                     _params_iter = list(zip(extern_superkey_colval))
-                    new_extern_rowids = db.get_rowid_from_superkey(extern_tablename, _params_iter, superkey_colnames=extern_superkey_colname)
+                    new_extern_rowids = db.get_rowid_from_superkey(
+                        extern_tablename, _params_iter, superkey_colnames=extern_superkey_colname)
                     new_extern_rowid_list.append(new_extern_rowids)
-                for colx, new_extern_rowids in zip(extern_colx_list, new_extern_rowid_list):
-                    column_list_modified[colx] = new_extern_rowids
-            else:
-                column_list_modified = column_list
-                #new_extern_rowids_list.append(new_extern_rowids)
 
+                for colx, new_extern_rowids in zip(extern_colx_list, new_extern_rowid_list):
+                    #old_extern_rowids = modified_column_list_[colx - 1]
+                    modified_column_list_[colx - 1] = new_extern_rowids
+            else:
+                modified_column_list_ = column_list_
+                #new_extern_rowids_list.append(new_extern_rowids)
+            del column_list_
             # cleanly add new data to db
             superkey_colnames_list = db.get_table_superkey_colnames(tablename)
             if str(tablename) == str('configs'):
                 # HACK
                 # Ignore contributor for configs for now
                 superkey_colnames_list = [('config_suffix',)]
-            superkey_paramxs_list = [[column_names_.index(str(superkey)) for superkey in  superkey_colnames] for superkey_colnames in superkey_colnames_list]
+            superkey_paramxs_list = [
+                [column_names_.index(str(superkey)) for superkey in  superkey_colnames]
+                for superkey_colnames in superkey_colnames_list
+            ]
             if tablename == 'annotations':
                 # use visual uuids for annots
                 superkey_paramx = superkey_paramxs_list[1]
@@ -1685,12 +1754,18 @@ class SQLDatabaseController(object):
                 assert len(superkey_colnames_list) == 1
                 superkey_paramx = superkey_paramxs_list[0]
                 superkey_colnames = superkey_colnames_list[0]
-            params_iter = list(zip(*column_list_))
+            params_iter = list(zip(*modified_column_list_))
             def get_rowid_from_superkey(*superkey_column_list):
                 superkey_params_iter = zip(*superkey_column_list)
-                return db.get_rowid_from_superkey(tablename, superkey_params_iter, superkey_colnames=superkey_colnames)
-            new_rowid_list = db.add_cleanly(tablename, column_names_, params_iter, get_rowid_from_superkey=get_rowid_from_superkey, superkey_paramx=superkey_paramx)
-            new_rowid_list
+                rowid = db.get_rowid_from_superkey(
+                    tablename, superkey_params_iter, superkey_colnames=superkey_colnames)
+                return rowid
+            new_rowid_list = db.add_cleanly(tablename, column_names_,
+                                            params_iter,
+                                            get_rowid_from_superkey=get_rowid_from_superkey,
+                                            superkey_paramx=superkey_paramx)
+            del new_rowid_list
+            #old_rowids_to_new_roids = dict(zip(old_rowid_list, new_rowid_list))
             #print(tablename)
             #print(new_rowid_list)
 
