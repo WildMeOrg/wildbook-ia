@@ -591,12 +591,14 @@ def get_image_thumbtup(ibs, gid_list, thumbsize=None):
 
 @register_ibs_method
 @getter_1to1
-def get_image_thumbpath(ibs, gid_list, thumbsize=None):
+def get_image_thumbpath(ibs, gid_list, ensure_paths=True, thumbsize=None):
     """
     Returns:
         list_ (list): the thumbnail path of each gid """
     if thumbsize is None:
         thumbsize = ibs.cfg.other_cfg.thumb_size
+    if ensure_paths:
+        ibs.preprocess_image_thumbs(gid_list, thumbsize=thumbsize)
     thumb_dpath = ibs.thumb_dpath
     img_uuid_list = ibs.get_image_uuids(gid_list)
     thumb_suffix = '_' + str(thumbsize) + const.IMAGE_THUMB_SUFFIX
@@ -1274,6 +1276,16 @@ def get_encounter_num_gids(ibs, eid_list):
         nGids_list (list): number of images in each encounter """
     nGids_list = list(map(len, ibs.get_encounter_gids(eid_list)))
     return nGids_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_num_aids(ibs, eid_list):
+    """
+    Returns:
+        nGids_list (list): number of images in each encounter """
+    nAids_list = list(map(len, ibs.get_encounter_aids(eid_list)))
+    return nAids_list
 
 
 @register_ibs_method

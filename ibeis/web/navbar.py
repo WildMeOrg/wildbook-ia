@@ -4,7 +4,7 @@ from flask import request
 class NavbarClass(object):
     def __init__(nav):
         nav.item_list = [
-            ('',     'Home'),
+            ('root', 'Home'),
             ('view', 'View'),
             ('turk', 'Turk'),
             ('api',  'API'),

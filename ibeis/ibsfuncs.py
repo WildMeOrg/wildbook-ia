@@ -1952,13 +1952,14 @@ def draw_thumb_helper(tup):
 
 @__injectable
 def preprocess_image_thumbs(
-        ibs, gid_list=None, use_cache=True, chunksize=8, **kwargs):
+        ibs, gid_list=None, use_cache=True, chunksize=8, thumbsize=None, **kwargs):
     """ Computes thumbs of images in parallel based on kwargs """
     print('[ibsfuncs] preprocess_image_thumbs')
     if gid_list is None:
         gid_list = ibs.get_valid_gids(**kwargs)
-    thumbsize = 128
-    thumbpath_list = ibs.get_image_thumbpath(gid_list, thumbsize=thumbsize)
+    if thumbsize is None:
+        thumbsize = ibs.cfg.other_cfg.thumb_size
+    thumbpath_list = ibs.get_image_thumbpath(gid_list, ensure_paths=False, thumbsize=thumbsize)
     #use_cache = False
     if use_cache:
         exists_list = list(map(exists, thumbpath_list))

@@ -31,7 +31,7 @@
         <ul class="nav nav-pills pull-right">
           {% for active, link, nice in NAVBAR %}
             <li {% if active %}class="active"{% endif %}>
-              <a href="/{{ link }}">{{ nice }}</a>
+              <a href="{{ url_for(link) }}">{{ nice }}</a>
             </li>
           {% endfor %}
         </ul>

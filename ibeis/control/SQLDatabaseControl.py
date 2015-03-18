@@ -900,7 +900,8 @@ class SQLDatabaseController(object):
         """
         #assert colmap_list is not None, 'must specify colmaplist'
         assert tablename is not None, 'tablename must be given'
-        printDBG('[sql] schema modifying tablename=%r' % tablename)
+        if ut.VERBOSE:
+            print('[sql] schema modifying tablename=%r' % tablename)
 
         if colmap_list is None:
             colmap_list = []
@@ -1024,7 +1025,8 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def reorder_columns(db, tablename, order_list):
-        printDBG('[sql] schema column reordering for tablename=%r' % tablename)
+        if ut.VERBOSE:
+            print('[sql] schema column reordering for tablename=%r' % tablename)
         # Get current tables
         colname_list = db.get_column_names(tablename)
         coltype_list = db.get_column_types(tablename)
@@ -1057,7 +1059,9 @@ class SQLDatabaseController(object):
 
     @default_decorator
     def duplicate_column(db, tablename, colname, colname_duplicate):
-        printDBG('[sql] schema duplicating tablename.colname=%r.%r into tablename.colname=%r.%r' % (tablename, colname, tablename, colname_duplicate))
+        if ut.VERBOSE:
+            print('[sql] schema duplicating tablename.colname=%r.%r into tablename.colname=%r.%r' %
+                    (tablename, colname, tablename, colname_duplicate))
         # Modify table to add a blank column with the appropriate tablename and NO data
         column_names = db.get_column_names(tablename)
         column_types = db.get_column_types(tablename)
@@ -1134,11 +1138,12 @@ class SQLDatabaseController(object):
         db.executeone(operation, [], verbose=False)
 
         # Delete table's metadata
-        key_list = [
-            tablename + '_constraint',
-            tablename + '_docstr',
-            tablename + '_superkeys',
-        ]
+        #key_list = [
+        #    tablename + '_constraint',
+        #    tablename + '_docstr',
+        #    tablename + '_superkeys',
+        #]
+        key_list = [tablename + '_' + suffix for suffix in db.table_metadata_keys]
         db.delete(constants.METADATA_TABLE, key_list, id_colname='metadata_key')
 
     @default_decorator
@@ -1323,6 +1328,8 @@ class SQLDatabaseController(object):
     @default_decorator
     def get_table_superkeys(db, tablename):
         """
+        REFACTOR OR DEPRICATE
+
         get_table_superkeys
 
         Args:

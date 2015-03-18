@@ -9,6 +9,11 @@
   margin-top: 10px;
 }
 
+.footer
+{
+  margin-top: 20px;
+}
+
 .row-custom-expand
 {
   margin-left: 0px;
@@ -114,4 +119,9 @@
 {
   right:-4px;
   top:50%;
+}
+
+#turk-submit-delete
+{
+  margin-right: 20px;
 }

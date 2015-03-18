@@ -4,13 +4,20 @@
   <div class="alert alert-info text-center" role="alert">
     Congratulations, turking is completed.  Thank you!
     <br/>
-    <a href="/turk/viewpoint">Continue by turking viewpoints</a>
+    <a href="{{ url_for('turk_viewpoint') }}?eid={{ eid }}">Continue by turking viewpoints</a>
   </div>
   {% else %}
   <div class="row">
     <div class="col-lg-1"></div>
     
     <div class="col-lg-10">
+      {% if eid %}
+        <div class="alert alert-info" role="alert">
+          Filtering for eid: <a href="{{ url_for('view_encounters') }}?eid={{ eid }}">{{ eid }}</a>
+          <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
+        </div>
+      {% endif %}
+      
       Gid: {{ gid }}
       <br/>
       Species: {{ species }} <span data-toggle="modal" data-target="#turk-species-examples" style="margin-left: 50px; cursor: pointer; color: #428bca;">(What does this species look like?)</span>
@@ -22,19 +29,22 @@
         <span>highlight and press 'b' to send an annotation to the back</a></span>
       </div>
       <br/>
-      <form method="post" action="/submit/detection{% if eid %}?eid={{ eid }}{% endif %}{% if refer %}?refer={{ refer }}{% endif %}" id="detection-form">
+      <form method="post" action="{{ url_for('submit_detection') }}?eid={{ eid }}&refer={{ REFER_DST_ENCODED }}" id="detection-form">
         <input type="text" name="detection-gid" value="{{ gid }}" style="display: none;" readonly>
         <div class="row">
           <div class="col-lg-2">
-            <!-- <input type="submit" name="detection-submit" id="turk-submit-skip"   class="btn btn-default pull-left"  value="Skip"> -->
+          {% if previous %}
+            <a class="btn btn-default pull-left" href="{{ url_for('turk_detection') }}?eid={{ eid }}&gid={{ previous }}">Previous {{ previous }}</a>
+          {% endif %}
           </div>
           <div class="col-lg-8" style="text-align:center;">
-            {% if refer == 'viewpoint' %}
-              <a href="/turk/viewpoint{% if refer_aid %}?aid={{ refer_aid }}{% endif %}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back to aid: {{ refer_aid }}</a>
+            {% if refer %}
+              <a href="{{ REFER_DST_STR }}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back...</a>
             {% endif %}
           </div>
           <div class="col-lg-2">
             <input type="submit" name="detection-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
+            <input type="submit" name="detection-submit" id="turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this image?')">
           </div>
         </div>
         <textarea id="detection_data" name="detection-annotations" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="detection-form"></textarea>
@@ -198,7 +208,7 @@
               <div class="col-lg-1"></div>
               <div class="col-lg-10" style="margin-top: 20px;">
                 <img src="{{ url_for('static', filename='images/example-detection2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>Keypoint descriptors.  The oval regions are extracted within the bounding box based on how much <b>useful information</b> the algorithm can find.  As we can see, the keypoints really prefer the zebra's face, legs and mid body.  The entire body of the zebra produces good, usable, informative keypoints.  The background, however, produces small, and not very important keypoints.  In order to be the most productive turker, always keep in mind what information these keypoints are trying to capture. [7]</p>
+                <p>Keypoint descriptors.  The oval regions are extracted within the bounding box based on how much <b>useful information</b> the algorithm can find.  As we can see, the keypoints really respond the zebra's face, legs and mid body.  The entire body of the zebra produces good, usable, informative keypoints.  The background, however, produces small, and not very important keypoints.  In order to be the most productive turker, always keep in mind what information these keypoints are trying to capture. [7]</p>
               </div>
               <div class="col-lg-1"></div>
             </div>
@@ -245,7 +255,7 @@
             <li>Always annotate the animals regardless of viewpoint.</li>
             <li>If an image has no animals in it, simply hit <b>Accept</b> with no annotations, because the image <i>should</i> have no annotations.
             <li>A new, in-progress annotation selection can be cancelled by pressing the <b>Esc</b> key.</li>
-            <li>The <b>Space</b> key skips the image and does not save any viewpoint information for that image.  The <b>Enter</b> key submits all current annotations.</li>
+            <li>The <b>Space</b> key deletes the image and does not save any viewpoint information for that image.  The <b>Enter</b> key submits all current annotations.</li>
             <li>Review annotations as fast as you can while maintaining perfect accuracy.</li>
             <li>To bring up these instructions again, click on the <span class="glyphicon glyphicon-info-sign" style="font-size: 14px;"></span> button</li>
             <li><u>Known issues</u>:

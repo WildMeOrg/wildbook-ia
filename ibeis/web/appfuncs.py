@@ -3,11 +3,11 @@ from PIL import Image
 import numpy as np
 import cStringIO as StringIO
 from ibeis.web import navbar
-from flask import render_template
+from flask import request, render_template
 # Others
 from os.path import join
 from datetime import date
-
+import base64
 
 ORIENTATIONS = {   # used in apply_orientation
     2: (Image.FLIP_LEFT_RIGHT,),
@@ -17,11 +17,6 @@ ORIENTATIONS = {   # used in apply_orientation
     6: (Image.ROTATE_270,),
     7: (Image.FLIP_LEFT_RIGHT, Image.ROTATE_270),
     8: (Image.ROTATE_90,)
-}
-
-global_args = {
-    'NAVBAR': navbar.NavbarClass(),
-    'YEAR':   date.today().year,
 }
 
 
@@ -78,7 +73,27 @@ def check_valid_function_name(string):
     return all([ char.isalpha() or char == '_' or char.isalnum() for char in string])
 
 
+def encode_refer_url(url):
+    return base64.urlsafe_b64encode(str(url))
+
+
+def decode_refer_url(encode):
+    return base64.urlsafe_b64decode(str(encode))
+
+
 def template(template_directory=None, template_filename=None, **kwargs):
+    global_args = {
+        'NAVBAR': navbar.NavbarClass(),
+        'YEAR':   date.today().year,
+        'URL':    request.url,
+        'REFER_SRC_STR':  request.url.replace(request.url_root, ''),
+    }
+    global_args['REFER_SRC_ENCODED'] = encode_refer_url(global_args['REFER_SRC_STR'])
+    if 'refer' in request.args.keys():
+        refer = request.args['refer']
+        print("REFER: %r" % (refer, ))
+        global_args['REFER_DST_ENCODED'] = refer
+        global_args['REFER_DST_STR'] = decode_refer_url(refer)
     if template_directory is None:
         template_directory = ''
     if template_filename is None:

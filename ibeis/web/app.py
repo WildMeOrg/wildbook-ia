@@ -23,6 +23,7 @@ from ibeis.web import DBWEB_SCHEMA
 # Others
 from os.path import join
 import ibeis.constants as const
+import random
 
 
 BROWSER = ut.get_argflag('--browser')
@@ -45,37 +46,64 @@ def view():
     aid_list = app.ibs.get_valid_aids()
     return ap.template('view',
                        eid_list=eid_list,
+                       eid_list_str=','.join(map(str, eid_list)),
                        num_eids=len(eid_list),
                        gid_list=gid_list,
+                       gid_list_str=','.join(map(str, gid_list)),
                        num_gids=len(gid_list),
                        aid_list=aid_list,
+                       aid_list_str=','.join(map(str, aid_list)),
                        num_aids=len(aid_list))
 
 
 @app.route('/view/encounters')
-def view_encoutners():
+def view_encounters():
+    def encounter_image_processed(eid, gid_list):
+        images_reviewed = [ reviewed == 1 for reviewed in app.ibs.get_image_reviewed(gid_list) ]
+        return images_reviewed
+
+    def encounter_annot_processed(eid, gid_list):
+        aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+        annots_reviewed = [ reviewed is not None for reviewed in app.ibs.get_annot_yaws(aid_list) ]
+        return annots_reviewed
+
     filtered = True
-    if 'eid' in request.args.keys():
-        eid_list = map(int, request.args['eid'].strip().split(','))
+    eid = request.args.get('eid', '')
+    if len(eid) > 0:
+        eid_list = eid.strip().split(',')
+        eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
     else:
         eid_list = app.ibs.get_valid_eids()
         filtered = False
+    start_time_posix_list = app.ibs.get_encounter_start_time_posix(eid_list)
     datetime_list = [
         ut.unixtime_to_datetime(start_time_posix)
-        if start_time_posix is not None
-        else
+        if start_time_posix is not None else
         'Unknown'
-        for start_time_posix in app.ibs.get_encounter_start_time_posix(eid_list)
+        for start_time_posix in start_time_posix_list
     ]
+    gids_list = [ app.ibs.get_valid_gids(eid=eid_) for eid_ in eid_list ]
+    images_reviewed_list = [ encounter_image_processed(eid, gid_list) for eid_, gid_list in zip(eid_list, gids_list) ]
+    annots_reviewed_list = [ encounter_annot_processed(eid, gid_list) for eid_, gid_list in zip(eid_list, gids_list) ]
+    image_processed_list = [ images_reviewed.count(True) for images_reviewed in images_reviewed_list ]
+    annot_processed_list = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_list ]
+    reviewed_list = [ all(images_reviewed) and all(annots_reviewed) for images_reviewed, annots_reviewed in zip(images_reviewed_list, annots_reviewed_list) ]
     encounter_list = zip(
         eid_list,
         app.ibs.get_encounter_enctext(eid_list),
         app.ibs.get_encounter_num_gids(eid_list),
+        image_processed_list,
+        app.ibs.get_encounter_num_aids(eid_list),
+        annot_processed_list,
+        start_time_posix_list,
         datetime_list,
+        reviewed_list,
     )
+    encounter_list.sort(key=lambda t: t[6])
     return ap.template('view', 'encounters',
                        filtered=filtered,
                        eid_list=eid_list,
+                       eid_list_str=','.join(map(str, eid_list)),
                        num_eids=len(eid_list),
                        encounter_list=encounter_list,
                        num_encounters=len(encounter_list))
@@ -85,35 +113,46 @@ def view_encoutners():
 def view_images():
     filtered = True
     eid_list = []
-    if 'gid' in request.args.keys():
-        gid_list = map(int, request.args['gid'].strip().split(','))
-    elif 'eid' in request.args.keys():
-        eid_list = map(int, request.args['eid'].strip().split(','))
-        gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid) for eid in eid_list ])
+    gid = request.args.get('gid', '')
+    eid = request.args.get('eid', '')
+    if len(gid) > 0:
+        gid_list = gid.strip().split(',')
+        gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
+    elif len(eid) > 0:
+        eid_list = eid.strip().split(',')
+        eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
+        gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid) for eid_ in eid_list ])
     else:
         gid_list = app.ibs.get_valid_gids()
         filtered = False
+    image_unixtime_list = app.ibs.get_image_unixtime(gid_list)
     datetime_list = [
         ut.unixtime_to_datetime(image_unixtime)
         if image_unixtime is not None
         else
         'Unknown'
-        for image_unixtime in app.ibs.get_image_unixtime(gid_list)
+        for image_unixtime in image_unixtime_list
     ]
     image_list = zip(
         gid_list,
+        [ eid_list_[0] for eid_list_ in app.ibs.get_image_eids(gid_list) ],
         app.ibs.get_image_gnames(gid_list),
+        image_unixtime_list,
         datetime_list,
         app.ibs.get_image_gps(gid_list),
         app.ibs.get_image_party_tag(gid_list),
         app.ibs.get_image_contributor_tag(gid_list),
         app.ibs.get_image_notes(gid_list),
+        [ reviewed == 1 for reviewed in app.ibs.get_image_reviewed(gid_list) ],
     )
+    image_list.sort(key=lambda t: t[2])
     return ap.template('view', 'images',
                        filtered=filtered,
                        eid_list=eid_list,
+                       eid_list_str=','.join(map(str, eid_list)),
                        num_eids=len(eid_list),
                        gid_list=gid_list,
+                       gid_list_str=','.join(map(str, gid_list)),
                        num_gids=len(gid_list),
                        image_list=image_list,
                        num_images=len(image_list))
@@ -124,34 +163,47 @@ def view_annotations():
     filtered = True
     eid_list = []
     gid_list = []
-    if 'aid' in request.args.keys():
-        aid_list = map(int, request.args['aid'].strip().split(','))
-    elif 'gid' in request.args.keys():
-        gid_list = map(int, request.args['gid'].strip().split(','))
+    aid = request.args.get('aid', '')
+    gid = request.args.get('gid', '')
+    eid = request.args.get('eid', '')
+    if len(aid) > 0:
+        aid_list = aid.strip().split(',')
+        aid_list = [ None if aid_ == 'None' or aid_ == '' else int(aid_) for aid_ in aid_list ]
+    elif len(gid) > 0:
+        gid_list = gid.strip().split(',')
+        gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
         aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
-    elif 'eid' in request.args.keys():
-        eid_list = map(int, request.args['eid'].strip().split(','))
-        gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid) for eid in eid_list ])
+    elif len(eid) > 0:
+        eid_list = eid.strip().split(',')
+        eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
+        gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid_) for eid_ in eid_list ])
         aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
     else:
         aid_list = app.ibs.get_valid_aids()
         filtered = False
     annotation_list = zip(
         aid_list,
+        app.ibs.get_annot_gids(aid_list),
+        [ eid_list_[0] for eid_list_ in app.ibs.get_annot_eids(aid_list) ],
         app.ibs.get_annot_image_names(aid_list),
         app.ibs.get_annot_names(aid_list),
         app.ibs.get_annot_exemplar_flags(aid_list),
         app.ibs.get_annot_species_texts(aid_list),
         app.ibs.get_annot_yaw_texts(aid_list),
         app.ibs.get_annot_quality_texts(aid_list),
+        [ reviewed is not None for reviewed in app.ibs.get_annot_yaws(aid_list) ],
     )
+    annotation_list.sort(key=lambda t: t[0])
     return ap.template('view', 'annotations',
                        filtered=filtered,
                        eid_list=eid_list,
+                       eid_list_str=','.join(map(str, eid_list)),
                        num_eids=len(eid_list),
                        gid_list=gid_list,
+                       gid_list_str=','.join(map(str, gid_list)),
                        num_gids=len(gid_list),
                        aid_list=aid_list,
+                       aid_list_str=','.join(map(str, aid_list)),
                        num_aids=len(aid_list),
                        annotation_list=annotation_list,
                        num_annotations=len(annotation_list))
@@ -159,211 +211,228 @@ def view_annotations():
 
 @app.route('/turk')
 def turk():
-    eid = None
-    if 'eid' in request.args.keys():
-        eid = int(request.args['eid'])
+    eid = request.args.get('eid', '')
+    eid = None if eid == 'None' or eid == '' else int(eid)
     return ap.template('turk', None, eid=eid)
 
 
 @app.route('/turk/detection')
 def turk_detection():
-    eid = None
-    refer = None
-    refer_aid = None
-    if 'refer' in request.args.keys():
-        refer = request.args['refer']
-    if refer is not None and 'refer_aid' in request.args.keys():
-        refer_aid = request.args['refer_aid']
-    if 'eid' in request.args.keys():
-        eid = int(request.args['eid'])
-    if 'gid' in request.args.keys():
-        gid = int(request.args['gid'])
-    else:
-        with SQLAtomicContext(app.db):
-            gid_list = app.ibs.get_valid_gids(eid=eid)
-            reviewed_list = app.ibs.get_image_reviewed(gid_list)
-            flag_list = [ reviewed == 0 for reviewed in reviewed_list ]
-            gid_list_ = ut.filter_items(gid_list, flag_list)
-            if len(gid_list_) == 0:
-                gid = None
-            else:
-                gid = gid_list_[0]
-    finished = gid is None
-    review = 'review' in request.args.keys()
-    display_instructions = request.cookies.get('detection_instructions_seen', 0) == 0
-    display_species_examples = False  # request.cookies.get('detection_example_species_seen', 0) == 0
-    if not finished:
-        gpath = app.ibs.get_image_paths(gid)
-        image = ap.open_oriented_image(gpath)
-        image_src = ap.embed_image_html(image, filter_width=False)
-        # Get annotations
-        width, height = app.ibs.get_image_sizes(gid)
-        scale_factor = 700.0 / float(width)
-        aid_list = app.ibs.get_image_aids(gid)
-        annot_bbox_list = app.ibs.get_annot_bboxes(aid_list)
-        annot_thetas_list = app.ibs.get_annot_thetas(aid_list)
-        species_list = app.ibs.get_annot_species_texts(aid_list)
-        # Get annotation bounding boxes
-        annotation_list = []
-        for annot_bbox, annot_theta, species in zip(annot_bbox_list, annot_thetas_list, species_list):
-            temp = {}
-            temp['left']   = int(scale_factor * annot_bbox[0])
-            temp['top']    = int(scale_factor * annot_bbox[1])
-            temp['width']  = int(scale_factor * (annot_bbox[2]))
-            temp['height'] = int(scale_factor * (annot_bbox[3]))
-            temp['label']  = species
-            temp['angle']  = float(annot_theta)
-            annotation_list.append(temp)
-        if len(species_list) > 0:
-            species = max(set(species_list), key=species_list.count)  # Get most common species
-        elif app.default_species is not None:
-            species = app.default_species
+    try:
+        eid = request.args.get('eid', '')
+        eid = None if eid == 'None' or eid == '' else int(eid)
+        gid = request.args.get('gid', '')
+        if len(gid) > 0:
+            gid = int(gid)
         else:
-            species = KEY_DEFAULTS[SPECIES_KEY]
-    else:
-        gpath = None
-        species = None
-        image_src = None
-        annotation_list = []
-    return ap.template('turk', 'detection',
-                       eid=eid,
-                       gid=gid,
-                       species=species,
-                       image_path=gpath,
-                       image_src=image_src,
-                       finished=finished,
-                       annotation_list=annotation_list,
-                       refer=refer,
-                       refer_aid=refer_aid,
-                       display_instructions=display_instructions,
-                       display_species_examples=display_species_examples,
-                       review=review)
+            with SQLAtomicContext(app.db):
+                gid_list = app.ibs.get_valid_gids(eid=eid)
+                reviewed_list = app.ibs.get_image_reviewed(gid_list)
+                flag_list = [ reviewed == 0 for reviewed in reviewed_list ]
+                gid_list_ = ut.filter_items(gid_list, flag_list)
+                if len(gid_list_) == 0:
+                    gid = None
+                else:
+                    # gid = gid_list_[0]
+                    gid = random.choice(gid_list_)
+        previous = request.args.get('previous', None)
+        finished = gid is None
+        review = 'review' in request.args.keys()
+        display_instructions = request.cookies.get('detection_instructions_seen', 0) == 0
+        display_species_examples = False  # request.cookies.get('detection_example_species_seen', 0) == 0
+        if not finished:
+            gpath = app.ibs.get_image_paths(gid)
+            image = ap.open_oriented_image(gpath)
+            image_src = ap.embed_image_html(image, filter_width=False)
+            # Get annotations
+            width, height = app.ibs.get_image_sizes(gid)
+            scale_factor = 700.0 / float(width)
+            aid_list = app.ibs.get_image_aids(gid)
+            annot_bbox_list = app.ibs.get_annot_bboxes(aid_list)
+            annot_thetas_list = app.ibs.get_annot_thetas(aid_list)
+            species_list = app.ibs.get_annot_species_texts(aid_list)
+            # Get annotation bounding boxes
+            annotation_list = []
+            for annot_bbox, annot_theta, species in zip(annot_bbox_list, annot_thetas_list, species_list):
+                temp = {}
+                temp['left']   = int(scale_factor * annot_bbox[0])
+                temp['top']    = int(scale_factor * annot_bbox[1])
+                temp['width']  = int(scale_factor * (annot_bbox[2]))
+                temp['height'] = int(scale_factor * (annot_bbox[3]))
+                temp['label']  = species
+                temp['angle']  = float(annot_theta)
+                annotation_list.append(temp)
+            if len(species_list) > 0:
+                species = max(set(species_list), key=species_list.count)  # Get most common species
+            elif app.default_species is not None:
+                species = app.default_species
+            else:
+                species = KEY_DEFAULTS[SPECIES_KEY]
+        else:
+            gpath = None
+            species = None
+            image_src = None
+            annotation_list = []
+        return ap.template('turk', 'detection',
+                           eid=eid,
+                           gid=gid,
+                           species=species,
+                           image_path=gpath,
+                           image_src=image_src,
+                           previous=previous,
+                           finished=finished,
+                           annotation_list=annotation_list,
+                           display_instructions=display_instructions,
+                           display_species_examples=display_species_examples,
+                           review=review)
+    except:
+        return redirect(url_for('error404'))
 
 
 @app.route('/turk/viewpoint')
 def turk_viewpoint():
-    eid = None
-    refer = None
-    if 'refer' in request.args.keys():
-        refer = request.args['refer']
-    if 'eid' in request.args.keys():
-        eid = int(request.args['eid'])
-    if 'aid' in request.args.keys():
-        aid = int(request.args['aid'])
-    else:
-        with SQLAtomicContext(app.db):
-            gid_list = app.ibs.get_valid_gids(eid=eid)
-            aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
-            reviewed_list = app.ibs.get_annot_yaws(aid_list)
-            flag_list = [ reviewed is None for reviewed in reviewed_list ]
-            aid_list_ = ut.filter_items(aid_list, flag_list)
-            if len(aid_list_) == 0:
-                aid = None
-            else:
-                aid = aid_list_[0]
-    value = request.args.get('value', None)
-    review = 'review' in request.args.keys()
-    finished = aid is None
-    display_instructions = request.cookies.get('viewpoint_instructions_seen', 0) == 0
-    if not finished:
-        gid       = app.ibs.get_annot_gids(aid)
-        gpath     = app.ibs.get_annot_chip_fpaths(aid)
-        image     = ap.open_oriented_image(gpath)
-        image_src = ap.embed_image_html(image)
-    else:
-        gid       = None
-        gpath     = None
-        image_src = None
-    return ap.template('turk', 'viewpoint',
-                       eid=eid,
-                       gid=gid,
-                       aid=aid,
-                       value=value,
-                       image_path=gpath,
-                       image_src=image_src,
-                       finished=finished,
-                       refer=refer,
-                       display_instructions=display_instructions,
-                       review=review)
+    try:
+        eid = request.args.get('eid', '')
+        eid = None if eid == 'None' or eid == '' else int(eid)
+        aid = request.args.get('aid', '')
+        if len(aid) > 0:
+            aid = int(aid)
+        else:
+            with SQLAtomicContext(app.db):
+                gid_list = app.ibs.get_valid_gids(eid=eid)
+                aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+                reviewed_list = app.ibs.get_annot_yaws(aid_list)
+                flag_list = [ reviewed is None for reviewed in reviewed_list ]
+                aid_list_ = ut.filter_items(aid_list, flag_list)
+                if len(aid_list_) == 0:
+                    aid = None
+                else:
+                    # aid = aid_list_[0]
+                    aid = random.choice(aid_list_)
+        previous = request.args.get('previous', None)
+        value = request.args.get('value', None)
+        review = 'review' in request.args.keys()
+        finished = aid is None
+        display_instructions = request.cookies.get('viewpoint_instructions_seen', 0) == 0
+        if not finished:
+            gid       = app.ibs.get_annot_gids(aid)
+            gpath     = app.ibs.get_annot_chip_fpaths(aid)
+            image     = ap.open_oriented_image(gpath)
+            image_src = ap.embed_image_html(image)
+        else:
+            gid       = None
+            gpath     = None
+            image_src = None
+        return ap.template('turk', 'viewpoint',
+                           eid=eid,
+                           gid=gid,
+                           aid=aid,
+                           value=value,
+                           image_path=gpath,
+                           image_src=image_src,
+                           previous=previous,
+                           finished=finished,
+                           display_instructions=display_instructions,
+                           review=review)
+    except:
+        return redirect(url_for('error404'))
 
 
 @app.route('/submit/detection', methods=['POST'])
 def submit_detection():
-    eid = None
-    if 'eid' in request.args.keys():
-        eid = int(request.args['eid'])
+    method = request.form.get('detection-submit', '')
     gid = int(request.form['detection-gid'])
     turk_id = request.cookies.get('turk_id', -1)
-    aid_list = app.ibs.get_image_aids(gid)
-    # Make new annotations
-    width, height = app.ibs.get_image_sizes(gid)
-    scale_factor = float(width) / 700.0
-    # Get aids
-    app.ibs.delete_annots(aid_list)
-    annotation_list = json.loads(request.form['detection-annotations'])
-    bbox_list = [
-        (
-            int(scale_factor * annot['left']),
-            int(scale_factor * annot['top']),
-            int(scale_factor * annot['width']),
-            int(scale_factor * annot['height']),
-        )
-        for annot in annotation_list
-    ]
-    theta_list = [
-        float(annot['angle'])
-        for annot in annotation_list
-    ]
-    species_list = [
-        annot['label']
-        for annot in annotation_list
-    ]
-    app.ibs.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
-    app.ibs.set_image_reviewed([gid], [1])
-    print("[web] turk_id: %s, gid: %d, bbox_list: %r, species_list: %r" % (turk_id, gid, annotation_list, species_list))
-    if 'refer' in request.args.keys() and request.args['refer'] == 'viewpoint':
-        return redirect(url_for('turk_viewpoint', eid=eid))
+
+    if method.lower() == 'delete':
+        app.ibs.delete_images(gid)
+        print('[web] (DELETED) turk_id: %s, gid: %d' % (turk_id, gid, ))
     else:
-        return redirect(url_for('turk_detection', eid=eid))
+        eid = request.args.get('eid', '')
+        eid = None if eid == 'None' or eid == '' else int(eid)
+        aid_list = app.ibs.get_image_aids(gid)
+
+        # Make new annotations
+        width, height = app.ibs.get_image_sizes(gid)
+        scale_factor = float(width) / 700.0
+        # Get aids
+        app.ibs.delete_annots(aid_list)
+        annotation_list = json.loads(request.form['detection-annotations'])
+        bbox_list = [
+            (
+                int(scale_factor * annot['left']),
+                int(scale_factor * annot['top']),
+                int(scale_factor * annot['width']),
+                int(scale_factor * annot['height']),
+            )
+            for annot in annotation_list
+        ]
+        theta_list = [
+            float(annot['angle'])
+            for annot in annotation_list
+        ]
+        species_list = [
+            annot['label']
+            for annot in annotation_list
+        ]
+        app.ibs.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
+        app.ibs.set_image_reviewed([gid], [1])
+        print('[web] turk_id: %s, gid: %d, bbox_list: %r, species_list: %r' % (turk_id, gid, annotation_list, species_list))
+    # Return HTML
+    refer = request.args.get('refer', '')
+    if len(refer) > 0:
+        return redirect(ap.decode_refer_url(refer))
+    else:
+        return redirect(url_for('turk_detection', eid=eid, previous=gid))
 
 
 @app.route('/submit/viewpoint', methods=['POST'])
 def submit_viewpoint():
-    eid = None
-    if 'eid' in request.args.keys():
-        eid = int(request.args['eid'])
+    method = request.form.get('detection-submit', '')
     aid = int(request.form['viewpoint-aid'])
-    value = int(request.form['viewpoint-value'])
     turk_id = request.cookies.get('turk_id', -1)
-    def convert_old_viewpoint_to_yaw(view_angle):
-        """ we initially had viewpoint coordinates inverted
 
-        Example:
-            >>> import math
-            >>> TAU = 2 * math.pi
-            >>> old_viewpoint_labels = [
-            >>>     ('left'       , 0.000 * TAU,),
-            >>>     ('frontleft'  , 0.125 * TAU,),
-            >>>     ('front'      , 0.250 * TAU,),
-            >>>     ('frontright' , 0.375 * TAU,),
-            >>>     ('right'       , 0.500 * TAU,),
-            >>>     ('backright'  , 0.625 * TAU,),
-            >>>     ('back'       , 0.750 * TAU,),
-            >>>     ('backleft'   , 0.875 * TAU,),
-            >>> ]
-            >>> fmtstr = 'old %15r %.2f -> new %15r %.2f'
-            >>> for lbl, angle in old_viewpoint_labels:
-            >>>     print(fmtstr % (lbl, angle, lbl, convert_old_viewpoint_to_yaw(angle)))
-        """
-        if view_angle is None:
-            return None
-        yaw = (-view_angle + (const.TAU / 2)) % const.TAU
-        return yaw
-    yaw = convert_old_viewpoint_to_yaw(ut.deg_to_rad(value))
-    app.ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
-    print("[web] turk_id: %s, aid: %d, yaw: %d" % (turk_id, aid, yaw))
+    if method.lower() == 'delete':
+        app.ibs.delete_annots(aid)
+        print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+    else:
+        eid = request.args.get('eid', '')
+        eid = None if eid == 'None' or eid == '' else int(eid)
+        value = int(request.form['viewpoint-value'])
+
+        def convert_old_viewpoint_to_yaw(view_angle):
+            ''' we initially had viewpoint coordinates inverted
+
+            Example:
+                >>> import math
+                >>> TAU = 2 * math.pi
+                >>> old_viewpoint_labels = [
+                >>>     ('left'       , 0.000 * TAU,),
+                >>>     ('frontleft'  , 0.125 * TAU,),
+                >>>     ('front'      , 0.250 * TAU,),
+                >>>     ('frontright' , 0.375 * TAU,),
+                >>>     ('right'       , 0.500 * TAU,),
+                >>>     ('backright'  , 0.625 * TAU,),
+                >>>     ('back'       , 0.750 * TAU,),
+                >>>     ('backleft'   , 0.875 * TAU,),
+                >>> ]
+                >>> fmtstr = 'old %15r %.2f -> new %15r %.2f'
+                >>> for lbl, angle in old_viewpoint_labels:
+                >>>     print(fmtstr % (lbl, angle, lbl, convert_old_viewpoint_to_yaw(angle)))
+            '''
+            if view_angle is None:
+                return None
+            yaw = (-view_angle + (const.TAU / 2)) % const.TAU
+            return yaw
+        yaw = convert_old_viewpoint_to_yaw(ut.deg_to_rad(value))
+        app.ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
+        print('[web] turk_id: %s, aid: %d, yaw: %d' % (turk_id, aid, yaw))
     # Return HTML
-    return redirect(url_for('turk_viewpoint', eid=eid))
+    refer = request.args.get('refer', '')
+    if len(refer) > 0:
+        return redirect(ap.decode_refer_url(refer))
+    else:
+        return redirect(url_for('turk_viewpoint', eid=eid, previous=aid))
 
 
 @app.route('/ajax/cookie')
@@ -371,16 +440,17 @@ def set_cookie():
     response = make_response('true')
     try:
         response.set_cookie(request.args['name'], request.args['value'])
-        print("Set Cookie: %r -> %r" % (request.args['name'], request.args['value'], ))
+        print('Set Cookie: %r -> %r' % (request.args['name'], request.args['value'], ))
         return response
     except:
-        print("COOKIE FAILED: %r" % (request.args, ))
+        print('COOKIE FAILED: %r' % (request.args, ))
         return make_response('false')
 
 
 @app.route('/ajax/image/src/<gid>')
 def image_src(gid=None):
-    gpath = app.ibs.get_image_paths(gid)
+    # gpath = app.ibs.get_image_paths(gid)
+    gpath = app.ibs.get_image_thumbpath(gid)
     return ap.return_src(gpath)
 
 
@@ -426,6 +496,11 @@ def api(function=None):
             template['status']['success'] = False
             template['status']['code'] = 'ERROR: Specified IBEIS function not valid Python function'
     return json.dumps(template)
+
+
+@app.route('/404')
+def error404():
+    return ap.template(None, '404')
 
 
 ################################################################################
@@ -502,27 +577,27 @@ def start_from_ibeis(ibs, port=DEFAULT_PORT):
     Parse command line options and start the server.
     '''
     dbname = ibs.get_dbname()
-    if dbname == "CHTA_Master":
+    if dbname == 'CHTA_Master':
         app.default_species = Species.CHEETAH
-    elif dbname == "ELPH_Master":
+    elif dbname == 'ELPH_Master':
         app.default_species = Species.ELEPHANT_SAV
-    elif dbname == "GIR_Master":
+    elif dbname == 'GIR_Master':
         app.default_species = Species.GIRAFFE
-    elif dbname == "GZ_Master":
+    elif dbname == 'GZ_Master':
         app.default_species = Species.ZEB_GREVY
-    elif dbname == "LION_Master":
+    elif dbname == 'LION_Master':
         app.default_species = Species.LION
-    elif dbname == "PZ_Master":
+    elif dbname == 'PZ_Master':
         app.default_species = Species.ZEB_PLAIN
-    elif dbname == "WD_Master":
+    elif dbname == 'WD_Master':
         app.default_species = Species.WILDDOG
-    elif dbname == "NNP_Master":
+    elif dbname == 'NNP_Master':
         app.default_species = Species.ZEB_PLAIN
-    elif dbname == "GZC":
+    elif dbname == 'GZC':
         app.default_species = Species.ZEB_PLAIN
     else:
         app.default_species = None
-    print("DEFAULT SPECIES: %r" % (app.default_species))
+    print('DEFAULT SPECIES: %r' % (app.default_species))
     app.ibs = ibs
     start_tornado(app, port)
 
