@@ -1234,6 +1234,10 @@ def merge_databases2(ibs_src, ibs_dst):
 
 """
 def MERGE_NNP_MASTER_SCRIPT():
+    print(ut.truncate_str(ibs_dst.db.get_table_csv(ibeis.const.ANNOTATION_TABLE, exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
+    print(ut.truncate_str(ibs_src1.db.get_table_csv(ibeis.const.ANNOTATION_TABLE, exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
+    print(ut.truncate_str(ibs_src1.db.get_table_csv(ibeis.const.ANNOTATION_TABLE), 10000))
+
     from ibeis.dbio.export_subset import *  # NOQA
     import ibeis
     # Step 1

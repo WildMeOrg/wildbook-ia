@@ -445,9 +445,13 @@ def check_annot_consistency(ibs, aid_list=None):
     """
     # TODO: more consistency checks
     if aid_list is None:
-        aid_list = ibs.get_valid_gids()
+        aid_list = ibs.get_valid_aids()
     print('check annot consistency. len(aid_list)=%r' % len(aid_list))
     annot_gid_list = ibs.get_annot_gids(aid_list)
+    num_None_annot_gids = sum(ut.flag_None_items(annot_gid_list))
+    print('num_None_annot_gids = %r ' % (num_None_annot_gids,))
+    assert num_None_annot_gids == 0
+    #print(ut.dict_str(dict(ut.debug_duplicate_items(annot_gid_list))))
     assert_images_exist(ibs, annot_gid_list)
     unique_gids = list(set(annot_gid_list))
     print('num_unique_images=%r / %r' % (len(unique_gids), len(annot_gid_list)))
