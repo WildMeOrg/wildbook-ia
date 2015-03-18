@@ -106,7 +106,7 @@ def _init_itemview_behavior(view):
     bitwise_or = operator.__or__
     chosen_triggers = [
         #QtGui.QAbstractItemView.NoEditTriggers,
-        #QtGui.QAbstractItemView.CurrentChanged,
+        QtGui.QAbstractItemView.CurrentChanged,
         QtGui.QAbstractItemView.DoubleClicked,
         QtGui.QAbstractItemView.SelectedClicked,
         QtGui.QAbstractItemView.EditKeyPressed,
