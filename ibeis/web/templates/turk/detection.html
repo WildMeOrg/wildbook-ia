@@ -44,6 +44,7 @@
           </div>
           <div class="col-lg-2">
             <input type="submit" name="detection-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
+            <input type="submit" name="detection-submit" id="turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this image?')">
           </div>
         </div>
         <textarea id="detection_data" name="detection-annotations" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="detection-form"></textarea>
@@ -254,7 +255,7 @@
             <li>Always annotate the animals regardless of viewpoint.</li>
             <li>If an image has no animals in it, simply hit <b>Accept</b> with no annotations, because the image <i>should</i> have no annotations.
             <li>A new, in-progress annotation selection can be cancelled by pressing the <b>Esc</b> key.</li>
-            <li>The <b>Space</b> key skips the image and does not save any viewpoint information for that image.  The <b>Enter</b> key submits all current annotations.</li>
+            <li>The <b>Space</b> key deletes the image and does not save any viewpoint information for that image.  The <b>Enter</b> key submits all current annotations.</li>
             <li>Review annotations as fast as you can while maintaining perfect accuracy.</li>
             <li>To bring up these instructions again, click on the <span class="glyphicon glyphicon-info-sign" style="font-size: 14px;"></span> button</li>
             <li><u>Known issues</u>:

@@ -211,18 +211,18 @@ def view_annotations():
 
 @app.route('/turk')
 def turk():
-    eid = request.args.get('eid', None)
-    eid = int(eid) if eid is not None else eid
+    eid = request.args.get('eid', '')
+    eid = None if eid == 'None' or eid == '' else int(eid)
     return ap.template('turk', None, eid=eid)
 
 
 @app.route('/turk/detection')
 def turk_detection():
     try:
-        eid = request.args.get('eid', None)
-        eid = int(eid) if eid is not None else eid
-        gid = request.args.get('gid', None)
-        if gid is not None:
+        eid = request.args.get('eid', '')
+        eid = None if eid == 'None' or eid == '' else int(eid)
+        gid = request.args.get('gid', '')
+        if len(gid) > 0:
             gid = int(gid)
         else:
             with SQLAtomicContext(app.db):
@@ -292,10 +292,10 @@ def turk_detection():
 @app.route('/turk/viewpoint')
 def turk_viewpoint():
     try:
-        eid = request.args.get('eid', None)
-        eid = int(eid) if eid is not None else eid
-        aid = request.args.get('aid', None)
-        if aid is not None:
+        eid = request.args.get('eid', '')
+        eid = None if eid == 'None' or eid == '' else int(eid)
+        aid = request.args.get('aid', '')
+        if len(aid) > 0:
             aid = int(aid)
         else:
             with SQLAtomicContext(app.db):
@@ -340,37 +340,45 @@ def turk_viewpoint():
 
 @app.route('/submit/detection', methods=['POST'])
 def submit_detection():
-    eid = request.args.get('eid', None)
-    eid = int(eid) if eid is not None else eid
+    method = request.form.get('detection-submit', '')
     gid = int(request.form['detection-gid'])
     turk_id = request.cookies.get('turk_id', -1)
-    aid_list = app.ibs.get_image_aids(gid)
-    # Make new annotations
-    width, height = app.ibs.get_image_sizes(gid)
-    scale_factor = float(width) / 700.0
-    # Get aids
-    app.ibs.delete_annots(aid_list)
-    annotation_list = json.loads(request.form['detection-annotations'])
-    bbox_list = [
-        (
-            int(scale_factor * annot['left']),
-            int(scale_factor * annot['top']),
-            int(scale_factor * annot['width']),
-            int(scale_factor * annot['height']),
-        )
-        for annot in annotation_list
-    ]
-    theta_list = [
-        float(annot['angle'])
-        for annot in annotation_list
-    ]
-    species_list = [
-        annot['label']
-        for annot in annotation_list
-    ]
-    app.ibs.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
-    app.ibs.set_image_reviewed([gid], [1])
-    print('[web] turk_id: %s, gid: %d, bbox_list: %r, species_list: %r' % (turk_id, gid, annotation_list, species_list))
+
+    if method.lower() == 'delete':
+        app.ibs.delete_images(gid)
+        print('[web] (DELETED) turk_id: %s, gid: %d' % (turk_id, gid, ))
+    else:
+        eid = request.args.get('eid', '')
+        eid = None if eid == 'None' or eid == '' else int(eid)
+        aid_list = app.ibs.get_image_aids(gid)
+
+        # Make new annotations
+        width, height = app.ibs.get_image_sizes(gid)
+        scale_factor = float(width) / 700.0
+        # Get aids
+        app.ibs.delete_annots(aid_list)
+        annotation_list = json.loads(request.form['detection-annotations'])
+        bbox_list = [
+            (
+                int(scale_factor * annot['left']),
+                int(scale_factor * annot['top']),
+                int(scale_factor * annot['width']),
+                int(scale_factor * annot['height']),
+            )
+            for annot in annotation_list
+        ]
+        theta_list = [
+            float(annot['angle'])
+            for annot in annotation_list
+        ]
+        species_list = [
+            annot['label']
+            for annot in annotation_list
+        ]
+        app.ibs.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
+        app.ibs.set_image_reviewed([gid], [1])
+        print('[web] turk_id: %s, gid: %d, bbox_list: %r, species_list: %r' % (turk_id, gid, annotation_list, species_list))
+    # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
         return redirect(ap.decode_refer_url(refer))
@@ -380,38 +388,45 @@ def submit_detection():
 
 @app.route('/submit/viewpoint', methods=['POST'])
 def submit_viewpoint():
-    eid = request.args.get('eid', None)
-    eid = int(eid) if eid is not None else eid
+    method = request.form.get('detection-submit', '')
     aid = int(request.form['viewpoint-aid'])
-    value = int(request.form['viewpoint-value'])
     turk_id = request.cookies.get('turk_id', -1)
-    def convert_old_viewpoint_to_yaw(view_angle):
-        ''' we initially had viewpoint coordinates inverted
 
-        Example:
-            >>> import math
-            >>> TAU = 2 * math.pi
-            >>> old_viewpoint_labels = [
-            >>>     ('left'       , 0.000 * TAU,),
-            >>>     ('frontleft'  , 0.125 * TAU,),
-            >>>     ('front'      , 0.250 * TAU,),
-            >>>     ('frontright' , 0.375 * TAU,),
-            >>>     ('right'       , 0.500 * TAU,),
-            >>>     ('backright'  , 0.625 * TAU,),
-            >>>     ('back'       , 0.750 * TAU,),
-            >>>     ('backleft'   , 0.875 * TAU,),
-            >>> ]
-            >>> fmtstr = 'old %15r %.2f -> new %15r %.2f'
-            >>> for lbl, angle in old_viewpoint_labels:
-            >>>     print(fmtstr % (lbl, angle, lbl, convert_old_viewpoint_to_yaw(angle)))
-        '''
-        if view_angle is None:
-            return None
-        yaw = (-view_angle + (const.TAU / 2)) % const.TAU
-        return yaw
-    yaw = convert_old_viewpoint_to_yaw(ut.deg_to_rad(value))
-    app.ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
-    print('[web] turk_id: %s, aid: %d, yaw: %d' % (turk_id, aid, yaw))
+    if method.lower() == 'delete':
+        app.ibs.delete_annots(aid)
+        print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+    else:
+        eid = request.args.get('eid', '')
+        eid = None if eid == 'None' or eid == '' else int(eid)
+        value = int(request.form['viewpoint-value'])
+
+        def convert_old_viewpoint_to_yaw(view_angle):
+            ''' we initially had viewpoint coordinates inverted
+
+            Example:
+                >>> import math
+                >>> TAU = 2 * math.pi
+                >>> old_viewpoint_labels = [
+                >>>     ('left'       , 0.000 * TAU,),
+                >>>     ('frontleft'  , 0.125 * TAU,),
+                >>>     ('front'      , 0.250 * TAU,),
+                >>>     ('frontright' , 0.375 * TAU,),
+                >>>     ('right'       , 0.500 * TAU,),
+                >>>     ('backright'  , 0.625 * TAU,),
+                >>>     ('back'       , 0.750 * TAU,),
+                >>>     ('backleft'   , 0.875 * TAU,),
+                >>> ]
+                >>> fmtstr = 'old %15r %.2f -> new %15r %.2f'
+                >>> for lbl, angle in old_viewpoint_labels:
+                >>>     print(fmtstr % (lbl, angle, lbl, convert_old_viewpoint_to_yaw(angle)))
+            '''
+            if view_angle is None:
+                return None
+            yaw = (-view_angle + (const.TAU / 2)) % const.TAU
+            return yaw
+        yaw = convert_old_viewpoint_to_yaw(ut.deg_to_rad(value))
+        app.ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
+        print('[web] turk_id: %s, aid: %d, yaw: %d' % (turk_id, aid, yaw))
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:

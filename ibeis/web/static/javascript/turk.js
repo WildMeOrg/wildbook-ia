@@ -17,8 +17,8 @@ $("body").keydown(function(event) {
   }
   else if(key == 32)
   {
-    // Space key pressed, submit form as skip
-    $('input#turk-submit-skip').click();
+    // Space key pressed, submit form as delete
+    $('input#turk-submit-delete').click();
   }
   else if(49 <= key && key <= 56)
   {
