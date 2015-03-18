@@ -13,19 +13,24 @@
 {% block content %}
 
   <div class="row marketing">
-    <div class="col-lg-4">
+    <div class="col-lg-3">
       <a href="{{ url_for('view_encounters') }}"><h4>Encounters</h4></a>
       <h4 class="total-label" id="encounter-total"></h4>
     </div>
     
-    <div class="col-lg-4">
+    <div class="col-lg-3">
       <a href="{{ url_for('view_images') }}"><h4>Images</h4></a>
       <h4 class="total-label" id="image-total"></h4>
     </div>
     
-    <div class="col-lg-4">
+    <div class="col-lg-3">
       <a href="{{ url_for('view_annotations') }}"><h4>Annotations</h4></a>
       <h4 class="total-label" id="annotation-total"></h4>
+    </div>
+    
+    <div class="col-lg-3">
+      <h4>Names</h4>
+      <h4 class="total-label" id="names-total"></h4>
     </div>
   </div>
 
@@ -35,6 +40,7 @@
   var encounterNumber  = new countUp("encounter-total",  0, {{ num_eids }}, 0, 2.0);
   var imageNumber      = new countUp("image-total",      0, {{ num_gids }}, 0, 2.0);
   var annotationNumber = new countUp("annotation-total", 0, {{ num_aids }}, 0, 2.0);
+  var annotationNumber = new countUp("names-total",      0, {{ num_nids }}, 0, 2.0);
   encounterNumber.start();
   imageNumber.start();
   annotationNumber.start();

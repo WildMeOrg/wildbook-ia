@@ -50,6 +50,7 @@ def view():
     eid_list = app.ibs.get_valid_eids()
     gid_list = app.ibs.get_valid_gids()
     aid_list = app.ibs.get_valid_aids()
+    nid_list = app.ibs.get_valid_nids()
     return ap.template('view',
                        eid_list=eid_list,
                        eid_list_str=','.join(map(str, eid_list)),
@@ -59,7 +60,10 @@ def view():
                        num_gids=len(gid_list),
                        aid_list=aid_list,
                        aid_list_str=','.join(map(str, aid_list)),
-                       num_aids=len(aid_list))
+                       num_aids=len(aid_list),
+                       nid_list=nid_list,
+                       nid_list_str=','.join(map(str, nid_list)),
+                       num_nids=len(nid_list))
 
 
 @app.route('/view/encounters')
