@@ -1305,8 +1305,10 @@ def test_merge():
 
 """
 def MERGE_NNP_MASTER_SCRIPT():
-    print(ut.truncate_str(ibs_dst.db.get_table_csv(ibeis.const.ANNOTATION_TABLE, exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
-    print(ut.truncate_str(ibs_src1.db.get_table_csv(ibeis.const.ANNOTATION_TABLE, exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
+    print(ut.truncate_str(ibs_dst.db.get_table_csv(ibeis.const.ANNOTATION_TABLE,
+        exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
+    print(ut.truncate_str(ibs_src1.db.get_table_csv(ibeis.const.ANNOTATION_TABLE,
+        exclude_columns=['annot_verts', 'annot_semantic_uuid', 'annot_note', 'annot_parent_rowid']), 10000))
     print(ut.truncate_str(ibs_src1.db.get_table_csv(ibeis.const.ANNOTATION_TABLE), 10000))
 
     from ibeis.dbio.export_subset import *  # NOQA
@@ -1314,14 +1316,13 @@ def MERGE_NNP_MASTER_SCRIPT():
     # Step 1
     ibs_src1 = ibeis.opendb('NNP_initial')
     ibs_src2 = ibeis.opendb('GZC')
-    ibs_dst = ibeis.opendb('GZC_NNP_MERGE2', allow_newdir=True)
+    ibs_dst = ibeis.opendb('NNP_Master2', allow_newdir=True)
 
     merge_databases2(ibs_src1, ibs_dst)
     merge_databases2(ibs_src2, ibs_dst)
 
     ## Step 2
     #ibs_src = ibeis.opendb('GZC')
-    #ibs_dst = ibeis.opendb('GZC_NNP_MERGE', allow_newdir=False)
 
     ## Check
     ibs1 = ibeis.opendb('NNP_initial')
