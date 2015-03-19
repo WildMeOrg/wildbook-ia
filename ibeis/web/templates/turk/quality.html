@@ -20,7 +20,7 @@
         </div>
       {% endif %}
 
-      {% if not refer %}
+      {% if not REFER_DST_ENCODED %}
         <div class="progress">
           <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
             {{ progress }}%
@@ -134,7 +134,7 @@
                 <h3 style="margin-top: 0px; margin-bottom: 0px; margin-left: -6px; display: block;">Junk</h3>
                 <br/>
                 <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
-                  <li>Extreme occlusion</li>
+                  <li>Severe occlusion</li>
                   <li>Little to no parts visible</li>
                   <li>Out of focus</li>
                   <li>Lots of shadow</li>
@@ -168,7 +168,7 @@
                 <h3 style="margin-top: 0px; margin-bottom: 0px; margin-left: -6px; display: block;">Poor</h3>
                 <br/>
                 <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
-                  <li>Extreme occlusion</li>
+                  <li>Severe occlusion</li>
                   <li>Head, shoulder, <b>OR</b> rump visible</li>
                   <li>Mildly out of focus</li>
                   <li>Lots of shadow</li>
