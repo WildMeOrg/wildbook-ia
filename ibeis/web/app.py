@@ -250,8 +250,6 @@ def turk_detection():
         if len(gid) > 0:
             gid = int(gid)
         else:
-            gid_list = app.ibs.get_valid_gids(eid=eid)
-            reviewed_list = encounter_image_processed(gid_list)
             gid_list_ = ut.filterfalse_items(gid_list, reviewed_list)
             if len(gid_list_) == 0:
                 gid = None
@@ -330,9 +328,6 @@ def turk_viewpoint():
         if len(aid) > 0:
             aid = int(aid)
         else:
-            gid_list = app.ibs.get_valid_gids(eid=eid)
-            aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
-            reviewed_list = encounter_annot_viewpoint_processed(aid_list)
             aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
             if len(aid_list_) == 0:
                 aid = None
@@ -386,9 +381,6 @@ def turk_quality():
         if len(aid) > 0:
             aid = int(aid)
         else:
-            gid_list = app.ibs.get_valid_gids(eid=eid)
-            aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
-            reviewed_list = encounter_annot_quality_processed(aid_list)
             aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
             if len(aid_list_) == 0:
                 aid = None
