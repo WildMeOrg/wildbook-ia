@@ -79,7 +79,7 @@
           <br/>
           <ul style="padding-right:30px;">
             <li>
-              The easiest way to mentally-visualize and decide on the correct viewpoint is by asking <b>"Which way is the head pointing?"</b> in relation to the <b>camera</b>.  This will ensure a consistent metric is being used by every turker. 
+              The easiest way to mentally-visualize and decide on the correct viewpoint is by asking <b>"Which way is the head pointing?"</b> in relation to the <b>camera</b>.  However, the pose of the animal will vary wildly based on physical characteristics of the species (long knecks, long legs, etc).  In all cases, use the <b>body</b> position of the animal to decide the orientation instead of the position of the animal's face.
               <br/>
               <i>For example:</i>
             </li>
@@ -95,15 +95,39 @@
               <div class="col-lg-2"></div>
               <div class="col-lg-8" style="margin-top: 20px;">
                 <img src="{{ url_for('static', filename='images/example-viewpoint2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>For this example, the <b>camera</b> is on the <b>back-left side</b> of the animal (looking from above), but the correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left rotate-45"></span>.</p>
+                <p>For this example, again, the <b>camera</b> is on the <b>left side</b> of the animal (looking from above). However, even though the animal's face is pointed towards the camera, we use the body position to decide the correct orientation. The correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left"></span>.</p>
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example-viewpoint3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>This is a boarder-line example that is ultimately a <b>left side</b> view of the animal and <u>not</u> front-left.  Therefore, the correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left"></span>.</p>
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example-viewpoint4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>Another boarder-line example that is also ultimately a <b>left side</b> view of the animal and <u>not</u> back-left. The correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left"></span>.</p>
+              </div>
+              <div class="col-lg-2"></div>
+            </div>
+            <div class="row">
+              <div class="col-lg-2"></div>
+              <div class="col-lg-8" style="margin-top: 20px;">
+                <img src="{{ url_for('static', filename='images/example-viewpoint5.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>This example, however, <u>is</u> a <b>back-left side</b> of the animal (looking from above).  The correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-left rotate-45"></span>.</p>
               </div>
               <div class="col-lg-2"></div>
             </div>
             <div class="row">
               <div class="col-lg-2"></div>
               <div class="col-lg-8" style="margin-top: 20px; margin-bottom: 20px;">
-                <img src="{{ url_for('static', filename='images/example-viewpoint3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>For this example, the <b>camera</b> is on the <b>front-right side</b> of the animal (looking from above), but the correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-right rotate-45"></span>.</p>
+                <img src="{{ url_for('static', filename='images/example-viewpoint6.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <p>For this example, the <b>camera</b> is on the <b>front-right side</b> of the animal (looking from above).  The correct viewpoint that should be selected is <span class="glyphicon glyphicon-arrow-right rotate-45"></span>.</p>
               </div>
               <div class="col-lg-2"></div>
             </div>
