@@ -381,7 +381,7 @@ def turk_quality():
         print('[web] TEST 0')
         gid_list = app.ibs.get_valid_gids(eid=eid)
         print('[web] TEST 1')
-        aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+        aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
         print('[web] TEST 2')
         reviewed_list = encounter_annot_viewpoint_processed(aid_list)
         print('[web] TEST 3')
