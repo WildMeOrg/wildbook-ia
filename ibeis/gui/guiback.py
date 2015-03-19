@@ -1482,8 +1482,9 @@ class MainWindowBackend(QtCore.QObject):
 
     @slot_()
     def batch_rename_consecutive_via_species(back):
-        eid = back.get_selected_eid()
-        back.ibs.batch_rename_consecutive_via_species(eid=eid)
+        #eid = back.get_selected_eid()
+        #back.ibs.batch_rename_consecutive_via_species(eid=eid)
+        back.ibs.batch_rename_consecutive_via_species(eid=None)
 
     @slot_()
     def run_tests(back):
