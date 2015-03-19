@@ -43,15 +43,32 @@
         Value: <span id="label-value"></span> | Label: <span id="label-text"></span>
         <br/>
         <input type="range" name="quality-value" id="slider-quality" value="{% if value %}{{ value }}{% else %}3{% endif %}" min="1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
-        <div class="row-custom-expand">
-          <!-- <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-left"            ></span></div>
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-down rotate-45"  ></span></div>
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-down"            ></span></div>
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-right rotate-45"  ></span></div>
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-right"           ></span></div>
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-up rotate-45" ></span></div>
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-up"              ></span></div>
-          <div class="col-custom-span-8"><span class="glyphicon glyphicon-arrow-left rotate-45"    ></span></div> -->
+        <div class="row-custom-expand" style="height: 50px;">
+          <div class="col-custom-span col-custom-span-5">
+            <span class="glyphicon glyphicon-star"></span>
+          </div>
+          <div class="col-custom-span col-custom-span-5">
+            <span class="glyphicon glyphicon-star"></span>
+            <span class="glyphicon glyphicon-star"></span>
+          </div>
+          <div class="col-custom-span col-custom-span-5">
+            <span class="glyphicon glyphicon-star" style="top: 18px; left: 8px;"></span>
+            <span class="glyphicon glyphicon-star"></span>
+            <span class="glyphicon glyphicon-star" style="top: 18px; right: 8px;"></span>
+          </div>
+          <div class="col-custom-span col-custom-span-5">
+            <span class="glyphicon glyphicon-star" style="top: 18px; left: 18px;"></span>
+            <span class="glyphicon glyphicon-star"></span>
+            <span class="glyphicon glyphicon-star"></span>
+            <span class="glyphicon glyphicon-star" style="top: 18px; right: 18px;"></span>
+          </div>
+          <div class="col-custom-span col-custom-span-5">
+            <span class="glyphicon glyphicon-star" style="top: 26px; left: 28px;"></span>
+            <span class="glyphicon glyphicon-star" style="top: 12px; left: 5px;"></span>
+            <span class="glyphicon glyphicon-star"></span>
+            <span class="glyphicon glyphicon-star" style="top: 12px; right: 5px;"></span>
+            <span class="glyphicon glyphicon-star" style="top: 26px; right: 28px;"></span>
+          </div>
         </div>
         <br/>
         {% if previous %}

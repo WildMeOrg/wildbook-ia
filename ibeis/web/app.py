@@ -98,7 +98,7 @@ def view_encounters():
         for start_time_posix in start_time_posix_list
     ]
     gids_list = [ app.ibs.get_valid_gids(eid=eid_) for eid_ in eid_list ]
-    aids_list = [ app.ibs.get_valid_aids(include_only_gid_list=gid_list) for gid_list in gids_list ]
+    aids_list = [ ut.flatten(app.ibs.get_image_aids(gid_list)) for gid_list in gids_list ]
     images_reviewed_list           = [ encounter_image_processed(gid_list) for gid_list in gids_list ]
     annots_reviewed_viewpoint_list = [ encounter_annot_viewpoint_processed(aid_list) for aid_list in aids_list ]
     annots_reviewed_quality_list   = [ encounter_annot_quality_processed(aid_list) for aid_list in aids_list ]
@@ -191,12 +191,12 @@ def view_annotations():
     elif len(gid) > 0:
         gid_list = gid.strip().split(',')
         gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
-        aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+        aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
     elif len(eid) > 0:
         eid_list = eid.strip().split(',')
         eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
         gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid_) for eid_ in eid_list ])
-        aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+        aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
     else:
         aid_list = app.ibs.get_valid_aids()
         filtered = False
@@ -250,10 +250,7 @@ def turk_detection():
         if len(gid) > 0:
             gid = int(gid)
         else:
-            gid_list = app.ibs.get_valid_gids(eid=eid)
-            reviewed_list = encounter_image_processed(gid_list)
-            flag_list = [ not reviewed for reviewed in reviewed_list ]
-            gid_list_ = ut.filter_items(gid_list, flag_list)
+            gid_list_ = ut.filterfalse_items(gid_list, reviewed_list)
             if len(gid_list_) == 0:
                 gid = None
             else:
@@ -322,7 +319,7 @@ def turk_viewpoint():
         eid = None if eid == 'None' or eid == '' else int(eid)
 
         gid_list = app.ibs.get_valid_gids(eid=eid)
-        aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+        aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
         reviewed_list = encounter_annot_viewpoint_processed(aid_list)
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
 
@@ -331,11 +328,7 @@ def turk_viewpoint():
         if len(aid) > 0:
             aid = int(aid)
         else:
-            gid_list = app.ibs.get_valid_gids(eid=eid)
-            aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
-            reviewed_list = encounter_annot_viewpoint_processed(aid_list)
-            flag_list = [ not reviewed for reviewed in reviewed_list ]
-            aid_list_ = ut.filter_items(aid_list, flag_list)
+            aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
             if len(aid_list_) == 0:
                 aid = None
             else:
@@ -379,8 +372,8 @@ def turk_quality():
         eid = None if eid == 'None' or eid == '' else int(eid)
 
         gid_list = app.ibs.get_valid_gids(eid=eid)
-        aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
-        reviewed_list = encounter_annot_viewpoint_processed(aid_list)
+        aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
+        reviewed_list = encounter_annot_quality_processed(aid_list)
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
 
         enctext = None if eid is None else app.ibs.get_encounter_enctext(eid)
@@ -388,11 +381,7 @@ def turk_quality():
         if len(aid) > 0:
             aid = int(aid)
         else:
-            gid_list = app.ibs.get_valid_gids(eid=eid)
-            aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
-            reviewed_list = encounter_annot_quality_processed(aid_list)
-            flag_list = [ not reviewed for reviewed in reviewed_list ]
-            aid_list_ = ut.filter_items(aid_list, flag_list)
+            aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
             if len(aid_list_) == 0:
                 aid = None
             else:
