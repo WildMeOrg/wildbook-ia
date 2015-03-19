@@ -378,10 +378,15 @@ def turk_quality():
         eid = request.args.get('eid', '')
         eid = None if eid == 'None' or eid == '' else int(eid)
 
+        print('[web] TEST 0')
         gid_list = app.ibs.get_valid_gids(eid=eid)
+        print('[web] TEST 1')
         aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+        print('[web] TEST 2')
         reviewed_list = encounter_annot_viewpoint_processed(aid_list)
+        print('[web] TEST 3')
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+        print('[web] TEST 4')
 
         enctext = None if eid is None else app.ibs.get_encounter_enctext(eid)
         aid = request.args.get('aid', '')
