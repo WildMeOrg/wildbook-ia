@@ -18,13 +18,47 @@
 {
   margin-left: 0px;
   margin-right: 0px;
+  display: -webkit-box;      /* OLD - iOS 6-, Safari 3.1-6 */
+  display: -moz-box;         /* OLD - Firefox 19- (buggy but mostly works) */
+  display: -ms-flexbox;      /* TWEENER - IE 10 */
+  display: -webkit-flex;     /* NEW - Chrome */
+  display: flex;             /* NEW, Spec - Opera 12.1, Firefox 20+ */
 }
 
-.col-custom-span-8
+.col-custom-span
 {
-/*   text-align: center; */
-  width: 11.5%;
   display: inline-block;
+  text-align: center;
+}
+
+.col-custom-span-5
+{
+  width: 25%;
+}
+
+.col-custom-span-5:first-child
+{
+  margin-left: -11%;
+}
+
+.col-custom-span-5:last-child
+{
+  margin-right: -11%;
+}
+
+.col-custom-span-9
+{
+  width: 12.3%;
+}
+
+.col-custom-span-9:first-child
+{
+  margin-left: -5.3%;
+}
+
+.col-custom-span-9:last-child
+{
+  margin-right: -5.3%;
 }
 
 .rotate-45 {
