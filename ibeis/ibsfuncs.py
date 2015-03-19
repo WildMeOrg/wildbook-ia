@@ -2674,7 +2674,7 @@ def detect_false_positives(ibs):
 
 
 @__injectable
-def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_run=False, verbose=False):
+def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, eid=None, dry_run=False, verbose=False):
     """
     Automatic exemplar selection algorithm based on viewpoint and quality
 
@@ -2855,7 +2855,7 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
     #        new_flag_list.extend(new_flags)
     #    if verbose:
     #        print('L ___')
-    aid_list = ibs.get_valid_aids()
+    aid_list = ibs.get_valid_aids(eid=eid)
     new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
         ibs, aid_list=aid_list, annots_per_view=exemplars_per_view, verbose=verbose)
 

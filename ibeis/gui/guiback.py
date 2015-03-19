@@ -972,7 +972,7 @@ class MainWindowBackend(QtCore.QObject):
                 # if not visual selection, then qaids are selected by encounter
                 qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
         if use_prioritized_name_subset:
-            qaid_list = back.ibs.get_prioritized_annot_subset(aid_list=qaid_list, annots_per_name=2)
+            qaid_list = back.ibs.get_prioritized_name_subset(aid_list=qaid_list, annots_per_name=2)
             #qaid_list = ut.filter_items(
             #    *back.ibs.get_annot_quality_viewpoint_subset(aid_list=qaid_list, annots_per_view=2))
 
@@ -1496,7 +1496,8 @@ class MainWindowBackend(QtCore.QObject):
 
     @slot_()
     def set_exemplars_from_quality_and_viewpoint(back):
-        back.ibs.set_exemplars_from_quality_and_viewpoint()
+        eid = back.get_selected_eid()
+        back.ibs.set_exemplars_from_quality_and_viewpoint(eid=eid)
 
     @slot_()
     def batch_rename_consecutive_via_species(back):
