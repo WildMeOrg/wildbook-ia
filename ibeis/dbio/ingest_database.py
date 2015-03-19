@@ -371,7 +371,17 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     postingest_func = ingestable.postingest_func
     print('[ingest] ingesting rawdata: img_dir=%r, injest_type=%r' % (img_dir, ingest_type))
     # Get images in the image directory
-    gpath_list  = ibsfuncs.list_images(img_dir)
+
+    def list_images(img_dir, fullpath=True, recursive=True):
+        """ lists images that are not in an internal cache """
+        ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
+        gpath_list = ut.list_images(img_dir,
+                                       fullpath=fullpath,
+                                       recursive=recursive,
+                                       ignore_list=ignore_list)
+        return gpath_list
+
+    gpath_list  = list_images(img_dir)
     # Parse structure for image names
     if ingest_type == 'named_folders':
         name_list = get_name_texts_from_parent_folder(gpath_list, img_dir, fmtkey)
