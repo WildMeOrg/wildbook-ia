@@ -2810,7 +2810,8 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
         # had previously been exemplars Build input for knapsack
         weights = [qual2_weight[qual] + oldflag_offset * oldflag
                    for qual, oldflag in zip(qualtexts, oldflags)]
-        values = [1] * len(weights)
+        #values = [1] * len(weights)
+        values = weights
         indices = list(range(len(weights)))
         items = list(zip(values, weights, indices))
         total_value, chosen_items = ut.knapsack(items, N)
@@ -2862,11 +2863,18 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
 
 def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, verbose=False):
     """
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb2')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> annots_per_view = 2
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
 
-    PREFER_GOOD_OVER_OLDFLAG = True
+    PREFER_GOOD_EXEMPLAR_OVER_EXCELLENT = True
 
     # Params for knapsack
     def make_knapsack_params(N, levels_per_tier_list):
@@ -2877,8 +2885,11 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
             per tier.
 
         Returns:
-            per-item weights, weights go group items into several tiers, and an
-            infeasible weight
+            tuple: (w, tier_w_list, infeasible_w)
+                w            - is the base weight of all items
+                tier_w_list  - is a list of w offsets per tier that does not bring it over 1
+                                but suggest a preference for that item.
+                infeasible_w - weight of impossible items
         """
         EPS = 1E-9
         # Solve for the minimum per-item weight
@@ -2895,76 +2906,70 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
             tier_w_list.append(tier_w)
         infeasible_w = max(9001, N + 1)
         return w, tier_w_list, infeasible_w
-    N = annots_per_view
-    levels_per_tier_list = [3, 1, 1]
-    w, tier_w_list, infeasible_w = make_knapsack_params(N, levels_per_tier_list)
+    levels_per_tier_list = [4, 1, 1, 1]
+    w, tier_w_list, infeasible_w = make_knapsack_params(annots_per_view, levels_per_tier_list)
 
     qual2_weight = {
-        const.QUAL_EXCELLENT : w + tier_w_list[0] + tier_w_list[1],
-        const.QUAL_GOOD      : w + tier_w_list[0],
-        const.QUAL_OK        : w + tier_w_list[1],
-        const.QUAL_UNKNOWN   : w + tier_w_list[1],
-        const.QUAL_POOR      : w + tier_w_list[2],
+        const.QUAL_EXCELLENT : tier_w_list[0] * 3,
+        const.QUAL_GOOD      : tier_w_list[0] * 2,
+        const.QUAL_OK        : tier_w_list[0] * 1,
+        const.QUAL_UNKNOWN   : tier_w_list[2],
+        const.QUAL_POOR      : tier_w_list[3],
         const.QUAL_JUNK      : infeasible_w,
     }
-    # this probably broke with the introduction of 2 more tiers
-    oldflag_offset = (
+
+    exemplar_offset = (
         # always prefer good over ok
         tier_w_list[0] - tier_w_list[1]
-        if PREFER_GOOD_OVER_OLDFLAG else
+        if PREFER_GOOD_EXEMPLAR_OVER_EXCELLENT else
         # prefer ok over good when ok has oldflag
         tier_w_list[0] + tier_w_list[1]
     )
+    # this probably broke with the introduction of 2 more tiers
 
-    def choose_exemplars(aids):
-        qualtexts = ibs.get_annot_quality_texts(aids)
-        oldflags = ibs.get_annot_exemplar_flags(aids)
-        # We like good more than ok, and junk is infeasible We prefer items that
-        # had previously been exemplars Build input for knapsack
-        weights = [qual2_weight[qual] + oldflag_offset * oldflag
-                   for qual, oldflag in zip(qualtexts, oldflags)]
-        values = [1] * len(weights)
+    def get_knapsack_flags(weights, N):
+        #values = [1] * len(weights)
+        values = weights
         indices = list(range(len(weights)))
         items = list(zip(values, weights, indices))
-        total_value, chosen_items = ut.knapsack(items, N)
+        total_value, chosen_items = ut.knapsack(items, annots_per_view)
         chosen_indices = ut.get_list_column(chosen_items, 2)
-        new_flags = [False] * len(aids)
+        flags = [False] * len(aids)
         for index in chosen_indices:
-            new_flags[index] = True
-        return new_flags
+            flags[index] = True
+        return flags
 
-    def get_changed_infostr(yawtext, aids, new_flags):
-        old_flags = ibs.get_annot_exemplar_flags(aids)
-        quals = ibs.get_annot_quality_texts(aids)
-        ischanged = ut.xor_lists(old_flags, new_flags)
-        changed_list = ['***' if flag else ''
-                        for flag in ischanged]
-        infolist = list(zip(aids, quals, old_flags, new_flags, changed_list))
-        infostr = ('yawtext=%r:\n' % (yawtext,)) + ut.list_str(infolist)
-        return infostr
+    def get_chosen_flags(aids, annots_per_view, w, qual2_weight, exemplar_offset):
+        qualtexts = ibs.get_annot_quality_texts(aids)
+        isexemplar_flags = ibs.get_annot_exemplar_flags(aids)
+        # base weight plug preference offsets
+        weights = [w + qual2_weight[qual] + exemplar_offset * isexemplar
+                   for qual, isexemplar in zip(qualtexts, isexemplar_flags)]
+        N = annots_per_view
+        flags = get_knapsack_flags(weights, N)
+        # We like good more than ok, and junk is infeasible We prefer items that
+        # had previously been exemplars Build input for knapsack
+        return flags
 
-    aid_list = ibs.get_valid_aids()
-    aids_list, unique_nids  = ibs.group_annots_by_name(aid_list)
+    nid_list = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=True))
+    unique_nids, groupxs_list = vt.group_indices(nid_list)
+    grouped_aids_ = vt.apply_grouping(np.array(aid_list), groupxs_list)
+    #aids = grouped_aids_[-6]
     # for final settings because I'm too lazy to write
-    # this correctly using group_indicies instead of group_items
     new_aid_list = []
     new_flag_list = []
-    _iter = ut.ProgressIter(zip(aids_list, unique_nids), nTotal=len(aids_list), lbl='Optimizing name exemplars')
+    _iter = ut.ProgressIter(zip(grouped_aids_, unique_nids), nTotal=len(unique_nids), lbl='Picking best annots per viewpoint')
     for aids_, nid in _iter:
         if ibs.is_nid_unknown(nid):
             # do not change unknown animals
             continue
+        # subgroup the names by viewpoints
         yawtexts  = ibs.get_annot_yaw_texts(aids_)
         yawtext2_aids = ut.group_items(aids_, yawtexts)
-        if verbose:
-            print('+ ---')
-            print('  nid=%r' % (nid))
         for yawtext, aids in six.iteritems(yawtext2_aids):
-            new_flags = choose_exemplars(aids)
-            if verbose:
-                print(ut.indent(get_changed_infostr(yawtext, aids, new_flags)))
+            flags = get_chosen_flags(aids, annots_per_view, w, qual2_weight, exemplar_offset)
             new_aid_list.extend(aids)
-            new_flag_list.extend(new_flags)
+            new_flag_list.extend(flags)
         if verbose:
             print('L ___')
     pass
