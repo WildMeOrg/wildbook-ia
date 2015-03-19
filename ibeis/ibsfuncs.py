@@ -2867,6 +2867,9 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
 @__injectable
 def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
     """
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_prioritized_name_subset
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
@@ -2877,7 +2880,7 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
         >>> aid_subset = get_prioritized_name_subset(ibs, aid_list, annots_per_name)
         >>> result = len(aid_subset)
         >>> print(result)
-        31
+        27
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
@@ -2910,23 +2913,47 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
     grouped_aids_     = vt.apply_grouping(np.array(aid_list), groupxs_list)
     grouped_qualtexts = vt.apply_grouping(np.array(qualtext_list), groupxs_list)
     grouped_yawtexts  = vt.apply_grouping(np.array(yawtext_list), groupxs_list)
-    yaw_weights_list = (
+    yaw_weights_list = [
         np.array(ut.dict_take(yawtext2_weight, yawtexts))
         for yawtexts in grouped_yawtexts
-    )
-    qual_weights_list = (
+    ]
+    qual_weights_list = [
         np.array(ut.dict_take(qualtext2_weight, yawtexts))
         for yawtexts in grouped_qualtexts
-    )
+    ]
     weights_list = [
         yaw_weights + qual_weights
         for yaw_weights, qual_weights in zip(yaw_weights_list, qual_weights_list)
     ]
-    ordered_aids_list = [
-        ut.listclip(aids.take(weights.argsort()[::-1]), annots_per_name)
-        for aids, weights in zip(grouped_aids_, weights_list)
+
+    sortx_list = [
+        weights.argsort()[::-1]
+        for weights in weights_list
     ]
-    aid_subset = ut.flatten(ordered_aids_list)
+
+    sorted_weight_list = [
+        weights.take(order)
+        for weights, order in zip(weights_list, sortx_list)
+    ]
+
+    sorted_aids_list = [
+        aids.take(order)
+        for aids, order in zip(grouped_aids_, sortx_list)
+    ]
+
+    weight_thresh = 5
+
+    passed_thresh_list = [
+        weights >= weight_thresh
+        for weights in sorted_weight_list
+    ]
+
+    valid_ordered_aids_list = [
+        ut.listclip(aids.compress(passed), annots_per_name)
+        for aids, passed in zip(sorted_aids_list, passed_thresh_list)
+    ]
+
+    aid_subset = ut.flatten(valid_ordered_aids_list)
     return aid_subset
 
 
