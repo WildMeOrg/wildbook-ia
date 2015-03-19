@@ -121,7 +121,22 @@
   top:50%;
 }
 
-#turk-submit-delete
+#turk-submit-delete, #turk-submit-clear
 {
   margin-right: 20px;
 }
+
+/*.table.table-fixed
+{
+  table-layout: fixed;
+}
+
+.table.table-fixed th
+{
+    width: 10px;
+}
+
+.table.table-fixed td
+{
+    word-wrap: break-word;
+}*/

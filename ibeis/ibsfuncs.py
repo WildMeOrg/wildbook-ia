@@ -1951,15 +1951,20 @@ def draw_thumb_helper(tup):
 
 
 @__injectable
-def preprocess_image_thumbs(
-        ibs, gid_list=None, use_cache=True, chunksize=8, thumbsize=None, **kwargs):
+def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8,
+                            draw_annots=True, thumbsize=None, **kwargs):
     """ Computes thumbs of images in parallel based on kwargs """
     print('[ibsfuncs] preprocess_image_thumbs')
     if gid_list is None:
         gid_list = ibs.get_valid_gids(**kwargs)
     if thumbsize is None:
-        thumbsize = ibs.cfg.other_cfg.thumb_size
-    thumbpath_list = ibs.get_image_thumbpath(gid_list, ensure_paths=False, thumbsize=thumbsize)
+        if draw_annots:
+            thumbsize = ibs.cfg.other_cfg.thumb_size
+        else:
+            thumbsize = ibs.cfg.other_cfg.thumb_bare_size
+    thumbpath_list = ibs.get_image_thumbpath(gid_list, ensure_paths=False,
+                                             draw_annots=draw_annots,
+                                             thumbsize=thumbsize)
     #use_cache = False
     if use_cache:
         exists_list = list(map(exists, thumbpath_list))
@@ -1971,9 +1976,12 @@ def preprocess_image_thumbs(
     gpath_list = ibs.get_image_paths(gid_list_)
 
     aids_list = ibs.get_image_aids(gid_list_)
-    bboxes_list = unflat_map(ibs.get_annot_bboxes, aids_list)
-    thetas_list = unflat_map(ibs.get_annot_thetas, aids_list)
-
+    if draw_annots:
+        bboxes_list = unflat_map(ibs.get_annot_bboxes, aids_list)
+        thetas_list = unflat_map(ibs.get_annot_thetas, aids_list)
+    else:
+        bboxes_list = [ [] for aid_list in aids_list ]
+        thetas_list = [ [] for aid_list in aids_list ]
     args_list = [(thumb_path, thumbsize, gpath, bbox_list, theta_list)
                  for thumb_path, gpath, bbox_list, theta_list in
                  zip(thumbpath_list_, gpath_list, bboxes_list, thetas_list)]

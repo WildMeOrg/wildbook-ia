@@ -5,4 +5,3 @@ import utool
 
 from ibeis.web import app
 from ibeis.web import appfuncs
-from ibeis.web import navbar

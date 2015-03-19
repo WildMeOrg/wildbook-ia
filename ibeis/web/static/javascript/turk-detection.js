@@ -9,6 +9,6 @@ $("body").keydown(function(event) {
   else if(key == 32)
   {
     // Space key pressed, submit form as delete
-    $('input#turk-submit-delete').click();
+    $('input#turk-submit-clear').click();
   }
 });

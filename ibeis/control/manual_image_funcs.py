@@ -567,18 +567,22 @@ def get_images(ibs, gid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_image_thumbtup(ibs, gid_list, thumbsize=None):
+def get_image_thumbtup(ibs, gid_list, draw_annots=True, thumbsize=None):
     """
     Returns:
         list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
     """
     if thumbsize is None:
-        thumbsize = ibs.cfg.other_cfg.thumb_size
+        if draw_annots:
+            thumbsize = ibs.cfg.other_cfg.thumb_size
+        else:
+            thumbsize = ibs.cfg.other_cfg.thumb_bare_size
     # print('gid_list = %r' % (gid_list,))
     aids_list = ibs.get_image_aids(gid_list)
     bboxes_list = ibsfuncs.unflat_map(ibs.get_annot_bboxes, aids_list)
     thetas_list = ibsfuncs.unflat_map(ibs.get_annot_thetas, aids_list)
-    thumb_gpaths = ibs.get_image_thumbpath(gid_list, thumbsize=thumbsize)
+    thumb_gpaths = ibs.get_image_thumbpath(gid_list, draw_annots=draw_annots,
+                                           thumbsize=thumbsize)
     image_paths = ibs.get_image_paths(gid_list)
     gsize_list = ibs.get_image_sizes(gid_list)
     thumbtup_list = [
@@ -591,17 +595,25 @@ def get_image_thumbtup(ibs, gid_list, thumbsize=None):
 
 @register_ibs_method
 @getter_1to1
-def get_image_thumbpath(ibs, gid_list, ensure_paths=True, thumbsize=None):
+def get_image_thumbpath(ibs, gid_list, ensure_paths=True, draw_annots=True,
+                        thumbsize=None):
     """
     Returns:
         list_ (list): the thumbnail path of each gid """
     if thumbsize is None:
-        thumbsize = ibs.cfg.other_cfg.thumb_size
+        if draw_annots:
+            thumbsize = ibs.cfg.other_cfg.thumb_size
+        else:
+            thumbsize = ibs.cfg.other_cfg.thumb_bare_size
     if ensure_paths:
-        ibs.preprocess_image_thumbs(gid_list, thumbsize=thumbsize)
+        ibs.preprocess_image_thumbs(gid_list, draw_annots=draw_annots,
+                                    thumbsize=thumbsize)
     thumb_dpath = ibs.thumb_dpath
     img_uuid_list = ibs.get_image_uuids(gid_list)
-    thumb_suffix = '_' + str(thumbsize) + const.IMAGE_THUMB_SUFFIX
+    if draw_annots:
+        thumb_suffix = '_' + str(thumbsize) + const.IMAGE_THUMB_SUFFIX
+    else:
+        thumb_suffix = '_' + str(thumbsize) + const.IMAGE_BARE_THUMB_SUFFIX
     thumbpath_list = [join(thumb_dpath, const.__STR__(uuid) + thumb_suffix)
                       for uuid in img_uuid_list]
     return thumbpath_list

@@ -239,23 +239,22 @@ def turk_detection():
         if len(gid) > 0:
             gid = int(gid)
         else:
-            with SQLAtomicContext(app.db):
-                gid_list = app.ibs.get_valid_gids(eid=eid)
-                reviewed_list = app.ibs.get_image_reviewed(gid_list)
-                flag_list = [ reviewed == 0 for reviewed in reviewed_list ]
-                gid_list_ = ut.filter_items(gid_list, flag_list)
-                if len(gid_list_) == 0:
-                    gid = None
-                else:
-                    # gid = gid_list_[0]
-                    gid = random.choice(gid_list_)
+            gid_list = app.ibs.get_valid_gids(eid=eid)
+            reviewed_list = app.ibs.get_image_reviewed(gid_list)
+            flag_list = [ reviewed == 0 for reviewed in reviewed_list ]
+            gid_list_ = ut.filter_items(gid_list, flag_list)
+            if len(gid_list_) == 0:
+                gid = None
+            else:
+                # gid = gid_list_[0]
+                gid = random.choice(gid_list_)
         previous = request.args.get('previous', None)
         finished = gid is None
         review = 'review' in request.args.keys()
         display_instructions = request.cookies.get('detection_instructions_seen', 0) == 0
         display_species_examples = False  # request.cookies.get('detection_example_species_seen', 0) == 0
         if not finished:
-            gpath = app.ibs.get_image_paths(gid)
+            gpath = app.ibs.get_image_thumbpath(gid, draw_annots=False)
             image = ap.open_oriented_image(gpath)
             image_src = ap.embed_image_html(image, filter_width=False)
             # Get annotations
@@ -312,17 +311,16 @@ def turk_viewpoint():
         if len(aid) > 0:
             aid = int(aid)
         else:
-            with SQLAtomicContext(app.db):
-                gid_list = app.ibs.get_valid_gids(eid=eid)
-                aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
-                reviewed_list = app.ibs.get_annot_yaws(aid_list)
-                flag_list = [ reviewed is None for reviewed in reviewed_list ]
-                aid_list_ = ut.filter_items(aid_list, flag_list)
-                if len(aid_list_) == 0:
-                    aid = None
-                else:
-                    # aid = aid_list_[0]
-                    aid = random.choice(aid_list_)
+            gid_list = app.ibs.get_valid_gids(eid=eid)
+            aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+            reviewed_list = app.ibs.get_annot_yaws(aid_list)
+            flag_list = [ reviewed is None for reviewed in reviewed_list ]
+            aid_list_ = ut.filter_items(aid_list, flag_list)
+            if len(aid_list_) == 0:
+                aid = None
+            else:
+                # aid = aid_list_[0]
+                aid = random.choice(aid_list_)
         previous = request.args.get('previous', None)
         value = request.args.get('value', None)
         review = 'review' in request.args.keys()
@@ -361,17 +359,16 @@ def turk_quality():
         if len(aid) > 0:
             aid = int(aid)
         else:
-            with SQLAtomicContext(app.db):
-                gid_list = app.ibs.get_valid_gids(eid=eid)
-                aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
-                reviewed_list = app.ibs.get_annot_qualities(aid_list)
-                flag_list = [ reviewed is None or reviewed == -1 for reviewed in reviewed_list ]
-                aid_list_ = ut.filter_items(aid_list, flag_list)
-                if len(aid_list_) == 0:
-                    aid = None
-                else:
-                    # aid = aid_list_[0]
-                    aid = random.choice(aid_list_)
+            gid_list = app.ibs.get_valid_gids(eid=eid)
+            aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+            reviewed_list = app.ibs.get_annot_qualities(aid_list)
+            flag_list = [ reviewed is None or reviewed == -1 for reviewed in reviewed_list ]
+            aid_list_ = ut.filter_items(aid_list, flag_list)
+            if len(aid_list_) == 0:
+                aid = None
+            else:
+                # aid = aid_list_[0]
+                aid = random.choice(aid_list_)
         previous = request.args.get('previous', None)
         value = request.args.get('value', None)
         review = 'review' in request.args.keys()
@@ -411,6 +408,18 @@ def submit_detection():
         # app.ibs.delete_images(gid)
         # print('[web] (DELETED) turk_id: %s, gid: %d' % (turk_id, gid, ))
         pass
+    elif method.lower() == 'clear':
+        aid_list = app.ibs.get_image_aids(gid)
+        app.ibs.delete_annots(aid_list)
+        print('[web] (CLEAERED) turk_id: %s, gid: %d' % (turk_id, gid, ))
+        redirection = request.referrer
+        if 'gid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&gid=%d' % (redirection, gid, )
+            else:
+                redirection = '%s?gid=%d' % (redirection, gid, )
+        return redirect(redirection)
     else:
         eid = request.args.get('eid', '')
         eid = None if eid == 'None' or eid == '' else int(eid)
@@ -640,6 +649,8 @@ def start_from_terminal():
     app.ibs = ibeis.opendb(db=opts.db)
     print('[web] Pre-computing all image thumbnails...')
     app.ibs.compute_all_thumbs()
+    print('[web] Pre-computing all image thumbnails (without annots)...')
+    app.ibs.compute_all_thumbs(draw_annots=False)
     print('[web] Pre-computing all annotation chips...')
     app.ibs.compute_all_chips()
     start_tornado(app, opts.port)
@@ -672,8 +683,10 @@ def start_from_ibeis(ibs, port=DEFAULT_PORT):
         app.default_species = None
     print('[web] DEFAULT SPECIES: %r' % (app.default_species))
     app.ibs = ibs
-    print('[web] Pre-computing all image thumbnails...')
+    print('[web] Pre-computing all image thumbnails (with annots)...')
     app.ibs.compute_all_thumbs()
+    print('[web] Pre-computing all image thumbnails (without annots)...')
+    app.ibs.compute_all_thumbs(draw_annots=False)
     print('[web] Pre-computing all annotation chips...')
     app.ibs.compute_all_chips()
     start_tornado(app, port)

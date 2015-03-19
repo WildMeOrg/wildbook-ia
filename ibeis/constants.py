@@ -208,6 +208,7 @@ NEW_ENCOUNTER_ENCTEXT = 'NEW ENCOUNTER'
 #IMAGE_THUMB_SUFFIX = '_thumb.png'
 #CHIP_THUMB_SUFFIX  = '_chip_thumb.png'
 IMAGE_THUMB_SUFFIX = '_thumb.jpg'
+IMAGE_BARE_THUMB_SUFFIX = '_thumb_bare.jpg'
 CHIP_THUMB_SUFFIX  = '_chip_thumb.jpg'
 
 # FIXME UNKNOWN should not be a valid species
