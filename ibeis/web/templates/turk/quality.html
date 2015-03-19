@@ -30,7 +30,7 @@
 
 
       Aid: {{ aid }}
-      <!-- <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span> -->
+      <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span>
       <br/>
       Path: {{ image_path }}
       <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block;">
@@ -94,50 +94,220 @@
         <div class="modal-body">
           To turk a quality, simply adjust the slider for the image based on the following guidelines:
           <br/>
-          <img class="image-center" src="{{ url_for('static', filename='images/guideline-inverted.jpg') }}">
-          <p style="width:100%; color:#888; text-align:center;"><i>Top-down view (view from above)</i></p>
+          <img class="image-center" src="{{ url_for('static', filename='images/example-quality1.jpg') }}" style="width:80%; margin-top: 30px;">
+          <p style="width:100%; color:#888; text-align:center;"><i>The "information" (keypoints) in the image that we want to classify</i></p>
           <br/>
           <ul style="padding-right:30px;">
             <li>
-              The easiest way to mentally-visualize and decide on the correct quality is by asking <b>"Which way is the head pointing?"</b> in relation to the <b>camera</b>.  This will ensure a consistent metric is being used by every turker. 
+              When deciding the quality of an image, it is important to keep in mind what information the underlying image analysis algorithms care about.  
+              Looking at the image above, the white ellipsis on the body of the animal indicate what informaiton is the most important, whereas the red and orange
+              ellipsis indicate information that is less important.  
+            </li>
+            <li>
+              The quality of the annotation is decided by 4 metrics (by order of importance):
+              <ul style="padding-right:30px;">
+                <li>                  
+                  <u>Partially Visible</u> - the entire animal is not visible due to visual obstruction by <b>non-landscape objects (other animals, cars, buildings, the animal is off the side of the image, etc.)</b>
+                </li>
+                <li>
+                  <u>Occlusion</u> - the entire animal is not visible due to visual obstruction by <b>natural landscape (brush, trees, grass, etc.)</b>
+                </li>
+                <li>                  
+                  <u>Focus</u> - the image of the animal is out of focus
+                </li>
+                <li>                  
+                  <u>Lighting and Shadow</u> - the animal is under- or over-exposed, shadowed by another object, or its own pose is causing shadows on its body
+                </li>
+              </ul>
+            </li>
+            <li>
+              The way you measure the iamge's quality will <b>change for each viewpoint</b>.  If the viewpoint would not normally allow for one of the metrics above (e.g. a frontal image of a Plains Zebra would not normally 
+              give a view of the rump) then that metric can be ignored.  Judge the image on what an <i>"ideal"</i> image of that species given the viewpoint the animal is in.
               <br/>
               <i>For example:</i>
             </li>
-            <div class="row">
-              <div class="col-lg-2"></div>
-              <div class="col-lg-8" style="margin-top: 20px;">
-                <img src="{{ url_for('static', filename='images/example-quality1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>For this example, the <b>camera</b> is on the <b>left side</b> of the animal (looking from above), and the correct quality that should be selected is <span class="glyphicon glyphicon-arrow-left"></span>.</p>
+
+            <div class="row" style="border-bottom: 1px solid #aaa; padding-bottom: 50px;">
+              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
+                <span class="glyphicon glyphicon-star"></span>
+                <br/>
+                <h3 style="margin-top: 0px; margin-bottom: 0px; margin-left: -6px; display: block;">Junk</h3>
+                <br/>
+                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
+                  <li>Extreme occlusion</li>
+                  <li>Little to no parts visible</li>
+                  <li>Out of focus</li>
+                  <li>Lots of shadow</li>
+                </ul>
               </div>
-              <div class="col-lg-2"></div>
-            </div>
-            <div class="row">
-              <div class="col-lg-2"></div>
-              <div class="col-lg-8" style="margin-top: 20px;">
-                <img src="{{ url_for('static', filename='images/example-quality2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>For this example, the <b>camera</b> is on the <b>back-left side</b> of the animal (looking from above), but the correct quality that should be selected is <span class="glyphicon glyphicon-arrow-left rotate-45"></span>.</p>
+              <div class="col-lg-9" style="margin-top: 20px;">
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-junk1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-junk2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-junk3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-junk4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
               </div>
-              <div class="col-lg-2"></div>
             </div>
-            <div class="row">
-              <div class="col-lg-2"></div>
-              <div class="col-lg-8" style="margin-top: 20px; margin-bottom: 20px;">
-                <img src="{{ url_for('static', filename='images/example-quality3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>For this example, the <b>camera</b> is on the <b>front-right side</b> of the animal (looking from above), but the correct quality that should be selected is <span class="glyphicon glyphicon-arrow-right rotate-45"></span>.</p>
+
+            <div class="row" style="border-bottom: 1px solid #aaa; padding-bottom: 50px;">
+              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
+                <span class="glyphicon glyphicon-star"></span>
+                <span class="glyphicon glyphicon-star"></span>
+                <br/>
+                <h3 style="margin-top: 0px; margin-bottom: 0px; margin-left: -6px; display: block;">Poor</h3>
+                <br/>
+                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
+                  <li>Extreme occlusion</li>
+                  <li>Head, shoulder, <b>OR</b> rump visible</li>
+                  <li>Mildly out of focus</li>
+                  <li>Lots of shadow</li>
+                </ul>
               </div>
-              <div class="col-lg-2"></div>
+              <div class="col-lg-9" style="margin-top: 20px;">
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-poor1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-poor2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-poor3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-poor4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+              </div>
             </div>
-            <li>For faster quality annotation, the number keys or a keypad can be used.  The numbers <b>1 thru 8</b> are mapped to increments of 45&deg;.  We urge every turker to use the number pad to input the quality, but you can further adjust the slider to get even closer accuracy, down to a precision of a single degree. </li>
-            <li>If the quality cannot be determined due to not enough information (e.g., the animal is obscured by some obstacle, the image is too blurry or there isn't enough light, there is only a small chunk of an animal in the image - like a leg or a piece of the head), you have two choices: 
+
+            <div class="row" style="border-bottom: 1px solid #aaa; padding-bottom: 50px;">
+              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
+                <span class="glyphicon glyphicon-star" style="top: 18px; left: 8px;"></span>
+                <span class="glyphicon glyphicon-star"></span>
+                <span class="glyphicon glyphicon-star" style="top: 18px; right: 8px;"></span>
+                <br/>
+                <h3 style="margin-top: 20px; margin-left: -6px; display: block;">OK</h3>
+                <br/>
+                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
+                  <li>Little occlusion</li>
+                  <li>Head, shoulder, <b>AND</b> rump visible</li>
+                  <li>In focus</li>
+                  <li>Moderate shadow</li>
+                </ul>
+              </div>
+              <div class="col-lg-9" style="margin-top: 20px;">
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-ok1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-ok2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-ok3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-ok4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row" style="border-bottom: 1px solid #aaa; padding-bottom: 50px;">
+              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
+                <span class="glyphicon glyphicon-star" style="top: 18px; left: 18px;"></span>
+                <span class="glyphicon glyphicon-star"></span>
+                <span class="glyphicon glyphicon-star"></span>
+                <span class="glyphicon glyphicon-star" style="top: 18px; right: 18px;"></span>
+                <br/>
+                <h3 style="margin-top: 20px; margin-left: -6px; display: block;">Good</h3>
+                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
+                  <li>Little occlusion</li>
+                  <li>Entire animal visible</li>
+                  <li>In focus</li>
+                  <li>Little shadow</li>
+                </ul>
+              </div>
+              <div class="col-lg-9" style="margin-top: 20px;">
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-good1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-good2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-good3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-good4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row" style="padding-bottom: 50px;">
+              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
+                <span class="glyphicon glyphicon-star" style="top: 26px; left: 28px;"></span>
+                <span class="glyphicon glyphicon-star" style="top: 12px; left: 5px;"></span>
+                <span class="glyphicon glyphicon-star"></span>
+                <span class="glyphicon glyphicon-star" style="top: 12px; right: 5px;"></span>
+                <span class="glyphicon glyphicon-star" style="top: 26px; right: 28px;"></span>
+                <br/>
+                <h3 style="margin-top: 30px; margin-left: -6px; display: block;">Excellent</h3>
+                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
+                  <li>No occlusion</li>
+                  <li>Entire animal visible</li>
+                  <li>In focus</li>
+                  <li>No shadow</li>
+                </ul>
+              </div>
+              <div class="col-lg-9" style="margin-top: 20px;">
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-excellent1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-excellent2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-excellent3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                  <div class="col-sm-6 col-md-6 col-lg-6">
+                    <img src="{{ url_for('static', filename='images/example-quality-excellent4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <li>For faster quality annotation, the number keys or a keypad can be used.  The numbers <b>1 thru 5</b> are mapped to their corresponding star ratings.  We urge every turker to use the number pad to input the quality for speed purposes. </li>
+            <li>If the quality cannot be determined due to not enough information (e.g., the animal is no animal in the image, the image is too blurry or there isn't enough light, there is only a small chunk of an animal in the image - like a leg or a piece of the head), you have two choices: 
               <ol>
                 <li>edit the annotation by revisiting the image (link below the image)</li>
                 <li>simply press the <b>Delete</b> button</li>
               </ol>
-<!--               No degree information is saved for images that are skipped - the current value of the slider is completely ignored.</li>
-            <li>In the event that there is more than one animal in the image, give the quality for the most dominant object.  This is a subjective decision and up to the turker to address the ambiguity.  However, if the ambiguity cannot be resolved <i>nicely</i> (i.e., there are two differing qualitys of two equally dominant animals in the image), then simply skip the image.  All images that are skipped multiple times are automatically flagged for further review by the research team.</li>
- -->            
             <li>The <b>Space</b> key deletes the image and does not save any quality information for that image.  The <b>Enter</b> key submits the current value of the slider as the image's quality.</li>
-            <li>Enter qualitys as fast as you can while maintaining perfect accuracy.  However, if a mistake is made, do not worry.  Each image's quality is checked for consistency and a subsequent reviewer (or reviewers) will most likely catch the mistake.</li>
+            <li>Enter qualities as fast as you can while maintaining perfect accuracy.</li>
             <li>To bring up these instructions again, click on the <span class="glyphicon glyphicon-info-sign" style="font-size: 14px;"></span> button</li>
           </ul>
         </div>
@@ -167,5 +337,6 @@
   {% if display_instructions %}
     $('#turk-instructions').modal('show');
   {% endif %}
+    $('#turk-instructions').modal('show');
 </script>  
 {% endblock %}
