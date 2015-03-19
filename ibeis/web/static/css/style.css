@@ -140,3 +140,14 @@
 {
     word-wrap: break-word;
 }*/
+
+.progress
+{
+  height: 11px;
+}
+
+.progress-bar 
+{
+  font-size: 10px;
+  line-height: 10px;
+}
