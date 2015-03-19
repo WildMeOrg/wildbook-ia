@@ -12,6 +12,8 @@ CommandLine:
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
+from ibeis.control import _sql_helpers
+
 try:
     from ibeis.control import DB_SCHEMA_CURRENT
     UPDATE_CURRENT  = DB_SCHEMA_CURRENT.update_current
@@ -1072,6 +1074,11 @@ VALID_VERSIONS = utool.odict([
     ('1.4.0',    (None,                 update_1_4_0,       None          )),
     ('1.4.1',    (None,                 update_1_4_1,       None          )),
 ])
+
+
+LEGACY_UPDATE_FUNCTIONS = [
+    ('1.4.1',  _sql_helpers.fix_metadata_consistency),
+]
 
 
 def test_db_schema():

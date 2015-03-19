@@ -166,7 +166,7 @@ def get_system_exemplar_suggestion(ibs, qaid):
         lower than any other edge
 
     SeeAlso:
-        ibsfuncs.prune_exemplars
+        ibsfuncs.set_exemplars_from_quality_and_viewpoint
 
     CommandLine:
         python -m ibeis.model.hots.automatch_suggestor --test-get_system_exemplar_suggestion

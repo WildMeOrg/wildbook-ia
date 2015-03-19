@@ -3,6 +3,7 @@ Module Licence and docstring
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
+from ibeis.control import _sql_helpers
 try:
     from ibeis.control import DBCACHE_SCHEMA_CURRENT
     UPDATE_CURRENT  = DBCACHE_SCHEMA_CURRENT.update_current
@@ -131,6 +132,10 @@ VALID_VERSIONS = ut.odict([
     ('1.0.3',    (None,                 update_1_0_3,       None,)),
     ('1.0.4',    (None,                 update_1_0_4,       None,)),
 ])
+
+LEGACY_UPDATE_FUNCTIONS = [
+    ('1.0.4',  _sql_helpers.fix_metadata_consistency),
+]
 
 
 def test_dbcache_schema():

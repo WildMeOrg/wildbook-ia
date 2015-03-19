@@ -8,7 +8,7 @@ from os.path import join, exists
 import utool
 import utool as ut
 import cStringIO
-from ibeis import constants
+from ibeis import constants as const
 from ibeis.control._sql_helpers import (_unpacker, sanatize_sql,
                                         SQLExecutionContext, VERBOSE_SQL, NOT_QUIET)
 from ibeis.control import __SQLITE3__ as lite
@@ -138,7 +138,7 @@ class SQLDatabaseController(object):
 
     def _ensure_metadata_table(db):
         # We need this to be done every time so that the update code works correctly.
-        db.add_table(constants.METADATA_TABLE, (
+        db.add_table(const.METADATA_TABLE, (
             ('metadata_rowid',               'INTEGER PRIMARY KEY'),
             ('metadata_key',                 'TEXT'),
             ('metadata_value',               'TEXT'),
@@ -154,11 +154,11 @@ class SQLDatabaseController(object):
     def get_db_version(db, ensure=True):
         version = db.get_metadata_val('database_version')
         if version is None and ensure:
-            version = constants.BASE_DATABASE_VERSION
+            version = const.BASE_DATABASE_VERSION
             colnames = ['metadata_key', 'metadata_value']
             params_iter = zip(['database_version'], [version])
             get_rowid_from_superkey = (lambda x : [None] * len(x))  # We don't care to find any, because we know there is no version
-            db.add_cleanly(constants.METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
+            db.add_cleanly(const.METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
         return version
 
     def _copy_to_memory(db):
@@ -424,6 +424,7 @@ class SQLDatabaseController(object):
             id_iter (iterable): iterable of search keys
             id_colname (str): column to be used as the search key (default: rowid)
             eager (bool): use eager evaluation
+            unpack_scalars (bool): default True
         """
         if VERBOSE_SQL:
             print(ut.get_caller_name(list(range(1, 4))) + ' db.get(%r, %r, ...)' % (tblname, colnames,))
@@ -688,6 +689,10 @@ class SQLDatabaseController(object):
     #=========
     # SQLDB METADATA
     #=========
+    def get_metadata_items(db):
+        metadata_rowids = db.get_all_rowids(const.METADATA_TABLE)
+        metadata_items = db.get(const.METADATA_TABLE, ('metadata_key', 'metadata_value'), metadata_rowids)
+        return metadata_items
 
     @default_decor
     def set_metadata_val(db, key, val):
@@ -695,7 +700,7 @@ class SQLDatabaseController(object):
         key must be given as a repr-ed string
         """
         fmtkw = {
-            'tablename': constants.METADATA_TABLE,
+            'tablename': const.METADATA_TABLE,
             'columns': 'metadata_key, metadata_value'
         }
         op_fmtstr = 'INSERT OR REPLACE INTO {tablename} ({columns}) VALUES (?, ?)'
@@ -711,7 +716,7 @@ class SQLDatabaseController(object):
         where_clause = 'metadata_key=?'
         colnames = ('metadata_value',)
         params_iter = [(key,)]
-        vals = db.get_where(constants.METADATA_TABLE, colnames, params_iter, where_clause)
+        vals = db.get_where(const.METADATA_TABLE, colnames, params_iter, where_clause)
         assert len(vals) == 1, 'duplicate keys in metadata table'
         val = vals[0]
         #if key.endswith('_constraint') or
@@ -873,7 +878,7 @@ class SQLDatabaseController(object):
             >>> def contributor_location_zip_map(x):
             ...     return x
             >>> ibs = None
-            >>> ibs.db.modify_table(constants.CONTRIBUTOR_TABLE, (
+            >>> ibs.db.modify_table(const.CONTRIBUTOR_TABLE, (
             ... #  Original Column Name,             New Column Name,                 New Column Type, Function to convert data from old to new
             ... #   [None to append, int for index]  ['' for same, None to delete]    ['' for same]    [None to use data unmodified]
             ...    # a non-needed, but correct mapping (identity function)
@@ -899,6 +904,7 @@ class SQLDatabaseController(object):
         assert tablename is not None, 'tablename must be given'
         if VERBOSE_SQL or ut.VERBOSE:
             print('[sql] schema modifying tablename=%r' % tablename)
+            print('[sql] * colmap_list = ' + 'None' if colmap_list is None else ut.list_str(colmap_list))
 
         if colmap_list is None:
             colmap_list = []
@@ -1109,7 +1115,7 @@ class SQLDatabaseController(object):
         colnames = ('metadata_key',)
         #print('Setting metadata_key from %s to %s' % (ut.list_str(id_iter), ut.list_str(val_iter)))
         #ut.embed()
-        db.set(constants.METADATA_TABLE, colnames, val_iter, id_iter, id_colname='metadata_key')
+        db.set(const.METADATA_TABLE, colnames, val_iter, id_iter, id_colname='metadata_key')
 
     @default_decor
     def rename_column(db, tablename, colname_old, colname_new):
@@ -1139,7 +1145,7 @@ class SQLDatabaseController(object):
         #    tablename + '_superkeys',
         #]
         key_list = [tablename + '_' + suffix for suffix in db.table_metadata_keys]
-        db.delete(constants.METADATA_TABLE, key_list, id_colname='metadata_key')
+        db.delete(const.METADATA_TABLE, key_list, id_colname='metadata_key')
 
     @default_decor
     def drop_column(db, tablename, colname):
@@ -1206,7 +1212,7 @@ class SQLDatabaseController(object):
                 line_list.append('%s' % '')
             # Hack to find the name of the constant variable
             constant_name = None
-            for variable, value in constants.__dict__.iteritems():
+            for variable, value in const.__dict__.iteritems():
                 if value == tablename:
                     constant_name = variable
                     break
@@ -1306,7 +1312,7 @@ class SQLDatabaseController(object):
         #where_clause = 'metadata_key=?'
         #colnames = ('metadata_value',)
         #data = [(tablename + '_constraint',)]
-        #constraint = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)
+        #constraint = db.get_where(const.METADATA_TABLE, colnames, data, where_clause)
         #constraint = constraint[0]
         if constraint is None:
             return None
@@ -1339,7 +1345,7 @@ class SQLDatabaseController(object):
         #where_clause = 'metadata_key=?'
         #colnames = ('metadata_value',)
         #data = [(tablename + '_superkeys',)]
-        #superkey_colnames_list_repr = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)[0]
+        #superkey_colnames_list_repr = db.get_where(const.METADATA_TABLE, colnames, data, where_clause)[0]
         superkey_colnames_list_repr = db.get_metadata_val(tablename + '_superkeys')
         # These asserts might not be valid, but in that case this function needs
         # to be rewritten under a different name
@@ -1389,7 +1395,7 @@ class SQLDatabaseController(object):
         #where_clause = 'metadata_key=?'
         #colnames = ('metadata_value',)
         #data = [(tablename + '_docstr',)]
-        #docstr = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)[0]
+        #docstr = db.get_where(const.METADATA_TABLE, colnames, data, where_clause)[0]
         return docstr
 
     @default_decor
@@ -1796,11 +1802,11 @@ class SQLDatabaseController(object):
         params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
         where_clause = 'metadata_key=?'
         # list of relationships for each image
-        metadata_rowid_list = db.get_where(constants.METADATA_TABLE, ('metadata_rowid',), params_iter, where_clause, unpack_scalars=True)
+        metadata_rowid_list = db.get_where(const.METADATA_TABLE, ('metadata_rowid',), params_iter, where_clause, unpack_scalars=True)
         assert len(metadata_rowid_list) == 1, 'duplicate database_version keys in database'
         id_iter = ((metadata_rowid,) for metadata_rowid in metadata_rowid_list)
         val_list = ((_,) for _ in [version])
-        db.set(constants.METADATA_TABLE, ('metadata_value',), val_list, id_iter)
+        db.set(const.METADATA_TABLE, ('metadata_value',), val_list, id_iter)
 
     @default_decor
     def get_sql_version(db):
