@@ -1816,6 +1816,7 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs.delete_all_encounters()
         >>> ibs.compute_encounters()
         >>> # execute function
         >>> eid = ibs.get_valid_eids()[1]
@@ -1824,8 +1825,8 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
         >>> # verify results
         >>> print(result)
         (
-            [5, 6, 7],
-            [u'IBEIS_GZ_Encounter_1_0001', u'IBEIS_PB_Encounter_1_0001', u'IBEIS_UNKNOWN_Encounter_1_0001'],
+            [4, 5, 6, 7],
+            [u'IBEIS_UNKNOWN_Encounter_1_0001', u'IBEIS_GZ_Encounter_1_0001', u'IBEIS_PB_Encounter_1_0001', u'IBEIS_UNKNOWN_Encounter_1_0002'],
         )
     """
     print('[ibs] get_consecutive_newname_list_via_species')

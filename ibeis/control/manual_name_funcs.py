@@ -1,6 +1,6 @@
 """
 python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
-sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=False --modfname manual_name_species_funcs
+sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=False --modfname manual_name_funcs
 
 """
 from __future__ import absolute_import, division, print_function
@@ -158,11 +158,11 @@ def get_empty_nids(ibs):
         an nid is not invalid if it has a valid alias
 
     CommandLine:
-        python -m ibeis.control.manual_name_species_funcs --test-get_empty_nids
+        python -m ibeis.control.manual_name_funcs --test-get_empty_nids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> new_nid_list = ibs.make_next_nids(num=2)
@@ -208,7 +208,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> # Map annotations to name ids
@@ -226,7 +226,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
         >>> print(ut.dict_str(groupid2_items, newlines=False))
 
     Ignore;
-        from ibeis.control.manual_name_species_funcs import *  # NOQA
+        from ibeis.control.manual_name_funcs import *  # NOQA
         import ibeis
         #ibs = ibeis.opendb('testdb1')
         #ibs = ibeis.opendb('PZ_MTEST')
@@ -421,11 +421,11 @@ def get_name_exemplar_aids(ibs, nid_list):
 
 
     CommandLine:
-        python -m ibeis.control.manual_name_species_funcs --test-get_name_exemplar_aids
+        python -m ibeis.control.manual_name_funcs --test-get_name_exemplar_aids
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -453,7 +453,7 @@ def get_name_gids(ibs, nid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_name_rowids()
@@ -500,11 +500,11 @@ def get_name_num_annotations(ibs, nid_list):
         list_ (list):  the number of annotations for each name
 
     CommandLine:
-        python -m ibeis.control.manual_name_species_funcs --test-get_name_num_annotations
+        python -m ibeis.control.manual_name_funcs --test-get_name_num_annotations
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_name_rowids()
@@ -544,11 +544,11 @@ def get_name_temp_flag(ibs, name_rowid_list, eager=True, nInput=None):
         tbl = name
 
     CommandLine:
-        python -m ibeis.control.manual_name_species_funcs --test-get_name_temp_flag
+        python -m ibeis.control.manual_name_funcs --test-get_name_temp_flag
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> name_rowid_list = ibs._get_all_name_rowids()
         >>> eager = True
@@ -589,14 +589,14 @@ def get_name_alias_texts(ibs, name_rowid_list):
         list_ (list): name_alias_text_list
 
     CommandLine:
-        python -m ibeis.control.manual_name_species_funcs --test-get_name_texts
+        python -m ibeis.control.manual_name_funcs --test-get_name_texts
 
     CommandLine:
-        python -m ibeis.control.manual_name_species_funcs --test-get_name_alias_texts
+        python -m ibeis.control.manual_name_funcs --test-get_name_alias_texts
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
@@ -621,7 +621,7 @@ def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
         list_ (list): name_alias_text_list
 
     CommandLine:
-        python -m ibeis.control.manual_name_species_funcs --test-get_name_texts
+        python -m ibeis.control.manual_name_funcs --test-get_name_texts
     """
     #ibsfuncs.assert_valid_names(name_alias_text_list)
     val_list = ((value,) for value in name_alias_text_list)
@@ -637,11 +637,11 @@ def get_name_texts(ibs, name_rowid_list, apply_fix=True):
         list_ (list): text names
 
     CommandLine:
-        python -m ibeis.control.manual_name_species_funcs --test-get_name_texts
+        python -m ibeis.control.manual_name_funcs --test-get_name_texts
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> name_rowid_list = ibs._get_all_known_name_rowids()
@@ -671,11 +671,11 @@ def get_num_names(ibs, **kwargs):
     Number of valid names
 
     CommandLine:
-        python -m ibeis.control.manual_name_species_funcs --test-get_num_names
+        python -m ibeis.control.manual_name_funcs --test-get_num_names
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> result = get_num_names(ibs)
@@ -695,12 +695,12 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
         species_rowid_list (list): Creates one if it doesnt exist
 
     CommandLine:
-        python -m ibeis.control.manual_name_species_funcs --test-get_name_rowids_from_text:0
-        python -m ibeis.control.manual_name_species_funcs --test-get_name_rowids_from_text:1
+        python -m ibeis.control.manual_name_funcs --test-get_name_rowids_from_text:0
+        python -m ibeis.control.manual_name_funcs --test-get_name_rowids_from_text:1
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
         >>> import utool as ut
         >>> ibs = ibeis.opendb('testdb1')
@@ -729,7 +729,7 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
 
     Example2:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
         >>> import utool as ut  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
@@ -804,11 +804,11 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False):
     Effectively just changes the TEXT UUID
 
     CommandLine:
-        python -m ibeis.control.manual_name_species_funcs --test-set_name_texts
+        python -m ibeis.control.manual_name_funcs --test-set_name_texts
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_name_species_funcs import *  # NOQA
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> nid_list = ibs.get_valid_nids()[0:2]
@@ -829,9 +829,9 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control.manual_name_species_funcs
-        python -m ibeis.control.manual_name_species_funcs --allexamples
-        python -m ibeis.control.manual_name_species_funcs --allexamples --noface --nosrc
+        python -m ibeis.control.manual_name_funcs
+        python -m ibeis.control.manual_name_funcs --allexamples
+        python -m ibeis.control.manual_name_funcs --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
