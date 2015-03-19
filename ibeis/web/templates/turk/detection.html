@@ -18,7 +18,7 @@
         </div>
       {% endif %}
 
-      {% if not refer %}
+      {% if not REFER_DST_ENCODED %}
         <div class="progress">
           <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
             {{ progress }}%
@@ -227,7 +227,7 @@
               <div class="col-lg-1"></div>
               <div class="col-lg-10" style="margin-top: 20px;">
                 <img src="{{ url_for('static', filename='images/example-detection3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                <p>Assigning bounding boxes around an animal with extreme occlusion can be very challenging.  The green bounding boxes are obvious, but the orange and red examples can be harder to decide.  For this example, all of the orange bounding boxes are border-line acceptable cases.  The red bounding boxes, however, do not have very much <b>usable</b> information.  This can be a <u>very</u> difficult decision and the image may have to be reviewed with the help of a graduate student.  For this example, all of the red bounding boxes should be excluded because they are too small or do not capture enough information to be useful. [7]</p>
+                <p>Assigning bounding boxes around an animal with severe occlusion can be very challenging.  The green bounding boxes are obvious, but the orange and red examples can be harder to decide.  For this example, all of the orange bounding boxes are border-line acceptable cases.  The red bounding boxes, however, do not have very much <b>usable</b> information.  This can be a <u>very</u> difficult decision and the image may have to be reviewed with the help of a graduate student.  For this example, all of the red bounding boxes should be excluded because they are too small or do not capture enough information to be useful. [7]</p>
               </div>
               <div class="col-lg-1"></div>
             </div>

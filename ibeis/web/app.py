@@ -47,6 +47,62 @@ def encounter_annot_quality_processed(aid_list):
     return annots_reviewed
 
 
+def convert_old_viewpoint_to_yaw(view_angle):
+    ''' we initially had viewpoint coordinates inverted
+
+    Example:
+        >>> import math
+        >>> TAU = 2 * math.pi
+        >>> old_viewpoint_labels = [
+        >>>     ('left'       ,   0, 0.000 * TAU,),
+        >>>     ('frontleft'  ,  45, 0.125 * TAU,),
+        >>>     ('front'      ,  90, 0.250 * TAU,),
+        >>>     ('frontright' , 135, 0.375 * TAU,),
+        >>>     ('right'      , 180, 0.500 * TAU,),
+        >>>     ('backright'  , 225, 0.625 * TAU,),
+        >>>     ('back'       , 270, 0.750 * TAU,),
+        >>>     ('backleft'   , 315, 0.875 * TAU,),
+        >>> ]
+        >>> fmtstr = 'old %15r %.2f -> new %15r %.2f'
+        >>> for lbl, angle, radians in old_viewpoint_labels:
+        >>>     print(fmtstr % (lbl, angle, lbl, convert_old_viewpoint_to_yaw(angle)))
+    '''
+    if view_angle is None:
+        return None
+    view_angle = ut.deg_to_rad(view_angle)
+    yaw = (-view_angle + (const.TAU / 2)) % const.TAU
+    return yaw
+
+
+def convert_yaw_to_old_viewpoint(yaw):
+    ''' we initially had viewpoint coordinates inverted
+
+    Example:
+        >>> import math
+        >>> TAU = 2 * math.pi
+        >>> old_viewpoint_labels = [
+        >>>     ('left'       ,   0, 0.000 * TAU,),
+        >>>     ('frontleft'  ,  45, 0.125 * TAU,),
+        >>>     ('front'      ,  90, 0.250 * TAU,),
+        >>>     ('frontright' , 135, 0.375 * TAU,),
+        >>>     ('right'      , 180, 0.500 * TAU,),
+        >>>     ('backright'  , 225, 0.625 * TAU,),
+        >>>     ('back'       , 270, 0.750 * TAU,),
+        >>>     ('backleft'   , 315, 0.875 * TAU,),
+        >>> ]
+        >>> fmtstr = 'original_angle %15r %.2f -> yaw %15r %.2f -> reconstructed_angle %15r %.2f'
+        >>> for lbl, angle, radians in old_viewpoint_labels:
+        >>>     yaw = convert_old_viewpoint_to_yaw(angle)
+        >>>     reconstructed_angle = convert_yaw_to_old_viewpoint(yaw)
+        >>>     print(fmtstr % (lbl, angle, lbl, yaw, lbl, reconstructed_angle))
+    '''
+    if yaw is None:
+        return None
+    view_angle = ((const.TAU / 2) - yaw) % const.TAU
+    view_angle = ut.rad_to_deg(view_angle)
+    return view_angle
+
+
 ################################################################################
 
 
@@ -368,7 +424,7 @@ def turk_viewpoint():
                 # aid = aid_list_[0]
                 aid = random.choice(aid_list_)
         previous = request.args.get('previous', None)
-        value = request.args.get('value', None)
+        value = convert_yaw_to_old_viewpoint(app.ibs.get_annot_yaws(aid))
         review = 'review' in request.args.keys()
         finished = aid is None
         display_instructions = request.cookies.get('viewpoint_instructions_seen', 0) == 0
@@ -421,7 +477,11 @@ def turk_quality():
                 # aid = aid_list_[0]
                 aid = random.choice(aid_list_)
         previous = request.args.get('previous', None)
-        value = request.args.get('value', None)
+        value = app.ibs.get_annot_qualities(aid)
+        if value == -1:
+            value = None
+        if value == 0:
+            value = 1
         review = 'review' in request.args.keys()
         finished = aid is None
         display_instructions = request.cookies.get('quality_instructions_seen', 0) == 0
@@ -525,32 +585,7 @@ def submit_viewpoint():
         aid = None  # Reset AID to prevent previous
     else:
         value = int(request.form['viewpoint-value'])
-
-        def convert_old_viewpoint_to_yaw(view_angle):
-            ''' we initially had viewpoint coordinates inverted
-
-            Example:
-                >>> import math
-                >>> TAU = 2 * math.pi
-                >>> old_viewpoint_labels = [
-                >>>     ('left'       , 0.000 * TAU,),
-                >>>     ('frontleft'  , 0.125 * TAU,),
-                >>>     ('front'      , 0.250 * TAU,),
-                >>>     ('frontright' , 0.375 * TAU,),
-                >>>     ('right'       , 0.500 * TAU,),
-                >>>     ('backright'  , 0.625 * TAU,),
-                >>>     ('back'       , 0.750 * TAU,),
-                >>>     ('backleft'   , 0.875 * TAU,),
-                >>> ]
-                >>> fmtstr = 'old %15r %.2f -> new %15r %.2f'
-                >>> for lbl, angle in old_viewpoint_labels:
-                >>>     print(fmtstr % (lbl, angle, lbl, convert_old_viewpoint_to_yaw(angle)))
-            '''
-            if view_angle is None:
-                return None
-            yaw = (-view_angle + (const.TAU / 2)) % const.TAU
-            return yaw
-        yaw = convert_old_viewpoint_to_yaw(ut.deg_to_rad(value))
+        yaw = convert_old_viewpoint_to_yaw(value)
         app.ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
         print('[web] turk_id: %s, aid: %d, yaw: %d' % (turk_id, aid, yaw))
     # Return HTML
