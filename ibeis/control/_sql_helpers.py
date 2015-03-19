@@ -1,21 +1,20 @@
 from __future__ import absolute_import, division, print_function
+from ibeis import constants as const
+from ibeis import params
+from ibeis.control import __SQLITE3__ as lite
+from os.path import split, splitext, join, exists
+import datetime
+import logging
+import re
 import utool
 import utool as ut
-import re
-from . import __SQLITE3__ as lite
-from os.path import split, splitext, join, exists
-#import six
-import logging
-import datetime
-from ibeis import params
-from ibeis import constants as const
 (print, print_, printDBG, rrr, profile) = utool.inject(
     __name__, '[sql-helpers]')
 
 # =======================
 # Helper Functions
 # =======================
-PRINT_SQL = utool.get_argflag(('--print-sql', '--verbose-sql'))
+VERBOSE_SQL    = utool.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql'))
 #AUTODUMP = utool.get_argflag('--auto-dump')
 NOT_QUIET = not (utool.QUIET or utool.get_argflag('--quiet-sql'))
 
@@ -151,6 +150,7 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
     Args:
         schema_spec (module): module of schema specifications
     """
+    #print('[SQL_] ensure_correct_version')
 
     want_base_version = version_expected == const.BASE_DATABASE_VERSION
     if want_base_version:
@@ -173,6 +173,7 @@ def ensure_correct_version(ibs, db, version_expected, schema_spec,
     # SKIP TO CURRENT VERSION IF POSSIBLE
     #+-----------------------------------
     if can_skip:
+        #print('[SQL_] we can skip')
         current_schema_exists = (schema_spec.UPDATE_CURRENT is not None and
                                  schema_spec.VERSION_CURRENT is not None)
         if current_schema_exists:
@@ -311,7 +312,7 @@ class SQLExecutionContext(object):
 
     """
     def __init__(context, db, operation, nInput=None, auto_commit=True,
-                 start_transaction=False, verbose=PRINT_SQL):
+                 start_transaction=False, verbose=VERBOSE_SQL):
         context.auto_commit = auto_commit
         context.db = db  # Reference to sqldb
         context.operation = operation
@@ -336,13 +337,13 @@ class SQLExecutionContext(object):
         if context.start_transaction:
             #context.cur.execute('BEGIN', ())
             context.cur.execute('BEGIN')
-        if context.verbose or PRINT_SQL:
+        if context.verbose or VERBOSE_SQL:
             print(context.operation_lbl)
             if context.verbose:
                 print('[sql] operation=\n' + context.operation)
         # Comment out timeing code
         if __debug__:
-            if NOT_QUIET and (PRINT_SQL or context.verbose):
+            if NOT_QUIET and (VERBOSE_SQL or context.verbose):
                 context.tt = utool.tic(context.operation_lbl)
         return context
 
@@ -369,7 +370,7 @@ class SQLExecutionContext(object):
         """ Finalization of an SQLController call """
         #print('exit context')
         if __debug__:
-            if NOT_QUIET and (PRINT_SQL or context.verbose):
+            if NOT_QUIET and (VERBOSE_SQL or context.verbose):
                 utool.toc(context.tt)
         if trace is not None:
             # An SQLError is a serious offence.

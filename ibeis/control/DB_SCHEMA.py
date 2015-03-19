@@ -1032,6 +1032,15 @@ def update_1_4_0(db, ibs=None):
     )
 
 
+def update_1_4_1(db, ibs=None):
+    db.modify_table(
+        const.ENCOUNTER_TABLE,
+        dependsmap={
+            'config_rowid':       (const.CONFIG_TABLE,       ('config_rowid',),          (CONFIG_SUFFIX,)),
+        }
+    )
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1061,6 +1070,7 @@ VALID_VERSIONS = utool.odict([
     ('1.3.8',    (None,                 update_1_3_8,       None          )),
     ('1.3.9',    (None,                 update_1_3_9,       None          )),
     ('1.4.0',    (None,                 update_1_4_0,       None          )),
+    ('1.4.1',    (None,                 update_1_4_1,       None          )),
 ])
 
 

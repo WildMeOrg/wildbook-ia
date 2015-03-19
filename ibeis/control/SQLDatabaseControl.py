@@ -2,37 +2,34 @@
 Interface into SQL for the IBEIS Controller
 """
 from __future__ import absolute_import, division, print_function
-# Python
 import six
 from six.moves import map, zip
 from os.path import join, exists
 import utool
 import utool as ut
-# Tools
+import cStringIO
 from ibeis import constants
 from ibeis.control._sql_helpers import (_unpacker, sanatize_sql,
-                                        SQLExecutionContext, PRINT_SQL)
+                                        SQLExecutionContext, VERBOSE_SQL, NOT_QUIET)
 from ibeis.control import __SQLITE3__ as lite
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sql]')
 
 VERBOSE        = utool.VERBOSE
 VERYVERBOSE    = utool.VERYVERBOSE
-QUIET          = utool.QUIET or utool.get_argflag('--quiet-sql')
-VERBOSE_SQL    = utool.get_argflag('--verb-sql')
 #AUTODUMP       = utool.get_argflag('--auto-dump')
 COPY_TO_MEMORY = utool.get_argflag(('--copy-db-to-memory'))
-
-
-def default_decor(func):
-    return profile(func)
-    #return func
 
 
 __STR__ = str if six.PY3 else unicode
 
 
+def default_decor(func):
+    #return profile(func)
+    return func
+
+
 class SQLAtomicContext(object):
-    def __init__(context, db, verbose=PRINT_SQL):
+    def __init__(context, db, verbose=VERBOSE_SQL):
         context.db = db  # Reference to sqldb
         context.cur = context.db.connection.cursor()  # Get new cursor
         context.verbose = verbose
@@ -60,7 +57,7 @@ def dev_test_new_schema_version(dbname, sqldb_dpath, sqldb_fname, version_curren
     TESTING_NEW_SQL_VERSION = version_current != version_next
     if TESTING_NEW_SQL_VERSION:
         print('[sql] ATTEMPTING TO TEST NEW SQLDB VERSION')
-        devdb_list = ['PZ_MTEST', 'testdb1', 'testdb0', 'emptydatabase']
+        devdb_list = ['PZ_MTEST', 'testdb1', 'testdb0', 'testdb2', 'testdb_dst2', 'emptydatabase']
         testing_newschmea = ut.is_developer() and dbname in devdb_list
         #testing_newschmea = False
         #ut.is_developer() and ibs.get_dbname() in ['PZ_MTEST', 'testdb1']
@@ -105,10 +102,8 @@ class SQLDatabaseController(object):
             'primary_superkey',
         ]
         #with utool.Timer('New SQLDatabaseController'):
-        #printDBG('[sql.__init__]')
-        # TODO:
-        db.stack = []
-        db.cache = {}  # key \in [tblname][colnames][rowid]
+        #db.stack = []
+        #db.cache = {}  # key \in [tblname][colnames][rowid]
         # Get SQL file path
         db.dir_  = sqldb_dpath
         db.fname = sqldb_fname
@@ -169,7 +164,7 @@ class SQLDatabaseController(object):
     def _copy_to_memory(db):
         # http://stackoverflow.com/questions/3850022/python-sqlite3-load-existing-db-file-to-memory
         from six.moves import cStringIO
-        if not QUIET:
+        if NOT_QUIET:
             print('[sql] Copying database into RAM')
         tempfile = cStringIO()
         for line in db.connection.iterdump():
@@ -457,7 +452,7 @@ class SQLDatabaseController(object):
         val_list = list(val_iter)  # eager evaluation
         id_list = list(id_iter)  # eager evaluation
 
-        if VERBOSE_SQL or (not QUIET and VERYVERBOSE):
+        if VERBOSE_SQL or (NOT_QUIET and VERYVERBOSE):
             print('[sql] SETTER: ' + utool.get_caller_name())
             print('[sql] * tblname=%r' % (tblname,))
             print('[sql] * val_list=%r' % (val_list,))
@@ -654,30 +649,41 @@ class SQLDatabaseController(object):
     #    db.connection.commit()
 
     @default_decor
-    def dump_to_file(db, file_, auto_commit=True, schema_only=False):
-        if VERBOSE_SQL:
-            print('[sql.dump]')
-        if auto_commit:
-            db.connection.commit()
-            #db.commit(verbose=False)
-        for line in db.connection.iterdump():
-            if schema_only and line.startswith('INSERT'):
-                continue
-            file_.write('%s\n' % line)
+    def dump(db, file_=None, **kwargs):
+        if file_ is None or isinstance(file_, six.string_types):
+            dump_fpath = file_
+            if dump_fpath is None:
+                # Default filepath
+                version_str = 'v' + db.get_db_version()
+                if kwargs.get('schema_only', False):
+                    version_str += '.schema_only'
+                dump_fname = db.fname + '.' + version_str +  '.dump.txt'
+                dump_fpath = join(db.dir_, dump_fname)
+            with open(dump_fpath, 'w') as file_:
+                db.dump_to_file(file_, **kwargs)
+        else:
+            db.dump_to_file(file_, **kwargs)
 
     @default_decor
-    def dump_to_string(db, auto_commit=True, schema_only=False):
-        retStr = ''
+    def dump_to_string(db, **kwargs):
+        string_file = cStringIO.StringIO()
+        db.dump_to_file(string_file, **kwargs)
+        retstr = string_file.getvalue()
+        return retstr
+
+    @default_decor
+    def dump_to_file(db, file_, auto_commit=True, schema_only=False, include_metadata=True):
+        VERBOSE_SQL = True
         if VERBOSE_SQL:
-            print('[sql.dump]')
+            print('[sql.dump_to_file] file_=%r' % (file_,))
         if auto_commit:
             db.connection.commit()
             #db.commit(verbose=False)
         for line in db.connection.iterdump():
             if schema_only and line.startswith('INSERT'):
-                continue
-            retStr += '%s\n' % line
-        return retStr
+                if not include_metadata or 'metadata' not in line:
+                    continue
+            file_.write('%s\n' % line)
 
     #=========
     # SQLDB METADATA
@@ -728,7 +734,8 @@ class SQLDatabaseController(object):
 
     @default_decor
     def add_column(db, tablename, colname, coltype):
-        printDBG('[sql] add column=%r of type=%r to tablename=%r' % (colname, coltype, tablename))
+        if VERBOSE_SQL:
+            print('[sql] add column=%r of type=%r to tablename=%r' % (colname, coltype, tablename))
         fmtkw = {
             'tablename': tablename,
             'colname': colname,
@@ -806,10 +813,10 @@ class SQLDatabaseController(object):
         }
         op_fmtstr = 'CREATE TABLE IF NOT EXISTS {tablename} ({table_body})'
         operation = op_fmtstr.format(**fmtkw)
-        print('')
-        print('---------')
-        print('')
-        print(operation)
+        #print('')
+        #print('---------')
+        #print('')
+        #print(operation)
         #ut.embed()
         db.executeone(operation, [], verbose=False)
 
@@ -1037,7 +1044,8 @@ class SQLDatabaseController(object):
 
     @default_decor
     def duplicate_table(db, tablename, tablename_duplicate):
-        printDBG('[sql] schema duplicating tablename=%r into tablename=%r' % (tablename, tablename_duplicate))
+        if VERBOSE_SQL:
+            print('[sql] schema duplicating tablename=%r into tablename=%r' % (tablename, tablename_duplicate))
         db.modify_table(tablename, [], tablename_new=tablename_duplicate)
 
     @default_decor
@@ -1052,7 +1060,8 @@ class SQLDatabaseController(object):
         try:
             index = column_names.index(colname)
         except Exception:
-            printDBG('[!sql] could not find colname=%r to duplicate' % colname)
+            if VERBOSE_SQL:
+                print('[!sql] could not find colname=%r to duplicate' % colname)
             return
         # Add column to the table
         # DATABASE TABLE CACHES ARE UPDATED WITH add_column
@@ -1111,7 +1120,8 @@ class SQLDatabaseController(object):
 
     @default_decor
     def drop_table(db, tablename):
-        printDBG('[sql] schema dropping tablename=%r' % tablename)
+        if VERBOSE_SQL:
+            print('[sql] schema dropping tablename=%r' % tablename)
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
         # anyway.
@@ -1141,17 +1151,6 @@ class SQLDatabaseController(object):
     #==============
     # CONVINENCE
     #==============
-
-    @default_decor
-    def dump(db, file_=None, auto_commit=True, schema_only=False):
-        if file_ is None or isinstance(file_, six.string_types):
-            dump_fpath = file_
-            if dump_fpath is None:
-                dump_fpath = join(db.dir_, db.fname + '.dump.txt')
-            with open(dump_fpath, 'w') as file_:
-                db.dump_to_file(file_, auto_commit, schema_only)
-        else:
-            db.dump_to_file(file_, auto_commit, schema_only)
 
     @default_decor
     def dump_tables_to_csv(db):
@@ -1251,7 +1250,9 @@ class SQLDatabaseController(object):
                     line_list.append(tab2 + '%s=%r,' % (suffix, val))
             dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True)
             if dependsmap is not None:
-                line_list.append(tab2 + 'dependsmap=%s,' % (ut.align(ut.indent(ut.dict_str(dependsmap), tab2).lstrip(' '), ':'),))
+                depends_map_dictstr = ut.align(ut.indent(ut.dict_str(dependsmap), tab2).lstrip(' '), ':')
+                depends_map_dictstr = depends_map_dictstr.replace('    }', '}')  # hack for formatting
+                line_list.append(tab2 + 'dependsmap=%s,' % (depends_map_dictstr,))
             line_list.append(tab1 + ')')
 
         line_list.append('')
@@ -1584,8 +1585,9 @@ class SQLDatabaseController(object):
             >>> # build test data
             >>> db = ibs_dst.db
             >>> db_src = ibs_src.db
+            >>> ignore_tables = ['lblannot', 'lblimage', 'image_lblimage_relationship', 'annotation_lblannot_relationship', 'keys']
             >>> # execute function
-            >>> db.merge_databases_new(db_src)
+            >>> db.merge_databases_new(db_src, ignore_tables=ignore_tables)
         """
         verbose = True
         veryverbose = True
@@ -1595,12 +1597,10 @@ class SQLDatabaseController(object):
         assert version_src == version_dst, 'cannot merge databases that have different versions'
         # Get merge tablenames
         all_tablename_list = db.get_table_names()
-        if ignore_tables is None:
-            #ignore_tables = []
-            # HACK: Ignore some ibeis tables when transfering
-            ignore_tables = ['lblannot', 'lblimage', 'image_lblimage_relationship', 'annotation_lblannot_relationship', 'keys']
         # always ignore the metadata table.
         ignore_tables_ = ['metadata']
+        if ignore_tables is None:
+            ignore_tables = []
         ignore_tables_ += ignore_tables
         tablename_list = [tablename for tablename in all_tablename_list if tablename not in ignore_tables_]
         # Reorder tablenames based on dependencies.
@@ -1623,19 +1623,15 @@ class SQLDatabaseController(object):
             return depth
         order_list = [find_depth(tablename, dependency_digraph) for tablename in tablename_list]
         sorted_tablename_list = ut.sortedby(tablename_list, order_list)
-        """
-        tablename_iter = iter(tablename_list)
-        """
+        # ================================
+        # Merge each table into new database
+        # ================================
         for tablename in sorted_tablename_list:
-            """
-            tablename = tablename_iter.next()
-            """
             if verbose:
                 print('\n[sqlmerge] Merging tablename=%r' % (tablename,))
-            #if tablename == 'annotations':
-            #    break
             # Collect the data from the source table that will be merged in
             new_transferdata = db_src.get_table_new_transferdata(tablename)
+            # FIXME: This needs to pass back sparser output
             (column_list, column_names,
              # These fields are for external data dependencies. We need to find what the
              # new rowids will be in the destintation database
@@ -1643,25 +1639,19 @@ class SQLDatabaseController(object):
              extern_superkey_colval_list, extern_tablename_list,
              extern_primarycolnames_list
              ) = new_transferdata
-            #new_extern_rowids_list = []
-            # HACK OUT THE ROWID COLUMN
-            #db.get_table_primarykey_colnames(tablename)
+            # FIXME: extract the primary rowid column a little bit nicer
             assert column_names[0].endswith('_rowid')
             old_rowid_list = column_list[0]
-            del old_rowid_list
             column_names_ = column_names[1:]
             column_list_ = column_list[1:]
-            del column_list
-            del column_names
-            #ibs.db.get(const.CONFIG_TABLE, ('config_rowid',), cfgsuffix_list, id_colname='config_suffix')
 
+            # ================================
+            # Resolve external superkey lookups
+            # ================================
             if len(extern_colx_list) > 0:
                 if verbose:
                     print('[sqlmerge] %s has %d externaly dependant columns to resolve' % (tablename, len(extern_colx_list)))
-                # Resolve external superkey lookups
-                # CONFIGS MIGHT BE BROKEN HERE DUE TO HAVING A MUTLTIKEY-SUPERKEY
-                modified_column_list_ = column_list_[:]  # NOQA
-                #get_rowid_from_superkey, superkey_paramx=(0,)
+                modified_column_list_ = column_list_[:]
                 new_extern_rowid_list = []
 
                 # Find the mappings from the old tables rowids to the new tables rowids
@@ -1674,36 +1664,25 @@ class SQLDatabaseController(object):
                     if veryverbose or verbose:
                         if veryverbose:
                             print(('[sqlmerge] * resolving source_colname=%r \n'
-                                   '                 via %r -> %r. colx=%r')
+                                   '                 via extern_superkey_colname=%r -> extern_primarycolname=%r. colx=%r')
                                   % (source_colname, extern_superkey_colname, extern_primarycolname, colx))
                         elif verbose:
                             print('[sqlmerge] * resolving %r via %r -> %r'
                                   % (source_colname, extern_superkey_colname, extern_primarycolname))
-                    if str(extern_tablename) == str('configs'):
-                        # HACK: Remove contrib from configs
-                        extern_superkey_colval = [tup[1] for tup in extern_superkey_colval]
-                        print('* HACK RESOLVE FOR CONFIGS %r[1:]' % (extern_superkey_colname,))
-                        extern_superkey_colname = extern_superkey_colname[1:]
-                    #if source_colname == 'image_rowid':
-                    #    break
                     _params_iter = list(zip(extern_superkey_colval))
                     new_extern_rowids = db.get_rowid_from_superkey(
                         extern_tablename, _params_iter, superkey_colnames=extern_superkey_colname)
                     new_extern_rowid_list.append(new_extern_rowids)
 
                 for colx, new_extern_rowids in zip(extern_colx_list, new_extern_rowid_list):
-                    #old_extern_rowids = modified_column_list_[colx - 1]
                     modified_column_list_[colx - 1] = new_extern_rowids
             else:
                 modified_column_list_ = column_list_
-                #new_extern_rowids_list.append(new_extern_rowids)
-            del column_list_
-            # cleanly add new data to db
+
+            # ================================
+            # Merge into db with add_cleanly
+            # ================================
             superkey_colnames_list = db.get_table_superkey_colnames(tablename)
-            if str(tablename) == str('configs'):
-                # HACK
-                # Ignore contributor for configs for now
-                superkey_colnames_list = [('config_suffix',)]
             try:
                 superkey_paramxs_list = [
                     [column_names_.index(str(superkey)) for superkey in  superkey_colnames]
@@ -1727,10 +1706,6 @@ class SQLDatabaseController(object):
                 superkey_paramx = superkey_paramxs_list[0]
                 superkey_colnames = superkey_colnames_list[0]
 
-            # HACK CHECK
-            if tablename == 'annotations':
-                assert superkey_colnames == ('annot_visual_uuid',)
-
             params_iter = list(zip(*modified_column_list_))
             def get_rowid_from_superkey(*superkey_column_list):
                 superkey_params_iter = zip(*superkey_column_list)
@@ -1744,10 +1719,9 @@ class SQLDatabaseController(object):
                                             params_iter,
                                             get_rowid_from_superkey=get_rowid_from_superkey,
                                             superkey_paramx=superkey_paramx)
-            del new_rowid_list
-            #old_rowids_to_new_roids = dict(zip(old_rowid_list, new_rowid_list))
-            #print(tablename)
-            #print(new_rowid_list)
+            # TODO: Use mapping generated here for new rowids
+            old_rowids_to_new_roids = dict(zip(old_rowid_list, new_rowid_list))
+            old_rowids_to_new_roids
 
     @default_decor
     def get_table_csv(db, tablename, exclude_columns=[]):
@@ -1839,101 +1813,6 @@ class SQLDatabaseController(object):
         # The version of the SQLite library
         print('[sql] sqlite3.sqlite_version = %r' % (lite.sqlite_version,))
         return sql_version
-
-
-# LONG DOCSTRS
-#SQLDatabaseController.add_cleanly.__docstr__ = """
-#uuid_list - a non-rowid column which identifies a row
-#get_rowid_from_superkey - function which does what it says
-#e.g:
-#    get_rowid_from_superkey = ibs.get_image_gids_from_uuid
-#    params_list = [(uuid.uuid4(),) for _ in range(7)]
-#    superkey_paramx = [0]
-
-#            params_list = [(uuid.uuid4(), 42) for _ in range(7)]
-#            superkey_paramx = [0, 1]
-#"""
-
-#SQLDatabaseController.__init__.__docstr__ = """
-#            SQLite3 Documentation: http://www.sqlite.org/docs.html
-#            -------------------------------------------------------
-#            SQL INSERT: http://www.w3schools.com/sql/sql_insert.asp
-#            SQL UPDATE: http://www.w3schools.com/sql/sql_update.asp
-#            SQL DELETE: http://www.w3schools.com/sql/sql_delete.asp
-#            SQL SELECT: http://www.w3schools.com/sql/sql_select.asp
-#            -------------------------------------------------------
-#            Init the SQLite3 database connection and the execution object.
-#            If the database does not exist, it will be automatically created
-#            upon this object's instantiation.
-#            """
-#""" Same output as shell command below
-#    > sqlite3 database.sqlite3 .dump > database.dump.txt
-
-#    If file_=sys.stdout dumps to standard out
-
-#    This saves the current database schema structure and data into a
-#    text dump. The entire database can be recovered from this dump
-#    file. The default will store a dump parallel to the current
-#    database file.
-#"""
-#""" Commits staged changes to the database and saves the binary
-#    representation of the database to disk.  All staged changes can be
-#    commited one at a time or after a batch - which allows for batch
-#    error handling without comprimising the integrity of the database.
-#"""
-#"""
-#TODO: SEPARATE
-#Input:
-#    operation - an sql command to be executed e.g.
-#        operation = '''
-#        SELECT colname
-#        FROM tblname
-#        WHERE
-#        (colname_1=?, ..., colname_N=?)
-#        '''
-#    params_iter - a sequence of params e.g.
-#        params_iter = [(col1, ..., colN), ..., (col1, ..., colN),]
-#Output:
-#    results_iter - a sequence of data results
-#"""
-#"""
-#operation - parameterized SQL operation string.
-#    Parameterized prevents SQL injection attacks by using an ordered
-#    representation ( ? ) or by using an ordered, text representation
-#    name ( :value )
-
-#params - list of values or a dictionary of representations and
-#                corresponding values
-#    * Ordered Representation -
-#        List of values in the order the question marks appear in the
-#        sql operation string
-#    * Unordered Representation -
-#        Dictionary of (text representation name -> value) in an
-#        arbirtary order that will be filled into the cooresponging
-#        slots of the sql operation string
-#"""
-#""" Creates a table in the database with some schema and constraints
-#    schema_list - list of tablename columns tuples
-#        {
-#            (column_1_name, column_1_type),
-#            (column_2_name, column_2_type),
-#            ...
-#            (column_N_name, column_N_type),
-#        }
-#    ---------------------------------------------
-#    column_n_name - string name of column heading
-#    column_n_type - NULL | INTEGER | REAL | TEXT | BLOB | NUMPY
-#        The column type can be appended with ' PRIMARY KEY' to indicate
-#        the unique id for the tablename.  It can also specify a default
-#        value for the column with ' DEFAULT [VALUE]'.  It can also
-#        specify ' NOT NULL' to indicate the column cannot be empty.
-#    ---------------------------------------------
-#    The tablename will only be created if it does not exist.  Therefore,
-#    this can be done on every tablename without fear of deleting old data.
-#    ---------------------------------------------
-#    TODO: Add handling for column addition between software versions.
-#    Column deletions will not be removed from the database schema.
-#"""
 
 if __name__ == '__main__':
     """

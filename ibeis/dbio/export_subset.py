@@ -1117,15 +1117,16 @@ def merge_databases(ibs_src, ibs_dst, gid_list=None, back=None, user_prompt=Fals
 
 
 def check_merge(ibs_src, ibs_dst):
-    aid_list1 = ibs_src.get_valid_aids()
-    gid_list1 = ibs_src.get_annot_gids(aid_list1)
-    ut.assert_all_not_None(gid_list1, 'gid_list1')
-    gname_list1 = ibs_src.get_image_uris(gid_list1)
+   with ut.embed_on_exception_context:
+    aid_list1        = ibs_src.get_valid_aids()
+    gid_list1        = ibs_src.get_annot_gids(aid_list1)
+    gname_list1      = ibs_src.get_image_uris(gid_list1)
     image_uuid_list1 = ibs_src.get_image_uuids(gid_list1)
-    # Add all images from database 1 to database 2
-    gid_list2 = ibs_dst.get_image_gids_from_uuid(image_uuid_list1)
-    ut.assert_all_not_None(gid_list2, 'gid_list1')
-    gname_list2 = ibs_dst.get_image_uris(gid_list2)
+    gid_list2        = ibs_dst.get_image_gids_from_uuid(image_uuid_list1)
+    gname_list2      = ibs_dst.get_image_uris(gid_list2)
+    # Asserts
+    ut.assert_all_not_None(gid_list1, 'gid_list1')
+    ut.assert_all_not_None(gid_list2, 'gid_list2')
     ut.assert_lists_eq(gname_list1, gname_list2, 'faild gname')
     # Image UUIDS should be consistent between databases
     image_uuid_list2 = ibs_dst.get_image_uuids(gid_list2)
@@ -1153,15 +1154,16 @@ def merge_databases2(ibs_src, ibs_dst):
         python -m ibeis.dbio.export_subset --test-merge_databases2:0
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.dbio.export_subset import *  # NOQA
         >>> import ibeis
         >>> #ibs_dst = ibeis.opendb(dbdir='testdb_dst')
         >>> ibs_src = ibeis.opendb(db='testdb1')
         >>> # OPEN A CLEAN DATABASE
         >>> #delete_ibsdir = True
-        >>> delete_ibsdir = False
+        >>> delete_ibsdir = True
         >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst', allow_newdir=True, delete_ibsdir=delete_ibsdir)
+        >>> merge_databases2(ibs_src, ibs_dst)
         >>> check_merge(ibs_src, ibs_dst)
         >>> ibs_dst.print_dbinfo()
 
@@ -1173,7 +1175,7 @@ def merge_databases2(ibs_src, ibs_dst):
         >>> ibs_src = ibeis.opendb(db='PZ_MTEST')
         >>> # OPEN A CLEAN DATABASE
         >>> delete_ibsdir = True
-        >>> ibs_dst = ibeis.opendb(dbdir='testdb_dst2', allow_newdir=True, delete_ibsdir=delete_ibsdir)
+        >>> ibs_dst = ibeis.opendb(db='testdb_dst2', allow_newdir=True, delete_ibsdir=delete_ibsdir)
         >>> merge_databases2(ibs_src, ibs_dst)
         >>> check_merge(ibs_src, ibs_dst)
     """
@@ -1193,7 +1195,8 @@ def merge_databases2(ibs_src, ibs_dst):
     imgpath_list = ibs_src.get_image_paths(gid_list)
     dst_imgdir = ibs_dst.get_imgdir()
     ut.copy_files_to(imgpath_list, dst_imgdir, overwrite=False, verbose=True)
-    ibs_dst.db.merge_databases_new(ibs_src.db)
+    ignore_tables = ['lblannot', 'lblimage', 'image_lblimage_relationship', 'annotation_lblannot_relationship', 'keys']
+    ibs_dst.db.merge_databases_new(ibs_src.db, ignore_tables=ignore_tables)
     print('FINISHED MERGE %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname()))
 
 
@@ -1289,7 +1292,7 @@ def test_merge():
     import ibeis
     ibs1 = ibeis.opendb('testdb2')
     ibs1.fix_invalid_annotmatches()
-    ibs_dst = ibeis.opendb(dbdir='TEST_MERGE2', allow_newdir=True, delete_ibsdir=True)
+    ibs_dst = ibeis.opendb(db='testdb_dst2', allow_newdir=True, delete_ibsdir=True)
     export_subset.merge_databases2(ibs1, ibs_dst)
     #ibs_src = ibs1
     check_merge(ibs1, ibs_dst)

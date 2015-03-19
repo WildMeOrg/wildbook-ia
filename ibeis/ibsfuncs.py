@@ -1816,6 +1816,7 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs.compute_encounters()
         >>> # execute function
         >>> eid = ibs.get_valid_eids()[1]
         >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, eid=eid)
@@ -1850,7 +1851,7 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
         enc_text = enc_text.replace(' ', '_').replace('\'', '').replace('"', '')
         new_name_list = ['%s_%s_%s_%04d' % (location_text, code, enc_text, get_next_index(code)) for code in code_list]
     else:
-        new_name_list = ['%s_%s_%04d' % (location_text, code, enc_text, get_next_index(code)) for code in code_list]
+        new_name_list = ['%s_%s_%04d' % (location_text, code, get_next_index(code)) for code in code_list]
     new_nid_list = nid_list
     return new_nid_list, new_name_list
 
