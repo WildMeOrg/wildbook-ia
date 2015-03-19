@@ -1421,10 +1421,15 @@ def update_ungrouped_special_encounter(ibs):
         >>> print(result)
     """
     # FIXME SLOW
+    print('[ibsfuncs] update_ungrouped_special_encounter.1')
     ungrouped_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)
+    print('[ibsfuncs] update_ungrouped_special_encounter.2')
     ibs.delete_egr_encounter_relations(ungrouped_eid)
+    print('[ibsfuncs] update_ungrouped_special_encounter.3')
     ungrouped_gids = ibs.get_ungrouped_gids()
+    print('[ibsfuncs] update_ungrouped_special_encounter.4')
     ibs.set_image_eids(ungrouped_gids, [ungrouped_eid] * len(ungrouped_gids))
+    print('[ibsfuncs] update_ungrouped_special_encounter.5')
 
 
 @__injectable
@@ -1757,14 +1762,28 @@ def make_enctext_list(eid_list, enc_cfgstr):
 
 
 @__injectable
-def batch_rename_consecutive_via_species(ibs):
+def batch_rename_consecutive_via_species(ibs, eid=None):
     """ actually sets the new consectuive names"""
-    new_nid_list, new_name_list = ibs.get_consecutive_newname_list_via_species()
+    new_nid_list, new_name_list = ibs.get_consecutive_newname_list_via_species(eid=eid)
+
+    def get_conflict_names(ibs, new_nid_list, new_name_list):
+        other_nid_list = list(set(ibs.get_valid_nids()) - set(new_nid_list))
+        other_names = ibs.get_name_texts(other_nid_list)
+        conflict_names = list(set(other_names).intersection(set(new_name_list)))
+        return conflict_names
+
+    def assert_no_name_conflicts(ibs, new_nid_list, new_name_list):
+        print('checking for conflicting names')
+        conflit_names = get_conflict_names(ibs, new_nid_list, new_name_list)
+        assert len(conflit_names) == 0, 'conflit_names=%r' % (conflit_names,)
+
+    # Check to make sure new names dont conflict with other names
+    assert_no_name_conflicts(ibs, new_nid_list, new_name_list)
     ibs.set_name_texts(new_nid_list, new_name_list, verbose=ut.NOT_QUIET)
 
 
 @__injectable
-def get_consecutive_newname_list_via_species(ibs):
+def get_consecutive_newname_list_via_species(ibs, eid=None):
     """
     Just creates the nams, but does not set them
 
@@ -1781,7 +1800,8 @@ def get_consecutive_newname_list_via_species(ibs):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> # execute function
-        >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs)
+        >>> eid = None
+        >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, eid=eid)
         >>> result = ut.list_str((new_nid_list, new_name_list))
         >>> # verify results
         >>> print(result)
@@ -1789,10 +1809,27 @@ def get_consecutive_newname_list_via_species(ibs):
             [1, 2, 3, 4, 5, 6, 7],
             ['IBEIS_PZ_0001', 'IBEIS_PZ_0002', 'IBEIS_UNKNOWN_0001', 'IBEIS_UNKNOWN_0002', 'IBEIS_GZ_0001', 'IBEIS_PB_0001', 'IBEIS_UNKNOWN_0003'],
         )
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> eid = ibs.get_valid_eids()[1]
+        >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, eid=eid)
+        >>> result = ut.list_str((new_nid_list, new_name_list))
+        >>> # verify results
+        >>> print(result)
+        (
+            [5, 6, 7],
+            [u'IBEIS_GZ_Encounter_1_0001', u'IBEIS_PB_Encounter_1_0001', u'IBEIS_UNKNOWN_Encounter_1_0001'],
+        )
     """
     print('[ibs] get_consecutive_newname_list_via_species')
     ibs.delete_empty_nids()
-    nid_list  = ibs.get_valid_nids()
+    nid_list = ibs.get_valid_nids(eid=eid)
     #name_list = ibs.get_name_texts(nid_list)
     aids_list = ibs.get_name_aids(nid_list)
     species_rowids_list = ibs.unflat_map(ibs.get_annot_species_rowids, aids_list)
@@ -1808,7 +1845,12 @@ def get_consecutive_newname_list_via_species(ibs):
         return _code2_count[code]
 
     location_text = ibs.cfg.other_cfg.location_for_names
-    new_name_list = ['%s_%s_%04d' % (location_text, code, get_next_index(code)) for code in code_list]
+    if eid is not None:
+        enc_text = ibs.get_encounter_enctext(eid)
+        enc_text = enc_text.replace(' ', '_').replace('\'', '').replace('"', '')
+        new_name_list = ['%s_%s_%s_%04d' % (location_text, code, enc_text, get_next_index(code)) for code in code_list]
+    else:
+        new_name_list = ['%s_%s_%04d' % (location_text, code, enc_text, get_next_index(code)) for code in code_list]
     new_nid_list = nid_list
     return new_nid_list, new_name_list
 

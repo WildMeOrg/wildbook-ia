@@ -23,6 +23,11 @@ VERBOSE_SQL    = utool.get_argflag('--verb-sql')
 COPY_TO_MEMORY = utool.get_argflag(('--copy-db-to-memory'))
 
 
+def default_decor(func):
+    return profile(func)
+    #return func
+
+
 __STR__ = str if six.PY3 else unicode
 
 
@@ -50,7 +55,7 @@ class SQLAtomicContext(object):
             context.cur.close()
 
 
-def dev_test_new_schema_version(dbname, sqldb_dpath, sqldb_fname, version_current, version_next):
+def dev_test_new_schema_version(dbname, sqldb_dpath, sqldb_fname, version_current, version_next=None):
     """ hacky function to ensure that only developer sees the development schema """
     TESTING_NEW_SQL_VERSION = version_current != version_next
     if TESTING_NEW_SQL_VERSION:
@@ -71,10 +76,10 @@ def dev_test_new_schema_version(dbname, sqldb_dpath, sqldb_fname, version_curren
             #ibs.db_version_expected = '1.3.6'
             print('[sql] TESTING NEW SQLDB VERSION: %r' % (version_next,))
             #print('[sql] ... pass --force-fresh to reload any changes')
-            return version_next
+            return version_next, dev_sqldb_fname
         else:
             print('[ibs] NOT TESTING')
-    return version_current
+    return version_current, sqldb_fname
 
 
 class SQLDatabaseController(object):
@@ -227,6 +232,7 @@ class SQLDatabaseController(object):
     # API INTERFACE
     #==============
 
+    @default_decor
     def get_all_rowids(db, tblname):
         """ returns a list of all rowids from a table in ascending order """
         fmtdict = {'tblname': tblname, }
@@ -237,6 +243,7 @@ class SQLDatabaseController(object):
         '''
         return db._executeone_operation_fmt(operation_fmt, fmtdict)
 
+    @default_decor
     def get_all_col_rows(db, tblname, colname):
         """ returns a list of all rowids from a table in ascending order """
         fmtdict = {'colname': colname, 'tblname': tblname, }
@@ -247,6 +254,7 @@ class SQLDatabaseController(object):
         '''
         return db._executeone_operation_fmt(operation_fmt, fmtdict)
 
+    @default_decor
     def get_all_rowids_where(db, tblname, where_clause, params, **kwargs):
         """ returns a list of rowids from a table in ascending order satisfying
         a condition """
@@ -259,11 +267,13 @@ class SQLDatabaseController(object):
         '''
         return db._executeone_operation_fmt(operation_fmt, fmtdict, params, **kwargs)
 
+    @default_decor
     def check_rowid_exists(db, tablename, rowid_iter, eager=True, **kwargs):
         rowid_list1 = db.get(tablename, ('rowid',), rowid_iter)
         exists_list = [rowid is not None for rowid in rowid_list1]
         return exists_list
 
+    @default_decor
     def _add(db, tblname, colnames, params_iter, **kwargs):
         """ ADDER NOTE: use add_cleanly """
         fmtdict = {'tblname'  : tblname,
@@ -279,6 +289,7 @@ class SQLDatabaseController(object):
                                                    params_iter=params_iter, **kwargs)
         return rowid_list
 
+    @default_decor
     def add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_superkey, superkey_paramx=(0,)):
         """
         ADDER Extra input:
@@ -362,6 +373,7 @@ class SQLDatabaseController(object):
         assert len(rowid_list) == len(params_list), 'failed sanity check'
         return rowid_list
 
+    @default_decor
     def get_where2(db, tblname, colnames, params_iter, andwhere_colnames,
                    unpack_scalars=True, eager=True, **kwargs):
         """ hacked in function for nicer templates """
@@ -371,6 +383,7 @@ class SQLDatabaseController(object):
                             unpack_scalars=unpack_scalars, eager=eager,
                             **kwargs)
 
+    @default_decor
     def get_where(db, tblname, colnames, params_iter, where_clause,
                   unpack_scalars=True, eager=True,
                   **kwargs):
@@ -401,11 +414,13 @@ class SQLDatabaseController(object):
                                                      eager=eager, **kwargs)
         return val_list
 
+    @default_decor
     def get_rowid_from_superkey(db, tblname, params_iter=None, superkey_colnames=None, **kwargs):
         """ getter which uses the constrained superkeys instead of rowids """
         where_clause = ' AND '.join([colname + '=?' for colname in superkey_colnames])
         return db.get_where(tblname, ('rowid',), params_iter, where_clause, **kwargs)
 
+    @default_decor
     def get(db, tblname, colnames, id_iter=None, id_colname='rowid', eager=True, **kwargs):
         """ getter
         Args:
@@ -415,6 +430,8 @@ class SQLDatabaseController(object):
             id_colname (str): column to be used as the search key (default: rowid)
             eager (bool): use eager evaluation
         """
+        if VERBOSE_SQL:
+            print(ut.get_caller_name(list(range(1, 4))) + ' db.get(%r, %r, ...)' % (tblname, colnames,))
         assert isinstance(colnames, tuple), 'must specify column names to get from'
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
@@ -427,6 +444,7 @@ class SQLDatabaseController(object):
 
         return db.get_where(tblname, colnames, params_iter, where_clause, eager=eager, **kwargs)
 
+    @default_decor
     def set(db, tblname, colnames, val_iter, id_iter, id_colname='rowid',
             duplicate_behavior='error', **kwargs):
         """ setter
@@ -439,7 +457,7 @@ class SQLDatabaseController(object):
         val_list = list(val_iter)  # eager evaluation
         id_list = list(id_iter)  # eager evaluation
 
-        if not QUIET and VERYVERBOSE:
+        if VERBOSE_SQL or (not QUIET and VERYVERBOSE):
             print('[sql] SETTER: ' + utool.get_caller_name())
             print('[sql] * tblname=%r' % (tblname,))
             print('[sql] * val_list=%r' % (val_list,))
@@ -485,6 +503,7 @@ class SQLDatabaseController(object):
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
                                              params_iter=params_iter, **kwargs)
 
+    @default_decor
     def delete(db, tblname, id_list, id_colname='rowid', **kwargs):
         """ deleter. USE delete_rowids instead """
         fmtdict = {
@@ -501,6 +520,7 @@ class SQLDatabaseController(object):
                                              params_iter=params_iter,
                                              **kwargs)
 
+    @default_decor
     def delete_rowids(db, tblname, rowid_list, **kwargs):
         """ deletes the the rows in rowid_list """
         fmtdict = {
@@ -521,12 +541,14 @@ class SQLDatabaseController(object):
     # CORE WRAPPERS
     #==============
 
+    @default_decor
     def _executeone_operation_fmt(db, operation_fmt, fmtdict, params=None, eager=True, **kwargs):
         if params is None:
             params = []
         operation = operation_fmt.format(**fmtdict)
         return db.executeone(operation, params, auto_commit=True, eager=eager, **kwargs)
 
+    @default_decor
     def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter,
                                    unpack_scalars=True, eager=True, **kwargs):
         operation = operation_fmt.format(**fmtdict)
@@ -537,6 +559,7 @@ class SQLDatabaseController(object):
     # SQLDB CORE
     #=========
 
+    @default_decor
     def executeone(db, operation, params=(), auto_commit=True, eager=True,
                    verbose=VERBOSE_SQL):
         with SQLExecutionContext(db, operation, nInput=1) as context:
@@ -550,6 +573,7 @@ class SQLDatabaseController(object):
         return result_list
 
     #@utool.memprof
+    @default_decor
     def executemany(db, operation, params_iter, auto_commit=True,
                     verbose=VERBOSE_SQL, unpack_scalars=True, nInput=None,
                     eager=True):
@@ -629,6 +653,7 @@ class SQLDatabaseController(object):
     #def commit(db):
     #    db.connection.commit()
 
+    @default_decor
     def dump_to_file(db, file_, auto_commit=True, schema_only=False):
         if VERBOSE_SQL:
             print('[sql.dump]')
@@ -640,6 +665,7 @@ class SQLDatabaseController(object):
                 continue
             file_.write('%s\n' % line)
 
+    @default_decor
     def dump_to_string(db, auto_commit=True, schema_only=False):
         retStr = ''
         if VERBOSE_SQL:
@@ -657,6 +683,7 @@ class SQLDatabaseController(object):
     # SQLDB METADATA
     #=========
 
+    @default_decor
     def set_metadata_val(db, key, val):
         """
         key must be given as a repr-ed string
@@ -670,6 +697,7 @@ class SQLDatabaseController(object):
         params = [key, val]
         db.executeone(operation, params, verbose=False)
 
+    @default_decor
     def get_metadata_val(db, key, eval_=False):
         """
         val is the repr string unless eval_ is true
@@ -698,6 +726,7 @@ class SQLDatabaseController(object):
     # SCHEMA MODIFICATION
     #==============
 
+    @default_decor
     def add_column(db, tablename, colname, coltype):
         printDBG('[sql] add column=%r of type=%r to tablename=%r' % (colname, coltype, tablename))
         fmtkw = {
@@ -709,6 +738,7 @@ class SQLDatabaseController(object):
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
 
+    @default_decor
     def add_table(db, tablename=None, coldef_list=None, **metadata_keyval):
         """
         add_table
@@ -747,6 +777,9 @@ class SQLDatabaseController(object):
                              len(superkeys) > 0)
             if has_superkeys:
                 # Add in superkeys to constraints
+                #SELECT image_rowid
+                #FROM encounter_image_relationship
+                #WHERE image_rowid=? AND encounter_rowid=?
                 constraint_fmtstr = 'CONSTRAINT superkey UNIQUE ({colnames_str})'
                 assert isinstance(superkeys, list), 'must be list got %r, superkeys=%r' % (type(superkeys), superkeys)
                 for superkey_colnames in superkeys:
@@ -777,6 +810,7 @@ class SQLDatabaseController(object):
         print('---------')
         print('')
         print(operation)
+        #ut.embed()
         db.executeone(operation, [], verbose=False)
 
         # Handle table metdata
@@ -813,6 +847,7 @@ class SQLDatabaseController(object):
         #if primary_superkey is not None:
         #    db.set_metadata_val(tablename + '_primary_superkey', repr(primary_superkey))
 
+    @default_decor
     def modify_table(db, tablename=None, colmap_list=None, tablename_new=None,
                      #constraint=None, docstr=None, superkeys=None,
                      **metadata_keyval):
@@ -855,7 +890,7 @@ class SQLDatabaseController(object):
         """
         #assert colmap_list is not None, 'must specify colmaplist'
         assert tablename is not None, 'tablename must be given'
-        if ut.VERBOSE:
+        if VERBOSE_SQL or ut.VERBOSE:
             print('[sql] schema modifying tablename=%r' % tablename)
 
         if colmap_list is None:
@@ -934,18 +969,8 @@ class SQLDatabaseController(object):
             if suffix not in metadata_keyval2 or metadata_keyval2[suffix] is None:
                 val = db.get_metadata_val(tablename_orig + '_' + suffix, eval_=True)
                 metadata_keyval2[suffix] = val
-                #val = db.get_table_docstr(tablename, eval_=False)
-            pass
-        #if docstr is None:
-        #    docstr = db.get_table_docstr(tablename)
-        #if constraint is None:
-        #    constraint = db.get_table_constraints(tablename)
 
-        db.add_table(tablename_temp, coldef_list,
-                     #constraint=constraint,
-                     #docstr=docstr,
-                     #superkeys=superkeys,
-                     **metadata_keyval2)
+        db.add_table(tablename_temp, coldef_list, **metadata_keyval2)
 
         # Copy data
         src_list = []
@@ -980,6 +1005,7 @@ class SQLDatabaseController(object):
             # Rename new table to new name
             db.rename_table(tablename_temp, tablename_new)
 
+    @default_decor
     def reorder_columns(db, tablename, order_list):
         raise NotImplementedError('needs update')
         if ut.VERBOSE:
@@ -1009,10 +1035,12 @@ class SQLDatabaseController(object):
         # Rename temp table to original table name
         db.rename_table(tablename_temp, tablename)
 
+    @default_decor
     def duplicate_table(db, tablename, tablename_duplicate):
         printDBG('[sql] schema duplicating tablename=%r into tablename=%r' % (tablename, tablename_duplicate))
         db.modify_table(tablename, [], tablename_new=tablename_duplicate)
 
+    @default_decor
     def duplicate_column(db, tablename, colname, colname_duplicate):
         if ut.VERBOSE:
             print('[sql] schema duplicating tablename.colname=%r.%r into tablename.colname=%r.%r' %
@@ -1039,6 +1067,7 @@ class SQLDatabaseController(object):
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
 
+    @default_decor
     def rename_table(db, tablename_old, tablename_new):
         if ut.VERBOSE:
             print('[sql] schema renaming tablename=%r -> %r' % (tablename_old, tablename_new))
@@ -1066,17 +1095,21 @@ class SQLDatabaseController(object):
         #    tablename_new + '_docstr',
         #    tablename_new + '_superkeys',
         #]
-        id_iter = ((key,) for key in key_old_list)
-        val_iter = ((key,) for key in key_new_list)
+        id_iter = [(key,) for key in key_old_list]
+        val_iter = [(key,) for key in key_new_list]
         colnames = ('metadata_key',)
+        #print('Setting metadata_key from %s to %s' % (ut.list_str(id_iter), ut.list_str(val_iter)))
+        #ut.embed()
         db.set(constants.METADATA_TABLE, colnames, val_iter, id_iter, id_colname='metadata_key')
 
+    @default_decor
     def rename_column(db, tablename, colname_old, colname_new):
         # DATABASE TABLE CACHES ARE UPDATED WITH modify_table
         db.modify_table(tablename, (
             (colname_old, colname_new, '', None),
         ))
 
+    @default_decor
     def drop_table(db, tablename):
         printDBG('[sql] schema dropping tablename=%r' % tablename)
         # Technically insecure call, but all entries are statically inputted by
@@ -1098,6 +1131,7 @@ class SQLDatabaseController(object):
         key_list = [tablename + '_' + suffix for suffix in db.table_metadata_keys]
         db.delete(constants.METADATA_TABLE, key_list, id_colname='metadata_key')
 
+    @default_decor
     def drop_column(db, tablename, colname):
         """ # DATABASE TABLE CACHES ARE UPDATED WITH modify_table """
         db.modify_table(tablename, (
@@ -1108,6 +1142,7 @@ class SQLDatabaseController(object):
     # CONVINENCE
     #==============
 
+    @default_decor
     def dump(db, file_=None, auto_commit=True, schema_only=False):
         if file_ is None or isinstance(file_, six.string_types):
             dump_fpath = file_
@@ -1118,6 +1153,7 @@ class SQLDatabaseController(object):
         else:
             db.dump_to_file(file_, auto_commit, schema_only)
 
+    @default_decor
     def dump_tables_to_csv(db):
         """ Convenience: Dumps all csv database files to disk """
         dump_dir = join(db.dir_, 'CSV_DUMP')
@@ -1128,6 +1164,7 @@ class SQLDatabaseController(object):
             with open(join(dump_dir, table_fname), 'w') as file_:
                 file_.write(table_csv)
 
+    @default_decor
     def get_schema_current_autogeneration_str(db, autogen_cmd):
         """ Convenience: Autogenerates the most up-to-date database schema
 
@@ -1220,6 +1257,7 @@ class SQLDatabaseController(object):
         line_list.append('')
         return '\n'.join(line_list)
 
+    @default_decor
     def dump_schema_current_autogeneration(db, output_dir, output_filename, autogen_cmd):
         """ Convenience: Autogenerates the most up-to-date database schema """
         print('[sqldb] dumping current schema to output_filename=%r' % (output_filename,))
@@ -1228,6 +1266,7 @@ class SQLDatabaseController(object):
         with open(dump_fpath, 'w') as file_:
             file_.write(schema_current_str)
 
+    @default_decor
     def dump_schema(db):
         """
             Convenience: Dumps all csv database files to disk
@@ -1253,12 +1292,14 @@ class SQLDatabaseController(object):
                     file_.write('\t%s%s%s%s%s\n' % col)
         utool.view_directory(app_resource_dir)
 
+    @default_decor
     def get_table_names(db):
         """ Conveinience: """
         db.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
         tablename_list = db.cur.fetchall()
         return [ str(tablename[0]) for tablename in tablename_list ]
 
+    @default_decor
     def get_table_constraints(db, tablename):
         constraint = db.get_metadata_val(tablename + '_constraint')
         #where_clause = 'metadata_key=?'
@@ -1271,6 +1312,7 @@ class SQLDatabaseController(object):
         else:
             return constraint.split(';')
 
+    @default_decor
     def get_table_superkey_colnames(db, tablename):
         """
         get_table_superkey_colnames
@@ -1321,6 +1363,7 @@ class SQLDatabaseController(object):
         superkeys = list(map(tuple, superkeys))
         return superkeys
 
+    @default_decor
     def get_table_primarykey_colnames(db, tablename):
         columns = db.get_columns(tablename)
         primarykey_colnames = [name
@@ -1328,6 +1371,7 @@ class SQLDatabaseController(object):
                                if pk]
         return primarykey_colnames
 
+    @default_decor
     def get_table_otherkey_colnames(db, tablename):
         flat_superkey_colnames_list = ut.flatten(db.get_table_superkey_colnames(tablename))
         #superkeys = set((lambda x: x if x is not None else [])(db.get_table_superkey_colnames(tablename)))
@@ -1338,6 +1382,7 @@ class SQLDatabaseController(object):
                                  name not in flat_superkey_colnames_list)]
         return otherkey_colnames
 
+    @default_decor
     def get_table_docstr(db, tablename):
         docstr = db.get_metadata_val(tablename + '_docstr')
         #where_clause = 'metadata_key=?'
@@ -1346,6 +1391,7 @@ class SQLDatabaseController(object):
         #docstr = db.get_where(constants.METADATA_TABLE, colnames, data, where_clause)[0]
         return docstr
 
+    @default_decor
     def get_columns(db, tablename):
         """
         get_columns
@@ -1374,12 +1420,14 @@ class SQLDatabaseController(object):
         column_list = db.cur.fetchall()
         return column_list
 
+    @default_decor
     def get_column_names(db, tablename):
         """ Conveinience: Returns the sql tablename columns """
         column_list = db.get_columns(tablename)
         column_names = [ str(column[1]) for column in column_list]
         return column_names
 
+    @default_decor
     def get_column_types(db, tablename):
         """ Conveinience: Returns the sql tablename columns """
         def _format(type_, null, default, key):
@@ -1404,6 +1452,7 @@ class SQLDatabaseController(object):
         ]
         return column_types_
 
+    @default_decor
     def get_column(db, tablename, name):
         """ Conveinience: """
         _table, (_column,) = sanatize_sql(db, tablename, (name,))
@@ -1415,6 +1464,7 @@ class SQLDatabaseController(object):
             ''' % (_column, _table))
         return column_vals
 
+    @default_decor
     def get_table_column_data(db, tablename, exclude_columns=[]):
         """
         CommandLine:
@@ -1439,6 +1489,7 @@ class SQLDatabaseController(object):
         column_list = [db.get_column(tablename, name) for name in column_names if name not in exclude_columns]
         return column_list, column_names
 
+    @default_decor
     def get_table_new_transferdata(db, tablename, exclude_columns=[]):
         """
         CommandLine:
@@ -1494,6 +1545,7 @@ class SQLDatabaseController(object):
     #def import_table_new_transferdata(tablename, new_transferdata):
     #    pass
 
+    @default_decor
     def merge_databases_new(db, db_src, ignore_tables=None):
         r"""
         Copies over all non-rowid properties into another sql table. handles annotated dependenceis.
@@ -1697,6 +1749,7 @@ class SQLDatabaseController(object):
             #print(tablename)
             #print(new_rowid_list)
 
+    @default_decor
     def get_table_csv(db, tablename, exclude_columns=[]):
         """ Conveinience: Converts a tablename to csv format
 
@@ -1733,9 +1786,11 @@ class SQLDatabaseController(object):
         csv_table = utool.make_csv_table(column_list, column_lbls, header)
         return csv_table
 
+    @default_decor
     def print_table_csv(db, tablename, exclude_columns=[]):
         print(db.get_table_csv(tablename, exclude_columns=exclude_columns))
 
+    @default_decor
     def get_table_csv_header(db, tablename):
         column_nametypes = zip(db.get_column_names(tablename), db.get_column_types(tablename))
         header_constraints = '# CONSTRAINTS: %r' % db.get_table_constraints(tablename)
@@ -1745,10 +1800,12 @@ class SQLDatabaseController(object):
         header = header_doc + '\n' + header_name + header_types + '\n' + header_constraints
         return header
 
+    @default_decor
     def print_schema(db):
         for tablename in db.get_table_names():
             print(db.get_table_csv_header(tablename) + '\n')
 
+    @default_decor
     def view_db_in_external_reader(db):
         import os
         known_readers = ['sqlitebrowser', 'sqliteman']
@@ -1758,6 +1815,7 @@ class SQLDatabaseController(object):
         #ut.cmd(sqlite3_reader, sqlite3_db_fpath)
         pass
 
+    @default_decor
     def set_db_version(db, version):
         # Do things properly, get the metadata_rowid (best because we want to assert anyway)
         metadata_key_list = ['database_version']
@@ -1770,6 +1828,7 @@ class SQLDatabaseController(object):
         val_list = ((_,) for _ in [version])
         db.set(constants.METADATA_TABLE, ('metadata_value',), val_list, id_iter)
 
+    @default_decor
     def get_sql_version(db):
         """ Conveinience """
         db.cur.execute('SELECT sqlite_version()')

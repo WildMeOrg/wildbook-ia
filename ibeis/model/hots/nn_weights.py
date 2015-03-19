@@ -210,7 +210,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> weights_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
-        >>> ut.assert_inbounds(weights1.sum(), 250, 300)
+        >>> ut.assert_inbounds(weights1.sum(), 200, 300)
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -225,7 +225,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> weights_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
-        >>> ut.assert_inbounds(weights1.sum(), 3000, 4000)
+        >>> ut.assert_inbounds(weights1.sum(), 2700, 4000)
 
     Ignore:
         #from ibeis.model.hots import neighbor_index as hsnbrx
@@ -298,7 +298,7 @@ def apply_normweight(normweight_fn, qaid, qfx2_idx, qfx2_dist, normalizer_rule, 
         >>> (qfx2_idx, qfx2_dist) = nns_list[0]
         >>> qfx2_normweight = nn_weights.apply_normweight(normweight_fn, qaid, qfx2_idx,
         ...         qfx2_dist, normalizer_rule, Knorm, qreq_)
-        >>> ut.assert_inbounds(qfx2_normweight.sum(), 850, 950)
+        >>> ut.assert_inbounds(qfx2_normweight.sum(), 800, 950)
     """
     K = len(qfx2_idx.T) - Knorm
     assert K > 0, 'K cannot be 0'

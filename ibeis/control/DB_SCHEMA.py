@@ -1023,6 +1023,15 @@ def update_1_3_9(db, ibs=None):
     )
 
 
+def update_1_4_0(db, ibs=None):
+    # Remove contributors from configs
+    db.modify_table(
+        const.EG_RELATION_TABLE,
+        superkeys=[(IMAGE_ROWID, ENCOUNTER_ROWID,)],
+        #superkeys=[(CONFIG_SUFFIX,)]
+    )
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1051,6 +1060,7 @@ VALID_VERSIONS = utool.odict([
     ('1.3.7',    (None,                 update_1_3_7,       None          )),
     ('1.3.8',    (None,                 update_1_3_8,       None          )),
     ('1.3.9',    (None,                 update_1_3_9,       None          )),
+    ('1.4.0',    (None,                 update_1_4_0,       None          )),
 ])
 
 

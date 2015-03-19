@@ -352,9 +352,11 @@ class IBEISController(object):
         #ibs.db_version_expected = '1.1.1'
         ibs.db_version_expected = '1.3.9'
         # TODO: add this functionality to SQLController
-        ibs.db_version_expected = sqldbc.dev_test_new_schema_version(
+        new_version, new_fname = sqldbc.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_ibsdir(),
-            ibs.sqldb_fname, ibs.db_version_expected, '1.3.9')
+            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.4.0')
+        ibs.db_version_expected = new_version
+        ibs.sqldb_fname = new_fname
         #TESTING_NEW_SQL_VERSION = True
         #if TESTING_NEW_SQL_VERSION:
         #    print('[ibs] ATTEMPTING TO TEST NEW SQLDB VERSION')
@@ -389,6 +391,9 @@ class IBEISController(object):
             autogenerate=params.args.dump_autogen_schema,
             verbose=ut.VERBOSE,
         )
+        #print(ibs.sqldbcache_fname)
+        #import sys
+        #sys.exit(1)
 
     #@ut.indent_func
     def _init_sqldbcache(ibs):
@@ -399,9 +404,11 @@ class IBEISController(object):
         # IBEIS SQL Features & Chips database
         ibs.dbcache_version_expected = '1.0.4'
         # Test a new schema if developer
-        ibs.dbcache_version_expected = sqldbc.dev_test_new_schema_version(
+        new_version, new_fname = sqldbc.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_cachedir(),
-            ibs.sqldbcache_fname, ibs.dbcache_version_expected, '1.0.4')
+            ibs.sqldbcache_fname, ibs.dbcache_version_expected, version_next='1.0.4')
+        ibs.dbcache_version_expected = new_version
+        ibs.sqldbcache_fname = new_fname
         # Create cache sql database
         ibs.dbcache = sqldbc.SQLDatabaseController(
             ibs.get_cachedir(), ibs.sqldbcache_fname,

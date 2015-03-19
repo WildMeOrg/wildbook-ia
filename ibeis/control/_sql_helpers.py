@@ -20,6 +20,12 @@ PRINT_SQL = utool.get_argflag(('--print-sql', '--verbose-sql'))
 NOT_QUIET = not (utool.QUIET or utool.get_argflag('--quiet-sql'))
 
 
+def default_decor(func):
+    return profile(func)
+    #return func
+
+
+@default_decor
 def _results_gen(cur, get_last_id=False):
     """ HELPER - Returns as many results as there are.
     Careful. Overwrites the results once you call it.
@@ -315,6 +321,7 @@ class SQLExecutionContext(object):
         context.operation_type = get_operation_type(operation)  # Parse the optype
         context.verbose = verbose
 
+    @default_decor
     def __enter__(context):
         """ Checks to see if the operating will change the database """
         #utool.printif(lambda: '[sql] Callers: ' + utool.get_caller_name(range(3, 6)), DEBUG)
@@ -341,6 +348,7 @@ class SQLExecutionContext(object):
 
     # --- with SQLExecutionContext: statment code happens here ---
 
+    @default_decor
     def execute_and_generate_results(context, params):
         """ helper for context statment """
         try:
@@ -356,6 +364,7 @@ class SQLExecutionContext(object):
         is_insert = context.operation_type.startswith('INSERT')
         return _results_gen(context.cur, get_last_id=is_insert)
 
+    @default_decor
     def __exit__(context, type_, value, trace):
         """ Finalization of an SQLController call """
         #print('exit context')
