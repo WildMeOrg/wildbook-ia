@@ -242,3 +242,133 @@ def GreatZebraCount_mergedbs():
     ibeis.dbio.export_subset.merge_databases(ibs_girm_mugu_20, ibs_mugu_master)
     ibs_mugu_master.print_dbinfo()
     ibs_mugu_master.print_dbinfo()
+
+
+@__injectable
+def export_encounters(ibs, eid_list, new_dbdir=None):
+    gid_list = list(set(ut.flatten(ibs.get_encounter_gids(eid_list))))
+    if new_dbdir is None:
+        from ibeis.dev import sysres
+        dbname = ibs.get_dbname()
+        enc_texts = ', '.join(ibs.get_encounter_enctext(eid_list)).replace(' ', '-')
+        nimg_text = 'nImg=%r' % len(gid_list)
+        new_dbname = dbname + '_' + enc_texts + '_' + nimg_text
+        workdir = sysres.get_workdir()
+        new_dbdir_ = join(workdir, new_dbname)
+    else:
+        new_dbdir_ = new_dbdir
+    ibs.export_images(gid_list, new_dbdir_=new_dbdir_)
+
+
+@__injectable
+def export_images(ibs, gid_list, new_dbdir_):
+    """ See ibeis/tests/test_ibs_export.py """
+    from ibeis.dbio import export_subset
+    print('[ibsfuncs] exporting to new_dbdir_=%r' % new_dbdir_)
+    print('[ibsfuncs] opening database')
+    ibs_dst = ibeis.opendb(dbdir=new_dbdir_, allow_newdir=True)
+    print('[ibsfuncs] begining transfer')
+    ibs_src = ibs
+    gid_list1 = gid_list
+    aid_list1 = None
+    include_image_annots = True
+    status = export_subset.execute_transfer(ibs_src, ibs_dst, gid_list1,
+                                            aid_list1, include_image_annots)
+    return status
+
+
+def export_subdatabase_all_annots_new(ibs):
+    """
+    Exports a set with some number of annotations that has good demo examples.
+    multiple annotations per name and large time variation within names.
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-export_subdatabase_all_annots_new --db GIR_Tanya
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb()
+        >>> print(ibs.get_dbinfo_str())
+        >>> result = export_subdatabase_all_annots_new(ibs)
+        >>> # verify results
+        >>> print(result)
+
+    min_num_annots = 500
+    """
+    aid_list = ibs.get_valid_aids()
+    gid_list = list(set(ibs.get_annot_gids(aid_list)))
+
+    from ibeis.dbio import export_subset
+
+    def new_nonconflicting_dbpath(ibs):
+        dpath, dbname = split(ibs.get_dbdir())
+        base_fmtstr = dbname + '_demo' + 'all_annots' + '_export%d'
+        new_dbpath = ut.get_nonconflicting_path(base_fmtstr, dpath)
+        return new_dbpath
+
+    #ut.embed()
+
+    dbpath = new_nonconflicting_dbpath(ibs)
+    ibs_dst = ibeis.opendb(dbdir=dbpath, allow_newdir=True)
+    ibs_src = ibs
+    export_subset.merge_databases(ibs_src, ibs_dst, gid_list=gid_list)
+
+
+
+
+#@__injectable
+def DEPRICATE_rebase_images(ibs, new_path, gid_list=None):
+    """
+    DEPRICATE
+
+    Moves the images into the ibeis image cache.
+    Images are renamed to img_uuid.ext
+    """
+    from os.path import split, join, exists, commonprefix
+    if gid_list is None:
+        gid_list  = ibs.get_valid_gids()
+        #new_path = 'G:\PZ_Ol_Pejeta_All'
+    gpath_list = ibs.get_image_paths(gid_list)
+    len_prefix = len(commonprefix(gpath_list))
+    #if common_prefix.rfind('/')
+    # assum
+    gname_list = [gpath[len_prefix:] for gpath in gpath_list]
+    new_gpath_list = [join(new_path, gname) for gname in gname_list]
+    new_gpath_list = list(map(ut.unixpath, new_gpath_list))
+    #orig_exists = map(exists, gpath_list)
+    new_exists = list(map(exists, new_gpath_list))
+    assert all(new_exists), 'some rebased images do not exist'
+    ibs.set_image_uris(gid_list, new_gpath_list)
+    assert  'not all images copied'
+
+
+#def delete_non_exemplars(ibs):
+#    """ deletes images without exemplars """
+#    gid_list = ibs.get_valid_gids
+#    aids_list = ibs.get_image_aids(gid_list)
+#    flags_list = unflat_map(ibs.get_annot_exemplar_flags, aids_list)
+#    delete_gid_flag_list = [not any(flags) for flags in flags_list]
+#    delete_gid_list = ut.filter_items(gid_list, delete_gid_flag_list)
+#    ibs.delete_images(delete_gid_list)
+#    delete_empty_eids(ibs)
+#    delete_empty_nids(ibs)
+
+
+#@__injectable
+#@ut.time_func
+#@profile
+#def update_reviewed_image_encounter(ibs):
+#    # FIXME SLOW
+#    #ibs.delete_encounters(eid)
+#    ibs.delete_egr_encounter_relations(eid)
+#    #gid_list = ibs.get_valid_gids(reviewed=True)
+#    gid_list = _get_reviewed_gids(ibs)  # hack
+#    #ibs.set_image_enctext(gid_list, [const.REVIEWED_IMAGE_ENCTEXT] * len(gid_list))
+#    ibs.set_image_eids(gid_list, [eid] * len(gid_list))
+
+

@@ -219,7 +219,7 @@ class QueryResultsWidget(APIItemWidget):
         print('Activated: ' + str(qtype.qindexinfo(qtindex)))
         pass
 
-    @guitool.slot_()
+    #@guitool.slot_()
     def on_alt_pressed(qres_wgt, view, event):
         selected_qtindex_list = view.selectedIndexes()
         if len(selected_qtindex_list) == 1:
@@ -229,11 +229,12 @@ class QueryResultsWidget(APIItemWidget):
             pos = qrect.center()
             qres_wgt.on_contextMenuRequested(qtindex, pos)
 
-    @guitool.slot_()
+    #@guitool.slot_()
     def on_special_key_pressed(qres_wgt, view, event):
         selected_qtindex_list = view.selectedIndexes()
         if len(selected_qtindex_list) == 1:
-            #print(event)
+            print('event = %r ' % (event,))
+            print('event.key() = %r ' % (event.key(),))
             qtindex = selected_qtindex_list[0]
             event_key = event.key()
             if event_key == QtCore.Qt.Key_T:
@@ -245,8 +246,17 @@ class QueryResultsWidget(APIItemWidget):
             elif event_key == QtCore.Qt.Key_F:
                 #print('F')
                 mark_pair_as_negative_match(qres_wgt, qtindex)
+            print('emiting data changed')
+            # This may not work with PyQt5
+            # http://stackoverflow.com/questions/22560296/pyqt-list-view-not-responding-to-datachanged-signal
+            model = qtindex.model()
+            # This should work by itself
+            model.dataChanged.emit(qtindex, qtindex)
+            # but it doesnt seem to be, but this seems to solve the issue
+            model.layoutChanged.emit()
+            print('emited data changed')
+            #model.select()
             #ut.embed()
-            qtindex.model().dataChanged.emit(qtindex, qtindex)
 
     @guitool.slot_(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuRequested(qres_wgt, qtindex, qpos):
@@ -757,6 +767,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         >>> main_locals = test_inspect_matches(ibs, qaid_list, daid_list)
         >>> main_execstr = ibeis.main_loop(main_locals)
         >>> if ut.show_was_requested():
+        >>>     # TODO: add in qwin to main loop
         >>>     guitool.qtapp_loop()
         >>> print(main_execstr)
         >>> exec(main_execstr)
@@ -789,7 +800,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     return locals_
 
 
-def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
+def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False, filter_reviewed=None):
     """
     Builds columns which are displayable in a ColumnListTableWidget
 
@@ -818,8 +829,9 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
     if ut.VERBOSE:
         print('[inspect] make_qres_api')
     ibs.cfg.other_cfg.ranks_lt = 2
-    # only filter big queries
-    filter_reviewed = len(qaid2_qres) > 6
+    if filter_reviewed is None:
+        # only filter big queries if not specified
+        filter_reviewed = len(qaid2_qres) > 6
     ranks_lt = ranks_lt if ranks_lt is not None else ibs.cfg.other_cfg.ranks_lt
     candidate_matches = results_organizer.get_automatch_candidates(
         qaid2_qres, ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs, directed=False, filter_reviewed=filter_reviewed)

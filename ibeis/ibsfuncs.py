@@ -13,7 +13,7 @@ from __future__ import absolute_import, division, print_function
 import six
 import types
 from six.moves import zip, range, map
-from os.path import split, join, exists, commonprefix
+from os.path import split, join, exists
 import vtool.image as gtool
 import numpy as np
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
@@ -178,6 +178,54 @@ def export_to_hotspotter(ibs):
 
 
 @__injectable
+def mark_annot_pair_as_reviewed(ibs, aid1, aid2):
+    """ denote that this match was reviewed and keep whatever status it is given """
+    isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
+    if isunknown1 or isunknown2:
+        truth = const.TRUTH_UNKNOWN
+    else:
+        nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
+        truth = const.TRUTH_UNKNOWN if (nid1 == nid2) else const.TRUTH_NOT_MATCH
+    ibs.add_or_update_annotmatch(aid1, aid2, truth, [1.0])
+
+
+@__injectable
+def add_or_update_annotmatch(ibs, aid1, aid2, truth, confidence):
+    annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]
+    # TODO: sql add or update?
+    if annotmatch_rowid is not None:
+        ibs.set_annotmatch_truth([annotmatch_rowid], [1])
+        ibs.set_annotmatch_confidence([annotmatch_rowid], [1.0])
+    else:
+        ibs.add_annotmatch([aid1], [aid2], [truth], [1.0])
+
+
+@__injectable
+def get_annot_pair_truth(ibs, aid1_list, aid2_list):
+    annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
+    annotmatch_truth_list  = ibs.get_annotmatch_truth(annotmatch_rowid_list)
+    return annotmatch_truth_list
+
+
+@__injectable
+def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
+    annotmatch_truth_list = ibs.get_annot_pair_truth(aid1_list, aid2_list)
+    annotmatch_reviewed_list = [truth is not None for truth in annotmatch_truth_list]
+    return annotmatch_reviewed_list
+
+
+@__injectable
+def get_image_time_statstr(ibs, gid_list=None):
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+    unixtime_list_ = ibs.get_image_unixtime(gid_list)
+    utvalid_list   = [time != -1 for time in unixtime_list_]
+    unixtime_list  = ut.filter_items(unixtime_list_, utvalid_list)
+    unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True)
+    return unixtime_statstr
+
+
+@__injectable
 def get_image_annotation_bboxes(ibs, gid_list):
     aids_list = ibs.get_image_aids(gid_list)
     bboxes_list = ibs.get_unflat_annotation_bboxes(aids_list)
@@ -288,15 +336,6 @@ def ensure_annotation_data(ibs, aid_list, chips=True, feats=True, featweights=Fa
 
 
 @__injectable
-def get_empty_gids(ibs, eid=None):
-    """ returns gid list without any chips """
-    gid_list = ibs.get_valid_gids(eid=eid)
-    nRois_list = ibs.get_image_num_annotations(gid_list)
-    empty_gids = [gid for gid, nRois in zip(gid_list, nRois_list) if nRois == 0]
-    return empty_gids
-
-
-@__injectable
 def convert_empty_images_to_annotations(ibs):
     """ images without chips are given an ANNOTATION over the entire image """
     gid_list = ibs.get_empty_gids()
@@ -389,6 +428,45 @@ def assert_images_exist(ibs, gid_list=None, verbose=True):
         print(ut.truncate_str(ut.list_str(bad_gpaths), maxlen=500))
     assert num_bad_gids == 0, '%d images dont exist' % (num_bad_gids,)
     print('[check] checked %d images exist' % len(gid_list))
+
+
+def assert_valid_names(name_list):
+    """ Asserts that user specified names do not conflict with
+    the standard unknown name """
+    if ut.NO_ASSERTS:
+        return
+    def isconflict(name, other):
+        return name.startswith(other) and len(name) > len(other)
+    valid_namecheck = [not isconflict(name, const.UNKNOWN) for name in name_list]
+    assert all(valid_namecheck), ('A name conflicts with UKNONWN Name. -- '
+                                  'cannot start a name with four underscores')
+
+
+@ut.on_exception_report_input
+def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowid):
+    if ut.NO_ASSERTS:
+        return
+    lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(lblannot_rowid_list)
+    try:
+        # HACK: the unknown_lblannot_rowid will have a None type
+        # the unknown lblannot_rowid should be handled more gracefully
+        # this should just check the first condition (get rid of the or)
+        ut.assert_same_len(lbltype_rowid_list, lbltype_rowid_list)
+        ut.assert_scalar_list(lblannot_rowid_list)
+        validtype_list = [
+            (lbltype_rowid == valid_lbltype_rowid) or
+            (lbltype_rowid is None and lblannot_rowid == const.UNKNOWN_LBLANNOT_ROWID)
+            for lbltype_rowid, lblannot_rowid in
+            zip(lbltype_rowid_list, lblannot_rowid_list)]
+        assert all(validtype_list), 'not all types match valid type'
+    except AssertionError as ex:
+        tup_list = list(map(str, list(zip(lbltype_rowid_list, lblannot_rowid_list))))
+        print('[!!!] (lbltype_rowid, lblannot_rowid) = : ' + ut.indentjoin(tup_list))
+        print('[!!!] valid_lbltype_rowid: %r' % (valid_lbltype_rowid,))
+
+        ut.printex(ex, 'not all types match valid type',
+                      keys=['valid_lbltype_rowid', 'lblannot_rowid_list'])
+        raise
 
 
 @__injectable
@@ -731,6 +809,122 @@ def fix_exif_data(ibs, gid_list):
 
 
 @__injectable
+def fix_invalid_nids(ibs):
+    r"""
+    Make sure that all rowids are greater than 0
+
+    We can only handle there being a name with rowid 0 if it is UNKNOWN. In this
+    case we safely delete it, but anything more complicated needs to be handled
+    anually
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-fix_invalid_nids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> result = fix_invalid_nids(ibs)
+        >>> # verify results
+        >>> print(result)
+    """
+    print('[ibs] fixing invalid nids (nids that are <= ibs.UKNOWN_NAME_ROWID)')
+    # Get actual rowids from sql database (no postprocessing)
+    nid_list = ibs._get_all_known_name_rowids()
+    # Get actual names from sql database (no postprocessing)
+    name_text_list = ibs.get_name_texts(nid_list, apply_fix=False)
+    is_invalid_nid_list = [nid <= ibs.UNKNOWN_NAME_ROWID for nid in nid_list]
+    if any(is_invalid_nid_list):
+        invalid_nids = ut.filter_items(nid_list, is_invalid_nid_list)
+        invalid_texts = ut.filter_items(name_text_list, is_invalid_nid_list)
+        if (len(invalid_nids) == 0 and
+              invalid_nids[0] == ibs.UNKNOWN_NAME_ROWID and
+              invalid_texts[0] == const.UNKNOWN):
+            print('[ibs] fuond bad name rowids = %r' % (invalid_nids,))
+            print('[ibs] fuond bad name texts  = %r' % (invalid_texts,))
+            ibs.delete_names([ibs.UNKNOWN_NAME_ROWID])
+        else:
+            errmsg = 'Unfixable error: Found invalid (nid, text) pairs: '
+            errmsg += ut.list_str(list(zip(invalid_nids, invalid_texts)))
+            raise AssertionError(errmsg)
+
+
+@__injectable
+def fix_invalid_name_texts(ibs):
+    r"""
+    Ensure  that no name text is empty or '____'
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-fix_invalid_names
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> result = fix_invalid_name_texts(ibs)
+        >>> # verify results
+        >>> print(result)
+
+    ibs.set_name_texts(nid_list[3], '____')
+    ibs.set_name_texts(nid_list[2], '')
+    """
+    print('checking for invalid name texts')
+    # Get actual rowids from sql database (no postprocessing)
+    nid_list = ibs._get_all_known_name_rowids()
+    # Get actual names from sql database (no postprocessing)
+    name_text_list = ibs.get_name_texts(nid_list, apply_fix=False)
+    invalid_name_set = {'', const.UNKNOWN}
+    is_invalid_name_text_list = [name_text in invalid_name_set
+                                 for name_text in name_text_list]
+    if any(is_invalid_name_text_list):
+        invalid_nids = ut.filter_items(nid_list, is_invalid_name_text_list)
+        invalid_texts = ut.filter_items(name_text_list, is_invalid_name_text_list)
+        for count, (invalid_nid, invalid_text) in enumerate(zip(invalid_nids, invalid_texts)):
+            conflict_set = invalid_name_set.union(set(ibs.get_name_texts(nid_list, apply_fix=False)))
+            base_str = 'fixedname%d' + invalid_text
+            new_text = ut.get_nonconflicting_string(base_str, conflict_set, offset=count)
+            print('Fixing name %r -> %r' % (invalid_text, new_text))
+            ibs.set_name_texts((invalid_nid,), (new_text,))
+        print('Fixed %d name texts' % (len(invalid_nids)))
+    else:
+        print('all names seem valid')
+
+
+@__injectable
+def fix_unknown_exemplars(ibs):
+    """
+    Goes through all of the annotations, and sets their exemplar flag to 0 if it
+    is associated with an unknown annotation
+    """
+    aid_list = ibs.get_valid_aids()
+    #nid_list = ibs.get_annot_nids(aid_list, distinguish_unknowns=False)
+    flag_list = ibs.get_annot_exemplar_flags(aid_list)
+    unknown_list = ibs.is_aid_unknown(aid_list)
+    # Exemplars should all be known
+    unknown_exemplar_flags = ut.filter_items(flag_list, unknown_list)
+    unknown_aid_list = ut.filter_items(aid_list, unknown_list)
+    print('Fixing %d unknown annotations set as exemplars' % (sum(unknown_exemplar_flags),))
+    ibs.set_annot_exemplar_flags(unknown_aid_list, [False] * len(unknown_aid_list))
+    #is_error = [not flag for flag in unknown_exemplar_flags]
+    #new_annots = [flag if nid != const.UNKNOWN_NAME_ROWID else 0
+    #              for nid, flag in
+    #              zip(nid_list, flag_list)]
+    #ibs.set_annot_exemplar_flags(aid_list, new_annots)
+
+
+@__injectable
 def delete_all_recomputable_data(ibs):
     """
     Delete all cached data including chips and encounters
@@ -843,6 +1037,13 @@ def delete_flann_cachedir(ibs):
     ut.remove_files_in_dir(flann_cachedir)
 
 
+def delete_ibeis_database(dbdir):
+    _ibsdb = join(dbdir, const.PATH_NAMES._ibsdb)
+    print('[ibsfuncs] DELETEING: _ibsdb=%r' % _ibsdb)
+    if exists(_ibsdb):
+        ut.delete(_ibsdb)
+
+
 def print_flann_cachedir(ibs):
     flann_cachedir = ibs.get_flann_cachedir()
     print(ut.list_str(ut.ls(flann_cachedir)))
@@ -856,6 +1057,15 @@ def vd(ibs):
 @__injectable
 def view_dbdir(ibs):
     ut.view_directory(ibs.get_dbdir())
+
+
+@__injectable
+def get_empty_gids(ibs, eid=None):
+    """ returns gid list without any chips """
+    gid_list = ibs.get_valid_gids(eid=eid)
+    nRois_list = ibs.get_image_num_annotations(gid_list)
+    empty_gids = [gid for gid, nRois in zip(gid_list, nRois_list) if nRois == 0]
+    return empty_gids
 
 
 @__injectable
@@ -927,7 +1137,7 @@ def set_annot_is_hard(ibs, aid_list, flag_list):
     """
     notes_list = ibs.get_annot_notes(aid_list)
     is_hard_list = [const.HARD_NOTE_TAG in notes.lower().split() for (notes) in notes_list]
-    def fix_notes(notes, is_hard, flag):
+    def hack_notes(notes, is_hard, flag):
         " Adds or removes hard tag if needed "
         if flag and is_hard or not (flag or is_hard):
             # do nothing
@@ -941,107 +1151,15 @@ def set_annot_is_hard(ibs, aid_list, flag_list):
         else:
             raise AssertionError('impossible state')
 
-    new_notes_list = [fix_notes(notes, is_hard, flag) for notes, is_hard, flag in zip(notes_list, is_hard_list, flag_list)]
+    new_notes_list = [hack_notes(notes, is_hard, flag) for notes, is_hard, flag in zip(notes_list, is_hard_list, flag_list)]
     ibs.set_annot_notes(aid_list, new_notes_list)
     return is_hard_list
-
-
-@__injectable
-def get_annot_bbox_area(ibs, aid_list):
-    bbox_list = ibs.get_annot_bboxes(aid_list)
-    area_list = [bbox[2] * bbox[3] for bbox in bbox_list]
-    return area_list
-
-
-#@__injectable
-def DEPRICATE_rebase_images(ibs, new_path, gid_list=None):
-    """
-    DEPRICATE
-
-    Moves the images into the ibeis image cache.
-    Images are renamed to img_uuid.ext
-    """
-    if gid_list is None:
-        gid_list  = ibs.get_valid_gids()
-        #new_path = 'G:\PZ_Ol_Pejeta_All'
-    gpath_list = ibs.get_image_paths(gid_list)
-    len_prefix = len(commonprefix(gpath_list))
-    #if common_prefix.rfind('/')
-    # assum
-    gname_list = [gpath[len_prefix:] for gpath in gpath_list]
-    new_gpath_list = [join(new_path, gname) for gname in gname_list]
-    new_gpath_list = list(map(ut.unixpath, new_gpath_list))
-    #orig_exists = map(exists, gpath_list)
-    new_exists = list(map(exists, new_gpath_list))
-    assert all(new_exists), 'some rebased images do not exist'
-    ibs.set_image_uris(gid_list, new_gpath_list)
-    assert  'not all images copied'
 
 
 @__injectable
 @getter_1to1
 def is_nid_unknown(ibs, nid_list):
     return [ nid <= 0 for nid in nid_list]
-
-
-@__injectable
-def get_match_text(ibs, aid1, aid2):
-    truth = ibs.get_match_truth(aid1, aid2)
-    text = const.TRUTH_INT_TO_TEXT.get(truth, None)
-    return text
-
-
-@__injectable
-def get_database_species(ibs, aid_list=None):
-    r"""
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-get_database_species
-
-    Example1:
-        >>> # ENABLE_DOCTEST
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> result = ibs.get_database_species()
-        >>> print(result)
-        ['____', u'bear_polar', u'zebra_grevys', u'zebra_plains']
-
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> result = ibs.get_database_species()
-        >>> print(result)
-        [u'zebra_plains']
-    """
-    if aid_list is None:
-        aid_list = ibs.get_valid_aids()
-    species_list = ibs.get_annot_species_texts(aid_list)
-    unique_species = sorted(list(set(species_list)))
-    return unique_species
-
-
-@__injectable
-def get_database_species_count(ibs, aid_list=None):
-    """
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-get_database_species_count
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> import ibeis  # NOQA
-        >>> #print(ut.dict_str(ibeis.opendb('PZ_Master0').get_database_species_count()))
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> result = ibs.get_database_species_count()
-        >>> print(result)
-        {u'zebra_plains': 6, '____': 3, u'zebra_grevys': 2, u'bear_polar': 2}
-    """
-    if aid_list is None:
-        aid_list = ibs.get_valid_aids()
-    species_list = ibs.get_annot_species_texts(aid_list)
-    species_count_dict = ut.item_hist(species_list)
-    return species_count_dict
 
 
 @__injectable
@@ -1075,21 +1193,6 @@ def _overwrite_all_annot_species_to(ibs, species):
     aid_list = ibs.get_valid_aids()
     species_list = [species] * len(aid_list)
     ibs.set_annot_species(aid_list, species_list)
-
-
-@__injectable
-def get_match_truth(ibs, aid1, aid2):
-    nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
-    isunknown_list = ibs.is_nid_unknown((nid1, nid2))
-    if any(isunknown_list):
-        truth = 2  # Unknown
-    elif nid1 == nid2:
-        truth = 1  # True
-    elif nid1 != nid2:
-        truth = 0  # False
-    else:
-        raise AssertionError('invalid_unknown_truth_state')
-    return truth
 
 
 # Use new invertible flatten functions
@@ -1173,52 +1276,6 @@ def _make_unflat_getter_func(flat_getter):
     return unflat_getter
 
 
-def delete_ibeis_database(dbdir):
-    _ibsdb = join(dbdir, const.PATH_NAMES._ibsdb)
-    print('[ibsfuncs] DELETEING: _ibsdb=%r' % _ibsdb)
-    if exists(_ibsdb):
-        ut.delete(_ibsdb)
-
-
-def assert_valid_names(name_list):
-    """ Asserts that user specified names do not conflict with
-    the standard unknown name """
-    if ut.NO_ASSERTS:
-        return
-    def isconflict(name, other):
-        return name.startswith(other) and len(name) > len(other)
-    valid_namecheck = [not isconflict(name, const.UNKNOWN) for name in name_list]
-    assert all(valid_namecheck), ('A name conflicts with UKNONWN Name. -- '
-                                  'cannot start a name with four underscores')
-
-
-@ut.on_exception_report_input
-def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list, valid_lbltype_rowid):
-    if ut.NO_ASSERTS:
-        return
-    lbltype_rowid_list = ibs.get_lblannot_lbltypes_rowids(lblannot_rowid_list)
-    try:
-        # HACK: the unknown_lblannot_rowid will have a None type
-        # the unknown lblannot_rowid should be handled more gracefully
-        # this should just check the first condition (get rid of the or)
-        ut.assert_same_len(lbltype_rowid_list, lbltype_rowid_list)
-        ut.assert_scalar_list(lblannot_rowid_list)
-        validtype_list = [
-            (lbltype_rowid == valid_lbltype_rowid) or
-            (lbltype_rowid is None and lblannot_rowid == const.UNKNOWN_LBLANNOT_ROWID)
-            for lbltype_rowid, lblannot_rowid in
-            zip(lbltype_rowid_list, lblannot_rowid_list)]
-        assert all(validtype_list), 'not all types match valid type'
-    except AssertionError as ex:
-        tup_list = list(map(str, list(zip(lbltype_rowid_list, lblannot_rowid_list))))
-        print('[!!!] (lbltype_rowid, lblannot_rowid) = : ' + ut.indentjoin(tup_list))
-        print('[!!!] valid_lbltype_rowid: %r' % (valid_lbltype_rowid,))
-
-        ut.printex(ex, 'not all types match valid type',
-                      keys=['valid_lbltype_rowid', 'lblannot_rowid_list'])
-        raise
-
-
 def ensure_unix_gpaths(gpath_list):
     """
     Asserts that all paths are given with forward slashes.
@@ -1253,48 +1310,6 @@ def vsstr(qaid, aid, lite=False):
         return '%d-vs-%d' % (qaid, aid)
     else:
         return 'qaid%d-vs-aid%d' % (qaid, aid)
-
-
-def list_images(img_dir, fullpath=True, recursive=True):
-    """ lists images that are not in an internal cache """
-    ignore_list = ['_hsdb', '.hs_internals', '_ibeis_cache', '_ibsdb']
-    gpath_list = ut.list_images(img_dir,
-                                   fullpath=fullpath,
-                                   recursive=recursive,
-                                   ignore_list=ignore_list)
-    return gpath_list
-
-
-def get_species_dbs(species_prefix):
-    from ibeis.dev import sysres
-    ibs_dblist = sysres.get_ibsdb_list()
-    isvalid_list = [split(path)[1].startswith(species_prefix) for path in ibs_dblist]
-    return ut.filter_items(ibs_dblist, isvalid_list)
-
-
-#def delete_non_exemplars(ibs):
-#    """ deletes images without exemplars """
-#    gid_list = ibs.get_valid_gids
-#    aids_list = ibs.get_image_aids(gid_list)
-#    flags_list = unflat_map(ibs.get_annot_exemplar_flags, aids_list)
-#    delete_gid_flag_list = [not any(flags) for flags in flags_list]
-#    delete_gid_list = ut.filter_items(gid_list, delete_gid_flag_list)
-#    ibs.delete_images(delete_gid_list)
-#    delete_empty_eids(ibs)
-#    delete_empty_nids(ibs)
-
-
-#@__injectable
-#@ut.time_func
-#@profile
-#def update_reviewed_image_encounter(ibs):
-#    # FIXME SLOW
-#    #ibs.delete_encounters(eid)
-#    ibs.delete_egr_encounter_relations(eid)
-#    #gid_list = ibs.get_valid_gids(reviewed=True)
-#    gid_list = _get_reviewed_gids(ibs)  # hack
-#    #ibs.set_image_enctext(gid_list, [const.REVIEWED_IMAGE_ENCTEXT] * len(gid_list))
-#    ibs.set_image_eids(gid_list, [eid] * len(gid_list))
 
 
 @__injectable
@@ -1504,21 +1519,6 @@ def _get_exemplar_gids(ibs):
     return gid_list
 
 
-def get_title(ibs):
-    if ibs is None:
-        title = 'IBEIS - No Database Directory Open'
-    elif ibs.dbdir is None:
-        title = 'IBEIS - !! INVALID DATABASE !!'
-    else:
-        dbdir = ibs.get_dbdir()
-        dbname = ibs.get_dbname()
-        title = 'IBEIS - %r - Database Directory = %s' % (dbname, dbdir)
-        wb_target = params.args.wildbook_target
-        if wb_target is not None:
-            title = '%s - Wildbook Target = %s' % (title, wb_target)
-    return title
-
-
 @__injectable
 def print_stats(ibs):
     from ibeis.dev import dbinfo
@@ -1534,56 +1534,6 @@ def print_dbinfo(ibs, **kwargs):
 @__injectable
 def print_infostr(ibs, **kwargs):
     print(ibs.get_infostr())
-
-
-@__injectable
-def get_dbinfo_str(ibs):
-    from ibeis.dev import dbinfo
-    return dbinfo.get_dbinfo(ibs, verbose=False)['info_str']
-
-
-@__injectable
-def get_infostr(ibs):
-    """ Returns printable database information
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-
-    Returns:
-        str: infostr
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-get_infostr
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> # execute function
-        >>> infostr = get_infostr(ibs)
-        >>> # verify results
-        >>> result = str(infostr)
-        >>> print(result)
-        dbname = 'testdb1'
-        num_images = 13
-        num_annotations = 13
-        num_names = 7
-    """
-    dbname = ibs.get_dbname()
-    #workdir = ut.unixpath(ibs.get_workdir())
-    num_images = ibs.get_num_images()
-    num_annotations = ibs.get_num_annotations()
-    num_names = ibs.get_num_names()
-    #workdir = %r
-    infostr = ut.codeblock('''
-    dbname = %r
-    num_images = %r
-    num_annotations = %r
-    num_names = %r
-    ''' % (dbname, num_images, num_annotations, num_names))
-    return infostr
 
 
 @__injectable
@@ -1772,13 +1722,13 @@ def batch_rename_consecutive_via_species(ibs, eid=None):
         conflict_names = list(set(other_names).intersection(set(new_name_list)))
         return conflict_names
 
-    def assert_no_name_conflicts(ibs, new_nid_list, new_name_list):
+    def _assert_no_name_conflicts(ibs, new_nid_list, new_name_list):
         print('checking for conflicting names')
         conflit_names = get_conflict_names(ibs, new_nid_list, new_name_list)
         assert len(conflit_names) == 0, 'conflit_names=%r' % (conflit_names,)
 
     # Check to make sure new names dont conflict with other names
-    assert_no_name_conflicts(ibs, new_nid_list, new_name_list)
+    _assert_no_name_conflicts(ibs, new_nid_list, new_name_list)
     ibs.set_name_texts(new_nid_list, new_name_list, verbose=ut.NOT_QUIET)
 
 
@@ -2093,7 +2043,8 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
     known_aids_list = list(ut.ifilterfalse_items(aid_gen(), isunknown_list))
     unknown_aids = list(ut.iflatten(ut.ifilter_items(aid_gen(), isunknown_list)))
     if __debug__:
-        # http://stackoverflow.com/questions/482014/how-would-you-do-the-equivalent-of-preprocessor-directives-in-python
+        # References:
+        #     http://stackoverflow.com/questions/482014/how-would-you-do-the-equivalent-of-preprocessor-directives-in-python
         nidgroup_list = unflat_map(ibs.get_annot_name_rowids, known_aids_list)
         for nidgroup in nidgroup_list:
             assert ut.list_allsame(nidgroup), 'bad name grouping'
@@ -2397,51 +2348,199 @@ def get_aids_with_groundtruth(ibs):
 
 
 @__injectable
-def export_encounters(ibs, eid_list, new_dbdir=None):
-    gid_list = list(set(ut.flatten(ibs.get_encounter_gids(eid_list))))
-    if new_dbdir is None:
-        from ibeis.dev import sysres
-        dbname = ibs.get_dbname()
-        enc_texts = ', '.join(ibs.get_encounter_enctext(eid_list)).replace(' ', '-')
-        nimg_text = 'nImg=%r' % len(gid_list)
-        new_dbname = dbname + '_' + enc_texts + '_' + nimg_text
-        workdir = sysres.get_workdir()
-        new_dbdir_ = join(workdir, new_dbname)
-    else:
-        new_dbdir_ = new_dbdir
-    ibs.export_images(gid_list, new_dbdir_=new_dbdir_)
-
-
-@__injectable
-def export_images(ibs, gid_list, new_dbdir_):
-    """ See ibeis/tests/test_ibs_export.py """
-    from ibeis.dbio import export_subset
-    print('[ibsfuncs] exporting to new_dbdir_=%r' % new_dbdir_)
-    print('[ibsfuncs] opening database')
-    ibs_dst = ibeis.opendb(dbdir=new_dbdir_, allow_newdir=True)
-    print('[ibsfuncs] begining transfer')
-    ibs_src = ibs
-    gid_list1 = gid_list
-    aid_list1 = None
-    include_image_annots = True
-    status = export_subset.execute_transfer(ibs_src, ibs_dst, gid_list1,
-                                            aid_list1, include_image_annots)
-    return status
-
-
-@__injectable
-def set_dbnotes(ibs, notes):
-    """ sets notes for an entire database """
-    assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
-    ut.write_to(ibs.get_dbnotes_fpath(), notes)
-
-
-@__injectable
 def get_dbnotes_fpath(ibs, ensure=False):
     notes_fpath = join(ibs.get_ibsdir(), 'dbnotes.txt')
     if ensure and not exists(ibs.get_dbnotes_fpath()):
         ibs.set_dbnotes('None')
     return notes_fpath
+
+
+def get_yaw_viewtexts(yaw_list):
+    r"""
+    Args:
+        yaw (?):
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_yaw_viewtexts
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> # build test data
+        >>> yaw_list = [0.0, 3.15, -.4, -8, .2, 4, 7, 20, None]
+        >>> # execute function
+        >>> text_list = get_yaw_viewtexts(yaw_list)
+        >>> result = str(text_list)
+        >>> # verify results
+        >>> print(result)
+        ['right', 'left', 'backright', 'back', 'right', 'backleft', 'frontright', 'frontright', None]
+    """
+    import vtool as vt
+    import numpy as np
+    import six
+    stdlblyaw_list = list(six.iteritems(const.VIEWTEXT_TO_YAW_RADIANS))
+    stdlbl_list = ut.get_list_column(stdlblyaw_list, 0)
+    stdyaw_list = np.array(ut.get_list_column(stdlblyaw_list, 1))
+    textdists_list = [None if yaw is None else vt.ori_distance(stdyaw_list, yaw) for yaw in yaw_list]
+    index_list = [None if dists is None else dists.argmin() for dists in textdists_list]
+    text_list = [None if index is None else stdlbl_list[index] for index in index_list]
+    #errors = ['%.2f' % dists[index] for dists, index in zip(textdists_list, index_list)]
+    #return list(zip(yaw_list, errors, text_list))
+    return text_list
+
+
+def get_species_dbs(species_prefix):
+    from ibeis.dev import sysres
+    ibs_dblist = sysres.get_ibsdb_list()
+    isvalid_list = [split(path)[1].startswith(species_prefix) for path in ibs_dblist]
+    return ut.filter_items(ibs_dblist, isvalid_list)
+
+
+@__injectable
+def get_annot_bbox_area(ibs, aid_list):
+    bbox_list = ibs.get_annot_bboxes(aid_list)
+    area_list = [bbox[2] * bbox[3] for bbox in bbox_list]
+    return area_list
+
+
+@__injectable
+def get_match_text(ibs, aid1, aid2):
+    truth = ibs.get_match_truth(aid1, aid2)
+    text = const.TRUTH_INT_TO_TEXT.get(truth, None)
+    return text
+
+
+@__injectable
+def get_database_species(ibs, aid_list=None):
+    r"""
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_database_species
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> import ibeis  # NOQA
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> result = ibs.get_database_species()
+        >>> print(result)
+        ['____', u'bear_polar', u'zebra_grevys', u'zebra_plains']
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> import ibeis  # NOQA
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> result = ibs.get_database_species()
+        >>> print(result)
+        [u'zebra_plains']
+    """
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+    species_list = ibs.get_annot_species_texts(aid_list)
+    unique_species = sorted(list(set(species_list)))
+    return unique_species
+
+
+@__injectable
+def get_database_species_count(ibs, aid_list=None):
+    """
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_database_species_count
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import ibeis  # NOQA
+        >>> #print(ut.dict_str(ibeis.opendb('PZ_Master0').get_database_species_count()))
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> result = ibs.get_database_species_count()
+        >>> print(result)
+        {u'zebra_plains': 6, '____': 3, u'zebra_grevys': 2, u'bear_polar': 2}
+    """
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+    species_list = ibs.get_annot_species_texts(aid_list)
+    species_count_dict = ut.item_hist(species_list)
+    return species_count_dict
+
+
+@__injectable
+def get_match_truth(ibs, aid1, aid2):
+    nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
+    isunknown_list = ibs.is_nid_unknown((nid1, nid2))
+    if any(isunknown_list):
+        truth = 2  # Unknown
+    elif nid1 == nid2:
+        truth = 1  # True
+    elif nid1 != nid2:
+        truth = 0  # False
+    else:
+        raise AssertionError('invalid_unknown_truth_state')
+    return truth
+
+
+def get_title(ibs):
+    if ibs is None:
+        title = 'IBEIS - No Database Directory Open'
+    elif ibs.dbdir is None:
+        title = 'IBEIS - !! INVALID DATABASE !!'
+    else:
+        dbdir = ibs.get_dbdir()
+        dbname = ibs.get_dbname()
+        title = 'IBEIS - %r - Database Directory = %s' % (dbname, dbdir)
+        wb_target = params.args.wildbook_target
+        if wb_target is not None:
+            title = '%s - Wildbook Target = %s' % (title, wb_target)
+    return title
+
+
+@__injectable
+def get_dbinfo_str(ibs):
+    from ibeis.dev import dbinfo
+    return dbinfo.get_dbinfo(ibs, verbose=False)['info_str']
+
+
+@__injectable
+def get_infostr(ibs):
+    """ Returns printable database information
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    Returns:
+        str: infostr
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_infostr
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> infostr = get_infostr(ibs)
+        >>> # verify results
+        >>> result = str(infostr)
+        >>> print(result)
+        dbname = 'testdb1'
+        num_images = 13
+        num_annotations = 13
+        num_names = 7
+    """
+    dbname = ibs.get_dbname()
+    #workdir = ut.unixpath(ibs.get_workdir())
+    num_images = ibs.get_num_images()
+    num_annotations = ibs.get_num_annotations()
+    num_names = ibs.get_num_names()
+    #workdir = %r
+    infostr = ut.codeblock('''
+    dbname = %r
+    num_images = %r
+    num_annotations = %r
+    num_names = %r
+    ''' % (dbname, num_images, num_annotations, num_names))
+    return infostr
 
 
 @__injectable
@@ -2452,6 +2551,13 @@ def get_dbnotes(ibs):
         ibs.set_dbnotes('None')
         notes = ut.read_from(ibs.get_dbnotes_fpath())
     return notes
+
+
+@__injectable
+def set_dbnotes(ibs, notes):
+    """ sets notes for an entire database """
+    assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
+    ut.write_to(ibs.get_dbnotes_fpath(), notes)
 
 
 @__injectable
@@ -2492,122 +2598,6 @@ def view_model_dir(ibs):
 
 
 @__injectable
-def fix_invalid_nids(ibs):
-    r"""
-    Make sure that all rowids are greater than 0
-
-    We can only handle there being a name with rowid 0 if it is UNKNOWN. In this
-    case we safely delete it, but anything more complicated needs to be handled
-    anually
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-fix_invalid_nids
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> # execute function
-        >>> result = fix_invalid_nids(ibs)
-        >>> # verify results
-        >>> print(result)
-    """
-    print('[ibs] fixing invalid nids (nids that are <= ibs.UKNOWN_NAME_ROWID)')
-    # Get actual rowids from sql database (no postprocessing)
-    nid_list = ibs._get_all_known_name_rowids()
-    # Get actual names from sql database (no postprocessing)
-    name_text_list = ibs.get_name_texts(nid_list, apply_fix=False)
-    is_invalid_nid_list = [nid <= ibs.UNKNOWN_NAME_ROWID for nid in nid_list]
-    if any(is_invalid_nid_list):
-        invalid_nids = ut.filter_items(nid_list, is_invalid_nid_list)
-        invalid_texts = ut.filter_items(name_text_list, is_invalid_nid_list)
-        if (len(invalid_nids) == 0 and
-              invalid_nids[0] == ibs.UNKNOWN_NAME_ROWID and
-              invalid_texts[0] == const.UNKNOWN):
-            print('[ibs] fuond bad name rowids = %r' % (invalid_nids,))
-            print('[ibs] fuond bad name texts  = %r' % (invalid_texts,))
-            ibs.delete_names([ibs.UNKNOWN_NAME_ROWID])
-        else:
-            errmsg = 'Unfixable error: Found invalid (nid, text) pairs: '
-            errmsg += ut.list_str(list(zip(invalid_nids, invalid_texts)))
-            raise AssertionError(errmsg)
-
-
-@__injectable
-def fix_invalid_name_texts(ibs):
-    r"""
-    Ensure  that no name text is empty or '____'
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-fix_invalid_names
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> # execute function
-        >>> result = fix_invalid_name_texts(ibs)
-        >>> # verify results
-        >>> print(result)
-
-    ibs.set_name_texts(nid_list[3], '____')
-    ibs.set_name_texts(nid_list[2], '')
-    """
-    print('checking for invalid name texts')
-    # Get actual rowids from sql database (no postprocessing)
-    nid_list = ibs._get_all_known_name_rowids()
-    # Get actual names from sql database (no postprocessing)
-    name_text_list = ibs.get_name_texts(nid_list, apply_fix=False)
-    invalid_name_set = {'', const.UNKNOWN}
-    is_invalid_name_text_list = [name_text in invalid_name_set
-                                 for name_text in name_text_list]
-    if any(is_invalid_name_text_list):
-        invalid_nids = ut.filter_items(nid_list, is_invalid_name_text_list)
-        invalid_texts = ut.filter_items(name_text_list, is_invalid_name_text_list)
-        for count, (invalid_nid, invalid_text) in enumerate(zip(invalid_nids, invalid_texts)):
-            conflict_set = invalid_name_set.union(set(ibs.get_name_texts(nid_list, apply_fix=False)))
-            base_str = 'fixedname%d' + invalid_text
-            new_text = ut.get_nonconflicting_string(base_str, conflict_set, offset=count)
-            print('Fixing name %r -> %r' % (invalid_text, new_text))
-            ibs.set_name_texts((invalid_nid,), (new_text,))
-        print('Fixed %d name texts' % (len(invalid_nids)))
-    else:
-        print('all names seem valid')
-
-
-@__injectable
-def fix_unknown_exemplars(ibs):
-    """
-    Goes through all of the annotations, and sets their exemplar flag to 0 if it
-    is associated with an unknown annotation
-    """
-    aid_list = ibs.get_valid_aids()
-    #nid_list = ibs.get_annot_nids(aid_list, distinguish_unknowns=False)
-    flag_list = ibs.get_annot_exemplar_flags(aid_list)
-    unknown_list = ibs.is_aid_unknown(aid_list)
-    # Exemplars should all be known
-    unknown_exemplar_flags = ut.filter_items(flag_list, unknown_list)
-    unknown_aid_list = ut.filter_items(aid_list, unknown_list)
-    print('Fixing %d unknown annotations set as exemplars' % (sum(unknown_exemplar_flags),))
-    ibs.set_annot_exemplar_flags(unknown_aid_list, [False] * len(unknown_aid_list))
-    #is_error = [not flag for flag in unknown_exemplar_flags]
-    #new_annots = [flag if nid != const.UNKNOWN_NAME_ROWID else 0
-    #              for nid, flag in
-    #              zip(nid_list, flag_list)]
-    #ibs.set_annot_exemplar_flags(aid_list, new_annots)
-
-
-@__injectable
 def merge_names(ibs, merge_name, other_names):
     r"""
     Args:
@@ -2643,48 +2633,6 @@ def merge_names(ibs, merge_name, other_names):
     ibs.set_annot_names(other_aids, [merge_name] * len(other_aids))
 
 
-def export_subdatabase_all_annots_new(ibs):
-    """
-    Exports a set with some number of annotations that has good demo examples.
-    multiple annotations per name and large time variation within names.
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-export_subdatabase_all_annots_new --db GIR_Tanya
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb()
-        >>> print(ibs.get_dbinfo_str())
-        >>> result = export_subdatabase_all_annots_new(ibs)
-        >>> # verify results
-        >>> print(result)
-
-    min_num_annots = 500
-    """
-    aid_list = ibs.get_valid_aids()
-    gid_list = list(set(ibs.get_annot_gids(aid_list)))
-
-    from ibeis.dbio import export_subset
-
-    def new_nonconflicting_dbpath(ibs):
-        dpath, dbname = split(ibs.get_dbdir())
-        base_fmtstr = dbname + '_demo' + 'all_annots' + '_export%d'
-        new_dbpath = ut.get_nonconflicting_path(base_fmtstr, dpath)
-        return new_dbpath
-
-    #ut.embed()
-
-    dbpath = new_nonconflicting_dbpath(ibs)
-    ibs_dst = ibeis.opendb(dbdir=dbpath, allow_newdir=True)
-    ibs_src = ibs
-    export_subset.merge_databases(ibs_src, ibs_dst, gid_list=gid_list)
-
-
 def inspect_nonzero_yaws(ibs):
     """
     python dev.py --dbdir /raid/work2/Turk/PZ_Master --cmd --show
@@ -2703,40 +2651,6 @@ def inspect_nonzero_yaws(ibs):
         ibs.delete_annot_chips(aid)
         viz_chip.show_chip(ibs, aid, annote=False)
         pt.show_if_requested()
-
-
-def get_yaw_viewtexts(yaw_list):
-    r"""
-    Args:
-        yaw (?):
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-get_yaw_viewtexts
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> # build test data
-        >>> yaw_list = [0.0, 3.15, -.4, -8, .2, 4, 7, 20, None]
-        >>> # execute function
-        >>> text_list = get_yaw_viewtexts(yaw_list)
-        >>> result = str(text_list)
-        >>> # verify results
-        >>> print(result)
-        ['right', 'left', 'backright', 'back', 'right', 'backleft', 'frontright', 'frontright', None]
-    """
-    import vtool as vt
-    import numpy as np
-    import six
-    stdlblyaw_list = list(six.iteritems(const.VIEWTEXT_TO_YAW_RADIANS))
-    stdlbl_list = ut.get_list_column(stdlblyaw_list, 0)
-    stdyaw_list = np.array(ut.get_list_column(stdlblyaw_list, 1))
-    textdists_list = [None if yaw is None else vt.ori_distance(stdyaw_list, yaw) for yaw in yaw_list]
-    index_list = [None if dists is None else dists.argmin() for dists in textdists_list]
-    text_list = [None if index is None else stdlbl_list[index] for index in index_list]
-    #errors = ['%.2f' % dists[index] for dists, index in zip(textdists_list, index_list)]
-    #return list(zip(yaw_list, errors, text_list))
-    return text_list
 
 
 def detect_false_positives(ibs):
@@ -2946,6 +2860,116 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
     return new_aid_list, new_flag_list
 
 
+def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, verbose=False):
+    """
+    """
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+
+    PREFER_GOOD_OVER_OLDFLAG = True
+
+    # Params for knapsack
+    def make_knapsack_params(N, levels_per_tier_list):
+        """
+        Args:
+            N (int): the integral maximum number of items
+            levels_per_tier_list (list): list of number of distinctions possible
+            per tier.
+
+        Returns:
+            per-item weights, weights go group items into several tiers, and an
+            infeasible weight
+        """
+        EPS = 1E-9
+        # Solve for the minimum per-item weight
+        # to allow for preference wiggle room
+        w = N / (N + 1) + EPS
+        # level1 perference augmentation
+        # TODO: figure out mathematically ellegant value
+        pref_decimator = max(1, (N + EPS)) ** 2  # max is a hack for N = 0
+        # we want space to specify two levels of tier1 preference
+        tier_w_list = []
+        last_w = w
+        for num_levels in levels_per_tier_list:
+            last_w = tier_w = last_w / (num_levels * pref_decimator)
+            tier_w_list.append(tier_w)
+        infeasible_w = max(9001, N + 1)
+        return w, tier_w_list, infeasible_w
+    N = annots_per_view
+    levels_per_tier_list = [3, 1, 1]
+    w, tier_w_list, infeasible_w = make_knapsack_params(N, levels_per_tier_list)
+
+    qual2_weight = {
+        const.QUAL_EXCELLENT : w + tier_w_list[0] + tier_w_list[1],
+        const.QUAL_GOOD      : w + tier_w_list[0],
+        const.QUAL_OK        : w + tier_w_list[1],
+        const.QUAL_UNKNOWN   : w + tier_w_list[1],
+        const.QUAL_POOR      : w + tier_w_list[2],
+        const.QUAL_JUNK      : infeasible_w,
+    }
+    # this probably broke with the introduction of 2 more tiers
+    oldflag_offset = (
+        # always prefer good over ok
+        tier_w_list[0] - tier_w_list[1]
+        if PREFER_GOOD_OVER_OLDFLAG else
+        # prefer ok over good when ok has oldflag
+        tier_w_list[0] + tier_w_list[1]
+    )
+
+    def choose_exemplars(aids):
+        qualtexts = ibs.get_annot_quality_texts(aids)
+        oldflags = ibs.get_annot_exemplar_flags(aids)
+        # We like good more than ok, and junk is infeasible We prefer items that
+        # had previously been exemplars Build input for knapsack
+        weights = [qual2_weight[qual] + oldflag_offset * oldflag
+                   for qual, oldflag in zip(qualtexts, oldflags)]
+        values = [1] * len(weights)
+        indices = list(range(len(weights)))
+        items = list(zip(values, weights, indices))
+        total_value, chosen_items = ut.knapsack(items, N)
+        chosen_indices = ut.get_list_column(chosen_items, 2)
+        new_flags = [False] * len(aids)
+        for index in chosen_indices:
+            new_flags[index] = True
+        return new_flags
+
+    def get_changed_infostr(yawtext, aids, new_flags):
+        old_flags = ibs.get_annot_exemplar_flags(aids)
+        quals = ibs.get_annot_quality_texts(aids)
+        ischanged = ut.xor_lists(old_flags, new_flags)
+        changed_list = ['***' if flag else ''
+                        for flag in ischanged]
+        infolist = list(zip(aids, quals, old_flags, new_flags, changed_list))
+        infostr = ('yawtext=%r:\n' % (yawtext,)) + ut.list_str(infolist)
+        return infostr
+
+    aid_list = ibs.get_valid_aids()
+    aids_list, unique_nids  = ibs.group_annots_by_name(aid_list)
+    # for final settings because I'm too lazy to write
+    # this correctly using group_indicies instead of group_items
+    new_aid_list = []
+    new_flag_list = []
+    _iter = ut.ProgressIter(zip(aids_list, unique_nids), nTotal=len(aids_list), lbl='Optimizing name exemplars')
+    for aids_, nid in _iter:
+        if ibs.is_nid_unknown(nid):
+            # do not change unknown animals
+            continue
+        yawtexts  = ibs.get_annot_yaw_texts(aids_)
+        yawtext2_aids = ut.group_items(aids_, yawtexts)
+        if verbose:
+            print('+ ---')
+            print('  nid=%r' % (nid))
+        for yawtext, aids in six.iteritems(yawtext2_aids):
+            new_flags = choose_exemplars(aids)
+            if verbose:
+                print(ut.indent(get_changed_infostr(yawtext, aids, new_flags)))
+            new_aid_list.extend(aids)
+            new_flag_list.extend(new_flags)
+        if verbose:
+            print('L ___')
+    pass
+
+
 def detect_join_cases(ibs):
     r"""
     Args:
@@ -2955,7 +2979,7 @@ def detect_join_cases(ibs):
         QueryResult: qres_list -  object of feature correspondences and scores
 
     CommandLine:
-        python -m ibeis.ibsfuncs --test-detect_join_cases
+        python -m ibeis.ibsfuncs --test-detect_join_cases --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -2966,69 +2990,25 @@ def detect_join_cases(ibs):
         >>> # execute function
         >>> qres_list = detect_join_cases(ibs)
         >>> # verify results
-        >>> result = str(qres_list)
-        >>> print(result)
+        >>> #result = str(qres_list)
+        >>> #print(result)
+        >>> ut.quit_if_noshow()
+        >>> import guitool
+        >>> from ibeis.gui import inspect_gui
+        >>> guitool.ensure_qapp()
+        >>> qaid2_qres = {qres.qaid: qres for qres in qres_list}
+        >>> qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, filter_reviewed=False)
+        >>> qres_wgt.show()
+        >>> qres_wgt.raise_()
+        >>> guitool.qtapp_loop(qres_wgt)
     """
     qaids = ibs.get_valid_aids(is_exemplar=None, nojunk=True)
     daids = ibs.get_valid_aids(is_exemplar=None, nojunk=True)
-    cfgdict = dict(can_match_samename=False)
+    cfgdict = dict(can_match_samename=False, use_k_padding=True)
     qreq_ = ibs.new_query_request(qaids, daids, cfgdict)
     qres_list = ibs.query_chips(qreq_=qreq_)
-
-    from ibeis.gui import inspect_gui
-    qaid2_qres = {qres.qaid: qres for qres in qres_list}
-    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres)
-    qres_wgt.show()
-    qres_wgt.raise_()
+    return qres_list
     #return qres_list
-
-
-@__injectable
-def mark_annot_pair_as_reviewed(ibs, aid1, aid2):
-    """ denote that this match was reviewed and keep whatever status it is given """
-    isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
-    if isunknown1 or isunknown2:
-        truth = const.TRUTH_UNKNOWN
-    else:
-        nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
-        truth = const.TRUTH_UNKNOWN if (nid1 == nid2) else const.TRUTH_NOT_MATCH
-    ibs.add_or_update_annotmatch(aid1, aid2, truth, [1.0])
-
-
-@__injectable
-def add_or_update_annotmatch(ibs, aid1, aid2, truth, confidence):
-    annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]
-    # TODO: sql add or update?
-    if annotmatch_rowid is not None:
-        ibs.set_annotmatch_truth([annotmatch_rowid], [1])
-        ibs.set_annotmatch_confidence([annotmatch_rowid], [1.0])
-    else:
-        ibs.add_annotmatch([aid1], [aid2], [truth], [1.0])
-
-
-@__injectable
-def get_annot_pair_truth(ibs, aid1_list, aid2_list):
-    annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
-    annotmatch_truth_list  = ibs.get_annotmatch_truth(annotmatch_rowid_list)
-    return annotmatch_truth_list
-
-
-@__injectable
-def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
-    annotmatch_truth_list = ibs.get_annot_pair_truth(aid1_list, aid2_list)
-    annotmatch_reviewed_list = [truth is not None for truth in annotmatch_truth_list]
-    return annotmatch_reviewed_list
-
-
-@__injectable
-def get_image_time_statstr(ibs, gid_list=None):
-    if gid_list is None:
-        gid_list = ibs.get_valid_gids()
-    unixtime_list_ = ibs.get_image_unixtime(gid_list)
-    utvalid_list   = [time != -1 for time in unixtime_list_]
-    unixtime_list  = ut.filter_items(unixtime_list_, utvalid_list)
-    unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True)
-    return unixtime_statstr
 
 
 if __name__ == '__main__':
