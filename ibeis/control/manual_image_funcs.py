@@ -595,7 +595,7 @@ def get_image_thumbtup(ibs, gid_list, draw_annots=True, thumbsize=None):
 
 @register_ibs_method
 @getter_1to1
-def get_image_thumbpath(ibs, gid_list, ensure_paths=True, draw_annots=True,
+def get_image_thumbpath(ibs, gid_list, ensure_paths=False, draw_annots=True,
                         thumbsize=None):
     """
     Returns:

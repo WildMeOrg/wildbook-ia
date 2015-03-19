@@ -265,7 +265,7 @@ def turk_detection():
         display_instructions = request.cookies.get('detection_instructions_seen', 0) == 0
         display_species_examples = False  # request.cookies.get('detection_example_species_seen', 0) == 0
         if not finished:
-            gpath = app.ibs.get_image_thumbpath(gid, draw_annots=False)
+            gpath = app.ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
             image = ap.open_oriented_image(gpath)
             image_src = ap.embed_image_html(image, filter_width=False)
             # Get annotations
@@ -579,7 +579,7 @@ def set_cookie():
 @app.route('/ajax/image/src/<gid>')
 def image_src(gid=None):
     # gpath = app.ibs.get_image_paths(gid)
-    gpath = app.ibs.get_image_thumbpath(gid)
+    gpath = app.ibs.get_image_thumbpath(gid, ensure_paths=True)
     return ap.return_src(gpath)
 
 
