@@ -4,7 +4,7 @@ This module controls the GUI backend.  It is the layer between the GUI frontend
 gui components is written or called from here
 """
 from __future__ import absolute_import, division, print_function
-import six
+#import six
 import sys
 import functools
 import guitool
@@ -123,9 +123,9 @@ class MainWindowBackend(QtCore.QObject):
         back.sel_qres = []
         back.active_enc = 0
         if ut.is_developer():
-            back.query_mode = const.INTRA_ENC_KEY
+            back.daids_mode = const.INTRA_ENC_KEY
         else:
-            back.query_mode = const.VS_EXEMPLARS_KEY
+            back.daids_mode = const.VS_EXEMPLARS_KEY
         back.encounter_query_results = ut.ddict(dict)
 
         # Create GUIFrontend object
@@ -136,22 +136,22 @@ class MainWindowBackend(QtCore.QObject):
         fig_presenter.register_qt4_win(back.mainwin)
         # register self with the ibeis controller
         back.register_self()
-        back.set_query_mode(back.query_mode)
+        back.set_daids_mode(back.daids_mode)
         #back.incQuerySignal.connect(back.incremental_query_slot)
 
     #def __del__(back):
     #    back.cleanup()
 
-    def set_query_mode(back, new_mode):
+    def set_daids_mode(back, new_mode):
         if new_mode == 'toggle':
-            if back.query_mode == const.VS_EXEMPLARS_KEY:
-                back.query_mode = const.INTRA_ENC_KEY
+            if back.daids_mode == const.VS_EXEMPLARS_KEY:
+                back.daids_mode = const.INTRA_ENC_KEY
             else:
-                back.query_mode = const.VS_EXEMPLARS_KEY
+                back.daids_mode = const.VS_EXEMPLARS_KEY
         else:
-            back.query_mode = new_mode
+            back.daids_mode = new_mode
         try:
-            back.mainwin.actionToggleQueryMode.setText('Toggle Query Mode currently: %s' % back.query_mode)
+            back.mainwin.actionToggleQueryMode.setText('Toggle Query Mode currently: %s' % back.daids_mode)
         except Exception as ex:
             ut.printex(ex)
         #back.front.menuActions.
@@ -767,9 +767,9 @@ class MainWindowBackend(QtCore.QObject):
         return species_text
 
     @blocking_slot()
-    def change_query_mode(back, index, value):
-        print('[back] change_query_mode(%r, %r)' % (index, value))
-        back.query_mode = value
+    def change_daids_mode(back, index, value):
+        print('[back] change_daids_mode(%r, %r)' % (index, value))
+        back.daids_mode = value
         #ibs = back.ibs
         #ibs.cfg.detect_cfg.species_text = value
         #ibs.cfg.save()
@@ -833,9 +833,9 @@ class MainWindowBackend(QtCore.QObject):
         qaid_list = back.ibs.get_valid_aids(**valid_kw)
         return qaid_list
 
-    def get_selected_daids(back, eid=None, query_mode=None):
-        query_mode = back.query_mode if query_mode is None else query_mode
-        query_mode_valid_kw_dict = {
+    def get_selected_daids(back, eid=None, daids_mode=None):
+        daids_mode = back.daids_mode if daids_mode is None else daids_mode
+        daids_mode_valid_kw_dict = {
             const.VS_EXEMPLARS_KEY: {
                 'is_exemplar': True,
             },
@@ -850,14 +850,14 @@ class MainWindowBackend(QtCore.QObject):
         mode_str = {
             const.VS_EXEMPLARS_KEY: 'vs_exemplar',
             const.INTRA_ENC_KEY: 'intra_encounter',
-        }[query_mode]
-        valid_kw.update(query_mode_valid_kw_dict[query_mode])
+        }[daids_mode]
+        valid_kw.update(daids_mode_valid_kw_dict[daids_mode])
         print('[back] get_selected_daids: ' + mode_str)
         print('[back] ... valid_kw = ' + ut.dict_str(valid_kw))
         daid_list = back.ibs.get_valid_aids(**valid_kw)
         return daid_list
 
-    def make_confirm_query_msg(back, daid_list, qaid_list):
+    def make_confirm_query_msg(back, daid_list, qaid_list, cfgdict=None):
         r"""
         Args:
             daid_list (list):
@@ -898,6 +898,7 @@ class MainWindowBackend(QtCore.QObject):
         # Build confirmation message
         fmtdict = dict()
         msg_fmtstr_list = ['You are about to run identification...']
+        msg_fmtstr_list += ['    -----']
         # Append database information to query confirmation
         if daid_list is not None:
             msg_fmtstr_list += ['    Database annotations: {num_daids}']
@@ -905,6 +906,8 @@ class MainWindowBackend(QtCore.QObject):
             fmtdict['d_annotation_s']  = pluralize('annotation', daid_list)
             fmtdict['num_daids'] = len(daid_list)
             fmtdict['d_species_phrase'] = get_unique_species_phrase(daid_list)
+            if qaid_list is not None:
+                msg_fmtstr_list += ['    -----']
         # Append query information to query confirmation
         if qaid_list is not None:
             msg_fmtstr_list += ['    Query annotations: {num_qaids}']
@@ -916,8 +919,12 @@ class MainWindowBackend(QtCore.QObject):
         if qaid_list is not None and daid_list is not None:
             overlap_aids = ut.list_intersection(daid_list, qaid_list)
             num_overlap = len(overlap_aids)
+            msg_fmtstr_list += ['    -----']
             msg_fmtstr_list += ['    Num Overlap: {num_overlap}']
             fmtdict['num_overlap'] = num_overlap
+        if cfgdict is not None and len(cfgdict) > 0:
+            fmtdict['special_settings'] = ut.dict_str(cfgdict)
+            msg_fmtstr_list += ['Special Settings: {special_settings}']
 
         # Finish building confirmation message
         msg_fmtstr_list += ['']
@@ -926,14 +933,17 @@ class MainWindowBackend(QtCore.QObject):
         msg_str = msg_fmtstr.format(**fmtdict)
         return msg_str
 
-    def confirm_query_dialog(back, daid_list=None, qaid_list=None):
-        msg_str = back.make_confirm_query_msg(daid_list, qaid_list)
+    def confirm_query_dialog(back, daid_list=None, qaid_list=None, cfgdict=None):
+        msg_str = back.make_confirm_query_msg(daid_list, qaid_list, cfgdict=cfgdict)
         confirm_kw = dict(use_msg=msg_str, title='Begin Identification?', default='Yes')
         if not back.are_you_sure(**confirm_kw):
             raise guiexcept.UserCancel
 
     @blocking_slot()
-    def compute_queries(back, refresh=True, query_mode=None, query_is_known=None, qaid_list=None, use_visual_selection=False, **kwargs):
+    def compute_queries(back, refresh=True, daids_mode=None,
+                        query_is_known=None, qaid_list=None,
+                        use_viewoint_quality_subset=False,
+                        use_visual_selection=False, cfgdict={}, **kwargs):
         """
         Batch -> Compute OldStyle Queries
         and Actions -> Query
@@ -946,7 +956,7 @@ class MainWindowBackend(QtCore.QObject):
         """
         eid = back._eidfromkw(kwargs)
         print('------')
-        print('\n\n[back] compute_queries: eid=%r, mode=%r' % (eid, back.query_mode))
+        print('\n\n[back] compute_queries: eid=%r, mode=%r' % (eid, back.daids_mode))
         if eid is None:
             print('[back] invalid eid')
             return
@@ -961,15 +971,22 @@ class MainWindowBackend(QtCore.QObject):
             else:
                 # if not visual selection, then qaids are selected by encounter
                 qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
-        daid_list = back.get_selected_daids(eid=eid, query_mode=query_mode)
+        if use_viewoint_quality_subset:
+            qaid_list = ut.filter_items(
+                *back.ibs.get_annot_quality_viewpoint_subset(aid_list=qaid_list, annots_per_view=2))
+
+        daid_list = back.get_selected_daids(eid=eid, daids_mode=daids_mode)
         if len(qaid_list) == 0:
             raise guiexcept.InvalidRequest('No unknown query exemplars')
-        back.confirm_query_dialog(daid_list, qaid_list)
-        qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list)
+        qreq_ = back.ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict)
+        back.confirm_query_dialog(daid_list, qaid_list, cfgdict=cfgdict)
+        qres_list = back.ibs.query_chips(qreq_=qreq_)
+        #qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list, cfgdict=cfgdict)
         # HACK IN ENCOUNTER INFO
-        if query_mode == const.INTRA_ENC_KEY:
-            for qres in six.itervalues(qaid2_qres):
+        if daids_mode == const.INTRA_ENC_KEY:
+            for qres in qres_list:
                 qres.eid = eid
+        qaid2_qres = {qres.qaid: qres for qres in qres_list}
         back.encounter_query_results[eid].update(qaid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
         back.review_queries(qaid2_qres=qaid2_qres, eid=eid)
@@ -1008,7 +1025,7 @@ class MainWindowBackend(QtCore.QObject):
         from ibeis.gui.guiheaders import NAMES_TREE  # ADD AS NEEDED
         eid = back._eidfromkw(kwargs)
         print('------')
-        print('\n\n[back] incremental_query: eid=%r, mode=%r' % (eid, back.query_mode))
+        print('\n\n[back] incremental_query: eid=%r, mode=%r' % (eid, back.daids_mode))
         if eid is None:
             print('[back] invalid eid')
             return

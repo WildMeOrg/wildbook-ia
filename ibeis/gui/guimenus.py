@@ -170,7 +170,7 @@ def setup_batch_menu(mainwin, back):
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionCompute_Queries',
-        text='Compute Old Style Queries',
+        text='Query: Old Style',
         tooltip='''This might take anywhere from a coffee break to an
                     overnight procedure depending on how many ANNOTATIONs you\'ve
                     made. It queries each chip and saves the result which
@@ -179,14 +179,14 @@ def setup_batch_menu(mainwin, back):
         slot_fn=back.compute_queries)
     mainwin.menuBatch.newAction(
         name='actionComputeIncremental_Queries',
-        text='Compute Incremental Queries',
+        text='Query: Incremental',
         slot_fn=back.incremental_query
     )
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionBatchIntraEncounterQueries',
-        text='Compute Batch IntraEncounter Queries',
-        slot_fn=functools.partial(back.compute_queries, query_mode=const.INTRA_ENC_KEY),
+        text='Query: Intra Encounter',
+        slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_ENC_KEY),
         tooltip=ut.textblock(
             '''
             all-encounter-annots VS all-encounter-annots (nonjunk)
@@ -194,8 +194,8 @@ def setup_batch_menu(mainwin, back):
     )
     mainwin.menuBatch.newAction(
         name='actionBatchVsExemplarQueries',
-        text='Compute Batch VsExemplar Queries',
-        slot_fn=functools.partial(back.compute_queries, query_mode=const.VS_EXEMPLARS_KEY),
+        text='Query: vs Exemplars',
+        slot_fn=functools.partial(back.compute_queries, daids_mode=const.VS_EXEMPLARS_KEY),
         tooltip=ut.textblock(
             '''
             all-encounter-annots VS all-exemplar-annots (nonjunk)
@@ -204,8 +204,8 @@ def setup_batch_menu(mainwin, back):
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionBatchUnknownIntraEncounterQueries',
-        text='Compute Batch Unknown IntraEncounter Queries',
-        slot_fn=functools.partial(back.compute_queries, query_is_known=False, query_mode=const.INTRA_ENC_KEY),
+        text='Query: Unknown Intra Encounter',
+        slot_fn=functools.partial(back.compute_queries, query_is_known=None, daids_mode=const.INTRA_ENC_KEY),
         tooltip=ut.textblock(
             '''
             unnamed-encounter-annots VS all-encounter-annots (nonjunk)
@@ -213,8 +213,21 @@ def setup_batch_menu(mainwin, back):
     )
     mainwin.menuBatch.newAction(
         name='actionBatchUnknownVsExemplarQueries',
-        text='Compute Batch Unknown VsExemplar Queries',
-        slot_fn=functools.partial(back.compute_queries, query_is_known=False, query_mode=const.VS_EXEMPLARS_KEY),
+        text='Query: Unknowns vs Exemplars',
+        slot_fn=functools.partial(back.compute_queries, query_is_known=None, daids_mode=const.VS_EXEMPLARS_KEY),
+        tooltip=ut.textblock(
+            '''
+            unnamed-encounter-annots VS all-exemplar-annots (nonjunk)
+            ''')
+    )
+    mainwin.menuBatch.addSeparator()  # ---------
+    mainwin.menuBatch.newAction(
+        name='actionNameVsExemplarsQuery',
+        text='Query: Names vs Exemplar',
+        slot_fn=functools.partial(back.compute_queries,
+                                  use_viewoint_quality_subset=True,
+                                  daids_mode=const.VS_EXEMPLARS_KEY,
+                                  cfgdict=dict(can_match_samename=False, use_k_padding=False)),
         tooltip=ut.textblock(
             '''
             unnamed-encounter-annots VS all-exemplar-annots (nonjunk)
@@ -283,7 +296,7 @@ def setup_option_menu(mainwin, back):
         name='actionToggleQueryMode',
         text='Toggle Query Mode: ----',
         tooltip='Changes behavior of Actions->Query',
-        slot_fn=functools.partial(back.set_query_mode, 'toggle'))
+        slot_fn=functools.partial(back.set_daids_mode, 'toggle'))
     mainwin.menuOptions.addSeparator()
     mainwin.menuOptions.newAction(
         name='actionPreferences',

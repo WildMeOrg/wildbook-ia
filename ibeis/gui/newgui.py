@@ -448,19 +448,19 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                       ibswgt.back.change_detection_species,
                                       fontkw=primary_fontkw)
 
-        ibswgt.batch_unknown_intra_encounter_query_button = _NEWBUT(
+        ibswgt.batch_intra_encounter_query_button = _NEWBUT(
             'Intra Encounter',
             functools.partial(
                 back.compute_queries,
-                query_is_known=False, query_mode=const.INTRA_ENC_KEY),
+                query_is_known=False, daids_mode=const.INTRA_ENC_KEY),
             bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, -0.01, -0.7, 0.0),
             fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
 
-        ibswgt.batch_unknown_vsexemplar_query_button = _NEWBUT(
+        ibswgt.batch_vsexemplar_query_button = _NEWBUT(
             'Vs Exemplar',
             functools.partial(
                 back.compute_queries,
-                query_is_known=False, query_mode=const.VS_EXEMPLARS_KEY),
+                query_is_known=False, daids_mode=const.VS_EXEMPLARS_KEY),
             bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, 0.01, -0.7, 0.0),
             fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
 
@@ -511,8 +511,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ibswgt.species_combo,
                 _NEWLBL(''),
                 _NEWLBL('*Advanced Batch Identification: ', align='right', fontkw=advanced_fontkw),
-                ibswgt.batch_unknown_intra_encounter_query_button,
-                ibswgt.batch_unknown_vsexemplar_query_button,
+                ibswgt.batch_intra_encounter_query_button,
+                ibswgt.batch_vsexemplar_query_button,
                 _NEWLBL(''),
             ],
         ]
