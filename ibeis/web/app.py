@@ -424,8 +424,7 @@ def turk_quality():
         value = request.args.get('value', None)
         review = 'review' in request.args.keys()
         finished = aid is None
-        # display_instructions = request.cookies.get('quality_instructions_seen', 0) == 0
-        display_instructions = False
+        display_instructions = request.cookies.get('quality_instructions_seen', 0) == 0
         if not finished:
             gid       = app.ibs.get_annot_gids(aid)
             gpath     = app.ibs.get_annot_chip_fpaths(aid)

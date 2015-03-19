@@ -1,14 +1,6 @@
 {% extends "layout.html" %}
 {% block content_custom_css %}
 <style>
-  .total-label
-  {
-    font-size: 100px;
-    margin: 0;
-    text-align: center;
-    color: #4d63bc;
-  }
-
   th.no-items
   {
     text-align: center;
@@ -51,9 +43,9 @@
     <div class="row marketing">
       <div class="col-sm-3 col-md-3 col-lg-3">
         {% if page_previous != None %}
-        <a href="{{ url_for('view_annotations') }}?page=1"><h3 class="small-margin">First (1)</h3></a>
+        <a href="{{ url_for('view_annotations') }}?eid={{ eid_list_str }}&page=1"><h3 class="small-margin">First (1)</h3></a>
         <h3>|</h3>
-        <a href="{{ url_for('view_annotations') }}?page={{ page_previous }}"><h3 class="small-margin">Prev. ({{ page_previous }})/h3></a>
+        <a href="{{ url_for('view_annotations') }}?eid={{ eid_list_str }}&page={{ page_previous }}"><h3 class="small-margin">Prev. ({{ page_previous }})/h3></a>
         {% endif %}
       </div>
       
@@ -65,9 +57,9 @@
 
       <div class="col-sm-3 col-md-3 col-lg-3">
         {% if page_next != None %}
-        <a href="{{ url_for('view_annotations') }}?page={{ page_next }}"><h3 class="small-margin">Next ({{ page_next }})</h3></a>
+        <a href="{{ url_for('view_annotations') }}?eid={{ eid_list_str }}&page={{ page_next }}"><h3 class="small-margin">Next ({{ page_next }})</h3></a>
         <h3>|</h3>
-        <a href="{{ url_for('view_annotations') }}?page={{ page_total }}"><h3 class="small-margin">Last ({{ page_total }})</h3></a>
+        <a href="{{ url_for('view_annotations') }}?eid={{ eid_list_str }}&page={{ page_total }}"><h3 class="small-margin">Last ({{ page_total }})</h3></a>
         {% endif %}
       </div>
     </div>
