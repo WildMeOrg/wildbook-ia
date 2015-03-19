@@ -891,6 +891,8 @@ class APIItemModel(API_MODEL_BASE):
             old_data = model._get_data(qtindex)
             if old_data != data:
                 model._set_data(qtindex, data)
+                # This may not work with PyQt5
+                # http://stackoverflow.com/questions/22560296/pyqt-list-view-not-responding-to-datachanged-signal
                 # Emit that data was changed and return succcess
                 model.dataChanged.emit(qtindex, qtindex)
             return True

@@ -82,9 +82,11 @@ class APITableView(API_VIEW_BASE):
         view.registered_keypress_funcs = []
 
     def connect_single_key_to_slot(view, key, func):
+        # TODO: move to api_item_view
         view.registered_single_keys.append((key, func))
 
     def connect_keypress_to_slot(view, func):
+        # TODO: move to api_item_view
         view.registered_keypress_funcs.append(func)
 
     #---------------
@@ -102,12 +104,12 @@ class APITableView(API_VIEW_BASE):
             #print('Received Ctrl+C in View')
             view.copy_selection_to_clipboard()
         #print ('[view] keyPressEvent: %s' % event.key())
+        for func in view.registered_keypress_funcs:
+            func(view, event)
         for key, func in view.registered_single_keys:
             #print(key)
             if event.key() == key:
                 func(view, event)
-        for func in view.registered_keypress_funcs:
-            func(view, event)
 
     def mouseMoveEvent(view, event):
         assert isinstance(event, QtGui.QMouseEvent)
