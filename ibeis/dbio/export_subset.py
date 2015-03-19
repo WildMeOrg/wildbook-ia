@@ -1117,7 +1117,6 @@ def merge_databases(ibs_src, ibs_dst, gid_list=None, back=None, user_prompt=Fals
 
 
 def check_merge(ibs_src, ibs_dst):
-   with ut.embed_on_exception_context:
     aid_list1        = ibs_src.get_valid_aids()
     gid_list1        = ibs_src.get_annot_gids(aid_list1)
     gname_list1      = ibs_src.get_image_uris(gid_list1)
