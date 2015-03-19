@@ -13,15 +13,11 @@ import simplejson as json
 import ibeis
 from ibeis.control.SQLDatabaseControl import (SQLDatabaseController,  # NOQA
                                               SQLAtomicContext)
-from ibeis.control import _sql_helpers
 from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, Species
-import utool
 import utool as ut
 # Web Internal
 from ibeis.web import appfuncs as ap
-from ibeis.web import DBWEB_SCHEMA
 # Others
-from os.path import join
 import ibeis.constants as const
 import random
 
@@ -29,6 +25,24 @@ import random
 BROWSER = ut.get_argflag('--browser')
 DEFAULT_PORT = 5000
 app = flask.Flask(__name__)
+
+
+################################################################################
+
+
+def encounter_image_processed(gid_list):
+    images_reviewed = [ reviewed == 1 for reviewed in app.ibs.get_image_reviewed(gid_list) ]
+    return images_reviewed
+
+
+def encounter_annot_viewpoint_processed(aid_list):
+    annots_reviewed = [ reviewed is not None for reviewed in app.ibs.get_annot_yaws(aid_list) ]
+    return annots_reviewed
+
+
+def encounter_annot_quality_processed(aid_list):
+    annots_reviewed = [ reviewed is not None and reviewed is not -1 for reviewed in app.ibs.get_annot_qualities(aid_list) ]
+    return annots_reviewed
 
 
 ################################################################################
@@ -68,20 +82,6 @@ def view():
 
 @app.route('/view/encounters')
 def view_encounters():
-    def encounter_image_processed(eid, gid_list):
-        images_reviewed = [ reviewed == 1 for reviewed in app.ibs.get_image_reviewed(gid_list) ]
-        return images_reviewed
-
-    def encounter_annot_viewpoint_processed(eid, gid_list):
-        aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
-        annots_reviewed = [ reviewed is not None for reviewed in app.ibs.get_annot_yaws(aid_list) ]
-        return annots_reviewed
-
-    def encounter_annot_quality_processed(eid, gid_list):
-        aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
-        annots_reviewed = [ reviewed is not None and reviewed is not -1 for reviewed in app.ibs.get_annot_qualities(aid_list) ]
-        return annots_reviewed
-
     filtered = True
     eid = request.args.get('eid', '')
     if len(eid) > 0:
@@ -98,9 +98,10 @@ def view_encounters():
         for start_time_posix in start_time_posix_list
     ]
     gids_list = [ app.ibs.get_valid_gids(eid=eid_) for eid_ in eid_list ]
-    images_reviewed_list           = [ encounter_image_processed(eid, gid_list) for eid_, gid_list in zip(eid_list, gids_list) ]
-    annots_reviewed_viewpoint_list = [ encounter_annot_viewpoint_processed(eid, gid_list) for eid_, gid_list in zip(eid_list, gids_list) ]
-    annots_reviewed_quality_list   = [ encounter_annot_quality_processed(eid, gid_list) for eid_, gid_list in zip(eid_list, gids_list) ]
+    aids_list = [ app.ibs.get_valid_aids(include_only_gid_list=gid_list) for gid_list in gids_list ]
+    images_reviewed_list           = [ encounter_image_processed(gid_list) for gid_list in gids_list ]
+    annots_reviewed_viewpoint_list = [ encounter_annot_viewpoint_processed(aid_list) for aid_list in aids_list ]
+    annots_reviewed_quality_list   = [ encounter_annot_quality_processed(aid_list) for aid_list in aids_list ]
     image_processed_list           = [ images_reviewed.count(True) for images_reviewed in images_reviewed_list ]
     annot_processed_viewpoint_list = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_viewpoint_list ]
     annot_processed_quality_list   = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_quality_list ]
@@ -161,7 +162,7 @@ def view_images():
         app.ibs.get_image_party_tag(gid_list),
         app.ibs.get_image_contributor_tag(gid_list),
         app.ibs.get_image_notes(gid_list),
-        [ reviewed == 1 for reviewed in app.ibs.get_image_reviewed(gid_list) ],
+        encounter_image_processed(gid_list),
     )
     image_list.sort(key=lambda t: t[3])
     return ap.template('view', 'images',
@@ -209,7 +210,7 @@ def view_annotations():
         app.ibs.get_annot_species_texts(aid_list),
         app.ibs.get_annot_yaw_texts(aid_list),
         app.ibs.get_annot_quality_texts(aid_list),
-        [ reviewed_viewpoint is not None and reviewed_quality is not None and reviewed_quality is not -1 for reviewed_viewpoint, reviewed_quality in zip(app.ibs.get_annot_yaws(aid_list), app.ibs.get_annot_qualities(aid_list)) ],
+        [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(encounter_annot_viewpoint_processed(aid_list), encounter_annot_quality_processed(aid_list)) ],
     )
     annotation_list.sort(key=lambda t: t[0])
     return ap.template('view', 'annotations',
@@ -239,27 +240,32 @@ def turk_detection():
     try:
         eid = request.args.get('eid', '')
         eid = None if eid == 'None' or eid == '' else int(eid)
+
+        gid_list = app.ibs.get_valid_gids(eid=eid)
+        reviewed_list = encounter_image_processed(gid_list)
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list), )
+
+        enctext = None if eid is None else app.ibs.get_encounter_enctext(eid)
         gid = request.args.get('gid', '')
         if len(gid) > 0:
             gid = int(gid)
         else:
-            with SQLAtomicContext(app.db):
-                gid_list = app.ibs.get_valid_gids(eid=eid)
-                reviewed_list = app.ibs.get_image_reviewed(gid_list)
-                flag_list = [ reviewed == 0 for reviewed in reviewed_list ]
-                gid_list_ = ut.filter_items(gid_list, flag_list)
-                if len(gid_list_) == 0:
-                    gid = None
-                else:
-                    # gid = gid_list_[0]
-                    gid = random.choice(gid_list_)
+            gid_list = app.ibs.get_valid_gids(eid=eid)
+            reviewed_list = encounter_image_processed(gid_list)
+            flag_list = [ not reviewed for reviewed in reviewed_list ]
+            gid_list_ = ut.filter_items(gid_list, flag_list)
+            if len(gid_list_) == 0:
+                gid = None
+            else:
+                # gid = gid_list_[0]
+                gid = random.choice(gid_list_)
         previous = request.args.get('previous', None)
         finished = gid is None
         review = 'review' in request.args.keys()
         display_instructions = request.cookies.get('detection_instructions_seen', 0) == 0
         display_species_examples = False  # request.cookies.get('detection_example_species_seen', 0) == 0
         if not finished:
-            gpath = app.ibs.get_image_paths(gid)
+            gpath = app.ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
             image = ap.open_oriented_image(gpath)
             image_src = ap.embed_image_html(image, filter_width=False)
             # Get annotations
@@ -298,6 +304,8 @@ def turk_detection():
                            image_path=gpath,
                            image_src=image_src,
                            previous=previous,
+                           enctext=enctext,
+                           progress=progress,
                            finished=finished,
                            annotation_list=annotation_list,
                            display_instructions=display_instructions,
@@ -312,21 +320,27 @@ def turk_viewpoint():
     try:
         eid = request.args.get('eid', '')
         eid = None if eid == 'None' or eid == '' else int(eid)
+
+        gid_list = app.ibs.get_valid_gids(eid=eid)
+        aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+        reviewed_list = encounter_annot_viewpoint_processed(aid_list)
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+
+        enctext = None if eid is None else app.ibs.get_encounter_enctext(eid)
         aid = request.args.get('aid', '')
         if len(aid) > 0:
             aid = int(aid)
         else:
-            with SQLAtomicContext(app.db):
-                gid_list = app.ibs.get_valid_gids(eid=eid)
-                aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
-                reviewed_list = app.ibs.get_annot_yaws(aid_list)
-                flag_list = [ reviewed is None for reviewed in reviewed_list ]
-                aid_list_ = ut.filter_items(aid_list, flag_list)
-                if len(aid_list_) == 0:
-                    aid = None
-                else:
-                    # aid = aid_list_[0]
-                    aid = random.choice(aid_list_)
+            gid_list = app.ibs.get_valid_gids(eid=eid)
+            aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+            reviewed_list = encounter_annot_viewpoint_processed(aid_list)
+            flag_list = [ not reviewed for reviewed in reviewed_list ]
+            aid_list_ = ut.filter_items(aid_list, flag_list)
+            if len(aid_list_) == 0:
+                aid = None
+            else:
+                # aid = aid_list_[0]
+                aid = random.choice(aid_list_)
         previous = request.args.get('previous', None)
         value = request.args.get('value', None)
         review = 'review' in request.args.keys()
@@ -349,6 +363,8 @@ def turk_viewpoint():
                            image_path=gpath,
                            image_src=image_src,
                            previous=previous,
+                           enctext=enctext,
+                           progress=progress,
                            finished=finished,
                            display_instructions=display_instructions,
                            review=review)
@@ -361,26 +377,33 @@ def turk_quality():
     try:
         eid = request.args.get('eid', '')
         eid = None if eid == 'None' or eid == '' else int(eid)
+
+        gid_list = app.ibs.get_valid_gids(eid=eid)
+        aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+        reviewed_list = encounter_annot_viewpoint_processed(aid_list)
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+
+        enctext = None if eid is None else app.ibs.get_encounter_enctext(eid)
         aid = request.args.get('aid', '')
         if len(aid) > 0:
             aid = int(aid)
         else:
-            with SQLAtomicContext(app.db):
-                gid_list = app.ibs.get_valid_gids(eid=eid)
-                aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
-                reviewed_list = app.ibs.get_annot_qualities(aid_list)
-                flag_list = [ reviewed is None or reviewed == -1 for reviewed in reviewed_list ]
-                aid_list_ = ut.filter_items(aid_list, flag_list)
-                if len(aid_list_) == 0:
-                    aid = None
-                else:
-                    # aid = aid_list_[0]
-                    aid = random.choice(aid_list_)
+            gid_list = app.ibs.get_valid_gids(eid=eid)
+            aid_list = app.ibs.get_valid_aids(include_only_gid_list=gid_list)
+            reviewed_list = encounter_annot_quality_processed(aid_list)
+            flag_list = [ not reviewed for reviewed in reviewed_list ]
+            aid_list_ = ut.filter_items(aid_list, flag_list)
+            if len(aid_list_) == 0:
+                aid = None
+            else:
+                # aid = aid_list_[0]
+                aid = random.choice(aid_list_)
         previous = request.args.get('previous', None)
         value = request.args.get('value', None)
         review = 'review' in request.args.keys()
         finished = aid is None
-        display_instructions = request.cookies.get('quality_instructions_seen', 0) == 0
+        # display_instructions = request.cookies.get('quality_instructions_seen', 0) == 0
+        display_instructions = False
         if not finished:
             gid       = app.ibs.get_annot_gids(aid)
             gpath     = app.ibs.get_annot_chip_fpaths(aid)
@@ -398,6 +421,8 @@ def turk_quality():
                            image_path=gpath,
                            image_src=image_src,
                            previous=previous,
+                           enctext=enctext,
+                           progress=progress,
                            finished=finished,
                            display_instructions=display_instructions,
                            review=review)
@@ -408,6 +433,8 @@ def turk_quality():
 @app.route('/submit/detection', methods=['POST'])
 def submit_detection():
     method = request.form.get('detection-submit', '')
+    eid = request.args.get('eid', '')
+    eid = None if eid == 'None' or eid == '' else int(eid)
     gid = int(request.form['detection-gid'])
     turk_id = request.cookies.get('turk_id', -1)
 
@@ -415,11 +442,20 @@ def submit_detection():
         # app.ibs.delete_images(gid)
         # print('[web] (DELETED) turk_id: %s, gid: %d' % (turk_id, gid, ))
         pass
-    else:
-        eid = request.args.get('eid', '')
-        eid = None if eid == 'None' or eid == '' else int(eid)
+    elif method.lower() == 'clear':
         aid_list = app.ibs.get_image_aids(gid)
-
+        app.ibs.delete_annots(aid_list)
+        print('[web] (CLEAERED) turk_id: %s, gid: %d' % (turk_id, gid, ))
+        redirection = request.referrer
+        if 'gid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&gid=%d' % (redirection, gid, )
+            else:
+                redirection = '%s?gid=%d' % (redirection, gid, )
+        return redirect(redirection)
+    else:
+        aid_list = app.ibs.get_image_aids(gid)
         # Make new annotations
         width, height = app.ibs.get_image_sizes(gid)
         scale_factor = float(width) / 700.0
@@ -457,15 +493,16 @@ def submit_detection():
 @app.route('/submit/viewpoint', methods=['POST'])
 def submit_viewpoint():
     method = request.form.get('detection-submit', '')
+    eid = request.args.get('eid', '')
+    eid = None if eid == 'None' or eid == '' else int(eid)
     aid = int(request.form['viewpoint-aid'])
     turk_id = request.cookies.get('turk_id', -1)
 
     if method.lower() == 'delete':
         app.ibs.delete_annots(aid)
         print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        aid = None  # Reset AID to prevent previous
     else:
-        eid = request.args.get('eid', '')
-        eid = None if eid == 'None' or eid == '' else int(eid)
         value = int(request.form['viewpoint-value'])
 
         def convert_old_viewpoint_to_yaw(view_angle):
@@ -506,15 +543,16 @@ def submit_viewpoint():
 @app.route('/submit/quality', methods=['POST'])
 def submit_quality():
     method = request.form.get('detection-submit', '')
+    eid = request.args.get('eid', '')
+    eid = None if eid == 'None' or eid == '' else int(eid)
     aid = int(request.form['quality-aid'])
     turk_id = request.cookies.get('turk_id', -1)
 
     if method.lower() == 'delete':
         app.ibs.delete_annots(aid)
         print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        aid = None  # Reset AID to prevent previous
     else:
-        eid = request.args.get('eid', '')
-        eid = None if eid == 'None' or eid == '' else int(eid)
         quality = int(request.form['quality-value'])
         app.ibs.set_annot_qualities([aid], [quality])
         print('[web] turk_id: %s, aid: %d, quality: %d' % (turk_id, aid, quality))
@@ -541,7 +579,7 @@ def set_cookie():
 @app.route('/ajax/image/src/<gid>')
 def image_src(gid=None):
     # gpath = app.ibs.get_image_paths(gid)
-    gpath = app.ibs.get_image_thumbpath(gid)
+    gpath = app.ibs.get_image_thumbpath(gid, ensure_paths=True)
     return ap.return_src(gpath)
 
 
@@ -598,31 +636,12 @@ def error404(exception):
 ################################################################################
 
 
-def init_database(app, reset_db):
-    database_dir = utool.get_app_resource_dir('ibeis', 'web')
-    database_filename = 'app.sqlite3'
-    database_filepath = join(database_dir, database_filename)
-    utool.ensuredir(database_dir)
-    if reset_db:
-        utool.remove_file(database_filepath)
-    app.dbweb_version_expected = '1.0.0'
-    app.db = SQLDatabaseController(database_dir, database_filename)
-    _sql_helpers.ensure_correct_version(
-        app.ibs,
-        app.db,
-        app.dbweb_version_expected,
-        DBWEB_SCHEMA
-    )
-
-
 def start_tornado(app, port=5000, browser=BROWSER, blocking=False, reset_db=True):
     def _start_tornado():
         http_server = tornado.httpserver.HTTPServer(
             tornado.wsgi.WSGIContainer(app))
         http_server.listen(port)
         tornado.ioloop.IOLoop.instance().start()
-    # Open the web internal database
-    init_database(app, reset_db=reset_db)
     # Initialize the web server
     logging.getLogger().setLevel(logging.INFO)
     try:
@@ -663,6 +682,8 @@ def start_from_terminal():
     app.ibs = ibeis.opendb(db=opts.db)
     print('[web] Pre-computing all image thumbnails...')
     app.ibs.compute_all_thumbs()
+    print('[web] Pre-computing all image thumbnails (without annots)...')
+    app.ibs.compute_all_thumbs(draw_annots=False)
     print('[web] Pre-computing all annotation chips...')
     app.ibs.compute_all_chips()
     start_tornado(app, opts.port)
@@ -695,8 +716,10 @@ def start_from_ibeis(ibs, port=DEFAULT_PORT):
         app.default_species = None
     print('[web] DEFAULT SPECIES: %r' % (app.default_species))
     app.ibs = ibs
-    print('[web] Pre-computing all image thumbnails...')
+    print('[web] Pre-computing all image thumbnails (with annots)...')
     app.ibs.compute_all_thumbs()
+    print('[web] Pre-computing all image thumbnails (without annots)...')
+    app.ibs.compute_all_thumbs(draw_annots=False)
     print('[web] Pre-computing all annotation chips...')
     app.ibs.compute_all_chips()
     start_tornado(app, port)

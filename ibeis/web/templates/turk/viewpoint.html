@@ -13,8 +13,16 @@
     <div class="col-lg-8">
       {% if eid %}
         <div class="alert alert-info" role="alert">
-          Filtering for eid: <a href="{{ url_for('view_encounters') }}?eid={{ eid }}">{{ eid }}</a>
+          Filtering for eid: <a href="{{ url_for('view_encounters') }}?eid={{ eid }}">{{ enctext }} ({{ eid }})</a>
           <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
+        </div>
+      {% endif %}
+
+      {% if not refer %}
+        <div class="progress">
+          <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
+            {{ progress }}%
+          </div>
         </div>
       {% endif %}
 

@@ -13,8 +13,16 @@
     <div class="col-lg-10">
       {% if eid %}
         <div class="alert alert-info" role="alert">
-          Filtering for eid: <a href="{{ url_for('view_encounters') }}?eid={{ eid }}">{{ eid }}</a>
+          Filtering for eid: <a href="{{ url_for('view_encounters') }}?eid={{ eid }}">{{ enctext }} ({{ eid }})</a>
           <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
+        </div>
+      {% endif %}
+
+      {% if not refer %}
+        <div class="progress">
+          <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
+            {{ progress }}%
+          </div>
         </div>
       {% endif %}
       
@@ -26,25 +34,28 @@
       Path: {{ image_path }}
       <div id="bbox_annotator"></div>
       <div style="text-align: center; color: #aaa;">
-        <span>highlight and press 'b' to send an annotation to the back</a></span>
+        <span>hover to highlight and press <b>b</b> to send an annotation to the back, <b>Esc</b> or <b>k</b> to delete</a></span>
       </div>
       <br/>
       <form method="post" action="{{ url_for('submit_detection') }}?eid={{ eid }}&refer={{ REFER_DST_ENCODED }}" id="detection-form">
         <input type="text" name="detection-gid" value="{{ gid }}" style="display: none;" readonly>
         <div class="row">
-          <div class="col-lg-2">
-          {% if previous %}
-            <a class="btn btn-default pull-left" href="{{ url_for('turk_detection') }}?eid={{ eid }}&gid={{ previous }}">Previous {{ previous }}</a>
-          {% endif %}
-          </div>
+          <div class="col-lg-2"></div>
           <div class="col-lg-8" style="text-align:center;">
             {% if refer %}
               <a href="{{ REFER_DST_STR }}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back...</a>
             {% endif %}
           </div>
-          <div class="col-lg-2">
-            <input type="submit" name="detection-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
+          <div class="col-lg-2"></div>
+        </div>
+        <div class="row">
+          <div class="col-lg-12">
+            {% if previous %}
+              <a class="btn btn-default pull-left" href="{{ url_for('turk_detection') }}?eid={{ eid }}&gid={{ previous }}">Previous {{ previous }}</a>
+            {% endif %}
             <!-- <input type="submit" name="detection-submit" id="turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this image?')"> -->
+            <input type="submit" name="detection-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
+            <input type="submit" name="detection-submit" id="turk-submit-clear"  class="btn btn-warning pull-right" value="Clear">
           </div>
         </div>
         <textarea id="detection_data" name="detection-annotations" style="font-family:monospace; margin-top:30px;width: 100%; height: 100px; display: none;" readonly="" form="detection-form"></textarea>
@@ -247,14 +258,14 @@
                 <li><u>Translation</u> - by dragging the mouse an annotation can be moved.  An annotation can also be moved (when highlighted) by using the arrow keys on the keyboard.  When using the arrow keys, an annotation will be moved 1 pixel at a time.  When using the arrow keys to move an annotation and the <b>Shift</b> key is held, the annotation is moved 10 pixels at a time.</li>
                 <li><u>Scaling</u> - by dragging one of the 8 anchors an annotation can be resized.  If the <b>Shift</b> key is held, the annotation's aspect ratio is preserved.</li>
                 <li><u>Rotation</u> - by dragging on the <div class="ui-resizable" style="width: 16px; display: inline-block; border:none;"><div class="ui-rotatable-handle ui-draggable" style="display: block; margin-left: -6px; top: -10px;"></div></div> rotation anchor an annotation can be rotated.  If the <b>Shift</b> key is held, the annotation's angle is constrained to increments of 45 degrees.</li>
-                <li><u>Deletion</u> - by clicking on the <span style="position: relative; display: inline-block; margin-bottom: -5px; margin-right: -2px; width: 20px; height: 0px; padding: 16px 0px 0px; overflow: visible; color: rgb(255, 255, 255); border: 2px solid rgb(255, 255, 255); border-top-left-radius: 18px; border-top-right-radius: 18px; border-bottom-right-radius: 18px; border-bottom-left-radius: 18px; cursor: pointer; -webkit-user-select: none; text-align: center; background-color: rgb(0, 51, 0);"><div style="display: block; text-align: center; width: 16px; position: absolute; top: -2px; left: 0px; font-size: 16px; line-height: 16px; font-family: 'Helvetica Neue', Consolas, Verdana, Tahoma, Calibri, Helvetica, Menlo, 'Droid Sans', sans-serif;">×</div></span> button an annotation can be deleted.  An annotation can also be deleted (when highlighted) by hitting the <b>Esc</b> key.</li>
+                <li><u>Deletion</u> - by clicking on the <span style="position: relative; display: inline-block; margin-bottom: -5px; margin-right: -2px; width: 20px; height: 0px; padding: 16px 0px 0px; overflow: visible; color: rgb(255, 255, 255); border: 2px solid rgb(255, 255, 255); border-top-left-radius: 18px; border-top-right-radius: 18px; border-bottom-right-radius: 18px; border-bottom-left-radius: 18px; cursor: pointer; -webkit-user-select: none; text-align: center; background-color: rgb(0, 51, 0);"><div style="display: block; text-align: center; width: 16px; position: absolute; top: -2px; left: 0px; font-size: 16px; line-height: 16px; font-family: 'Helvetica Neue', Consolas, Verdana, Tahoma, Calibri, Helvetica, Menlo, 'Droid Sans', sans-serif;">×</div></span> button an annotation can be deleted.  An annotation can also be deleted (when highlighted) by hitting the <b>Esc</b> key or the <b>k</b> key.</li>
                 <li><u>Send to Back</u> - when an annotation is highlighted, pressing the <b>b</b> key will send the annotation to the "back".  This is useful (or required) when a large annotation is covering a smaller annotation and makes highlighting the smaller annotation difficult (or impossible).</li>
               </ul>
               <br/>
             </li>
             <li>Always annotate the animals regardless of viewpoint.</li>
             <li>If an image has no animals in it, simply hit <b>Accept</b> with no annotations, because the image <i>should</i> have no annotations.
-            <li>A new, in-progress annotation selection can be cancelled by pressing the <b>Esc</b> key.</li>
+            <li>A new, in-progress annotation selection can be cancelled by pressing the <b>Esc</b> key or the <b>k</b> key.</li>
             <li>The <b>Space</b> key deletes the image and does not save any viewpoint information for that image.  The <b>Enter</b> key submits all current annotations.</li>
             <li>Review annotations as fast as you can while maintaining perfect accuracy.</li>
             <li>To bring up these instructions again, click on the <span class="glyphicon glyphicon-info-sign" style="font-size: 14px;"></span> button</li>

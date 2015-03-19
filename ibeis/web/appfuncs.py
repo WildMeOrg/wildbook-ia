@@ -2,12 +2,27 @@ from __future__ import absolute_import, division, print_function
 from PIL import Image
 import numpy as np
 import cStringIO as StringIO
-from ibeis.web import navbar
 from flask import request, render_template
 # Others
 from os.path import join
 from datetime import date
 import base64
+
+
+class NavbarClass(object):
+    def __init__(nav):
+        nav.item_list = [
+            ('root', 'Home'),
+            ('view', 'View'),
+            ('turk', 'Turk'),
+            ('api',  'API'),
+        ]
+
+    def __iter__(nav):
+        _link = request.path.strip('/').split('/')
+        for link, nice in nav.item_list:
+            yield link == _link[0], link, nice
+
 
 ORIENTATIONS = {   # used in apply_orientation
     2: (Image.FLIP_LEFT_RIGHT,),
@@ -83,7 +98,7 @@ def decode_refer_url(encode):
 
 def template(template_directory=None, template_filename=None, **kwargs):
     global_args = {
-        'NAVBAR': navbar.NavbarClass(),
+        'NAVBAR': NavbarClass(),
         'YEAR':   date.today().year,
         'URL':    request.url,
         'REFER_SRC_STR':  request.url.replace(request.url_root, ''),

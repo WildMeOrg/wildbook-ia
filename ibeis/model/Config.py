@@ -1062,12 +1062,13 @@ class DisplayConfig(ConfigBase):
 class OtherConfig(ConfigBase):
     def __init__(other_cfg, **kwargs):
         super(OtherConfig, other_cfg).__init__(name='other_cfg')
-        #other_cfg.thumb_size     = 128
-        other_cfg.thumb_size     = 221
-        other_cfg.ranks_lt       = 2
-        other_cfg.auto_localize  = True
+        #other_cfg.thumb_size      = 128
+        other_cfg.thumb_size      = 221
+        other_cfg.thumb_bare_size = 700
+        other_cfg.ranks_lt        = 2
+        other_cfg.auto_localize   = True
         # maximum number of exemplars per name
-        other_cfg.max_exemplars  = 6
+        other_cfg.max_exemplars   = 6
         other_cfg.exemplars_per_view  = 2
         other_cfg.exemplar_distinctiveness_thresh  = .95
         other_cfg.detect_add_after = 1
