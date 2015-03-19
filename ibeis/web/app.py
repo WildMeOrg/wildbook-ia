@@ -378,7 +378,7 @@ def turk_quality():
 
         gid_list = app.ibs.get_valid_gids(eid=eid)
         aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
-        reviewed_list = encounter_annot_viewpoint_processed(aid_list)
+        reviewed_list = encounter_annot_quality_processed(aid_list)
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
 
         enctext = None if eid is None else app.ibs.get_encounter_enctext(eid)
