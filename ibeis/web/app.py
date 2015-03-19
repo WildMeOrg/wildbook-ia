@@ -20,10 +20,12 @@ from ibeis.web import appfuncs as ap
 # Others
 import ibeis.constants as const
 import random
+import math
 
 
 BROWSER = ut.get_argflag('--browser')
 DEFAULT_PORT = 5000
+PAGE_SIZE = 500
 app = flask.Flask(__name__)
 
 
@@ -134,6 +136,7 @@ def view_images():
     eid_list = []
     gid = request.args.get('gid', '')
     eid = request.args.get('eid', '')
+    page = max(0, int(request.args.get('page', 1)))
     if len(gid) > 0:
         gid_list = gid.strip().split(',')
         gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
@@ -144,6 +147,14 @@ def view_images():
     else:
         gid_list = app.ibs.get_valid_gids()
         filtered = False
+    # Page
+    page_start = min(len(gid_list), (page - 1) * PAGE_SIZE)
+    page_end   = min(len(gid_list), page * PAGE_SIZE)
+    page_total = int(math.ceil(len(gid_list) / PAGE_SIZE))
+    page_previous = None if page_start == 0 else page - 1
+    page_next = None if page_end == len(gid_list) else page + 1
+    gid_list = gid_list[page_start:page_end]
+    print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(gid_list), page_previous, page_next, ))
     image_unixtime_list = app.ibs.get_image_unixtime(gid_list)
     datetime_list = [
         ut.unixtime_to_datetime(image_unixtime)
@@ -174,7 +185,13 @@ def view_images():
                        gid_list_str=','.join(map(str, gid_list)),
                        num_gids=len(gid_list),
                        image_list=image_list,
-                       num_images=len(image_list))
+                       num_images=len(image_list),
+                       page=page,
+                       page_start=page_start,
+                       page_end=page_end,
+                       page_total=page_total,
+                       page_previous=page_previous,
+                       page_next=page_next)
 
 
 @app.route('/view/annotations')
@@ -185,6 +202,7 @@ def view_annotations():
     aid = request.args.get('aid', '')
     gid = request.args.get('gid', '')
     eid = request.args.get('eid', '')
+    page = max(0, int(request.args.get('page', 1)))
     if len(aid) > 0:
         aid_list = aid.strip().split(',')
         aid_list = [ None if aid_ == 'None' or aid_ == '' else int(aid_) for aid_ in aid_list ]
@@ -200,6 +218,15 @@ def view_annotations():
     else:
         aid_list = app.ibs.get_valid_aids()
         filtered = False
+    # Page
+    page_start = min(len(aid_list), (page - 1) * PAGE_SIZE)
+    page_end   = min(len(aid_list), page * PAGE_SIZE)
+    page_total = int(math.ceil(len(aid_list) / PAGE_SIZE))
+    page_previous = None if page_start == 0 else page - 1
+    page_next = None if page_end == len(aid_list) else page + 1
+    aid_list = aid_list[page_start:page_end]
+    print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(aid_list), page_previous, page_next, ))
+
     annotation_list = zip(
         aid_list,
         app.ibs.get_annot_gids(aid_list),
@@ -225,7 +252,13 @@ def view_annotations():
                        aid_list_str=','.join(map(str, aid_list)),
                        num_aids=len(aid_list),
                        annotation_list=annotation_list,
-                       num_annotations=len(annotation_list))
+                       num_annotations=len(annotation_list),
+                       page=page,
+                       page_start=page_start,
+                       page_end=page_end,
+                       page_total=page_total,
+                       page_previous=page_previous,
+                       page_next=page_next)
 
 
 @app.route('/turk')
