@@ -2751,116 +2751,120 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
     # General params
     if exemplars_per_view is None:
         exemplars_per_view = ibs.cfg.other_cfg.exemplars_per_view
-    PREFER_GOOD_OVER_OLDFLAG = True
-    verbose = False
-    dry_run = False
-    #
-    # Params for knapsack
-    def make_knapsack_params(N, levels_per_tier_list):
-        """
-        Args:
-            N (int): the integral maximum number of items
-            levels_per_tier_list (list): list of number of distinctions possible
-            per tier.
+    #PREFER_GOOD_OVER_OLDFLAG = True
+    #verbose = False
+    #dry_run = False
+    ##
+    ## Params for knapsack
+    #def make_knapsack_params(N, levels_per_tier_list):
+    #    """
+    #    Args:
+    #        N (int): the integral maximum number of items
+    #        levels_per_tier_list (list): list of number of distinctions possible
+    #        per tier.
 
-        Returns:
-            per-item weights, weights go group items into several tiers, and an
-            infeasible weight
-        """
-        EPS = 1E-9
-        # Solve for the minimum per-item weight
-        # to allow for preference wiggle room
-        w = N / (N + 1) + EPS
-        # level1 perference augmentation
-        # TODO: figure out mathematically ellegant value
-        pref_decimator = max(1, (N + EPS)) ** 2  # max is a hack for N = 0
-        # we want space to specify two levels of tier1 preference
-        tier_w_list = []
-        last_w = w
-        for num_levels in levels_per_tier_list:
-            last_w = tier_w = last_w / (num_levels * pref_decimator)
-            tier_w_list.append(tier_w)
-        infeasible_w = max(9001, N + 1)
-        return w, tier_w_list, infeasible_w
-    N = exemplars_per_view
-    levels_per_tier_list = [3, 1, 1]
-    w, tier_w_list, infeasible_w = make_knapsack_params(N, levels_per_tier_list)
+    #    Returns:
+    #        per-item weights, weights go group items into several tiers, and an
+    #        infeasible weight
+    #    """
+    #    EPS = 1E-9
+    #    # Solve for the minimum per-item weight
+    #    # to allow for preference wiggle room
+    #    w = N / (N + 1) + EPS
+    #    # level1 perference augmentation
+    #    # TODO: figure out mathematically ellegant value
+    #    pref_decimator = max(1, (N + EPS)) ** 2  # max is a hack for N = 0
+    #    # we want space to specify two levels of tier1 preference
+    #    tier_w_list = []
+    #    last_w = w
+    #    for num_levels in levels_per_tier_list:
+    #        last_w = tier_w = last_w / (num_levels * pref_decimator)
+    #        tier_w_list.append(tier_w)
+    #    infeasible_w = max(9001, N + 1)
+    #    return w, tier_w_list, infeasible_w
+    #N = exemplars_per_view
+    #levels_per_tier_list = [3, 1, 1]
+    #w, tier_w_list, infeasible_w = make_knapsack_params(N, levels_per_tier_list)
 
-    qual2_weight = {
-        const.QUAL_EXCELLENT : w + tier_w_list[0] + tier_w_list[1],
-        const.QUAL_GOOD      : w + tier_w_list[0],
-        const.QUAL_OK        : w + tier_w_list[1],
-        const.QUAL_UNKNOWN   : w + tier_w_list[1],
-        const.QUAL_POOR      : w + tier_w_list[2],
-        const.QUAL_JUNK      : infeasible_w,
-    }
-    # this probably broke with the introduction of 2 more tiers
-    oldflag_offset = (
-        # always prefer good over ok
-        tier_w_list[0] - tier_w_list[1]
-        if PREFER_GOOD_OVER_OLDFLAG else
-        # prefer ok over good when ok has oldflag
-        tier_w_list[0] + tier_w_list[1]
-    )
+    #qual2_weight = {
+    #    const.QUAL_EXCELLENT : w + tier_w_list[0] + tier_w_list[1],
+    #    const.QUAL_GOOD      : w + tier_w_list[0],
+    #    const.QUAL_OK        : w + tier_w_list[1],
+    #    const.QUAL_UNKNOWN   : w + tier_w_list[1],
+    #    const.QUAL_POOR      : w + tier_w_list[2],
+    #    const.QUAL_JUNK      : infeasible_w,
+    #}
+    ## this probably broke with the introduction of 2 more tiers
+    #oldflag_offset = (
+    #    # always prefer good over ok
+    #    tier_w_list[0] - tier_w_list[1]
+    #    if PREFER_GOOD_OVER_OLDFLAG else
+    #    # prefer ok over good when ok has oldflag
+    #    tier_w_list[0] + tier_w_list[1]
+    #)
 
-    def choose_exemplars(aids):
-        qualtexts = ibs.get_annot_quality_texts(aids)
-        oldflags = ibs.get_annot_exemplar_flags(aids)
-        # We like good more than ok, and junk is infeasible We prefer items that
-        # had previously been exemplars Build input for knapsack
-        weights = [qual2_weight[qual] + oldflag_offset * oldflag
-                   for qual, oldflag in zip(qualtexts, oldflags)]
-        #values = [1] * len(weights)
-        values = weights
-        indices = list(range(len(weights)))
-        items = list(zip(values, weights, indices))
-        total_value, chosen_items = ut.knapsack(items, N)
-        chosen_indices = ut.get_list_column(chosen_items, 2)
-        new_flags = [False] * len(aids)
-        for index in chosen_indices:
-            new_flags[index] = True
-        return new_flags
+    #def choose_exemplars(aids):
+    #    qualtexts = ibs.get_annot_quality_texts(aids)
+    #    oldflags = ibs.get_annot_exemplar_flags(aids)
+    #    # We like good more than ok, and junk is infeasible We prefer items that
+    #    # had previously been exemplars Build input for knapsack
+    #    weights = [qual2_weight[qual] + oldflag_offset * oldflag
+    #               for qual, oldflag in zip(qualtexts, oldflags)]
+    #    #values = [1] * len(weights)
+    #    values = weights
+    #    indices = list(range(len(weights)))
+    #    items = list(zip(values, weights, indices))
+    #    total_value, chosen_items = ut.knapsack(items, N)
+    #    chosen_indices = ut.get_list_column(chosen_items, 2)
+    #    new_flags = [False] * len(aids)
+    #    for index in chosen_indices:
+    #        new_flags[index] = True
+    #    return new_flags
 
-    def get_changed_infostr(yawtext, aids, new_flags):
-        old_flags = ibs.get_annot_exemplar_flags(aids)
-        quals = ibs.get_annot_quality_texts(aids)
-        ischanged = ut.xor_lists(old_flags, new_flags)
-        changed_list = ['***' if flag else ''
-                        for flag in ischanged]
-        infolist = list(zip(aids, quals, old_flags, new_flags, changed_list))
-        infostr = ('yawtext=%r:\n' % (yawtext,)) + ut.list_str(infolist)
-        return infostr
+    #def get_changed_infostr(yawtext, aids, new_flags):
+    #    old_flags = ibs.get_annot_exemplar_flags(aids)
+    #    quals = ibs.get_annot_quality_texts(aids)
+    #    ischanged = ut.xor_lists(old_flags, new_flags)
+    #    changed_list = ['***' if flag else ''
+    #                    for flag in ischanged]
+    #    infolist = list(zip(aids, quals, old_flags, new_flags, changed_list))
+    #    infostr = ('yawtext=%r:\n' % (yawtext,)) + ut.list_str(infolist)
+    #    return infostr
 
+    #aid_list = ibs.get_valid_aids()
+    #aids_list, unique_nids  = ibs.group_annots_by_name(aid_list)
+    ## for final settings because I'm too lazy to write
+    ## this correctly using group_indicies instead of group_items
+    #new_aid_list = []
+    #new_flag_list = []
+    #_iter = ut.ProgressIter(zip(aids_list, unique_nids), nTotal=len(aids_list), lbl='Optimizing name exemplars')
+    #for aids_, nid in _iter:
+    #    if ibs.is_nid_unknown(nid):
+    #        # do not change unknown animals
+    #        continue
+    #    yawtexts  = ibs.get_annot_yaw_texts(aids_)
+    #    yawtext2_aids = ut.group_items(aids_, yawtexts)
+    #    if verbose:
+    #        print('+ ---')
+    #        print('  nid=%r' % (nid))
+    #    for yawtext, aids in six.iteritems(yawtext2_aids):
+    #        new_flags = choose_exemplars(aids)
+    #        if verbose:
+    #            print(ut.indent(get_changed_infostr(yawtext, aids, new_flags)))
+    #        new_aid_list.extend(aids)
+    #        new_flag_list.extend(new_flags)
+    #    if verbose:
+    #        print('L ___')
     aid_list = ibs.get_valid_aids()
-    aids_list, unique_nids  = ibs.group_annots_by_name(aid_list)
-    # for final settings because I'm too lazy to write
-    # this correctly using group_indicies instead of group_items
-    new_aid_list = []
-    new_flag_list = []
-    _iter = ut.ProgressIter(zip(aids_list, unique_nids), nTotal=len(aids_list), lbl='Optimizing name exemplars')
-    for aids_, nid in _iter:
-        if ibs.is_nid_unknown(nid):
-            # do not change unknown animals
-            continue
-        yawtexts  = ibs.get_annot_yaw_texts(aids_)
-        yawtext2_aids = ut.group_items(aids_, yawtexts)
-        if verbose:
-            print('+ ---')
-            print('  nid=%r' % (nid))
-        for yawtext, aids in six.iteritems(yawtext2_aids):
-            new_flags = choose_exemplars(aids)
-            if verbose:
-                print(ut.indent(get_changed_infostr(yawtext, aids, new_flags)))
-            new_aid_list.extend(aids)
-            new_flag_list.extend(new_flags)
-        if verbose:
-            print('L ___')
+    new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
+        ibs, aid_list=aid_list, annots_per_view=exemplars_per_view, verbose=verbose)
 
     if not dry_run:
         ibs.set_annot_exemplar_flags(new_aid_list, new_flag_list)
     return new_aid_list, new_flag_list
 
 
+@__injectable
 def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, verbose=False):
     """
     Example:
@@ -2870,6 +2874,10 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
         >>> ibs = ibeis.opendb('testdb2')
         >>> aid_list = ibs.get_valid_aids()
         >>> annots_per_view = 2
+        >>> new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(ibs)
+        >>> result = sum(new_flag_list)
+        >>> print(result)
+        38
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
@@ -2972,7 +2980,24 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
             new_flag_list.extend(flags)
         if verbose:
             print('L ___')
-    pass
+    return new_aid_list, new_flag_list
+
+
+@__injectable
+def query_enc_names_vs_exemplars(ibs, exemplars_per_view=2, eid=None):
+    """
+
+    """
+    aid_list = ibs.get_valid_aids(eid=eid)
+    new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
+        ibs, aid_list=aid_list, annots_per_view=exemplars_per_view)
+    qaids = ut.filter_items(new_aid_list, new_flag_list)
+    daids = ibs.get_valid_aids(is_exemplar=True, nojunk=True)
+    cfgdict = dict(can_match_samename=False)
+    #, use_k_padding=True)
+    qreq_ = ibs.new_query_request(qaids, daids, cfgdict)
+    qres_list = ibs.query_chips(qreq_=qreq_)
+    return qres_list
 
 
 def detect_join_cases(ibs):
