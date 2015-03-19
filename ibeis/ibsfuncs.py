@@ -2865,6 +2865,72 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, dry_r
 
 
 @__injectable
+def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
+    """
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb2')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> annots_per_name = 2
+        >>> aid_subset = get_prioritized_name_subset(ibs, aid_list, annots_per_name)
+        >>> result = len(aid_subset)
+        >>> print(result)
+        31
+    """
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+
+    qualtext2_weight = {
+        const.QUAL_EXCELLENT : 7,
+        const.QUAL_GOOD      : 6,
+        const.QUAL_OK        : 5,
+        const.QUAL_POOR      : 1,
+        const.QUAL_UNKNOWN   : 1,
+        const.QUAL_JUNK      : 0,
+    }
+
+    yawtext2_weight = {
+        'right'      : 3,
+        'frontright' : 0,
+        'front'      : 0,
+        'frontleft'  : 6,
+        'left'       : 3,
+        'backleft'   : 6,
+        'back'       : 0,
+        'backright'  : 0,
+        None         : 0,
+    }
+    qualtext_list = ibs.get_annot_quality_texts(aid_list)
+    yawtext_list = ibs.get_annot_yaw_texts(aid_list)
+
+    nid_list = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=True))
+    unique_nids, groupxs_list = vt.group_indices(nid_list)
+    grouped_aids_     = vt.apply_grouping(np.array(aid_list), groupxs_list)
+    grouped_qualtexts = vt.apply_grouping(np.array(qualtext_list), groupxs_list)
+    grouped_yawtexts  = vt.apply_grouping(np.array(yawtext_list), groupxs_list)
+    yaw_weights_list = (
+        np.array(ut.dict_take(yawtext2_weight, yawtexts))
+        for yawtexts in grouped_yawtexts
+    )
+    qual_weights_list = (
+        np.array(ut.dict_take(qualtext2_weight, yawtexts))
+        for yawtexts in grouped_qualtexts
+    )
+    weights_list = [
+        yaw_weights + qual_weights
+        for yaw_weights, qual_weights in zip(yaw_weights_list, qual_weights_list)
+    ]
+    ordered_aids_list = [
+        ut.listclip(aids.take(weights.argsort()[::-1]), annots_per_name)
+        for aids, weights in zip(grouped_aids_, weights_list)
+    ]
+    aid_subset = ut.flatten(ordered_aids_list)
+    return aid_subset
+
+
+@__injectable
 def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, verbose=False):
     """
     Example:

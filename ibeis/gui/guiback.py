@@ -942,7 +942,7 @@ class MainWindowBackend(QtCore.QObject):
     @blocking_slot()
     def compute_queries(back, refresh=True, daids_mode=None,
                         query_is_known=None, qaid_list=None,
-                        use_viewoint_quality_subset=False,
+                        use_prioritized_name_subset=False,
                         use_visual_selection=False, cfgdict={}, **kwargs):
         """
         Batch -> Compute OldStyle Queries
@@ -971,9 +971,10 @@ class MainWindowBackend(QtCore.QObject):
             else:
                 # if not visual selection, then qaids are selected by encounter
                 qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
-        if use_viewoint_quality_subset:
-            qaid_list = ut.filter_items(
-                *back.ibs.get_annot_quality_viewpoint_subset(aid_list=qaid_list, annots_per_view=2))
+        if use_prioritized_name_subset:
+            qaid_list = back.ibs.get_prioritized_annot_subset(aid_list=qaid_list, annots_per_name=2)
+            #qaid_list = ut.filter_items(
+            #    *back.ibs.get_annot_quality_viewpoint_subset(aid_list=qaid_list, annots_per_view=2))
 
         daid_list = back.get_selected_daids(eid=eid, daids_mode=daids_mode)
         if len(qaid_list) == 0:
