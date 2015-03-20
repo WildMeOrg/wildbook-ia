@@ -74,7 +74,6 @@
             <th class="table-cell-wrap">Party</th>
             <th class="table-cell-wrap">Contributor</th>
             <th class="table-cell-wrap">Notes</th>
-            <th>Turk</th>
             <th>Annotations</th>
             <th>Encounter</th>
           </tr>
@@ -87,7 +86,7 @@
           {% else %}
             {% for (gid, eid, name, unixtime, datetime, gps, party, contributor, notes, reviewed) in image_list %}
             <tr {% if reviewed %}class="success"{% endif %}>
-              <th scope="row"><a href="{{ url_for('turk_detection') }}?gid={{ gid }}&refer={{ REFER_SRC_ENCODED }}">{{ gid }}</a></th>
+              <th scope="row">{{ gid }}</th>
               <td><a href="{{ url_for('turk_detection') }}?gid={{ gid }}&refer={{ REFER_SRC_ENCODED }}"><img class="ajax-image-load ajax-image-unloaded" src="" gid="{{ gid }}" /></a></td>
               <td>{{ name }}</td>
               <td>{{ datetime }}</td>
@@ -95,7 +94,6 @@
               <td class="table-cell-wrap">{{ party }}</td>
               <td class="table-cell-wrap">{{ contributor }}</td>
               <td class="table-cell-wrap">{{ notes }}</td>
-              <td><a href="{{ url_for('turk_detection') }}?gid={{ gid }}&refer={{ REFER_SRC_ENCODED }}">Detections</a></td>
               <td><a href="{{ url_for('view_annotations') }}?gid={{ gid }}">Review</a></td>
               {% if num_eids > 0 %}
                 <td><a href="{{ url_for('view_encounters') }}?eid={{ eid }}">Go to</a></td>

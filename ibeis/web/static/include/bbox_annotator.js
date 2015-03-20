@@ -172,6 +172,7 @@
       this.default_color = options.default_color;
       this.adding = false;
       this.editing = false;
+      this.editing_mouse_inside = false;
       image_element = new Image();
       image_element.src = options.url;
       image_element.onload = function() {
@@ -217,6 +218,10 @@
           $(".annotated_bounding_box").trigger('mouseenter');
         }
       });
+      // this.annotator_element.on('contextmenu', function(e) { 
+      //   e.preventDefault();
+      //   return false;
+      // })
       this.annotator_element.mousedown(function(e) {
         if (!annotator.hit_menuitem) {
           switch (status) {
@@ -226,10 +231,14 @@
                 selector.get_input_element().blur();
               }
               if (e.which === 1) {
+                console.log('Left Mouse button pressed (ELEMENT).');
                 selector.start(e.pageX, e.pageY);
                 status = 'hold';
                 annotator.adding = true;
                 annotator.editing = false;
+              }
+              else if (e.which === 3) {
+                console.log('Right Mouse button pressed (ELEMENT).');
               }
               break;
             case 'hold':
@@ -242,6 +251,18 @@
               }
           }
         }
+        else if (annotator.hit_menuitem)
+        {
+            switch (status) {
+                case 'input':
+                    if (e.which === 1) {
+                        console.log('Left Mouse button pressed (BOX). ' + status);
+                    }
+                    else if (e.which === 3) {
+                        console.log('Right Mouse button pressed (BOX). ' + status);
+                    }
+            }
+        }
         else if(!annotator.editing)
         {
           // annotator.hit_menuitem = false;
@@ -249,6 +270,22 @@
         return true;
       });
       $(window).mousemove(function(e) {
+        var active_box;
+        active_box = $('.annotated_bounding_box_active');
+        position_annotator = $('#bbox_annotator').position();
+        position_origin = active_box.position();
+        if(position_annotator !== undefined && position_origin !== undefined)
+        {
+            position_origin_x = position_annotator.left + position_origin.left;
+            position_origin_y = position_annotator.top + position_origin.top;
+            active_box.find('.ui-resizable-handle').each(function() {
+                position_handle = $(this).position();
+                position_handle_x = position_origin_x + position_handle.left;
+                position_handle_y = position_origin_y + position_handle.top;
+                console.log('    Button: (' + position_handle_x + ', ' + position_handle_y + ')');
+            });
+            console.log(' ');
+        }
         switch (status) {
           case 'hold':
             selector.update_rectangle(e.pageX, e.pageY);
@@ -307,7 +344,7 @@
             {   
               index = active_box.prevAll(".annotated_bounding_box").length; 
               move = 1     
-              if(event.shiftKey) {
+              if(e.shiftKey) {
                 move *= 10;
               }   
               img_width = parseInt(annotator.image_frame.css('width'));
@@ -378,6 +415,12 @@
         }
       });
       selector.get_input_element().mousedown(function(e) {
+        if (e.which === 1) {
+        console.log('Left Mouse button pressed (INPUT).');
+        }
+        else if (e.which === 3) {
+        console.log('Right Mouse button pressed (INPUT).');
+        }
         return annotator.hit_menuitem = true;
       });
       selector.get_input_element().mousemove(function(e) {
@@ -387,6 +430,12 @@
         return annotator.hit_menuitem = true;
       });
       return selector.get_input_element().parent().mousedown(function(e) {
+        if (e.which === 1) {
+        console.log('Left Mouse button pressed (PARENT).');
+        }
+        else if (e.which === 3) {
+        console.log('Right Mouse button pressed (PARENT).');
+        }
         return annotator.hit_menuitem = true;
       });
     };
@@ -400,9 +449,9 @@
     };
 
     BBoxAnnotator.prototype.add_entry = function(entry) {
-      var annotator, box_element, close_button, rotate_button, text_box, editing_mouse_inside;
+      var annotator, box_element, close_button, rotate_button, text_box;
       
-      function update_style(hover, annotator)
+      function update_style(hover, annotator, e)
       {
         if(hover)
         {
@@ -417,7 +466,7 @@
           close_button.show();
           annotator.hit_menuitem = true;
         }
-        else if(annotator.adding || ! editing_mouse_inside)
+        else if(annotator.adding || ! annotator.editing_mouse_inside)
         {
           box_element.css('border-color', annotator.default_color);
           box_element.css('opacity', '0.8');
@@ -456,37 +505,37 @@
       this.entries.push(entry);
       box_element = $('<div class="ui-widget-content annotated_bounding_box"></div>');
       var resize_params = {
-          start: function(event, ui) {
+          start: function(e, ui) {
             annotator.editing = true;
           },
-          stop: function(event, ui) {
+          stop: function(e, ui) {
             annotator.editing = false;
             update_dimensions();
-            update_style(false, annotator);
+            update_style(false, annotator, e);
           },
           containment: "#bbox_annotator",
           handles: 'n, s, e, w, ne, se, nw, sw',
       };
       var rotate_params = {
-          start: function(event, ui) {
+          start: function(e, ui) {
             annotator.editing = true;
           },
-          stop: function(event, ui) {
+          stop: function(e, ui) {
             annotator.editing = false;
             update_angle(ui.angle.stop);
-            update_style(false, annotator);
+            update_style(false, annotator, e);
           },
           angle: entry.angle,
       };
       var drag_params = {
-          start: function(event, ui) {
+          start: function(e, ui) {
             annotator.editing = true;
           },
-          stop: function(event, ui) {
+          stop: function(e, ui) {
             console.log("STOP");
             annotator.editing = false;
             update_dimensions();
-            update_style(false, annotator);
+            update_style(false, annotator, e);
           },
           containment: "#bbox_annotator",
       };
@@ -548,14 +597,15 @@
       if (this.show_label) {
         text_box.text(entry.label);
       }
-      editing_mouse_inside = false;
+      annotator.editing_mouse_inside = false;
       box_element.hover((function(e) {
-        editing_mouse_inside = true;
+        console.log('Hover IN: ' + e.pageX + ' ' + e.pageY + ' ' + status + ' ' + annotator.editing_mouse_inside);
+        annotator.editing_mouse_inside = true;
         if( ! annotator.adding)
         {
           if( ! annotator.editing)
           {
-            update_style(true, annotator); 
+            update_style(true, annotator, e); 
           }
         }
         else
@@ -563,10 +613,11 @@
           update_style(false, annotator);
         }
       }), (function(e) {
-        editing_mouse_inside = false;
+        console.log('Hover OUT: ' + e.pageX + ' ' + e.pageY + ' ' + status + ' ' + annotator.editing_mouse_inside);
+        annotator.editing_mouse_inside = false;
         if( ! annotator.editing)
         { 
-          update_style(false, annotator);
+          update_style(false, annotator, e);
         }
       }));
       close_button.mousedown(function(e) {

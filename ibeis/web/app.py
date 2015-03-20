@@ -293,6 +293,8 @@ def view_annotations():
         app.ibs.get_annot_species_texts(aid_list),
         app.ibs.get_annot_yaw_texts(aid_list),
         app.ibs.get_annot_quality_texts(aid_list),
+        app.ibs.get_annot_sex_texts(aid_list),
+        app.ibs.get_annot_age_texts(aid_list),
         [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(encounter_annot_viewpoint_processed(aid_list), encounter_annot_quality_processed(aid_list)) ],
     )
     annotation_list.sort(key=lambda t: t[0])
@@ -511,6 +513,63 @@ def turk_quality():
         return error404(e)
 
 
+@app.route('/turk/additional')
+def turk_additional():
+    try:
+        eid = request.args.get('eid', '')
+        eid = None if eid == 'None' or eid == '' else int(eid)
+
+        gid_list = app.ibs.get_valid_gids(eid=eid)
+        aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
+        reviewed_list = encounter_annot_quality_processed(aid_list)
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+
+        enctext = None if eid is None else app.ibs.get_encounter_enctext(eid)
+        aid = request.args.get('aid', '')
+        if len(aid) > 0:
+            aid = int(aid)
+        else:
+            aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
+            if len(aid_list_) == 0:
+                aid = None
+            else:
+                # aid = aid_list_[0]
+                aid = random.choice(aid_list_)
+        previous = request.args.get('previous', None)
+        value = app.ibs.get_annot_qualities(aid)
+        if value == -1:
+            value = None
+        if value == 0:
+            value = 1
+        review = 'review' in request.args.keys()
+        finished = aid is None
+        display_instructions = request.cookies.get('additional_instructions_seen', 0) == 0
+        if not finished:
+            gid       = app.ibs.get_annot_gids(aid)
+            gpath     = app.ibs.get_annot_chip_fpaths(aid)
+            image     = ap.open_oriented_image(gpath)
+            image_src = ap.embed_image_html(image)
+        else:
+            gid       = None
+            gpath     = None
+            image_src = None
+        return ap.template('turk', 'additional',
+                           eid=eid,
+                           gid=gid,
+                           aid=aid,
+                           value=value,
+                           image_path=gpath,
+                           image_src=image_src,
+                           previous=previous,
+                           enctext=enctext,
+                           progress=progress,
+                           finished=finished,
+                           display_instructions=display_instructions,
+                           review=review)
+    except Exception as e:
+        return error404(e)
+
+
 @app.route('/submit/detection', methods=['POST'])
 def submit_detection():
     method = request.form.get('detection-submit', '')
@@ -618,6 +677,32 @@ def submit_quality():
         return redirect(ap.decode_refer_url(refer))
     else:
         return redirect(url_for('turk_quality', eid=eid, previous=aid))
+
+
+@app.route('/submit/additional', methods=['POST'])
+def submit_additional():
+    method = request.form.get('detection-submit', '')
+    eid = request.args.get('eid', '')
+    eid = None if eid == 'None' or eid == '' else int(eid)
+    aid = int(request.form['additional-aid'])
+    turk_id = request.cookies.get('turk_id', -1)
+
+    if method.lower() == 'delete':
+        app.ibs.delete_annots(aid)
+        print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        aid = None  # Reset AID to prevent previous
+    else:
+        sex = int(request.form['additional-sex-value'])
+        age = int(request.form['additional-age-value'])
+        app.ibs.set_annot_sex([aid], [sex])
+        app.ibs.set_annot_age([aid], [age])
+        print('[web] turk_id: %s, aid: %d, sex: %r, age: %r' % (turk_id, aid, sex, age))
+    # Return HTML
+    refer = request.args.get('refer', '')
+    if len(refer) > 0:
+        return redirect(ap.decode_refer_url(refer))
+    else:
+        return redirect(url_for('turk_additional', eid=eid, previous=aid))
 
 
 @app.route('/ajax/cookie')
