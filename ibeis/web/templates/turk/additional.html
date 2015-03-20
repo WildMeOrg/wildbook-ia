@@ -40,63 +40,37 @@
       <br/>
       <form method="post" action="{{ url_for('submit_additional') }}?eid={{ eid }}&refer={{ REFER_DST_ENCODED }}">
         <input type="text" name="additional-aid" value="{{ aid }}" style="display: none;" readonly>
-        Value: <span id="label-value"></span> | Label: <span id="label-text"></span>
+        Sex: <span id="label-sex"></span> | Age: <span id="label-age"></span>
         <br/>
-        <input type="range" name="additional-sex-value" id="slider-additional" value="{% if value %}{{ value }}{% else %}3{% endif %}" min="1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <input type="range" name="additional-sex-value" id="slider-additional-sex" value="{% if value_sex %}{{ value_sex }}{% else %}1{% endif %}" min="1" max="3" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
         <div class="row-custom-expand" style="height: 50px;">
-          <div class="col-custom-span col-custom-span-5">
-            <span class="glyphicon glyphicon-star"></span>
+          <div class="col-custom-span col-custom-span-3">
+            Unknown
           </div>
-          <div class="col-custom-span col-custom-span-5">
-            <span class="glyphicon glyphicon-star"></span>
-            <span class="glyphicon glyphicon-star"></span>
+          <div class="col-custom-span col-custom-span-3">
+            Female
           </div>
-          <div class="col-custom-span col-custom-span-5">
-            <span class="glyphicon glyphicon-star" style="top: 18px; left: 8px;"></span>
-            <span class="glyphicon glyphicon-star"></span>
-            <span class="glyphicon glyphicon-star" style="top: 18px; right: 8px;"></span>
-          </div>
-          <div class="col-custom-span col-custom-span-5">
-            <span class="glyphicon glyphicon-star" style="top: 18px; left: 18px;"></span>
-            <span class="glyphicon glyphicon-star"></span>
-            <span class="glyphicon glyphicon-star"></span>
-            <span class="glyphicon glyphicon-star" style="top: 18px; right: 18px;"></span>
-          </div>
-          <div class="col-custom-span col-custom-span-5">
-            <span class="glyphicon glyphicon-star" style="top: 26px; left: 28px;"></span>
-            <span class="glyphicon glyphicon-star" style="top: 12px; left: 5px;"></span>
-            <span class="glyphicon glyphicon-star"></span>
-            <span class="glyphicon glyphicon-star" style="top: 12px; right: 5px;"></span>
-            <span class="glyphicon glyphicon-star" style="top: 26px; right: 28px;"></span>
+          <div class="col-custom-span col-custom-span-3">
+            Male
           </div>
         </div>
 
-        <input type="range" name="additional-age-value" id="slider-additional" value="{% if value %}{{ value }}{% else %}3{% endif %}" min="1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <input type="range" name="additional-age-value" id="slider-additional-age" value="{% if value_age %}{{ value_age }}{% else %}5{% endif %}" min="1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
         <div class="row-custom-expand" style="height: 50px;">
           <div class="col-custom-span col-custom-span-5">
-            <span class="glyphicon glyphicon-star"></span>
+            0-3
           </div>
           <div class="col-custom-span col-custom-span-5">
-            <span class="glyphicon glyphicon-star"></span>
-            <span class="glyphicon glyphicon-star"></span>
+            3-6
           </div>
           <div class="col-custom-span col-custom-span-5">
-            <span class="glyphicon glyphicon-star" style="top: 18px; left: 8px;"></span>
-            <span class="glyphicon glyphicon-star"></span>
-            <span class="glyphicon glyphicon-star" style="top: 18px; right: 8px;"></span>
+            6-12
           </div>
           <div class="col-custom-span col-custom-span-5">
-            <span class="glyphicon glyphicon-star" style="top: 18px; left: 18px;"></span>
-            <span class="glyphicon glyphicon-star"></span>
-            <span class="glyphicon glyphicon-star"></span>
-            <span class="glyphicon glyphicon-star" style="top: 18px; right: 18px;"></span>
+            12-24
           </div>
           <div class="col-custom-span col-custom-span-5">
-            <span class="glyphicon glyphicon-star" style="top: 26px; left: 28px;"></span>
-            <span class="glyphicon glyphicon-star" style="top: 12px; left: 5px;"></span>
-            <span class="glyphicon glyphicon-star"></span>
-            <span class="glyphicon glyphicon-star" style="top: 12px; right: 5px;"></span>
-            <span class="glyphicon glyphicon-star" style="top: 26px; right: 28px;"></span>
+            24+
           </div>
         </div>
         <br/>
@@ -121,215 +95,17 @@
           <h4 class="modal-title" id="myModalLabel">Additional Turking Instructions</h4>
         </div>
         <div class="modal-body">
-          To turk a additional, simply adjust the slider for the image based on the following guidelines:
-          <br/>
-          <img class="image-center" src="{{ url_for('static', filename='images/example-additional1.jpg') }}" style="width:80%; margin-top: 30px;">
-          <p style="width:100%; color:#888; text-align:center;"><i>The "information" (keypoints) in the image that we want to classify</i></p>
-          <br/>
-          <ul style="padding-right:30px;">
-            <li>
-              When deciding the additional of an image, it is important to keep in mind what information the underlying image analysis algorithms care about.  
-              Looking at the image above, the white ellipsis on the body of the animal indicate what informaiton is the most important, whereas the red and orange
-              ellipsis indicate information that is less important.  
-            </li>
-            <li>
-              The additional of the annotation is decided by 4 metrics (by order of importance):
-              <ul style="padding-right:30px;">
-                <li>                  
-                  <u>Partially Visible</u> - the entire animal is not visible due to visual obstruction by <b>non-landscape objects (other animals, cars, buildings, the animal is off the side of the image, etc.)</b>
-                </li>
-                <li>
-                  <u>Occlusion</u> - the entire animal is not visible due to visual obstruction by <b>natural landscape (brush, trees, grass, etc.)</b>
-                </li>
-                <li>                  
-                  <u>Focus</u> - the image of the animal is out of focus
-                </li>
-                <li>                  
-                  <u>Lighting and Shadow</u> - the animal is under- or over-exposed, shadowed by another object, or its own pose is causing shadows on its body
-                </li>
-              </ul>
-            </li>
-            <li>
-              The way you measure the iamge's additional will <b>change for each viewpoint</b>.  If the viewpoint would not normally allow for one of the metrics above (e.g. a frontal image of a Plains Zebra would not normally 
-              give a view of the rump) then that metric can be ignored.  Judge the image on what an <i>"ideal"</i> image of that species given the viewpoint the animal is in.
+            <div style="text-align: center; margin-bottom: 30px;" id="biologist-approval">
+              <img src="{{ url_for('static', filename='images/example-additional1.jpg') }}"/>
+              <h3>Are you Dr. Dan Rubenstein or a Princeton biologist with experience on sexing and aging equine species?</h3>
               <br/>
-              <i>For example:</i>
-            </li>
 
-            <div class="row" style="border-bottom: 1px solid #aaa; padding-bottom: 50px;">
-              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
-                <span class="glyphicon glyphicon-star"></span>
-                <br/>
-                <h3 style="margin-top: 0px; margin-bottom: 0px; margin-left: -6px; display: block;">Junk</h3>
-                <br/>
-                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
-                  <li>Severe occlusion</li>
-                  <li>Little to no parts visible</li>
-                  <li>Out of focus</li>
-                  <li>Lots of shadow</li>
-                </ul>
-              </div>
-              <div class="col-lg-9" style="margin-top: 20px;">
-                <div class="row">
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-junk1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-junk2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-junk3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-junk4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                </div>
-              </div>
-            </div>
+              <a class="btn btn-default" href="{{ url_for('root') }}" style="margin-right: 20px;">No</a>
+              <a class="btn btn-danger" onclick="is_biologist();">Yes</a>
+            </div> 
 
-            <div class="row" style="border-bottom: 1px solid #aaa; padding-bottom: 50px;">
-              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
-                <span class="glyphicon glyphicon-star"></span>
-                <span class="glyphicon glyphicon-star"></span>
-                <br/>
-                <h3 style="margin-top: 0px; margin-bottom: 0px; margin-left: -6px; display: block;">Poor</h3>
-                <br/>
-                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
-                  <li>Severe occlusion</li>
-                  <li>Head, shoulder, <b>OR</b> rump visible</li>
-                  <li>Mildly out of focus</li>
-                  <li>Lots of shadow</li>
-                </ul>
-              </div>
-              <div class="col-lg-9" style="margin-top: 20px;">
-                <div class="row">
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-poor1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-poor2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-poor3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-poor4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="row" style="border-bottom: 1px solid #aaa; padding-bottom: 50px;">
-              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
-                <span class="glyphicon glyphicon-star" style="top: 18px; left: 8px;"></span>
-                <span class="glyphicon glyphicon-star"></span>
-                <span class="glyphicon glyphicon-star" style="top: 18px; right: 8px;"></span>
-                <br/>
-                <h3 style="margin-top: 20px; margin-left: -6px; display: block;">OK</h3>
-                <br/>
-                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
-                  <li>Little occlusion</li>
-                  <li>Head, shoulder, <b>AND</b> rump visible</li>
-                  <li>In focus</li>
-                  <li>Moderate shadow</li>
-                </ul>
-              </div>
-              <div class="col-lg-9" style="margin-top: 20px;">
-                <div class="row">
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-ok1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-ok2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-ok3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-ok4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="row" style="border-bottom: 1px solid #aaa; padding-bottom: 50px;">
-              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
-                <span class="glyphicon glyphicon-star" style="top: 18px; left: 18px;"></span>
-                <span class="glyphicon glyphicon-star"></span>
-                <span class="glyphicon glyphicon-star"></span>
-                <span class="glyphicon glyphicon-star" style="top: 18px; right: 18px;"></span>
-                <br/>
-                <h3 style="margin-top: 20px; margin-left: -6px; display: block;">Good</h3>
-                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
-                  <li>Little occlusion</li>
-                  <li>Entire animal visible</li>
-                  <li>In focus</li>
-                  <li>Little shadow</li>
-                </ul>
-              </div>
-              <div class="col-lg-9" style="margin-top: 20px;">
-                <div class="row">
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-good1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-good2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-good3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-good4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="row" style="padding-bottom: 50px;">
-              <div class="col-lg-3" style="text-align:center; padding-top: 50px;">
-                <span class="glyphicon glyphicon-star" style="top: 26px; left: 28px;"></span>
-                <span class="glyphicon glyphicon-star" style="top: 12px; left: 5px;"></span>
-                <span class="glyphicon glyphicon-star"></span>
-                <span class="glyphicon glyphicon-star" style="top: 12px; right: 5px;"></span>
-                <span class="glyphicon glyphicon-star" style="top: 26px; right: 28px;"></span>
-                <br/>
-                <h3 style="margin-top: 30px; margin-left: -6px; display: block;">Excellent</h3>
-                <ul style="color: #999; font-style: italic;padding-left: 0px; text-align: left;">
-                  <li>No occlusion</li>
-                  <li>Entire animal visible</li>
-                  <li>In focus</li>
-                  <li>No shadow</li>
-                </ul>
-              </div>
-              <div class="col-lg-9" style="margin-top: 20px;">
-                <div class="row">
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-excellent1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-excellent2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-excellent3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                  <div class="col-sm-6 col-md-6 col-lg-6">
-                    <img src="{{ url_for('static', filename='images/example-additional-excellent4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <li>For faster additional annotation, the number keys or a keypad can be used.  The numbers <b>1 thru 5</b> are mapped to their corresponding star ratings.  We urge every turker to use the number pad to input the additional for speed purposes. </li>
+            <li>For faster sex annotation, the number keys or a keypad can be used.  The numbers <b>8, 9, and 0</b> are mapped to the corresponding sexes <b>Unknown, Female, Male</b>. The letters <b>'u', 'f', and 'm'</b> are also mapped to the corresponding sexes <b>Unknown, Female, Male</b>.
+            <li>For faster age annotation, the number keys or a keypad can be used.  The numbers <b>1 thru 5</b> are mapped to their corresponding age categories.  We urge every turker to use the number pad to input the additional for speed purposes. </li>
             <li>If the additional cannot be determined due to not enough information (e.g., the animal is no animal in the image, the image is too blurry or there isn't enough light, there is only a small chunk of an animal in the image - like a leg or a piece of the head), you have two choices: 
               <ol>
                 <li>edit the annotation by revisiting the image (link below the image)</li>

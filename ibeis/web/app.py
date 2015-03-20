@@ -18,6 +18,7 @@ import utool as ut
 # Web Internal
 from ibeis.web import appfuncs as ap
 # Others
+import traceback
 import ibeis.constants as const
 import random
 import math
@@ -44,6 +45,16 @@ def encounter_annot_viewpoint_processed(aid_list):
 
 def encounter_annot_quality_processed(aid_list):
     annots_reviewed = [ reviewed is not None and reviewed is not -1 for reviewed in app.ibs.get_annot_qualities(aid_list) ]
+    return annots_reviewed
+
+
+def encounter_annot_additional_processed(aid_list, nid_list):
+    sex_list = app.ibs.get_annot_sex(aid_list)
+    age_list = app.ibs.get_annot_age_months_est(aid_list)
+    annots_reviewed = [
+        (nid < 0) or (nid > 0 and sex >= 0 and -1 not in list(age) and list(age).count(None) < 2)
+        for nid, sex, age in zip(nid_list, sex_list, age_list)
+    ]
     return annots_reviewed
 
 
@@ -221,7 +232,7 @@ def view_images():
     ]
     image_list = zip(
         gid_list,
-        [ eid_list_[0] for eid_list_ in app.ibs.get_image_eids(gid_list) ],
+        [ ','.join(map(str, eid_list_)) for eid_list_ in app.ibs.get_image_eids(gid_list) ],
         app.ibs.get_image_gnames(gid_list),
         image_unixtime_list,
         datetime_list,
@@ -282,11 +293,10 @@ def view_annotations():
     page_next = None if page_end == len(aid_list) else page + 1
     aid_list = aid_list[page_start:page_end]
     print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(aid_list), page_previous, page_next, ))
-
     annotation_list = zip(
         aid_list,
         app.ibs.get_annot_gids(aid_list),
-        [ eid_list_[0] for eid_list_ in app.ibs.get_annot_eids(aid_list) ],
+        [ ','.join(map(str, eid_list_)) for eid_list_ in app.ibs.get_annot_eids(aid_list) ],
         app.ibs.get_annot_image_names(aid_list),
         app.ibs.get_annot_names(aid_list),
         app.ibs.get_annot_exemplar_flags(aid_list),
@@ -294,7 +304,7 @@ def view_annotations():
         app.ibs.get_annot_yaw_texts(aid_list),
         app.ibs.get_annot_quality_texts(aid_list),
         app.ibs.get_annot_sex_texts(aid_list),
-        app.ibs.get_annot_age_texts(aid_list),
+        app.ibs.get_annot_age_months_est(aid_list),
         [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(encounter_annot_viewpoint_processed(aid_list), encounter_annot_quality_processed(aid_list)) ],
     )
     annotation_list.sort(key=lambda t: t[0])
@@ -521,7 +531,8 @@ def turk_additional():
 
         gid_list = app.ibs.get_valid_gids(eid=eid)
         aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
-        reviewed_list = encounter_annot_quality_processed(aid_list)
+        nid_list = app.ibs.get_annot_nids(aid_list)
+        reviewed_list = encounter_annot_additional_processed(aid_list, nid_list)
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
 
         enctext = None if eid is None else app.ibs.get_encounter_enctext(eid)
@@ -536,11 +547,24 @@ def turk_additional():
                 # aid = aid_list_[0]
                 aid = random.choice(aid_list_)
         previous = request.args.get('previous', None)
-        value = app.ibs.get_annot_qualities(aid)
-        if value == -1:
-            value = None
-        if value == 0:
-            value = 1
+        value_sex = app.ibs.get_annot_sex([aid])[0]
+        if value_sex >= 0:
+            value_sex += 2
+        else:
+            value_sex = None
+        value_age_min, value_age_max = app.ibs.get_annot_age_months_est([aid])[0]
+        value_age = None
+        if (value_age_min is 0 or value_age_min is None) and value_age_max == 2:
+            value_age = 1
+        elif value_age_min is 3 and value_age_max == 5:
+            value_age = 2
+        elif value_age_min is 6 and value_age_max == 11:
+            value_age = 3
+        elif value_age_min is 12 and value_age_max == 23:
+            value_age = 4
+        elif value_age_min is 24 and (value_age_max > 24 or value_age_max is None):
+            value_age = 5
+
         review = 'review' in request.args.keys()
         finished = aid is None
         display_instructions = request.cookies.get('additional_instructions_seen', 0) == 0
@@ -557,7 +581,8 @@ def turk_additional():
                            eid=eid,
                            gid=gid,
                            aid=aid,
-                           value=value,
+                           value_sex=value_sex,
+                           value_age=value_age,
                            image_path=gpath,
                            image_src=image_src,
                            previous=previous,
@@ -694,8 +719,32 @@ def submit_additional():
     else:
         sex = int(request.form['additional-sex-value'])
         age = int(request.form['additional-age-value'])
+        age_min = None
+        age_max = None
+        # Sex
+        if sex >= 2:
+            sex -= 2
+        else:
+            sex = -1
+        # Age
+        if age == 1:
+            age_min = None
+            age_max = 2
+        elif age == 2:
+            age_min = 3
+            age_max = 5
+        elif age == 3:
+            age_min = 6
+            age_max = 11
+        elif age == 4:
+            age_min = 12
+            age_max = 23
+        elif age == 5:
+            age_min = 24
+            age_max = None
         app.ibs.set_annot_sex([aid], [sex])
-        app.ibs.set_annot_age([aid], [age])
+        app.ibs.set_annot_age_months_est_min([aid], [age_min])
+        app.ibs.set_annot_age_months_est_max([aid], [age_max])
         print('[web] turk_id: %s, aid: %d, sex: %r, age: %r' % (turk_id, aid, sex, age))
     # Return HTML
     refer = request.args.get('refer', '')
@@ -771,6 +820,7 @@ def api(function=None):
 @app.route('/404')
 def error404(exception):
     print('[web] %r' % (exception, ))
+    print(traceback.format_exc())
     return ap.template(None, '404')
 
 

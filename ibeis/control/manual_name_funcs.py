@@ -880,12 +880,14 @@ def set_name_sex(ibs, name_rowid_list, name_sex_list, duplicate_behavior='error'
                id_iter, duplicate_behavior=duplicate_behavior)
 
 
+@register_ibs_method
 def get_name_sex_text(ibs, name_rowid_list, eager=True, nInput=None):
     name_sex_list = ibs.get_name_sex(name_rowid_list, eager=eager, nInput=nInput)
     name_sex_text_list = ut.dict_take(const.SEX_INT_TO_TEXT, name_sex_list)
     return name_sex_text_list
 
 
+@register_ibs_method
 def set_name_sex_text(ibs, name_rowid_list, name_sex_text_list):
     name_sex_list = ut.dict_take(const.SEX_TEXT_TO_INT, name_sex_text_list)
     return ibs.set_name_sex(name_rowid_list, name_sex_list)

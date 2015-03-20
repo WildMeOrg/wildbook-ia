@@ -89,7 +89,7 @@
               <th class="no-items" colspan="99">Sorry, no annotations to display</th>
             </tr>
           {% else %}
-            {% for (aid, gid, eid, src, name, exemplar, species, viewpoint, quality, sex, age, reviewed) in annotation_list %}
+            {% for (aid, gid, eid_list_str_, src, name, exemplar, species, viewpoint, quality, sex, age, reviewed) in annotation_list %}
             <tr {% if reviewed %}class="success"{% endif %}>
               <th scope="row">{{ aid }}</th>
               <td><img class="ajax-image-load ajax-image-unloaded" src="" aid="{{ aid }}" /></td>
@@ -101,7 +101,7 @@
               <td><a href="{{ url_for('turk_quality') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ quality }}</a></td>
               <td><a href="{{ url_for('turk_additional') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ sex }} / {{ age }}</a></td>
               <td><a href="{{ url_for('view_images') }}?gid={{ gid }}">Go to</a></td>
-              <td><a href="{{ url_for('view_images') }}?eid={{ eid }}">Go to</a></td>
+              <td><a href="{{ url_for('view_images') }}?eid={{ eid_list_str_ }}">Go to</a></td>
             </tr>
             {% endfor %}
           {% endif %}
