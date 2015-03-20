@@ -452,7 +452,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             'Intra Encounter',
             functools.partial(
                 back.compute_queries,
-                query_is_known=False, daids_mode=const.INTRA_ENC_KEY),
+                query_is_known=None, daids_mode=const.INTRA_ENC_KEY, cfgdict={'can_match_samename': False, 'use_k_padding': False}),
             bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, -0.01, -0.7, 0.0),
             fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
 
@@ -460,7 +460,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             'Vs Exemplar',
             functools.partial(
                 back.compute_queries,
-                query_is_known=False, daids_mode=const.VS_EXEMPLARS_KEY),
+                use_prioritized_name_subset=True,
+                cfgdict={'can_match_samename': False, 'use_k_padding': False},
+                query_is_known=None, daids_mode=const.VS_EXEMPLARS_KEY
+            ),
             bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, 0.01, -0.7, 0.0),
             fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
 
