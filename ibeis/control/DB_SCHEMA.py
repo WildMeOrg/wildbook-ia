@@ -8,7 +8,7 @@ with the last version number that they existed in
 TODO: Add a table for original_image_path
 
 CommandLine:
-    python -m ibeis.control.DB_SCHEMA --test-test_db_schema
+    python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema
 """
 from __future__ import absolute_import, division, print_function
 from ibeis import constants as const
@@ -1043,6 +1043,21 @@ def update_1_4_1(db, ibs=None):
     )
 
 
+def update_1_4_2(db, ibs=None):
+    db.modify_table(
+        const.ANNOTATION_TABLE, [
+            (None, 'contributor_rowid',  'INTEGER', None),
+            (None, 'annot_age_est_min',  'INTEGER DEFAULT -1', None),
+            (None, 'annot_age_est_max',  'INTEGER DEFAULT -1', None),
+        ]
+    )
+
+    db.modify_table(
+        const.NAME_TABLE, [
+            (None, 'name_sex',  'INTEGER DEFAULT -1', None),
+        ]
+    )
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1081,53 +1096,31 @@ LEGACY_UPDATE_FUNCTIONS = [
 ]
 
 
-def test_db_schema():
+def autogen_db_schema():
     """
-    test_db_schema
+    autogen_db_schema
 
     CommandLine:
-        python -m ibeis.control.DB_SCHEMA --test-test_db_schema
-        python -m ibeis.control.DB_SCHEMA --test-test_db_schema -n=-1
-        python -m ibeis.control.DB_SCHEMA --test-test_db_schema -n=0
-        python -m ibeis.control.DB_SCHEMA --test-test_db_schema -n=1
+        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema
+        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema -n=-1
+        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema -n=0
+        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema -n=1
         python -m ibeis.control.DB_SCHEMA --force-incremental-db-update
-        python -m ibeis.control.DB_SCHEMA --test-test_db_schema --dump-autogen-schema
-        python -m ibeis.control.DB_SCHEMA --test-test_db_schema --force-incremental-db-update --dump-autogen-schema
-        python -m ibeis.control.DB_SCHEMA --test-test_db_schema --force-incremental-db-update
+        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema --write
+        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema --force-incremental-db-update --dump-autogen-schema
+        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema --force-incremental-db-update
 
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.DB_SCHEMA import *  # NOQA
-        >>> test_db_schema()
+        >>> autogen_db_schema()
     """
     from ibeis.control import DB_SCHEMA
     from ibeis.control import _sql_helpers
-    from ibeis import params
-    autogenerate = params.args.dump_autogen_schema
     n = utool.get_argval('-n', int, default=-1)
-    db = _sql_helpers.get_nth_test_schema_version(DB_SCHEMA, n=n, autogenerate=autogenerate)
-    autogen_cmd  = 'python -m ibeis.control.DB_SCHEMA --test-test_db_schema --force-incremental-db-update --dump-autogen-schema\n'
-    autogen_cmd += 'python -m ibeis.control.DB_SCHEMA --test-test_db_schema --force-incremental-db-update'
-    autogen_text = db.get_schema_current_autogeneration_str(autogen_cmd)
-
-    # TODO: generalize
-    import utool as ut
-
-    show_diff = ut.get_argflag('--diff')
-    num_context_lines = ut.get_argval('--diff', type_=int, default=None)
-    show_diff = show_diff or num_context_lines is not None
-
-    from os.path import dirname
-    if show_diff:
-        autogen_fpath = ut.unixjoin(dirname(__file__), 'DB_SCHEMA_CURRENT.py')
-        if ut.checkpath(autogen_fpath, verbose=True):
-            prev_text = ut.read_from(autogen_fpath)
-            textdiff = ut.util_str.get_textdiff(prev_text, autogen_text, num_context_lines=num_context_lines)
-            ut.print_difftext(textdiff)
-    else:
-        ut.util_print.print_python_code(autogen_text)
-    print(' Run with --dump-autogen-schema to autogenerate latest schema version')
+    schema_spec = DB_SCHEMA
+    _sql_helpers.autogenerate_nth_schema_version(schema_spec, n=n)
 
 
 if __name__ == '__main__':

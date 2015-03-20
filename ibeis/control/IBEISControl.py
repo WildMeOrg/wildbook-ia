@@ -368,7 +368,6 @@ class IBEISController(object):
             ibs.db,
             ibs.db_version_expected,
             DB_SCHEMA,
-            autogenerate=params.args.dump_autogen_schema,
             verbose=ut.VERBOSE,
         )
         #print(ibs.sqldbcache_fname)
@@ -399,7 +398,6 @@ class IBEISController(object):
             ibs.dbcache_version_expected,
             DBCACHE_SCHEMA,
             dobackup=False,  # Everything in dbcache can be regenerated.
-            autogenerate=params.args.dump_autogen_schema,
             verbose=ut.VERBOSE,
         )
 

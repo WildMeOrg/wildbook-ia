@@ -57,9 +57,16 @@ QUALITY_INT_TO_TEXT = OrderedDict([
     (-1, QUAL_UNKNOWN,),
 ])
 
-QUALITY_TEXT_TO_INT = ut.invert_dict(QUALITY_INT_TO_TEXT)
-QUALITY_INT_TO_TEXT[1] = QUAL_JUNK
+QUALITY_TEXT_TO_INT       = ut.invert_dict(QUALITY_INT_TO_TEXT)
+QUALITY_INT_TO_TEXT[1]    = QUAL_JUNK
 QUALITY_INT_TO_TEXT[None] = QUALITY_INT_TO_TEXT[-1]
+
+
+SEX_INT_TO_CHAR = {
+    -1 : 'UNKNOWN',
+    0  : 'Female',
+    1  : 'Male',
+}
 
 
 class PATH_NAMES(object):

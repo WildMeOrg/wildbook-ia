@@ -1240,8 +1240,12 @@ class SQLDatabaseController(object):
                                                 #'constraint',
                                                 'dependsmap']
             def quote_docstr(docstr):
+                import textwrap
+                wraped_docstr = '\n'.join(textwrap.wrap(ut.textblock(docstr)))
+                indented_docstr = ut.indent(wraped_docstr.strip(), tab2)
                 _TSQ = ut.TRIPLE_SINGLE_QUOTE
-                return _TSQ + '\n' + ut.indent(docstr.strip(), tab2) + '\n' + tab2 + _TSQ
+                quoted_docstr = _TSQ + '\n' + indented_docstr + '\n' + tab2 + _TSQ
+                return quoted_docstr
             line_list.append(tab2 + 'docstr=' + quote_docstr(docstr) + ',')
             line_list.append(tab2 + 'superkeys=%r,' % (superkeys, ))
             #line_list.append(tab2 + 'constraint=%r,' % (db.get_metadata_val(tablename + '_constraint'),))
@@ -1263,15 +1267,6 @@ class SQLDatabaseController(object):
 
         line_list.append('')
         return '\n'.join(line_list)
-
-    @default_decor
-    def dump_schema_current_autogeneration(db, output_dir, output_filename, autogen_cmd):
-        """ Convenience: Autogenerates the most up-to-date database schema """
-        print('[sqldb] dumping current schema to output_filename=%r' % (output_filename,))
-        dump_fpath = join(output_dir, output_filename)
-        schema_current_str = db.get_schema_current_autogeneration_str(autogen_cmd)
-        with open(dump_fpath, 'w') as file_:
-            file_.write(schema_current_str)
 
     @default_decor
     def dump_schema(db):

@@ -2880,7 +2880,7 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
         >>> aid_subset = get_prioritized_name_subset(ibs, aid_list, annots_per_name)
         >>> result = len(aid_subset)
         >>> print(result)
-        27
+        28
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
@@ -2889,18 +2889,18 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
         const.QUAL_EXCELLENT : 7,
         const.QUAL_GOOD      : 6,
         const.QUAL_OK        : 5,
-        const.QUAL_POOR      : 1,
-        const.QUAL_UNKNOWN   : 1,
+        const.QUAL_POOR      : 0,
+        const.QUAL_UNKNOWN   : 0,
         const.QUAL_JUNK      : 0,
     }
 
     yawtext2_weight = {
-        'right'      : 3,
+        'right'      : 0,
         'frontright' : 0,
         'front'      : 0,
-        'frontleft'  : 6,
-        'left'       : 3,
-        'backleft'   : 6,
+        'frontleft'  : 3,
+        'left'       : 6,
+        'backleft'   : 3,
         'back'       : 0,
         'backright'  : 0,
         None         : 0,
@@ -2944,7 +2944,7 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
     weight_thresh = 5
 
     passed_thresh_list = [
-        weights >= weight_thresh
+        weights > weight_thresh
         for weights in sorted_weight_list
     ]
 
