@@ -44,14 +44,14 @@
           {% else %}
             {% for (eid, enctext, num_gids, num_processed_gids, num_aids, num_processed_viewpoint_aids, num_processed_quality_aids, posix, start, reviewed) in encounter_list %}
             <tr {% if reviewed %}class="success"{% endif %}>
-              <th scope="row"><a href="{{ url_for('view_images') }}?eid={{ eid }}">{{ eid }}</a></th>
+              <th scope="row">{{ eid }}</th>
               <td>{{ enctext }}</td>
               <td>{{ num_gids }} / {{ num_processed_gids }}</td>
               <td>{{ num_aids }} / {{ num_processed_viewpoint_aids }} / {{ num_processed_quality_aids }}</td>
               <td>{{ start }}</td>
               <td><a href="{{ url_for('view_images') }}?eid={{ eid }}">Review</a></td>
               <td><a href="{{ url_for('view_annotations') }}?eid={{ eid }}">Review</a></td>
-              <td><a href="{{ url_for('turk_detection') }}?eid={{ eid }}">Detections</a> | <a href="{{ url_for('turk_viewpoint') }}?eid={{ eid }}">Viewpoint</a> | <a href="{{ url_for('turk_quality') }}?eid={{ eid }}">Quality</a></td>
+              <td><a href="{{ url_for('turk_detection') }}?eid={{ eid }}">Detections</a> | <a href="{{ url_for('turk_viewpoint') }}?eid={{ eid }}">Viewpoint</a> | <a href="{{ url_for('turk_quality') }}?eid={{ eid }}">Quality</a> | <a href="{{ url_for('turk_additional') }}?eid={{ eid }}">Additional</a></td>
             </tr>
             {% endfor %}
           {% endif %}
