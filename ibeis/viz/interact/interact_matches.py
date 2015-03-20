@@ -79,12 +79,13 @@ class MatchInteraction(object):
             self.qres = qres
         self.init_new(ibs, cm, *args, **kwargs)
 
-    def init_new(self, ibs, cm, aid2=None, fnum=None, figtitle='Inspect Query Result', same_fig=True, **kwargs):
+    def init_new(self, ibs, cm, aid2=None, fnum=None, figtitle='Inspect Query Result', same_fig=True, qreq_=None, **kwargs):
         r"""
         new init function for use with ChipMatch2 class
         """
         self.ibs = ibs
         self.cm = cm
+        self.qreq_ = qreq_
         self.fnum = pt.ensure_fnum(fnum)
         # Unpack Args
         if aid2 is None:
@@ -116,7 +117,10 @@ class MatchInteraction(object):
             self.H1    = None
 
         # Read properties
-        self.rchip1, self.rchip2 = ibs.get_annot_chips([self.qaid, self.daid])
+        self.query_config2_ = None if self.qreq_ is None else self.qreq_.get_external_query_config2()
+        self.data_config2_ = None if self.qreq_ is None else self.qreq_.get_external_data_config2()
+        self.rchip1 = vh.get_chips(ibs, [self.qaid], config2_=self.query_config2_)[0]
+        self.rchip2 = vh.get_chips(ibs, [self.daid], config2_=self.data_config2_)[0]
         # Begin Interaction
         self.fig = ih.begin_interaction('matches', self.fnum)  # call doclf docla and make figure
         self.xywh2_ptr  = [None]
@@ -216,7 +220,8 @@ class MatchInteraction(object):
                 else:
                     # Normal Click
                     # Select nearest feature match to the click
-                    kpts1, kpts2 = ibs.get_annot_kpts([qaid, aid])
+                    kpts1 = ibs.get_annot_kpts([qaid], config2_=self.query_config2_)[0]
+                    kpts2 = ibs.get_annot_kpts([aid], config2_=self.data_config2_)[0]
                     kpts1_m = kpts1[fm[:, 0]]
                     kpts2_m = kpts2[fm[:, 1]]
                     x2, y2, w2, h2 = xywh2_ptr[0]
@@ -276,13 +281,13 @@ class MatchInteraction(object):
         OLD = False
         if OLD:
             qres = self.qres
-            tup = viz.viz_matches.show_matches(ibs, qres, aid, **show_matches_kw)
+            tup = viz.viz_matches.show_matches(ibs, qres, aid, qreq_=self.qreq_, **show_matches_kw)
         else:
             #show_matches_kw['score'] = self.score
             show_matches_kw['rawscore'] = self.score
             #ut.embed()
             show_matches_kw['aid2_raw_rank'] = self.rank
-            tup = viz.viz_matches.show_matches2(ibs, self.qaid, self.daid, self.fm, self.fs, **show_matches_kw)
+            tup = viz.viz_matches.show_matches2(ibs, self.qaid, self.daid, self.fm, self.fs, qreq_=self.qreq_, **show_matches_kw)
 
         ax, xywh1, xywh2 = tup
         xywh2_ptr[0] = xywh2
@@ -349,8 +354,10 @@ class MatchInteraction(object):
         fx1, fx2 = fm[mx]
         fscore2  = fs[mx]
         fk2      = fk[mx]
-        kpts1, kpts2 = ibs.get_annot_kpts([self.qaid, self.daid])
-        desc1, desc2 = ibs.get_annot_vecs([self.qaid, self.daid])
+        kpts1 = ibs.get_annot_kpts([self.qaid], config2_=self.query_config2_)[0]
+        kpts2 = ibs.get_annot_kpts([self.daid], config2_=self.data_config2_)[0]
+        desc1 = ibs.get_annot_vecs([self.qaid], config2_=self.query_config2_)[0]
+        desc2 = ibs.get_annot_vecs([self.daid], config2_=self.data_config2_)[0]
         kp1, kp2     = kpts1[fx1], kpts2[fx2]
         sift1, sift2 = desc1[fx1], desc2[fx2]
         info1 = '\nquery'

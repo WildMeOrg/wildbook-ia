@@ -226,7 +226,7 @@ class MainWindowBackend(QtCore.QObject):
         viz.draw()
 
     @blocking_slot()
-    def review_queries(back, qaid2_qres=None, filter_duplicate_namepair_matches=False, **kwargs):
+    def review_queries(back, qaid2_qres=None, filter_duplicate_namepair_matches=False, qreq_=None, **kwargs):
         eid = back.get_selected_eid()
         if eid not in back.encounter_query_results:
             raise guiexcept.InvalidRequest('Queries have not been computed yet')
@@ -248,6 +248,7 @@ class MainWindowBackend(QtCore.QObject):
         back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
                                                        callback=backend_callback,
                                                        ranks_lt=ranks_lt,
+                                                       qreq_=qreq_,
                                                        filter_duplicate_namepair_matches=filter_duplicate_namepair_matches)
         back.qres_wgt.show()
         back.qres_wgt.raise_()
@@ -1007,7 +1008,7 @@ class MainWindowBackend(QtCore.QObject):
         back.encounter_query_results[eid].update(qaid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
         is_vsexemplar = daids_mode = const.VS_EXEMPLARS_KEY
-        back.review_queries(qaid2_qres=qaid2_qres, eid=eid, filter_duplicate_namepair_matches=is_vsexemplar)
+        back.review_queries(qaid2_qres=qaid2_qres, eid=eid, filter_duplicate_namepair_matches=is_vsexemplar, qreq_=qreq_)
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))

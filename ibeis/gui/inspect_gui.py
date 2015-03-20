@@ -72,7 +72,7 @@ class QueryResultsWidget(APIItemWidget):
     """
 
     def __init__(qres_wgt, ibs, qaid2_qres, parent=None, callback=None,
-                 name_scoring=False, **kwargs):
+                 name_scoring=False, qreq_=None, **kwargs):
         if ut.VERBOSE:
             print('[qres_wgt] Init QueryResultsWidget')
         # Uncomment below to turn on FilterProxyModel
@@ -91,7 +91,7 @@ class QueryResultsWidget(APIItemWidget):
         # Set results data
         if USE_FILTER_PROXY:
             qres_wgt.add_checkboxes(qres_wgt.show_new, qres_wgt.show_join, qres_wgt.show_split)
-        qres_wgt.set_query_results(ibs, qaid2_qres, name_scoring=name_scoring, **kwargs)
+        qres_wgt.set_query_results(ibs, qaid2_qres, name_scoring=name_scoring, qreq_=qreq_, **kwargs)
         qres_wgt.connect_signals_and_slots()
         if callback is None:
             callback = lambda: None
@@ -153,11 +153,12 @@ class QueryResultsWidget(APIItemWidget):
         # should eventually improve this to use the widths of the header columns
         return QtCore.QSize(1000, 500)
 
-    def set_query_results(qres_wgt, ibs, qaid2_qres, name_scoring=False, **kwargs):
+    def set_query_results(qres_wgt, ibs, qaid2_qres, name_scoring=False, qreq_=None, **kwargs):
         print('[qres_wgt] Change QueryResultsWidget data')
         qres_wgt.ibs = ibs
         qres_wgt.qaid2_qres = qaid2_qres
-        qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres, name_scoring=name_scoring, **kwargs)
+        qres_wgt.qreq_ = qreq_
+        qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres, name_scoring=name_scoring, qreq_=qreq_, **kwargs)
         qres_wgt.update_checkboxes()
         headers = qres_wgt.qres_api.make_headers()
         # super call
@@ -476,8 +477,9 @@ def show_match_at(qres_wgt, qtindex):
     model = qtindex.model()
     aid  = model.get_header_data('aid', qtindex)
     qaid = model.get_header_data('qaid', qtindex)
+    qreq_ = qres_wgt.qreq_
     #fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid, mode=1)
-    match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs, aid, mode=1)
+    match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs, aid, mode=1, qreq_=qreq_)
     fig = match_interaction.fig
     fig_presenter.bring_to_front(fig)
 
@@ -800,7 +802,11 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     return locals_
 
 
-def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False, filter_reviewed=None, filter_duplicate_namepair_matches=False):
+def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
+                  filter_reviewed=None,
+                  filter_duplicate_namepair_matches=False,
+                  qreq_=None,
+                  ):
     """
     Builds columns which are displayable in a ColumnListTableWidget
 
@@ -864,7 +870,9 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False, filter_rev
             qres = qaid2_qres[qaid]
             match_thumb_fpath_ = ut.unixjoin(match_thumb_dir, 'matchthumb-aid1=%d-aid2=%d.jpg' % ((qaid, daid)))
             if match_thumb_fpath_  not in match_thumbtup_cache:
-                match_thumb_fpath = qres.dump_match_img(ibs, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32, notitle=True, verbose=False)
+                match_thumb_fpath = qres.dump_match_img(
+                    ibs, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32,
+                    notitle=True, verbose=False, qreq_=qreq_)
                 #match_thumb_fpath_list.append(match_thumb_fpath)
                 match_thumbtup_cache[match_thumb_fpath_] = match_thumb_fpath
             fpath = match_thumbtup_cache[match_thumb_fpath_]
