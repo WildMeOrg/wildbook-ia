@@ -8,6 +8,67 @@ from six.moves import zip, range  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[other]', DEBUG=False)
 
 
+def compute_unique_data_ids(data):
+    """
+    CommandLine:
+        python -m vtool.other --test-compute_unique_data_ids
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> data = np.array([[0, 0], [0, 1], [1, 1], [0, 0], [.534432, .432432], [.534432, .432432]])
+        >>> dataid_list = compute_unique_data_ids(data)
+        >>> dataid_list = compute_unique_data_ids(data)
+        >>> result = str(dataid_list)
+        >>> print(result)
+        >>> print(len(np.unique(dataid_list)))
+        >>> print(len((dataid_list)))
+        [0, 1, 2, 0, 3, 3]
+
+    """
+    # construct a unique id for every edge
+    hashable_rows = [tuple(row_.tolist()) for row_ in data]
+    dataid_list = compute_unique_data_ids_(hashable_rows)
+    return dataid_list
+
+
+def compute_unique_data_ids_(hashable_rows):
+    iddict_ = {}
+    for row in hashable_rows:
+        if row not in iddict_:
+            iddict_[row] = len(iddict_)
+    dataid_list = ut.dict_take(iddict_, hashable_rows)
+    return dataid_list
+
+
+def compute_unique_integer_data_ids(data):
+    r"""
+    This is actually slower than compute_unique_data_ids it seems
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> # build test data
+        >>> data = np.array([[0, 0], [0, 1], [1, 1], [0, 0], [0, 0], [0, 1], [1, 1], [0, 0], [9, 0]])
+        >>> data = np.random.randint(1000, size=(1000, 2))
+        >>> # execute function
+        >>> result1 = compute_unique_data_ids(data)
+        >>> result2 = compute_unique_integer_data_ids(data)
+        >>> # verify results
+        >>> print(result)
+
+    %timeit compute_unique_data_ids(data)
+    %timeit compute_unique_integer_data_ids(data)
+    """
+    # construct a unique id for every edge
+    ncols = data.shape[1]
+    # get the number of decimal places to shift
+    exp_step = np.ceil(np.log10(data.max()))
+    offsets = [int(10 ** (ix * exp_step)) for ix in reversed(range(0, ncols))]
+    dataid_list = np.array([sum([item * offset for item, offset in zip(row, offsets)]) for row in data])
+    return dataid_list
+
+
 @profile
 def trytake(list_, index_list):
     return None if list_ is None else list_take_(list_, index_list)
