@@ -77,6 +77,7 @@ VERYVERBOSE_PIPELINE = ut.get_argflag(('--very-verbose-pipeline', '--very-verb-p
 
 NN_LBL      = 'Assign NN:       '
 FILT_LBL    = 'Filter NN:       '
+WEIGHT_LBL  = 'Weight NN:       '
 BUILDCM_LBL = 'Build Chipmatch: '
 SVER_LVL    = 'SVER:            '
 
@@ -417,13 +418,15 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
     """
     if verbose:
         print('[hs] Step 2) Baseline neighbor filter')
-
     Knorm = qreq_.qparams.Knorm
     nnidx_iter = (qfx2_idx.T[0:-Knorm].T for (qfx2_idx, _) in nns_list)
     qfx2_aid_list = [qreq_.indexer.get_nn_aids(qfx2_nnidx) for qfx2_nnidx in nnidx_iter]
+    filter_iter = zip(qfx2_aid_list, impossible_daids_list)
+    progkw = dict(freq=20, time_thresh=2.0)
+    filter_iter = ut.ProgressIter(filter_iter, nTotal=len(qfx2_aid_list), lbl=FILT_LBL, **progkw)
     nnvalid0_list = [
         vt.get_uncovered_mask(qfx2_aid, impossible_daids)
-        for qfx2_aid, impossible_daids in zip(qfx2_aid_list, impossible_daids_list)
+        for qfx2_aid, impossible_daids in filter_iter
     ]
     return nnvalid0_list
 
@@ -480,6 +483,10 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     """
     if verbose:
         print('[hs] Step 3) Weight neighbors: ' + qreq_.qparams.nnweight_cfgstr)
+
+    print(WEIGHT_LBL)
+    #progkw = dict(freq=20, time_thresh=2.0)
+    #intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL, **progkw)
     # Build weights for each active filter
     filtkey_list    = []
     _filtweight_list = []
@@ -585,9 +592,9 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_
     internal_qaids = qreq_.get_internal_qaids()
     external_qaids = qreq_.get_external_qaids()
     external_daids = qreq_.get_external_daids()
-    #progkw = dict(freq=20, time_thresh=2.0)
-    #intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL, **progkw)
-    intern_qaid_iter = internal_qaids
+    progkw = dict(freq=20, time_thresh=2.0)
+    intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL, **progkw)
+    #intern_qaid_iter = internal_qaids
 
     if is_vsone:
         # VSONE build one cmtup_old
