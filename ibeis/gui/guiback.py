@@ -994,7 +994,7 @@ class MainWindowBackend(QtCore.QObject):
 
         daid_list = back.get_selected_daids(eid=eid, daids_mode=daids_mode)
         if len(qaid_list) == 0:
-            raise guiexcept.InvalidRequest('No unknown query exemplars')
+            raise guiexcept.InvalidRequest('No query annotations')
         qreq_ = back.ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict)
         back.confirm_query_dialog(daid_list, qaid_list, cfgdict=cfgdict)
         qres_list = back.ibs.query_chips(qreq_=qreq_)

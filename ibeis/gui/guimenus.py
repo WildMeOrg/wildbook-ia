@@ -187,38 +187,22 @@ def setup_batch_menu(mainwin, back):
         name='actionBatchIntraEncounterQueries',
         text='Query: Intra Encounter',
         slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_ENC_KEY),
-        tooltip=ut.textblock(
-            '''
-            all-encounter-annots VS all-encounter-annots (nonjunk)
-            ''')
     )
     mainwin.menuBatch.newAction(
         name='actionBatchVsExemplarQueries',
         text='Query: vs Exemplars',
         slot_fn=functools.partial(back.compute_queries, daids_mode=const.VS_EXEMPLARS_KEY),
-        tooltip=ut.textblock(
-            '''
-            all-encounter-annots VS all-exemplar-annots (nonjunk)
-            ''')
     )
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionBatchUnknownIntraEncounterQueries',
         text='Query: Unknown Intra Encounter',
-        slot_fn=functools.partial(back.compute_queries, query_is_known=None, daids_mode=const.INTRA_ENC_KEY),
-        tooltip=ut.textblock(
-            '''
-            unnamed-encounter-annots VS all-encounter-annots (nonjunk)
-            ''')
+        slot_fn=functools.partial(back.compute_queries, query_is_known=False, daids_mode=const.INTRA_ENC_KEY),
     )
     mainwin.menuBatch.newAction(
         name='actionBatchUnknownVsExemplarQueries',
         text='Query: Unknowns vs Exemplars',
-        slot_fn=functools.partial(back.compute_queries, query_is_known=None, daids_mode=const.VS_EXEMPLARS_KEY),
-        tooltip=ut.textblock(
-            '''
-            unnamed-encounter-annots VS all-exemplar-annots (nonjunk)
-            ''')
+        slot_fn=functools.partial(back.compute_queries, query_is_known=False, daids_mode=const.VS_EXEMPLARS_KEY),
     )
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
@@ -228,10 +212,21 @@ def setup_batch_menu(mainwin, back):
                                   use_prioritized_name_subset=True,
                                   daids_mode=const.VS_EXEMPLARS_KEY,
                                   cfgdict=dict(can_match_samename=False, use_k_padding=False)),
-        tooltip=ut.textblock(
-            '''
-            unnamed-encounter-annots VS all-exemplar-annots (nonjunk)
-            ''')
+    )
+    mainwin.menuBatch.addSeparator()  # ---------
+    mainwin.menuBatch.newAction(
+        name='actionQueryInEncMode1',
+        text='Query: Names Intra Encounter With OriAugment',
+        slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_ENC_KEY,
+                                  use_prioritized_name_subset=True,
+                                  cfgdict=dict(augment_queryside_hack=True, can_match_samename=False, use_k_padding=False)),
+    )
+    mainwin.menuBatch.newAction(
+        name='actionQueryInEncMode2',
+        text='Query: Names VsExamplar With OriAugment',
+        slot_fn=functools.partial(back.compute_queries, daids_mode=const.VS_EXEMPLARS_KEY,
+                                  use_prioritized_name_subset=True,
+                                  cfgdict=dict(augment_queryside_hack=True, can_match_samename=False, use_k_padding=False)),
     )
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(

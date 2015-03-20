@@ -648,6 +648,17 @@ def get_annot_eids(ibs, aid_list):
 
 @register_ibs_method
 @getter_1toM
+def get_annot_otherimage_aids(ibs, aid_list):
+    gid_list = ibs.get_annot_gids(aid_list)
+    image_aids_list = ibs.get_image_aids(gid_list)
+    # Remove self from list
+    other_aids_list = [list(set(aids) - {aid})
+                       for aids, aid in zip(image_aids_list, aid_list)]
+    return other_aids_list
+
+
+@register_ibs_method
+@getter_1toM
 def get_annot_contact_aids(ibs, aid_list):
     """
     Returns the other aids that appear in the same image that this
@@ -694,13 +705,9 @@ def get_annot_contact_aids(ibs, aid_list):
         ...     assert len(gids) == 0 or gids[0] == gid, 'and same image as parent annot'
         ...     assert aid not in aids, 'should not include self'
     """
-    gid_list = ibs.get_annot_gids(aid_list)
-    image_aids_list = ibs.get_image_aids(gid_list)
-    # Remove self from list
-    other_aids_list = [list(set(aids) - {aid})
-                       for aids, aid in zip(image_aids_list, aid_list)]
-    ONLY_IF_INTERSECTION = False
-    if ONLY_IF_INTERSECTION:
+    other_aids_list = ibs.get_annot_otherimage_aids(aid_list)
+    check_intersection = False
+    if check_intersection:
         import shapely.geometry
         verts_list = ibs.get_annot_verts(aid_list)
         other_verts_list = ibs.unflat_map(ibs.get_annot_verts, other_aids_list)
@@ -712,6 +719,12 @@ def get_annot_contact_aids(ibs, aid_list):
     else:
         contact_aids = other_aids_list
     return contact_aids
+
+
+#@register_ibs_method
+#@getter_1toM
+#def get_annot_intersecting_aids(ibs, aid_list):
+#    pass
 
 
 @register_ibs_method
