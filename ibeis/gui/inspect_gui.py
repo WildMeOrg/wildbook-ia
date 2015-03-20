@@ -800,7 +800,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     return locals_
 
 
-def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False, filter_reviewed=None, filter_duplicate_name_annot_matches=False):
+def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False, filter_reviewed=None, filter_duplicate_namepair_matches=False):
     """
     Builds columns which are displayable in a ColumnListTableWidget
 
@@ -836,7 +836,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False, filter_rev
     candidate_matches = results_organizer.get_automatch_candidates(
         qaid2_qres, ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs,
         directed=False, filter_reviewed=filter_reviewed,
-        filter_duplicate_name_annot_matches=filter_duplicate_name_annot_matches
+        filter_duplicate_namepair_matches=filter_duplicate_namepair_matches
     )
     # Get extra info
     (qaids, aids, scores, ranks) = candidate_matches

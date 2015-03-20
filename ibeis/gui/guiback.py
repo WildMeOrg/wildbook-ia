@@ -226,7 +226,7 @@ class MainWindowBackend(QtCore.QObject):
         viz.draw()
 
     @blocking_slot()
-    def review_queries(back, qaid2_qres=None, **kwargs):
+    def review_queries(back, qaid2_qres=None, filter_duplicate_namepair_matches=False, **kwargs):
         eid = back.get_selected_eid()
         if eid not in back.encounter_query_results:
             raise guiexcept.InvalidRequest('Queries have not been computed yet')
@@ -245,7 +245,10 @@ class MainWindowBackend(QtCore.QObject):
         from ibeis.gui import inspect_gui
         backend_callback = back.front.update_tables
         ranks_lt = ibs.cfg.other_cfg.ranks_lt
-        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, callback=backend_callback, ranks_lt=ranks_lt, **kwargs)
+        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
+                                                       callback=backend_callback,
+                                                       ranks_lt=ranks_lt,
+                                                       filter_duplicate_namepair_matches=filter_duplicate_namepair_matches)
         back.qres_wgt.show()
         back.qres_wgt.raise_()
 
