@@ -2941,7 +2941,7 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
         for aids, order in zip(grouped_aids_, sortx_list)
     ]
 
-    weight_thresh = 5
+    weight_thresh = 7
 
     passed_thresh_list = [
         weights > weight_thresh
