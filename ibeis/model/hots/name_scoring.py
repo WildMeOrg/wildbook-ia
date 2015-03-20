@@ -115,26 +115,8 @@ def compute_nsum_score(cm, qreq_=None):
         #qreq_ = None
         qkpts1 = qreq_.ibs.get_annot_kpts(cm.qaid, config2_=qreq_.get_external_query_config2())
         #print(vt.get_oris(qkpts1))
-        def compute_unique_data_ids(data):
-            """
-            Example:
-                >>> # DISABLE_DOCTEST
-                >>> data = np.array([[0, 0], [0, 1], [1, 1], [0, 0], [.534432, .432432], [.534432, .432432]])
-                >>> dataid_list = compute_unique_data_ids(data)
-                >>> print(dataid_list)
-                >>> print(len(np.unique(dataid_list)))
-                >>> print(len((dataid_list)))
-            """
-            # construct a unique id for every edge
-            hashable_rows = [tuple(row_.tolist()) for row_ in data]
-            iddict_ = {}
-            for row in hashable_rows:
-                if row not in iddict_:
-                    iddict_[row] = len(iddict_)
-            dataid_list = ut.dict_take(iddict_, hashable_rows)
-            return dataid_list
         data = vt.get_xys(qkpts1).T
-        kpts_xyid_list = np.array(compute_unique_data_ids(data))
+        kpts_xyid_list = np.array(vt.compute_unique_data_ids(data))
         #fx1_list
     fs_list = cm.get_fsv_prod_list()
     fx1_list = [fm.T[0] for fm in cm.fm_list]

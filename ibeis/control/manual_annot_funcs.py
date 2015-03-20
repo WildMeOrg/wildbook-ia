@@ -676,12 +676,41 @@ def get_annot_contact_aids(ibs, aid_list):
         ...     assert ut.list_allsame(gids), 'annots should be from same image'
         ...     assert len(gids) == 0 or gids[0] == gid, 'and same image as parent annot'
         ...     assert aid not in aids, 'should not include self'
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb2')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> # execute function
+        >>> contact_aids = ibs.get_annot_contact_aids(aid_list)
+        >>> # verify results
+        >>> contact_gids = ibs.unflat_map(ibs.get_annot_gids, contact_aids)
+        >>> gid_list = ibs.get_annot_gids(aid_list)
+        >>> for gids, gid, aids, aid in zip(contact_gids, gid_list, contact_aids, aid_list):
+        ...     assert ut.list_allsame(gids), 'annots should be from same image'
+        ...     assert len(gids) == 0 or gids[0] == gid, 'and same image as parent annot'
+        ...     assert aid not in aids, 'should not include self'
     """
     gid_list = ibs.get_annot_gids(aid_list)
-    other_aids_list = ibs.get_image_aids(gid_list)
-    # remove self
-    contact_aids = [list(set(aids) - {aid})
-                    for aids, aid in zip(other_aids_list, aid_list)]
+    image_aids_list = ibs.get_image_aids(gid_list)
+    # Remove self from list
+    other_aids_list = [list(set(aids) - {aid})
+                       for aids, aid in zip(image_aids_list, aid_list)]
+    ONLY_IF_INTERSECTION = False
+    if ONLY_IF_INTERSECTION:
+        import shapely.geometry
+        verts_list = ibs.get_annot_verts(aid_list)
+        other_verts_list = ibs.unflat_map(ibs.get_annot_verts, other_aids_list)
+        poly_list = [shapely.geometry.Polygon(verts) for verts in verts_list]
+        other_polys_list = [[shapely.geometry.Polygon(verts) for verts in _] for _ in other_verts_list]
+        flags_list = [[p1.intersects(p2) for p2 in p2_list] for p1, p2_list in zip(poly_list, other_polys_list)]
+        contact_aids = [ut.filter_items(other_aids, flags) for other_aids, flags in zip(other_aids_list, flags_list)]
+
+    else:
+        contact_aids = other_aids_list
     return contact_aids
 
 

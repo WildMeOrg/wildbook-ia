@@ -117,6 +117,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'freetype',
         'fftw3',
         'atlas',
+        'libgeos-dev',  # for shapely
         'python-qt4',
         #'jasper',  # hyrule cannot handle this
         #'zmq',
@@ -181,6 +182,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'statsmodels',
         'lockfile',  # Need to do upgrade on this
         'lru-dict',
+        'shapely',
     ]
 
     OPTIONAL_PYPKG_LIST = [

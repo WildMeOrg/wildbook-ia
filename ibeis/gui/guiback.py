@@ -245,7 +245,7 @@ class MainWindowBackend(QtCore.QObject):
         from ibeis.gui import inspect_gui
         backend_callback = back.front.update_tables
         ranks_lt = ibs.cfg.other_cfg.ranks_lt
-        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, callback=backend_callback, ranks_lt=ranks_lt)
+        back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, callback=backend_callback, ranks_lt=ranks_lt, **kwargs)
         back.qres_wgt.show()
         back.qres_wgt.raise_()
 
@@ -1003,7 +1003,8 @@ class MainWindowBackend(QtCore.QObject):
         qaid2_qres = {qres.qaid: qres for qres in qres_list}
         back.encounter_query_results[eid].update(qaid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
-        back.review_queries(qaid2_qres=qaid2_qres, eid=eid)
+        is_vsexemplar = daids_mode = const.VS_EXEMPLARS_KEY
+        back.review_queries(qaid2_qres=qaid2_qres, eid=eid, filter_duplicate_namepair_matches=is_vsexemplar)
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))

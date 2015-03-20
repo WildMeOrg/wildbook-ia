@@ -81,6 +81,7 @@ YUM_PKGMAP = {
     'fftw3'      : 'fftw3-devel',
     'atlas'      : 'atlas-devel',
     'python-dev' : 'python-devel',
+    'libgeos-dev' : 'geos-devel',
 }
 
 PACMAN_PKGMAP = {

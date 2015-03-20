@@ -291,8 +291,10 @@ def organize_results(ibs, qaid2_qres):
     return allorg
 
 
+@profile
 def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
-                             name_scoring=False, ibs=None, filter_reviewed=False):
+                             name_scoring=False, ibs=None, filter_reviewed=False,
+                             filter_duplicate_namepair_matches=False):
     """
     Returns a list of matches that should be inspected
     This function is more lightweight than orgres or allres.
@@ -305,7 +307,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         directed (bool):
 
     Returns:
-        tuple: candidate_matches = (qaid_arr, aid_arr, score_arr, rank_arr)
+        tuple: candidate_matches = (qaid_arr, daid_arr, score_arr, rank_arr)
 
     Example0:
         >>> from ibeis.dev.results_organizer import *  # NOQA
@@ -330,50 +332,51 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         >>> ranks_lt = 5
         >>> directed = False
         >>> name_scoring = False
+        >>> filter_reviewed = False
         >>> candidate_matches = get_automatch_candidates(qaid2_qres, ranks_lt, directed)
         >>> print(candidate_matches)
     """
     qaids_stack  = []
-    aids_stack   = []
+    daids_stack   = []
     ranks_stack  = []
     scores_stack = []
 
     # For each QueryResult, Extract inspectable candidate matches
     for qaid, qres in six.iteritems(qaid2_qres):
         assert qaid == qres.qaid, 'qaid2_qres and qres disagree on qaid'
-        (qaids, aids, scores, ranks) = qres.get_match_tbldata(ranks_lt=ranks_lt,
-                                                              name_scoring=name_scoring,
-                                                              ibs=ibs)
+        (qaids, daids, scores, ranks) = qres.get_match_tbldata(ranks_lt=ranks_lt,
+                                                               name_scoring=name_scoring,
+                                                               ibs=ibs)
         qaids_stack.append(qaids)
-        aids_stack.append(aids)
+        daids_stack.append(daids)
         scores_stack.append(scores)
         ranks_stack.append(ranks)
 
     # Stack them into a giant array
     # utool.embed()
     qaid_arr  = np.hstack(qaids_stack)
-    aid_arr   = np.hstack(aids_stack)
+    daid_arr   = np.hstack(daids_stack)
     score_arr = np.hstack(scores_stack)
     rank_arr  = np.hstack(ranks_stack)
 
     # Sort by scores
     sortx = score_arr.argsort()[::-1]
     qaid_arr  = qaid_arr[sortx]
-    aid_arr   = aid_arr[sortx]
+    daid_arr   = daid_arr[sortx]
     score_arr = score_arr[sortx]
     rank_arr  = rank_arr[sortx]
 
     if filter_reviewed:
-        is_unreviewed = ~np.array(ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(), aid_arr.tolist()))
+        is_unreviewed = ~np.array(ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(), daid_arr.tolist()))
         qaid_arr  = qaid_arr.compress(is_unreviewed)
-        aid_arr   = aid_arr.compress(is_unreviewed)
+        daid_arr   = daid_arr.compress(is_unreviewed)
         score_arr = score_arr.compress(is_unreviewed)
         rank_arr  = rank_arr.compress(is_unreviewed)
 
     # Remove directed edges
     if not directed:
         #nodes = np.unique(directed_edges.flatten())
-        directed_edges = np.vstack((qaid_arr, aid_arr)).T
+        directed_edges = np.vstack((qaid_arr, daid_arr)).T
         import vtool as vt
         idx1, idx2 = vt.intersect2d_indices(directed_edges, directed_edges[:, ::-1])
 
@@ -387,7 +390,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
             return edgeid_list
 
         def find_best_undirected_edge_indexes(directed_edges, score_arr):
-            flipped = qaid_arr < aid_arr
+            flipped = qaid_arr < daid_arr
             # standardize edge order
             edges_dupl = directed_edges.copy()
             edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
@@ -402,7 +405,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
 
         OLD = False
         if OLD:
-            flipped = qaid_arr < aid_arr
+            flipped = qaid_arr < daid_arr
             # standardize edge order
             edges_dupl = directed_edges.copy()
             edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
@@ -411,10 +414,23 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
             #edges_unique = edges_dupl[unique_rowx]
             #flipped_unique = flipped[unique_rowx]
         qaid_arr  = qaid_arr.take(unique_rowx)
-        aid_arr   = aid_arr.take(unique_rowx)
+        daid_arr  = daid_arr.take(unique_rowx)
         score_arr = score_arr.take(unique_rowx)
         rank_arr  = rank_arr.take(unique_rowx)
 
-    candidate_matches = (qaid_arr, aid_arr, score_arr, rank_arr)
+    # Filter Double Name Matches
+    if filter_duplicate_namepair_matches:
+        qnid_arr = ibs.get_annot_nids(qaid_arr)
+        dnid_arr = ibs.get_annot_nids(daid_arr)
+        namepair_id_list = np.array(vt.compute_unique_data_ids_(list(zip(qnid_arr, dnid_arr))))
+        unique_namepair_ids, namepair_groupxs = vt.group_indices(namepair_id_list)
+        score_namepair_groups = vt.apply_grouping(score_arr, namepair_groupxs)
+        unique_rowx2 = np.array(sorted([groupx[score_group.argmax()]
+                                        for groupx, score_group in zip(namepair_groupxs, score_namepair_groups)]))
+        qaid_arr  = qaid_arr.take(unique_rowx2)
+        daid_arr  = daid_arr.take(unique_rowx2)
+        score_arr = score_arr.take(unique_rowx2)
+        rank_arr  = rank_arr.take(unique_rowx2)
 
+    candidate_matches = (qaid_arr, daid_arr, score_arr, rank_arr)
     return candidate_matches
