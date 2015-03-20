@@ -1047,8 +1047,8 @@ def update_1_4_2(db, ibs=None):
     db.modify_table(
         const.ANNOTATION_TABLE, [
             (None, 'contributor_rowid',  'INTEGER', None),
-            (None, 'annot_age_est_min',  'INTEGER DEFAULT -1', None),
-            (None, 'annot_age_est_max',  'INTEGER DEFAULT -1', None),
+            (None, 'annot_age_months_est_min',  'INTEGER DEFAULT -1', None),
+            (None, 'annot_age_months_est_max',  'INTEGER DEFAULT -1', None),
         ],
         # HACK: Need a way to update the dependsmap without blowing the old one away
         # Also need to not overspecify information. colname to tablename should be fine.

@@ -1,3 +1,7 @@
+"""
+python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templastes.template_generator')"
+sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=age_m
+"""
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
 import uuid
@@ -14,23 +18,25 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_annot]')
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-ANNOT_NOTE          = 'annot_note'
-ANNOT_NUM_VERTS     = 'annot_num_verts'
-ANNOT_PARENT_ROWID  = 'annot_parent_rowid'
-ANNOT_ROWID         = 'annot_rowid'
-ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
-ANNOT_THETA         = 'annot_theta'
-ANNOT_VERTS         = 'annot_verts'
-ANNOT_UUID          = 'annot_uuid'
-ANNOT_YAW           = 'annot_yaw'
-ANNOT_VISUAL_UUID   = 'annot_visual_uuid'
-CONFIG_ROWID        = 'config_rowid'
-FEATWEIGHT_ROWID    = 'featweight_rowid'
-IMAGE_ROWID         = 'image_rowid'
-NAME_ROWID          = 'name_rowid'
-SPECIES_ROWID       = 'species_rowid'
-ANNOT_EXEMPLAR_FLAG = 'annot_exemplar_flag'
-ANNOT_QUALITY       = 'annot_quality'
+ANNOT_AGE_MONTHS_EST_MAX = 'annot_age_months_est_max'
+ANNOT_AGE_MONTHS_EST_MIN = 'annot_age_months_est_min'
+ANNOT_NOTE               = 'annot_note'
+ANNOT_NUM_VERTS          = 'annot_num_verts'
+ANNOT_PARENT_ROWID       = 'annot_parent_rowid'
+ANNOT_ROWID              = 'annot_rowid'
+ANNOT_SEMANTIC_UUID      = 'annot_semantic_uuid'
+ANNOT_THETA              = 'annot_theta'
+ANNOT_VERTS              = 'annot_verts'
+ANNOT_UUID               = 'annot_uuid'
+ANNOT_YAW                = 'annot_yaw'
+ANNOT_VISUAL_UUID        = 'annot_visual_uuid'
+CONFIG_ROWID             = 'config_rowid'
+FEATWEIGHT_ROWID         = 'featweight_rowid'
+IMAGE_ROWID              = 'image_rowid'
+NAME_ROWID               = 'name_rowid'
+SPECIES_ROWID            = 'species_rowid'
+ANNOT_EXEMPLAR_FLAG      = 'annot_exemplar_flag'
+ANNOT_QUALITY            = 'annot_quality'
 
 
 # ==========
@@ -1862,9 +1868,114 @@ def set_annot_yaw_texts(ibs, aid_list, yaw_text_list):
     ibs.set_annot_yaws(aid_list, yaw_list)
 
 
+@register_ibs_method
+def get_annot_age_months_est_max(ibs, aid_list, eager=True, nInput=None):
+    """ annot_age_months_est_max_list <- annot.annot_age_months_est_max[aid_list]
+
+    gets data from the "native" column "annot_age_months_est_max" in the "annot" table
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: annot_age_months_est_max_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = annot_age_months_est_max
+        tbl = annot
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> ibs, config2_ = testdata_ibs()
+        >>> aid_list = ibs._get_all_aids()
+        >>> eager = True
+        >>> annot_age_months_est_max_list = ibs.get_annot_age_months_est_max(aid_list, eager=eager)
+        >>> assert len(aid_list) == len(annot_age_months_est_max_list)
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_AGE_MONTHS_EST_MAX,)
+    annot_age_months_est_max_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return annot_age_months_est_max_list
+
+
+@register_ibs_method
+def get_annot_age_months_est_min(ibs, aid_list, eager=True, nInput=None):
+    """ annot_age_months_est_min_list <- annot.annot_age_months_est_min[aid_list]
+
+    gets data from the "native" column "annot_age_months_est_min" in the "annot" table
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: annot_age_months_est_min_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = annot_age_months_est_min
+        tbl = annot
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> ibs, config2_ = testdata_ibs()
+        >>> aid_list = ibs._get_all_aids()
+        >>> eager = True
+        >>> annot_age_months_est_min_list = ibs.get_annot_age_months_est_min(aid_list, eager=eager)
+        >>> assert len(aid_list) == len(annot_age_months_est_min_list)
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_AGE_MONTHS_EST_MIN,)
+    annot_age_months_est_min_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return annot_age_months_est_min_list
+
+
+@register_ibs_method
+def set_annot_age_months_est_max(ibs, aid_list, annot_age_months_est_max_list, duplicate_behavior='error'):
+    """ annot_age_months_est_max_list -> annot.annot_age_months_est_max[aid_list]
+
+    Args:
+        aid_list
+        annot_age_months_est_max_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = annot
+        col = annot_age_months_est_max
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_AGE_MONTHS_EST_MAX,)
+    ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_age_months_est_max_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+def set_annot_age_months_est_min(ibs, aid_list, annot_age_months_est_min_list, duplicate_behavior='error'):
+    """ annot_age_months_est_min_list -> annot.annot_age_months_est_min[aid_list]
+
+    Args:
+        aid_list
+        annot_age_months_est_min_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = annot
+        col = annot_age_months_est_min
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_AGE_MONTHS_EST_MIN,)
+    ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_age_months_est_min_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
+
+
 #==========
 # Testdata
 #==========
+
 
 def testdata_ibs():
     import ibeis

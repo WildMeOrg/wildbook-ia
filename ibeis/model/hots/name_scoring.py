@@ -91,8 +91,10 @@ def compute_nsum_score(cm, qreq_=None):
         >>> nsum_nid_list, nsum_score_list = compute_nsum_score(cm)
         >>> assert np.all(nsum_nid_list == cm.unique_nids), 'nids out of alignment'
         >>> flags = (nsum_nid_list == cm.qnid)
-        >>> assert nsum_score_list[flags].max() > nsum_score_list[~flags].max(), 'is this truely a hard case?'
-        >>> assert nsum_score_list[flags].max() > 1.3, 'score should be higher for 18'
+        >>> max_true = nsum_score_list[flags].max()
+        >>> max_false = nsum_score_list[~flags].max()
+        >>> assert max_true > max_false, 'is this truely a hard case?'
+        >>> assert max_true > 1.2, 'score=%r should be higher for aid=18' % (max_true,)
 
     Example2:
         >>> # ENABLE_DOCTEST
