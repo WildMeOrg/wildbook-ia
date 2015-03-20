@@ -7,7 +7,7 @@ function update_label()
   $("#label-radians2").html((radians_sub).toFixed(4));
 }
 
-$("body").keydown(function(event) {
+$(window).keydown(function(event) {
   key = event.which;
   console.log(key);
   if(key == 13)
