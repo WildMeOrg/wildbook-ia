@@ -487,6 +487,7 @@ def show_match_at(qres_wgt, qtindex):
 def review_match_at(qres_wgt, qtindex, **kwargs):
     print('review')
     ibs = qres_wgt.ibs
+    qreq_ = qres_wgt.qreq_
     model = qtindex.model()
     aid1 = model.get_header_data('qaid', qtindex)
     aid2 = model.get_header_data('aid', qtindex)
@@ -500,16 +501,18 @@ def review_match_at(qres_wgt, qtindex, **kwargs):
     review_match(ibs, aid1, aid2, update_callback=update_callback,
                  backend_callback=backend_callback,
                  qres=qres,
+                 qreq_=qreq_,
                  #qres_callback=qres_callback,
                  **kwargs)
 
 
-def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None, **kwargs):
+def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None, qreq_=None, **kwargs):
     print('Review match: ' + ibsfuncs.vsstr(aid1, aid2))
     from ibeis.viz.interact import interact_name
     #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
     mvinteract = interact_name.MatchVerificationInteraction(
         ibs, aid1, aid2, fnum=64, update_callback=update_callback,
+        qreq_=qreq_,
         backend_callback=backend_callback, **kwargs)
     return mvinteract
     #ih.register_interaction(mvinteract)
@@ -725,21 +728,21 @@ def get_reviewed_status_bgrole(ibs, aid_pair):
     return truth_color
 
 
-def get_buttontup(ibs, qtindex):
-    """
-    helper for make_qres_api
-    """
-    model = qtindex.model()
-    aid1 = model.get_header_data('qaid', qtindex)
-    aid2 = model.get_header_data('aid', qtindex)
-    truth = ibs.get_match_truth(aid1, aid2)
-    truth_color = vh.get_truth_color(truth, base255=True,
-                                        lighten_amount=0.35)
-    truth_text = ibs.get_match_text(aid1, aid2)
-    callback = partial(review_match, ibs, aid1, aid2)
-    #print('get_button, aid1=%r, aid2=%r, row=%r, truth=%r' % (aid1, aid2, row, truth))
-    buttontup = (truth_text, callback, truth_color)
-    return buttontup
+#def get_buttontup(ibs, qtindex):
+#    """
+#    helper for make_qres_api
+#    """
+#    model = qtindex.model()
+#    aid1 = model.get_header_data('qaid', qtindex)
+#    aid2 = model.get_header_data('aid', qtindex)
+#    truth = ibs.get_match_truth(aid1, aid2)
+#    truth_color = vh.get_truth_color(truth, base255=True,
+#                                        lighten_amount=0.35)
+#    truth_text = ibs.get_match_text(aid1, aid2)
+#    callback = partial(review_match, ibs, aid1, aid2)
+#    #print('get_button, aid1=%r, aid2=%r, row=%r, truth=%r' % (aid1, aid2, row, truth))
+#    buttontup = (truth_text, callback, truth_color)
+#    return buttontup
 
 
 def test_inspect_matches(ibs, qaid_list, daid_list):
@@ -777,8 +780,9 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     from ibeis.viz.interact import interact_qres2  # NOQA
     from ibeis.gui import inspect_gui
     from ibeis.dev import results_all
-    allres = results_all.get_allres(ibs, qaid_list)
+    allres = results_all.get_allres(ibs, qaid_list, cfgdict={'augment_queryside_hack': True})
     tblname = 'qres'
+    qreq_ = allres.qreq_
     qaid2_qres = allres.qaid2_qres
     name_scoring = False
     ranks_lt = 5
@@ -787,7 +791,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     # This is where you create the result widigt
     guitool.ensure_qapp()
     print('[inspect_matches] make_qres_widget')
-    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, ranks_lt=ranks_lt)
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, ranks_lt=ranks_lt, qreq_=qreq_)
     print('[inspect_matches] show')
     qres_wgt.show()
     print('[inspect_matches] raise')
@@ -918,7 +922,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         ('aid',        int),
         #('d_nGt',      int),
         #('q_nGt',      int),
-        ('review',     'BUTTON'),
+        #('review',     'BUTTON'),
         (MATCHED_STATUS_TEXT, str),
         (REVIEWED_STATUS_TEXT, str),
         ('querythumb', 'PIXMAP'),
@@ -936,7 +940,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         ('aid',        np.array(aids)),
         #('d_nGt',      ibs.get_annot_num_groundtruth),
         #('q_nGt',      ibs.get_annot_num_groundtruth),
-        ('review',     lambda rowid: get_buttontup),
+        #('review',     lambda rowid: get_buttontup),
         (MATCHED_STATUS_TEXT,  partial(get_match_status, ibs)),
         (REVIEWED_STATUS_TEXT,  partial(get_reviewed_status, ibs)),
         ('querythumb', ibs.get_annot_chip_thumbtup),

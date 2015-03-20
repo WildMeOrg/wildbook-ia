@@ -157,6 +157,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         self.backend_callback = backend_callback
         self.qres_callback = kwargs.get('qres_callback', None)
         self.qres = kwargs.get('qres', None)
+        self.qreq_ = kwargs.get('qreq_', None)
         self.infer_data()
         if dodraw:
             self.show_page(bring_to_front=True)
@@ -335,7 +336,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                 # that are here already manually
                 ax = self.fig.add_subplot(*pnum)
                 self.clear_parent_axes(ax)
-            self.qres.show_matches(self.ibs, self.aid2, fnum=self.fnum, pnum=pnum, draw_fmatch=True, colorbar_=False)
+            self.qres.show_matches(self.ibs, self.aid2, fnum=self.fnum, pnum=pnum, draw_fmatch=True, colorbar_=False, qreq_=self.qreq_)
 
         # For each row
         for rowx, aid_list in enumerate(row_aids_list):
@@ -672,7 +673,7 @@ class MatchVerificationInteraction(AbstractInteraction):
                     #ibs.print_annotation_table()
                 #print(ut.dict_str(event.__dict__))
             elif viztype == 'matches':
-                self.qres.ishow_matches(self.ibs, self.aid2, fnum=None, mode=0)
+                self.qres.ishow_matches(self.ibs, self.aid2, fnum=None, mode=0, qreq_=self.qreq_)
 
 
 if __name__ == '__main__':

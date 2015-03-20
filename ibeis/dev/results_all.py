@@ -23,6 +23,7 @@ class AllResults(utool.DynStruct):
         allres.allorg = None
         allres.cfgstr = None
         allres.dbname = None
+        allres.qreq_ = None
 
     def get_orgtype(allres, orgtype):
         orgres = allres.allorg.get(orgtype)
@@ -56,6 +57,7 @@ def init_allres(ibs, qaid2_qres, qreq_=None):
     allres.cfgstr = allres_cfgstr
     allres.dbname = ibs.get_dbname()
     allres.ibs = ibs
+    allres.qreq_ = qreq_
     return allres
 
 
