@@ -13,7 +13,7 @@ function update_label()
   $("#label-text").html(quality_strs[value]);
 }
 
-$("body").keydown(function(event) {
+$(window).keydown(function(event) {
   key = event.which;
   console.log(key);
   if(key == 13)
