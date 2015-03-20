@@ -479,7 +479,8 @@ def show_match_at(qres_wgt, qtindex):
     qaid = model.get_header_data('qaid', qtindex)
     qreq_ = qres_wgt.qreq_
     #fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid, mode=1)
-    match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs, aid, mode=1, qreq_=qreq_)
+    #match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs, aid, mode=1, qreq_=qreq_)
+    match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs, aid, mode=0, qreq_=qreq_)
     fig = match_interaction.fig
     fig_presenter.bring_to_front(fig)
 
