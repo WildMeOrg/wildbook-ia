@@ -60,7 +60,7 @@ TABLE_COLNAMES = {
         #'nAids',
         'img_gname',
         #'ext',
-        #'reviewed',  # detection reviewed flag is not fullyused
+        'reviewed',  # detection reviewed flag is not fullyused
         'datetime',
         'gps',
         'party_tag',

@@ -225,7 +225,7 @@ def setup_batch_menu(mainwin, back):
         name='actionNameVsExemplarsQuery',
         text='Query: Names vs Exemplar',
         slot_fn=functools.partial(back.compute_queries,
-                                  use_viewoint_quality_subset=True,
+                                  use_prioritized_name_subset=True,
                                   daids_mode=const.VS_EXEMPLARS_KEY,
                                   cfgdict=dict(can_match_samename=False, use_k_padding=False)),
         tooltip=ut.textblock(

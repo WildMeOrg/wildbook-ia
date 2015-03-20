@@ -138,45 +138,26 @@ LEGACY_UPDATE_FUNCTIONS = [
 ]
 
 
-def test_dbcache_schema():
+def autogen_dbcache_schema():
     """
-    test_dbcache_schema
+    autogen_dbcache_schema
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.DBCACHE_SCHEMA import *  # NOQA
-        >>> test_dbcache_schema()
+        >>> autogen_dbcache_schema()
 
     CommandLine:
-        python -m ibeis.control.DBCACHE_SCHEMA --test-test_dbcache_schema
-        python -m ibeis.control.DBCACHE_SCHEMA --test-test_dbcache_schema --dump-autogen-schema
+        python -m ibeis.control.DBCACHE_SCHEMA --test-autogen_dbcache_schema
+        python -m ibeis.control.DBCACHE_SCHEMA --test-autogen_dbcache_schema --write
         python -m ibeis.control.DBCACHE_SCHEMA --force-incremental-db-update
 
     """
     from ibeis.control import DBCACHE_SCHEMA
     from ibeis.control import _sql_helpers
-    from ibeis import params
-    autogenerate = params.args.dump_autogen_schema
     n = utool.get_argval('-n', int, default=-1)
-    dbcache = _sql_helpers.get_nth_test_schema_version(DBCACHE_SCHEMA, n=n, autogenerate=autogenerate)
-    autogen_cmd = 'python -m ibeis.control.DBCACHE_SCHEMA --force-incremental-db-update --test-test_dbcache_schema --dump-autogen-schema\n'
-    autogen_cmd += 'python -m ibeis.control.DBCACHE_SCHEMA --force-incremental-db-update --test-test_dbcache_schema'
-    autogen_text = dbcache.get_schema_current_autogeneration_str(autogen_cmd)
-
-    show_diff = ut.get_argflag('--diff')
-    num_context_lines = ut.get_argval('--diff', type_=int, default=None)
-    show_diff = show_diff or num_context_lines is not None
-
-    from os.path import dirname
-    if show_diff:
-        autogen_fpath = ut.unixjoin(dirname(__file__), 'DBCACHE_SCHEMA_CURRENT.py')
-        if ut.checkpath(autogen_fpath, verbose=True):
-            prev_text = ut.read_from(autogen_fpath)
-            textdiff = ut.util_str.get_textdiff(prev_text, autogen_text, num_context_lines=num_context_lines)
-            ut.print_difftext(textdiff)
-    else:
-        ut.util_print.print_python_code(autogen_text)
-    print(' Run with --dump-autogen-schema to autogenerate latest schema version')
+    schema_spec = DBCACHE_SCHEMA
+    _sql_helpers.autogenerate_nth_schema_version(schema_spec, n=n)
 
 
 if __name__ == '__main__':

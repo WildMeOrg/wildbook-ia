@@ -10,7 +10,8 @@ import utool
 import utool as ut
 import sys
 
-__version__ = '0.1.0.dev1'
+#__version__ = '0.1.0.dev1'
+__version__ = '1.4.2'
 
 utool.noinject(__name__, '[ibeis.__init__]', DEBUG=False)
 

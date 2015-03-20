@@ -833,31 +833,6 @@ class SQLDatabaseController(object):
                     db.set_metadata_val(tablename + '_' + suffix, val)
                 else:
                     db.set_metadata_val(tablename + '_' + suffix, repr(val))
-        # FIXME: handle these generally with metadata_keyval dict kwargs
-        #if docstr is not None:
-        #    # Insert or replace docstr in metadata table
-        #    db.set_metadata_val(tablename + '_docstr', docstr)
-
-        #if len(constraint) > 0:
-        #    # Insert or replace constraint in metadata table
-        #    db.set_metadata_val(tablename + '_constraint', ';'.join(constraint))
-
-        #if superkeys is not None:
-        #    # have the metadata table keep track of table superkeys
-        #    # Insert or replace superkeys in metadata table
-        #    db.set_metadata_val(tablename + '_superkeys', repr(superkeys))
-        #if dependson is not None:
-        #    db.set_metadata_val(tablename + '_dependson', repr(dependson))
-        #if relates is not None:
-        #    db.set_metadata_val(tablename + '_relates', repr(relates))
-        #if shortname is not None:
-        #    db.set_metadata_val(tablename + '_shortname', repr(shortname))
-        #if extern_tables is not None:
-        #    db.set_metadata_val(tablename + '_extern_tables', repr(extern_tables))
-        #if dependsmap is not None:
-        #    db.set_metadata_val(tablename + '_dependsmap', repr(dependsmap))
-        #if primary_superkey is not None:
-        #    db.set_metadata_val(tablename + '_primary_superkey', repr(primary_superkey))
 
     @default_decor
     def modify_table(db, tablename=None, colmap_list=None, tablename_new=None,
@@ -1240,8 +1215,12 @@ class SQLDatabaseController(object):
                                                 #'constraint',
                                                 'dependsmap']
             def quote_docstr(docstr):
+                import textwrap
+                wraped_docstr = '\n'.join(textwrap.wrap(ut.textblock(docstr)))
+                indented_docstr = ut.indent(wraped_docstr.strip(), tab2)
                 _TSQ = ut.TRIPLE_SINGLE_QUOTE
-                return _TSQ + '\n' + ut.indent(docstr.strip(), tab2) + '\n' + tab2 + _TSQ
+                quoted_docstr = _TSQ + '\n' + indented_docstr + '\n' + tab2 + _TSQ
+                return quoted_docstr
             line_list.append(tab2 + 'docstr=' + quote_docstr(docstr) + ',')
             line_list.append(tab2 + 'superkeys=%r,' % (superkeys, ))
             #line_list.append(tab2 + 'constraint=%r,' % (db.get_metadata_val(tablename + '_constraint'),))
@@ -1257,21 +1236,12 @@ class SQLDatabaseController(object):
             dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True)
             if dependsmap is not None:
                 depends_map_dictstr = ut.align(ut.indent(ut.dict_str(dependsmap), tab2).lstrip(' '), ':')
-                depends_map_dictstr = depends_map_dictstr.replace('    }', '}')  # hack for formatting
+                depends_map_dictstr = depends_map_dictstr.replace(tab1 + '}', '}')  # hack for formatting
                 line_list.append(tab2 + 'dependsmap=%s,' % (depends_map_dictstr,))
             line_list.append(tab1 + ')')
 
         line_list.append('')
         return '\n'.join(line_list)
-
-    @default_decor
-    def dump_schema_current_autogeneration(db, output_dir, output_filename, autogen_cmd):
-        """ Convenience: Autogenerates the most up-to-date database schema """
-        print('[sqldb] dumping current schema to output_filename=%r' % (output_filename,))
-        dump_fpath = join(output_dir, output_filename)
-        schema_current_str = db.get_schema_current_autogeneration_str(autogen_cmd)
-        with open(dump_fpath, 'w') as file_:
-            file_.write(schema_current_str)
 
     @default_decor
     def dump_schema(db):
@@ -1323,6 +1293,8 @@ class SQLDatabaseController(object):
     def get_table_superkey_colnames(db, tablename):
         """
         get_table_superkey_colnames
+        Actually resturns a list of tuples. need to change the name to
+        get_table_superkey_colnames_list
 
         Args:
             tablename (str):
@@ -1373,9 +1345,7 @@ class SQLDatabaseController(object):
     @default_decor
     def get_table_primarykey_colnames(db, tablename):
         columns = db.get_columns(tablename)
-        primarykey_colnames = [name
-                               for (column_id, name, type_, notnull, dflt_value, pk,) in columns
-                               if pk]
+        primarykey_colnames = tuple([name for (column_id, name, type_, notnull, dflt_value, pk,) in columns if pk])
         return primarykey_colnames
 
     @default_decor
@@ -1533,7 +1503,31 @@ class SQLDatabaseController(object):
         extern_primarycolnames_list = []
         dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True)
         if dependsmap is not None:
-            for colname, (extern_tablename, extern_primary_colnames, extern_superkey_colnames) in six.iteritems(dependsmap):
+            for colname, dependtup in six.iteritems(dependsmap):
+                assert len(dependtup) == 3, 'must be 3 for now'
+                (extern_tablename, extern_primary_colnames, extern_superkey_colnames) = dependtup
+                if extern_primary_colnames is None:
+                    #ut.embed()
+                    # INFER PRIMARY COLNAMES
+                    extern_primary_colnames = db.get_table_primarykey_colnames(extern_tablename)
+                if extern_superkey_colnames is None:
+                    def get_standard_superkey_colnames(tablename_):
+                        # FIXME: Rectify duplicate code
+                        superkeys = db.get_table_superkey_colnames(tablename_)
+                        if len(superkeys) > 1:
+                            primary_superkey = db.get_metadata_val(tablename_ + '_primary_superkey', eval_=True)
+                            if primary_superkey is None:
+                                raise AssertionError(
+                                    ('tablename_=%r has multiple superkeys=%r, but no primary superkey.'
+                                     ' A primary superkey is required') % (tablename_, superkeys))
+                            else:
+                                index = superkeys.index(primary_superkey)
+                                superkey_colnames = superkeys[index]
+                        else:
+                            superkey_colnames = superkeys[0]
+                        return superkey_colnames
+                    extern_superkey_colnames = get_standard_superkey_colnames(extern_tablename)
+                    # INFER SUPERKEY COLNAMES
                 colx = ut.listfind(column_names, colname)
                 extern_rowids = column_list[colx]
                 superkey_column = db.get(extern_tablename, extern_superkey_colnames, extern_rowids)
@@ -1698,6 +1692,7 @@ class SQLDatabaseController(object):
                 ut.printex(ex, keys=['column_names_', 'superkey_colnames_list'])
                 raise
             if len(superkey_colnames_list) > 1:
+                # FIXME: Rectify duplicate code
                 primary_superkey = db.get_metadata_val(tablename + '_primary_superkey', eval_=True)
                 if primary_superkey is None:
                     raise AssertionError(

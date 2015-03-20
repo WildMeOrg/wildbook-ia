@@ -1,6 +1,7 @@
 """
 python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
 sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=False --modfname manual_name_funcs
+sh Tgen.sh --key name --invert --Tcfg with_getters=True with_setters=True --modfname manual_name_funcs --funcname-filter=sex
 
 """
 from __future__ import absolute_import, division, print_function
@@ -32,6 +33,7 @@ NAME_UUID       = 'name_uuid'
 NAME_TEXT       = 'name_text'
 NAME_ALIAS_TEXT = 'name_alias_text'
 NAME_NOTE       = 'name_note'
+NAME_SEX         = 'name_sex'
 NAME_TEMP_FLAG  = 'name_temp_flag'
 
 
@@ -824,6 +826,69 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False):
     #ibs.set_lblannot_values(nid_list, name_list)
     val_list = ((value,) for value in name_text_list)
     ibs.db.set(const.NAME_TABLE, (NAME_TEXT,), val_list, name_rowid_list)
+
+
+@register_ibs_method
+def get_name_sex(ibs, name_rowid_list, eager=True, nInput=None):
+    """ name_sex_list <- name.name_sex[name_rowid_list]
+
+    gets data from the "native" column "name_sex" in the "name" table
+
+    Args:
+        name_rowid_list (list):
+
+    Returns:
+        list: name_sex_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = name_sex
+        tbl = name
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
+        >>> ibs, config2_ = testdata_ibs()
+        >>> name_rowid_list = ibs._get_all_name_rowids()
+        >>> eager = True
+        >>> name_sex_list = ibs.get_name_sex(name_rowid_list, eager=eager)
+        >>> assert len(name_rowid_list) == len(name_sex_list)
+    """
+    id_iter = name_rowid_list
+    colnames = (NAME_SEX,)
+    name_sex_list = ibs.db.get(
+        const.NAME_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return name_sex_list
+
+
+@register_ibs_method
+def set_name_sex(ibs, name_rowid_list, name_sex_list, duplicate_behavior='error'):
+    """ name_sex_list -> name.name_sex[name_rowid_list]
+
+    Args:
+        name_rowid_list
+        name_sex_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = name
+        col = name_sex
+    """
+    id_iter = name_rowid_list
+    colnames = (NAME_SEX,)
+    ibs.db.set(const.NAME_TABLE, colnames, name_sex_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
+
+
+def get_name_sex_text(ibs, name_rowid_list, eager=True, nInput=None):
+    name_sex_list = ibs.get_name_sex(name_rowid_list, eager=eager, nInput=nInput)
+    name_sex_text_list = ut.dict_take(const.SEX_INT_TO_TEXT, name_sex_list)
+    return name_sex_text_list
+
+
+def set_name_sex_text(ibs, name_rowid_list, name_sex_text_list):
+    name_sex_list = ut.dict_take(const.SEX_TEXT_TO_INT, name_sex_text_list)
+    return ibs.set_name_sex(name_rowid_list, name_sex_list)
 
 
 if __name__ == '__main__':
