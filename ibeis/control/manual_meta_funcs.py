@@ -746,10 +746,24 @@ def _init_config(ibs):
 
     TODO: per-species config
     """
+    #####
+    # <GENERAL CONFIG>
+    config_fpath = ut.unixjoin(ibs.get_dbdir(), 'general_config.cPkl')
+    try:
+        general_config = ut.load_cPkl(config_fpath)
+    except IOError:
+        general_config = {}
+    current_species = general_config.get('current_species', None)
+    # </GENERAL CONFIG>
+    #####
     species_list = ibs.get_database_species()
+    if current_species is None:
+        species_list = ibs.get_database_species()
+        current_species = species_list[0] if len(species_list) == 1 else None
+    cfgname = 'cfg' if current_species is None else current_species
     print('[_init_config] Loading databsae with species_list = %r ' % (species_list,))
+    print('[_init_config] Using cfgname=%r' % (cfgname,))
     # try to be intelligent about the default speceis
-    cfgname = species_list[0] if len(species_list) == 1 else 'cfg'
     ibs._load_named_config(cfgname)
 
 

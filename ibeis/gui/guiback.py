@@ -756,6 +756,19 @@ class MainWindowBackend(QtCore.QObject):
             cfgname = 'cfg'
         else:
             cfgname = species_text
+        #
+        current_species = None if species_text == 'none' else species_text
+        #####
+        # <GENERAL CONFIG SAVE>
+        config_fpath = ut.unixjoin(ibs.get_dbdir(), 'general_config.cPkl')
+        try:
+            general_config = ut.load_cPkl(config_fpath)
+        except IOError:
+            general_config = {}
+        general_config['current_species'] = current_species
+        ut.save_cPkl(ut.unixjoin(ibs.get_dbdir(), 'general_config.cPkl'), general_config)
+        # </GENERAL CONFIG SAVE>
+        #####
         ibs._load_named_config(cfgname)
         ibs.cfg.detect_cfg.species_text = species_text
         ibs.cfg.save()
