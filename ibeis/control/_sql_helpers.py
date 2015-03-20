@@ -552,6 +552,7 @@ def autogenerate_nth_schema_version(schema_spec, n=-1):
     print(' Run with -n=%r to get a specific schema version by index. -1 == latest')
     print(' Run with --write to autogenerate latest schema version')
     print(' Run with --diff or --diff=<numcontextlines> to see the difference between current and requested')
+    return db
 
 
 def get_nth_test_schema_version(schema_spec, n=-1):

@@ -22,8 +22,8 @@ except:
     UPDATE_CURRENT  = None
     VERSION_CURRENT = None
     print("[dbcache] NO DB_SCHEMA_CURRENT AUTO-GENERATED!")
-import utool
-profile = utool.profile
+import utool as ut
+profile = ut.profile
 
 
 NAME_TABLE_v121     = const.NAME_TABLE_v121
@@ -1049,7 +1049,17 @@ def update_1_4_2(db, ibs=None):
             (None, 'contributor_rowid',  'INTEGER', None),
             (None, 'annot_age_est_min',  'INTEGER DEFAULT -1', None),
             (None, 'annot_age_est_max',  'INTEGER DEFAULT -1', None),
-        ]
+        ],
+        # HACK: Need a way to update the dependsmap without blowing the old one away
+        # Also need to not overspecify information. colname to tablename should be fine.
+        # we can have the extern colname be optional. superkey is definiately not needed
+        dependsmap={
+            IMAGE_ROWID         : (const.IMAGE_TABLE,      (IMAGE_ROWID,),   (IMAGE_UUID,)),
+            NAME_ROWID          : (const.NAME_TABLE,       (NAME_ROWID,),    (NAME_TEXT,)),
+            SPECIES_ROWID       : (const.SPECIES_TABLE,    (SPECIES_ROWID,), (SPECIES_TEXT,)),
+            ANNOT_PARENT_ROWID  : (const.ANNOTATION_TABLE, (ANNOT_ROWID,),   (ANNOT_VISUAL_UUID,)),
+            'contributor_rowid' : (const.CONTRIBUTOR_TABLE, None, None),
+        },
     )
 
     db.modify_table(
@@ -1066,7 +1076,7 @@ def update_1_4_2(db, ibs=None):
 
 
 base = const.BASE_DATABASE_VERSION
-VALID_VERSIONS = utool.odict([
+VALID_VERSIONS = ut.odict([
     #version:   (Pre-Update Function,  Update Function,    Post-Update Function)
     (base   ,    (None,                 None,               None                )),
     ('1.0.0',    (None,                 update_1_0_0,       post_1_0_0          )),
@@ -1088,6 +1098,7 @@ VALID_VERSIONS = utool.odict([
     ('1.3.9',    (None,                 update_1_3_9,       None          )),
     ('1.4.0',    (None,                 update_1_4_0,       None          )),
     ('1.4.1',    (None,                 update_1_4_1,       None          )),
+    ('1.4.2',    (None,                 update_1_4_2,       None          )),
 ])
 
 
@@ -1118,9 +1129,10 @@ def autogen_db_schema():
     """
     from ibeis.control import DB_SCHEMA
     from ibeis.control import _sql_helpers
-    n = utool.get_argval('-n', int, default=-1)
+    n = ut.get_argval('-n', int, default=-1)
     schema_spec = DB_SCHEMA
-    _sql_helpers.autogenerate_nth_schema_version(schema_spec, n=n)
+    db = _sql_helpers.autogenerate_nth_schema_version(schema_spec, n=n)
+    return db
 
 
 if __name__ == '__main__':
