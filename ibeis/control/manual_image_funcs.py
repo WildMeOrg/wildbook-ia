@@ -1314,7 +1314,7 @@ def get_encounter_percent_imgs_reviewed(ibs, eid_list):
 @getter_1to1
 def get_encounter_percent_imgs_reviewed_str(ibs, eid_list):
     percent_imgs_reviewed_list = get_encounter_percent_imgs_reviewed(ibs, eid_list)
-    percent_imgs_reviewed_str_list = ['undef' if pcnt is None else '%4.2f %%' % (pcnt * 100,) for pcnt in percent_imgs_reviewed_list]
+    percent_imgs_reviewed_str_list = ['undef' if pcnt is None else '%06.2f %%' % (pcnt * 100,) for pcnt in percent_imgs_reviewed_list]
     return percent_imgs_reviewed_str_list
 
 
