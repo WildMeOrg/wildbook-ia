@@ -209,9 +209,44 @@ def add_or_update_annotmatch(ibs, aid1, aid2, truth, confidence):
 
 
 @__injectable
-def get_annot_has_reviewed(ibs, aid_list):
+def get_annot_has_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
+    num_reviewed_list = ibs.get_annot_num_reviewed_matching_aids(aid_list)
+    has_reviewed_list = [num_reviewed > 0 for num_reviewed in num_reviewed_list]
+    return has_reviewed_list
 
-    pass
+
+@__injectable
+def get_annot_num_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
+    aids_list = ibs.get_annot_reviewed_matching_aids(aid_list, eager=eager, nInput=nInput)
+    num_annot_reviewed_list = list(map(len, aids_list))
+    return num_annot_reviewed_list
+
+
+@__injectable
+def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
+    """
+    Returns a list of the aids that were reviewed as candidate matches to the input aid
+
+    aid_list = ibs.get_valid_aids()
+    """
+    ANNOT_ROWID1 = 'annot_rowid1'
+    ANNOT_ROWID2 = 'annot_rowid2'
+    #params_iter = [(aid, aid) for aid in aid_list]
+    #[(aid, aid) for aid in aid_list]
+    #colnames = (ANNOT_ROWID1, ANNOT_ROWID2)
+    #where_colnames = (ANNOT_ROWID1, ANNOT_ROWID2)
+    params_iter = [(aid,) for aid in aid_list]
+    colnames = (ANNOT_ROWID2,)
+    andwhere_colnames = (ANNOT_ROWID1,)
+    aids_list = ibs.db.get_where2(
+        const.ANNOTMATCH_TABLE, colnames, params_iter,
+        andwhere_colnames=andwhere_colnames, eager=eager, unpack_scalars=False, nInput=nInput)
+    #logicop = 'OR'
+    #aids_list = ibs.db.get_where3(
+    #    const.ANNOTMATCH_TABLE, colnames, params_iter,
+    #    where_colnames=where_colnames, logicop=logicop, eager=eager,
+    #    unpack_scalars=False, nInput=nInput)
+    return aids_list
 
 
 @__injectable

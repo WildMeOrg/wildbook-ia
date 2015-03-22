@@ -379,6 +379,20 @@ class SQLDatabaseController(object):
                             **kwargs)
 
     @default_decor
+    def get_where3(db, tblname, colnames, params_iter, where_colnames,
+                   unpack_scalars=True, eager=True, logicop='AND', **kwargs):
+        """ hacked in function for nicer templates
+
+        unpack_scalars = True
+        kwargs = {}
+        """
+        andwhere_clauses = [colname + '=?' for colname in where_colnames]
+        logicop_ = ' %s ' % (logicop,)
+        where_clause = logicop_.join(andwhere_clauses)
+        return db.get_where(tblname, colnames, params_iter, where_clause,
+                            unpack_scalars=unpack_scalars, eager=eager, **kwargs)
+
+    @default_decor
     def get_where(db, tblname, colnames, params_iter, where_clause,
                   unpack_scalars=True, eager=True,
                   **kwargs):

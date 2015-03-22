@@ -1303,19 +1303,54 @@ def get_encounter_num_imgs_reviewed(ibs, eid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_encounter_percent_imgs_reviewed(ibs, eid_list):
+def get_encounter_num_annotmatch_reviewed(ibs, eid_list):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> eid_list = ibs._get_all_encounter_rowids()
+        >>> num_annots_reviewed_list = ibs.get_encounter_num_annotmatch_reviewed(eid_list)
+    """
+    aids_list = ibs.get_encounter_aids(eid_list)
+    has_revieweds_list = ibs.unflat_map(ibs.get_annot_has_reviewed_matching_aids, aids_list)
+    num_annots_reviewed_list = list(map(sum, has_revieweds_list))
+    return num_annots_reviewed_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_fraction_annotmatch_reviewed(ibs, eid_list):
+    aids_list = ibs.get_encounter_aids(eid_list)
+    flags_list = ibs.unflat_map(ibs.get_annot_has_reviewed_matching_aids, aids_list)
+    fraction_annotmatch_reviewed_list = [None if len(flags) == 0 else sum(flags) / len(flags) for flags in flags_list]
+    return fraction_annotmatch_reviewed_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_fraction_imgs_reviewed(ibs, eid_list):
     gids_list = ibs.get_encounter_gids(eid_list)
     flags_list = ibs.unflat_map(ibs.get_image_reviewed, gids_list)
-    percent_imgs_reviewed_list = [None if len(flags) == 0 else sum(flags) / len(flags) for flags in flags_list]
-    return percent_imgs_reviewed_list
+    fraction_imgs_reviewed_list = [None if len(flags) == 0 else sum(flags) / len(flags) for flags in flags_list]
+    return fraction_imgs_reviewed_list
 
 
 @register_ibs_method
 @getter_1to1
 def get_encounter_percent_imgs_reviewed_str(ibs, eid_list):
-    percent_imgs_reviewed_list = get_encounter_percent_imgs_reviewed(ibs, eid_list)
-    percent_imgs_reviewed_str_list = ['undef' if pcnt is None else '%06.2f %%' % (pcnt * 100,) for pcnt in percent_imgs_reviewed_list]
+    fraction_imgs_reviewed_list = ibs.get_encounter_fraction_imgs_reviewed(eid_list)
+    percent_imgs_reviewed_str_list = list(map(ut.percent_str, fraction_imgs_reviewed_list))
     return percent_imgs_reviewed_str_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_percent_annotmatch_reviewed_str(ibs, eid_list):
+    fraction_annotmatch_reviewed_list = ibs.get_encounter_fraction_annotmatch_reviewed(eid_list)
+    percent_annotmach_reviewed_str_list = list(map(ut.percent_str, fraction_annotmatch_reviewed_list))
+    return percent_annotmach_reviewed_str_list
 
 
 @register_ibs_method

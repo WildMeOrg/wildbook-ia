@@ -114,8 +114,10 @@ TABLE_COLNAMES = {
         'enctext',
         'nImgs',
         'encounter_start_datetime',
-        'num_imgs_reviewed',
         'percent_imgs_reviewed_str',
+        'percent_annotmatch_reviewed_str',
+        'num_imgs_reviewed',
+        'num_annotmatch_reviewed',
         #'encounter_end_datetime',
         # 'encounter_processed_flag',
         # 'encounter_shipped_flag',
@@ -244,8 +246,10 @@ COL_DEF = dict([
     ('encounter_end_datetime',       (str,      'End Time')),
     ('party_tag', (str, 'Party')),
     ('contributor_tag', (str, 'Contributor')),
-    ('num_imgs_reviewed', (str, '#Imgs Reviewed')),
     ('percent_imgs_reviewed_str', (str, '%Imgs Reviewed')),
+    ('percent_annotmatch_reviewed_str', (str, '%Matches Reviewed')),
+    ('num_imgs_reviewed', (str, '#Imgs Reviewed')),
+    ('num_annotmatch_reviewed', (str, '#Matches Reviewed')),
 ])
 
 #----
