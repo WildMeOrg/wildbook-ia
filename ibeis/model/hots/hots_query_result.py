@@ -734,14 +734,22 @@ class QueryResult(__OBJECT_BASE__):
         # use make_title=True instead
         #if 'figtitle' not in kwargs:
         #    kwargs['figtitle'] = qres.make_smaller_title()
-        fig = interact_qres.ishow_qres(ibs, qres, *args, qreq_=qreq_, **kwargs)
-        if kwargs.get('update', False):
-            fig.show()
-        return fig
+        try:
+            fig = interact_qres.ishow_qres(ibs, qres, *args, qreq_=qreq_, **kwargs)
+            if kwargs.get('update', False):
+                fig.show()
+            return fig
+        except Exception as ex:
+            ut.printex(ex, 'failed in qres.ishow_top', keys=['aid', 'qreq_'])
+            raise
 
     def show_matches(qres, ibs, aid, qreq_=None, *args, **kwargs):
         from ibeis.viz import viz_matches
-        return viz_matches.show_matches(ibs, qres, aid, *args, qreq_=qreq_, **kwargs)
+        try:
+            return viz_matches.show_matches(ibs, qres, aid, *args, qreq_=qreq_, **kwargs)
+        except Exception as ex:
+            ut.printex(ex, 'failed in qres.show_matches', keys=['aid', 'qreq_'])
+            raise
 
     def dump_top_match(qres, ibs, qreq_=None, fnum=None, *args, **kwargs):
         """
@@ -818,10 +826,14 @@ class QueryResult(__OBJECT_BASE__):
         from ibeis.viz.interact import interact_matches  # NOQA
         #if aid == 'top':
         #    aid = qres.get_top_aids(ibs)
-        match_interaction = interact_matches.MatchInteraction(ibs, qres, aid, qreq_=qreq_, *args, **kwargs)
-        # Keep the interaction alive at least while the qres is alive
-        qres._live_interactions.append(match_interaction)
-        return match_interaction
+        try:
+            match_interaction = interact_matches.MatchInteraction(ibs, qres, aid, qreq_=qreq_, *args, **kwargs)
+            # Keep the interaction alive at least while the qres is alive
+            qres._live_interactions.append(match_interaction)
+            return match_interaction
+        except Exception as ex:
+            ut.printex(ex, 'failed in qres.show_matches', keys=['aid', 'qreq_'])
+            raise
         #fig = interact_matches.ishow_matches(ibs, qres, aid, *args, **kwargs)
         #return fig
 
