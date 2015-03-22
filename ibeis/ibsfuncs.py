@@ -177,6 +177,14 @@ def export_to_hotspotter(ibs):
     export_hsdb.export_ibeis_to_hotspotter(ibs)
 
 
+#def export_image_subset(ibs, gid_list, dst_fpath=None):
+#    dst_fpath = ut.truepath('~')
+#    #gid_list = [692, 693, 680, 781, 751, 753, 754, 755, 756]
+#    gpath_list = ibs.get_image_paths(gid_list)
+#    gname_list = [join(dst_fpath, gname) for gname in ibs.get_image_gnames(gid_list)]
+#    ut.copy_files_to(gpath_list, dst_fpath_list=gname_list)
+
+
 @__injectable
 def mark_annot_pair_as_reviewed(ibs, aid1, aid2):
     """ denote that this match was reviewed and keep whatever status it is given """
@@ -198,6 +206,12 @@ def add_or_update_annotmatch(ibs, aid1, aid2, truth, confidence):
         ibs.set_annotmatch_confidence([annotmatch_rowid], [1.0])
     else:
         ibs.add_annotmatch([aid1], [aid2], [truth], [1.0])
+
+
+@__injectable
+def get_annot_has_reviewed(ibs, aid_list):
+
+    pass
 
 
 @__injectable

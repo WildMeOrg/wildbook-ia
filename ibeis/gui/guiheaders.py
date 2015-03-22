@@ -114,6 +114,8 @@ TABLE_COLNAMES = {
         'enctext',
         'nImgs',
         'encounter_start_datetime',
+        'num_imgs_reviewed',
+        'percent_imgs_reviewed_str',
         #'encounter_end_datetime',
         # 'encounter_processed_flag',
         # 'encounter_shipped_flag',
@@ -242,6 +244,8 @@ COL_DEF = dict([
     ('encounter_end_datetime',       (str,      'End Time')),
     ('party_tag', (str, 'Party')),
     ('contributor_tag', (str, 'Contributor')),
+    ('num_imgs_reviewed', (str, '#Imgs Reviewed')),
+    ('percent_imgs_reviewed_str', (str, '%Imgs Reviewed')),
 ])
 
 #----
@@ -287,6 +291,13 @@ def make_ibeis_headers_dict(ibs):
     getters = {}
     #
     # Image Iders/Setters/Getters
+
+    def infer_unspecified_getters(tablename, shortname):
+        for colname in TABLE_COLNAMES[tablename]:
+            if colname not in getters[tablename]:
+                getters[tablename][colname] = getattr(ibs, 'get_' + shortname + '_' + colname)
+                print(getters[tablename][colname])
+
     iders[IMAGE_TABLE]   = [ibs.get_valid_gids]
     getters[IMAGE_TABLE] = {
         'gid'        : lambda gids: gids,
@@ -304,10 +315,7 @@ def make_ibeis_headers_dict(ibs):
         'thumb'      : ibs.get_image_thumbtup,
         'gps'        : partial_imap_1to1(ut.tupstr, ibs.get_image_gps),
     }
-    for colname in TABLE_COLNAMES[IMAGE_TABLE]:
-        if colname not in getters[IMAGE_TABLE]:
-            getters[IMAGE_TABLE][colname] = getattr(ibs, 'get_image_' + colname)
-            print(getters[IMAGE_TABLE][colname])
+    infer_unspecified_getters(IMAGE_TABLE, 'image')
 
     setters[IMAGE_TABLE] = {
         'reviewed'      : ibs.set_image_reviewed,
@@ -329,6 +337,8 @@ def make_ibeis_headers_dict(ibs):
         'encounter_start_time_posix' : ibs.get_encounter_start_time_posix,
         'encounter_end_time_posix'   : ibs.get_encounter_end_time_posix,
     }
+    infer_unspecified_getters(ENCOUNTER_TABLE, 'encounter')
+
     setters[ENCOUNTER_TABLE] = {
         'enctext'    : ibs.set_encounter_enctext,
         'encounter_shipped_flag'    : ibs.set_encounter_shipped_flags,
