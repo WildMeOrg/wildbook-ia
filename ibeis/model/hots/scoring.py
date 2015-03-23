@@ -255,8 +255,12 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
     if fg_on:
         qfgweight_list = ibs.get_annot_fgweights(aid_list, ensure=True, config2_=config2_)
         weight_lists.append(qfgweight_list)
-    # geometric mean of the selected weights
-    baseline_weights_list = [spmstat.gmean(weight_tup) for weight_tup in zip(*weight_lists)]
+    if len(weight_lists) == 0:
+        baseline_weights_list = [np.ones(num, np.float64) for num in ibs.get_annot_num_feats(aid_list)]
+        #baseline_weights_list = [None] * len(aid_list)
+    else:
+        # geometric mean of the selected weights
+        baseline_weights_list = [spmstat.gmean(weight_tup) for weight_tup in zip(*weight_lists)]
     return baseline_weights_list
 
 

@@ -1113,6 +1113,7 @@ def autogen_db_schema():
 
     CommandLine:
         python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema
+        python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema --diff=1
         python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema -n=-1
         python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema -n=0
         python -m ibeis.control.DB_SCHEMA --test-autogen_db_schema -n=1

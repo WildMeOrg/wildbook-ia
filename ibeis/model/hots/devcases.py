@@ -150,7 +150,7 @@ def myquery():
         #sv_on=False,
         #codename='vsone_unnorm_dist_ratio_extern_distinctiveness',
         codename='vsone_unnorm_ratio_extern_distinctiveness',
-        sver_weighting=True,
+        sver_output_weighting=True,
     )
 
     use_cache   = False
