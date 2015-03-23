@@ -25,10 +25,14 @@ c_double_p = C.POINTER(C.c_double)
 # copied/adapted from _pyhesaff.py
 kpts_dtype = np.float64
 # this is because size_t is 32 bit on mingw even on 64 bit machines
-fms_dtype = np.int32 if ut.WIN32 else np.int64
+fm_dtype = np.int32 if ut.WIN32 else np.int64
+fs_dtype = np.float64
 FLAGS_RW = 'aligned, c_contiguous, writeable'
-kpts_t = np.ctypeslib.ndpointer(dtype=kpts_dtype, ndim=2, flags=FLAGS_RW)
-fms_t  = np.ctypeslib.ndpointer(dtype=fms_dtype, ndim=2, flags=FLAGS_RW)
+FLAGS_RO = 'aligned, c_contiguous'
+
+kpts_t = np.ctypeslib.ndpointer(dtype=kpts_dtype, ndim=2, flags=FLAGS_RO)
+fm_t  = np.ctypeslib.ndpointer(dtype=fm_dtype, ndim=2, flags=FLAGS_RO)
+fs_t  = np.ctypeslib.ndpointer(dtype=fs_dtype, ndim=1, flags=FLAGS_RO)
 
 inliers_t = lambda ndim: np.ctypeslib.ndpointer(dtype=np.bool, ndim=ndim, flags=FLAGS_RW)
 errs_t    = lambda ndim: np.ctypeslib.ndpointer(dtype=np.float64, ndim=ndim, flags=FLAGS_RW)
@@ -60,7 +64,7 @@ if __name__ != '__main__':
     #  it an inlier, the error triples, the hypothesis itself)
     c_getaffineinliers.argtypes = [kpts_t, C.c_size_t,
                                    kpts_t, C.c_size_t,
-                                   fms_t, C.c_size_t,
+                                   fm_t, fs_t, C.c_size_t,
                                    C.c_double, C.c_double, C.c_double,
                                    inliers_t(2), errs_t(3), mats_t(3)]
     # for the best affine hypothesis, for every keypoint pair
@@ -70,24 +74,24 @@ if __name__ != '__main__':
     c_getbestaffineinliers.restype = C.c_int
     c_getbestaffineinliers.argtypes = [kpts_t, C.c_size_t,
                                        kpts_t, C.c_size_t,
-                                       fms_t, C.c_size_t,
+                                       fm_t, fs_t, C.c_size_t,
                                        C.c_double, C.c_double, C.c_double,
                                        inliers_t(1), errs_t(2), mats_t(2)]
 
 
 @profile
-def get_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
+def get_affine_inliers_cpp(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
     #np.ascontiguousarray(kpts1)
     #with ut.Timer('PreC'):
     num_matches = len(fm)
-    fm = np.ascontiguousarray(fm, dtype=fms_dtype)
+    fm = np.ascontiguousarray(fm, dtype=fm_dtype)
     out_inlier_flags = np.empty((num_matches, num_matches), np.bool)
     out_errors = np.empty((num_matches, 3, num_matches), np.float64)
     out_mats = np.empty((num_matches, 3, 3), np.float64)
     #with ut.Timer('C'):
     c_getaffineinliers(kpts1, kpts1.size,
                        kpts2, kpts2.size,
-                       fm, fm.size,
+                       fm, fs, len(fm),
                        xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh,
                        out_inlier_flags, out_errors, out_mats)
     #with ut.Timer('C'):
@@ -97,18 +101,18 @@ def get_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, 
 
 
 @profile
-def get_best_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd,
+def get_best_affine_inliers_cpp(kpts1, kpts2, fm, fs, xy_thresh_sqrd,
                                 scale_thresh_sqrd, ori_thresh):
     #np.ascontiguousarray(kpts1)
     #with ut.Timer('PreC'):
-    fm = np.ascontiguousarray(fm, dtype=fms_dtype)
+    fm = np.ascontiguousarray(fm, dtype=fm_dtype)
     out_inlier_flags = np.empty((len(fm),), np.bool)
     out_errors = np.empty((3, len(fm)), np.float64)
     out_mat = np.empty((3, 3), np.float64)
     #with ut.Timer('C'):
     c_getbestaffineinliers(kpts1, 6 * len(kpts1),
                            kpts2, 6 * len(kpts2),
-                           fm, 2 * len(fm),
+                           fm, fs, len(fm),
                            xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh,
                            out_inlier_flags, out_errors, out_mat)
     #with ut.Timer('C'):
@@ -117,7 +121,7 @@ def get_best_affine_inliers_cpp(kpts1, kpts2, fm, xy_thresh_sqrd,
     return out_inliers, out_errors, out_mat
 
 
-def assert_output_equal(output1, output2, thresh=1E-8, nestpath=None, level=0, lbl1='', lbl2=''):
+def assert_output_equal(output1, output2, thresh=1E-8, nestpath=None, level=0, lbl1='', lbl2='', output_lbl=None):
     """ recursive equality checks """
     # Setup
     if nestpath is None:
@@ -183,7 +187,7 @@ def assert_output_equal(output1, output2, thresh=1E-8, nestpath=None, level=0, l
             raise
 
 
-def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2=''):
+def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2='', output_lbl=None):
     """
     tests two different implementations of the same function
     """
@@ -201,7 +205,7 @@ def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2
         t2.ellapsed = 1e9
     print('speedup = %r' % (t1.ellapsed / t2.ellapsed))
     try:
-        assert_output_equal(output1, output2, lbl1=lbl1, lbl2=lbl2)
+        assert_output_equal(output1, output2, lbl1=lbl1, lbl2=lbl2, output_lbl=output_lbl)
         print('implementations are in agreement :) ')
     except AssertionError as ex:
         # prints out a nested list corresponding to nested structure
@@ -294,8 +298,8 @@ def test_sver_wrapper():
     if ut.get_argflag('--dummy'):
         testtup = dummy.testdata_dummy_matches()
         (kpts1, kpts2, fm_input, fs_input, rchip1, rchip2) = testtup
-        fm_input = fm_input.astype(fms_dtype)
-        #fm_input = fm_input[0:10].astype(fms_dtype)
+        fm_input = fm_input.astype(fm_dtype)
+        #fm_input = fm_input[0:10].astype(fm_dtype)
         #fs_input = fs_input[0:10].astype(np.float32)
     else:
         fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
@@ -304,7 +308,18 @@ def test_sver_wrapper():
         (kpts1, kpts2, fm_input, fs_input, rchip1, rchip2) = testtup
 
     # pack up call to aff hypothesis
-    args = (kpts1, kpts2, fm_input, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
+    import vtool as vt
+    import scipy.stats.mstats
+    scales1 = vt.get_scales(kpts1.take(fm_input.T[0], axis=0))
+    scales2 = vt.get_scales(kpts2.take(fm_input.T[1], axis=0))
+    #fs_input = 1 / scipy.stats.mstats.gmean(np.vstack((scales1, scales2)))
+    fs_input = scipy.stats.mstats.gmean(np.vstack((scales1, scales2)))
+    print('fs_input = ' + ut.numpy_str(fs_input))
+    #fs_input[0:-9] = 0
+    #fs_input = np.ones(len(fm_input), dtype=fs_dtype)
+    #ut.embed()
+    #fs_input = scales1 * scales2
+    args = (kpts1, kpts2, fm_input, fs_input, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
 
     ex_list = []
 
@@ -313,18 +328,23 @@ def test_sver_wrapper():
             inlier_tup = compare_implementations(
                 sver.get_affine_inliers,
                 get_affine_inliers_cpp,
-                args, lbl1='py', lbl2='c')
+                args, lbl1='py', lbl2='c',
+                output_lbl=('aff_inliers_list', 'aff_errors_list', 'Aff_mats')
+            )
             out_inliers, out_errors, out_mats = inlier_tup
     except AssertionError as ex:
         ex_list.append(ex)
         raise
 
     try:
+        import functools
         with ut.Indenter('[TEST2] '):
             bestinlier_tup = compare_implementations(
-                sver.get_best_affine_inliers,
+                functools.partial(sver.get_best_affine_inliers, forcepy=True),
                 get_best_affine_inliers_cpp,
-                args, show_output=True, lbl1='py', lbl2='c')
+                args, show_output=True, lbl1='py', lbl2='c',
+                output_lbl=('bestinliers', 'besterror', 'bestmat')
+            )
             bestinliers, besterror, bestmat = bestinlier_tup
     except AssertionError as ex:
         ex_list.append(ex)

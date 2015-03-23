@@ -28,7 +28,7 @@ try:
     #if ut.WIN32:
     #    raise Exception('forcing sver_c_wrapper off')
     from vtool import sver_c_wrapper
-    HAS_SVER_C_WRAPPER = True
+    HAS_SVER_C_WRAPPER = not ut.get_argflag('--noc')
 except Exception as ex:
     HAS_SVER_C_WRAPPER = False
     if ut.VERBOSE:
@@ -402,7 +402,7 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
 
 
 @profile
-def get_affine_inliers(kpts1, kpts2, fm,
+def get_affine_inliers(kpts1, kpts2, fm, fs,
                         xy_thresh_sqrd,
                         scale_thresh_sqrd,
                         ori_thresh):
@@ -523,41 +523,32 @@ def get_affine_inliers(kpts1, kpts2, fm,
 
 
 @profile
-def get_best_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
-                            ori_thresh):
+def get_best_affine_inliers(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh,
+                            ori_thresh, forcepy=False):
     """ Tests each hypothesis and returns only the best transformation and inliers
-
-    #if CYTH
-    #CYTH_PARAM_TYPES:
-        np.ndarray[np.float64_t, ndim=2] kpts1
-        np.ndarray[np.float64_t, ndim=2] kpts2
-        np.ndarray[np.int32_t, ndim=2] fm
-        np.float64_t xy_thresh_sqrd
-        np.float64_t scale_thresh_sqrd
-        np.float64_t ori_thresh
-    cdef:
-        list aff_inliers_list
-        list aff_inliers
-        list Aff_mats
-        list aff_errors_list
-    #endif
     """
     # Test each affine hypothesis
     # get list if inliers, errors, the affine matrix for each hypothesis
-    if HAS_SVER_C_WRAPPER:
+    if HAS_SVER_C_WRAPPER and not forcepy:
         aff_inliers_list, aff_errors_list, Aff_mats = sver_c_wrapper.get_affine_inliers_cpp(
-            kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh)
+            kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh)
     else:
-        aff_inliers_list, aff_errors_list, Aff_mats = get_affine_inliers(kpts1, kpts2, fm,
+        aff_inliers_list, aff_errors_list, Aff_mats = get_affine_inliers(kpts1, kpts2,
+                                                                         fm, fs,
                                                                          xy_thresh_sqrd,
                                                                          scale_thresh,
                                                                          ori_thresh)
 
+    #ut.embed()
     # Determine the best hypothesis using the number of inliers
     # TODO: other measures in the error lists could be used as well
-    nInliers_list = np.array([len(inliers) for inliers in aff_inliers_list])
-    sortx = nInliers_list.argsort()[::-1]  # sort by non-inliers
-    best_index = sortx[0]  # chose best
+    #nInliers_list = np.array([len(inliers) for inliers in aff_inliers_list])
+
+    weight_list = np.array([fs.take(inliers).sum() for inliers in aff_inliers_list])
+    #ut.embed()
+    #sortx = weight_list.argsort()[::-1]  # sort by non-inliers
+    #best_index = sortx[0]  # chose best
+    best_index = weight_list.argmax()
     aff_inliers = aff_inliers_list[best_index]
     aff_errors = aff_errors_list[best_index]
     Aff = Aff_mats[best_index]
@@ -649,6 +640,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
                           ori_thresh=TAU / 4.0,
                           dlen_sqrd2=None,
                           min_nInliers=4,
+                          match_weights=None,
                           returnAff=False):
     """
     Driver function
@@ -709,6 +701,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
     # Cast keypoints to float64 to avoid numerical issues
     kpts1 = kpts1.astype(np.float64, casting='same_kind', copy=False)
     kpts2 = kpts2.astype(np.float64, casting='same_kind', copy=False)
+    assert match_weights is not None, 'provide at least ones please for match_weights'
+    fs = match_weights
     # Get diagonal length if not provided
     if dlen_sqrd2 is None:
         kpts2_m = kpts2.take(fm.T[1], axis=0)
@@ -717,12 +711,12 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
     xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
     if HAS_SVER_C_WRAPPER:
         aff_inliers, aff_errors, Aff = sver_c_wrapper.get_best_affine_inliers_cpp(
-            kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh)
+            kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh)
     else:
         if not ut.QUIET:
             print('WARNING: sver has not been compiled')
         aff_inliers, aff_errors, Aff = get_best_affine_inliers(
-            kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh)
+            kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh)
     # Return if there are not enough inliers to compute homography
     if len(aff_inliers) < min_nInliers:
         if VERBOSE_SVER:

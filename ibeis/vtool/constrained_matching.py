@@ -118,7 +118,8 @@ def baseline_vsone_ratio_matcher_(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdic
     fm_RAT, fs_RAT, fm_norm_RAT = matching.ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist, ratio_thresh)
     # SPATIAL VERIFICATION FILTER
     #with ut.EmbedOnException():
-    svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_RAT, sver_xy_thresh, dlen_sqrd2)
+    match_weights = np.ones(len(fm_RAT))
+    svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_RAT, sver_xy_thresh, dlen_sqrd2, match_weights=match_weights)
     if svtup is not None:
         (homog_inliers, homog_errors, H_RAT) = svtup[0:3]
     else:
@@ -172,7 +173,8 @@ def spatially_constrianed_matcher_(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2,
     #                                                fm_norm_SC, ratio_thresh2)
 
     # Another round of verification
-    svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_SCR, sver_xy_thresh2, dlen_sqrd2)
+    match_weights = np.ones(len(fm_SCR))
+    svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_SCR, sver_xy_thresh2, dlen_sqrd2, match_weights=match_weights)
     if svtup is not None:
         (homog_inliers, homog_errors, H_SCR) = svtup[0:3]
     else:
