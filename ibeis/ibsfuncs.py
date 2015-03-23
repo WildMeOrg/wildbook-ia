@@ -177,6 +177,14 @@ def export_to_hotspotter(ibs):
     export_hsdb.export_ibeis_to_hotspotter(ibs)
 
 
+#def export_image_subset(ibs, gid_list, dst_fpath=None):
+#    dst_fpath = ut.truepath('~')
+#    #gid_list = [692, 693, 680, 781, 751, 753, 754, 755, 756]
+#    gpath_list = ibs.get_image_paths(gid_list)
+#    gname_list = [join(dst_fpath, gname) for gname in ibs.get_image_gnames(gid_list)]
+#    ut.copy_files_to(gpath_list, dst_fpath_list=gname_list)
+
+
 @__injectable
 def mark_annot_pair_as_reviewed(ibs, aid1, aid2):
     """ denote that this match was reviewed and keep whatever status it is given """
@@ -198,6 +206,47 @@ def add_or_update_annotmatch(ibs, aid1, aid2, truth, confidence):
         ibs.set_annotmatch_confidence([annotmatch_rowid], [1.0])
     else:
         ibs.add_annotmatch([aid1], [aid2], [truth], [1.0])
+
+
+@__injectable
+def get_annot_has_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
+    num_reviewed_list = ibs.get_annot_num_reviewed_matching_aids(aid_list)
+    has_reviewed_list = [num_reviewed > 0 for num_reviewed in num_reviewed_list]
+    return has_reviewed_list
+
+
+@__injectable
+def get_annot_num_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
+    aids_list = ibs.get_annot_reviewed_matching_aids(aid_list, eager=eager, nInput=nInput)
+    num_annot_reviewed_list = list(map(len, aids_list))
+    return num_annot_reviewed_list
+
+
+@__injectable
+def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
+    """
+    Returns a list of the aids that were reviewed as candidate matches to the input aid
+
+    aid_list = ibs.get_valid_aids()
+    """
+    ANNOT_ROWID1 = 'annot_rowid1'
+    ANNOT_ROWID2 = 'annot_rowid2'
+    #params_iter = [(aid, aid) for aid in aid_list]
+    #[(aid, aid) for aid in aid_list]
+    #colnames = (ANNOT_ROWID1, ANNOT_ROWID2)
+    #where_colnames = (ANNOT_ROWID1, ANNOT_ROWID2)
+    params_iter = [(aid,) for aid in aid_list]
+    colnames = (ANNOT_ROWID2,)
+    andwhere_colnames = (ANNOT_ROWID1,)
+    aids_list = ibs.db.get_where2(
+        const.ANNOTMATCH_TABLE, colnames, params_iter,
+        andwhere_colnames=andwhere_colnames, eager=eager, unpack_scalars=False, nInput=nInput)
+    #logicop = 'OR'
+    #aids_list = ibs.db.get_where3(
+    #    const.ANNOTMATCH_TABLE, colnames, params_iter,
+    #    where_colnames=where_colnames, logicop=logicop, eager=eager,
+    #    unpack_scalars=False, nInput=nInput)
+    return aids_list
 
 
 @__injectable

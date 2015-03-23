@@ -84,7 +84,7 @@ def _get_all_image_rowids(ibs):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> all_image_rowids = ibs._get_all_image_rowids()
         >>> result = str(all_image_rowids)
         >>> print(result)
@@ -689,7 +689,7 @@ def get_image_contributor_rowid(ibs, image_rowid_list, eager=True, nInput=None):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> image_rowid_list = ibs._get_all_image_rowids()
         >>> eager = True
         >>> contributor_rowid_list = ibs.get_image_contributor_rowid(image_rowid_list, eager=eager)
@@ -1282,6 +1282,79 @@ def set_encounter_enctext(ibs, eid_list, names_list):
 
 @register_ibs_method
 @getter_1to1
+def get_encounter_num_imgs_reviewed(ibs, eid_list):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> ibs, config2_ = testdata_ibs()
+        >>> # Reset and compute encounters
+        >>> ibs.delete_all_encounters()
+        >>> ibs.compute_encounters()
+        >>> eid_list = ibs.get_valid_eids()
+        >>> num_reviwed_list = ibs.get_encounter_num_reviewed(eid_list)
+        0
+    """
+    gids_list = ibs.get_encounter_gids(eid_list)
+    flags_list = ibs.unflat_map(ibs.get_image_reviewed, gids_list)
+    num_reviwed_list = [sum(flags) for flags in flags_list]
+    return num_reviwed_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_num_annotmatch_reviewed(ibs, eid_list):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_image_funcs import *  # NOQA
+        >>> import ibeis  # NOQA
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> eid_list = ibs._get_all_encounter_rowids()
+        >>> num_annots_reviewed_list = ibs.get_encounter_num_annotmatch_reviewed(eid_list)
+    """
+    aids_list = ibs.get_encounter_aids(eid_list)
+    has_revieweds_list = ibs.unflat_map(ibs.get_annot_has_reviewed_matching_aids, aids_list)
+    num_annots_reviewed_list = list(map(sum, has_revieweds_list))
+    return num_annots_reviewed_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_fraction_annotmatch_reviewed(ibs, eid_list):
+    aids_list = ibs.get_encounter_aids(eid_list)
+    flags_list = ibs.unflat_map(ibs.get_annot_has_reviewed_matching_aids, aids_list)
+    fraction_annotmatch_reviewed_list = [None if len(flags) == 0 else sum(flags) / len(flags) for flags in flags_list]
+    return fraction_annotmatch_reviewed_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_fraction_imgs_reviewed(ibs, eid_list):
+    gids_list = ibs.get_encounter_gids(eid_list)
+    flags_list = ibs.unflat_map(ibs.get_image_reviewed, gids_list)
+    fraction_imgs_reviewed_list = [None if len(flags) == 0 else sum(flags) / len(flags) for flags in flags_list]
+    return fraction_imgs_reviewed_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_percent_imgs_reviewed_str(ibs, eid_list):
+    fraction_imgs_reviewed_list = ibs.get_encounter_fraction_imgs_reviewed(eid_list)
+    percent_imgs_reviewed_str_list = list(map(ut.percent_str, fraction_imgs_reviewed_list))
+    return percent_imgs_reviewed_str_list
+
+
+@register_ibs_method
+@getter_1to1
+def get_encounter_percent_annotmatch_reviewed_str(ibs, eid_list):
+    fraction_annotmatch_reviewed_list = ibs.get_encounter_fraction_annotmatch_reviewed(eid_list)
+    percent_annotmach_reviewed_str_list = list(map(ut.percent_str, fraction_annotmatch_reviewed_list))
+    return percent_annotmach_reviewed_str_list
+
+
+@register_ibs_method
+@getter_1to1
 def get_encounter_num_gids(ibs, eid_list):
     """
     Returns:
@@ -1497,7 +1570,7 @@ def get_encounter_end_time_posix(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_end_time_posix_list = ibs.get_encounter_end_time_posix(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_end_time_posix_list)
@@ -1530,7 +1603,7 @@ def get_encounter_gps_lats(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_gps_lat_list = ibs.get_encounter_gps_lats(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_gps_lat_list)
@@ -1584,7 +1657,7 @@ def get_encounter_gps_lons(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_gps_lon_list = ibs.get_encounter_gps_lons(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_gps_lon_list)
@@ -1617,7 +1690,7 @@ def get_encounter_notes(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_note_list = ibs.get_encounter_notes(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_note_list)
@@ -1650,7 +1723,7 @@ def get_encounter_processed_flags(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_processed_flag_list = ibs.get_encounter_processed_flags(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_processed_flag_list)
@@ -1683,7 +1756,7 @@ def get_encounter_shipped_flags(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_shipped_flag_list = ibs.get_encounter_shipped_flags(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_shipped_flag_list)
@@ -1716,7 +1789,7 @@ def get_encounter_start_time_posix(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_start_time_posix_list = ibs.get_encounter_start_time_posix(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_start_time_posix_list)
@@ -1906,7 +1979,7 @@ def get_encounter_smart_waypoint_ids(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_smart_waypoint_id_list = ibs.get_encounter_smart_waypoint_ids(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_smart_waypoint_id_list)
@@ -1939,7 +2012,7 @@ def get_encounter_smart_xml_fnames(ibs, encounter_rowid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> encounter_rowid_list = ibs._get_all_encounter_rowids()
         >>> encounter_smart_xml_fname_list = ibs.get_encounter_smart_xml_fnames(encounter_rowid_list)
         >>> assert len(encounter_rowid_list) == len(encounter_smart_xml_fname_list)
@@ -2014,7 +2087,7 @@ def get_image_timedelta_posix(ibs, image_rowid_list, eager=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> image_rowid_list = ibs._get_all_image_rowids()
         >>> eager = True
         >>> image_timedelta_posix_list = ibs.get_image_timedelta_posix(image_rowid_list, eager=eager)
@@ -2068,7 +2141,7 @@ def get_image_location_codes(ibs, image_rowid_list, eager=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> image_rowid_list = ibs._get_all_image_rowids()
         >>> eager = True
         >>> image_location_code_list = ibs.get_image_location_codes(image_rowid_list, eager=eager)
@@ -2150,7 +2223,7 @@ def get_image_party_rowids(ibs, image_rowid_list, eager=True, nInput=None):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> image_rowid_list = ibs._get_all_image_rowids()
         >>> eager = True
         >>> party_rowid_list = ibs.get_image_party_rowids(image_rowid_list, eager=eager)
@@ -2183,7 +2256,7 @@ def get_image_party_tag(ibs, image_rowid_list, eager=True, nInput=None):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> image_rowid_list = ibs._get_all_image_rowids()
         >>> eager = True
         >>> party_tag_list = ibs.get_image_party_tag(image_rowid_list, eager=eager)
@@ -2236,7 +2309,7 @@ def get_image_contributor_tag(ibs, image_rowid_list, eager=True, nInput=None):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
-        >>> ibs, qreq_ = testdata_ibs()
+        >>> ibs, config2_ = testdata_ibs()
         >>> image_rowid_list = ibs._get_all_image_rowids()
         >>> eager = True
         >>> contributor_tag_list = ibs.get_image_contributor_tag(image_rowid_list, eager=eager)
@@ -2252,8 +2325,8 @@ def get_image_contributor_tag(ibs, image_rowid_list, eager=True, nInput=None):
 def testdata_ibs():
     import ibeis
     ibs = ibeis.opendb('testdb1')
-    qreq_ = None
-    return ibs, qreq_
+    config2_ = None
+    return ibs, config2_
 
 
 if __name__ == '__main__':

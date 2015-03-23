@@ -102,7 +102,7 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
     CommandLine:
         python -m ibeis.control.accessor_decors --test-cache_getter
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.accessor_decors import *  # NOQA
         >>> import ibeis
@@ -136,6 +136,27 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
         >>> wrp_cache_invalidator = cache_invalidator(tblname, force=True)(lambda *a: None)
         >>> wrp_cache_invalidator(ibs, rowid_list1)
         >>> print(ut.dict_str(ibs.table_cache))
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.accessor_decors import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis import constants as const
+        >>> from ibeis.control.manual_feat_funcs import FEAT_KPTS
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> tblname = const.FEATURE_TABLE,
+        >>> colname = FEAT_KPTS
+        >>> aid_list = ibs.get_valid_aids()[0:1]
+        >>> # Check that config2 actually gets you different vectors in the cache
+        >>> qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict={'affine_invariance': False})
+        >>> config2_ = qreq_.get_external_query_config2()
+        >>> kpts_list1 = ibs.get_annot_kpts(aid_list, config2_=None, debug=True)
+        >>> kpts_list2 = ibs.get_annot_kpts(aid_list, config2_=config2_, debug=True)
+        >>> kp1 = kpts_list1[0][0:1]
+        >>> kp2 = kpts_list2[0][0:1]
+        >>> assert kp1.T[3] != 0
+        >>> assert kp2.T[3] == 0
+        >>> assert kp2.T[2] == kp2.T[4]
 
     Ignore:
         %timeit getter_func(ibs, rowid_list)

@@ -827,12 +827,14 @@ def error404(exception):
 ################################################################################
 
 
-def start_tornado(app, port=5000, browser=BROWSER, blocking=False, reset_db=True):
+def start_tornado(app, port=None, browser=BROWSER, blocking=False, reset_db=True):
     def _start_tornado():
         http_server = tornado.httpserver.HTTPServer(
             tornado.wsgi.WSGIContainer(app))
         http_server.listen(port)
         tornado.ioloop.IOLoop.instance().start()
+    if port is None:
+        port = DEFAULT_PORT
     # Initialize the web server
     logging.getLogger().setLevel(logging.INFO)
     try:
@@ -863,7 +865,7 @@ def start_from_terminal():
     parser.add_option(
         '-p', '--port',
         help='which port to serve content on',
-        type='int', default=DEFAULT_PORT)
+        type='int', default=None)
     parser.add_option(
         '--db',
         help='specify an IBEIS database',
@@ -880,7 +882,7 @@ def start_from_terminal():
     start_tornado(app, opts.port)
 
 
-def start_from_ibeis(ibs, port=DEFAULT_PORT):
+def start_from_ibeis(ibs, port=None):
     '''
     Parse command line options and start the server.
     '''
@@ -899,6 +901,8 @@ def start_from_ibeis(ibs, port=DEFAULT_PORT):
         app.default_species = Species.ZEB_PLAIN
     elif dbname == 'WD_Master':
         app.default_species = Species.WILDDOG
+    elif dbname == 'NNP_MasterGIRM':
+        app.default_species = Species.GIRAFFE_MASAI
     elif 'NNP_' in dbname:
         app.default_species = Species.ZEB_PLAIN
     elif 'GZC' in dbname:
