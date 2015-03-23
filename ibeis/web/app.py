@@ -670,6 +670,9 @@ def submit_viewpoint():
         theta = app.ibs.get_annot_thetas(aid)
         theta = (theta + const.PI / 2) % const.TAU
         app.ibs.set_annot_thetas(aid, theta)
+        (xtl, ytl, w, h) = app.ibs.get_annot_bboxes(aid)
+        xtl, ytl, w, h = ytl, xtl, h, w
+        app.ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
         print('[web] (ROTATED LEFT) turk_id: %s, aid: %d' % (turk_id, aid, ))
         redirection = request.referrer
         if 'aid' not in redirection:
@@ -683,6 +686,9 @@ def submit_viewpoint():
         theta = app.ibs.get_annot_thetas(aid)
         theta = (theta - const.PI / 2) % const.TAU
         app.ibs.set_annot_thetas(aid, theta)
+        (xtl, ytl, w, h) = app.ibs.get_annot_bboxes(aid)
+        xtl, ytl, w, h = ytl, xtl, h, w
+        app.ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
         print('[web] (ROTATED RIGHT) turk_id: %s, aid: %d' % (turk_id, aid, ))
         redirection = request.referrer
         if 'aid' not in redirection:
