@@ -127,12 +127,17 @@ def infer_delegates(view, **headers):
     num_cols = view.model().columnCount()
     num_duplicates = int(num_cols / len(col_type_list))
     col_type_list = col_type_list * num_duplicates
+    view.has_thumbs = False
     for colx, coltype in enumerate(col_type_list):
         if coltype in  qtype.QT_PIXMAP_TYPES:
             if VERBOSE:
                 print('[view] colx=%r is a PIXMAP' % colx)
             thumb_delegate = api_thumb_delegate.APIThumbDelegate(view, get_thumb_size)
             view.setItemDelegateForColumn(colx, thumb_delegate)
+            view.has_thumbs = True
+            # HACK
+            #verticalHeader = view.verticalHeader()
+            #verticalHeader.setDefaultSectionSize(256)
         elif coltype in qtype.QT_BUTTON_TYPES:
             if VERBOSE:
                 print('[view] colx=%r is a BUTTON' % colx)

@@ -1626,6 +1626,9 @@ class APIThumbDelegate(DELEGATE_BASE):
             # Let rows grow
             if height > col_height:
                 view.setRowHeight(qtindex.row(), height)
+            # Let rows shrink
+            if height < col_height:
+                view.setRowHeight(qtindex.row(), height)
         elif isinstance(view, QtGui.QTreeView):
             col_width = view.columnWidth(qtindex.column())
             col_height = view.rowHeight(qtindex)

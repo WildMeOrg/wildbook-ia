@@ -55,7 +55,14 @@ class APITableView(API_VIEW_BASE):
         view.setIconSize(QtCore.QSize(64, 64))
 
     def _init_header_behavior(view):
-        """ Header behavior """
+        """ Header behavior
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from guitool.api_table_view import *  # NOQA
+            >>> view = APITableView()
+
+        """
         # Row Headers
         verticalHeader = view.verticalHeader()
         verticalHeader.setVisible(True)
@@ -63,6 +70,8 @@ class APITableView(API_VIEW_BASE):
         verticalHeader.setHighlightSections(True)
         verticalHeader.setResizeMode(QtGui.QHeaderView.Interactive)
         verticalHeader.setMovable(True)
+        # TODO: get good estimate if there are thumbnails
+        #verticalHeader.setDefaultSectionSize(256)
 
         # Column headers
         horizontalHeader = view.horizontalHeader()
