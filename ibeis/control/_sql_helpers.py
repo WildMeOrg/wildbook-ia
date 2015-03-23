@@ -139,16 +139,18 @@ def fix_metadata_consistency(db):
 # =========================
 
 
-def ensure_daily_database_backup(db_dir, db_fname, backup_dir, max_keep=60):
-    # Keep 60 days worth of database backups
+MAX_KEEP = 2048
+
+
+def ensure_daily_database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP):
     database_backup(db_dir, db_fname, backup_dir, max_keep=max_keep, manual=False)
 
 
-def database_backup(db_dir, db_fname, backup_dir, max_keep=60, manual=True):
-    # Keep 60 days worth of database backups
+def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True):
     fname, ext = splitext(db_fname)
     src_fpath = join(db_dir, db_fname)
-    now = datetime.datetime.now()
+    #now = datetime.datetime.now()
+    now = datetime.datetime.utcnow()
     if manual:
         now_str = now.strftime('%Y_%m_%d_%H_%M_%S')
     else:

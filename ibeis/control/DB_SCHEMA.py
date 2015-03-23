@@ -1068,6 +1068,37 @@ def update_1_4_2(db, ibs=None):
         ]
     )
 
+
+def update_1_4_3(db, ibs=None):
+    raise NotImplementedError('fds')
+
+    class MATCH_TYPES:
+        UNKNOWN       = 0
+        BACKGROUND    = int(2 ** 1)  # matches to something in the foreground
+        FOREGROUND    = int(2 ** 2)  # matches to something in the background
+        NONDISTINCT   = int(2 ** 3)  # matches to non distinct parts of the animal
+        ANNOT_OVERLAP = int(2 ** 4)  # matches to what should be a different annotation
+        OTHER         = int(2 ** 30)
+
+    class ANNOT_POSE_TYPES:
+        STANDARD    = 0
+        NOVEL       = 2
+        OTHER       = 2
+
+    db.modify_table(
+        const.ANNOTMATCH_TABLE, [
+            (None, 'annotmatch_typebits',   'INTEGER', None),
+            (None, 'annotmatch_ishardcase', 'INTEGER', None),
+        ],
+    )
+
+    db.modify_table(
+        const.ANNOTATION_TABLE, [
+            (None, 'annot_occluded',  'INTEGER', None),
+            (None, 'annot_occluded',  'INTEGER', None),
+        ]
+    )
+
 # ========================
 # Valid Versions & Mapping
 # ========================

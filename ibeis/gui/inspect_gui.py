@@ -374,21 +374,23 @@ def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False):
             MERGE_NEEDS_INTERACTION  = False
             MERGE_NEEDS_VERIFICATION = True
             aid1_and_groundtruth = ibs.get_annot_groundtruth(aid1, noself=False)
-            if MERGE_NEEDS_INTERACTION:
-                raise guiexcept.NeedsUserInput('confirm merge')
-            elif MERGE_NEEDS_VERIFICATION:
-                aid2_and_groundtruth = ibs.get_annot_groundtruth(aid2, noself=False)
-                name1, name2 = ibs.get_annot_names([aid1, aid2])
-                msgfmt = ut.codeblock('''
-                   Confirm merge of animal {name1} and {name2}
-                   {name1} has {num_gt1} annotations
-                   {name2} has {num_gt2} annotations
-                   ''')
-                msg = msgfmt.format(name1=name1, name2=name2,
-                                    num_gt1=len(aid1_and_groundtruth),
-                                    num_gt2=len(aid2_and_groundtruth),)
-                if not guitool.are_you_sure(parent=None, msg=msg, default='Yes'):
-                    raise guiexcept.UserCancel('canceled merge')
+            aid2_and_groundtruth = ibs.get_annot_groundtruth(aid2, noself=False)
+            trivial_merge = len(aid1_and_groundtruth) == 1 or len(aid2_and_groundtruth) == 1
+            if not trivial_merge:
+                if MERGE_NEEDS_INTERACTION:
+                    raise guiexcept.NeedsUserInput('confirm merge')
+                elif MERGE_NEEDS_VERIFICATION:
+                    name1, name2 = ibs.get_annot_names([aid1, aid2])
+                    msgfmt = ut.codeblock('''
+                       Confirm merge of animal {name1} and {name2}
+                       {name1} has {num_gt1} annotations
+                       {name2} has {num_gt2} annotations
+                       ''')
+                    msg = msgfmt.format(name1=name1, name2=name2,
+                                        num_gt1=len(aid1_and_groundtruth),
+                                        num_gt2=len(aid2_and_groundtruth),)
+                    if not guitool.are_you_sure(parent=None, msg=msg, default='Yes'):
+                        raise guiexcept.UserCancel('canceled merge')
             status =  _set_annot_name_rowids(aid1_and_groundtruth, [nid2] * len(aid1_and_groundtruth))
         elif isunknown2 and not isunknown1:
             print('...match unknown2 into known1')
@@ -911,6 +913,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         'rank',
         'qaid',
         'aid',
+        'result_index',
     ]
     #if ut.is_developer():
     #    pass
@@ -934,6 +937,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         ('rank',       int),
         ('truth',      bool),
         ('opt',        int),
+        ('result_index',  int),
     ])
 
     col_getters_dict = dict([
@@ -950,6 +954,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         ('name',       ibs.get_annot_names),
         ('score',      np.array(scores)),
         ('rank',       np.array(ranks)),
+        ('result_index',       np.arange(len(ranks))),
         #('truth',     truths),
         #('opt',       opts),
     ])
