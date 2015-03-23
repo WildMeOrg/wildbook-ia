@@ -789,7 +789,7 @@ def sver_single_chipmatch(qreq_, cm):
     scale_thresh    = qreq_.qparams.scale_thresh
     ori_thresh      = qreq_.qparams.ori_thresh
     min_nInliers    = qreq_.qparams.min_nInliers
-    sver_weighting  = qreq_.qparams.sver_weighting
+    sver_output_weighting  = qreq_.qparams.sver_output_weighting
     # Precompute sver cmtup_old
     #daid2_svtup = {} if qreq_.qparams.with_metadata else None
     kpts1 = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_external_query_config2())
@@ -799,9 +799,18 @@ def sver_single_chipmatch(qreq_, cm):
     else:
         top_dlen_sqrd_list = compute_matching_dlen_extent(qreq_, cm.fm_list, kpts2_list)
     #
-    _iter1 = zip(cm.daid_list, cm.fm_list, cm.fsv_list, cm.fk_list, kpts2_list, top_dlen_sqrd_list)
+    config2_ = qreq_.get_external_query_config2()
+
+    if qreq_.qparams.weight_inliers:
+        qweights = scoring.get_annot_kpts_baseline_weights(
+            qreq_.ibs, [qaid], config2_=config2_, config=config2_)[0].astype(np.float64)
+        match_weight_list = [qweights.take(fm.T[0]) for fm in cm.fm_list]
+    else:
+        match_weight_list = [np.ones(len(fm), dtype=np.float64) for fm in cm.fm_list]
+
+    _iter1 = zip(cm.daid_list, cm.fm_list, cm.fsv_list, cm.fk_list, kpts2_list, top_dlen_sqrd_list, match_weight_list)
     svtup_list = []
-    for daid, fm, fsv, fk, kpts2, dlen_sqrd2 in _iter1:
+    for daid, fm, fsv, fk, kpts2, dlen_sqrd2, match_weights in _iter1:
         if len(fm) == 0:
             # skip results without any matches
             sv_tup = None
@@ -812,7 +821,7 @@ def sver_single_chipmatch(qreq_, cm):
                 # image1 is a query chip and image2 is a database chip
                 sv_tup = sver.spatially_verify_kpts(
                     kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
-                    dlen_sqrd2, min_nInliers)
+                    dlen_sqrd2, min_nInliers, match_weights=match_weights)
                 # returnAff=qreq_.qparams.with_metadata)
             except Exception as ex:
                 ut.printex(ex, 'Unknown error in spatial verification.',
@@ -836,7 +845,7 @@ def sver_single_chipmatch(qreq_, cm):
 
     sver_matchtup_list = []
     fsv_col_lbls = cm.fsv_col_lbls[:]
-    if sver_weighting:
+    if sver_output_weighting:
         fsv_col_lbls += [hstypes.FiltKeys.HOMOGERR]
 
     for sv_tup, daid, fm, fsv, fk in zip(svtup_list_, daid_list, fm_list, fsv_list, fk_list):
@@ -845,7 +854,7 @@ def sver_single_chipmatch(qreq_, cm):
         fm_SV  = fm.take(homog_inliers, axis=0)
         fsv_SV = fsv.take(homog_inliers, axis=0)
         fk_SV  = fk.take(homog_inliers, axis=0)
-        if sver_weighting:
+        if sver_output_weighting:
             # Rescore based on homography errors
             #xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
             xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
@@ -969,7 +978,7 @@ def chipmatch_to_resdict(qreq_, cm_list, verbose=VERB_PIPELINE):
     Example2:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.pipeline import *  # NOQA
-        >>> cfgdict = dict(sver_weighting=True)
+        >>> cfgdict = dict(sver_output_weighting=True)
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1, 2], cfgdict=cfgdict)
         >>> qaid2_qres = chipmatch_to_resdict(qreq_, cm_list)
         >>> qres = qaid2_qres[1]

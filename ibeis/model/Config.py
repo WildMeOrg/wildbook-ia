@@ -200,7 +200,8 @@ class SpatialVerifyConfig(ConfigBase):
         #sv_cfg.prescore_method = 'csum'
         sv_cfg.prescore_method = 'nsum'
         sv_cfg.use_chip_extent = True  # BAD CONFIG?
-        sv_cfg.sver_weighting = False  # weight feature scores with sver errors
+        sv_cfg.sver_output_weighting = False  # weight feature scores with sver errors
+        sv_cfg.weight_inliers = True  # weight feature scores with sver errors
         sv_cfg.update(**kwargs)
 
     def get_cfgstr_list(sv_cfg, **kwargs):
@@ -216,7 +217,8 @@ class SpatialVerifyConfig(ConfigBase):
             'nARR=%d,' % (sv_cfg.nAnnotPerNameSVER,),
             sv_cfg.prescore_method, ',',
             'cdl,' * sv_cfg.use_chip_extent,  # chip diag len
-            '+w,' * sv_cfg.sver_weighting,  # chip diag len
+            '+ow,' * sv_cfg.sver_output_weighting,  # chip diag len
+            '+wi,' * sv_cfg.weight_inliers,  # chip diag len
             ')',
         ]
         return sv_cfgstr

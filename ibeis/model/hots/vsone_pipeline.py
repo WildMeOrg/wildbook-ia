@@ -204,10 +204,11 @@ def sver_fmfs_merge(qreq_, qaid, daid_list, fmfs_merge, config={}):
     res_list = []
     # homog_inliers
     for kpts2, chip2_dlen_sqrd, fm, fsv in zip(kpts2_list, chip2_dlen_sqrd_list, fm_list, fsv_list):
+        match_weights = np.ones(len(fm))
         sv_tup = sver.spatially_verify_kpts(
             kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
             chip2_dlen_sqrd, min_nInliers,
-            returnAff=False)
+            returnAff=False, match_weights=match_weights)
         if sv_tup is not None:
             (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff) = sv_tup
             fm_SV = fm.take(homog_inliers, axis=0)
@@ -593,7 +594,7 @@ def gridsearch_single_vsone_rerank():
     import plottool as pt
     fnum = pt.ensure_fnum(None)
     # Make configuration for every parameter setting
-    cfgdict_ = dict(prescore_method='nsum', score_method='nsum', sver_weighting=True)
+    cfgdict_ = dict(prescore_method='nsum', score_method='nsum', sver_output_weighting=True)
     cfgdict_['rrvsone_on'] = True
     # HACK TO GET THE DATA WE WANT WITHOUT UNNCESSARY COMPUTATION
     # Get pipeline testdata for this configuration
@@ -714,7 +715,7 @@ def gridsearch_unconstrained_matches():
     import plottool as pt
     fnum = pt.ensure_fnum(None)
     # Make configuration for every parameter setting
-    cfgdict_ = dict(prescore_method='nsum', score_method='nsum', sver_weighting=True)
+    cfgdict_ = dict(prescore_method='nsum', score_method='nsum', sver_output_weighting=True)
     cfgdict_['rrvsone_on'] = True
     # HACK TO GET THE DATA WE WANT WITHOUT UNNCESSARY COMPUTATION
     # Get pipeline testdata for this configuration

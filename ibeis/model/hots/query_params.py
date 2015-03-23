@@ -94,7 +94,7 @@ class QueryParams(collections.Mapping):
         dependant on specifically where you are in the pipeline
         """
         filtkey_list = qparams.active_filter_list
-        if qparams.sver_weighting:
+        if qparams.sver_output_weighting:
             filtkey_list = filtkey_list[:] + [hstypes.FiltKeys.HOMOGERR]
         return filtkey_list
 

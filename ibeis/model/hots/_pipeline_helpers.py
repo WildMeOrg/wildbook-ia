@@ -275,7 +275,7 @@ def testdata_pre_vsonerr(defaultdb='PZ_MTEST', qaid_list=[1], daid_list='all'):
     """
         >>> from ibeis.model.hots._pipeline_helpers import *  # NOQA
     """
-    cfgdict = dict(sver_weighting=True, codename='vsmany', rrvsone_on=True)
+    cfgdict = dict(sver_output_weighting=True, codename='vsmany', rrvsone_on=True)
     # Get pipeline testdata for this configuration
     ibs, qreq_ = get_pipeline_testdata(
         cfgdict=cfgdict, qaid_list=qaid_list, daid_list=daid_list, defaultdb=defaultdb, cmdline_ok=True)
