@@ -14,7 +14,8 @@ import utool as ut
 ut.noinject('[const]')
 
 
-TAU = 2 * math.pi
+PI  = math.pi
+TAU = 2.0 * PI
 
 
 # Mapping of semantic viewpoints to yaw angles

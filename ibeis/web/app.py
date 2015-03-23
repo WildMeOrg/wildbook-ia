@@ -657,16 +657,41 @@ def submit_detection():
 
 @app.route('/submit/viewpoint', methods=['POST'])
 def submit_viewpoint():
-    method = request.form.get('detection-submit', '')
+    method = request.form.get('viewpoint-submit', '')
     eid = request.args.get('eid', '')
     eid = None if eid == 'None' or eid == '' else int(eid)
     aid = int(request.form['viewpoint-aid'])
     turk_id = request.cookies.get('turk_id', -1)
-
     if method.lower() == 'delete':
         app.ibs.delete_annots(aid)
         print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
         aid = None  # Reset AID to prevent previous
+    if method.lower() == 'rotate left':
+        theta = app.ibs.get_annot_thetas(aid)
+        theta = (theta + const.PI / 2) % const.TAU
+        app.ibs.set_annot_thetas(aid, theta)
+        print('[web] (ROTATED LEFT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        redirection = request.referrer
+        if 'aid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&aid=%d' % (redirection, aid, )
+            else:
+                redirection = '%s?aid=%d' % (redirection, aid, )
+        return redirect(redirection)
+    if method.lower() == 'rotate right':
+        theta = app.ibs.get_annot_thetas(aid)
+        theta = (theta - const.PI / 2) % const.TAU
+        app.ibs.set_annot_thetas(aid, theta)
+        print('[web] (ROTATED RIGHT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        redirection = request.referrer
+        if 'aid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&aid=%d' % (redirection, aid, )
+            else:
+                redirection = '%s?aid=%d' % (redirection, aid, )
+        return redirect(redirection)
     else:
         value = int(request.form['viewpoint-value'])
         yaw = convert_old_viewpoint_to_yaw(value)
@@ -682,7 +707,7 @@ def submit_viewpoint():
 
 @app.route('/submit/quality', methods=['POST'])
 def submit_quality():
-    method = request.form.get('detection-submit', '')
+    method = request.form.get('quality-submit', '')
     eid = request.args.get('eid', '')
     eid = None if eid == 'None' or eid == '' else int(eid)
     aid = int(request.form['quality-aid'])
@@ -706,7 +731,7 @@ def submit_quality():
 
 @app.route('/submit/additional', methods=['POST'])
 def submit_additional():
-    method = request.form.get('detection-submit', '')
+    method = request.form.get('additional-submit', '')
     eid = request.args.get('eid', '')
     eid = None if eid == 'None' or eid == '' else int(eid)
     aid = int(request.form['additional-aid'])

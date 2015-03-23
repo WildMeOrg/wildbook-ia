@@ -52,10 +52,14 @@
         </div>
         <br/>
         {% if previous %}
-          <a class="btn btn-default pull-left" href="{{ url_for('turk_viewpoint') }}?eid={{ eid }}&aid={{ previous }}">Previous {{ previous }}</a>
+          <a class="btn btn-default pull-left" id="turk-previous" href="{{ url_for('turk_viewpoint') }}?eid={{ eid }}&aid={{ previous }}">Previous {{ previous }}</a>
         {% endif %}
         <input type="submit" name="viewpoint-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
-        <input type="submit" name="detection-submit" id="turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')">
+        <input type="submit" name="viewpoint-submit" id="turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')">
+        <br/>
+        <br/>
+        <input type="submit" name="viewpoint-submit" id="turk-submit-right" class="btn btn-default pull-right" value="Rotate Right">
+        <input type="submit" name="viewpoint-submit" id="turk-submit-left" class="btn btn-default pull-right" value="Rotate Left">
       </form
       <br/>
     </div>

@@ -58,6 +58,11 @@ $(window).keydown(function(event) {
     $("#slider-additional-sex").val(3);
     update_label();
   }
+  else if(key == 80)
+  {
+    // P key pressed, follow previous link
+    $('a#turk-previous')[0].click();
+  }
   else if(49 <= key && key <= 56)
   {
     // 48 == numeric key 0

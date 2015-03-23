@@ -20,6 +20,21 @@ $(window).keydown(function(event) {
     // Space key pressed, submit form as delete
     $('input#turk-submit-delete').click();
   }
+  else if(key == 76)
+  {
+    // L key pressed, submit form as left
+    $('input#turk-submit-left').click();
+  }
+  else if(key == 82)
+  {
+    // R key pressed, submit form as right
+    $('input#turk-submit-right').click();
+  }
+  else if(key == 80)
+  {
+    // P key pressed, follow previous link
+    $('a#turk-previous')[0].click();
+  }
   else if(49 <= key && key <= 56)
   {
     // 48 == numeric key 0

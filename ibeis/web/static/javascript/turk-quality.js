@@ -26,6 +26,11 @@ $(window).keydown(function(event) {
     // Space key pressed, submit form as delete
     $('input#turk-submit-delete').click();
   }
+  else if(key == 80)
+  {
+    // P key pressed, follow previous link
+    $('a#turk-previous')[0].click();
+  }
   else if(49 <= key && key <= 56)
   {
     // 48 == numeric key 0
