@@ -602,7 +602,7 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
         >>> offset = (0.0, 0.0)
         >>> scale_factor = (1.5, .5)
         >>> # execute function
-        >>> kpts_ = offset_kpts(kpts, offset, scale_factor)
+        >>> kpts_ = offset_kpts(kpts, offset, scale_factor).astype(np.float32)
         >>> # verify results
         >>> orig = ut.numpy_str(kpts, precision=2)
         >>> new = ut.numpy_str(kpts_, precision=2)

@@ -428,10 +428,11 @@ def get_affine_inliers(kpts1, kpts2, fm, fs,
         >>> import vtool.keypoint as ktool
         >>> kpts1, kpts2 = dummy.get_dummy_kpts_pair((100, 100))
         >>> fm = dummy.make_dummy_fm(len(kpts1)).astype(np.int32)
+        >>> fs = np.ones(len(fm), dtype=np.float64)
         >>> xy_thresh_sqrd = ktool.KPTS_DTYPE(.009) ** 2
         >>> scale_thresh_sqrd = ktool.KPTS_DTYPE(2)
         >>> ori_thresh = ktool.KPTS_DTYPE(TAU / 4)
-        >>> output = get_affine_inliers(kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
+        >>> output = get_affine_inliers(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
         >>> result = ut.hashstr(output)
         >>> print(result)
         89kz8nh6p+66t!+u
@@ -677,7 +678,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         >>> returnAff = True
         >>> ori_thresh = 1.57
         >>> scale_thresh = 2.0
-        >>> svtup = spatially_verify_kpts(kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh, dlen_sqrd2, min_nInliers, returnAff)
+        >>> match_weights = np.ones(len(fm), dtype=np.float64)
+        >>> svtup = spatially_verify_kpts(kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh, dlen_sqrd2, min_nInliers, match_weights, returnAff)
         >>> assert svtup is not None and len(svtup) == 6, 'sver failed'
         >>> homog_inliers, homog_errors, H = svtup[0:3]
         >>> aff_inliers, aff_errors, Aff = svtup[3:6]
