@@ -87,7 +87,8 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True):
         ibs = IBEISControl.request_IBEISController(dbdir=dbdir, use_cache=use_cache)
         if params.args.webapp:
             from ibeis.web import app
-            app.start_from_ibeis(ibs)
+            port = params.args.webport
+            app.start_from_ibeis(ibs, port=port)
     return ibs
 
 
