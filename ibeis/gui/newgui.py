@@ -1134,8 +1134,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ]
                 if len(nid_list) > 0:
                     print('sup?')
+
+                    def run_splits(nid_list):
+                        #ibs = ibswgt.back.ibs
+                        print('Not hooked up yet')
+                        #aids_list = ibs.get_name_aids(nid_list)
+
                     context_options += [
-                        ('Check for splits', lambda: nid_list),
+                        ('Check for splits', lambda: run_splits(nid_list)),
                     ]
                 else:
                     print('nutin')
