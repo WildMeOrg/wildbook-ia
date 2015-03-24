@@ -1233,13 +1233,26 @@ def export_names(ibs, nid_list):
     new_dbpath = ut.get_nonconflicting_path(base_fmtstr, dpath)
     ibs_src = ibs
     aid_list = ut.flatten(ibs.get_name_aids(nid_list))
-    rowid_subsets = {const.ANNOTATION_TABLE: aid_list,
-                     const.NAME_TABLE: nid_list,
-                     #ibs_src.get_annot_nids(aid_list),
-                     const.IMAGE_TABLE: ibs_src.get_annot_gids(aid_list),
-                     const.ANNOTMATCH_TABLE: [],
-                     const.EG_RELATION_TABLE: [],
-                     }
+    gid_list = ibs_src.get_annot_gids(aid_list)
+    eid_list = list(set(ut.flatten(ibs.get_image_eids(gid_list))))
+    egrid_list = list(set(ut.flatten(ibs.get_image_egrids(gid_list))))
+
+    annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
+    flags1_list = [aid in set(aid_list) for aid in ibs.get_annotmatch_aid1(annotmatch_rowid_list)]
+    flags2_list = [aid in set(aid_list) for aid in ibs.get_annotmatch_aid2(annotmatch_rowid_list)]
+    flag_list = ut.and_lists(flags1_list, flags2_list)
+    annotmatch_rowid_list = ut.filter_items(annotmatch_rowid_list, flag_list)
+    #annotmatch_rowid_list = ibs.get_valid_aids(ibs.get_valid_aids())
+
+    rowid_subsets = {
+        const.ANNOTATION_TABLE: aid_list,
+        const.NAME_TABLE: nid_list,
+        #ibs_src.get_annot_nids(aid_list),
+        const.IMAGE_TABLE: gid_list,
+        const.ANNOTMATCH_TABLE: annotmatch_rowid_list,
+        const.EG_RELATION_TABLE: egrid_list,
+        const.ENCOUNTER_TABLE: eid_list,
+    }
     ibs_dst = ibeis.opendb(dbdir=new_dbpath, allow_newdir=True)
     merge_databases2(ibs_src, ibs_dst, rowid_subsets=rowid_subsets)
     print('Exported to %r' % (new_dbpath,))
