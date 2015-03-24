@@ -960,7 +960,9 @@ class MainWindowBackend(QtCore.QObject):
     def compute_queries(back, refresh=True, daids_mode=None,
                         query_is_known=None, qaid_list=None,
                         use_prioritized_name_subset=False,
-                        use_visual_selection=False, cfgdict={}, **kwargs):
+                        use_visual_selection=False, cfgdict={},
+
+                        **kwargs):
         """
         Batch -> Compute OldStyle Queries
         and Actions -> Query
@@ -970,6 +972,23 @@ class MainWindowBackend(QtCore.QObject):
 
         CommandLine:
             ./main.py --query 1 -y
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> import ibeis
+            >>> main_locals = ibeis.main(db='testdb2')
+            >>> # build test data
+            >>> back = main_locals['back']
+            >>> ibs = back.ibs
+            >>> query_is_known = None
+            >>> # execute function
+            >>> refresh = True
+            >>> daids_mode = None
+            >>> eid = None
+            >>> kwargs = {}
+            >>> # verify results
+            >>> print(result)
         """
         eid = back._eidfromkw(kwargs)
         print('------')
@@ -993,9 +1012,27 @@ class MainWindowBackend(QtCore.QObject):
             #qaid_list = ut.filter_items(
             #    *back.ibs.get_annot_quality_viewpoint_subset(aid_list=qaid_list, annots_per_view=2))
 
+        daids_mode = back.daids_mode if daids_mode is None else daids_mode
         daid_list = back.get_selected_daids(eid=eid, daids_mode=daids_mode)
         if len(qaid_list) == 0:
             raise guiexcept.InvalidRequest('No query annotations')
+
+        # HACK
+        if daids_mode == const.INTRA_ENC_KEY:
+            FILTER_HACK = True
+            if FILTER_HACK:
+                def filterhack_aids(aid_list):
+                    minqual = const.QUALITY_TEXT_TO_INT['poor']
+                    valid_yaws = {'left', 'frontleft', 'backleft'}
+                    qual_list = back.ibs.get_annot_qualities(aid_list)
+                    yawtext_list = back.ibs.get_annot_yaw_texts(aid_list)
+                    qual_flags = [qual is None or qual > minqual for qual in qual_list]
+                    yaw_flags  = [yaw is None or yaw in valid_yaws for yaw in yawtext_list]
+                    flags_list = ut.and_lists(qual_flags, yaw_flags)
+                    aid_list_ = ut.filter_items(aid_list, flags_list)
+                    return aid_list_
+                qaid_list = filterhack_aids(qaid_list)
+                daid_list = filterhack_aids(daid_list)
         qreq_ = back.ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict)
         back.confirm_query_dialog(daid_list, qaid_list, cfgdict=cfgdict)
         qres_list = back.ibs.query_chips(qreq_=qreq_)
