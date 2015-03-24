@@ -895,8 +895,8 @@ def fix_invalid_nids(ibs):
         if (len(invalid_nids) == 0 and
               invalid_nids[0] == ibs.UNKNOWN_NAME_ROWID and
               invalid_texts[0] == const.UNKNOWN):
-            print('[ibs] fuond bad name rowids = %r' % (invalid_nids,))
-            print('[ibs] fuond bad name texts  = %r' % (invalid_texts,))
+            print('[ibs] found bad name rowids = %r' % (invalid_nids,))
+            print('[ibs] found bad name texts  = %r' % (invalid_texts,))
             ibs.delete_names([ibs.UNKNOWN_NAME_ROWID])
         else:
             errmsg = 'Unfixable error: Found invalid (nid, text) pairs: '
@@ -1927,12 +1927,14 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
     if location_text is None:
         location_text = ibs.cfg.other_cfg.location_for_names
     if num is None:
-        num = 1
+        num_ = 1
+    else:
+        num_ = num
     nid_list = ibs._get_all_known_name_rowids()
-    names_used_list = ibs.get_name_texts(nid_list)
+    names_used_list = set(ibs.get_name_texts(nid_list))
     base_index = len(nid_list)
     next_name_list = []
-    while len(next_name_list) < num:
+    while len(next_name_list) < num_:
         base_index += 1
         if str_format == 1:
             userid = ut.get_user_name()
@@ -1948,9 +1950,10 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
             raise ValueError('Invalid str_format supplied')
         next_name = name_prefix + '%04d' % base_index
         if next_name not in names_used_list:
+            #names_used_list.add(next_name)
             next_name_list.append(next_name)
     # Return a list or a string
-    if len(next_name_list) == 1:
+    if num is None:
         return next_name_list[0]
     else:
         return next_name_list
