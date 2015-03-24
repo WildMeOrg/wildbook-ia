@@ -90,7 +90,7 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
         hesaff_params   = ibs.cfg.feat_cfg.get_hesaff_params()
 
     ut.assert_all_not_None(cid_list, 'cid_list')
-    cfpath_list       = ibs.get_chip_fpaths(cid_list)
+    cfpath_list       = ibs.get_chip_fpath(cid_list)
     if ut.VERBOSE:
         print('[preproc_feat] cfgstr = %s' % feat_cfgstr)
         #print('hesaff_params = ' + ut.dict_str(hesaff_params))

@@ -1228,7 +1228,7 @@ def export_names(ibs, nid_list):
     import ibeis
     print('Exporting name nid_list=%r' % (nid_list,))
     nid_hash = ut.hashstr_arr(nid_list, hashlen=8, alphabet=ut.ALPHABET_27)
-    base_fmtstr = ibs.get_dbname() + '_nids=' + nid_hash + '_%d'
+    base_fmtstr = ibs.get_dbname() + '_nids=' + nid_hash.replace('(', '_').replace(')', '_') + '_%d'
     dpath = ibeis.get_workdir()
     new_dbpath = ut.get_nonconflicting_path(base_fmtstr, dpath)
     ibs_src = ibs

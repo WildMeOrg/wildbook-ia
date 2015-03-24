@@ -3317,7 +3317,7 @@ def report_sigtings(ibs):
 def check_chip_existence(ibs, aid_list=None):
     aid_list = ibs.get_valid_aids()
     cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
-    chip_fpath_list = ibs.get_chip_fpaths(cid_list)
+    chip_fpath_list = ibs.get_chip_fpath(cid_list)
     flag_list = [
         True if chip_fpath is None else exists(chip_fpath)
         for chip_fpath in chip_fpath_list

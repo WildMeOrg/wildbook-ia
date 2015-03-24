@@ -91,6 +91,11 @@ if __name__ == '__main__':
         python _scripts/rsync_ibeisdb.py pull --db GIRM_MUGU_20
         python _scripts/rsync_ibeisdb.py pull --db PZ_MUGU_ALL
         python _scripts/rsync_ibeisdb.py push --db MUGU_Master  --user joncrall --dryrun
+
+        mv "NNP_Master3_nids=arr((3)wjybfvpk)_1" NNP_Master3_nids=arr__3_wjybfvpk__1
+
+        python _scripts/rsync_ibeisdb.py pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy --dryrun
+        python _scripts/rsync_ibeisdb.py pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy
     """
     import sys
     default_user = ut.get_user_name()
@@ -103,5 +108,11 @@ if __name__ == '__main__':
     mode = sys.argv[1]
 
     assert mode in ['push', 'pull'], 'mode=%r must be push or pull' % (mode,)
-    remote_uri = user + '@hyrule.cs.rpi.edu:/raid/work'
+    remote_key = ut.get_argval('--remote', type_=str, default='hyrule')
+    remote_map = {
+        'hyrule': '@hyrule.cs.rpi.edu:/raid/work',
+        'pachy': '@pachy.cs.uic.edu:/home/shared_ibeis/data/work',
+    }
+    remote = remote_map[remote_key]
+    remote_uri = user + remote
     sync_ibeisdb(remote_uri, dbname, mode)
