@@ -1904,11 +1904,21 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         >>> next_name3 = make_next_name(ibs3, num, str_format)
         >>> next_name4 = make_next_name(ibs1, num, str_format, const.Species.ZEB_GREVY)
         >>> name_list = [next_name1, next_name2, next_name3, next_name4]
+        >>> next_name_list1 = make_next_name(ibs2, 5, str_format)
+        >>> temp_nids = ibs2.add_names(['IBEIS_PZ_0045', 'IBEIS_PZ_0048'])
+        >>> next_name_list2 = make_next_name(ibs2, 5, str_format)
+        >>> ibs2.delete_names(temp_nids)
+        >>> next_name_list3 = make_next_name(ibs2, 5, str_format)
         >>> # verify results
         >>> # FIXME: nautiluses are not working right
-        >>> result = str(name_list)
+        >>> result = ut.list_str((name_list, next_name_list1, next_name_list2, next_name_list3))
         >>> print(result)
-        ['IBEIS_UNKNOWN_0008', 'IBEIS_PZ_0042', 'IBEIS_GZ_0004', 'IBEIS_GZ_0008']
+        (
+            ['IBEIS_UNKNOWN_0008', 'IBEIS_PZ_0042', 'IBEIS_GZ_0004', 'IBEIS_GZ_0008'],
+            ['IBEIS_PZ_0042', 'IBEIS_PZ_0043', 'IBEIS_PZ_0044', 'IBEIS_PZ_0045', 'IBEIS_PZ_0046'],
+            ['IBEIS_PZ_0044', 'IBEIS_PZ_0046', 'IBEIS_PZ_0047', 'IBEIS_PZ_0049', 'IBEIS_PZ_0050'],
+            ['IBEIS_PZ_0042', 'IBEIS_PZ_0043', 'IBEIS_PZ_0044', 'IBEIS_PZ_0045', 'IBEIS_PZ_0046'],
+        )
 
     """
     if species_text is None:
@@ -1916,25 +1926,34 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         species_text  = ibs.cfg.detect_cfg.species_text
     if location_text is None:
         location_text = ibs.cfg.other_cfg.location_for_names
-    base_index = len(ibs._get_all_known_name_rowids()) + 1  # ibs.get_num_names()
-    if str_format == 1:
-        userid = ut.get_user_name()
-        timestamp = ut.get_timestamp('tag')
-        #timestamp_suffix = '_TMP_'
-        timestamp_suffix = '_'
-        timestamp_prefix = ''
-        name_prefix = timestamp_prefix + timestamp + timestamp_suffix + userid + '_'
-    elif str_format == 2:
-        species_code = const.get_species_code(species_text)
-        name_prefix = location_text + '_' + species_code + '_'
-    else:
-        raise ValueError('Invalid str_format supplied')
     if num is None:
+        num = 1
+    nid_list = ibs._get_all_known_name_rowids()
+    names_used_list = ibs.get_name_texts(nid_list)
+    base_index = len(nid_list)
+    next_name_list = []
+    while len(next_name_list) < num:
+        base_index += 1
+        if str_format == 1:
+            userid = ut.get_user_name()
+            timestamp = ut.get_timestamp('tag')
+            #timestamp_suffix = '_TMP_'
+            timestamp_suffix = '_'
+            timestamp_prefix = ''
+            name_prefix = timestamp_prefix + timestamp + timestamp_suffix + userid + '_'
+        elif str_format == 2:
+            species_code = const.get_species_code(species_text)
+            name_prefix = location_text + '_' + species_code + '_'
+        else:
+            raise ValueError('Invalid str_format supplied')
         next_name = name_prefix + '%04d' % base_index
-        return next_name
+        if next_name not in names_used_list:
+            next_name_list.append(next_name)
+    # Return a list or a string
+    if len(next_name_list) == 1:
+        return next_name_list[0]
     else:
-        next_names = [name_prefix + '%04d' % (base_index + x) for x in range(num)]
-        return next_names
+        return next_name_list
 
 
 def draw_thumb_helper(tup):
