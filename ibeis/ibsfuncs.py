@@ -598,7 +598,7 @@ def check_annot_consistency(ibs, aid_list=None):
     if len(invalid_cids) > 0:
         print('found %d inconsistent chips attempting to fix' % len(invalid_cids))
         ibs.delete_chips(invalid_cids, verbose=True)
-
+    ibs.check_chip_existence(aid_list=aid_list)
     visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
     exemplar_flag = ibs.get_annot_exemplar_flags(aid_list)
     is_unknown = ibs.is_aid_unknown(aid_list)
@@ -3308,6 +3308,21 @@ def report_sigtings(ibs):
     data_list    = zip(*[ cols[1] for cols in cols_list ])
     line_list    = [ sanitize_list(data) for data in header_list + list(data_list) ]
     print('\n'.join(line_list))
+
+
+@__injectable
+def check_chip_existence(ibs, aid_list=None):
+    aid_list = ibs.get_valid_aids()
+    cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
+    chip_fpath_list = ibs.get_chip_uris(cid_list)
+    flag_list = [
+        True if chip_fpath is None else exists(chip_fpath)
+        for chip_fpath in chip_fpath_list
+    ]
+    cid_kill_list = ut.filterfalse_items(cid_list, flag_list)
+    if len(cid_kill_list) > 0:
+        print('found %d inconsistent chips attempting to fix' % len(cid_kill_list))
+    ibs.delete_chips(cid_kill_list)
 
 
 if __name__ == '__main__':

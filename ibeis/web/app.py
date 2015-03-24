@@ -151,189 +151,201 @@ def view():
 
 @app.route('/view/encounters')
 def view_encounters():
-    filtered = True
-    eid = request.args.get('eid', '')
-    if len(eid) > 0:
-        eid_list = eid.strip().split(',')
-        eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
-    else:
-        eid_list = app.ibs.get_valid_eids()
-        filtered = False
-    start_time_posix_list = app.ibs.get_encounter_start_time_posix(eid_list)
-    datetime_list = [
-        ut.unixtime_to_datetime(start_time_posix)
-        if start_time_posix is not None else
-        'Unknown'
-        for start_time_posix in start_time_posix_list
-    ]
-    gids_list = [ app.ibs.get_valid_gids(eid=eid_) for eid_ in eid_list ]
-    aids_list = [ ut.flatten(app.ibs.get_image_aids(gid_list)) for gid_list in gids_list ]
-    images_reviewed_list           = [ encounter_image_processed(gid_list) for gid_list in gids_list ]
-    annots_reviewed_viewpoint_list = [ encounter_annot_viewpoint_processed(aid_list) for aid_list in aids_list ]
-    annots_reviewed_quality_list   = [ encounter_annot_quality_processed(aid_list) for aid_list in aids_list ]
-    image_processed_list           = [ images_reviewed.count(True) for images_reviewed in images_reviewed_list ]
-    annot_processed_viewpoint_list = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_viewpoint_list ]
-    annot_processed_quality_list   = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_quality_list ]
-    reviewed_list = [ all(images_reviewed) and all(annots_reviewed_viewpoint) and all(annot_processed_quality) for images_reviewed, annots_reviewed_viewpoint, annot_processed_quality in zip(images_reviewed_list, annots_reviewed_viewpoint_list, annots_reviewed_quality_list) ]
-    encounter_list = zip(
-        eid_list,
-        app.ibs.get_encounter_enctext(eid_list),
-        app.ibs.get_encounter_num_gids(eid_list),
-        image_processed_list,
-        app.ibs.get_encounter_num_aids(eid_list),
-        annot_processed_viewpoint_list,
-        annot_processed_quality_list,
-        start_time_posix_list,
-        datetime_list,
-        reviewed_list,
-    )
-    encounter_list.sort(key=lambda t: t[7])
-    return ap.template('view', 'encounters',
-                       filtered=filtered,
-                       eid_list=eid_list,
-                       eid_list_str=','.join(map(str, eid_list)),
-                       num_eids=len(eid_list),
-                       encounter_list=encounter_list,
-                       num_encounters=len(encounter_list))
+    try:
+        filtered = True
+        eid = request.args.get('eid', '')
+        if len(eid) > 0:
+            eid_list = eid.strip().split(',')
+            eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
+        else:
+            eid_list = app.ibs.get_valid_eids()
+            filtered = False
+        start_time_posix_list = app.ibs.get_encounter_start_time_posix(eid_list)
+        datetime_list = [
+            ut.unixtime_to_datetime(start_time_posix)
+            if start_time_posix is not None else
+            'Unknown'
+            for start_time_posix in start_time_posix_list
+        ]
+        gids_list = [ app.ibs.get_valid_gids(eid=eid_) for eid_ in eid_list ]
+        aids_list = [ ut.flatten(app.ibs.get_image_aids(gid_list)) for gid_list in gids_list ]
+        images_reviewed_list           = [ encounter_image_processed(gid_list) for gid_list in gids_list ]
+        annots_reviewed_viewpoint_list = [ encounter_annot_viewpoint_processed(aid_list) for aid_list in aids_list ]
+        annots_reviewed_quality_list   = [ encounter_annot_quality_processed(aid_list) for aid_list in aids_list ]
+        image_processed_list           = [ images_reviewed.count(True) for images_reviewed in images_reviewed_list ]
+        annot_processed_viewpoint_list = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_viewpoint_list ]
+        annot_processed_quality_list   = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_quality_list ]
+        reviewed_list = [ all(images_reviewed) and all(annots_reviewed_viewpoint) and all(annot_processed_quality) for images_reviewed, annots_reviewed_viewpoint, annot_processed_quality in zip(images_reviewed_list, annots_reviewed_viewpoint_list, annots_reviewed_quality_list) ]
+        encounter_list = zip(
+            eid_list,
+            app.ibs.get_encounter_enctext(eid_list),
+            app.ibs.get_encounter_num_gids(eid_list),
+            image_processed_list,
+            app.ibs.get_encounter_num_aids(eid_list),
+            annot_processed_viewpoint_list,
+            annot_processed_quality_list,
+            start_time_posix_list,
+            datetime_list,
+            reviewed_list,
+        )
+        encounter_list.sort(key=lambda t: t[7])
+        return ap.template('view', 'encounters',
+                           filtered=filtered,
+                           eid_list=eid_list,
+                           eid_list_str=','.join(map(str, eid_list)),
+                           num_eids=len(eid_list),
+                           encounter_list=encounter_list,
+                           num_encounters=len(encounter_list))
+    except Exception as e:
+        return error404(e)
 
 
 @app.route('/view/images')
 def view_images():
-    filtered = True
-    eid_list = []
-    gid = request.args.get('gid', '')
-    eid = request.args.get('eid', '')
-    page = max(0, int(request.args.get('page', 1)))
-    if len(gid) > 0:
-        gid_list = gid.strip().split(',')
-        gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
-    elif len(eid) > 0:
-        eid_list = eid.strip().split(',')
-        eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
-        gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid) for eid_ in eid_list ])
-    else:
-        gid_list = app.ibs.get_valid_gids()
-        filtered = False
-    # Page
-    page_start = min(len(gid_list), (page - 1) * PAGE_SIZE)
-    page_end   = min(len(gid_list), page * PAGE_SIZE)
-    page_total = int(math.ceil(len(gid_list) / PAGE_SIZE))
-    page_previous = None if page_start == 0 else page - 1
-    page_next = None if page_end == len(gid_list) else page + 1
-    gid_list = gid_list[page_start:page_end]
-    print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(gid_list), page_previous, page_next, ))
-    image_unixtime_list = app.ibs.get_image_unixtime(gid_list)
-    datetime_list = [
-        ut.unixtime_to_datetime(image_unixtime)
-        if image_unixtime is not None
-        else
-        'Unknown'
-        for image_unixtime in image_unixtime_list
-    ]
-    image_list = zip(
-        gid_list,
-        [ ','.join(map(str, eid_list_)) for eid_list_ in app.ibs.get_image_eids(gid_list) ],
-        app.ibs.get_image_gnames(gid_list),
-        image_unixtime_list,
-        datetime_list,
-        app.ibs.get_image_gps(gid_list),
-        app.ibs.get_image_party_tag(gid_list),
-        app.ibs.get_image_contributor_tag(gid_list),
-        app.ibs.get_image_notes(gid_list),
-        encounter_image_processed(gid_list),
-    )
-    image_list.sort(key=lambda t: t[3])
-    return ap.template('view', 'images',
-                       filtered=filtered,
-                       eid_list=eid_list,
-                       eid_list_str=','.join(map(str, eid_list)),
-                       num_eids=len(eid_list),
-                       gid_list=gid_list,
-                       gid_list_str=','.join(map(str, gid_list)),
-                       num_gids=len(gid_list),
-                       image_list=image_list,
-                       num_images=len(image_list),
-                       page=page,
-                       page_start=page_start,
-                       page_end=page_end,
-                       page_total=page_total,
-                       page_previous=page_previous,
-                       page_next=page_next)
+    try:
+        filtered = True
+        eid_list = []
+        gid = request.args.get('gid', '')
+        eid = request.args.get('eid', '')
+        page = max(0, int(request.args.get('page', 1)))
+        if len(gid) > 0:
+            gid_list = gid.strip().split(',')
+            gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
+        elif len(eid) > 0:
+            eid_list = eid.strip().split(',')
+            eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
+            gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid) for eid_ in eid_list ])
+        else:
+            gid_list = app.ibs.get_valid_gids()
+            filtered = False
+        # Page
+        page_start = min(len(gid_list), (page - 1) * PAGE_SIZE)
+        page_end   = min(len(gid_list), page * PAGE_SIZE)
+        page_total = int(math.ceil(len(gid_list) / PAGE_SIZE))
+        page_previous = None if page_start == 0 else page - 1
+        page_next = None if page_end == len(gid_list) else page + 1
+        gid_list = gid_list[page_start:page_end]
+        print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(gid_list), page_previous, page_next, ))
+        image_unixtime_list = app.ibs.get_image_unixtime(gid_list)
+        datetime_list = [
+            ut.unixtime_to_datetime(image_unixtime)
+            if image_unixtime is not None
+            else
+            'Unknown'
+            for image_unixtime in image_unixtime_list
+        ]
+        image_list = zip(
+            gid_list,
+            [ ','.join(map(str, eid_list_)) for eid_list_ in app.ibs.get_image_eids(gid_list) ],
+            app.ibs.get_image_gnames(gid_list),
+            image_unixtime_list,
+            datetime_list,
+            app.ibs.get_image_gps(gid_list),
+            app.ibs.get_image_party_tag(gid_list),
+            app.ibs.get_image_contributor_tag(gid_list),
+            app.ibs.get_image_notes(gid_list),
+            encounter_image_processed(gid_list),
+        )
+        image_list.sort(key=lambda t: t[3])
+        return ap.template('view', 'images',
+                           filtered=filtered,
+                           eid_list=eid_list,
+                           eid_list_str=','.join(map(str, eid_list)),
+                           num_eids=len(eid_list),
+                           gid_list=gid_list,
+                           gid_list_str=','.join(map(str, gid_list)),
+                           num_gids=len(gid_list),
+                           image_list=image_list,
+                           num_images=len(image_list),
+                           page=page,
+                           page_start=page_start,
+                           page_end=page_end,
+                           page_total=page_total,
+                           page_previous=page_previous,
+                           page_next=page_next)
+    except Exception as e:
+        return error404(e)
 
 
 @app.route('/view/annotations')
 def view_annotations():
-    filtered = True
-    eid_list = []
-    gid_list = []
-    aid = request.args.get('aid', '')
-    gid = request.args.get('gid', '')
-    eid = request.args.get('eid', '')
-    page = max(0, int(request.args.get('page', 1)))
-    if len(aid) > 0:
-        aid_list = aid.strip().split(',')
-        aid_list = [ None if aid_ == 'None' or aid_ == '' else int(aid_) for aid_ in aid_list ]
-    elif len(gid) > 0:
-        gid_list = gid.strip().split(',')
-        gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
-        aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
-    elif len(eid) > 0:
-        eid_list = eid.strip().split(',')
-        eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
-        gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid_) for eid_ in eid_list ])
-        aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
-    else:
-        aid_list = app.ibs.get_valid_aids()
-        filtered = False
-    # Page
-    page_start = min(len(aid_list), (page - 1) * PAGE_SIZE)
-    page_end   = min(len(aid_list), page * PAGE_SIZE)
-    page_total = int(math.ceil(len(aid_list) / PAGE_SIZE))
-    page_previous = None if page_start == 0 else page - 1
-    page_next = None if page_end == len(aid_list) else page + 1
-    aid_list = aid_list[page_start:page_end]
-    print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(aid_list), page_previous, page_next, ))
-    annotation_list = zip(
-        aid_list,
-        app.ibs.get_annot_gids(aid_list),
-        [ ','.join(map(str, eid_list_)) for eid_list_ in app.ibs.get_annot_eids(aid_list) ],
-        app.ibs.get_annot_image_names(aid_list),
-        app.ibs.get_annot_names(aid_list),
-        app.ibs.get_annot_exemplar_flags(aid_list),
-        app.ibs.get_annot_species_texts(aid_list),
-        app.ibs.get_annot_yaw_texts(aid_list),
-        app.ibs.get_annot_quality_texts(aid_list),
-        app.ibs.get_annot_sex_texts(aid_list),
-        app.ibs.get_annot_age_months_est(aid_list),
-        [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(encounter_annot_viewpoint_processed(aid_list), encounter_annot_quality_processed(aid_list)) ],
-    )
-    annotation_list.sort(key=lambda t: t[0])
-    return ap.template('view', 'annotations',
-                       filtered=filtered,
-                       eid_list=eid_list,
-                       eid_list_str=','.join(map(str, eid_list)),
-                       num_eids=len(eid_list),
-                       gid_list=gid_list,
-                       gid_list_str=','.join(map(str, gid_list)),
-                       num_gids=len(gid_list),
-                       aid_list=aid_list,
-                       aid_list_str=','.join(map(str, aid_list)),
-                       num_aids=len(aid_list),
-                       annotation_list=annotation_list,
-                       num_annotations=len(annotation_list),
-                       page=page,
-                       page_start=page_start,
-                       page_end=page_end,
-                       page_total=page_total,
-                       page_previous=page_previous,
-                       page_next=page_next)
+    try:
+        filtered = True
+        eid_list = []
+        gid_list = []
+        aid = request.args.get('aid', '')
+        gid = request.args.get('gid', '')
+        eid = request.args.get('eid', '')
+        page = max(0, int(request.args.get('page', 1)))
+        if len(aid) > 0:
+            aid_list = aid.strip().split(',')
+            aid_list = [ None if aid_ == 'None' or aid_ == '' else int(aid_) for aid_ in aid_list ]
+        elif len(gid) > 0:
+            gid_list = gid.strip().split(',')
+            gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
+            aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
+        elif len(eid) > 0:
+            eid_list = eid.strip().split(',')
+            eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
+            gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid_) for eid_ in eid_list ])
+            aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
+        else:
+            aid_list = app.ibs.get_valid_aids()
+            filtered = False
+        # Page
+        page_start = min(len(aid_list), (page - 1) * PAGE_SIZE)
+        page_end   = min(len(aid_list), page * PAGE_SIZE)
+        page_total = int(math.ceil(len(aid_list) / PAGE_SIZE))
+        page_previous = None if page_start == 0 else page - 1
+        page_next = None if page_end == len(aid_list) else page + 1
+        aid_list = aid_list[page_start:page_end]
+        print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(aid_list), page_previous, page_next, ))
+        annotation_list = zip(
+            aid_list,
+            app.ibs.get_annot_gids(aid_list),
+            [ ','.join(map(str, eid_list_)) for eid_list_ in app.ibs.get_annot_eids(aid_list) ],
+            app.ibs.get_annot_image_names(aid_list),
+            app.ibs.get_annot_names(aid_list),
+            app.ibs.get_annot_exemplar_flags(aid_list),
+            app.ibs.get_annot_species_texts(aid_list),
+            app.ibs.get_annot_yaw_texts(aid_list),
+            app.ibs.get_annot_quality_texts(aid_list),
+            app.ibs.get_annot_sex_texts(aid_list),
+            app.ibs.get_annot_age_months_est(aid_list),
+            [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(encounter_annot_viewpoint_processed(aid_list), encounter_annot_quality_processed(aid_list)) ],
+        )
+        annotation_list.sort(key=lambda t: t[0])
+        return ap.template('view', 'annotations',
+                           filtered=filtered,
+                           eid_list=eid_list,
+                           eid_list_str=','.join(map(str, eid_list)),
+                           num_eids=len(eid_list),
+                           gid_list=gid_list,
+                           gid_list_str=','.join(map(str, gid_list)),
+                           num_gids=len(gid_list),
+                           aid_list=aid_list,
+                           aid_list_str=','.join(map(str, aid_list)),
+                           num_aids=len(aid_list),
+                           annotation_list=annotation_list,
+                           num_annotations=len(annotation_list),
+                           page=page,
+                           page_start=page_start,
+                           page_end=page_end,
+                           page_total=page_total,
+                           page_previous=page_previous,
+                           page_next=page_next)
+    except Exception as e:
+        return error404(e)
 
 
 @app.route('/turk')
 def turk():
-    eid = request.args.get('eid', '')
-    eid = None if eid == 'None' or eid == '' else int(eid)
-    return ap.template('turk', None, eid=eid)
+    try:
+        eid = request.args.get('eid', '')
+        eid = None if eid == 'None' or eid == '' else int(eid)
+        return ap.template('turk', None, eid=eid)
+    except Exception as e:
+        return error404(e)
 
 
 @app.route('/turk/detection')
@@ -597,196 +609,208 @@ def turk_additional():
 
 @app.route('/submit/detection', methods=['POST'])
 def submit_detection():
-    method = request.form.get('detection-submit', '')
-    eid = request.args.get('eid', '')
-    eid = None if eid == 'None' or eid == '' else int(eid)
-    gid = int(request.form['detection-gid'])
-    turk_id = request.cookies.get('turk_id', -1)
+    try:
+        method = request.form.get('detection-submit', '')
+        eid = request.args.get('eid', '')
+        eid = None if eid == 'None' or eid == '' else int(eid)
+        gid = int(request.form['detection-gid'])
+        turk_id = request.cookies.get('turk_id', -1)
 
-    if method.lower() == 'delete':
-        # app.ibs.delete_images(gid)
-        # print('[web] (DELETED) turk_id: %s, gid: %d' % (turk_id, gid, ))
-        pass
-    elif method.lower() == 'clear':
-        aid_list = app.ibs.get_image_aids(gid)
-        app.ibs.delete_annots(aid_list)
-        print('[web] (CLEAERED) turk_id: %s, gid: %d' % (turk_id, gid, ))
-        redirection = request.referrer
-        if 'gid' not in redirection:
-            # Prevent multiple clears
-            if '?' in redirection:
-                redirection = '%s&gid=%d' % (redirection, gid, )
-            else:
-                redirection = '%s?gid=%d' % (redirection, gid, )
-        return redirect(redirection)
-    else:
-        aid_list = app.ibs.get_image_aids(gid)
-        # Make new annotations
-        width, height = app.ibs.get_image_sizes(gid)
-        scale_factor = float(width) / 700.0
-        # Get aids
-        app.ibs.delete_annots(aid_list)
-        annotation_list = json.loads(request.form['detection-annotations'])
-        bbox_list = [
-            (
-                int(scale_factor * annot['left']),
-                int(scale_factor * annot['top']),
-                int(scale_factor * annot['width']),
-                int(scale_factor * annot['height']),
-            )
-            for annot in annotation_list
-        ]
-        theta_list = [
-            float(annot['angle'])
-            for annot in annotation_list
-        ]
-        species_list = [
-            annot['label']
-            for annot in annotation_list
-        ]
-        app.ibs.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
-        app.ibs.set_image_reviewed([gid], [1])
-        print('[web] turk_id: %s, gid: %d, bbox_list: %r, species_list: %r' % (turk_id, gid, annotation_list, species_list))
-    # Return HTML
-    refer = request.args.get('refer', '')
-    if len(refer) > 0:
-        return redirect(ap.decode_refer_url(refer))
-    else:
-        return redirect(url_for('turk_detection', eid=eid, previous=gid))
+        if method.lower() == 'delete':
+            # app.ibs.delete_images(gid)
+            # print('[web] (DELETED) turk_id: %s, gid: %d' % (turk_id, gid, ))
+            pass
+        elif method.lower() == 'clear':
+            aid_list = app.ibs.get_image_aids(gid)
+            app.ibs.delete_annots(aid_list)
+            print('[web] (CLEAERED) turk_id: %s, gid: %d' % (turk_id, gid, ))
+            redirection = request.referrer
+            if 'gid' not in redirection:
+                # Prevent multiple clears
+                if '?' in redirection:
+                    redirection = '%s&gid=%d' % (redirection, gid, )
+                else:
+                    redirection = '%s?gid=%d' % (redirection, gid, )
+            return redirect(redirection)
+        else:
+            aid_list = app.ibs.get_image_aids(gid)
+            # Make new annotations
+            width, height = app.ibs.get_image_sizes(gid)
+            scale_factor = float(width) / 700.0
+            # Get aids
+            app.ibs.delete_annots(aid_list)
+            annotation_list = json.loads(request.form['detection-annotations'])
+            bbox_list = [
+                (
+                    int(scale_factor * annot['left']),
+                    int(scale_factor * annot['top']),
+                    int(scale_factor * annot['width']),
+                    int(scale_factor * annot['height']),
+                )
+                for annot in annotation_list
+            ]
+            theta_list = [
+                float(annot['angle'])
+                for annot in annotation_list
+            ]
+            species_list = [
+                annot['label']
+                for annot in annotation_list
+            ]
+            app.ibs.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
+            app.ibs.set_image_reviewed([gid], [1])
+            print('[web] turk_id: %s, gid: %d, bbox_list: %r, species_list: %r' % (turk_id, gid, annotation_list, species_list))
+        # Return HTML
+        refer = request.args.get('refer', '')
+        if len(refer) > 0:
+            return redirect(ap.decode_refer_url(refer))
+        else:
+            return redirect(url_for('turk_detection', eid=eid, previous=gid))
+    except Exception as e:
+        return error404(e)
 
 
 @app.route('/submit/viewpoint', methods=['POST'])
 def submit_viewpoint():
-    method = request.form.get('viewpoint-submit', '')
-    eid = request.args.get('eid', '')
-    eid = None if eid == 'None' or eid == '' else int(eid)
-    aid = int(request.form['viewpoint-aid'])
-    turk_id = request.cookies.get('turk_id', -1)
-    if method.lower() == 'delete':
-        app.ibs.delete_annots(aid)
-        print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
-        aid = None  # Reset AID to prevent previous
-    if method.lower() == 'rotate left':
-        theta = app.ibs.get_annot_thetas(aid)
-        theta = (theta + const.PI / 2) % const.TAU
-        app.ibs.set_annot_thetas(aid, theta)
-        (xtl, ytl, w, h) = app.ibs.get_annot_bboxes(aid)
-        diffx = int(round((w / 2.0) - (h / 2.0)))
-        diffy = int(round((h / 2.0) - (w / 2.0)))
-        xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
-        app.ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
-        print('[web] (ROTATED LEFT) turk_id: %s, aid: %d' % (turk_id, aid, ))
-        redirection = request.referrer
-        if 'aid' not in redirection:
-            # Prevent multiple clears
-            if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
-            else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
-        return redirect(redirection)
-    if method.lower() == 'rotate right':
-        theta = app.ibs.get_annot_thetas(aid)
-        theta = (theta - const.PI / 2) % const.TAU
-        app.ibs.set_annot_thetas(aid, theta)
-        (xtl, ytl, w, h) = app.ibs.get_annot_bboxes(aid)
-        diffx = int(round((w / 2.0) - (h / 2.0)))
-        diffy = int(round((h / 2.0) - (w / 2.0)))
-        xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
-        app.ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
-        print('[web] (ROTATED RIGHT) turk_id: %s, aid: %d' % (turk_id, aid, ))
-        redirection = request.referrer
-        if 'aid' not in redirection:
-            # Prevent multiple clears
-            if '?' in redirection:
-                redirection = '%s&aid=%d' % (redirection, aid, )
-            else:
-                redirection = '%s?aid=%d' % (redirection, aid, )
-        return redirect(redirection)
-    else:
-        value = int(request.form['viewpoint-value'])
-        yaw = convert_old_viewpoint_to_yaw(value)
-        app.ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
-        print('[web] turk_id: %s, aid: %d, yaw: %d' % (turk_id, aid, yaw))
-    # Return HTML
-    refer = request.args.get('refer', '')
-    if len(refer) > 0:
-        return redirect(ap.decode_refer_url(refer))
-    else:
-        return redirect(url_for('turk_viewpoint', eid=eid, previous=aid))
+    try:
+        method = request.form.get('viewpoint-submit', '')
+        eid = request.args.get('eid', '')
+        eid = None if eid == 'None' or eid == '' else int(eid)
+        aid = int(request.form['viewpoint-aid'])
+        turk_id = request.cookies.get('turk_id', -1)
+        if method.lower() == 'delete':
+            app.ibs.delete_annots(aid)
+            print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+            aid = None  # Reset AID to prevent previous
+        if method.lower() == 'rotate left':
+            theta = app.ibs.get_annot_thetas(aid)
+            theta = (theta + const.PI / 2) % const.TAU
+            app.ibs.set_annot_thetas(aid, theta)
+            (xtl, ytl, w, h) = app.ibs.get_annot_bboxes(aid)
+            diffx = int(round((w / 2.0) - (h / 2.0)))
+            diffy = int(round((h / 2.0) - (w / 2.0)))
+            xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
+            app.ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
+            print('[web] (ROTATED LEFT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+            redirection = request.referrer
+            if 'aid' not in redirection:
+                # Prevent multiple clears
+                if '?' in redirection:
+                    redirection = '%s&aid=%d' % (redirection, aid, )
+                else:
+                    redirection = '%s?aid=%d' % (redirection, aid, )
+            return redirect(redirection)
+        if method.lower() == 'rotate right':
+            theta = app.ibs.get_annot_thetas(aid)
+            theta = (theta - const.PI / 2) % const.TAU
+            app.ibs.set_annot_thetas(aid, theta)
+            (xtl, ytl, w, h) = app.ibs.get_annot_bboxes(aid)
+            diffx = int(round((w / 2.0) - (h / 2.0)))
+            diffy = int(round((h / 2.0) - (w / 2.0)))
+            xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
+            app.ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
+            print('[web] (ROTATED RIGHT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+            redirection = request.referrer
+            if 'aid' not in redirection:
+                # Prevent multiple clears
+                if '?' in redirection:
+                    redirection = '%s&aid=%d' % (redirection, aid, )
+                else:
+                    redirection = '%s?aid=%d' % (redirection, aid, )
+            return redirect(redirection)
+        else:
+            value = int(request.form['viewpoint-value'])
+            yaw = convert_old_viewpoint_to_yaw(value)
+            app.ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
+            print('[web] turk_id: %s, aid: %d, yaw: %d' % (turk_id, aid, yaw))
+        # Return HTML
+        refer = request.args.get('refer', '')
+        if len(refer) > 0:
+            return redirect(ap.decode_refer_url(refer))
+        else:
+            return redirect(url_for('turk_viewpoint', eid=eid, previous=aid))
+    except Exception as e:
+        return error404(e)
 
 
 @app.route('/submit/quality', methods=['POST'])
 def submit_quality():
-    method = request.form.get('quality-submit', '')
-    eid = request.args.get('eid', '')
-    eid = None if eid == 'None' or eid == '' else int(eid)
-    aid = int(request.form['quality-aid'])
-    turk_id = request.cookies.get('turk_id', -1)
+    try:
+        method = request.form.get('quality-submit', '')
+        eid = request.args.get('eid', '')
+        eid = None if eid == 'None' or eid == '' else int(eid)
+        aid = int(request.form['quality-aid'])
+        turk_id = request.cookies.get('turk_id', -1)
 
-    if method.lower() == 'delete':
-        app.ibs.delete_annots(aid)
-        print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
-        aid = None  # Reset AID to prevent previous
-    else:
-        quality = int(request.form['quality-value'])
-        app.ibs.set_annot_qualities([aid], [quality])
-        print('[web] turk_id: %s, aid: %d, quality: %d' % (turk_id, aid, quality))
-    # Return HTML
-    refer = request.args.get('refer', '')
-    if len(refer) > 0:
-        return redirect(ap.decode_refer_url(refer))
-    else:
-        return redirect(url_for('turk_quality', eid=eid, previous=aid))
+        if method.lower() == 'delete':
+            app.ibs.delete_annots(aid)
+            print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+            aid = None  # Reset AID to prevent previous
+        else:
+            quality = int(request.form['quality-value'])
+            app.ibs.set_annot_qualities([aid], [quality])
+            print('[web] turk_id: %s, aid: %d, quality: %d' % (turk_id, aid, quality))
+        # Return HTML
+        refer = request.args.get('refer', '')
+        if len(refer) > 0:
+            return redirect(ap.decode_refer_url(refer))
+        else:
+            return redirect(url_for('turk_quality', eid=eid, previous=aid))
+    except Exception as e:
+        return error404(e)
 
 
 @app.route('/submit/additional', methods=['POST'])
 def submit_additional():
-    method = request.form.get('additional-submit', '')
-    eid = request.args.get('eid', '')
-    eid = None if eid == 'None' or eid == '' else int(eid)
-    aid = int(request.form['additional-aid'])
-    turk_id = request.cookies.get('turk_id', -1)
+    try:
+        method = request.form.get('additional-submit', '')
+        eid = request.args.get('eid', '')
+        eid = None if eid == 'None' or eid == '' else int(eid)
+        aid = int(request.form['additional-aid'])
+        turk_id = request.cookies.get('turk_id', -1)
 
-    if method.lower() == 'delete':
-        app.ibs.delete_annots(aid)
-        print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
-        aid = None  # Reset AID to prevent previous
-    else:
-        sex = int(request.form['additional-sex-value'])
-        age = int(request.form['additional-age-value'])
-        age_min = None
-        age_max = None
-        # Sex
-        if sex >= 2:
-            sex -= 2
+        if method.lower() == 'delete':
+            app.ibs.delete_annots(aid)
+            print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+            aid = None  # Reset AID to prevent previous
         else:
-            sex = -1
-        # Age
-        if age == 1:
+            sex = int(request.form['additional-sex-value'])
+            age = int(request.form['additional-age-value'])
             age_min = None
-            age_max = 2
-        elif age == 2:
-            age_min = 3
-            age_max = 5
-        elif age == 3:
-            age_min = 6
-            age_max = 11
-        elif age == 4:
-            age_min = 12
-            age_max = 23
-        elif age == 5:
-            age_min = 24
             age_max = None
-        app.ibs.set_annot_sex([aid], [sex])
-        app.ibs.set_annot_age_months_est_min([aid], [age_min])
-        app.ibs.set_annot_age_months_est_max([aid], [age_max])
-        print('[web] turk_id: %s, aid: %d, sex: %r, age: %r' % (turk_id, aid, sex, age))
-    # Return HTML
-    refer = request.args.get('refer', '')
-    if len(refer) > 0:
-        return redirect(ap.decode_refer_url(refer))
-    else:
-        return redirect(url_for('turk_additional', eid=eid, previous=aid))
+            # Sex
+            if sex >= 2:
+                sex -= 2
+            else:
+                sex = -1
+            # Age
+            if age == 1:
+                age_min = None
+                age_max = 2
+            elif age == 2:
+                age_min = 3
+                age_max = 5
+            elif age == 3:
+                age_min = 6
+                age_max = 11
+            elif age == 4:
+                age_min = 12
+                age_max = 23
+            elif age == 5:
+                age_min = 24
+                age_max = None
+            app.ibs.set_annot_sex([aid], [sex])
+            app.ibs.set_annot_age_months_est_min([aid], [age_min])
+            app.ibs.set_annot_age_months_est_max([aid], [age_max])
+            print('[web] turk_id: %s, aid: %d, sex: %r, age: %r' % (turk_id, aid, sex, age))
+        # Return HTML
+        refer = request.args.get('refer', '')
+        if len(refer) > 0:
+            return redirect(ap.decode_refer_url(refer))
+        else:
+            return redirect(url_for('turk_additional', eid=eid, previous=aid))
+    except Exception as e:
+        return error404(e)
 
 
 @app.route('/ajax/cookie')
@@ -854,9 +878,12 @@ def api(function=None):
 
 @app.route('/404')
 def error404(exception):
-    print('[web] %r' % (exception, ))
-    print(traceback.format_exc())
-    return ap.template(None, '404')
+    exception_str = str(exception)
+    traceback_str = str(traceback.format_exc())
+    print('[web] %r' % (exception_str, ))
+    print(traceback_str)
+    return ap.template(None, '404', exception_str=exception_str,
+                       traceback_str=traceback_str)
 
 
 ################################################################################
