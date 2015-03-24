@@ -392,7 +392,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
     rank_arr  = rank_arr[sortx]
 
     if filter_reviewed:
-        is_unreviewed = ~np.array(ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(), daid_arr.tolist()))
+        is_unreviewed = ~np.array(ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(), daid_arr.tolist()), dtype=np.bool)
         qaid_arr  = qaid_arr.compress(is_unreviewed)
         daid_arr   = daid_arr.compress(is_unreviewed)
         score_arr = score_arr.compress(is_unreviewed)

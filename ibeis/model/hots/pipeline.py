@@ -315,11 +315,15 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
     #    for impossible_daids in _impossible_daids_list]
 
     # TODO: we need to pad K for each bad annotation
-    if qreq_.qparams.vsone or not use_k_padding:
+    if qreq_.qparams.vsone:
         # dont pad vsone
         Kpad_list = [0 for _ in range(len(impossible_daids_list))]
     else:
-        Kpad_list = list(map(len, impossible_daids_list))  # NOQA
+        if use_k_padding:
+            Kpad_list = list(map(len, impossible_daids_list))  # NOQA
+        else:
+            # always at least pad K for self queries
+            Kpad_list =  [1 if qaid in internal_daids else 0 for qaid in internal_qaids]
     return impossible_daids_list, Kpad_list
 
 #============================

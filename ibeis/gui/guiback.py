@@ -226,7 +226,7 @@ class MainWindowBackend(QtCore.QObject):
         viz.draw()
 
     @blocking_slot()
-    def review_queries(back, qres_list, filter_duplicate_namepair_matches=False, qreq_=None, **kwargs):
+    def review_queries(back, qres_list, qreq_=None, **kwargs):
         #if qaid2_qres is None:
         #    eid = back.get_selected_eid()
         #    if eid not in back.encounter_query_results:
@@ -236,21 +236,20 @@ class MainWindowBackend(QtCore.QObject):
         #     'on_change_callback': back.front.update_tables,
         #     'nPerPage': 6,
         # }
-        qaid2_qres = {qres.qaid: qres for qres in qres_list}
-        ibs = back.ibs
         # Matplotlib QueryResults interaction
         #from ibeis.viz.interact import interact_qres2
         #back.query_review = interact_qres2.Interact_QueryResult(ibs, qaid2_qres, **review_kw)
         #back.query_review.show()
         # Qt QueryResults Interaction
         from ibeis.gui import inspect_gui
+        qaid2_qres = {qres.qaid: qres for qres in qres_list}
+        ibs = back.ibs
         backend_callback = back.front.update_tables
-        ranks_lt = ibs.cfg.other_cfg.ranks_lt
+        kwargs['ranks_lt'] = kwargs.get('ranks_lt', ibs.cfg.other_cfg.ranks_lt)
+        kwargs['qreq_'] = kwargs.get('qreq_', qreq_)
         back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
                                                        callback=backend_callback,
-                                                       ranks_lt=ranks_lt,
-                                                       qreq_=qreq_,
-                                                       filter_duplicate_namepair_matches=filter_duplicate_namepair_matches)
+                                                       **kwargs)
         back.qres_wgt.show()
         back.qres_wgt.raise_()
 
@@ -1048,7 +1047,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
         # Filter duplicate names if running vsexemplar
         filter_duplicate_namepair_matches = daids_mode == const.VS_EXEMPLARS_KEY
-        back.review_queries(qres_list, eid=eid,
+        back.review_queries(qres_list,
                             filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
                             qreq_=qreq_)
         if refresh:

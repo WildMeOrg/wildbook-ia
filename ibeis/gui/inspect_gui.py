@@ -100,7 +100,6 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.view.setColumnHidden(1, False)
         #qres_wgt.view.connect_single_key_to_slot(QtCore.Qt.ALT, qres_wgt.on_alt_pressed)
         ALT_KEY = 16777251
-        #ut.embed()
         qres_wgt.view.connect_single_key_to_slot(ALT_KEY, qres_wgt.on_alt_pressed)
         qres_wgt.view.connect_keypress_to_slot(qres_wgt.on_special_key_pressed)
         if parent is None:
@@ -161,6 +160,10 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres, name_scoring=name_scoring, qreq_=qreq_, **kwargs)
         qres_wgt.update_checkboxes()
         headers = qres_wgt.qres_api.make_headers()
+
+        # HACK IN ROW SIZE
+        vertical_header = qres_wgt.view.verticalHeader()
+        vertical_header.setDefaultSectionSize(qres_wgt.qres_api.get_thumb_size())
         # super call
         APIItemWidget.change_headers(qres_wgt, headers)
 
@@ -545,6 +548,7 @@ class CustomAPI(object):
             self.get_thumb_size = lambda: 128
         else:
             self.get_thumb_size = get_thumb_size
+
         self.parse_column_tuples(col_name_list, col_types_dict, col_getters_dict,
                                  col_bgrole_dict, col_ider_dict, col_setter_dict,
                                  editable_colnames, sortby, sort_reverse)
