@@ -41,6 +41,14 @@ CLASS_INJECT_KEY = ('IBEISController', 'ibsfuncs')
 __injectable = ut.make_class_method_decorator(CLASS_INJECT_KEY, __name__)
 
 
+def fix_zero_features(ibs):
+    aid_list = ibs.get_valid_aids()
+    nfeat_list = ibs.get_annot_num_feats(aid_list)
+    haszero_list = [nfeat == 0 for nfeat in nfeat_list]
+    haszero_aids = ut.filter_items(aid_list, haszero_list)
+    ibs.delete_annot_chips(haszero_aids)
+
+
 @ut.make_class_postinject_decorator(CLASS_INJECT_KEY, __name__)
 def postinject_func(ibs):
     r"""
@@ -583,7 +591,7 @@ def check_annot_consistency(ibs, aid_list=None):
     unique_gids = list(set(annot_gid_list))
     print('num_unique_images=%r / %r' % (len(unique_gids), len(annot_gid_list)))
     cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
-    cfpath_list = ibs.get_chip_uris(cid_list)
+    cfpath_list = ibs.get_chip_fpaths(cid_list)
     valid_chip_list = [None if cfpath is None else exists(cfpath) for cfpath in cfpath_list]
     invalid_list = [flag is False for flag in valid_chip_list]
     invalid_cids = ut.filter_items(cid_list, invalid_list)
@@ -813,6 +821,7 @@ def fix_and_clean_database(ibs):
     ibs.fix_invalid_name_texts()
     ibs.fix_invalid_nids()
     ibs.fix_invalid_annotmatches()
+    fix_zero_features(ibs)
     ibs.update_annot_visual_uuids(ibs.get_valid_aids())
     ibs.delete_empty_nids()
     ibs.delete_empty_eids()

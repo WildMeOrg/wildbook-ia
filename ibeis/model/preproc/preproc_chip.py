@@ -12,7 +12,7 @@ DONE:
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range, filter  # NOQA
-from os.path import exists, join
+from os.path import exists, join, relpath
 #import os
 import utool as ut  # NOQA
 import vtool.chip as ctool
@@ -24,7 +24,7 @@ import vtool.image as gtool
 # TODO in template version
 def read_chip_fpath(ibs, cid_list, **kwargs):
     """ T_ExternFileGetter """
-    cfpath_list = ibs.get_chip_uris(cid_list, **kwargs)
+    cfpath_list = ibs.get_chip_fpaths(cid_list, **kwargs)
     # --- generalize params
     rowid_list = cid_list
     readfunc = gtool.imread
@@ -71,7 +71,7 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None):
         except AssertionError as ex:
             ut.printex(ex, key_list=['aid_list'])
             raise
-    cfpath_list = make_annot_cfpath_list(ibs, aid_list, config2_=config2_)
+    cfpath_list = make_annot_chip_fpath_list(ibs, aid_list, config2_=config2_)
     try:
         if ensure:
             chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
@@ -108,14 +108,15 @@ def compute_and_write_chips_lazy(ibs, aid_list, config2_=None):
     if ut.VERBOSE:
         print('[preproc_chip] compute_and_write_chips_lazy')
     # Mark which aid's need their chips computed
-    cfpath_list = make_annot_cfpath_list(ibs, aid_list, config2_=config2_)
+    cfpath_list = make_annot_chip_fpath_list(ibs, aid_list, config2_=config2_)
     exists_flags = [exists(cfpath) for cfpath in cfpath_list]
     invalid_aids = ut.get_dirty_items(aid_list, exists_flags)
     if ut.VERBOSE:
         print('[preproc_chip] %d / %d chips need to be computed' %
               (len(invalid_aids), len(aid_list)))
-    compute_and_write_chips(ibs, invalid_aids)
-    return cfpath_list
+    chip_result_list = compute_and_write_chips(ibs, invalid_aids)
+    chip_fpath_list = ut.get_list_column(chip_result_list, 0)
+    return chip_fpath_list
 
 
 #  ^^ OLD FUNCS ^^
@@ -161,7 +162,7 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, config2_=None):
         >>> print(result)
         [1434, 2274, 12]
     """
-    cfpath_list = ibs.get_chip_uris(cid_list)
+    cfpath_list = ibs.get_chip_fpaths(cid_list)
     try:
         if ensure:
             try:
@@ -185,7 +186,7 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, config2_=None):
         ibs.delete_annot_chips(invalid_aids)
         # Try readding things
         new_cid_list = ibs.add_annot_chips(aid_list)
-        cfpath_list = ibs.get_chip_uris(new_cid_list)
+        cfpath_list = ibs.get_chip_fpaths(new_cid_list)
         chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
     return chip_list
 
@@ -202,30 +203,40 @@ def generate_chip_properties(ibs, aid_list, config2_=None):
         aid_list (list):
         config2_ (QueryRequest):
 
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_chip --test-generate_chip_properties
+
     Example:
         >>> # ENABLE DOCTEST
         >>> from ibeis.model.preproc.preproc_chip import *  # NOQA
         >>> from os.path import basename
+        >>> import ibeis
+        >>> aid_list = ibs.get_valid_aids()[0:1]
+        >>> ibs = ibeis.opendb('testdb1')
         >>> params_iter = generate_chip_properties(ibs, aid_list)
         >>> params_list = list(params_iter)
-        >>> (cfpath, width, height,) = params_list[0]
-        >>> fname = basename(cfpath)
-        >>> fname_ = ut.regex_replace('auuid=.*_CHIP', 'auuid={uuid}_CHIP', fname)
+        >>> (chip_uri, width, height,) = params_list[0]
+        >>> fname_ = ut.regex_replace('auuid=.*_CHIP', 'auuid={uuid}_CHIP', chip_uri)
         >>> result = (fname_, width, height)
         >>> print(result)
+        ('chip_avuuid=8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_CHIP(sz450).png', 545, 372)
+
         ('chip_aid=1_auuid={uuid}_CHIP(sz450).png', 545, 372)
     """
     try:
         # the old function didn't even call this
         print('[generate_chip_properties] Requested params for %d chips ' % (len(aid_list)))
-        cfpath_list = compute_and_write_chips(ibs, aid_list, config2_=config2_)
-        for cfpath, aid in zip(cfpath_list, aid_list):
+        chip_result_list = compute_and_write_chips(ibs, aid_list, config2_=config2_)
+        chip_dir = ibs.get_chipdir()
+        for chip_result, aid in zip(chip_result_list, aid_list):
+            cfpath, width, height = chip_result
+            chip_uri = relpath(cfpath, chip_dir)
             # Can be made faster by getting size from generator
-            pil_chip = gtool.open_pil_image(cfpath)
-            width, height = pil_chip.size
+            #pil_chip = gtool.open_pil_image(cfpath)
+            #width, height = pil_chip.size
             if ut.DEBUG2:
                 print('Yeild Chip Param: aid=%r, cpath=%r' % (aid, cfpath))
-            yield (cfpath, width, height,)
+            yield (chip_uri, width, height,)
     except IOError as ex:
         ut.printex(ex, 'ERROR IN PREPROC CHIPS')
 
@@ -243,8 +254,9 @@ def gen_chip(tup):
     chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
     #if DEBUG:
     #printDBG('write chip: %r' % cfpath)
+    height, width = chipBGR.shape[0:2]
     gtool.imwrite(cfpath, chipBGR)
-    return cfpath
+    return cfpath, width, height
 
 
 def compute_and_write_chips(ibs, aid_list, config2_=None):
@@ -268,7 +280,8 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
         >>> # ensure they were deleted
         >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False)
         >>> assert all([cid is None for cid in cid_list]), 'should be gone'
-        >>> cfpath_list = compute_and_write_chips(ibs, aid_list)
+        >>> chip_result_list = compute_and_write_chips(ibs, aid_list)
+        >>> cfpath_list = ut.get_list_column(chip_result_list, 0)
         >>> cfname_list = ut.lmap(basename, cfpath_list)
         >>> print(cfname_list)
         >>> # cids should still be None. IBEIS does not know we computed chips
@@ -276,7 +289,7 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
         >>> assert all([cid is None for cid in cid_list]), 'should be gone'
         >>> # Now this function should have been executed again implictly
         >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)
-        >>> assert ibs.get_chip_uris(cid_list) == cfpath_list, 'should be what we had before'
+        >>> assert ibs.get_chip_fpaths(cid_list) == cfpath_list, 'should be what we had before'
 
     """
     ut.ensuredir(ibs.get_chipdir())
@@ -296,7 +309,7 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
     # Get how big to resize each chip, etc...
     nChips = len(aid_list)
     filter_list = ctool.get_filter_list(chip_cfg_dict)
-    cfpath_list = make_annot_cfpath_list(ibs, aid_list, config2_=config2_)
+    cfpath_list = make_annot_chip_fpath_list(ibs, aid_list, config2_=config2_)
     gfpath_list = ibs.get_annot_image_paths(aid_list)
     bbox_list   = ibs.get_annot_bboxes(aid_list)
     theta_list  = ibs.get_annot_thetas(aid_list)
@@ -315,14 +328,14 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
     arg_iter = zip(cfpath_list, gfpath_list, bbox_list, theta_list,
                             newsize_list, filtlist_iter)
     arg_list = list(arg_iter)
-    chip_async_iter = ut.util_parallel.generate(gen_chip, arg_list, ordered=True)
+    chip_result_iter = ut.util_parallel.generate(gen_chip, arg_list, ordered=True)
     # Compute and write chips in asychronous process
     if ut.VERBOSE:
         print('Computing %d chips' % (len(cfpath_list)))
-    ut.evaluate_generator(chip_async_iter)
+    chip_result_list = list(chip_result_iter)
     if not ut.VERBOSE:
         print('Done computing chips')
-    return cfpath_list
+    return chip_result_list
 
 
 def on_delete(ibs, cid_list, config2_=None):
@@ -348,7 +361,7 @@ def on_delete(ibs, cid_list, config2_=None):
         >>> cid_list2 = ibs.get_annot_chip_rowids(aid_list, ensure=False)
         >>> ibs.delete_chips(cid_list2)
     """
-    chip_fpath_list = ibs.get_chip_uris(cid_list)
+    chip_fpath_list = ibs.get_chip_fpaths(cid_list)
     nRemoved = ut.remove_existing_fpaths(chip_fpath_list, lbl='chips')
     return nRemoved
 
@@ -357,7 +370,14 @@ def on_delete(ibs, cid_list, config2_=None):
 #---------------
 
 
-def make_annot_cfpath_list(ibs, aid_list, config2_=None):
+def make_annot_chip_fpath_list(ibs, aid_list, config2_=None):
+    chipdir = ibs.get_chipdir()
+    chip_uri_list = make_annot_chip_uri_list(ibs, aid_list, config2_=config2_)
+    cfpath_list = [ut.unixjoin(chipdir, chip_uri) for chip_uri in chip_uri_list]
+    return cfpath_list
+
+
+def make_annot_chip_uri_list(ibs, aid_list, config2_=None):
     r"""
     Build chip file paths based on the current IBEIS configuration
 
@@ -378,8 +398,9 @@ def make_annot_cfpath_list(ibs, aid_list, config2_=None):
         >>> from os.path import basename
         >>> ibs, aid_list = testdata_ibeis()
         >>> aid_list = aid_list[0:1]
-        >>> cfpath_list = make_annot_cfpath_list(ibs, aid_list)
-        >>> fname = '\n'.join(map(basename, cfpath_list))
+        >>> chip_uri_list = make_annot_chip_uri_list(ibs, aid_list)
+        >>> #fname = '\n'.join(map(basename, cfpath_list))
+        >>> fname = '\n'.join(chip_uri_list)
         >>> result = fname
         >>> print(result)
         chip_avuuid=8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_CHIP(sz450).png
@@ -387,10 +408,11 @@ def make_annot_cfpath_list(ibs, aid_list, config2_=None):
     chip_aid=1_bbox=(0,0,1047,715)_theta=0.0tau_gid=1_CHIP(sz450).png
     """
     cfname_fmt = get_chip_fname_fmt(ibs, config2_=config2_)
-    chipdir = ibs.get_chipdir()
+    #chipdir = ibs.get_chipdir()
     #cfpath_list = format_aid_bbox_theta_gid_fnames(ibs, aid_list, cfname_fmt, chipdir)
     annot_visual_uuid_list  = ibs.get_annot_visual_uuids(aid_list)
-    cfpath_list = [ut.unixjoin(chipdir, cfname_fmt.format(avuuid=avuuid)) for avuuid in annot_visual_uuid_list]
+    #cfpath_list = [ut.unixjoin(chipdir, cfname_fmt.format(avuuid=avuuid)) for avuuid in annot_visual_uuid_list]
+    cfpath_list = [cfname_fmt.format(avuuid=avuuid) for avuuid in annot_visual_uuid_list]
     return cfpath_list
 
 

@@ -1561,7 +1561,7 @@ class SQLDatabaseController(object):
     #    pass
 
     @default_decor
-    def merge_databases_new(db, db_src, ignore_tables=None):
+    def merge_databases_new(db, db_src, ignore_tables=None, rowid_subsets=None):
         r"""
         Copies over all non-rowid properties into another sql table. handles annotated dependenceis.
         Does not handle external files
@@ -1572,8 +1572,9 @@ class SQLDatabaseController(object):
 
         CommandLine:
             python -m ibeis.control.SQLDatabaseControl --test-merge_databases_new:0
+            python -m ibeis.control.SQLDatabaseControl --test-merge_databases_new:2
 
-        Example:
+        Example0:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
             >>> import ibeis
@@ -1585,10 +1586,11 @@ class SQLDatabaseController(object):
             >>> # build test data
             >>> db = ibs_dst.db
             >>> db_src = ibs_src.db
+            >>> rowid_subsets = None
             >>> # execute function
             >>> db.merge_databases_new(db_src)
 
-        Example:
+        Example1:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
             >>> import ibeis
@@ -1600,7 +1602,28 @@ class SQLDatabaseController(object):
             >>> db = ibs_dst.db
             >>> db_src = ibs_src.db
             >>> ignore_tables = ['lblannot', 'lblimage', 'image_lblimage_relationship', 'annotation_lblannot_relationship', 'keys']
+            >>> rowid_subsets = None
             >>> # execute function
+            >>> db.merge_databases_new(db_src, ignore_tables=ignore_tables)
+
+        Example2:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
+            >>> import ibeis
+            >>> ibs_src = ibeis.opendb(db='testdb2')
+            >>> # OPEN A CLEAN DATABASE
+            >>> ibs_dst = ibeis.opendb(dbdir='test_sql_subexport_dst2', allow_newdir=True, delete_ibsdir=True)
+            >>> ibs_src.ensure_contributor_rowids()
+            >>> # build test data
+            >>> db = ibs_dst.db
+            >>> db_src = ibs_src.db
+            >>> ignore_tables = ['lblannot', 'lblimage', 'image_lblimage_relationship', 'annotation_lblannot_relationship', 'keys']
+            >>> # execute function
+            >>> aid_subset = [1, 2, 3]
+            >>> rowid_subsets = {const.ANNOTATION_TABLE: aid_subset,
+            ...                  const.NAME_TABLE: ibs_src.get_annot_nids(aid_subset),
+            ...                  const.IMAGE_TABLE: ibs_src.get_annot_gids(aid_subset),
+            ...                  }
             >>> db.merge_databases_new(db_src, ignore_tables=ignore_tables)
         """
         verbose = True
@@ -1624,6 +1647,43 @@ class SQLDatabaseController(object):
             tablename: [] if dependsmap is None else ut.get_list_column(dependsmap.values(), 0)
             for dependsmap, tablename in zip(dependsmap_list, tablename_list)
         }
+
+        #EXTEND_SUBSETS = False
+        #if EXTEND_SUBSETS:
+
+        #    inverted_digraph = ut.ddict(list)
+        #    for key, item_list in six.iteritems(dependency_digraph):
+        #        for item in item_list:
+        #            inverted_digraph[item].append(key)
+        #        #dependency_digraph
+        #    inverted_digraph = dict(inverted_digraph)
+
+        #    rowid_subsets
+        #    seen_ = set([])
+        #    #def expand_subsets(rowid_subsets, seen_=seen_):
+        #    #    key_list = list(set(rowid_subsets.keys()) - seen_)
+        #    #    for key in key_list:
+        #    #        item_list = dependency_digraph[key]
+        #    #        for item in item_list:
+        #    #            dependsmap = dependsmap_list[tablename_list.index(key)]
+        #    #            new_transferdata = db_src.get_table_new_transferdata(tablename)
+        #    #            # FIXME: SUPER DUPLICATE CODE
+        #    #            (column_list, column_names,
+        #    #             extern_colx_list, extern_superkey_colname_list,
+        #    #             extern_superkey_colval_list, extern_tablename_list,
+        #    #             extern_primarycolnames_list
+        #    #             ) = new_transferdata
+        #    #            for index, (key2, val2) in enumerate(six.iteritems(dependsmap)):
+        #    #                if key2 == 'image_rowid':
+        #    #                    break
+        #    #                column_list[key2]
+        #    #                column_list[index]
+        #    #                pass
+
+        #    #        pass
+
+        #    #    pass
+
         def find_depth(tablename, dependency_digraph):
             """
             depth first search to find root self cycles are counted as 0 depth
@@ -1640,6 +1700,8 @@ class SQLDatabaseController(object):
         # ================================
         # Merge each table into new database
         # ================================
+        #tablename_to_rowidmap = {}  # TODO
+        #old_rowids_to_new_roids
         for tablename in sorted_tablename_list:
             if verbose:
                 print('\n[sqlmerge] Merging tablename=%r' % (tablename,))
@@ -1659,13 +1721,26 @@ class SQLDatabaseController(object):
             column_names_ = column_names[1:]
             column_list_ = column_list[1:]
 
+            # +=================================================
+            # WIP: IF SUBSET REQUSTED FILTER OUT INVALID ROWIDS
+            if rowid_subsets is not None and tablename in rowid_subsets:
+                valid_rowids = set(rowid_subsets[tablename])
+                isvalid_list = [rowid in valid_rowids for rowid in old_rowid_list]
+                valid_old_rowid_list = ut.filter_items(old_rowid_list, isvalid_list)
+                valid_column_list_ = [ut.filter_items(col, isvalid_list) for col in column_list_]
+                print(' * filtered number of rows from %d to %d.' % (len(valid_rowids), len(valid_old_rowid_list)))
+            else:
+                valid_old_rowid_list = old_rowid_list
+                valid_column_list_ = column_list_
+            # L=================================================
+
             # ================================
             # Resolve external superkey lookups
             # ================================
             if len(extern_colx_list) > 0:
                 if verbose:
                     print('[sqlmerge] %s has %d externaly dependant columns to resolve' % (tablename, len(extern_colx_list)))
-                modified_column_list_ = column_list_[:]
+                modified_column_list_ = valid_column_list_[:]
                 new_extern_rowid_list = []
 
                 # Find the mappings from the old tables rowids to the new tables rowids
@@ -1691,7 +1766,7 @@ class SQLDatabaseController(object):
                 for colx, new_extern_rowids in zip(extern_colx_list, new_extern_rowid_list):
                     modified_column_list_[colx - 1] = new_extern_rowids
             else:
-                modified_column_list_ = column_list_
+                modified_column_list_ = valid_column_list_
 
             # ================================
             # Merge into db with add_cleanly
@@ -1730,13 +1805,14 @@ class SQLDatabaseController(object):
 
             # TODO: allow for cetrain databases to take precidence over another
             # basically allow insert or replace
-            new_rowid_list = db.add_cleanly(tablename, column_names_,
-                                            params_iter,
-                                            get_rowid_from_superkey=get_rowid_from_superkey,
-                                            superkey_paramx=superkey_paramx)
+            with ut.embed_on_exception_context:
+                new_rowid_list = db.add_cleanly(tablename, column_names_,
+                                                params_iter,
+                                                get_rowid_from_superkey=get_rowid_from_superkey,
+                                                superkey_paramx=superkey_paramx)
             # TODO: Use mapping generated here for new rowids
-            old_rowids_to_new_roids = dict(zip(old_rowid_list, new_rowid_list))
-            old_rowids_to_new_roids
+            old_rowids_to_new_roids = dict(zip(valid_old_rowid_list, new_rowid_list))  # NOQA
+            #tablename_to_rowidmap[tablename] = old_rowids_to_new_roids
 
     @default_decor
     def get_table_csv(db, tablename, exclude_columns=[]):
