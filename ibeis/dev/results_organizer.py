@@ -309,6 +309,9 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
     Returns:
         tuple: candidate_matches = (qaid_arr, daid_arr, score_arr, rank_arr)
 
+    CommandLine:
+        python -m ibeis.dev.results_organizer --test-get_automatch_candidates:2
+
     Example0:
         >>> from ibeis.dev.results_organizer import *  # NOQA
         >>> import ibeis
@@ -319,7 +322,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         >>> ranks_lt = 5
         >>> directed = True
         >>> name_scoring = False
-        >>> candidate_matches = get_automatch_candidates(qaid2_qres, ranks_lt, directed)
+        >>> candidate_matches = get_automatch_candidates(qaid2_qres, ranks_lt, directed, ibs=ibs)
         >>> print(candidate_matches)
 
     Example1:
@@ -333,15 +336,33 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         >>> directed = False
         >>> name_scoring = False
         >>> filter_reviewed = False
-        >>> candidate_matches = get_automatch_candidates(qaid2_qres, ranks_lt, directed)
+        >>> candidate_matches = get_automatch_candidates(qaid2_qres, ranks_lt, directed, ibs=ibs)
+        >>> print(candidate_matches)
+
+    Example3:
+        >>> from ibeis.dev.results_organizer import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid_list = ibs.get_valid_aids()[0:1]
+        >>> daid_list = ibs.get_valid_aids()[10:100]
+        >>> qaid2_qres = ibs._query_chips4(qaid_list, daid_list)
+        >>> ranks_lt = 0
+        >>> directed = False
+        >>> name_scoring = False
+        >>> filter_reviewed = False
+        >>> filter_duplicate_namepair_matches = True
+        >>> candidate_matches = get_automatch_candidates(qaid2_qres, ranks_lt, directed, name_scoring=name_scoring, filter_reviewed=filter_reviewed, filter_duplicate_namepair_matches=filter_duplicate_namepair_matches, ibs=ibs)
         >>> print(candidate_matches)
     """
     print(('[resorg] get_automatch_candidates('
            'filter_reviewed={filter_reviewed},'
            'filter_duplicate_namepair_matches={filter_duplicate_namepair_matches},'
-           'directed={directed}').format(**locals()))
+           'directed={directed},'
+           'ranks_lt={ranks_lt},'
+           ).format(**locals()))
+    print('[resorg] len(qaid2_qres) = %d' % (len(qaid2_qres)))
     qaids_stack  = []
-    daids_stack   = []
+    daids_stack  = []
     ranks_stack  = []
     scores_stack = []
 
@@ -359,7 +380,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
     # Stack them into a giant array
     # utool.embed()
     qaid_arr  = np.hstack(qaids_stack)
-    daid_arr   = np.hstack(daids_stack)
+    daid_arr  = np.hstack(daids_stack)
     score_arr = np.hstack(scores_stack)
     rank_arr  = np.hstack(ranks_stack)
 
@@ -394,15 +415,17 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
             return edgeid_list
 
         def find_best_undirected_edge_indexes(directed_edges, score_arr):
-            flipped = qaid_arr < daid_arr
+            #flipped = qaid_arr < daid_arr
+            flipped = directed_edges.T[0] < directed_edges.T[1]
             # standardize edge order
             edges_dupl = directed_edges.copy()
             edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
-            edgeid_list = compute_edge_ids(edges_dupl)
+            #edgeid_list = compute_edge_ids(edges_dupl)
+            edgeid_list = vt.compute_unique_data_ids(edges_dupl)
             unique_edgeids, groupxs = vt.group_indices(edgeid_list)
             # if there is more than one edge in a group take the one with the highest score
             score_groups = vt.apply_grouping(score_arr, groupxs)
-            unique_edge_xs = np.array(sorted([groupx[score_group.argmax()] for groupx, score_group in zip(groupxs, score_groups)]))
+            unique_edge_xs = np.array(sorted([groupx[score_group.argmax()] for groupx, score_group in zip(groupxs, score_groups)]), dtype=np.int32)
             return unique_edge_xs
 
         unique_rowx = find_best_undirected_edge_indexes(directed_edges, score_arr)
@@ -430,7 +453,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         unique_namepair_ids, namepair_groupxs = vt.group_indices(namepair_id_list)
         score_namepair_groups = vt.apply_grouping(score_arr, namepair_groupxs)
         unique_rowx2 = np.array(sorted([groupx[score_group.argmax()]
-                                        for groupx, score_group in zip(namepair_groupxs, score_namepair_groups)]))
+                                        for groupx, score_group in zip(namepair_groupxs, score_namepair_groups)]), dtype=np.int32)
         qaid_arr  = qaid_arr.take(unique_rowx2)
         daid_arr  = daid_arr.take(unique_rowx2)
         score_arr = score_arr.take(unique_rowx2)
@@ -438,3 +461,16 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
 
     candidate_matches = (qaid_arr, daid_arr, score_arr, rank_arr)
     return candidate_matches
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.dev.results_organizer
+        python -m ibeis.dev.results_organizer --allexamples
+        python -m ibeis.dev.results_organizer --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

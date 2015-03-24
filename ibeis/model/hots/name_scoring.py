@@ -116,7 +116,7 @@ def compute_nsum_score(cm, qreq_=None):
         qkpts1 = qreq_.ibs.get_annot_kpts(cm.qaid, config2_=qreq_.get_external_query_config2())
         #print(vt.get_oris(qkpts1))
         data = vt.get_xys(qkpts1).T
-        kpts_xyid_list = np.array(vt.compute_unique_data_ids(data))
+        kpts_xyid_list = vt.compute_unique_data_ids(data)
         #fx1_list
     fs_list = cm.get_fsv_prod_list()
     fx1_list = [fm.T[0] for fm in cm.fm_list]

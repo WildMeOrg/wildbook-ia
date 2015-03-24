@@ -944,6 +944,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         id_list = sorted(list(set(
             [model._get_row_id(_qtindex) for _qtindex in tblview.selectedIndexes()]
         )))
+        level_list = sorted(list(set(
+            [model._get_level(_qtindex) for _qtindex in tblview.selectedIndexes()]
+        )))
         # ---- ENCOUNTER CONTEXT ----
         if model.name == ENCOUNTER_TABLE:
             merge_destination_id = model._get_row_id(qtindex)  # This is for the benefit of merge encounters
@@ -1108,17 +1111,37 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ]
         # ---- NAMES TREE CONTEXT ----
         elif model.name == NAMES_TREE:
-            if len(id_list) == 1:
-                aid = id_list[0]
-                eid = model.eid
-                context_options += [
-                    ('Go to image', lambda: _goto_annot_image(aid)),
-                    ('Go to annotation', lambda: _goto_annot(aid)),
-                    ('----', lambda: None),
-                    ('View annotation', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
-                    ('View image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
-                ]
+            # TODO: map level list to tablename more reliably
+            level2_ids = ut.group_items(id_list, level_list)
+            ut.print_dict(level2_ids)
+            nid_list = level2_ids[0]
+            aid_list = level2_ids[1]
+            if len(aid_list) > 0 and len(nid_list) > 0:
+                # two types of indices are selected, just return
+                # fixme to do something useful
+                print('multiple types of indicies selected')
+                return
+            else:
+                if len(aid_list) == 1:
+                    aid = aid_list[0]
+                    eid = model.eid
+                    context_options += [
+                        ('Go to image', lambda: _goto_annot_image(aid)),
+                        ('Go to annotation', lambda: _goto_annot(aid)),
+                        ('----', lambda: None),
+                        ('View annotation', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                        ('View image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
+                    ]
+                if len(nid_list) > 0:
+                    print('sup?')
+                    context_options += [
+                        ('Check for splits', lambda: nid_list),
+                    ]
+                else:
+                    print('nutin')
+                    pass
         # Show the context menu
+        ut.print_list(context_options)
         if len(context_options) > 0:
             guitool.popup_menu(tblview, pos, context_options)
 
@@ -1128,6 +1151,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         Double clicking anywhere in the GUI
         """
         print('\n+--- DOUBLE CLICK ---')
+        if not qtindex.isValid():
+            print('[doubleclick] invalid qtindex')
+            return
         #printDBG('on_doubleclick')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)

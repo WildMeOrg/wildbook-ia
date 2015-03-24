@@ -126,7 +126,7 @@ class MainWindowBackend(QtCore.QObject):
             back.daids_mode = const.INTRA_ENC_KEY
         else:
             back.daids_mode = const.VS_EXEMPLARS_KEY
-        back.encounter_query_results = ut.ddict(dict)
+        #back.encounter_query_results = ut.ddict(dict)
 
         # Create GUIFrontend object
         back.mainwin = newgui.IBEISMainWindow(back=back, ibs=ibs)
@@ -226,16 +226,17 @@ class MainWindowBackend(QtCore.QObject):
         viz.draw()
 
     @blocking_slot()
-    def review_queries(back, qaid2_qres=None, filter_duplicate_namepair_matches=False, qreq_=None, **kwargs):
-        eid = back.get_selected_eid()
-        if eid not in back.encounter_query_results:
-            raise guiexcept.InvalidRequest('Queries have not been computed yet')
-        if qaid2_qres is None:
-            qaid2_qres = back.encounter_query_results[eid]
+    def review_queries(back, qres_list, filter_duplicate_namepair_matches=False, qreq_=None, **kwargs):
+        #if qaid2_qres is None:
+        #    eid = back.get_selected_eid()
+        #    if eid not in back.encounter_query_results:
+        #        raise guiexcept.InvalidRequest('Queries have not been computed yet')
+        #    qaid2_qres = back.encounter_query_results[eid]
         # review_kw = {
         #     'on_change_callback': back.front.update_tables,
         #     'nPerPage': 6,
         # }
+        qaid2_qres = {qres.qaid: qres for qres in qres_list}
         ibs = back.ibs
         # Matplotlib QueryResults interaction
         #from ibeis.viz.interact import interact_qres2
@@ -964,6 +965,8 @@ class MainWindowBackend(QtCore.QObject):
 
                         **kwargs):
         """
+        MAIN QUERY FUNCTION
+
         Batch -> Compute OldStyle Queries
         and Actions -> Query
 
@@ -1041,11 +1044,13 @@ class MainWindowBackend(QtCore.QObject):
         if daids_mode == const.INTRA_ENC_KEY:
             for qres in qres_list:
                 qres.eid = eid
-        qaid2_qres = {qres.qaid: qres for qres in qres_list}
-        back.encounter_query_results[eid].update(qaid2_qres)
+        #back.encounter_query_results[eid].update(qaid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
-        is_vsexemplar = daids_mode = const.VS_EXEMPLARS_KEY
-        back.review_queries(qaid2_qres=qaid2_qres, eid=eid, filter_duplicate_namepair_matches=is_vsexemplar, qreq_=qreq_)
+        # Filter duplicate names if running vsexemplar
+        filter_duplicate_namepair_matches = daids_mode == const.VS_EXEMPLARS_KEY
+        back.review_queries(qres_list, eid=eid,
+                            filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
+                            qreq_=qreq_)
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))
