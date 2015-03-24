@@ -181,10 +181,10 @@ def test_annotation_uuid(ibs):
     assert annotation_uuid_list1 == annotation_uuid_list2
 
 
-def distinguish_unknown_nids(ibs, aid_list, nid_list_):
-    nid_list = [-aid if nid == ibs.UNKNOWN_LBLANNOT_ROWID else nid
-                for nid, aid in zip(nid_list_, aid_list)]
-    return nid_list
+#def distinguish_unknown_nids(ibs, aid_list, nid_list_):
+#    nid_list = [-aid if nid == ibs.UNKNOWN_LBLANNOT_ROWID or nid is None else nid
+#                for nid, aid in zip(nid_list_, aid_list)]
+#    return nid_list
 
 
 def postget_annot_verts(vertstr_list):

@@ -1964,12 +1964,13 @@ def hack(ibs):
     #eid = ibs.get_encounter_eids_from_text("NNP GZC Car '1PURPLE'")
 
     def get_linked_encounters_by_eid(ibs, eid):
-        import utool as ut
-        gid_list = ibs.get_encounter_gids(eid)
-        aids_list1 = ibs.get_encounter_aids(eid)
-        aids_list2 = ibs.get_image_aids(gid_list)
-        assert ut.flatten(aids_list2) == aids_list1
-        nid_list = list(set(ibs.get_annot_nids(aids_list1)))
+        #import utool as ut
+        #gid_list = ibs.get_encounter_gids(eid)
+        aid_list = ibs.get_encounter_aids(eid)
+        all(ibs.db.check_rowid_exists(const.ANNOTATION_TABLE, aid_list))
+        #aids_list2 = ibs.get_image_aids(gid_list)
+        #assert ut.flatten(aids_list2) == aids_list1
+        nid_list = list(set(ibs.get_annot_nids(aid_list, distinguish_unknowns=False)))
         name_eids = ibs.get_name_eids(nid_list)
         name_enctexts = ibs.get_encounter_enctext(name_eids)
         return name_enctexts

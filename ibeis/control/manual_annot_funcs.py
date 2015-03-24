@@ -1230,10 +1230,10 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
     #             lblannot_rowids in lblannot_rowids_list]
 
     if distinguish_unknowns:
-        from ibeis.model.preproc import preproc_annot
-        nid_list = preproc_annot.distinguish_unknown_nids(ibs, aid_list, nid_list_)
-        #nid_list = [-aid if nid == ibs.UNKNOWN_LBLANNOT_ROWID else nid
-        #            for nid, aid in zip(nid_list_, aid_list)]
+        #from ibeis.model.preproc import preproc_annot
+        #nid_list = preproc_annot.distinguish_unknown_nids(ibs, aid_list, nid_list_)
+        nid_list = [-aid if nid == ibs.UNKNOWN_LBLANNOT_ROWID or nid is None else nid
+                    for nid, aid in zip(nid_list_, aid_list)]
     else:
         nid_list = nid_list_
     return nid_list
