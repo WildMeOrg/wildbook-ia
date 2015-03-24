@@ -1987,7 +1987,8 @@ def hack(ibs):
 
     if False:
         eids_with_bad_names = [6, 7, 16]
-        bad_nids = ut.unique_keep_order2(ut.flatten(ibs.get_encounter_nids(eids_with_bad_names)))
+        # bad_nids = ut.unique_keep_order2(ut.flatten(ibs.get_encounter_nids(eids_with_bad_names)))
+        ut.unique_keep_order2(ut.flatten(ibs.get_encounter_nids(eids_with_bad_names)))
 
 
 def draw_thumb_helper(tup):
@@ -3234,6 +3235,34 @@ def detect_join_cases(ibs):
     qres_list = ibs.query_chips(qreq_=qreq_)
     return qres_list
     #return qres_list
+
+
+@__injectable
+def report_sigtings(ibs):
+    aid_list     = ibs.get_valid_aids()
+    gid_list     = ibs.get_annot_gids(aid_list)
+    species_list = ibs.get_annot_species_texts(aid_list)
+    contrib_list = ibs.get_image_contributor_tag(gid_list)
+    uri_list     = ibs.get_image_uris(gid_list)
+    name_list    = ibs.get_annot_names(aid_list)
+    time_list    = ibs.get_image_unixtime(gid_list)
+    lat_list     = ibs.get_image_lat(gid_list)
+    lon_list     = ibs.get_image_lon(gid_list)
+    cols_list    = [
+        ('annotation_id',      aid_list),
+        ('annotation_species', species_list),
+        ('annotation_name',    name_list),
+        ('image_id',           gid_list),
+        ('image_contributor',  contrib_list),
+        ('image_filename',     uri_list),
+        ('image_time',         time_list),
+        ('image_lat',          lat_list),
+        ('image_lon',          lon_list),
+    ]
+    header_list  = [[ cols[0] for cols in cols_list ]]
+    data_list    = zip(*[ cols[1] for cols in cols_list ])
+    line_list    = [ '\t'.join(map(str, list(data))) for data in header_list + list(data_list) ]
+    print('\n'.join(line_list))
 
 
 if __name__ == '__main__':
