@@ -136,16 +136,23 @@ def sanatize_name_texts(ibs, name_text_list):
 @register_ibs_method
 @deleter
 #@cache_invalidator(const.NAME_TABLE)
-def delete_names(ibs, name_rowid_list):
+def delete_names(ibs, name_rowid_list, safe=True, strict=False, verbose=ut.VERBOSE):
     """
     deletes names from the database
 
     CAREFUL. YOU PROBABLY DO NOT WANT TO USE THIS
     at least ensure that no annot is associated with any of these nids
     """
-    if ut.VERBOSE:
+    if verbose:
         print('[ibs] deleting %d names' % len(name_rowid_list))
+    if safe:
+        aids_list = ibs.get_name_aids(name_rowid_list)
+        aid_list = ut.flatten(aids_list)
+        if strict:
+            assert len(aid_list) == 0, 'should not be any annots belonging to a deleted name'
+        ibs.delete_annot_nids(aid_list)
     ibs.db.delete_rowids(const.NAME_TABLE, name_rowid_list)
+    #return len(name_rowid_list)
     #ibs.delete_lblannots(nid_list)
 
 

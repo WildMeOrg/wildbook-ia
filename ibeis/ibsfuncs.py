@@ -1963,21 +1963,31 @@ def hack(ibs):
     #ibs.get_encounter_enctext(eid_list)
     #eid = ibs.get_encounter_eids_from_text("NNP GZC Car '1PURPLE'")
 
-    def get_linked_encounters_by_eid(ibs, eid):
-        #import utool as ut
+    def get_name_linked_encounters_by_eid(ibs, eid):
+        import utool as ut
         #gid_list = ibs.get_encounter_gids(eid)
-        aid_list = ibs.get_encounter_aids(eid)
-        all(ibs.db.check_rowid_exists(const.ANNOTATION_TABLE, aid_list))
+        aid_list_ = ibs.get_encounter_aids(eid)
+        aid_list = ut.filterfalse_items(aid_list_, ibs.is_aid_unknown(aid_list_))
+
+        #all(ibs.db.check_rowid_exists(const.ANNOTATION_TABLE, aid_list))
         #aids_list2 = ibs.get_image_aids(gid_list)
         #assert ut.flatten(aids_list2) == aids_list1
         nid_list = list(set(ibs.get_annot_nids(aid_list, distinguish_unknowns=False)))
+        # remove unknown annots
         name_eids = ibs.get_name_eids(nid_list)
         name_enctexts = ibs.get_encounter_enctext(name_eids)
         return name_enctexts
 
     eid_list = ibs.get_valid_eids()
-    linked_enctexts = [get_linked_encounters_by_eid(ibs, eid) for eid in eid_list]
-    print(ut.list_str(linked_enctexts))
+    linked_enctexts = [get_name_linked_encounters_by_eid(ibs, eid) for eid in eid_list]
+    enctext_list = ibs.get_encounter_enctext(eid_list)
+    print(ut.dict_str(dict(zip(eid_list, linked_enctexts))))
+    print(ut.align(ut.dict_str(dict(zip(enctext_list, linked_enctexts))), ':'))
+    print(ut.align(ut.dict_str(dict(zip(enctext_list, eid_list)), sorted_=True), ':'))
+
+    if False:
+        eids_with_bad_names = [6, 7, 16]
+        bad_nids = ut.unique_keep_order2(ut.flatten(ibs.get_encounter_nids(eids_with_bad_names)))
 
 
 def draw_thumb_helper(tup):

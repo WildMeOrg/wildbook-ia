@@ -1378,7 +1378,8 @@ def get_encounter_num_aids(ibs, eid_list):
 def get_encounter_aids(ibs, eid_list):
     """
     Returns:
-        aids_list (list):  a list of list of aids in each encounter """
+        aids_list (list):  a list of list of aids in each encounter
+    """
     gids_list = ibs.get_encounter_gids(eid_list)
     aids_list_ = ibsfuncs.unflat_map(ibs.get_image_aids, gids_list)
     aids_list = list(map(ut.flatten, aids_list_))
