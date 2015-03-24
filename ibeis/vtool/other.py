@@ -28,7 +28,7 @@ def compute_unique_data_ids(data):
     """
     # construct a unique id for every edge
     hashable_rows = [tuple(row_.tolist()) for row_ in data]
-    dataid_list = compute_unique_data_ids_(hashable_rows)
+    dataid_list = np.array(compute_unique_data_ids_(hashable_rows), dtype=np.int32)
     return dataid_list
 
 
