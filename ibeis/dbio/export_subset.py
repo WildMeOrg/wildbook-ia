@@ -1146,7 +1146,7 @@ def check_merge(ibs_src, ibs_dst):
     print('Merge seems ok...')
 
 
-def merge_databases2(ibs_src, ibs_dst):
+def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
     """ new way of merging using the non-hacky sql table merge that is only working due to major hacks
 
     CommandLine:
@@ -1190,13 +1190,60 @@ def merge_databases2(ibs_src, ibs_dst):
     ibs_src.fix_invalid_annotmatches()
     ibs_dst.fix_invalid_annotmatches()
     # Hack move of the external data
-    gid_list = ibs_src.get_valid_gids()
+    if rowid_subsets is not None:
+        if const.IMAGE_TABLE in rowid_subsets:
+            gid_list = rowid_subsets[const.IMAGE_TABLE]
+        else:
+            gid_list = ibs_src.get_valid_gids()
     imgpath_list = ibs_src.get_image_paths(gid_list)
     dst_imgdir = ibs_dst.get_imgdir()
     ut.copy_files_to(imgpath_list, dst_imgdir, overwrite=False, verbose=True)
     ignore_tables = ['lblannot', 'lblimage', 'image_lblimage_relationship', 'annotation_lblannot_relationship', 'keys']
-    ibs_dst.db.merge_databases_new(ibs_src.db, ignore_tables=ignore_tables)
+    ibs_dst.db.merge_databases_new(ibs_src.db, ignore_tables=ignore_tables, rowid_subsets=rowid_subsets)
     print('FINISHED MERGE %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname()))
+
+
+def export_names(ibs, nid_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        nid_list (list):
+
+    CommandLine:
+        python -m ibeis.dbio.export_subset --test-export_names
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.dbio.export_subset import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb2')
+        >>> ibs.delete_empty_nids()
+        >>> nid_list = ibs._get_all_known_nids()[0:2]
+        >>> # execute function
+        >>> result = export_names(ibs, nid_list)
+        >>> # verify results
+        >>> print(result)
+    """
+    import ibeis
+    print('Exporting name nid_list=%r' % (nid_list,))
+    nid_hash = ut.hashstr_arr(nid_list, hashlen=8, alphabet=ut.ALPHABET_27)
+    base_fmtstr = ibs.get_dbname() + '_nids=' + nid_hash + '_%d'
+    dpath = ibeis.get_workdir()
+    new_dbpath = ut.get_nonconflicting_path(base_fmtstr, dpath)
+    ibs_src = ibs
+    aid_list = ut.flatten(ibs.get_name_aids(nid_list))
+    rowid_subsets = {const.ANNOTATION_TABLE: aid_list,
+                     const.NAME_TABLE: nid_list,
+                     #ibs_src.get_annot_nids(aid_list),
+                     const.IMAGE_TABLE: ibs_src.get_annot_gids(aid_list),
+                     const.ANNOTMATCH_TABLE: [],
+                     const.EG_RELATION_TABLE: [],
+                     }
+    ibs_dst = ibeis.opendb(dbdir=new_dbpath, allow_newdir=True)
+    merge_databases2(ibs_src, ibs_dst, rowid_subsets=rowid_subsets)
+    print('Exported to %r' % (new_dbpath,))
+    return new_dbpath
 
 
 # RELEVANT LEGACY CODE FOR IMAGE MERGING

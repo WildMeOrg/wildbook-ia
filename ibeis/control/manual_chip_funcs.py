@@ -204,7 +204,7 @@ def get_annot_chip_fpaths(ibs, aid_list, ensure=True, config2_=None):
         chip_fpath_list (list): cfpaths defined by ANNOTATIONs
     """
     cid_list  = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, config2_=config2_)
-    chip_fpath_list = ibs.get_chip_fpaths(cid_list)
+    chip_fpath_list = ibs.get_chip_fpath(cid_list)
     return chip_fpath_list
 
 
@@ -512,7 +512,7 @@ def get_chip_uris(ibs, cid_list):
 
 @register_ibs_method
 @getter_1to1
-def get_chip_fpaths(ibs, cid_list):
+def get_chip_fpath(ibs, cid_list):
     """
 
     Returns:

@@ -941,45 +941,47 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         model = qtindex.model()
         tblview = ibswgt.views[model.name]
         context_options = []
-        id_list = sorted(list(set(
-            [model._get_row_id(_qtindex) for _qtindex in tblview.selectedIndexes()]
-        )))
-        level_list = sorted(list(set(
-            [model._get_level(_qtindex) for _qtindex in tblview.selectedIndexes()]
-        )))
+        qtindex_list = tblview.selectedIndexes()
+        id_list      = [model._get_row_id(_qtindex) for _qtindex in qtindex_list]
+        level_list   = [model._get_level(_qtindex) for _qtindex in qtindex_list]
+        level2_ids_ = ut.group_items(id_list, level_list)
+        level2_ids = {level: ut.unique_keep_order2(ids) for level, ids in six.iteritems(level2_ids_)}
+
         # ---- ENCOUNTER CONTEXT ----
         if model.name == ENCOUNTER_TABLE:
             merge_destination_id = model._get_row_id(qtindex)  # This is for the benefit of merge encounters
             enctext = ibswgt.back.ibs.get_encounter_enctext(merge_destination_id)
+            eid_list = level2_ids[0]
             # Conditional context menu
-            if len(id_list) == 1:
+            if len(eid_list) == 1:
                 context_options += [
                     ('Run detection on encounter (can cause duplicates)',
-                        lambda: ibswgt.back.run_detection_on_encounter(id_list)),
-                    ('Merge %d encounter into %s' %  (len(id_list), (enctext)),
-                        lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
+                        lambda: ibswgt.back.run_detection_on_encounter(eid_list)),
+                    ('Merge %d encounter into %s' %  (len(eid_list), (enctext)),
+                        lambda: ibswgt.back.merge_encounters(eid_list, merge_destination_id)),
                     ('----', lambda: None),
-                    ('Delete encounter', lambda: ibswgt.back.delete_encounter(id_list)),
-                    ('Delete encounter (and images)', lambda: ibswgt.back.delete_encounter_and_images(id_list)),
-                    ('Export encounter', lambda: ibswgt.back.export_encounters(id_list)),
+                    ('Delete encounter', lambda: ibswgt.back.delete_encounter(eid_list)),
+                    ('Delete encounter (and images)', lambda: ibswgt.back.delete_encounter_and_images(eid_list)),
+                    ('Export encounter', lambda: ibswgt.back.export_encounters(eid_list)),
                 ]
             else:
                 context_options += [
                     ('Run detection on encounters (can cause duplicates)',
-                        lambda: ibswgt.back.run_detection_on_encounter(id_list)),
-                    ('Merge %d encounters into %s' %  (len(id_list), (enctext)),
-                        lambda: ibswgt.back.merge_encounters(id_list, merge_destination_id)),
+                        lambda: ibswgt.back.run_detection_on_encounter(eid_list)),
+                    ('Merge %d encounters into %s' %  (len(eid_list), (enctext)),
+                        lambda: ibswgt.back.merge_encounters(eid_list, merge_destination_id)),
                     ('----', lambda: None),
-                    ('Delete encounters', lambda: ibswgt.back.delete_encounter(id_list)),
-                    ('Delete encounters (and images)', lambda: ibswgt.back.delete_encounter_and_images(id_list)),
-                    # ('export encounters', lambda: ibswgt.back.export_encounters(id_list)),
+                    ('Delete encounters', lambda: ibswgt.back.delete_encounter(eid_list)),
+                    ('Delete encounters (and images)', lambda: ibswgt.back.delete_encounter_and_images(eid_list)),
+                    # ('export encounters', lambda: ibswgt.back.export_encounters(eid_list)),
                 ]
         # ---- IMAGE CONTEXT ----
         elif model.name == IMAGE_TABLE:
             current_enctext = ibswgt.back.ibs.get_encounter_enctext(ibswgt.back.get_selected_eid())
+            gid_list = level2_ids[0]
             # Conditional context menu
-            if len(id_list) == 1:
-                gid = id_list[0]
+            if len(gid_list) == 1:
+                gid = gid_list[0]
                 eid = model.eid
                 context_options += [
                     ('View image',
@@ -994,27 +996,27 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             else:
                 context_options += [
                     ('Add annotation from entire images',
-                        lambda: ibswgt.back.add_annotation_from_image(id_list)),
+                        lambda: ibswgt.back.add_annotation_from_image(gid_list)),
                     ('Run detection on images (can cause duplicates)',
-                        lambda: ibswgt.back.run_detection_on_images(id_list)),
+                        lambda: ibswgt.back.run_detection_on_images(gid_list)),
                 ]
             # Special condition for encounters
             if current_enctext != const.NEW_ENCOUNTER_ENCTEXT:
                 context_options += [
                     ('----', lambda: None),
                     ('Move to new encounter',
-                        lambda: ibswgt.back.send_to_new_encounter(id_list, mode='move')),
+                        lambda: ibswgt.back.send_to_new_encounter(gid_list, mode='move')),
                     ('Copy to new encounter',
-                        lambda: ibswgt.back.send_to_new_encounter(id_list, mode='copy')),
+                        lambda: ibswgt.back.send_to_new_encounter(gid_list, mode='copy')),
                 ]
             if current_enctext != const.UNGROUPED_IMAGES_ENCTEXT:
                 context_options += [
                     ('----', lambda: None),
                     ('Remove from encounter',
-                        lambda: ibswgt.back.remove_from_encounter(id_list)),
+                        lambda: ibswgt.back.remove_from_encounter(gid_list)),
                 ]
             # Continue the conditional context menu
-            if len(id_list) == 1:
+            if len(gid_list) == 1:
                 # We get gid from above
                 context_options += [
                     ('----', lambda: None),
@@ -1027,16 +1029,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 context_options += [
                     ('----', lambda: None),
                     ('Delete images\' annotations',
-                        lambda: ibswgt.back.delete_image_annotations(id_list)),
+                        lambda: ibswgt.back.delete_image_annotations(gid_list)),
                     ('Delete images',
-                        lambda: ibswgt.back.delete_image(id_list)),
+                        lambda: ibswgt.back.delete_image(gid_list)),
                 ]
         # ---- IMAGE GRID CONTEXT ----
         elif model.name == IMAGE_GRID:
             current_enctext = ibswgt.back.ibs.get_encounter_enctext(ibswgt.back.get_selected_eid())
             # Conditional context menu
-            if len(id_list) == 1:
-                gid = id_list[0]
+            gid_list = level2_ids[0]
+            if len(gid_list) == 1:
+                gid = gid_list[0]
                 eid = model.eid
                 context_options += [
                     ('Go to image in Images Table',
@@ -1056,18 +1059,18 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 context_options += [
                     ('----', lambda: None),
                     ('Move to new encounter',
-                        lambda: ibswgt.back.send_to_new_encounter(id_list, mode='move')),
+                        lambda: ibswgt.back.send_to_new_encounter(gid_list, mode='move')),
                     ('Copy to new encounter',
-                        lambda: ibswgt.back.send_to_new_encounter(id_list, mode='copy')),
+                        lambda: ibswgt.back.send_to_new_encounter(gid_list, mode='copy')),
                 ]
             if current_enctext != const.UNGROUPED_IMAGES_ENCTEXT:
                 context_options += [
                     ('----', lambda: None),
                     ('Remove from encounter',
-                        lambda: ibswgt.back.remove_from_encounter(id_list)),
+                        lambda: ibswgt.back.remove_from_encounter(gid_list)),
                 ]
             # Continue the conditional context menu
-            if len(id_list) == 1:
+            if len(gid_list) == 1:
                 # We get gid from above
                 context_options += [
                     ('----', lambda: None),
@@ -1078,9 +1081,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ]
         # ---- ANNOTATION CONTEXT ----
         elif model.name == gh.ANNOTATION_TABLE:
+            aid_list = level2_ids[0]
             # Conditional context menu
-            if len(id_list) == 1:
-                aid = id_list[0]
+            if len(aid_list) == 1:
+                aid = aid_list[0]
                 eid = model.eid
                 context_options += [
                     ('----', lambda: None),
@@ -1102,20 +1106,19 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('Unset annotation\'s name',
                         lambda: ibswgt.back.unset_names([aid])),
                     ('Delete annotation',
-                        lambda: ibswgt.back.delete_annot(id_list)),
+                        lambda: ibswgt.back.delete_annot(aid_list)),
                 ]
             else:
                 context_options += [
-                    ('Unset annotations\' names', lambda: ibswgt.back.unset_names(id_list)),
-                    ('Delete annotations', lambda: ibswgt.back.delete_annot(id_list)),
+                    ('Unset annotations\' names', lambda: ibswgt.back.unset_names(aid_list)),
+                    ('Delete annotations', lambda: ibswgt.back.delete_annot(aid_list)),
                 ]
         # ---- NAMES TREE CONTEXT ----
         elif model.name == NAMES_TREE:
             # TODO: map level list to tablename more reliably
-            level2_ids = ut.group_items(id_list, level_list)
             ut.print_dict(level2_ids)
-            nid_list = level2_ids[0]
-            aid_list = level2_ids[1]
+            nid_list = level2_ids.get(0, [])
+            aid_list = level2_ids.get(1, [])
             if len(aid_list) > 0 and len(nid_list) > 0:
                 # two types of indices are selected, just return
                 # fixme to do something useful
@@ -1135,13 +1138,16 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 if len(nid_list) > 0:
                     print('sup?')
 
-                    def run_splits(nid_list):
-                        #ibs = ibswgt.back.ibs
+                    ibs = ibswgt.back.ibs
+                    def run_splits(ibs, nid_list):
                         print('Not hooked up yet')
                         #aids_list = ibs.get_name_aids(nid_list)
 
+                    from ibeis.dbio import export_subset
+
                     context_options += [
-                        ('Check for splits', lambda: run_splits(nid_list)),
+                        ('Check for splits', lambda: run_splits(ibs, nid_list)),
+                        ('Export names', lambda: export_subset.export_names(ibs, nid_list)),
                     ]
                 else:
                     print('nutin')

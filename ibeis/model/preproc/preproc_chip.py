@@ -24,7 +24,7 @@ import vtool.image as gtool
 # TODO in template version
 def read_chip_fpath(ibs, cid_list, **kwargs):
     """ T_ExternFileGetter """
-    cfpath_list = ibs.get_chip_fpaths(cid_list, **kwargs)
+    cfpath_list = ibs.get_chip_fpath(cid_list, **kwargs)
     # --- generalize params
     rowid_list = cid_list
     readfunc = gtool.imread
@@ -162,7 +162,7 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, config2_=None):
         >>> print(result)
         [1434, 2274, 12]
     """
-    cfpath_list = ibs.get_chip_fpaths(cid_list)
+    cfpath_list = ibs.get_chip_fpath(cid_list)
     try:
         if ensure:
             try:
@@ -186,7 +186,7 @@ def compute_or_read_chip_images(ibs, cid_list, ensure=True, config2_=None):
         ibs.delete_annot_chips(invalid_aids)
         # Try readding things
         new_cid_list = ibs.add_annot_chips(aid_list)
-        cfpath_list = ibs.get_chip_fpaths(new_cid_list)
+        cfpath_list = ibs.get_chip_fpath(new_cid_list)
         chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
     return chip_list
 
@@ -289,7 +289,7 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
         >>> assert all([cid is None for cid in cid_list]), 'should be gone'
         >>> # Now this function should have been executed again implictly
         >>> cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=True)
-        >>> assert ibs.get_chip_fpaths(cid_list) == cfpath_list, 'should be what we had before'
+        >>> assert ibs.get_chip_fpath(cid_list) == cfpath_list, 'should be what we had before'
 
     """
     ut.ensuredir(ibs.get_chipdir())
@@ -361,7 +361,7 @@ def on_delete(ibs, cid_list, config2_=None):
         >>> cid_list2 = ibs.get_annot_chip_rowids(aid_list, ensure=False)
         >>> ibs.delete_chips(cid_list2)
     """
-    chip_fpath_list = ibs.get_chip_fpaths(cid_list)
+    chip_fpath_list = ibs.get_chip_fpath(cid_list)
     nRemoved = ut.remove_existing_fpaths(chip_fpath_list, lbl='chips')
     return nRemoved
 

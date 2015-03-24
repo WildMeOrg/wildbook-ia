@@ -354,10 +354,12 @@ class SQLDatabaseController(object):
         try:
             db._add(tblname, colnames, dirty_params)
         except Exception as ex:
+            nInput = len(params_list)  # NOQA
             utool.printex(ex, key_list=[
                 'dirty_params',
                 'needsadd_list',
                 'superkey_lists',
+                'nInput',
                 'rowid_list_'])
             raise
         # TODO: We should only have to preform a subset of adds here
@@ -699,6 +701,15 @@ class SQLDatabaseController(object):
                 if not include_metadata or 'metadata' not in line:
                     continue
             file_.write('%s\n' % line)
+
+    def dump_to_stdout(db, **kwargs):
+        import sys
+        file_ = sys.stdout
+        kwargs['schema_only'] = kwargs.get('schema_only', True)
+        db.dump(file_, **kwargs)
+
+    def print_dbg_schema(db):
+        print('\n\nCREATE'.join(db.dump_to_string(schema_only=True).split('CREATE')))
 
     #=========
     # SQLDB METADATA
@@ -1612,8 +1623,10 @@ class SQLDatabaseController(object):
             >>> import ibeis
             >>> ibs_src = ibeis.opendb(db='testdb2')
             >>> # OPEN A CLEAN DATABASE
+            >>> ibs_src.fix_invalid_annotmatches()
             >>> ibs_dst = ibeis.opendb(dbdir='test_sql_subexport_dst2', allow_newdir=True, delete_ibsdir=True)
             >>> ibs_src.ensure_contributor_rowids()
+            >>> #ibs_src.delete_all_encounters()
             >>> # build test data
             >>> db = ibs_dst.db
             >>> db_src = ibs_src.db
@@ -1623,8 +1636,10 @@ class SQLDatabaseController(object):
             >>> rowid_subsets = {const.ANNOTATION_TABLE: aid_subset,
             ...                  const.NAME_TABLE: ibs_src.get_annot_nids(aid_subset),
             ...                  const.IMAGE_TABLE: ibs_src.get_annot_gids(aid_subset),
+            ...                  const.ANNOTMATCH_TABLE: [],
+            ...                  const.EG_RELATION_TABLE: [],
             ...                  }
-            >>> db.merge_databases_new(db_src, ignore_tables=ignore_tables)
+            >>> db.merge_databases_new(db_src, ignore_tables=ignore_tables, rowid_subsets=rowid_subsets)
         """
         verbose = True
         veryverbose = True
@@ -1728,10 +1743,15 @@ class SQLDatabaseController(object):
                 isvalid_list = [rowid in valid_rowids for rowid in old_rowid_list]
                 valid_old_rowid_list = ut.filter_items(old_rowid_list, isvalid_list)
                 valid_column_list_ = [ut.filter_items(col, isvalid_list) for col in column_list_]
+                valid_extern_superkey_colval_list =  [ut.filter_items(col, isvalid_list) for col in extern_superkey_colval_list]
                 print(' * filtered number of rows from %d to %d.' % (len(valid_rowids), len(valid_old_rowid_list)))
             else:
+                print(' * no filtering requested')
+                valid_extern_superkey_colval_list = extern_superkey_colval_list
                 valid_old_rowid_list = old_rowid_list
                 valid_column_list_ = column_list_
+            #if len(valid_old_rowid_list) == 0:
+            #    continue
             # L=================================================
 
             # ================================
@@ -1745,15 +1765,17 @@ class SQLDatabaseController(object):
 
                 # Find the mappings from the old tables rowids to the new tables rowids
                 for tup in zip(extern_colx_list, extern_superkey_colname_list,
-                               extern_superkey_colval_list,
+                               valid_extern_superkey_colval_list,
                                extern_tablename_list,
                                extern_primarycolnames_list):
                     colx, extern_superkey_colname, extern_superkey_colval, extern_tablename, extern_primarycolname = tup
                     source_colname = column_names_[colx - 1]
                     if veryverbose or verbose:
                         if veryverbose:
+                            print('[sqlmerge] +--')
                             print(('[sqlmerge] * resolving source_colname=%r \n'
-                                   '                 via extern_superkey_colname=%r -> extern_primarycolname=%r. colx=%r')
+                                   '                 via extern_superkey_colname=%r ...\n'
+                                   '                 -> extern_primarycolname=%r. colx=%r')
                                   % (source_colname, extern_superkey_colname, extern_primarycolname, colx))
                         elif verbose:
                             print('[sqlmerge] * resolving %r via %r -> %r'
@@ -1761,6 +1783,10 @@ class SQLDatabaseController(object):
                     _params_iter = list(zip(extern_superkey_colval))
                     new_extern_rowids = db.get_rowid_from_superkey(
                         extern_tablename, _params_iter, superkey_colnames=extern_superkey_colname)
+                    num_Nones = sum(ut.flag_None_items(new_extern_rowids))
+                    if verbose:
+                        print('[sqlmerge] * there were %d none items' % (num_Nones,))
+                    #ut.assert_all_not_None(new_extern_rowids)
                     new_extern_rowid_list.append(new_extern_rowids)
 
                 for colx, new_extern_rowids in zip(extern_colx_list, new_extern_rowid_list):
@@ -1805,11 +1831,10 @@ class SQLDatabaseController(object):
 
             # TODO: allow for cetrain databases to take precidence over another
             # basically allow insert or replace
-            with ut.embed_on_exception_context:
-                new_rowid_list = db.add_cleanly(tablename, column_names_,
-                                                params_iter,
-                                                get_rowid_from_superkey=get_rowid_from_superkey,
-                                                superkey_paramx=superkey_paramx)
+            new_rowid_list = db.add_cleanly(tablename, column_names_,
+                                            params_iter,
+                                            get_rowid_from_superkey=get_rowid_from_superkey,
+                                            superkey_paramx=superkey_paramx)
             # TODO: Use mapping generated here for new rowids
             old_rowids_to_new_roids = dict(zip(valid_old_rowid_list, new_rowid_list))  # NOQA
             #tablename_to_rowidmap[tablename] = old_rowids_to_new_roids
