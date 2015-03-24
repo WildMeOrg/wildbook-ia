@@ -893,6 +893,21 @@ def set_name_sex_text(ibs, name_rowid_list, name_sex_text_list):
     return ibs.set_name_sex(name_rowid_list, name_sex_list)
 
 
+@register_ibs_method
+def get_name_eids(ibs, nid_list):
+    import utool as ut
+    name_aids_list = ibs.get_name_aids(nid_list)
+    name_aid_list  = ut.flatten(name_aids_list)
+    name_gid_list  = ibs.get_annot_gids(name_aid_list)
+    name_eids_list = ibs.get_image_eids(name_gid_list)
+    name_eid_list  = ut.flatten(name_eids_list)
+    name_eids      = list(set(name_eid_list))
+    return name_eids
+
+
+#def get_encounter_nids(ibs,
+
+
 if __name__ == '__main__':
     """
     CommandLine:

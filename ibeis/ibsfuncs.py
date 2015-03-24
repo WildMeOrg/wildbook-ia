@@ -1959,6 +1959,26 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         return next_name_list
 
 
+def hack(ibs):
+    #ibs.get_encounter_enctext(eid_list)
+    #eid = ibs.get_encounter_eids_from_text("NNP GZC Car '1PURPLE'")
+
+    def get_linked_encounters_by_eid(ibs, eid):
+        import utool as ut
+        gid_list = ibs.get_encounter_gids(eid)
+        aids_list1 = ibs.get_encounter_aids(eid)
+        aids_list2 = ibs.get_image_aids(gid_list)
+        assert ut.flatten(aids_list2) == aids_list1
+        nid_list = list(set(ibs.get_annot_nids(aids_list1)))
+        name_eids = ibs.get_name_eids(nid_list)
+        name_enctexts = ibs.get_encounter_enctext(name_eids)
+        return name_enctexts
+
+    eid_list = ibs.get_valid_eids()
+    linked_enctexts = [get_linked_encounters_by_eid(ibs, eid) for eid in eid_list]
+    print(ut.list_str(linked_enctexts))
+
+
 def draw_thumb_helper(tup):
     thumb_path, thumbsize, gpath, bbox_list, theta_list = tup
     img = gtool.imread(gpath)  # time consuming
