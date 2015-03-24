@@ -3271,6 +3271,10 @@ def detect_join_cases(ibs):
 
 @__injectable
 def report_sigtings(ibs):
+    def sanitize_list(data_list):
+        data_list = [ str(data).replace(',', '<COMMA>') for data in list(data_list) ]
+        return ','.join(data_list)
+
     aid_list     = ibs.get_valid_aids()
     gid_list     = ibs.get_annot_gids(aid_list)
     species_list = ibs.get_annot_species_texts(aid_list)
@@ -3293,7 +3297,7 @@ def report_sigtings(ibs):
     ]
     header_list  = [[ cols[0] for cols in cols_list ]]
     data_list    = zip(*[ cols[1] for cols in cols_list ])
-    line_list    = [ '\t'.join(map(str, list(data))) for data in header_list + list(data_list) ]
+    line_list    = [ sanitize_list(data) for data in header_list + list(data_list) ]
     print('\n'.join(line_list))
 
 
