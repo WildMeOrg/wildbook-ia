@@ -336,6 +336,10 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         >>> candidate_matches = get_automatch_candidates(qaid2_qres, ranks_lt, directed)
         >>> print(candidate_matches)
     """
+    print(('[resorg] get_automatch_candidates('
+           'filter_reviewed={filter_reviewed},'
+           'filter_duplicate_namepair_matches={filter_duplicate_namepair_matches},'
+           'directed={directed}').format(**locals()))
     qaids_stack  = []
     daids_stack   = []
     ranks_stack  = []
