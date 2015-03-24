@@ -520,7 +520,10 @@ def get_chip_fpaths(ibs, cid_list):
     """
     chip_uri_list = ibs.get_chip_uris(cid_list)
     chipdir = ibs.get_chipdir()
-    chip_fpath_list = [ut.unixjoin(chipdir, chip_uri) for chip_uri in chip_uri_list]
+    chip_fpath_list = [
+        None if chip_uri is None else ut.unixjoin(chipdir, chip_uri)
+        for chip_uri in chip_uri_list
+    ]
     return chip_fpath_list
 
 

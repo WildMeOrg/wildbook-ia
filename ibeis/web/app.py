@@ -940,6 +940,7 @@ def start_from_terminal():
     print('[web] Pre-computing all image thumbnails (without annots)...')
     app.ibs.compute_all_thumbs(draw_annots=False)
     print('[web] Pre-computing all annotation chips...')
+    app.ibs.check_chip_existence()
     app.ibs.compute_all_chips()
     start_tornado(app, opts.port)
 
@@ -978,6 +979,7 @@ def start_from_ibeis(ibs, port=None):
     print('[web] Pre-computing all image thumbnails (without annots)...')
     app.ibs.compute_all_thumbs(draw_annots=False)
     print('[web] Pre-computing all annotation chips...')
+    app.ibs.check_chip_existence()
     app.ibs.compute_all_chips()
     start_tornado(app, port)
 
