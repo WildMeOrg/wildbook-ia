@@ -504,10 +504,10 @@ def get_chip_uris(ibs, cid_list):
     """
 
     Returns:
-        chip_fpath_list (list): a list of chip paths by their aid
+        chip_uri_list (list): a list of chip paths by their aid
     """
-    chip_fpath_list = ibs.dbcache.get(const.CHIP_TABLE, ('chip_uri',), cid_list)
-    return chip_fpath_list
+    chip_uri_list = ibs.dbcache.get(const.CHIP_TABLE, ('chip_uri',), cid_list)
+    return chip_uri_list
 
 
 @register_ibs_method
