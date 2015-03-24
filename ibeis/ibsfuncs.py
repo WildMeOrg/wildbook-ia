@@ -1985,9 +1985,9 @@ def hack(ibs):
     print(ut.align(ut.dict_str(dict(zip(enctext_list, linked_enctexts))), ':'))
     print(ut.align(ut.dict_str(dict(zip(enctext_list, eid_list)), sorted_=True), ':'))
 
-    if False:
-        eids_with_bad_names = [6, 7, 16]
-        bad_nids = ut.unique_keep_order2(ut.flatten(ibs.get_encounter_nids(eids_with_bad_names)))
+    #if False:
+    #    eids_with_bad_names = [6, 7, 16]
+    #    bad_nids = ut.unique_keep_order2(ut.flatten(ibs.get_encounter_nids(eids_with_bad_names)))
 
 
 def draw_thumb_helper(tup):
@@ -2776,7 +2776,7 @@ def detect_false_positives(ibs):
 
 
 @__injectable
-def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, eid=None, dry_run=False, verbose=False):
+def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None, exemplars_per_view=None, eid=None, dry_run=False, verbose=False):
     """
     Automatic exemplar selection algorithm based on viewpoint and quality
 
@@ -2849,10 +2849,26 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, eid=N
         >>> assert len(new_aid_list) == len(new_flag_list)
         >>> # 2 of the 11 annots are unknown and should not be exemplars
         >>> ut.assert_eq(len(new_aid_list), 9)
+
+    Example2:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb2')
+        >>> dry_run = True
+        >>> verbose = False
+        >>> eid = None
+        >>> new_aid_list, new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(dry_run=dry_run)
+        >>> old_flag_list = ibs.get_annot_exemplar_flags(new_aid_list)
+        >>> new_exemplar_aids = ut.filter_items(new_aid_list, new_flag_list)
+        >>> new_exemplar_qualtexts = ibs.get_annot_quality_texts(new_exemplar_aids)
+        >>> assert 'junk' not in new_exemplar_qualtexts, 'should not have junk exemplars'
+        >>> assert 'poor' not in new_exemplar_qualtexts, 'should not have poor exemplars'
+        >>> #assert len(new_aid_list) == len(new_flag_list)
+        >>> # 2 of the 11 annots are unknown and should not be exemplars
+        >>> #ut.assert_eq(len(new_aid_list), 9)
     """
     # General params
-    if exemplars_per_view is None:
-        exemplars_per_view = ibs.cfg.other_cfg.exemplars_per_view
     #PREFER_GOOD_OVER_OLDFLAG = True
     #verbose = False
     #dry_run = False
@@ -2957,9 +2973,20 @@ def set_exemplars_from_quality_and_viewpoint(ibs, exemplars_per_view=None, eid=N
     #        new_flag_list.extend(new_flags)
     #    if verbose:
     #        print('L ___')
-    aid_list = ibs.get_valid_aids(eid=eid)
-    new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
-        ibs, aid_list=aid_list, annots_per_view=exemplars_per_view, verbose=verbose)
+    if exemplars_per_view is None:
+        exemplars_per_view = ibs.cfg.other_cfg.exemplars_per_view
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids(eid=eid)
+    HACK = True
+    if not HACK:
+        new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
+            ibs, aid_list=aid_list, annots_per_view=exemplars_per_view, verbose=verbose)
+    else:
+        # HACK
+        new_exemplar_aids = ibs.get_prioritized_name_subset(aid_list, exemplars_per_view)
+        new_nonexemplar_aids = list(set(aid_list) - set(new_exemplar_aids))
+        new_aid_list = new_nonexemplar_aids + new_exemplar_aids
+        new_flag_list = [0] * len(new_nonexemplar_aids) + [1] * len(new_exemplar_aids)
 
     if not dry_run:
         ibs.set_annot_exemplar_flags(new_aid_list, new_flag_list)
@@ -2980,6 +3007,10 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
         >>> aid_list = ibs.get_valid_aids()
         >>> annots_per_name = 2
         >>> aid_subset = get_prioritized_name_subset(ibs, aid_list, annots_per_name)
+        >>> qualtexts = ibs.get_annot_quality_texts(aid_subset)
+        >>> yawtexts = ibs.get_annot_yaw_texts(aid_subset)
+        >>> assert 'junk' not in qualtexts
+        >>> assert 'right' not in yawtexts
         >>> result = len(aid_subset)
         >>> print(result)
         28
@@ -2987,6 +3018,7 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
 
+    # Paramaterize?
     qualtext2_weight = {
         const.QUAL_EXCELLENT : 7,
         const.QUAL_GOOD      : 6,
@@ -3007,6 +3039,9 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
         'backright'  : 0,
         None         : 0,
     }
+
+    weight_thresh = 7
+
     qualtext_list = ibs.get_annot_quality_texts(aid_list)
     yawtext_list = ibs.get_annot_yaw_texts(aid_list)
 
@@ -3042,8 +3077,6 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
         aids.take(order)
         for aids, order in zip(grouped_aids_, sortx_list)
     ]
-
-    weight_thresh = 7
 
     passed_thresh_list = [
         weights > weight_thresh
