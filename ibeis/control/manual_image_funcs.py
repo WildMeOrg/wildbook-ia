@@ -1323,7 +1323,7 @@ def get_encounter_num_annotmatch_reviewed(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, 'fraction_annotmatch_reviewed')
+#@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, 'fraction_annotmatch_reviewed')
 def get_encounter_fraction_annotmatch_reviewed(ibs, eid_list):
     aids_list_ = ibs.get_encounter_aids(eid_list)
     # HACK: Get percentage for the annots we currently care about

@@ -81,6 +81,8 @@ WEIGHT_LBL  = 'Weight NN:       '
 BUILDCM_LBL = 'Build Chipmatch: '
 SVER_LVL    = 'SVER:            '
 
+PROGKW = dict(freq=50, time_thresh=4.0)
+
 
 # Query Level 0
 #@ut.indent_func('[Q0]')
@@ -370,8 +372,7 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     # Find the nearest neighbors of each descriptor vector
     qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids, config2_=qreq_.get_internal_query_config2())
     # Mark progress ane execute nearest indexer nearest neighbor code
-    progkw = dict(freq=20, time_thresh=2.5)
-    qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, **progkw)
+    qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, **PROGKW)
     nns_list = [qreq_.indexer.knn(qfx2_vec, num_neighbors)
                 for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
     # Verbose statistics reporting
@@ -426,8 +427,7 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
     nnidx_iter = (qfx2_idx.T[0:-Knorm].T for (qfx2_idx, _) in nns_list)
     qfx2_aid_list = [qreq_.indexer.get_nn_aids(qfx2_nnidx) for qfx2_nnidx in nnidx_iter]
     filter_iter = zip(qfx2_aid_list, impossible_daids_list)
-    progkw = dict(freq=20, time_thresh=2.0)
-    filter_iter = ut.ProgressIter(filter_iter, nTotal=len(qfx2_aid_list), lbl=FILT_LBL, **progkw)
+    filter_iter = ut.ProgressIter(filter_iter, nTotal=len(qfx2_aid_list), lbl=FILT_LBL, **PROGKW)
     nnvalid0_list = [
         vt.get_uncovered_mask(qfx2_aid, impossible_daids)
         for qfx2_aid, impossible_daids in filter_iter
@@ -489,8 +489,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         print('[hs] Step 3) Weight neighbors: ' + qreq_.qparams.nnweight_cfgstr)
 
     print(WEIGHT_LBL)
-    #progkw = dict(freq=20, time_thresh=2.0)
-    #intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL, **progkw)
+    #intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL, **PROGKW)
     # Build weights for each active filter
     filtkey_list    = []
     _filtweight_list = []
@@ -596,8 +595,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_
     internal_qaids = qreq_.get_internal_qaids()
     external_qaids = qreq_.get_external_qaids()
     external_daids = qreq_.get_external_daids()
-    progkw = dict(freq=20, time_thresh=2.0)
-    intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL, **progkw)
+    intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL, **PROGKW)
     #intern_qaid_iter = internal_qaids
 
     if is_vsone:
@@ -763,8 +761,7 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
         cm.evaluate_dnids(qreq_.ibs)
     scoring.score_chipmatch_list(qreq_, cm_list, score_method)
     cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, score_method)
-    cm_progiter = ut.ProgressIter(cm_shortlist, nTotal=len(cm_shortlist), lbl=SVER_LVL,
-                                  freq=20, time_thresh=2.0)
+    cm_progiter = ut.ProgressIter(cm_shortlist, nTotal=len(cm_shortlist), lbl=SVER_LVL, **PROGKW)
     cm_list_SVER = [sver_single_chipmatch(qreq_, cm) for cm in cm_progiter]
     #cm_list_SVER = []
     #for cm in cm_progiter:
