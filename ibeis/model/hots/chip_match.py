@@ -338,6 +338,22 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
                                                     cm.nid2_nidx, nNameShortList, nAnnotPerName)
         return top_daids
 
+    def get_chip_shortlist_aids(cm, num_shortlist):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
+            >>> cm = cm_list[0]
+            >>> cm.score_nsum(qreq_)
+            >>> top_daids = cm.get_chip_shortlist_aids(5 * 2)
+            >>> assert cm.qnid in ibs.get_annot_name_rowids(top_daids)
+        """
+        sortx = np.array(cm.annot_score_list).argsort()[::-1]
+        topx = sortx[:min(num_shortlist, len(sortx))]
+        top_daids = cm.daid_list[topx]
+        return top_daids
+
     #+=================
     # Scoring Functions
     #------------------

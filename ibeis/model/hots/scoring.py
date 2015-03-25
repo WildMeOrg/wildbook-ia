@@ -131,7 +131,7 @@ def get_name_shortlist_aids(daid_list, dnid_list, annot_score_list,
 
 
 @profile
-def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName):
+def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, score_method='nsum'):
     """
     Makes shortlists for reranking
 
@@ -180,7 +180,12 @@ def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName):
         # Clip number of annots per name
         #_top_clipped_aids_list = [ut.listclip(aids, nAnnotPerName) for aids in _top_aids_list]
         #top_aids = ut.flatten(_top_clipped_aids_list)
-        top_aids = cm.get_name_shortlist_aids(nNameShortList, nAnnotPerName)
+        if score_method == 'nsum':
+            top_aids = cm.get_name_shortlist_aids(nNameShortList, nAnnotPerName)
+        elif score_method == 'csum':
+            top_aids = cm.get_chip_shortlist_aids(nNameShortList * nAnnotPerName)
+        else:
+            raise AssertionError(score_method)
         cm_subset = cm.shortlist_subset(top_aids)
         cm_shortlist.append(cm_subset)
     return cm_shortlist

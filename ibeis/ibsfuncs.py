@@ -818,6 +818,11 @@ def fix_and_clean_database(ibs):
         run_cleanup_scripts
         run_fixit_scripts
 
+    CONSITENCY CHECKS TODO:
+        * check that annotmatches marked as False do not have the same name for similar viewpoints.
+        * check that photobombs are have different names
+        * warn if scenery matches have the same name
+
     """
     #TODO: Call more stuff, maybe rename to 'apply duct tape'
     with ut.Indenter('[FIX_AND_CLEAN]'):

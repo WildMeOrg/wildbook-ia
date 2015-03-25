@@ -758,8 +758,11 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER
 
     #qaid2_svtups = {} if with_metadata else None
+    # Just in case we are csum scoring, this needs to be computed
+    for cm in cm_list:
+        cm.evaluate_dnids(qreq_.ibs)
     scoring.score_chipmatch_list(qreq_, cm_list, score_method)
-    cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName)
+    cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, score_method)
     cm_progiter = ut.ProgressIter(cm_shortlist, nTotal=len(cm_shortlist), lbl=SVER_LVL,
                                   freq=20, time_thresh=2.0)
     cm_list_SVER = [sver_single_chipmatch(qreq_, cm) for cm in cm_progiter]

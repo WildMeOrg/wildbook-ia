@@ -1146,23 +1146,33 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         if METHOD == 1:
                             aids_list = ibs.get_name_aids(nid_list)
                             aid_list = sorted(list(set(ut.flatten(aids_list))))
-                            cfgdict = {'can_match_samename': True, 'K': 1}
+                            cfgdict = {
+                                'can_match_samename': True,
+                                'K': 3,
+                                'Knorm': 3,
+                                'prescore_method': 'csum',
+                                'score_method': 'csum'
+                            }
+                            ranks_lt = min(len(aid_list), 10)
                             qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
                             qres_list = ibs.query_chips(qreq_=qreq_)
-                            back.review_queries(qres_list, qreq_=qreq_, filter_reviewed=False, ranks_lt=min(len(aid_list), 10))
-                        elif METHOD == 2:
-                            aids_list = ibs.get_name_aids(nid_list)
-                            qreq_list = []
-                            for aids in aids_list:
-                                cfgdict = {'can_match_samename': True, 'K': 1}
-                                qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict)
-                                qreq_list.append(qreq_)
+                            back.review_queries(qres_list, qreq_=qreq_,
+                                                filter_reviewed=False,
+                                                name_scoring=False,
+                                                ranks_lt=ranks_lt)
+                        #elif METHOD == 2:
+                        #    aids_list = ibs.get_name_aids(nid_list)
+                        #    qreq_list = []
+                        #    for aids in aids_list:
+                        #        cfgdict = {'can_match_samename': True, 'K': 3}
+                        #        qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict)
+                        #        qreq_list.append(qreq_)
 
-                            big_qres_list = []
-                            for qreq_ in qreq_list:
-                                qres_list = ibs.query_chips(qreq_=qreq_)
-                                big_qres_list.extend(qres_list)
-                            back.review_queries(big_qres_list)
+                        #    big_qres_list = []
+                        #    for qreq_ in qreq_list:
+                        #        qres_list = ibs.query_chips(qreq_=qreq_)
+                        #        big_qres_list.extend(qres_list)
+                        #    back.review_queries(big_qres_list)
 
                     from ibeis.dbio import export_subset
 
