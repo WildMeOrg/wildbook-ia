@@ -22,19 +22,19 @@
     {% if num_eids > 0 %}
       <div class="alert alert-info" role="alert">
         Filtering for eids: {{ eid_list }}
-        <a href="{{ url_for('view_annotations') }}" class="close"><span aria-hidden="true">&times;</span></a>
+        <a href="{{ url_for('view_names') }}" class="close"><span aria-hidden="true">&times;</span></a>
       </div>
     {% endif %}
     {% if num_gids > 0 %}
       <div class="alert alert-info" role="alert">
         Filtering for gids: {{ gid_list }}
-        <a href="{{ url_for('view_annotations') }}?eid={{ eid_list_str }}" class="close"><span aria-hidden="true">&times;</span></a>
+        <a href="{{ url_for('view_names') }}?eid={{ eid_list_str }}" class="close"><span aria-hidden="true">&times;</span></a>
       </div>
     {% endif %}
     {% if num_aids > 0 %}
       <div class="alert alert-info" role="alert">
         Filtering for aids: {{ aid_list }}
-        <a href="{{ url_for('view_annotations') }}?eid={{ eid_list_str }}" class="close"><span aria-hidden="true">&times;</span></a>
+        <a href="{{ url_for('view_names') }}?eid={{ eid_list_str }}" class="close"><span aria-hidden="true">&times;</span></a>
       </div>
     {% endif %}
   {% endif %}
@@ -43,9 +43,9 @@
     <div class="row marketing">
       <div class="col-sm-3 col-md-3 col-lg-3">
         {% if page_previous != None %}
-        <a href="{{ url_for('view_annotations') }}?eid={{ eid_list_str }}&page=1"><h3 class="small-margin">First (1)</h3></a>
+        <a href="{{ url_for('view_names') }}?eid={{ eid_list_str }}&page=1"><h3 class="small-margin">First (1)</h3></a>
         <h3>|</h3>
-        <a href="{{ url_for('view_annotations') }}?eid={{ eid_list_str }}&page={{ page_previous }}"><h3 class="small-margin">Prev. ({{ page_previous }})/h3></a>
+        <a href="{{ url_for('view_names') }}?eid={{ eid_list_str }}&page={{ page_previous }}"><h3 class="small-margin">Prev. ({{ page_previous }})/h3></a>
         {% endif %}
       </div>
       
@@ -57,9 +57,9 @@
 
       <div class="col-sm-3 col-md-3 col-lg-3">
         {% if page_next != None %}
-        <a href="{{ url_for('view_annotations') }}?eid={{ eid_list_str }}&page={{ page_next }}"><h3 class="small-margin">Next ({{ page_next }})</h3></a>
+        <a href="{{ url_for('view_names') }}?eid={{ eid_list_str }}&page={{ page_next }}"><h3 class="small-margin">Next ({{ page_next }})</h3></a>
         <h3>|</h3>
-        <a href="{{ url_for('view_annotations') }}?eid={{ eid_list_str }}&page={{ page_total }}"><h3 class="small-margin">Last ({{ page_total }})</h3></a>
+        <a href="{{ url_for('view_names') }}?eid={{ eid_list_str }}&page={{ page_total }}"><h3 class="small-margin">Last ({{ page_total }})</h3></a>
         {% endif %}
       </div>
     </div>
@@ -70,6 +70,7 @@
       <table class="table table-striped table-fixed">
         <thead>
           <tr>
+            <th>NID</th>
             <th>AID</th>
             <th>Thumbnail</th>
             <th>Source Image</th>
@@ -84,26 +85,44 @@
           </tr>
         </thead>
         <tbody>
-          {% if num_annotations == 0 %}
+          {% if num_names == 0 %}
             <tr>
-              <th class="no-items" colspan="99">Sorry, no annotations to display</th>
+              <th class="no-items" colspan="99">Sorry, no names to display</th>
             </tr>
           {% else %}
-            {% for (aid, gid, eid_list_str_, src, name, exemplar, species, viewpoint, quality, sex, age, reviewed) in annotation_list %}
-            <tr {% if reviewed %}class="success"{% endif %}>
-              <th scope="row">{{ aid }}</th>
-              <td><img class="ajax-image-load ajax-image-unloaded" src="" aid="{{ aid }}" /></td>
-              <td>{{ src }}</td>
-              <td>{{ name }}</td>
-              <td>{{ exemplar }}</td>
-              <td>{{ species }}</td>
-              <td><a href="{{ url_for('turk_viewpoint') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ viewpoint }}</a></td>
-              <td><a href="{{ url_for('turk_quality') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ quality }}</a></td>
-              <td><a href="{{ url_for('turk_additional') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ sex }} / {{ age }}</a></td>
-              <td><a href="{{ url_for('view_images') }}?gid={{ gid }}">Go to</a></td>
-              <td><a href="{{ url_for('view_images') }}?eid={{ eid_list_str_ }}">Go to</a></td>
+            {% for (nid, annotation_list) in name_list %}
+            <tr {% if reviewed %}class="success"{% endif %} style="background-color: #333; color: white;">
+              <th scope="row">{{ nid }}</th>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td><a href="{{ url_for('turk_additional') }}?aid={{ annotation_list[0][0] }}&refer={{ REFER_SRC_ENCODED }}">{{ annotation_list[0][-3] }} / {{ annotation_list[0][-2] }}</a></td>
+              <td></td>
+              <td></td>
             </tr>
+              {% for (aid, gid, eid_list_str_, src, name, exemplar, species, viewpoint, quality, sex, age, reviewed) in annotation_list %}
+                <tr {% if reviewed %}class="success"{% endif %}>
+                  <td></td>
+                  <th scope="row">{{ aid }}</th>
+                  <td><img class="ajax-image-load ajax-image-unloaded" src="" aid="{{ aid }}" /></td>
+                  <td>{{ src }}</td>
+                  <td>{{ name }}</td>
+                  <td>{{ exemplar }}</td>
+                  <td>{{ species }}</td>
+                  <td><a href="{{ url_for('turk_viewpoint') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ viewpoint }}</a></td>
+                  <td><a href="{{ url_for('turk_quality') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ quality }}</a></td>
+                  <td><a href="{{ url_for('turk_additional') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ sex }} / {{ age }}</a></td>
+                  <td><a href="{{ url_for('view_images') }}?gid={{ gid }}">Go to</a></td>
+                  <td><a href="{{ url_for('view_images') }}?eid={{ eid_list_str_ }}">Go to</a></td>
+                </tr>
+              {% endfor %}
             {% endfor %}
+
           {% endif %}
         </tbody>
       </table>
@@ -113,7 +132,7 @@
 {% endblock %}
 {% block content_custom_javascript %}
 <script type="text/javascript">
-  var loading = [];
+var loading = [];
   var requests = [];
   var buffer = 5;
 
@@ -127,7 +146,7 @@
       removeIndexFromArray(index, loading);
     }
 
-    $(".ajax-image-load").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
+    $(".ajax-image-load").filter(":visible").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
       load_image_src(this);
     });
   }

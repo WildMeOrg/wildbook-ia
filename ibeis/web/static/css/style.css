@@ -61,6 +61,21 @@
   margin-right: -11%;
 }
 
+.col-custom-span-7
+{
+  width: 16.66%;
+}
+
+.col-custom-span-7:first-child
+{
+  margin-left: -8%;
+}
+
+.col-custom-span-7:last-child
+{
+  margin-right: -8%;
+}
+
 .col-custom-span-9
 {
   width: 12.3%;
@@ -218,4 +233,38 @@
 .footer-bar h3.small-margin
 {
   margin-top: 20px;
+}
+
+#scroll 
+{
+  margin-top: 20px;
+  width: 100%;
+  overflow-y:hidden;
+}
+
+#scroll ul 
+{
+  margin: 0; 
+  padding: 0;
+  display: table;
+  list-style: none;
+}
+
+#scroll li 
+{
+  min-width: 200px;
+  padding:0px 10px;
+  text-align:center;
+  display:table-cell;
+  vertical-align:middle;
+  border:1px solid #eee;
+}
+
+#scroll img 
+{
+  height: 150px;
+  width: autp;
+  border:0;
+  display:block;
+  margin:0px auto;
 }

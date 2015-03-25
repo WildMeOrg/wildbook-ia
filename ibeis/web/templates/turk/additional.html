@@ -33,10 +33,21 @@
       <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span>
       <br/>
       Path: {{ image_path }}
-      <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block;">
+      <img id="big-image" src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block;">
       <div style="text-align: center; color: #aaa;">
         <span>Hard to tell?  <a href="{{ url_for('turk_detection') }}?gid={{ gid }}&eid={{ eid }}&refer={{ REFER_SRC_ENCODED }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
       </div>
+
+      {% if name_aid_list %}
+      <div id="scroll">
+        <ul>
+            {% for name_aid in name_aid_list %}
+              <li><img class="ajax-image-load ajax-image-unloaded" src="" aid="{{ name_aid }}" /></li>
+            {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
       <br/>
       <form method="post" action="{{ url_for('submit_additional') }}?eid={{ eid }}&refer={{ REFER_DST_ENCODED }}">
         <input type="text" name="additional-aid" value="{{ aid }}" style="display: none;" readonly>
@@ -55,22 +66,28 @@
           </div>
         </div>
 
-        <input type="range" name="additional-age-value" id="slider-additional-age" value="{% if value_age %}{{ value_age }}{% else %}5{% endif %}" min="1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <input type="range" name="additional-age-value" id="slider-additional-age" value="{% if value_age %}{{ value_age }}{% else %}1{% endif %}" min="1" max="7" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
         <div class="row-custom-expand" style="height: 50px;">
-          <div class="col-custom-span col-custom-span-5">
-            0-3
+          <div class="col-custom-span col-custom-span-7">
+            Unknown
           </div>
-          <div class="col-custom-span col-custom-span-5">
-            3-6
+          <div class="col-custom-span col-custom-span-7">
+            0-3<br/>(infant)
           </div>
-          <div class="col-custom-span col-custom-span-5">
-            6-12
+          <div class="col-custom-span col-custom-span-7">
+            3-6<br/>(infant)
           </div>
-          <div class="col-custom-span col-custom-span-5">
-            12-24
+          <div class="col-custom-span col-custom-span-7">
+            6-12<br/>(infant)
           </div>
-          <div class="col-custom-span col-custom-span-5">
-            24+
+          <div class="col-custom-span col-custom-span-7">
+            12-24<br/>(yearling)
+          </div>
+          <div class="col-custom-span col-custom-span-7">
+            24-36<br/>(2 y/o)
+          </div>
+          <div class="col-custom-span col-custom-span-7">
+            36+<br/>(adult)
           </div>
         </div>
         <br/>
@@ -78,7 +95,7 @@
           <a class="btn btn-default pull-left" id="turk-previous" href="{{ url_for('turk_additional') }}?eid={{ eid }}&aid={{ previous }}">Previous {{ previous }}</a>
         {% endif %}
         <input type="submit" name="additional-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
-        <input type="submit" name="additional-submit" id="turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')">
+        <!-- <input type="submit" name="additional-submit" id="turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')"> -->
       </form
       <br/>
     </div>
@@ -109,9 +126,9 @@
             <li>If the additional cannot be determined due to not enough information (e.g., the animal is no animal in the image, the image is too blurry or there isn't enough light, there is only a small chunk of an animal in the image - like a leg or a piece of the head), you have two choices: 
               <ol>
                 <li>edit the annotation by revisiting the image (link below the image)</li>
-                <li>simply press the <b>Delete</b> button</li>
+                <!-- <li>simply press the <b>Delete</b> button</li> -->
               </ol>
-            <li>The <b>Space</b> key deletes the image and does not save any additional information for that image.  The <b>Enter</b> key submits the current value of the slider as the image's additional.</li>
+            <li><!-- The <b>Space</b> key deletes the image and does not save any additional information for that image.   -->The <b>Enter</b> key submits the current value of the slider as the image's additional.</li>
             <li>Enter qualities as fast as you can while maintaining perfect accuracy.</li>
             <li>To bring up these instructions again, click on the <span class="glyphicon glyphicon-info-sign" style="font-size: 14px;"></span> button</li>
           </ul>
@@ -137,10 +154,71 @@
 {% block content_custom_javascript %}
 <script src="{{ url_for('static', filename='javascript/turk-additional.js') }}"></script>
 <script type="text/javascript">
+  var loading = [];
+  var requests = [];
+  var buffer = 5;
+
+  function lazy_load_images()
+  {
+    while(loading.length > buffer)
+    {
+      index = loading.length - 1;
+      requests[index].abort();
+      removeIndexFromArray(index, requests);
+      removeIndexFromArray(index, loading);
+    }
+
+    $(".ajax-image-load").filter(":visible").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
+      load_image_src(this);
+    });
+  }
+
+  function load_image_src(element)
+  {
+    var aid = $(element).attr('aid');
+    if(!contains(loading, aid) && requests.length <= buffer)
+    {
+      // $(element).attr('src', '{{ url_for('static', filename='images/loading.gif') }}');
+      request = $.ajax( "/ajax/annotation/src/" + aid )
+      .done(function( response ) {
+        // Load SRC into Image
+        $(element).attr('src', response);
+        // Remove image class
+        $(element).removeClass('ajax-image-unloaded');
+        // Remove value from the arrays
+        var index = findValueIndexFromArray(aid, loading);
+        removeIndexFromArray(index, requests);
+        removeIndexFromArray(index, loading);
+        // Logging
+        console.log(aid);
+        console.log(loading);
+        console.log(requests);
+      });
+      loading.push(aid);
+      requests.push(request);
+    }
+  }
+
+  $(document).ready(function(){
+      $("#scroll").scroll(function(){
+        lazy_load_images();
+      });
+
+      $(".ajax-image-load").hover(function() {
+        $("#big-image").attr('src', $(this).attr('src'));
+      });
+
+      setInterval(function() {        
+        lazy_load_images();
+      }, 100) ;
+
+      lazy_load_images();
+  });
+
   update_label();
   
   {% if display_instructions %}
     $('#turk-instructions').modal('show');
   {% endif %}
-</script>  
+</script> 
 {% endblock %}

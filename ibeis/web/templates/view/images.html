@@ -125,7 +125,7 @@
       removeIndexFromArray(index, loading);
     }
 
-    $(".ajax-image-load").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
+    $(".ajax-image-load").filter(":visible").filter(":onScreen").filter(".ajax-image-unloaded").each(function(){
       load_image_src(this);
     });
   }
@@ -163,7 +163,7 @@
 
       setInterval(function() {        
         lazy_load_images();
-      }, 1000) ;
+      }, 500) ;
 
       lazy_load_images();
   });
