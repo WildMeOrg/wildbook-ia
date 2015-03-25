@@ -1313,7 +1313,9 @@ def get_encounter_num_annotmatch_reviewed(ibs, eid_list):
         >>> eid_list = ibs._get_all_encounter_rowids()
         >>> num_annots_reviewed_list = ibs.get_encounter_num_annotmatch_reviewed(eid_list)
     """
-    aids_list = ibs.get_encounter_aids(eid_list)
+    aids_list_ = ibs.get_encounter_aids(eid_list)
+    # HACK: Get percentage for the annots we currently care about
+    aids_list = ibs.unflat_map(ibs.filter_aids_custom, aids_list_)
     has_revieweds_list = ibs.unflat_map(ibs.get_annot_has_reviewed_matching_aids, aids_list)
     num_annots_reviewed_list = list(map(sum, has_revieweds_list))
     return num_annots_reviewed_list
@@ -1322,7 +1324,9 @@ def get_encounter_num_annotmatch_reviewed(ibs, eid_list):
 @register_ibs_method
 @getter_1to1
 def get_encounter_fraction_annotmatch_reviewed(ibs, eid_list):
-    aids_list = ibs.get_encounter_aids(eid_list)
+    aids_list_ = ibs.get_encounter_aids(eid_list)
+    # HACK: Get percentage for the annots we currently care about
+    aids_list = ibs.unflat_map(ibs.filter_aids_custom, aids_list_)
     flags_list = ibs.unflat_map(ibs.get_annot_has_reviewed_matching_aids, aids_list)
     fraction_annotmatch_reviewed_list = [None if len(flags) == 0 else sum(flags) / len(flags) for flags in flags_list]
     return fraction_annotmatch_reviewed_list
