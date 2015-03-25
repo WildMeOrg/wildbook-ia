@@ -11,7 +11,7 @@ import utool as ut
 import sys
 
 #__version__ = '0.1.0.dev1'
-__version__ = '1.4.2'
+#__version__ = '1.4.3'
 
 utool.noinject(__name__, '[ibeis.__init__]', DEBUG=False)
 
@@ -119,6 +119,8 @@ def reload_subs(verbose=True):
 rrrr = reload_subs
 
 
+from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
+__version__ = VERSION_CURRENT
 
 """
 Regen Command:

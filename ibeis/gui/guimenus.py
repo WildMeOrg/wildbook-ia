@@ -304,7 +304,11 @@ def setup_option_menu(mainwin, back):
 def setup_help_menu(mainwin, back):
     """ HELP MENU """
     mainwin.menuHelp = guitool.newMenu(mainwin, mainwin.menubar, 'menuHelp', 'Help')
-    about_msg = 'IBEIS = Image Based Ecological Information System\nhttp://ibeis.org/'
+    #from ibeis.control import DB_SCHEMA_CURRENT
+    #version = DB_SCHEMA_CURRENT.VERSION_CURRENT
+    import ibeis
+    version = ibeis.__version__
+    about_msg = 'IBEIS version %s\nImage Based Ecological Information System\nhttp://ibeis.org/' % (version,)
     mainwin.menuHelp.newAction(
         name='actionAbout',
         text='About',
