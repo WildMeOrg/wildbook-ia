@@ -154,12 +154,16 @@ class QueryResultsWidget(APIItemWidget):
 
     def set_query_results(qres_wgt, ibs, qaid2_qres, name_scoring=False, qreq_=None, **kwargs):
         print('[qres_wgt] Change QueryResultsWidget data')
+        tblnice = 'Query Results: ' + kwargs.get('query_title', '')
+        ut.util_dict.delete_dict_keys(kwargs, ['query_title'])
+
         qres_wgt.ibs = ibs
         qres_wgt.qaid2_qres = qaid2_qres
         qres_wgt.qreq_ = qreq_
         qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres, name_scoring=name_scoring, qreq_=qreq_, **kwargs)
         qres_wgt.update_checkboxes()
-        headers = qres_wgt.qres_api.make_headers()
+
+        headers = qres_wgt.qres_api.make_headers(tblnice=tblnice)
 
         # HACK IN ROW SIZE
         vertical_header = qres_wgt.view.verticalHeader()

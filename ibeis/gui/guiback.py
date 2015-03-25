@@ -1017,7 +1017,7 @@ class MainWindowBackend(QtCore.QObject):
         back.review_queries(qres_list, qreq_=qreq_,
                             filter_reviewed=False,
                             name_scoring=False,
-                            ranks_lt=ranks_lt)
+                            ranks_lt=ranks_lt, query_title='Annot Splits')
 
     @blocking_slot()
     def compute_queries(back, refresh=True, daids_mode=None,
@@ -1056,6 +1056,7 @@ class MainWindowBackend(QtCore.QObject):
             >>> print(result)
         """
         eid = back._eidfromkw(kwargs)
+        daids_mode = back.daids_mode if daids_mode is None else daids_mode
         print('------')
         print('\n\n')
         print('[back] compute_queries: eid=%r, mode=%r' % (eid, back.daids_mode))
@@ -1070,21 +1071,32 @@ class MainWindowBackend(QtCore.QObject):
         #back.compute_feats(refresh=False, **kwargs)
         # Get the query annotation ids to search and
         # the database annotation ids to be searched
+        query_title = ''
+
         if qaid_list is None:
             if use_visual_selection:
                 # old style Actions->Query execution
                 qaid_list = back.get_selected_aids()
+                query_title += 'selection'
                 #qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
             else:
                 # if not visual selection, then qaids are selected by encounter
                 qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
+                query_title += 'encounter=' + back.ibs.get_encounter_enctext(eid)
+        else:
+            query_title += 'custom'
         if use_prioritized_name_subset:
             # you do get unknowns back in this list
             qaid_list = back.ibs.get_prioritized_name_subset(qaid_list, annots_per_name=2)
+            query_title += ' priority_subset'
             #qaid_list = ut.filter_items(
             #    *back.ibs.get_annot_quality_viewpoint_subset(aid_list=qaid_list, annots_per_view=2))
 
-        daids_mode = back.daids_mode if daids_mode is None else daids_mode
+        if daids_mode == const.VS_EXEMPLARS_KEY:
+            query_title += ' vs exemplars'
+        else:
+            query_title += ' intra encounter'
+
         daid_list = back.get_selected_daids(eid=eid, daids_mode=daids_mode)
         if len(qaid_list) == 0:
             raise guiexcept.InvalidRequest('No query annotations')
@@ -1107,9 +1119,10 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
         # Filter duplicate names if running vsexemplar
         filter_duplicate_namepair_matches = daids_mode == const.VS_EXEMPLARS_KEY
+
         back.review_queries(qres_list,
                             filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
-                            qreq_=qreq_)
+                            qreq_=qreq_, query_title=query_title)
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))
