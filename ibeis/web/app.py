@@ -686,6 +686,17 @@ def turk_additional():
         nid = app.ibs.get_annot_name_rowids(aid)
         if nid is not None:
             name_aid_list = app.ibs.get_name_aids(nid)
+            quality_list = app.ibs.get_annot_qualities(name_aid_list)
+            quality_text_list = app.ibs.get_annot_quality_texts(name_aid_list)
+            yaw_text_list = app.ibs.get_annot_yaw_texts(name_aid_list)
+            name_aid_combined_list = list(zip(
+                name_aid_list,
+                quality_list,
+                quality_text_list,
+                yaw_text_list,
+            ))
+
+            name_aid_combined_list.sort(key=lambda t: t[1], reverse=True)
         return ap.template('turk', 'additional',
                            eid=eid,
                            gid=gid,
@@ -693,7 +704,7 @@ def turk_additional():
                            value_sex=value_sex,
                            value_age=value_age,
                            image_path=gpath,
-                           name_aid_list=name_aid_list,
+                           name_aid_combined_list=name_aid_combined_list,
                            image_src=image_src,
                            previous=previous,
                            enctext=enctext,

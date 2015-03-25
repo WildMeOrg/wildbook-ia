@@ -38,11 +38,16 @@
         <span>Hard to tell?  <a href="{{ url_for('turk_detection') }}?gid={{ gid }}&eid={{ eid }}&refer={{ REFER_SRC_ENCODED }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
       </div>
 
-      {% if name_aid_list %}
+      {% if name_aid_combined_list %}
       <div id="scroll">
         <ul>
-            {% for name_aid in name_aid_list %}
-              <li><img class="ajax-image-load ajax-image-unloaded" src="" aid="{{ name_aid }}" /></li>
+            {% for (name_aid, name_quality, name_quality_text, name_yaw_text) in name_aid_combined_list %}
+              <li>
+                <img class="ajax-image-load ajax-image-unloaded" src="" aid="{{ name_aid }}" />
+                <span>
+                  {{ name_quality_text }} | {{ name_yaw_text }}
+                </span>
+              </li>
             {% endfor %}
         </ul>
       </div>
