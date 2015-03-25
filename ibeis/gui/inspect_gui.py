@@ -247,6 +247,14 @@ class QueryResultsWidget(APIItemWidget):
     #@guitool.slot_()
     def on_special_key_pressed(qres_wgt, view, event):
         selected_qtindex_list = view.selectedIndexes()
+
+        def get_qtindex_annotmatch_rowid(ibs, qtindex):
+            model = qtindex.model()
+            qaid  = model.get_header_data('qaid', qtindex)
+            daid  = model.get_header_data('aid', qtindex)
+            annotmatch_rowid_list = ibs.add_annotmatch([qaid], [daid])
+            return annotmatch_rowid_list
+
         if len(selected_qtindex_list) == 1:
             print('event = %r ' % (event,))
             print('event.key() = %r ' % (event.key(),))
@@ -261,6 +269,14 @@ class QueryResultsWidget(APIItemWidget):
             elif event_key == QtCore.Qt.Key_F:
                 #print('F')
                 mark_pair_as_negative_match(qres_wgt, qtindex)
+            elif event_key == QtCore.Qt.Key_S:
+                ibs = qres_wgt.ibs
+                annotmatch_rowid_list = get_qtindex_annotmatch_rowid(ibs, qtindex)
+                ibs.set_annotmatch_is_scenerymatch(annotmatch_rowid_list, [True])
+            elif event_key == QtCore.Qt.Key_P:
+                ibs = qres_wgt.ibs
+                annotmatch_rowid_list = get_qtindex_annotmatch_rowid(ibs, qtindex)
+                ibs.set_annotmatch_is_photobomb(annotmatch_rowid_list, [True])
             print('emiting data changed')
             # This may not work with PyQt5
             # http://stackoverflow.com/questions/22560296/pyqt-list-view-not-responding-to-datachanged-signal
@@ -989,7 +1005,8 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
     # default is 100
     col_width_dict = {
         'score': 75,
-        REVIEWED_STATUS_TEXT: 90,
+        REVIEWED_STATUS_TEXT: 75,
+        MATCHED_STATUS_TEXT: 75,
         'rank': 42,
         'qaid': 42,
         'aid': 42,
@@ -1048,8 +1065,8 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
             colname_getter = getattr(ibs, 'get_annotmatch_' + colname)
             def getter_wrapper(aidpair):
                 qaid, daid = aidpair
-                rowid_list = ibs.add_annotmatch([qaid], [daid])
-                value_list = colname_getter(rowid_list)
+                annotmatch_rowid_list = ibs.add_annotmatch([qaid], [daid])
+                value_list = colname_getter(annotmatch_rowid_list)
                 value = value_list[0]
                 return value if value is not None else False
             ut.set_funcname(getter_wrapper, 'getter_wrapper_' + colname)
@@ -1059,9 +1076,9 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
             colname_setter = getattr(ibs, 'set_annotmatch_' + colname)
             def setter_wrapper(aidpair, value):
                 qaid, daid = aidpair
-                rowid_list = ibs.add_annotmatch([qaid], [daid])
+                annotmatch_rowid_list = ibs.add_annotmatch([qaid], [daid])
                 value_list = [value]
-                return colname_setter(rowid_list, value_list)
+                return colname_setter(annotmatch_rowid_list, value_list)
             ut.set_funcname(setter_wrapper, 'setter_wrapper_' + colname)
             return setter_wrapper
 

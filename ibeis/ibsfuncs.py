@@ -3034,6 +3034,17 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
         >>> result = len(aid_subset)
         >>> print(result)
         28
+
+    Exeample:
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb2')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> aid_list = ut.list_compress(aid_list, ibs.is_aid_unknown(aid_list))
+        >>> annots_per_name = 2
+        >>> aid_subset = get_prioritized_name_subset(ibs, aid_list, annots_per_name)
+        >>> qualtexts = ibs.get_annot_quality_texts(aid_list)
+        >>> yawtexts = ibs.get_annot_yaw_texts(aid_list)
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
@@ -3334,6 +3345,25 @@ def check_chip_existence(ibs, aid_list=None):
     if len(cid_kill_list) > 0:
         print('found %d inconsistent chips attempting to fix' % len(cid_kill_list))
     ibs.delete_chips(cid_kill_list)
+
+
+@__injectable
+def filter_aids_by_quality_and_viewpoint(ibs, aid_list, minqual, valid_yaws):
+    qual_list = ibs.get_annot_qualities(aid_list)
+    yawtext_list = ibs.get_annot_yaw_texts(aid_list)
+    qual_flags = [qual is None or qual > minqual for qual in qual_list]
+    yaw_flags  = [yaw is None or yaw in valid_yaws for yaw in yawtext_list]
+    flags_list = ut.and_lists(qual_flags, yaw_flags)
+    aid_list_ = ut.filter_items(aid_list, flags_list)
+    return aid_list_
+
+
+@__injectable
+def filter_aids_custom(ibs, aid_list):
+    minqual = const.QUALITY_TEXT_TO_INT['poor']
+    valid_yaws = {'left', 'frontleft', 'backleft'}
+    aid_list_ = ibs.filter_aids_by_quality_and_viewpoint(aid_list, minqual, valid_yaws)
+    return aid_list_
 
 
 if __name__ == '__main__':
