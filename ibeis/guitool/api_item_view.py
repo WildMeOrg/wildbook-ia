@@ -171,7 +171,25 @@ def _update_headers(view, **headers):
     # FIXME: is this the right thing to do here?
     view._set_sort(col_sort_index, col_sort_reverse)
     view.infer_delegates(**headers)
-    #view.infer_delegates_from_model(model=model) #view.resizeColumnsToContents()
+    print('[view] updating headers')
+    col_width_list = headers.get('col_width_list', None)
+    if col_width_list is not None:
+        #try:
+        #if view.model().name == 'encounters':
+        #    ut.embed()
+        if isinstance(view, QtGui.QTreeView):
+            horizontal_header = view.header()
+        else:
+            horizontal_header = view.horizontalHeader()
+        for index, width in enumerate(col_width_list):
+            # Check for functionally sepcified widths
+            if hasattr(width, '__call__'):
+                width = width()
+            horizontal_header.resizeSection(index, width)
+        #except AttributeError as ex:
+        #    ut.embed()
+        #    ut.printex(ex, 'tree view?')
+        #view.infer_delegates_from_model(model=model) #view.resizeColumnsToContents()
 
 
 @register_view_method
