@@ -224,6 +224,7 @@
       //   return false;
       // })
       this.annotator_element.mousedown(function(e) {
+        $('.annotated_bounding_box').css('opacity', '1.00');
         if (!annotator.hit_menuitem) {
           switch (status) {
             case 'free':
@@ -271,29 +272,42 @@
         return true;
       });
       $(window).mousemove(function(e) {
+
+        function lineDistance( p1x, p1y, p2x, p2y ) { return Math.sqrt( (p2x - p1x) * (p2x - p1x) + (p2y - p1y) * (p2y - p1y) ); }
+
         var active_box;
         active_box = $('.annotated_bounding_box_active');
-        position_annotator = $('#bbox_annotator').position();
-        position_origin = active_box.position();
-        if(position_annotator !== undefined && position_origin !== undefined)
-        {
-            position_origin_x = position_annotator.left + position_origin.left;
-            position_origin_y = position_annotator.top + position_origin.top;
-            active_box.find('.ui-resizable-handle').each(function() {
-                position_handle = $(this).position();
-                position_handle_x = position_origin_x + position_handle.left;
-                position_handle_y = position_origin_y + position_handle.top;
-                console.log('    Button: (' + position_handle_x + ', ' + position_handle_y + ')');
-            });
-            console.log(' ');
-        }
+        console.log('MOUSE: ' + e.pageX + ' ' + e.pageY + ' ' + status + ' ' + annotator.editing_mouse_inside);
+        var furthest_dist = 0;
+        var furthest_anchor = null;
+        active_box.find('.ui-resizable-handle').each(function() {
+            position_handle = $(this).offset();
+            position_handle_x = position_handle.left;
+            position_handle_y = position_handle.top;
+            distance = lineDistance(position_handle_x, position_handle_y, e.pageX, e.pageY);
+            console.log('    Button: (' + position_handle_x + ', ' + position_handle_y + ')' + ' ' + distance);
+            $(this).css('background-color', 'white');
+            if(distance > furthest_dist)
+            {
+                furthest_anchor = this;
+                furthest_dist = distance;
+            }
+        });
+        console.log(' ');
+        $(furthest_anchor).css('background-color', '#d9534f');
+
+        console.log(status);
         switch (status) {
           case 'hold':
             selector.update_rectangle(e.pageX, e.pageY);
+            $('.annotated_bounding_box').css('opacity', '0.25');
+            $('.label-text-box').css('opacity', '0.0');
         }
         return true;
       });
       $(window).mouseup(function(e) {
+        $('.annotated_bounding_box').css('opacity', '1.00');
+        $('.label-text-box').css('opacity', '0.8');
         switch (status) {
           case 'hold':
             selector.update_rectangle(e.pageX, e.pageY);
@@ -456,12 +470,12 @@
       {
         if(hover)
         {
-          box_element.css('border-color', 'rgb(255, 155, 0)');
+          box_element.css('border-color', '#f0ad4e');
           box_element.css('opacity', '1.0');
           box_element.css('cursor', 'move');
           box_element.css('background-color', 'rgba(0, 0, 0, 0.2)');
           box_element.addClass('annotated_bounding_box_active');
-          text_box.css('background-color', 'rgb(255, 155, 0)');
+          text_box.css('background-color', '#f0ad4e');
           text_box.css('opacity', '1.0');
           rotate_button.show();
           close_button.show();
@@ -508,8 +522,10 @@
       var resize_params = {
           start: function(e, ui) {
             annotator.editing = true;
+            $('.label-text-box').css('opacity', '0.0');
           },
           stop: function(e, ui) {
+            $('.label-text-box').css('opacity', '0.80');
             annotator.editing = false;
             update_dimensions();
             update_style(false, annotator, e);
@@ -520,8 +536,10 @@
       var rotate_params = {
           start: function(e, ui) {
             annotator.editing = true;
+            $('.label-text-box').css('opacity', '0.0');
           },
           stop: function(e, ui) {
+            $('.label-text-box').css('opacity', '0.80');
             annotator.editing = false;
             update_angle(ui.angle.stop);
             update_style(false, annotator, e);
@@ -531,9 +549,11 @@
       var drag_params = {
           start: function(e, ui) {
             annotator.editing = true;
+            $('.label-text-box').css('opacity', '0.0');
           },
           stop: function(e, ui) {
             console.log("STOP");
+            $('.label-text-box').css('opacity', '0.80');
             annotator.editing = false;
             update_dimensions();
             update_style(false, annotator, e);
@@ -585,7 +605,7 @@
         "line-height": "16px",
         "font-family": '"Helvetica Neue", Consolas, Verdana, Tahoma, Calibri, ' + 'Helvetica, Menlo, "Droid Sans", sans-serif'
       });
-      text_box = $('<div></div>').appendTo(box_element).css({
+      text_box = $('<div class="label-text-box"></div>').appendTo(box_element).css({
         "overflow": "visible",
         "display": "inline-block",
         "background-color": annotator.default_color,
