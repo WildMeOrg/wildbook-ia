@@ -131,6 +131,10 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     qreq_.unique_species = unique_species_  # HACK
     if verbose:
         print('[qreq] * query_cfgstr = %s' % (qreq_.qparams.query_cfgstr,))
+        print('[qreq] * len(qaid_list) = %s' % (len(qaid_list),))
+        print('[qreq] * len(daid_list) = %s' % (len(daid_list),))
+        print('[qreq] * data_hashid   = %s' % (qreq_.get_data_hashid(),))
+        print('[qreq] * query_hashid  = %s' % (qreq_.get_query_hashid(),))
         print('[qreq] L___ New IBEIS QRequest ___ ')
     return qreq_
 
