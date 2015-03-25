@@ -113,11 +113,11 @@ TABLE_COLNAMES = {
         #'eid',
         'enctext',
         'nImgs',
-        'encounter_start_datetime',
-        'percent_imgs_reviewed_str',
         'percent_annotmatch_reviewed_str',
-        'num_imgs_reviewed',
-        'num_annotmatch_reviewed',
+        #'percent_imgs_reviewed_str',
+        'encounter_start_datetime',
+        #'num_imgs_reviewed',
+        #'num_annotmatch_reviewed',
         #'encounter_end_datetime',
         # 'encounter_processed_flag',
         # 'encounter_shipped_flag',
@@ -247,7 +247,7 @@ COL_DEF = dict([
     ('party_tag', (str, 'Party')),
     ('contributor_tag', (str, 'Contributor')),
     ('percent_imgs_reviewed_str', (str, '%Imgs Reviewed')),
-    ('percent_annotmatch_reviewed_str', (str, '%Matches Reviewed')),
+    ('percent_annotmatch_reviewed_str', (str, '%Queried')),
     ('num_imgs_reviewed', (str, '#Imgs Reviewed')),
     ('num_annotmatch_reviewed', (str, '#Matches Reviewed')),
 ])
@@ -293,15 +293,39 @@ def make_ibeis_headers_dict(ibs):
     iders = {}
     setters = {}
     getters = {}
-    #
-    # Image Iders/Setters/Getters
-
+    widths = {}
     def infer_unspecified_getters(tablename, shortname):
         for colname in TABLE_COLNAMES[tablename]:
             if colname not in getters[tablename]:
                 getters[tablename][colname] = getattr(ibs, 'get_' + shortname + '_' + colname)
                 print(getters[tablename][colname])
-
+    # +--------------------------
+    # Encounter Iders/Setters/Getters
+    iders[ENCOUNTER_TABLE]   = [ partial(ibs.get_valid_eids, shipped=False)]
+    getters[ENCOUNTER_TABLE] = {
+        'eid'        : lambda eids: eids,
+        'nImgs'      : ibs.get_encounter_num_gids,
+        'enctext'    : ibs.get_encounter_enctext,
+        'encounter_shipped_flag'     : ibs.get_encounter_shipped_flags,
+        'encounter_processed_flag'   : ibs.get_encounter_processed_flags,
+        #
+        'encounter_start_datetime'   : partial_imap_1to1(ut.unixtime_to_datetime, ibs.get_encounter_start_time_posix),
+        'encounter_end_datetime'     : partial_imap_1to1(ut.unixtime_to_datetime, ibs.get_encounter_end_time_posix),
+        #
+        'encounter_start_time_posix' : ibs.get_encounter_start_time_posix,
+        'encounter_end_time_posix'   : ibs.get_encounter_end_time_posix,
+    }
+    infer_unspecified_getters(ENCOUNTER_TABLE, 'encounter')
+    setters[ENCOUNTER_TABLE] = {
+        'enctext'    : ibs.set_encounter_enctext,
+        'encounter_shipped_flag'    : ibs.set_encounter_shipped_flags,
+        'encounter_processed_flag'  : ibs.set_encounter_processed_flags,
+    }
+    widths[ENCOUNTER_TABLE] = {
+        'nImgs': 55,
+    }
+    # +--------------------------
+    # Image Iders/Setters/Getters
     iders[IMAGE_TABLE]   = [ibs.get_valid_gids]
     getters[IMAGE_TABLE] = {
         'gid'        : lambda gids: gids,
@@ -320,35 +344,12 @@ def make_ibeis_headers_dict(ibs):
         'gps'        : partial_imap_1to1(ut.tupstr, ibs.get_image_gps),
     }
     infer_unspecified_getters(IMAGE_TABLE, 'image')
-
     setters[IMAGE_TABLE] = {
         'reviewed'      : ibs.set_image_reviewed,
         'imgnotes'      : ibs.set_image_notes,
     }
-    #
-    # Encounter Iders/Setters/Getters
-    iders[ENCOUNTER_TABLE]   = [ partial(ibs.get_valid_eids, shipped=False)]
-    getters[ENCOUNTER_TABLE] = {
-        'eid'        : lambda eids: eids,
-        'nImgs'      : ibs.get_encounter_num_gids,
-        'enctext'    : ibs.get_encounter_enctext,
-        'encounter_shipped_flag'     : ibs.get_encounter_shipped_flags,
-        'encounter_processed_flag'   : ibs.get_encounter_processed_flags,
-        #
-        'encounter_start_datetime'   : partial_imap_1to1(ut.unixtime_to_datetime, ibs.get_encounter_start_time_posix),
-        'encounter_end_datetime'     : partial_imap_1to1(ut.unixtime_to_datetime, ibs.get_encounter_end_time_posix),
-        #
-        'encounter_start_time_posix' : ibs.get_encounter_start_time_posix,
-        'encounter_end_time_posix'   : ibs.get_encounter_end_time_posix,
-    }
-    infer_unspecified_getters(ENCOUNTER_TABLE, 'encounter')
-
-    setters[ENCOUNTER_TABLE] = {
-        'enctext'    : ibs.set_encounter_enctext,
-        'encounter_shipped_flag'    : ibs.set_encounter_shipped_flags,
-        'encounter_processed_flag'  : ibs.set_encounter_processed_flags,
-    }
-
+    # +--------------------------
+    # IMAGE GRID
     iders[IMAGE_GRID]   = [ibs.get_valid_gids]
     getters[IMAGE_GRID] = {
         'thumb'      : ibs.get_image_thumbtup,
@@ -357,7 +358,7 @@ def make_ibeis_headers_dict(ibs):
     }
     setters[IMAGE_GRID] = {
     }
-    #
+    # +--------------------------
     # ANNOTATION Iders/Setters/Getters
     iders[ANNOTATION_TABLE]   = [ibs.get_valid_aids]
     getters[ANNOTATION_TABLE] = {
@@ -390,7 +391,7 @@ def make_ibeis_headers_dict(ibs):
         'exemplar'   : ibs.set_annot_exemplar_flags,
         'quality_text'    : ibs.set_annot_quality_texts,
     }
-    #
+    # +--------------------------
     # Name Iders/Setters/Getters
     iders[NAME_TABLE]   = [ibs.get_valid_nids]
     getters[NAME_TABLE] = {
@@ -403,7 +404,8 @@ def make_ibeis_headers_dict(ibs):
         'name'       : ibs.set_name_texts,
         'namenotes'  : ibs.set_name_notes,
     }
-    #
+    # +--------------------------
+    # NAMES TREE
     iders[NAMES_TREE]   = [ibs.get_valid_nids, ibs.get_name_aids]
     getters[NAMES_TREE] = {
         'nid'          : lambda nids: nids,
@@ -425,7 +427,13 @@ def make_ibeis_headers_dict(ibs):
         'yaw_text'     : setters[ANNOTATION_TABLE]['yaw_text'],
         'quality_text' : setters[ANNOTATION_TABLE]['quality_text'],
     }
-
+    widths[NAMES_TREE] = {
+        'thumb' : lambda: ibs.cfg.other_cfg.thumb_size,
+        'nAids': 65,
+        'nid': 50,
+    }
+    # +--------------------------
+    # THUMB TABLE
     iders[THUMB_TABLE]   = [ibs.get_valid_gids]
     getters[THUMB_TABLE] = {
         'thumb'      : ibs.get_image_thumbtup,
@@ -434,10 +442,11 @@ def make_ibeis_headers_dict(ibs):
     }
     setters[THUMB_TABLE] = {
     }
+    # L________________________
 
     def make_header(tblname):
         """
-        Input:
+        Args:
             table_name - the internal table name
         """
         tblnice    = TABLE_NICE[tblname]
@@ -450,6 +459,9 @@ def make_ibeis_headers_dict(ibs):
         collevels  = [collevel_dict[colname] for colname in colnames]
         hiddencols = TABLE_HIDDEN_LIST.get(tblname, [False for _ in range(len(colnames))])
         numstripes = TABLE_STRIPE_LIST.get(tblname, 1)
+
+        colwidths_dict = widths.get(tblname, {})
+        colwidths = [colwidths_dict.get(colname, 100) for colname in colnames]
 
         def get_column_data(colname):
             try:
@@ -468,19 +480,20 @@ def make_ibeis_headers_dict(ibs):
             ut.printex(ex,  key_list=['tblname', 'colnames'])
             raise
         header = {
-            'name': tblname,
-            'nice': tblnice,
-            'iders': iders[tblname],
-            'col_name_list': colnames,
-            'col_type_list': coltypes,
-            'col_nice_list': colnices,
-            'col_edit_list': coledits,
-            'col_getter_list': colgetters,
-            'col_setter_list': colsetters,
-            'col_level_list': collevels,
+            'name'            : tblname,
+            'nice'            : tblnice,
+            'iders'           : iders[tblname],
+            'col_name_list'   : colnames,
+            'col_type_list'   : coltypes,
+            'col_nice_list'   : colnices,
+            'col_edit_list'   : coledits,
+            'col_getter_list' : colgetters,
+            'col_setter_list' : colsetters,
+            'col_level_list'  : collevels,
             'col_hidden_list' : hiddencols,
             'num_duplicates'  : numstripes,
             'get_thumb_size'  : lambda: ibs.cfg.other_cfg.thumb_size,
+            'col_width_list'  : colwidths,  # TODO
         }
         return header
 

@@ -995,11 +995,11 @@ class MainWindowBackend(QtCore.QObject):
         UUID('1588afd0-07a9-6ff8-0412-8a0050ee3f2f'),
         UUID('993da060-658d-321e-e84f-4140e1ab2de1'),
         UUID('6238b3f5-b8c3-df5e-d33a-5835fdc069ae')]
-        qaid_list = [10775, 10887, 10940, 11140, 11167, 11168, 11234, 11261,
+        aid_list = [10775, 10887, 10940, 11140, 11167, 11168, 11234, 11261,
         11289, 11345, 11461, 11615, 11616, 11647, 11655, 11721, 11722, 11734,
         11735, 11782, 11804, 11837, 12137, 12138, 12263, 12264, 12295, 12302,
         12323, 12324, 12403, 12404, 12432, 12784, 12876, 12877, 12904]
-        ibs.run_annot_splits(qaid_list)
+        back.run_annot_splits(aid_list)
 
         """
         cfgdict = {
@@ -1056,7 +1056,9 @@ class MainWindowBackend(QtCore.QObject):
         """
         eid = back._eidfromkw(kwargs)
         print('------')
-        print('\n\n[back] compute_queries: eid=%r, mode=%r' % (eid, back.daids_mode))
+        print('\n\n')
+        print('[back] compute_queries: eid=%r, mode=%r' % (eid, back.daids_mode))
+        print('[back] use_prioritized_name_subset = %r' % (use_prioritized_name_subset,))
         if eid is None:
             print('[back] invalid eid')
             return
@@ -1072,7 +1074,8 @@ class MainWindowBackend(QtCore.QObject):
                 # if not visual selection, then qaids are selected by encounter
                 qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
         if use_prioritized_name_subset:
-            qaid_list = back.ibs.get_prioritized_name_subset(aid_list=qaid_list, annots_per_name=2)
+            # you do get unknowns back in this list
+            qaid_list = back.ibs.get_prioritized_name_subset(qaid_list, annots_per_name=2)
             #qaid_list = ut.filter_items(
             #    *back.ibs.get_annot_quality_viewpoint_subset(aid_list=qaid_list, annots_per_view=2))
 
@@ -1082,21 +1085,11 @@ class MainWindowBackend(QtCore.QObject):
             raise guiexcept.InvalidRequest('No query annotations')
 
         # HACK
-        if daids_mode == const.INTRA_ENC_KEY:
-            FILTER_HACK = True
-            if FILTER_HACK:
-                def filterhack_aids(aid_list):
-                    minqual = const.QUALITY_TEXT_TO_INT['poor']
-                    valid_yaws = {'left', 'frontleft', 'backleft'}
-                    qual_list = back.ibs.get_annot_qualities(aid_list)
-                    yawtext_list = back.ibs.get_annot_yaw_texts(aid_list)
-                    qual_flags = [qual is None or qual > minqual for qual in qual_list]
-                    yaw_flags  = [yaw is None or yaw in valid_yaws for yaw in yawtext_list]
-                    flags_list = ut.and_lists(qual_flags, yaw_flags)
-                    aid_list_ = ut.filter_items(aid_list, flags_list)
-                    return aid_list_
-                qaid_list = filterhack_aids(qaid_list)
-                daid_list = filterhack_aids(daid_list)
+        #if daids_mode == const.INTRA_ENC_KEY:
+        FILTER_HACK = True
+        if FILTER_HACK:
+            qaid_list = back.ibs.filter_aids_custom(qaid_list)
+            daid_list = back.ibs.filter_aids_custom(daid_list)
         qreq_ = back.ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict)
         back.confirm_query_dialog(daid_list, qaid_list, cfgdict=cfgdict)
         qres_list = back.ibs.query_chips(qreq_=qreq_)

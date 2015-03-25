@@ -596,9 +596,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt.setWindowTitle(title)
             if ut.VERBOSE:
                 print('[newgui] Calling model _update_headers')
-            block_wgt_flag = ibswgt._tab_table_wgt.blockSignals(True)
+            #block_wgt_flag = ibswgt._tab_table_wgt.blockSignals(True)
             with ut.Timer('[newgui] update models'):
-                for tblname in ibswgt.changing_models_gen(ibswgt.super_tblname_list):
+                #for tblname in ibswgt.changing_models_gen(ibswgt.super_tblname_list):
+                for tblname in ibswgt.super_tblname_list:
                     model = ibswgt.models[tblname]
                     view = ibswgt.views[tblname]
                     #if not view.isVisible():
@@ -609,10 +610,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     #widget.change_headers(header)
                     #
                     # NOT SURE IF THESE BLOCKERS SHOULD BE COMMENTED
-                    block_model_flag = model.blockSignals(True)
+                    #block_model_flag = model.blockSignals(True)
                     model._update_headers(**header)
                     view._update_headers(**header)  # should use model headers
-                    model.blockSignals(block_model_flag)
+                    #model.blockSignals(block_model_flag)
                     #
                     #view.infer_delegates_from_model()
                 for tblname in ibswgt.super_tblname_list:
@@ -621,7 +622,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     #    print(view)
                     #    continue
                     view.hide_cols()
-            ibswgt._tab_table_wgt.blockSignals(block_wgt_flag)
+            #ibswgt._tab_table_wgt.blockSignals(block_wgt_flag)
             ibswgt._change_enc(-1)
 
             LOAD_ENCOUNTER_ON_START = True
