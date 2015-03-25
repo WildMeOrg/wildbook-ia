@@ -3398,15 +3398,39 @@ def check_chip_existence(ibs, aid_list=None):
 def filter_aids_by_quality_and_viewpoint(ibs, aid_list, minqual, valid_yaws):
     qual_list = ibs.get_annot_qualities(aid_list)
     yawtext_list = ibs.get_annot_yaw_texts(aid_list)
-    qual_flags = [qual is None or qual > minqual for qual in qual_list]
-    yaw_flags  = [yaw is None or yaw in valid_yaws for yaw in yawtext_list]
-    flags_list = ut.and_lists(qual_flags, yaw_flags)
-    aid_list_ = ut.filter_items(aid_list, flags_list)
+    qual_flags = (qual is None or qual > minqual for qual in qual_list)
+    yaw_flags  = (yaw is None or yaw in valid_yaws for yaw in yawtext_list)
+    flags_list = ut.and_iters(qual_flags, yaw_flags)
+    aid_list_ = list(ut.ifilter_items(aid_list, flags_list))
     return aid_list_
 
 
 @__injectable
 def filter_aids_custom(ibs, aid_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+
+    Returns:
+        list: aid_list_
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-filter_aids_custom
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb2')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> # execute function
+        >>> aid_list_ = filter_aids_custom(ibs, aid_list)
+        >>> # verify results
+        >>> result = str(aid_list_)
+        >>> print(result)
+    """
     minqual = const.QUALITY_TEXT_TO_INT['poor']
     valid_yaws = {'left', 'frontleft', 'backleft'}
     aid_list_ = ibs.filter_aids_by_quality_and_viewpoint(aid_list, minqual, valid_yaws)
