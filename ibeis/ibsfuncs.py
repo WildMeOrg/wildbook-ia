@@ -227,13 +227,58 @@ def get_annot_has_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None)
 
 
 @__injectable
-def get_annot_num_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
-    aids_list = ibs.get_annot_reviewed_matching_aids(aid_list, eager=eager, nInput=nInput)
+def get_annot_num_reviewed_matching_aids(ibs, aid1_list, eager=True, nInput=None):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+        eager (bool):
+        nInput (None):
+
+    Returns:
+        list: num_annot_reviewed_list
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_annot_num_reviewed_matching_aids
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb2')
+        >>> aid1_list = ibs.get_valid_aids()
+        >>> eager = True
+        >>> nInput = None
+        >>> # execute function
+        >>> num_annot_reviewed_list = get_annot_num_reviewed_matching_aids(ibs, aid_list, eager, nInput)
+        >>> # verify results
+        >>> result = str(num_annot_reviewed_list)
+        >>> print(result)
+    """
+    aids_list = ibs.get_annot_reviewed_matching_aids(aid1_list, eager=eager, nInput=nInput)
     num_annot_reviewed_list = list(map(len, aids_list))
     return num_annot_reviewed_list
 
 
+def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
+    """
+    Returns a list of the aids that were reviewed as candidate matches to the input aid
+
+    aid_list = ibs.get_valid_aids()
+    """
+    ANNOT_ROWID1 = 'annot_rowid1'
+    params_iter = [(aid1,) for aid1 in aid1_list]
+    colnames = ('annotmatch_rowid',)
+    andwhere_colnames = (ANNOT_ROWID1,)
+    annotmach_rowid_list = ibs.db.get_where2(
+        const.ANNOTMATCH_TABLE, colnames, params_iter,
+        andwhere_colnames=andwhere_colnames, eager=eager, unpack_scalars=False, nInput=nInput)
+    return annotmach_rowid_list
+
+
 @__injectable
+#@accessor_decors.cache_getter(const.ANNOTATION_TABLE, native_rowids=False)
 def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
     """
     Returns a list of the aids that were reviewed as candidate matches to the input aid
@@ -249,9 +294,11 @@ def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
     params_iter = [(aid,) for aid in aid_list]
     colnames = (ANNOT_ROWID2,)
     andwhere_colnames = (ANNOT_ROWID1,)
-    aids_list = ibs.db.get_where2(
-        const.ANNOTMATCH_TABLE, colnames, params_iter,
-        andwhere_colnames=andwhere_colnames, eager=eager, unpack_scalars=False, nInput=nInput)
+    aids_list = ibs.db.get_where2(const.ANNOTMATCH_TABLE, colnames,
+                                  params_iter,
+                                  andwhere_colnames=andwhere_colnames,
+                                  eager=eager, unpack_scalars=False,
+                                  nInput=nInput)
     #logicop = 'OR'
     #aids_list = ibs.db.get_where3(
     #    const.ANNOTMATCH_TABLE, colnames, params_iter,
