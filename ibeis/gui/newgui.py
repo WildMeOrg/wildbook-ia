@@ -1149,27 +1149,16 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         aids_list = ibs.get_name_aids(nid_list)
                         aid_list = sorted(list(set(ut.flatten(aids_list))))
                         back.run_annot_splits(aid_list)
-                        #METHOD = 1
-                        #if METHOD == 1:
-                        #elif METHOD == 2:
-                        #    aids_list = ibs.get_name_aids(nid_list)
-                        #    qreq_list = []
-                        #    for aids in aids_list:
-                        #        cfgdict = {'can_match_samename': True, 'K': 3}
-                        #        qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict)
-                        #        qreq_list.append(qreq_)
 
-                        #    big_qres_list = []
-                        #    for qreq_ in qreq_list:
-                        #        qres_list = ibs.query_chips(qreq_=qreq_)
-                        #        big_qres_list.extend(qres_list)
-                        #    back.review_queries(big_qres_list)
-
-                    from ibeis.dbio import export_subset
+                    def export_nids(ibs, nid_list):
+                        from ibeis.dbio import export_subset
+                        if not back.are_you_sure('Confirm export of nid_list=%r' % (nid_list,)):
+                            return
+                        export_subset.export_names(ibs, nid_list)
 
                     context_options += [
                         ('Check for splits', lambda: run_splits(ibs, nid_list)),
-                        ('Export names', lambda: export_subset.export_names(ibs, nid_list)),
+                        ('Export names', lambda: export_nids(ibs, nid_list)),
                     ]
                 else:
                     print('nutin')
