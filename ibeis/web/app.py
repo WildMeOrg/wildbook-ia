@@ -916,8 +916,15 @@ def submit_additional():
                 age_max = None
 
             app.ibs.set_annot_sex([aid], [sex])
-            app.ibs.set_annot_age_months_est_min([aid], [age_min])
-            app.ibs.set_annot_age_months_est_max([aid], [age_max])
+            nid = app.ibs.get_annot_name_rowids(aid)
+            DAN_SPECIAL_WRITE_AGE_TO_ALL_ANOTATIONS = True
+            if nid is not None and DAN_SPECIAL_WRITE_AGE_TO_ALL_ANOTATIONS:
+                aid_list = app.ibs.get_name_aids(nid)
+                app.ibs.set_annot_age_months_est_min(aid_list, [age_min] * len(aid_list))
+                app.ibs.set_annot_age_months_est_max(aid_list, [age_max] * len(aid_list))
+            else:
+                app.ibs.set_annot_age_months_est_min([aid], [age_min])
+                app.ibs.set_annot_age_months_est_max([aid], [age_max])
             print('[web] turk_id: %s, aid: %d, sex: %r, age: %r' % (turk_id, aid, sex, age))
         # Return HTML
         refer = request.args.get('refer', '')
