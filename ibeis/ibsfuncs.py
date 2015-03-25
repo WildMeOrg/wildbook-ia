@@ -3112,7 +3112,7 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
         'front'      : 0,
         'frontleft'  : 3,
         'left'       : 6,
-        'backleft'   : 3,
+        'backleft'   : 0,
         'back'       : 0,
         'backright'  : 0,
         None         : 0,
@@ -3289,21 +3289,21 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
     return new_aid_list, new_flag_list
 
 
-@__injectable
-def query_enc_names_vs_exemplars(ibs, exemplars_per_view=2, eid=None):
-    """
+#@__injectable
+#def query_enc_names_vs_exemplars(ibs, exemplars_per_view=2, eid=None):
+#    """
 
-    """
-    aid_list = ibs.get_valid_aids(eid=eid)
-    new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
-        ibs, aid_list=aid_list, annots_per_view=exemplars_per_view)
-    qaids = ut.filter_items(new_aid_list, new_flag_list)
-    daids = ibs.get_valid_aids(is_exemplar=True, nojunk=True)
-    cfgdict = dict(can_match_samename=False)
-    #, use_k_padding=True)
-    qreq_ = ibs.new_query_request(qaids, daids, cfgdict)
-    qres_list = ibs.query_chips(qreq_=qreq_)
-    return qres_list
+#    """
+#    aid_list = ibs.get_valid_aids(eid=eid)
+#    new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
+#        ibs, aid_list=aid_list, annots_per_view=exemplars_per_view)
+#    qaids = ut.filter_items(new_aid_list, new_flag_list)
+#    daids = ibs.get_valid_aids(is_exemplar=True, nojunk=True)
+#    cfgdict = dict(can_match_samename=False)
+#    #, use_k_padding=True)
+#    qreq_ = ibs.new_query_request(qaids, daids, cfgdict)
+#    qres_list = ibs.query_chips(qreq_=qreq_)
+#    return qres_list
 
 
 def detect_join_cases(ibs):
@@ -3432,7 +3432,8 @@ def filter_aids_custom(ibs, aid_list):
         >>> print(result)
     """
     minqual = const.QUALITY_TEXT_TO_INT['poor']
-    valid_yaws = {'left', 'frontleft', 'backleft'}
+    #valid_yaws = {'left', 'frontleft', 'backleft'}
+    valid_yaws = {'left', 'frontleft'}
     aid_list_ = ibs.filter_aids_by_quality_and_viewpoint(aid_list, minqual, valid_yaws)
     return aid_list_
 
