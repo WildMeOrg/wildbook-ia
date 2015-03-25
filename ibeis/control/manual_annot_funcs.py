@@ -10,7 +10,6 @@ import uuid
 import numpy as np  # NOQA
 from ibeis import constants as const
 from ibeis.control import accessor_decors
-from ibeis.control.accessor_decors import (adder, ider, getter_1to1, getter_1toM, deleter, setter)
 import utool as ut
 from ibeis import ibsfuncs
 from ibeis.control.controller_inject import make_ibs_register_decorator
@@ -55,7 +54,7 @@ ANNOT_IS_WASHEDOUT       = 'annot_is_washedout'
 # TODO CACHE THIS AND FIND WHAT IT SHOULD INVALIDATE IT
 # ADD ANNOTS, DELETE ANNOTS ANYTHING ELSE?
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def _get_all_aids(ibs):
     """
     Returns:
@@ -73,7 +72,7 @@ def get_num_annotations(ibs, **kwargs):
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
                    yaw='no-filter', is_exemplar=None, species=None,
                    is_known=None, nojunk=False):
@@ -194,7 +193,7 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
 
 
 @register_ibs_method
-@adder
+@accessor_decors.adder
 def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                 species_list=None, nid_list=None, name_list=None,
                 detect_confidence_list=None, notes_list=None,
@@ -442,7 +441,7 @@ def get_annot_rows(ibs, aid_list):
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 def delete_annot_nids(ibs, aid_list):
     """
     Remove name assocation from the list of input aids.
@@ -455,7 +454,7 @@ def delete_annot_nids(ibs, aid_list):
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 def delete_annot_speciesids(ibs, aid_list):
     """ Deletes nids of a list of annotations """
     # FIXME: This should be implicit by setting the anotation name to the
@@ -465,7 +464,7 @@ def delete_annot_speciesids(ibs, aid_list):
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 @accessor_decors.cache_invalidator(const.ANNOTATION_TABLE)
 def delete_annots(ibs, aid_list):
     """ deletes annotations from the database """
@@ -485,7 +484,7 @@ def delete_annots(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_aids_from_semantic_uuid(ibs, semantic_uuid_list):
     """
     Args:
@@ -501,7 +500,7 @@ def get_annot_aids_from_semantic_uuid(ibs, semantic_uuid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_aids_from_uuid(ibs, uuid_list):
     """
     Returns:
@@ -513,7 +512,7 @@ def get_annot_aids_from_uuid(ibs, uuid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_aids_from_visual_uuid(ibs, visual_uuid_list):
     """
     Args:
@@ -530,7 +529,7 @@ def get_annot_aids_from_visual_uuid(ibs, visual_uuid_list):
 
 @register_ibs_method
 @ut.accepts_numpy
-@getter_1toM
+@accessor_decors.getter_1toM
 def get_annot_bboxes(ibs, aid_list):
     """
     Returns:
@@ -557,7 +556,7 @@ def get_annot_class_labels(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_detect_confidence(ibs, aid_list):
     """
     Returns:
@@ -568,7 +567,7 @@ def get_annot_detect_confidence(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_exemplar_flags(ibs, aid_list):
     r"""
     returns if an annotation is an exemplar
@@ -602,7 +601,7 @@ def get_annot_exemplar_flags(ibs, aid_list):
 
 @register_ibs_method
 @ut.accepts_numpy
-@getter_1to1
+@accessor_decors.getter_1to1
 #@cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
 def get_annot_gids(ibs, aid_list):
     """
@@ -629,7 +628,7 @@ def get_annot_gids(ibs, aid_list):
 
 @register_ibs_method
 @ut.accepts_numpy
-@getter_1to1
+@accessor_decors.getter_1to1
 #@cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
 def get_annot_eids(ibs, aid_list):
     """
@@ -656,7 +655,7 @@ def get_annot_eids(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1toM
+@accessor_decors.getter_1toM
 def get_annot_otherimage_aids(ibs, aid_list):
     gid_list = ibs.get_annot_gids(aid_list)
     image_aids_list = ibs.get_image_aids(gid_list)
@@ -667,7 +666,7 @@ def get_annot_otherimage_aids(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1toM
+@accessor_decors.getter_1toM
 def get_annot_contact_aids(ibs, aid_list):
     """
     Returns the other aids that appear in the same image that this
@@ -731,20 +730,20 @@ def get_annot_contact_aids(ibs, aid_list):
 
 
 #@register_ibs_method
-#@getter_1toM
+#@accessor_decors.getter_1toM
 #def get_annot_intersecting_aids(ibs, aid_list):
 #    pass
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_num_contact_aids(ibs, aid_list):
     nOther_aids_list = list(map(len, ibs.get_annot_contact_aids(aid_list)))
     return nOther_aids_list
 
 
 @register_ibs_method
-@getter_1toM
+@accessor_decors.getter_1toM
 def get_annot_groundfalse(ibs, aid_list, is_exemplar=None, valid_aids=None,
                           filter_unknowns=True, daid_list=None):
     """
@@ -787,7 +786,7 @@ def get_annot_groundfalse(ibs, aid_list, is_exemplar=None, valid_aids=None,
 
 
 @register_ibs_method
-@getter_1toM
+@accessor_decors.getter_1toM
 def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
                           daid_list=None):
     """
@@ -869,7 +868,7 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_has_groundtruth(ibs, aid_list, is_exemplar=None, noself=True, daid_list=None):
     r"""
     Args:
@@ -938,7 +937,7 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix=''):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_thetas(ibs, aid_list):
     """
     Returns:
@@ -962,7 +961,7 @@ def get_annot_thetas(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_uuids(ibs, aid_list):
     """
     Returns:
@@ -973,7 +972,7 @@ def get_annot_uuids(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 #@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID)
 def get_annot_semantic_uuids(ibs, aid_list):
     """ annot_semantic_uuid_list <- annot.annot_semantic_uuid[aid_list]
@@ -1007,7 +1006,7 @@ def get_annot_semantic_uuids(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 @accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, ANNOT_VISUAL_UUID, native_rowids=True)
 def get_annot_visual_uuids(ibs, aid_list):
     """ annot_visual_uuid_list <- annot.annot_visual_uuid[aid_list]
@@ -1043,7 +1042,7 @@ def get_annot_visual_uuids(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_verts(ibs, aid_list):
     """
     Returns:
@@ -1056,7 +1055,7 @@ def get_annot_verts(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_yaws(ibs, aid_list):
     """
     A yaw is the yaw of the annotation in radians
@@ -1094,7 +1093,7 @@ def get_annot_yaws(ibs, aid_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
     """
     Sets the  yaw of a list of chips by aid
@@ -1126,7 +1125,7 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_notes(ibs, aid_list):
     """
     Returns:
@@ -1137,7 +1136,7 @@ def get_annot_notes(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
                               daid_list=None):
     """
@@ -1182,7 +1181,7 @@ def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_num_verts(ibs, aid_list):
     """
     Returns:
@@ -1193,7 +1192,7 @@ def get_annot_num_verts(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_parent_aid(ibs, aid_list):
     """
     Returns:
@@ -1205,7 +1204,7 @@ def get_annot_parent_aid(ibs, aid_list):
 
 @register_ibs_method
 @ut.accepts_numpy
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
     """
     Returns:
@@ -1255,14 +1254,14 @@ def get_annot_nids(ibs, aid_list, distinguish_unknowns=True):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_names(ibs, aid_list):
     """ alias """
     return ibs.get_annot_name_texts(aid_list)
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_name_texts(ibs, aid_list):
     """
     Args:
@@ -1289,14 +1288,14 @@ def get_annot_name_texts(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_species(ibs, aid_list):
     """ alias"""
     return ibs.get_annot_species_texts(aid_list)
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_species_texts(ibs, aid_list):
     """
 
@@ -1341,7 +1340,7 @@ def get_annot_species_texts(ibs, aid_list):
 
 @register_ibs_method
 @ut.accepts_numpy
-@getter_1to1
+@accessor_decors.getter_1to1
 @accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, SPECIES_ROWID, native_rowids=True)
 def get_annot_species_rowids(ibs, aid_list):
     """
@@ -1364,7 +1363,7 @@ def get_annot_species_rowids(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_image_names(ibs, aid_list):
     """
     Args:
@@ -1379,7 +1378,7 @@ def get_annot_image_names(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_image_unixtimes(ibs, aid_list):
     """
     Args:
@@ -1394,7 +1393,7 @@ def get_annot_image_unixtimes(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_image_paths(ibs, aid_list):
     """
     Args:
@@ -1416,7 +1415,7 @@ def get_annot_image_paths(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_image_uuids(ibs, aid_list):
     """
     Args:
@@ -1445,7 +1444,7 @@ def get_annot_image_uuids(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_images(ibs, aid_list):
     """
     Args:
@@ -1575,7 +1574,7 @@ def update_annot_visual_uuids(ibs, aid_list):
 #### SETTERS ###
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_annot_bboxes(ibs, aid_list, bbox_list, delete_thumbs=True):
     """
     Sets bboxes of a list of annotations by aid,
@@ -1595,7 +1594,7 @@ def set_annot_bboxes(ibs, aid_list, bbox_list, delete_thumbs=True):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_annot_detect_confidence(ibs, aid_list, confidence_list):
     """ Sets annotation notes """
     id_iter = ((aid,) for aid in aid_list)
@@ -1604,7 +1603,7 @@ def set_annot_detect_confidence(ibs, aid_list, confidence_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 @accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, ANNOT_EXEMPLAR_FLAG, native_rowids=True)
 def set_annot_exemplar_flags(ibs, aid_list, flag_list):
     """ Sets if an annotation is an exemplar """
@@ -1614,7 +1613,7 @@ def set_annot_exemplar_flags(ibs, aid_list, flag_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 #@cache_invalidator(const.NAME_TABLE)
 @accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, NAME_ROWID, native_rowids=True)
 def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
@@ -1664,7 +1663,7 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_annot_names(ibs, aid_list, name_list):
     """
     Sets the attrlbl_value of type(INDIVIDUAL_KEY) Sets names/nids of a
@@ -1700,7 +1699,7 @@ def set_annot_names(ibs, aid_list, name_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_annot_species(ibs, aid_list, species_text_list):
     """
     Sets species/speciesids of a list of annotations.
@@ -1714,7 +1713,7 @@ def set_annot_species(ibs, aid_list, species_text_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 @accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, SPECIES_ROWID, native_rowids=True)
 def set_annot_species_rowids(ibs, aid_list, species_rowid_list):
     """ species_rowid_list -> annot.species_rowid[aid_list]
@@ -1734,7 +1733,7 @@ def set_annot_species_rowids(ibs, aid_list, species_rowid_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_annot_notes(ibs, aid_list, notes_list):
     """ Sets annotation notes """
     id_iter = ((aid,) for aid in aid_list)
@@ -1743,7 +1742,7 @@ def set_annot_notes(ibs, aid_list, notes_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_annot_parent_rowid(ibs, aid_list, parent_aid_list):
     """ Sets the annotation's parent aid """
     id_iter = ((aid,) for aid in aid_list)
@@ -1752,7 +1751,7 @@ def set_annot_parent_rowid(ibs, aid_list, parent_aid_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True):
     """ Sets thetas of a list of chips by aid """
     id_iter = ((aid,) for aid in aid_list)
@@ -1764,7 +1763,7 @@ def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
     """ Sets the vertices [(x, y), ...] of a list of chips by aid """
     from vtool import geometry
@@ -1796,7 +1795,7 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
 # TODO: autogenerate probchip stuff
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_probchip_fpaths(ibs, aid_list, qreq_=None):
     """
     Returns paths to probability images.
@@ -1814,7 +1813,7 @@ def get_annot_probchip_fpaths(ibs, aid_list, qreq_=None):
 
 @register_ibs_method
 #@accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_QUALITY)
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_qualities(ibs, aid_list, eager=True):
     """ annot_quality_list <- annot.annot_quality[aid_list]
 
@@ -1876,7 +1875,7 @@ def set_annot_qualities(ibs, aid_list, annot_quality_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_quality_texts(ibs, aid_list):
     quality_list = ibs.get_annot_qualities(aid_list)
     quality_text_list = ut.dict_take(const.QUALITY_INT_TO_TEXT, quality_list)
@@ -1884,7 +1883,7 @@ def get_annot_quality_texts(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_isjunk(ibs, aid_list):
     qual_list = ibs.get_annot_qualities(aid_list)
     isjunk_list = [qual == const.QUALITY_TEXT_TO_INT['junk'] for qual in qual_list]
@@ -1892,7 +1891,7 @@ def get_annot_isjunk(ibs, aid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_yaw_texts(ibs, aid_list):
     yaw_list = ibs.get_annot_yaws(aid_list)
     yaw_text_list = ibsfuncs.get_yaw_viewtexts(yaw_list)

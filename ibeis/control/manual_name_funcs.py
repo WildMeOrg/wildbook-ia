@@ -14,8 +14,6 @@ from ibeis import constants as const
 from ibeis import ibsfuncs
 import numpy as np
 import vtool as vt
-from ibeis.control.accessor_decors import (adder, deleter, setter, getter_1to1,
-                                           getter_1toM, ider)
 from ibeis.control import accessor_decors  # NOQA
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
@@ -45,7 +43,7 @@ def testdata_ibs(defaultdb='testdb1'):
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def _get_all_known_name_rowids(ibs):
     """
     Returns:
@@ -58,7 +56,7 @@ def _get_all_known_name_rowids(ibs):
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def _get_all_name_rowids(ibs):
     """
     Returns:
@@ -77,7 +75,7 @@ def _get_all_known_nids(ibs):
 
 
 @register_ibs_method
-@adder
+@accessor_decors.adder
 def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
     """
     Adds a list of names.
@@ -134,7 +132,7 @@ def sanatize_name_texts(ibs, name_text_list):
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 #@cache_invalidator(const.NAME_TABLE)
 def delete_names(ibs, name_rowid_list, safe=True, strict=False, verbose=ut.VERBOSE):
     """
@@ -157,7 +155,7 @@ def delete_names(ibs, name_rowid_list, safe=True, strict=False, verbose=ut.VERBO
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def get_empty_nids(ibs):
     """
     get name rowids that do not have any annotations (not including UNKONWN)
@@ -206,7 +204,7 @@ def delete_empty_nids(ibs):
 
 
 @register_ibs_method
-@getter_1toM
+@accessor_decors.getter_1toM
 #@cache_getter(const.NAME_TABLE, ANNOT_ROWID, native_rowids=False)
 def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     """
@@ -422,7 +420,7 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
 
 
 @register_ibs_method
-@getter_1toM
+@accessor_decors.getter_1toM
 def get_name_exemplar_aids(ibs, nid_list):
     """
     Returns:
@@ -454,7 +452,7 @@ def get_name_exemplar_aids(ibs, nid_list):
 
 
 @register_ibs_method
-@getter_1toM
+@accessor_decors.getter_1toM
 def get_name_gids(ibs, nid_list):
     """
     Returns:
@@ -478,7 +476,7 @@ def get_name_gids(ibs, nid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_name_uuids(ibs, name_rowid_list):
     """
     Returns:
@@ -490,7 +488,7 @@ def get_name_uuids(ibs, name_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_name_notes(ibs, name_rowid_list):
     """
     Returns:
@@ -502,7 +500,7 @@ def get_name_notes(ibs, name_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_name_num_annotations(ibs, nid_list):
     """
     Returns:
@@ -526,7 +524,7 @@ def get_name_num_annotations(ibs, nid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_name_num_exemplar_annotations(ibs, nid_list):
     """
     Returns:
@@ -591,7 +589,7 @@ def set_name_temp_flag(ibs, name_rowid_list, name_temp_flag_list, duplicate_beha
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_name_alias_texts(ibs, name_rowid_list):
     """
     Returns:
@@ -623,7 +621,7 @@ def get_name_alias_texts(ibs, name_rowid_list):
 
 @register_ibs_method
 @accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID, native_rowids=False)
-@setter
+@accessor_decors.setter
 def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
     """
     Returns:
@@ -639,7 +637,7 @@ def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_name_texts(ibs, name_rowid_list, apply_fix=True):
     """
     Returns:
@@ -696,7 +694,7 @@ def get_num_names(ibs, **kwargs):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
     r"""
 
@@ -775,7 +773,7 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def get_valid_nids(ibs, eid=None, filter_empty=False):
     """
     Returns:
@@ -796,7 +794,7 @@ def get_valid_nids(ibs, eid=None, filter_empty=False):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_name_notes(ibs, name_rowid_list, notes_list):
     """ Sets a note for each name (multiple annotations) """
     #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
@@ -806,7 +804,7 @@ def set_name_notes(ibs, name_rowid_list, notes_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False):
     """
     Changes the name text. Does not affect the animals of this name.

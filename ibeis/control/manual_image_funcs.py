@@ -24,7 +24,7 @@ import functools
 import vtool as vt
 import uuid
 from ibeis import constants as const
-from ibeis.control.accessor_decors import (ider, adder, getter_1to1, getter_1toM, deleter, setter)
+from ibeis.control import accessor_decors
 import utool as ut
 from os.path import join, exists
 from ibeis import ibsfuncs
@@ -56,7 +56,7 @@ CONTRIBUTOR_ROWID     = 'contributor_rowid'
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def _get_all_gids(ibs):
     """
     alias
@@ -95,7 +95,7 @@ def _get_all_image_rowids(ibs):
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def _get_all_encounter_rowids(ibs):
     """
     Returns:
@@ -106,14 +106,14 @@ def _get_all_encounter_rowids(ibs):
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def _get_all_eids(ibs):
     """ alias """
     return _get_all_encounter_rowids(ibs)
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
     r"""
     Args:
@@ -161,14 +161,14 @@ def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def get_valid_image_rowids(ibs, eid=None, require_unixtime=False, reviewed=None):
     """ alias """
     return get_valid_gids(ibs, eid, require_unixtime, reviewed)
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def get_valid_eids(ibs, min_num_gids=0, processed=None, shipped=None):
     """
     Returns:
@@ -198,7 +198,7 @@ def get_num_images(ibs, **kwargs):
 
 
 @register_ibs_method
-@adder
+@accessor_decors.adder
 def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize=None):
     """
     Adds a list of image paths to the database.
@@ -318,7 +318,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
 
 
 @register_ibs_method
-@adder
+@accessor_decors.adder
 def add_encounters(ibs, enctext_list, encounter_uuid_list=None, config_rowid_list=None,
                    notes_list=None):
     """
@@ -405,7 +405,7 @@ def localize_images(ibs, gid_list_=None):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_image_uris(ibs, gid_list, new_gpath_list):
     """ Sets the image URIs to a new local path.
     This is used when localizing or unlocalizing images.
@@ -418,7 +418,7 @@ def set_image_uris(ibs, gid_list, new_gpath_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_image_contributor_rowid(ibs, gid_list, contributor_rowid_list, **kwargs):
     """ Sets the image contributor rowid """
     id_iter = ((gid,) for gid in gid_list)
@@ -427,7 +427,7 @@ def set_image_contributor_rowid(ibs, gid_list, contributor_rowid_list, **kwargs)
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_image_reviewed(ibs, gid_list, reviewed_list):
     """ Sets the image all instances found bit """
     id_iter = ((gid,) for gid in gid_list)
@@ -436,7 +436,7 @@ def set_image_reviewed(ibs, gid_list, reviewed_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_image_enabled(ibs, gid_list, enabled_list):
     """ Sets the image all instances found bit """
     id_iter = ((gid,) for gid in gid_list)
@@ -445,7 +445,7 @@ def set_image_enabled(ibs, gid_list, enabled_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_image_notes(ibs, gid_list, notes_list):
     """ Sets the image all instances found bit """
     id_iter = ((gid,) for gid in gid_list)
@@ -454,7 +454,7 @@ def set_image_notes(ibs, gid_list, notes_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error'):
     """ Sets the image unixtime (does not modify exif yet)
         alias for set_image_time_posix
@@ -488,7 +488,7 @@ def set_image_time_posix(ibs, image_rowid_list, image_time_posix_list, duplicate
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_image_enctext(ibs, gid_list, enctext_list):
     """ Sets the encoutertext of each image """
     # FIXME: Slow and weird
@@ -499,7 +499,7 @@ def set_image_enctext(ibs, gid_list, enctext_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_image_eids(ibs, gid_list, eid_list):
     """ Sets the encoutertext of each image """
     if ut.VERBOSE:
@@ -509,7 +509,7 @@ def set_image_eids(ibs, gid_list, eid_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_image_gps(ibs, gid_list, gps_list=None, lat_list=None, lon_list=None):
     """ see get_image_gps for how the gps_list should look.
         lat and lon should be given in degrees """
@@ -529,7 +529,7 @@ def set_image_gps(ibs, gid_list, gps_list=None, lat_list=None, lon_list=None):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_images(ibs, gid_list):
     """
     Returns:
@@ -566,7 +566,7 @@ def get_images(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_thumbtup(ibs, gid_list, draw_annots=True, thumbsize=None):
     """
     Returns:
@@ -594,7 +594,7 @@ def get_image_thumbtup(ibs, gid_list, draw_annots=True, thumbsize=None):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_thumbpath(ibs, gid_list, ensure_paths=False, draw_annots=True,
                         thumbsize=None):
     """
@@ -620,7 +620,7 @@ def get_image_thumbpath(ibs, gid_list, ensure_paths=False, draw_annots=True,
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_uuids(ibs, gid_list):
     """
     Returns:
@@ -669,7 +669,7 @@ def get_image_uuids(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_contributor_rowid(ibs, image_rowid_list, eager=True, nInput=None):
     """ contributor_rowid_list <- image.contributor_rowid[image_rowid_list]
 
@@ -703,7 +703,7 @@ def get_image_contributor_rowid(ibs, image_rowid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_exts(ibs, gid_list):
     """
     Returns:
@@ -713,7 +713,7 @@ def get_image_exts(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_uris(ibs, gid_list):
     """
     Returns:
@@ -723,7 +723,7 @@ def get_image_uris(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_gids_from_uuid(ibs, uuid_list):
     """
     Returns:
@@ -736,7 +736,7 @@ def get_image_gids_from_uuid(ibs, uuid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_paths(ibs, gid_list):
     """
     Args:
@@ -781,7 +781,7 @@ def get_image_paths(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_detectpaths(ibs, gid_list):
     """
     Returns:
@@ -793,7 +793,7 @@ def get_image_detectpaths(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_gnames(ibs, gid_list):
     """
     Args:
@@ -838,7 +838,7 @@ def get_image_gnames(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_sizes(ibs, gid_list):
     """
     Returns:
@@ -848,7 +848,7 @@ def get_image_sizes(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_widths(ibs, gid_list):
     """
     Returns:
@@ -858,7 +858,7 @@ def get_image_widths(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_heights(ibs, gid_list):
     """
     Returns:
@@ -869,7 +869,7 @@ def get_image_heights(ibs, gid_list):
 
 @register_ibs_method
 @ut.accepts_numpy
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_unixtime(ibs, gid_list):
     """
     Returns:
@@ -882,7 +882,7 @@ def get_image_unixtime(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_gps(ibs, gid_list):
     """
     Returns:
@@ -893,21 +893,21 @@ def get_image_gps(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_lat(ibs, gid_list):
     lat_list = ibs.db.get(const.IMAGE_TABLE, ('image_gps_lat',), gid_list)
     return lat_list
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_lon(ibs, gid_list):
     lon_list = ibs.db.get(const.IMAGE_TABLE, ('image_gps_lon',), gid_list)
     return lon_list
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_enabled(ibs, gid_list):
     """
     Returns:
@@ -917,7 +917,7 @@ def get_image_enabled(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_reviewed(ibs, gid_list):
     """
     Returns:
@@ -928,7 +928,7 @@ def get_image_reviewed(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_detect_confidence(ibs, gid_list):
     """
     Returns:
@@ -940,7 +940,7 @@ def get_image_detect_confidence(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_notes(ibs, gid_list):
     """
     Returns:
@@ -950,7 +950,7 @@ def get_image_notes(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_nids(ibs, gid_list):
     """
 
@@ -984,7 +984,7 @@ def get_image_nids(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_species_rowids(ibs, gid_list):
     """
     Returns:
@@ -995,7 +995,7 @@ def get_image_species_rowids(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1toM
+@accessor_decors.getter_1toM
 def get_image_eids(ibs, gid_list):
     """
     Returns:
@@ -1008,7 +1008,7 @@ def get_image_eids(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1toM
+@accessor_decors.getter_1toM
 def get_image_enctext(ibs, gid_list):
     """
     Returns:
@@ -1023,7 +1023,7 @@ IMAGE_ROWID = 'image_rowid'
 
 
 @register_ibs_method
-@getter_1toM
+@accessor_decors.getter_1toM
 #@cache_getter(const.IMAGE_TABLE)
 #@profile
 def get_image_aids(ibs, gid_list):
@@ -1109,7 +1109,7 @@ def get_image_aids(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1toM
+@accessor_decors.getter_1toM
 #@cache_getter(const.IMAGE_TABLE)
 def get_image_aids_of_species(ibs, gid_list, species=None):
     """
@@ -1131,7 +1131,7 @@ def get_image_aids_of_species(ibs, gid_list, species=None):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 #@profile
 def get_image_num_annotations(ibs, gid_list):
     """
@@ -1141,7 +1141,7 @@ def get_image_num_annotations(ibs, gid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_egrids(ibs, gid_list):
     """
     Returns:
@@ -1155,7 +1155,7 @@ def get_image_egrids(ibs, gid_list):
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 def delete_images(ibs, gid_list):
     """ deletes images from the database that belong to gids"""
     if not ut.QUIET:
@@ -1184,7 +1184,7 @@ def delete_images(ibs, gid_list):
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 def delete_image_thumbs(ibs, gid_list, quiet=False):
     """ Removes image thumbnails from disk """
     # print('gid_list = %r' % (gid_list,))
@@ -1194,21 +1194,21 @@ def delete_image_thumbs(ibs, gid_list, quiet=False):
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 def delete_egr_encounter_relations(ibs, eid_list):
     """ Removes relationship between input encounters and all images """
     ibs.db.delete(const.EG_RELATION_TABLE, eid_list, id_colname='encounter_rowid')
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 def delete_egr_image_relations(ibs, gid_list):
     """ Removes relationship between input images and all encounters """
     ibs.db.delete(const.EG_RELATION_TABLE, gid_list, id_colname='image_rowid')
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 def unrelate_images_and_encounters(ibs, gid_list, eid_list):
     """
     Seems to unrelate specific image encounter pairs
@@ -1269,7 +1269,7 @@ def unrelate_images_and_encounters(ibs, gid_list, eid_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_encounter_enctext(ibs, eid_list, names_list):
     """ Sets names of encounters (groups of animals) """
     id_iter = ((eid,) for eid in eid_list)
@@ -1281,7 +1281,7 @@ def set_encounter_enctext(ibs, eid_list, names_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_num_imgs_reviewed(ibs, eid_list):
     """
     Example:
@@ -1302,7 +1302,7 @@ def get_encounter_num_imgs_reviewed(ibs, eid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_num_annotmatch_reviewed(ibs, eid_list):
     """
     Example:
@@ -1322,7 +1322,8 @@ def get_encounter_num_annotmatch_reviewed(ibs, eid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
+@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, 'fraction_annotmatch_reviewed')
 def get_encounter_fraction_annotmatch_reviewed(ibs, eid_list):
     aids_list_ = ibs.get_encounter_aids(eid_list)
     # HACK: Get percentage for the annots we currently care about
@@ -1333,7 +1334,7 @@ def get_encounter_fraction_annotmatch_reviewed(ibs, eid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_fraction_imgs_reviewed(ibs, eid_list):
     gids_list = ibs.get_encounter_gids(eid_list)
     flags_list = ibs.unflat_map(ibs.get_image_reviewed, gids_list)
@@ -1342,7 +1343,7 @@ def get_encounter_fraction_imgs_reviewed(ibs, eid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_percent_imgs_reviewed_str(ibs, eid_list):
     fraction_imgs_reviewed_list = ibs.get_encounter_fraction_imgs_reviewed(eid_list)
     percent_imgs_reviewed_str_list = list(map(ut.percent_str, fraction_imgs_reviewed_list))
@@ -1350,7 +1351,7 @@ def get_encounter_percent_imgs_reviewed_str(ibs, eid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_percent_annotmatch_reviewed_str(ibs, eid_list):
     fraction_annotmatch_reviewed_list = ibs.get_encounter_fraction_annotmatch_reviewed(eid_list)
     percent_annotmach_reviewed_str_list = list(map(ut.percent_str, fraction_annotmatch_reviewed_list))
@@ -1358,7 +1359,7 @@ def get_encounter_percent_annotmatch_reviewed_str(ibs, eid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_num_gids(ibs, eid_list):
     """
     Returns:
@@ -1368,7 +1369,7 @@ def get_encounter_num_gids(ibs, eid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_num_aids(ibs, eid_list):
     """
     Returns:
@@ -1378,7 +1379,7 @@ def get_encounter_num_aids(ibs, eid_list):
 
 
 @register_ibs_method
-@getter_1toM
+@accessor_decors.getter_1toM
 def get_encounter_aids(ibs, eid_list):
     """
     Returns:
@@ -1396,7 +1397,7 @@ def get_encounter_aids(ibs, eid_list):
 
 
 @register_ibs_method
-@getter_1toM
+@accessor_decors.getter_1toM
 def get_encounter_gids(ibs, eid_list):
     """
     Returns:
@@ -1442,7 +1443,7 @@ def get_encounter_egrids(ibs, eid_list=None, gid_list=None):
 
 
 @register_ibs_method
-@getter_1toM
+@accessor_decors.getter_1toM
 def get_encounter_nids(ibs, eid_list):
     """
     Returns:
@@ -1480,7 +1481,7 @@ def get_encounter_nids(ibs, eid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_uuid(ibs, eid_list):
     """
     Returns:
@@ -1491,7 +1492,7 @@ def get_encounter_uuid(ibs, eid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_configid(ibs, eid_list):
     """
     Returns:
@@ -1502,7 +1503,7 @@ def get_encounter_configid(ibs, eid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_enctext(ibs, eid_list):
     """
     Returns:
@@ -1513,7 +1514,7 @@ def get_encounter_enctext(ibs, eid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_eids_from_text(ibs, enctext_list, ensure=True):
     """
     Returns:
@@ -1530,7 +1531,7 @@ def get_encounter_eids_from_text(ibs, enctext_list, ensure=True):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_note(ibs, eid_list):
     """
     Returns:
@@ -1541,7 +1542,7 @@ def get_encounter_note(ibs, eid_list):
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 def delete_encounters(ibs, eid_list):
     """ Removes encounters and thier relationships (images are not effected) """
     # Optimization hack, less SQL calls
@@ -1555,7 +1556,7 @@ def delete_encounters(ibs, eid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_end_time_posix(ibs, encounter_rowid_list):
     """ encounter_end_time_posix_list <- encounter.encounter_end_time_posix[encounter_rowid_list]
 
@@ -1588,7 +1589,7 @@ def get_encounter_end_time_posix(ibs, encounter_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_gps_lats(ibs, encounter_rowid_list):
     """ encounter_gps_lat_list <- encounter.encounter_gps_lat[encounter_rowid_list]
 
@@ -1642,7 +1643,7 @@ def update_encounter_info(ibs, encounter_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_gps_lons(ibs, encounter_rowid_list):
     """ encounter_gps_lon_list <- encounter.encounter_gps_lon[encounter_rowid_list]
 
@@ -1675,7 +1676,7 @@ def get_encounter_gps_lons(ibs, encounter_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_notes(ibs, encounter_rowid_list):
     """ encounter_note_list <- encounter.encounter_note[encounter_rowid_list]
 
@@ -1708,7 +1709,7 @@ def get_encounter_notes(ibs, encounter_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_processed_flags(ibs, encounter_rowid_list):
     """ encounter_processed_flag_list <- encounter.encounter_processed_flag[encounter_rowid_list]
 
@@ -1741,7 +1742,7 @@ def get_encounter_processed_flags(ibs, encounter_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_shipped_flags(ibs, encounter_rowid_list):
     """ encounter_shipped_flag_list <- encounter.encounter_shipped_flag[encounter_rowid_list]
 
@@ -1774,7 +1775,7 @@ def get_encounter_shipped_flags(ibs, encounter_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_encounter_start_time_posix(ibs, encounter_rowid_list):
     """ encounter_start_time_posix_list <- encounter.encounter_start_time_posix[encounter_rowid_list]
 
@@ -1807,7 +1808,7 @@ def get_encounter_start_time_posix(ibs, encounter_rowid_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_encounter_end_time_posix(ibs, encounter_rowid_list, encounter_end_time_posix_list):
     """ encounter_end_time_posix_list -> encounter.encounter_end_time_posix[encounter_rowid_list]
 
@@ -1827,7 +1828,7 @@ def set_encounter_end_time_posix(ibs, encounter_rowid_list, encounter_end_time_p
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_encounter_gps_lats(ibs, encounter_rowid_list, encounter_gps_lat_list):
     """ encounter_gps_lat_list -> encounter.encounter_gps_lat[encounter_rowid_list]
 
@@ -1846,7 +1847,7 @@ def set_encounter_gps_lats(ibs, encounter_rowid_list, encounter_gps_lat_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_encounter_gps_lons(ibs, encounter_rowid_list, encounter_gps_lon_list):
     """ encounter_gps_lon_list -> encounter.encounter_gps_lon[encounter_rowid_list]
 
@@ -1865,7 +1866,7 @@ def set_encounter_gps_lons(ibs, encounter_rowid_list, encounter_gps_lon_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_encounter_notes(ibs, encounter_rowid_list, encounter_note_list):
     """ encounter_note_list -> encounter.encounter_note[encounter_rowid_list]
 
@@ -1884,7 +1885,7 @@ def set_encounter_notes(ibs, encounter_rowid_list, encounter_note_list):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_encounter_processed_flags(ibs, encounter_rowid_list, encounter_processed_flag_list):
     """ encounter_processed_flag_list -> encounter.encounter_processed_flag[encounter_rowid_list]
 
@@ -1904,7 +1905,7 @@ def set_encounter_processed_flags(ibs, encounter_rowid_list, encounter_processed
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_encounter_shipped_flags(ibs, encounter_rowid_list, encounter_shipped_flag_list):
     """ encounter_shipped_flag_list -> encounter.encounter_shipped_flag[encounter_rowid_list]
 
@@ -1925,7 +1926,7 @@ def set_encounter_shipped_flags(ibs, encounter_rowid_list, encounter_shipped_fla
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_encounter_start_time_posix(ibs, encounter_rowid_list, encounter_start_time_posix_list):
     """ encounter_start_time_posix_list -> encounter.encounter_start_time_posix[encounter_rowid_list]
 
@@ -1948,7 +1949,7 @@ def set_encounter_start_time_posix(ibs, encounter_rowid_list, encounter_start_ti
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_egr_rowid_from_superkey(ibs, gid_list, eid_list):
     """
     Returns:
@@ -2208,7 +2209,7 @@ def delete_empty_eids(ibs):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_party_rowids(ibs, image_rowid_list, eager=True, nInput=None):
     """ party_rowid_list <- image.party_rowid[image_rowid_list]
 
@@ -2242,7 +2243,7 @@ def get_image_party_rowids(ibs, image_rowid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_party_tag(ibs, image_rowid_list, eager=True, nInput=None):
     """ party_tag_list <- image.party_tag[image_rowid_list]
 
@@ -2275,7 +2276,7 @@ def get_image_party_tag(ibs, image_rowid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_image_party_rowids(ibs, image_rowid_list, party_rowid_list, duplicate_behavior='error'):
     """ party_rowid_list -> image.party_rowid[image_rowid_list]
 
@@ -2295,7 +2296,7 @@ def set_image_party_rowids(ibs, image_rowid_list, party_rowid_list, duplicate_be
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_image_contributor_tag(ibs, image_rowid_list, eager=True, nInput=None):
     """ contributor_tag_list <- image.contributor_tag[image_rowid_list]
 

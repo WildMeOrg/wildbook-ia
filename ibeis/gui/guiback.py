@@ -1012,6 +1012,7 @@ class MainWindowBackend(QtCore.QObject):
         ranks_lt = min(len(aid_list), 10)
         ibs = back.ibs
         qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
+        back.confirm_query_dialog(aid_list, aid_list, cfgdict=cfgdict)
         qres_list = ibs.query_chips(qreq_=qreq_)
         back.review_queries(qres_list, qreq_=qreq_,
                             filter_reviewed=False,
@@ -1059,6 +1060,10 @@ class MainWindowBackend(QtCore.QObject):
         print('\n\n')
         print('[back] compute_queries: eid=%r, mode=%r' % (eid, back.daids_mode))
         print('[back] use_prioritized_name_subset = %r' % (use_prioritized_name_subset,))
+        print('[back] use_visual_selection        = %r' % (use_visual_selection,))
+        print('[back] daids_mode                  = %r' % (daids_mode,))
+        print('[back] cfgdict                     = %r' % (cfgdict,))
+        print('[back] query_is_known              = %r' % (query_is_known,))
         if eid is None:
             print('[back] invalid eid')
             return
@@ -1611,13 +1616,16 @@ class MainWindowBackend(QtCore.QObject):
     @slot_()
     def set_exemplars_from_quality_and_viewpoint(back):
         eid = back.get_selected_eid()
+        print('set_exemplars_from_quality_and_viewpoint, eid=%r' % (eid,))
         back.ibs.set_exemplars_from_quality_and_viewpoint(eid=eid)
 
     @slot_()
     def batch_rename_consecutive_via_species(back):
         #eid = back.get_selected_eid()
         #back.ibs.batch_rename_consecutive_via_species(eid=eid)
-        back.ibs.batch_rename_consecutive_via_species(eid=None)
+        eid = None
+        print('batch_rename_consecutive_via_species, eid=%r' % (eid,))
+        back.ibs.batch_rename_consecutive_via_species(eid=eid)
 
     @slot_()
     def run_tests(back):

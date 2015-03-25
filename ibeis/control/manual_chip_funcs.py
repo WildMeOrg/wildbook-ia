@@ -15,8 +15,7 @@ import functools
 from os.path import join
 from ibeis import constants as const
 #from ibeis.control import accessor_decors
-from ibeis.control.accessor_decors import (adder, ider, default_decorator,
-                                           getter_1to1, deleter)
+from ibeis.control import accessor_decors
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_chips]')
@@ -38,7 +37,7 @@ CONFIG_ROWID  = 'config_rowid'
 
 
 @register_ibs_method
-@adder
+@accessor_decors.adder
 def add_annot_chips(ibs, aid_list, config2_=None, verbose=not ut.QUIET, return_num_dirty=False):
     """ annot.chip.add(aid_list)
 
@@ -194,7 +193,7 @@ def get_annot_chip_rowids_(ibs, aid_list, config2_=None, eager=True, nInput=None
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_chip_fpaths(ibs, aid_list, ensure=True, config2_=None):
     """
     Returns the cached chip uri based off of the current
@@ -209,7 +208,7 @@ def get_annot_chip_fpaths(ibs, aid_list, ensure=True, config2_=None):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_chips(ibs, aid_list, ensure=True, config2_=None):
     r"""
     Args:
@@ -244,7 +243,7 @@ def get_annot_chips(ibs, aid_list, ensure=True, config2_=None):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 #@cache_getter(const.ANNOTATION_TABLE, 'chipsizes')
 def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
     """
@@ -315,7 +314,7 @@ def get_annot_chip_dlensqrd(ibs, aid_list, config2_=None):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, config2_=None):
     """
     just constructs the path. does not compute it. that is done by
@@ -332,7 +331,7 @@ def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, config2_=None):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
     """ get chip thumb info
 
@@ -379,7 +378,7 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 def delete_annot_chip_thumbs(ibs, aid_list, quiet=False):
     """ Removes chip thumbnails from disk """
     thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
@@ -388,7 +387,7 @@ def delete_annot_chip_thumbs(ibs, aid_list, quiet=False):
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 def delete_annot_chips(ibs, aid_list, config2_=None):
     """ Clears annotation data (does not remove the annotation) """
     _cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=False, config2_=config2_)
@@ -428,7 +427,7 @@ def _get_all_chip_rowids(ibs):
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def get_valid_cids(ibs, config2_=None):
     """ Valid chip rowids of the current configuration """
     # FIXME: configids need reworking
@@ -438,7 +437,7 @@ def get_valid_cids(ibs, config2_=None):
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 #@cache_invalidator(const.CHIP_TABLE)
 def delete_chips(ibs, cid_list, verbose=ut.VERBOSE, config2_=None):
     """ deletes images from the database that belong to gids"""
@@ -459,14 +458,14 @@ def delete_chips(ibs, cid_list, verbose=ut.VERBOSE, config2_=None):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_chip_aids(ibs, cid_list):
     aid_list = ibs.dbcache.get(const.CHIP_TABLE, (ANNOT_ROWID,), cid_list)
     return aid_list
 
 
 @register_ibs_method
-@default_decorator
+@accessor_decors.default_decorator
 def get_chip_config_rowid(ibs, config2_=None):
     """ # FIXME: Configs are still handled poorly
 
@@ -487,7 +486,7 @@ def get_chip_config_rowid(ibs, config2_=None):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_chip_detectpaths(ibs, cid_list):
     """
     Returns:
@@ -499,7 +498,7 @@ def get_chip_detectpaths(ibs, cid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_chip_uris(ibs, cid_list):
     """
 
@@ -511,7 +510,7 @@ def get_chip_uris(ibs, cid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_chip_fpath(ibs, cid_list):
     """
 
@@ -528,7 +527,7 @@ def get_chip_fpath(ibs, cid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 #@cache_getter('const.CHIP_TABLE', 'chip_size')
 def get_chip_sizes(ibs, cid_list):
     chipsz_list  = ibs.dbcache.get(const.CHIP_TABLE, ('chip_width', 'chip_height',), cid_list)
@@ -536,7 +535,7 @@ def get_chip_sizes(ibs, cid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_chips(ibs, cid_list, ensure=True):
     """
     Returns:
