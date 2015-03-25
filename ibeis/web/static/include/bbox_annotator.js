@@ -115,6 +115,7 @@
       // data.height = Math.max(50, data.height)
       data.label = $.trim(this.label_input.val().toLowerCase());
       data.angle = 0.0;
+      data.id = null;
       if (options.input_method !== 'fixed') {
         this.label_input.val('');
       }
@@ -595,7 +596,14 @@
         // "top": "-20px",
       });
       if (this.show_label) {
-        text_box.text(entry.label);
+        if(entry.id !== null)
+        {
+            text_box.text(entry.label + ', id:' + entry.id);   
+        }
+        else
+        {   
+            text_box.text(entry.label);
+        }
       }
       annotator.editing_mouse_inside = false;
       box_element.hover((function(e) {

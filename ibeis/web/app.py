@@ -476,13 +476,14 @@ def turk_detection():
             species_list = app.ibs.get_annot_species_texts(aid_list)
             # Get annotation bounding boxes
             annotation_list = []
-            for annot_bbox, annot_theta, species in zip(annot_bbox_list, annot_thetas_list, species_list):
+            for aid, annot_bbox, annot_theta, species in zip(aid_list, annot_bbox_list, annot_thetas_list, species_list):
                 temp = {}
                 temp['left']   = int(scale_factor * annot_bbox[0])
                 temp['top']    = int(scale_factor * annot_bbox[1])
                 temp['width']  = int(scale_factor * (annot_bbox[2]))
                 temp['height'] = int(scale_factor * (annot_bbox[3]))
                 temp['label']  = species
+                temp['id']     = aid
                 temp['angle']  = float(annot_theta)
                 annotation_list.append(temp)
             if len(species_list) > 0:
@@ -742,12 +743,11 @@ def submit_detection():
                     redirection = '%s?gid=%d' % (redirection, gid, )
             return redirect(redirection)
         else:
-            aid_list = app.ibs.get_image_aids(gid)
+            current_aid_list = app.ibs.get_image_aids(gid)
             # Make new annotations
             width, height = app.ibs.get_image_sizes(gid)
             scale_factor = float(width) / 700.0
             # Get aids
-            app.ibs.delete_annots(aid_list)
             annotation_list = json.loads(request.form['detection-annotations'])
             bbox_list = [
                 (
@@ -762,11 +762,27 @@ def submit_detection():
                 float(annot['angle'])
                 for annot in annotation_list
             ]
+            survived_aid_list = [
+                None if annot['id'] is None else int(annot['id'])
+                for annot in annotation_list
+            ]
             species_list = [
                 annot['label']
                 for annot in annotation_list
             ]
-            app.ibs.add_annots([gid] * len(annotation_list), bbox_list, theta_list=theta_list, species_list=species_list)
+            # Delete annotations that didn't survive
+            kill_aid_list = list(set(current_aid_list) - set(survived_aid_list))
+            print(current_aid_list)
+            print(survived_aid_list)
+            print(kill_aid_list)
+            app.ibs.delete_annots(kill_aid_list)
+            for aid, bbox, theta, species in zip(survived_aid_list, bbox_list, theta_list, species_list):
+                if aid is None:
+                    app.ibs.add_annots([gid], [bbox], theta_list=[theta], species_list=[species])
+                else:
+                    app.ibs.set_annot_bboxes([aid], [bbox])
+                    app.ibs.set_annot_thetas([aid], [theta])
+                    app.ibs.set_annot_species([aid], [species])
             app.ibs.set_image_reviewed([gid], [1])
             print('[web] turk_id: %s, gid: %d, bbox_list: %r, species_list: %r' % (turk_id, gid, annotation_list, species_list))
         # Return HTML
