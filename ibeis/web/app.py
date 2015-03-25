@@ -772,9 +772,6 @@ def submit_detection():
             ]
             # Delete annotations that didn't survive
             kill_aid_list = list(set(current_aid_list) - set(survived_aid_list))
-            print(current_aid_list)
-            print(survived_aid_list)
-            print(kill_aid_list)
             app.ibs.delete_annots(kill_aid_list)
             for aid, bbox, theta, species in zip(survived_aid_list, bbox_list, theta_list, species_list):
                 if aid is None:
