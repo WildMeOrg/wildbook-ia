@@ -13,7 +13,6 @@ from ibeis import constants as const
 from ibeis import ibsfuncs
 #import numpy as np
 #import vtool as vt
-from ibeis.control.accessor_decors import (adder, deleter, getter_1to1, ider)
 from ibeis.control import accessor_decors  # NOQA
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
@@ -29,7 +28,7 @@ SPECIES_NOTE    = 'species_note'
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def _get_all_species_rowids(ibs):
     """
     Returns:
@@ -95,7 +94,7 @@ def sanatize_species_texts(ibs, species_text_list):
 
 
 @register_ibs_method
-@adder
+@accessor_decors.adder
 def add_species(ibs, species_text_list, species_uuid_list=None, note_list=None):
     """
     Adds a list of species.
@@ -158,7 +157,7 @@ def add_species(ibs, species_text_list, species_uuid_list=None, note_list=None):
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 #@cache_invalidator(const.SPECIES_TABLE)
 def delete_species(ibs, species_rowid_list):
     """
@@ -174,7 +173,7 @@ def delete_species(ibs, species_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
     r"""
     Returns:
@@ -247,7 +246,7 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_species_texts(ibs, species_rowid_list):
     """
     Returns:
@@ -276,7 +275,7 @@ def get_species_texts(ibs, species_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_species_uuids(ibs, species_rowid_list):
     """
     Returns:
@@ -288,7 +287,7 @@ def get_species_uuids(ibs, species_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_species_notes(ibs, species_rowid_list):
     """
     Returns:

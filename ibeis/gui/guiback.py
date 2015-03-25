@@ -1059,6 +1059,10 @@ class MainWindowBackend(QtCore.QObject):
         print('\n\n')
         print('[back] compute_queries: eid=%r, mode=%r' % (eid, back.daids_mode))
         print('[back] use_prioritized_name_subset = %r' % (use_prioritized_name_subset,))
+        print('[back] use_visual_selection        = %r' % (use_visual_selection,))
+        print('[back] daids_mode                  = %r' % (daids_mode,))
+        print('[back] cfgdict                     = %r' % (cfgdict,))
+        print('[back] query_is_known              = %r' % (query_is_known,))
         if eid is None:
             print('[back] invalid eid')
             return

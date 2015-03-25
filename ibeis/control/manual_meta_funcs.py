@@ -8,8 +8,7 @@ import six  # NOQA
 import functools
 from six.moves import range, input, zip, map  # NOQA
 from ibeis import constants as const
-from ibeis.control.accessor_decors import (
-    adder, deleter, setter, getter_1to1, default_decorator, ider)
+from ibeis.control import accessor_decors
 import utool as ut
 from ibeis.model import Config
 #from ibeis import ibsfuncs
@@ -21,7 +20,7 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 @register_ibs_method
-@adder
+@accessor_decors.adder
 def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_last_list=None,
                      loc_city_list=None, loc_state_list=None,
                      loc_country_list=None, loc_zip_list=None,
@@ -83,7 +82,7 @@ def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_l
 
 
 @register_ibs_method
-@adder
+@accessor_decors.adder
 def add_version(ibs, versiontext_list):
     """ Adds an algorithm / actor configuration as a string """
     # FIXME: Configs are still handled poorly
@@ -95,7 +94,7 @@ def add_version(ibs, versiontext_list):
 
 
 @register_ibs_method
-@adder
+@accessor_decors.adder
 def add_config(ibs, cfgsuffix_list, contrib_rowid_list=None):
     """ Adds an algorithm / actor configuration as a string """
     # FIXME: Configs are still handled poorly. This function is an ensure
@@ -111,11 +110,11 @@ def add_config(ibs, cfgsuffix_list, contrib_rowid_list=None):
 
 
 @register_ibs_method
-@setter
+@accessor_decors.setter
 def set_metadata_value(ibs, metadata_key_list, metadata_value_list, db):
     """ Sets metadata key, value pairs
     """
-    db = db[0]  # Unwrap tuple, required by @setter decorator
+    db = db[0]  # Unwrap tuple, required by @accessor_decors.setter decorator
     metadata_rowid_list = ibs.get_metadata_rowid_from_metadata_key(metadata_key_list, db)
     id_iter = ((metadata_rowid,) for metadata_rowid in metadata_rowid_list)
     val_list = ((metadata_value,) for metadata_value in metadata_value_list)
@@ -305,7 +304,7 @@ def ensure_encounter_configs_populated(ibs):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_rowid_from_uuid(ibs, uuid_list):
     """
     Returns:
@@ -316,7 +315,7 @@ def get_contributor_rowid_from_uuid(ibs, uuid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_rowid_from_tag(ibs, tag_list):
     """
     Returns:
@@ -327,7 +326,7 @@ def get_contributor_rowid_from_tag(ibs, tag_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_uuid(ibs, contrib_rowid_list):
     """
     Returns:
@@ -387,7 +386,7 @@ def _get_all_contributor_rowids(ibs):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_tag(ibs, contributor_rowid_list, eager=True, nInput=None):
     """ contributor_tag_list <- contributor.contributor_tag[contributor_rowid_list]
 
@@ -424,7 +423,7 @@ def get_contributor_tag(ibs, contributor_rowid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_first_name(ibs, contrib_rowid_list):
     """
     Returns:
@@ -434,7 +433,7 @@ def get_contributor_first_name(ibs, contrib_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_last_name(ibs, contrib_rowid_list):
     """
     Returns:
@@ -444,7 +443,7 @@ def get_contributor_last_name(ibs, contrib_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_name_string(ibs, contrib_rowid_list, include_tag=False):
     """
     Returns:
@@ -469,7 +468,7 @@ def get_contributor_name_string(ibs, contrib_rowid_list, include_tag=False):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_city(ibs, contrib_rowid_list):
     """
     Returns:
@@ -479,7 +478,7 @@ def get_contributor_city(ibs, contrib_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_state(ibs, contrib_rowid_list):
     """
     Returns:
@@ -489,7 +488,7 @@ def get_contributor_state(ibs, contrib_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_country(ibs, contrib_rowid_list):
     """
     Returns:
@@ -499,7 +498,7 @@ def get_contributor_country(ibs, contrib_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_zip(ibs, contrib_rowid_list):
     """
     Returns:
@@ -509,7 +508,7 @@ def get_contributor_zip(ibs, contrib_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_location_string(ibs, contrib_rowid_list):
     """
     Returns:
@@ -527,7 +526,7 @@ def get_contributor_location_string(ibs, contrib_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_note(ibs, contrib_rowid_list):
     """
     Returns:
@@ -537,7 +536,7 @@ def get_contributor_note(ibs, contrib_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_config_rowids(ibs, contrib_rowid_list):
     """
     Returns:
@@ -547,7 +546,7 @@ def get_contributor_config_rowids(ibs, contrib_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_eids(ibs, config_rowid_list):
     """
     Returns:
@@ -557,7 +556,7 @@ def get_contributor_eids(ibs, config_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_contributor_gids(ibs, contrib_rowid_list):
     """
     TODO: Template 1_M reverse getter
@@ -573,7 +572,7 @@ def get_contributor_gids(ibs, contrib_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_config_rowid_from_suffix(ibs, cfgsuffix_list):
     """
     Gets an algorithm configuration as a string
@@ -601,7 +600,7 @@ def ensure_config_rowid_from_suffix(ibs, cfgsuffix_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_config_contributor_rowid(ibs, config_rowid_list):
     """
     Returns:
@@ -611,7 +610,7 @@ def get_config_contributor_rowid(ibs, config_rowid_list):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_config_suffixes(ibs, config_rowid_list):
     """
     Returns:
@@ -621,7 +620,7 @@ def get_config_suffixes(ibs, config_rowid_list):
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 def delete_contributors(ibs, contrib_rowid_list):
     """ deletes contributors from the database and all information associated
     """
@@ -648,7 +647,7 @@ def delete_contributors(ibs, contrib_rowid_list):
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def _get_all_contrib_rowids(ibs):
     """
     Returns:
@@ -658,7 +657,7 @@ def _get_all_contrib_rowids(ibs):
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def get_valid_contrib_rowids(ibs):
     """
     Returns:
@@ -684,7 +683,7 @@ def get_valid_contrib_rowids(ibs):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_metadata_value(ibs, metadata_key_list, db):
     params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
     where_clause = 'metadata_key=?'
@@ -694,9 +693,9 @@ def get_metadata_value(ibs, metadata_key_list, db):
 
 
 @register_ibs_method
-@getter_1to1
+@accessor_decors.getter_1to1
 def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list, db):
-    db = db[0]  # Unwrap tuple, required by @getter_1to1 decorator
+    db = db[0]  # Unwrap tuple, required by @accessor_decors.getter_1to1 decorator
     params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
     where_clause = 'metadata_key=?'
     # list of relationships for each image
@@ -705,14 +704,14 @@ def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list, db):
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def get_database_version(ibs, db):
     ''' Gets the specified database version from the controller '''
     return db.get_db_version()
 
 
 @register_ibs_method
-@adder
+@accessor_decors.adder
 def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
     """
     Adds metadata
@@ -731,7 +730,7 @@ def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
 
 
 @register_ibs_method
-@deleter
+@accessor_decors.deleter
 def delete_configs(ibs, config_rowid_list):
     """ deletes images from the database that belong to fids"""
     if ut.VERBOSE:
@@ -821,7 +820,7 @@ def _default_config(ibs, cfgname=None, new=True):
 
 
 @register_ibs_method
-@default_decorator
+@accessor_decors.default_decorator
 def set_query_cfg(ibs, query_cfg):
     Config.set_query_cfg(ibs.cfg, query_cfg)
     ibs.reset_table_cache()
@@ -830,7 +829,7 @@ def set_query_cfg(ibs, query_cfg):
 
 
 @register_ibs_method
-@default_decorator
+@accessor_decors.default_decorator
 def update_query_cfg(ibs, **kwargs):
     """ Updates query config only. Configs needs a restructure very badly """
     Config.update_query_config(ibs.cfg, **kwargs)
@@ -838,21 +837,21 @@ def update_query_cfg(ibs, **kwargs):
 
 
 @register_ibs_method
-@ider
+@accessor_decors.ider
 def get_valid_configids(ibs):
     config_rowid_list = ibs.db.get_all_rowids(const.CONFIG_TABLE)
     return config_rowid_list
 
 
 @register_ibs_method
-@default_decorator
+@accessor_decors.default_decorator
 def get_query_config_rowid(ibs):
     """ # FIXME: Configs are still handled poorly """
     query_cfg_suffix = ibs.cfg.query_cfg.get_cfgstr()
     query_cfg_rowid = ibs.add_config(query_cfg_suffix)
     return query_cfg_rowid
 
-#@default_decorator
+#@accessor_decors.default_decorator
 #def get_qreq_rowid(ibs):
 #    """ # FIXME: Configs are still handled poorly """
 #    assert ibs.qres is not None
