@@ -101,7 +101,11 @@
               <td></td>
               <td></td>
               <td></td>
-              <td><a href="{{ url_for('turk_additional') }}?aid={{ annotation_list[0][0] }}&refer={{ REFER_SRC_ENCODED }}">{{ annotation_list[0][-3] }} / {{ annotation_list[0][-2] }}</a></td>
+              {% if annotation_list %}
+                <td><a href="{{ url_for('turk_additional') }}?aid={{ annotation_list[0][0] }}&refer={{ REFER_SRC_ENCODED }}">{{ annotation_list[0][-3] }} / {{ annotation_list[0][-2] }}</a></td>
+              {% else %}
+                <td></td>
+              {% endif %}
               <td></td>
               <td></td>
             </tr>
