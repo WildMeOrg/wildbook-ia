@@ -213,7 +213,10 @@ def add_or_update_annotmatch(ibs, aid1, aid2, truth, confidence):
         ibs.set_annotmatch_truth([annotmatch_rowid], [1])
         ibs.set_annotmatch_confidence([annotmatch_rowid], [1.0])
     else:
-        ibs.add_annotmatch([aid1], [aid2], [truth], [1.0])
+        ibs.add_annotmatch([aid1], [aid2], annotmatch_truth_list=[truth], annotmatch_confidence_list=[1.0])
+
+
+# AUTOGENED CONSTANTS:
 
 
 @__injectable
@@ -260,7 +263,7 @@ def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
 @__injectable
 def get_annot_pair_truth(ibs, aid1_list, aid2_list):
     annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
-    annotmatch_truth_list  = ibs.get_annotmatch_truth(annotmatch_rowid_list)
+    annotmatch_truth_list = ibs.get_annotmatch_truth(annotmatch_rowid_list)
     return annotmatch_truth_list
 
 

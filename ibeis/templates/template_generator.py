@@ -290,6 +290,14 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
     # HACK IN API_CACHE decorators
     with_api_cache = flagskw.get('with_api_cache', WITH_API_CACHE)
     with_web_api = flagskw.get('with_web_api', WITH_WEB_API)
+    with_accesor_decors = flagskw.get('with_accesor_decors', True)
+    if with_accesor_decors:
+        if func_type == '1_RL.getter_col':
+            func_code = '@accessor_decors.getter_1to1\n' + func_code
+        if func_type == '2_Native.getter_col':
+            func_code = '@accessor_decors.getter_1to1\n' + func_code
+        if func_type == '2_Native.setter':
+            func_code = '@accessor_decors.setter\n' + func_code
     if with_api_cache:
         if func_type == '2_Native.getter_col':
             func_code = '@accessor_decors.cache_getter({TABLE}, {COLNAME})\n'.format(**fmtdict) + func_code
@@ -322,6 +330,29 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
 def get_tableinfo(tablename, ibs=None):
     """
     Gets relevant info from the sql controller and dependency graph
+
+    Args:
+        tablename (?):
+        ibs (IBEISController):  ibeis controller object
+
+    Returns:
+        ?: tableinfo
+
+    CommandLine:
+        python -m ibeis.templates.template_generator --test-get_tableinfo
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.templates.template_generator import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> tablename = ibeis.const.ANNOTMATCH_TABLE
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> # execute function
+        >>> tableinfo = get_tableinfo(tablename, ibs)
+        >>> # verify results
+        >>> result = str(tableinfo)
+        >>> print(result)
     """
     if ut.NOT_QUIET:
         print('[TEMPLATE] get_tableinfo (ibs=%r)' % (ibs,))
@@ -369,7 +400,8 @@ def get_tableinfo(tablename, ibs=None):
     ignorecolnames = tblname2_ignorecolnames.get(tablename, [])
     other_colnames = [colname for colname in other_colnames
                       if colname not in set(ignorecolnames)]
-    tableinfo = (dbself, all_colnames, superkey_colnames, primarykey_colnames, other_colnames)
+    colrichinfo_list = sqldb.get_columns(tablename)
+    tableinfo = (dbself, all_colnames, superkey_colnames, primarykey_colnames, other_colnames, colrichinfo_list)
     return tableinfo
 
 
@@ -640,7 +672,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     # Setup
     # +-----
 
-    (dbself, all_colnames, superkey_colnames, primarykey_colnames, other_colnames) = tableinfo
+    (dbself, all_colnames, superkey_colnames, primarykey_colnames, other_colnames, colrichinfo_list) = tableinfo
 
     # not sure if this is kosher
     #other_colnames += superkey_colnames
@@ -657,11 +689,31 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
     fmtdict = {
     }
 
-    allcols = [colname for colname in all_colnames if colname not in primarykey_colnames]
+    notnull_colnames = [colrichinfo.name for colrichinfo in colrichinfo_list if colrichinfo.notnull and not colrichinfo.pk]
+    null_colnames    = [colrichinfo.name for colrichinfo in colrichinfo_list if not colrichinfo.notnull and not colrichinfo.pk]
+    #allcols = [colname for colname in all_colnames if colname not in primarykey_colnames]
+    allcols = notnull_colnames + null_colnames
     allcol_items = ', '.join(allcols)
+    allcol_sig = ', '.join([colname + '_list' for colname in notnull_colnames] + [colname + '_list=None' for colname in null_colnames])
     allcol_args = ', '.join([colname + '_list' for colname in allcols])
     allCOLNAMES = ', '.join([colname.upper() for colname in allcols])
 
+    if len(notnull_colnames) > 0:
+        notnull_col1 = notnull_colnames[0]
+        null_checks_fmtstr = ut.codeblock(
+            '''
+            if {nullcol}_list is None:
+                {nullcol}_list = [None] * len({notnull_col1}_list)
+            '''
+        )
+        null_checks_list = [null_checks_fmtstr.format(nullcol=nullcol, notnull_col1=notnull_col1) for nullcol in null_colnames]
+        null_checks = ut.indent('\n'.join(null_checks_list))[4:]
+        #print(null_checks)
+        fmtdict['null_checks'] = null_checks
+    else:
+        fmtdict['null_checks'] = ''
+
+    fmtdict['allcol_sig'] = allcol_sig
     fmtdict['allcol_args'] = allcol_args
     fmtdict['allcol_items'] = allcol_items
     fmtdict['allCOLNAMES'] = allCOLNAMES
@@ -987,7 +1039,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
                     fmtdict['externtbl'] = extern_tbl
                     extern_table = tbl2_tablename[extern_tbl]
                     tup = get_tableinfo(extern_table, ibs)
-                    extern_dbself, extern_all_colnames, extern_superkey_colnames, extern_primarykey_colnames, extern_other_colnames = tup
+                    extern_dbself, extern_all_colnames, extern_superkey_colnames, extern_primarykey_colnames, extern_other_colnames, richcol_info_list = tup
                     externcol_list = list(extern_superkey_colnames) + list(extern_other_colnames)
                     for externcol in externcol_list:
                         fmtdict['externcol'] = externcol

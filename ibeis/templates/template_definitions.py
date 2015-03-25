@@ -180,7 +180,7 @@ Tadder_native = ut.codeblock(
     r'''
     # STARTBLOCK
     # REM @adder
-    def add_{tbl}({self}, {allcol_args}):
+    def add_{tbl}({self}, {allcol_sig}):
         """
         Returns:
             returns {tbl}_rowid_list of added (or already existing {tbl}s)
@@ -191,6 +191,7 @@ Tadder_native = ut.codeblock(
         """
         # WORK IN PROGRESS
         colnames = ({allCOLNAMES},)
+        {null_checks}
         params_iter = (
             ({allcol_items},)
             for ({allcol_items},) in

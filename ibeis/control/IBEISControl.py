@@ -352,11 +352,11 @@ class IBEISController(object):
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
-        ibs.db_version_expected = '1.4.2'
+        ibs.db_version_expected = '1.4.3'
         # TODO: add this functionality to SQLController
         new_version, new_fname = sqldbc.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_ibsdir(),
-            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.4.2')
+            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.4.3')
         ibs.db_version_expected = new_version
         ibs.sqldb_fname = new_fname
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,

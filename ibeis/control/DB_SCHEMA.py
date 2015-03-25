@@ -1053,6 +1053,8 @@ def update_1_4_2(db, ibs=None):
         # HACK: Need a way to update the dependsmap without blowing the old one away
         # Also need to not overspecify information. colname to tablename should be fine.
         # we can have the extern colname be optional. superkey is definiately not needed
+        #dependsmap=db.get_metadata_val(const.ANNOTATION_TABLE + '_dependsmap', eval_=True) +
+        # {}
         dependsmap={
             IMAGE_ROWID         : (const.IMAGE_TABLE,      (IMAGE_ROWID,),   (IMAGE_UUID,)),
             NAME_ROWID          : (const.NAME_TABLE,       (NAME_ROWID,),    (NAME_TEXT,)),
@@ -1070,33 +1072,24 @@ def update_1_4_2(db, ibs=None):
 
 
 def update_1_4_3(db, ibs=None):
-    raise NotImplementedError('fds')
-
-    class MATCH_TYPES:
-        UNKNOWN       = 0
-        BACKGROUND    = int(2 ** 1)  # matches to something in the foreground
-        FOREGROUND    = int(2 ** 2)  # matches to something in the background
-        NONDISTINCT   = int(2 ** 3)  # matches to non distinct parts of the animal
-        ANNOT_OVERLAP = int(2 ** 4)  # matches to what should be a different annotation
-        OTHER         = int(2 ** 30)
-
-    class ANNOT_POSE_TYPES:
-        STANDARD    = 0
-        NOVEL       = 2
-        OTHER       = 2
-
     db.modify_table(
-        const.ANNOTMATCH_TABLE, [
-            (None, 'annotmatch_typebits',   'INTEGER', None),
-            (None, 'annotmatch_ishardcase', 'INTEGER', None),
-        ],
+        const.ANNOTATION_TABLE, [
+            (None, 'annot_is_occluded',    'INTEGER', None),
+            (None, 'annot_is_shadowed',    'INTEGER', None),
+            (None, 'annot_is_washedout',   'INTEGER', None),
+            (None, 'annot_is_blury',       'INTEGER', None),
+            (None, 'annot_is_novelpose',  'INTEGER', None),
+            (None, 'annot_is_commonpose', 'INTEGER', None),
+        ]
     )
 
     db.modify_table(
-        const.ANNOTATION_TABLE, [
-            (None, 'annot_occluded',  'INTEGER', None),
-            (None, 'annot_occluded',  'INTEGER', None),
-        ]
+        const.ANNOTMATCH_TABLE, [
+            (None, 'annotmatch_is_hard',         'INTEGER', None),
+            (None, 'annotmatch_is_scenerymatch', 'INTEGER', None),
+            (None, 'annotmatch_is_photobomb',    'INTEGER', None),
+            (None, 'annotmatch_is_nondistinct',  'INTEGER', None),
+        ],
     )
 
 # ========================
@@ -1130,6 +1123,7 @@ VALID_VERSIONS = ut.odict([
     ('1.4.0',    (None,                 update_1_4_0,       None          )),
     ('1.4.1',    (None,                 update_1_4_1,       None          )),
     ('1.4.2',    (None,                 update_1_4_2,       None          )),
+    ('1.4.3',    (None,                 update_1_4_3,       None          )),
 ])
 
 

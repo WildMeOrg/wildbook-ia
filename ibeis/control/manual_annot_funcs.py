@@ -1,6 +1,8 @@
 """
-python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templastes.template_generator')"
+python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
 sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=age_m
+sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_
+sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_ --diff
 """
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
@@ -37,6 +39,13 @@ NAME_ROWID               = 'name_rowid'
 SPECIES_ROWID            = 'species_rowid'
 ANNOT_EXEMPLAR_FLAG      = 'annot_exemplar_flag'
 ANNOT_QUALITY            = 'annot_quality'
+
+ANNOT_IS_BLURY           = 'annot_is_blury'
+ANNOT_IS_COMMONPOSE      = 'annot_is_commonpose'
+ANNOT_IS_NOVELPOSE       = 'annot_is_novelpose'
+ANNOT_IS_OCCLUDED        = 'annot_is_occluded'
+ANNOT_IS_SHADOWED        = 'annot_is_shadowed'
+ANNOT_IS_WASHEDOUT       = 'annot_is_washedout'
 
 
 # ==========
@@ -2128,6 +2137,330 @@ def set_annot_age_months_est_max(ibs, aid_list, annot_age_months_est_max_list, d
     id_iter = aid_list
     colnames = (ANNOT_AGE_MONTHS_EST_MAX,)
     ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_age_months_est_max_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+@accessor_decors.getter
+def get_annot_is_blury(ibs, aid_list, eager=True, nInput=None):
+    """ annot_is_blury_list <- annot.annot_is_blury[aid_list]
+
+    gets data from the "native" column "annot_is_blury" in the "annot" table
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: annot_is_blury_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = annot_is_blury
+        tbl = annot
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> ibs, config2_ = testdata_ibs()
+        >>> aid_list = ibs._get_all_aids()
+        >>> eager = True
+        >>> annot_is_blury_list = ibs.get_annot_is_blury(aid_list, eager=eager)
+        >>> assert len(aid_list) == len(annot_is_blury_list)
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_IS_BLURY,)
+    annot_is_blury_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return annot_is_blury_list
+
+
+@register_ibs_method
+@accessor_decors.getter
+def get_annot_is_commonpose(ibs, aid_list, eager=True, nInput=None):
+    """ annot_is_commonpose_list <- annot.annot_is_commonpose[aid_list]
+
+    gets data from the "native" column "annot_is_commonpose" in the "annot" table
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: annot_is_commonpose_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = annot_is_commonpose
+        tbl = annot
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> ibs, config2_ = testdata_ibs()
+        >>> aid_list = ibs._get_all_aids()
+        >>> eager = True
+        >>> annot_is_commonpose_list = ibs.get_annot_is_commonpose(aid_list, eager=eager)
+        >>> assert len(aid_list) == len(annot_is_commonpose_list)
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_IS_COMMONPOSE,)
+    annot_is_commonpose_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return annot_is_commonpose_list
+
+
+@register_ibs_method
+@accessor_decors.getter
+def get_annot_is_novelpose(ibs, aid_list, eager=True, nInput=None):
+    """ annot_is_novelpose_list <- annot.annot_is_novelpose[aid_list]
+
+    gets data from the "native" column "annot_is_novelpose" in the "annot" table
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: annot_is_novelpose_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = annot_is_novelpose
+        tbl = annot
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> ibs, config2_ = testdata_ibs()
+        >>> aid_list = ibs._get_all_aids()
+        >>> eager = True
+        >>> annot_is_novelpose_list = ibs.get_annot_is_novelpose(aid_list, eager=eager)
+        >>> assert len(aid_list) == len(annot_is_novelpose_list)
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_IS_NOVELPOSE,)
+    annot_is_novelpose_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return annot_is_novelpose_list
+
+
+@register_ibs_method
+@accessor_decors.getter
+def get_annot_is_occluded(ibs, aid_list, eager=True, nInput=None):
+    """ annot_is_occluded_list <- annot.annot_is_occluded[aid_list]
+
+    gets data from the "native" column "annot_is_occluded" in the "annot" table
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: annot_is_occluded_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = annot_is_occluded
+        tbl = annot
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> ibs, config2_ = testdata_ibs()
+        >>> aid_list = ibs._get_all_aids()
+        >>> eager = True
+        >>> annot_is_occluded_list = ibs.get_annot_is_occluded(aid_list, eager=eager)
+        >>> assert len(aid_list) == len(annot_is_occluded_list)
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_IS_OCCLUDED,)
+    annot_is_occluded_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return annot_is_occluded_list
+
+
+@register_ibs_method
+@accessor_decors.getter
+def get_annot_is_shadowed(ibs, aid_list, eager=True, nInput=None):
+    """ annot_is_shadowed_list <- annot.annot_is_shadowed[aid_list]
+
+    gets data from the "native" column "annot_is_shadowed" in the "annot" table
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: annot_is_shadowed_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = annot_is_shadowed
+        tbl = annot
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> ibs, config2_ = testdata_ibs()
+        >>> aid_list = ibs._get_all_aids()
+        >>> eager = True
+        >>> annot_is_shadowed_list = ibs.get_annot_is_shadowed(aid_list, eager=eager)
+        >>> assert len(aid_list) == len(annot_is_shadowed_list)
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_IS_SHADOWED,)
+    annot_is_shadowed_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return annot_is_shadowed_list
+
+
+@register_ibs_method
+@accessor_decors.getter
+def get_annot_is_washedout(ibs, aid_list, eager=True, nInput=None):
+    """ annot_is_washedout_list <- annot.annot_is_washedout[aid_list]
+
+    gets data from the "native" column "annot_is_washedout" in the "annot" table
+
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: annot_is_washedout_list
+
+    TemplateInfo:
+        Tgetter_table_column
+        col = annot_is_washedout
+        tbl = annot
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> ibs, config2_ = testdata_ibs()
+        >>> aid_list = ibs._get_all_aids()
+        >>> eager = True
+        >>> annot_is_washedout_list = ibs.get_annot_is_washedout(aid_list, eager=eager)
+        >>> assert len(aid_list) == len(annot_is_washedout_list)
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_IS_WASHEDOUT,)
+    annot_is_washedout_list = ibs.db.get(
+        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return annot_is_washedout_list
+
+
+@register_ibs_method
+@accessor_decors.setter
+def set_annot_is_blury(ibs, aid_list, annot_is_blury_list, duplicate_behavior='error'):
+    """ annot_is_blury_list -> annot.annot_is_blury[aid_list]
+
+    Args:
+        aid_list
+        annot_is_blury_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = annot
+        col = annot_is_blury
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_IS_BLURY,)
+    ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_is_blury_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+@accessor_decors.setter
+def set_annot_is_commonpose(ibs, aid_list, annot_is_commonpose_list, duplicate_behavior='error'):
+    """ annot_is_commonpose_list -> annot.annot_is_commonpose[aid_list]
+
+    Args:
+        aid_list
+        annot_is_commonpose_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = annot
+        col = annot_is_commonpose
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_IS_COMMONPOSE,)
+    ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_is_commonpose_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+@accessor_decors.setter
+def set_annot_is_novelpose(ibs, aid_list, annot_is_novelpose_list, duplicate_behavior='error'):
+    """ annot_is_novelpose_list -> annot.annot_is_novelpose[aid_list]
+
+    Args:
+        aid_list
+        annot_is_novelpose_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = annot
+        col = annot_is_novelpose
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_IS_NOVELPOSE,)
+    ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_is_novelpose_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+@accessor_decors.setter
+def set_annot_is_occluded(ibs, aid_list, annot_is_occluded_list, duplicate_behavior='error'):
+    """ annot_is_occluded_list -> annot.annot_is_occluded[aid_list]
+
+    Args:
+        aid_list
+        annot_is_occluded_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = annot
+        col = annot_is_occluded
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_IS_OCCLUDED,)
+    ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_is_occluded_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+@accessor_decors.setter
+def set_annot_is_shadowed(ibs, aid_list, annot_is_shadowed_list, duplicate_behavior='error'):
+    """ annot_is_shadowed_list -> annot.annot_is_shadowed[aid_list]
+
+    Args:
+        aid_list
+        annot_is_shadowed_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = annot
+        col = annot_is_shadowed
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_IS_SHADOWED,)
+    ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_is_shadowed_list,
+               id_iter, duplicate_behavior=duplicate_behavior)
+
+
+@register_ibs_method
+@accessor_decors.setter
+def set_annot_is_washedout(ibs, aid_list, annot_is_washedout_list, duplicate_behavior='error'):
+    """ annot_is_washedout_list -> annot.annot_is_washedout[aid_list]
+
+    Args:
+        aid_list
+        annot_is_washedout_list
+
+    TemplateInfo:
+        Tsetter_native_column
+        tbl = annot
+        col = annot_is_washedout
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_IS_WASHEDOUT,)
+    ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_is_washedout_list,
                id_iter, duplicate_behavior=duplicate_behavior)
 
 

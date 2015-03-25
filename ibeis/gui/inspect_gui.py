@@ -164,8 +164,16 @@ class QueryResultsWidget(APIItemWidget):
         # HACK IN ROW SIZE
         vertical_header = qres_wgt.view.verticalHeader()
         vertical_header.setDefaultSectionSize(qres_wgt.qres_api.get_thumb_size())
+
         # super call
         APIItemWidget.change_headers(qres_wgt, headers)
+
+        # HACK IN COL SIZE
+        horizontal_header = qres_wgt.view.horizontalHeader()
+        for col, width in six.iteritems(qres_wgt.qres_api.col_width_dict):
+            #horizontal_header.defaultSectionSize()
+            index = qres_wgt.qres_api.col_name_list.index(col)
+            horizontal_header.resizeSection(index, width)
 
     def connect_signals_and_slots(qres_wgt):
         qres_wgt.view.clicked.connect(qres_wgt._on_click)
@@ -191,6 +199,9 @@ class QueryResultsWidget(APIItemWidget):
         print('[qres_wgt] _on_doubleclick: ')
         print('[qres_wgt] DoubleClicked: ' + str(qtype.qindexinfo(qtindex)))
         col = qtindex.column()
+        if qres_wgt.qres_api.col_edit_list[col]:
+            print('do nothing special for editable columns')
+            return
         model = qtindex.model()
         colname = model.get_header_name(col)
         if colname != MATCHED_STATUS_TEXT:
@@ -532,12 +543,13 @@ class CustomAPI(object):
     API wrapper around a list of lists, each containing column data
     Defines a single table
     """
-    def __init__(self, col_name_list, col_types_dict, col_getters_dict,
+    def __init__(self, col_name_list, col_types_dict, col_getter_dict,
                  col_bgrole_dict, col_ider_dict, col_setter_dict,
                  editable_colnames, sortby, get_thumb_size=None,
-                 sort_reverse=True):
+                 sort_reverse=True, col_width_dict={}):
         if ut.VERBOSE:
             print('[CustomAPI] <__init__>')
+        self.col_width_dict = col_width_dict
         self.col_name_list = []
         self.col_type_list = []
         self.col_getter_list = []
@@ -549,7 +561,7 @@ class CustomAPI(object):
         else:
             self.get_thumb_size = get_thumb_size
 
-        self.parse_column_tuples(col_name_list, col_types_dict, col_getters_dict,
+        self.parse_column_tuples(col_name_list, col_types_dict, col_getter_dict,
                                  col_bgrole_dict, col_ider_dict, col_setter_dict,
                                  editable_colnames, sortby, sort_reverse)
         if ut.VERBOSE:
@@ -558,7 +570,7 @@ class CustomAPI(object):
     def parse_column_tuples(self,
                             col_name_list,
                             col_types_dict,
-                            col_getters_dict,
+                            col_getter_dict,
                             col_bgrole_dict,
                             col_ider_dict,
                             col_setter_dict,
@@ -571,18 +583,26 @@ class CustomAPI(object):
         # Unpack the column tuples into names, getters, and types
         self.col_name_list = col_name_list
         self.col_type_list = [col_types_dict.get(colname, str) for colname in col_name_list]
-        self.col_getter_list = [col_getters_dict.get(colname, str) for colname in col_name_list]  # First col is always a getter
+        self.col_getter_list = [col_getter_dict.get(colname, str) for colname in col_name_list]  # First col is always a getter
         # Get number of rows / columns
         self.nCols = len(self.col_getter_list)
         self.nRows = 0 if self.nCols == 0 else len(self.col_getter_list[0])  # FIXME
         # Init iders to default and then overwite based on dict inputs
         self.col_ider_list = utool.alloc_nones(self.nCols)
         for colname, ider_colnames in six.iteritems(col_ider_dict):
-            col = self.col_name_list.index(colname)
-            # Col iders might have tuple input
-            ider_cols = utool.uinput_1to1(self.col_name_list.index, ider_colnames)
-            col_ider  = utool.uinput_1to1(lambda c: partial(self.get, c), ider_cols)
-            self.col_ider_list[col] = col_ider
+            try:
+                col = self.col_name_list.index(colname)
+                # Col iders might have tuple input
+                ider_cols = utool.uinput_1to1(self.col_name_list.index, ider_colnames)
+                col_ider  = utool.uinput_1to1(lambda c: partial(self.get, c), ider_cols)
+                self.col_ider_list[col] = col_ider
+                del col_ider
+                del ider_cols
+                del col
+                del colname
+            except Exception as ex:
+                ut.printex(ex, keys=['colname', 'ider_colnames', 'col', 'col_ider', 'ider_cols'])
+                raise
         # Init setters to data, and then overwrite based on dict inputs
         self.col_setter_list = list(self.col_getter_list)
         for colname, col_setter in six.iteritems(col_setter_dict):
@@ -765,6 +785,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
 
     CommandLine:
         python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show --nodelete
         python -m ibeis.gui.inspect_gui --test-test_inspect_matches --cmd
 
     Example:
@@ -775,7 +796,8 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids()[0:5]
         >>> daid_list = ibs.get_valid_aids()[0:20]
-        >>> ibs.delete_annotmatch(ibs._get_all_annotmatch_rowids())
+        >>> if not ut.get_argflag('--nodelete'):
+        >>>     ibs.delete_annotmatch(ibs._get_all_annotmatch_rowids())
         >>> main_locals = test_inspect_matches(ibs, qaid_list, daid_list)
         >>> main_execstr = ibeis.main_loop(main_locals)
         >>> if ut.show_was_requested():
@@ -822,6 +844,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
     Builds columns which are displayable in a ColumnListTableWidget
 
     CommandLine:
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
         python -m ibeis.gui.inspect_gui --test-make_qres_api
 
     Example:
@@ -856,7 +879,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         filter_duplicate_namepair_matches=filter_duplicate_namepair_matches
     )
     # Get extra info
-    (qaids, aids, scores, ranks) = candidate_matches
+    (qaids, daids, scores, ranks) = candidate_matches
 
     # Preprocess Thumbs
     USE_MATCH_THUMBS = True
@@ -866,7 +889,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         #match_thumb_fpath_list = []
         #_prog = functools.partial(ut.ProgressIter, lbl='match chip: ', nTotal=len(qaids))
 
-        #for qres, qaid, daid in _prog(zip(ut.dict_take(qaid2_qres, qaids), qaids, aids)):
+        #for qres, qaid, daid in _prog(zip(ut.dict_take(qaid2_qres, qaids), qaids, daids)):
         #    assert qres.qaid == qaid
         #    match_thumb_fpath_ = ut.unixjoin(match_thumb_dir, 'matchthumb-aid1=%d-aid2=%d.jpg' % ((qaid, daid)))
         #    match_thumb_fpath = qres.dump_match_img(ibs, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32, notitle=True, verbose=False)
@@ -877,7 +900,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
 
         match_thumbtup_cache = {}
         def get_match_thumbtup(index, thumbsize=(128, 128)):
-            qaid, daid = qaids[index], aids[index]
+            qaid, daid = qaids[index], daids[index]
             qres = qaid2_qres[qaid]
             match_thumb_fpath_ = ut.unixjoin(match_thumb_dir, 'matchthumb-aid1=%d-aid2=%d.jpg' % ((qaid, daid)))
             if match_thumb_fpath_  not in match_thumbtup_cache:
@@ -944,9 +967,9 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         ('result_index',  int),
     ])
 
-    col_getters_dict = dict([
+    col_getter_dict = dict([
         ('qaid',       np.array(qaids)),
-        ('aid',        np.array(aids)),
+        ('aid',        np.array(daids)),
         #('d_nGt',      ibs.get_annot_num_groundtruth),
         #('q_nGt',      ibs.get_annot_num_groundtruth),
         #('review',     lambda rowid: get_buttontup),
@@ -963,10 +986,20 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         #('opt',       opts),
     ])
 
+    # default is 100
+    col_width_dict = {
+        'score': 75,
+        REVIEWED_STATUS_TEXT: 90,
+        'rank': 42,
+        'qaid': 42,
+        'aid': 42,
+        'result_index': 42,
+    }
+
     if USE_MATCH_THUMBS:
         col_name_list.insert(col_name_list.index(RES_THUMB_TEXT) + 1, MATCH_THUMB_TEXT)
         col_types_dict[MATCH_THUMB_TEXT] = 'PIXMAP'
-        col_getters_dict[MATCH_THUMB_TEXT] = get_match_thumbtup
+        col_getter_dict[MATCH_THUMB_TEXT] = get_match_thumbtup
 
     #get_status_bgrole_func = partial(get_match_status_bgrole, ibs)
     col_bgrole_dict = {
@@ -992,12 +1025,68 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         'name': ibs.set_annot_names
     }
     editable_colnames =  ['truth', 'notes', 'qname', 'name', 'opt']
+
+    USE_BOOLS = True
+    if USE_BOOLS:
+        boolean_annotmatch_columns = [
+            'is_scenerymatch',
+            'is_nondistinct',
+            'is_photobomb',
+            'is_hard',
+        ]
+
+        boolean_annot_columns = [
+            'is_occluded',
+            'is_shadowed',
+            'is_washedout',
+            'is_blury',
+            'is_novelpose',
+            'is_commonpose',
+        ]
+
+        def make_annotmatch_boolean_getter_wrapper(ibs, colname):
+            colname_getter = getattr(ibs, 'get_annotmatch_' + colname)
+            def getter_wrapper(aidpair):
+                qaid, daid = aidpair
+                rowid_list = ibs.add_annotmatch([qaid], [daid])
+                value_list = colname_getter(rowid_list)
+                value = value_list[0]
+                return value if value is not None else False
+            ut.set_funcname(getter_wrapper, 'getter_wrapper_' + colname)
+            return getter_wrapper
+
+        def make_annotmatch_boolean_setter_wrapper(ibs, colname):
+            colname_setter = getattr(ibs, 'set_annotmatch_' + colname)
+            def setter_wrapper(aidpair, value):
+                qaid, daid = aidpair
+                rowid_list = ibs.add_annotmatch([qaid], [daid])
+                value_list = [value]
+                return colname_setter(rowid_list, value_list)
+            ut.set_funcname(setter_wrapper, 'setter_wrapper_' + colname)
+            return setter_wrapper
+
+        for colname in boolean_annotmatch_columns:
+            #annotmatch_rowid_list = ibs.add_annotmatch(qaids, daids)
+            #col_name_list.append(colname)
+            col_name_list.insert(col_name_list.index('rank'), colname)
+            #rank
+            #col_ider_dict[colname] = annotmatch_rowid_list
+            col_ider_dict[colname] = ('qaid', 'aid')
+            col_types_dict[colname] = bool
+            col_getter_dict[colname] = make_annotmatch_boolean_getter_wrapper(ibs, colname)
+            col_setter_dict[colname] = make_annotmatch_boolean_setter_wrapper(ibs, colname)
+            editable_colnames.append(colname)
+
+        for colname_ in boolean_annot_columns:
+            # TODO
+            pass
+
     sortby = 'score'
     get_thumb_size = lambda: ibs.cfg.other_cfg.thumb_size
     # Insert info into dict
-    qres_api = CustomAPI(col_name_list, col_types_dict, col_getters_dict,
+    qres_api = CustomAPI(col_name_list, col_types_dict, col_getter_dict,
                          col_bgrole_dict, col_ider_dict, col_setter_dict,
-                         editable_colnames, sortby, get_thumb_size)
+                         editable_colnames, sortby, get_thumb_size, True, col_width_dict)
     return qres_api
 
 
@@ -1019,6 +1108,7 @@ def launch_review_matches_interface(ibs, qres_list, dodraw=False):
 if __name__ == '__main__':
     """
     CommandLine:
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
         python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
 
         python -m ibeis.gui.inspect_gui

@@ -19,6 +19,9 @@ VERYVERBOSE    = utool.VERYVERBOSE
 #AUTODUMP       = utool.get_argflag('--auto-dump')
 COPY_TO_MEMORY = utool.get_argflag(('--copy-db-to-memory'))
 
+import collections
+SQLColumnRichInfo = collections.namedtuple('SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk'))
+
 
 __STR__ = str if six.PY3 else unicode
 
@@ -1419,8 +1422,9 @@ class SQLDatabaseController(object):
             >>> from ibeis.control.SQLDatabaseControl import *  # NOQA
         """
         db.cur.execute("PRAGMA TABLE_INFO('" + tablename + "')")
-        column_list = db.cur.fetchall()
-        return column_list
+        colinfo_list = db.cur.fetchall()
+        colrichinfo_list = [SQLColumnRichInfo(*colinfo) for colinfo in colinfo_list]
+        return colrichinfo_list
 
     @default_decor
     def get_column_names(db, tablename):
