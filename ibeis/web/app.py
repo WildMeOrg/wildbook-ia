@@ -338,6 +338,95 @@ def view_annotations():
         return error404(e)
 
 
+@app.route('/view/names')
+def view_names():
+    try:
+        filtered = True
+        aid_list = []
+        eid_list = []
+        gid_list = []
+        nid = request.args.get('nid', '')
+        aid = request.args.get('aid', '')
+        gid = request.args.get('gid', '')
+        eid = request.args.get('eid', '')
+        page = max(0, int(request.args.get('page', 1)))
+        if len(nid) > 0:
+            nid_list = nid.strip().split(',')
+            nid_list = [ None if nid_ == 'None' or nid_ == '' else int(nid_) for nid_ in nid_list ]
+        if len(aid) > 0:
+            aid_list = aid.strip().split(',')
+            aid_list = [ None if aid_ == 'None' or aid_ == '' else int(aid_) for aid_ in aid_list ]
+            nid_list = app.ibs.get_annot_name_rowids(aid_list)
+        elif len(gid) > 0:
+            gid_list = gid.strip().split(',')
+            gid_list = [ None if gid_ == 'None' or gid_ == '' else int(gid_) for gid_ in gid_list ]
+            aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
+            nid_list = app.ibs.get_annot_name_rowids(aid_list)
+        elif len(eid) > 0:
+            eid_list = eid.strip().split(',')
+            eid_list = [ None if eid_ == 'None' or eid_ == '' else int(eid_) for eid_ in eid_list ]
+            gid_list = ut.flatten([ app.ibs.get_valid_gids(eid=eid_) for eid_ in eid_list ])
+            aid_list = ut.flatten(app.ibs.get_image_aids(gid_list))
+            nid_list = app.ibs.get_annot_name_rowids(aid_list)
+        else:
+            nid_list = app.ibs.get_valid_nids()
+            filtered = False
+        # Page
+        PAGE_SIZE_ = int(PAGE_SIZE / 5)
+        page_start = min(len(nid_list), (page - 1) * PAGE_SIZE_)
+        page_end   = min(len(nid_list), page * PAGE_SIZE_)
+        page_total = int(math.ceil(len(nid_list) / PAGE_SIZE_))
+        page_previous = None if page_start == 0 else page - 1
+        page_next = None if page_end == len(nid_list) else page + 1
+        nid_list = nid_list[page_start:page_end]
+        print('[web] Loading Page [ %d -> %d ] (%d), Prev: %s, Next: %s' % (page_start, page_end, len(nid_list), page_previous, page_next, ))
+        aids_list = app.ibs.get_name_aids(nid_list)
+        annotations_list = [ zip(
+            aid_list_,
+            app.ibs.get_annot_gids(aid_list_),
+            [ ','.join(map(str, eid_list_)) for eid_list_ in app.ibs.get_annot_eids(aid_list_) ],
+            app.ibs.get_annot_image_names(aid_list_),
+            app.ibs.get_annot_names(aid_list_),
+            app.ibs.get_annot_exemplar_flags(aid_list_),
+            app.ibs.get_annot_species_texts(aid_list_),
+            app.ibs.get_annot_yaw_texts(aid_list_),
+            app.ibs.get_annot_quality_texts(aid_list_),
+            app.ibs.get_annot_sex_texts(aid_list_),
+            app.ibs.get_annot_age_months_est(aid_list_),
+            [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(encounter_annot_viewpoint_processed(aid_list_), encounter_annot_quality_processed(aid_list_)) ],
+        ) for aid_list_ in aids_list ]
+        print(len(annotations_list), len(annotations_list[0]), len(annotations_list[1]), len(annotations_list[2]), len(nid_list))
+        name_list = zip(
+            nid_list,
+            annotations_list
+        )
+        name_list.sort(key=lambda t: t[0])
+        return ap.template('view', 'names',
+                           filtered=filtered,
+                           eid_list=eid_list,
+                           eid_list_str=','.join(map(str, eid_list)),
+                           num_eids=len(eid_list),
+                           gid_list=gid_list,
+                           gid_list_str=','.join(map(str, gid_list)),
+                           num_gids=len(gid_list),
+                           aid_list=aid_list,
+                           aid_list_str=','.join(map(str, aid_list)),
+                           num_aids=len(aid_list),
+                           nid_list=nid_list,
+                           nid_list_str=','.join(map(str, nid_list)),
+                           num_nids=len(nid_list),
+                           name_list=name_list,
+                           num_names=len(name_list),
+                           page=page,
+                           page_start=page_start,
+                           page_end=page_end,
+                           page_total=page_total,
+                           page_previous=page_previous,
+                           page_next=page_next)
+    except Exception as e:
+        return error404(e)
+
+
 @app.route('/turk')
 def turk():
     try:
@@ -566,16 +655,20 @@ def turk_additional():
             value_sex = None
         value_age_min, value_age_max = app.ibs.get_annot_age_months_est([aid])[0]
         value_age = None
-        if (value_age_min is 0 or value_age_min is None) and value_age_max == 2:
+        if (value_age_min is -1 or value_age_min is None) and (value_age_max is -1 or value_age_max is None):
             value_age = 1
-        elif value_age_min is 3 and value_age_max == 5:
+        if (value_age_min is 0 or value_age_min is None) and value_age_max == 2:
             value_age = 2
-        elif value_age_min is 6 and value_age_max == 11:
+        elif value_age_min is 3 and value_age_max == 5:
             value_age = 3
-        elif value_age_min is 12 and value_age_max == 23:
+        elif value_age_min is 6 and value_age_max == 11:
             value_age = 4
-        elif value_age_min is 24 and (value_age_max > 24 or value_age_max is None):
+        elif value_age_min is 12 and value_age_max == 23:
             value_age = 5
+        elif value_age_min is 24 and value_age_max == 35:
+            value_age = 6
+        elif value_age_min is 36 and (value_age_max > 36 or value_age_max is None):
+            value_age = 7
 
         review = 'review' in request.args.keys()
         finished = aid is None
@@ -589,6 +682,10 @@ def turk_additional():
             gid       = None
             gpath     = None
             image_src = None
+        name_aid_list = None
+        nid = app.ibs.get_annot_name_rowids(aid)
+        if nid is not None:
+            name_aid_list = app.ibs.get_name_aids(nid)
         return ap.template('turk', 'additional',
                            eid=eid,
                            gid=gid,
@@ -596,6 +693,7 @@ def turk_additional():
                            value_sex=value_sex,
                            value_age=value_age,
                            image_path=gpath,
+                           name_aid_list=name_aid_list,
                            image_src=image_src,
                            previous=previous,
                            enctext=enctext,
@@ -783,22 +881,29 @@ def submit_additional():
                 sex -= 2
             else:
                 sex = -1
-            # Age
+
             if age == 1:
                 age_min = None
-                age_max = 2
+                age_max = None
             elif age == 2:
+                age_min = None
+                age_max = 2
+            elif age == 3:
                 age_min = 3
                 age_max = 5
-            elif age == 3:
+            elif age == 4:
                 age_min = 6
                 age_max = 11
-            elif age == 4:
+            elif age == 5:
                 age_min = 12
                 age_max = 23
-            elif age == 5:
+            elif age == 6:
                 age_min = 24
+                age_max = 35
+            elif age == 7:
+                age_min = 36
                 age_max = None
+
             app.ibs.set_annot_sex([aid], [sex])
             app.ibs.set_annot_age_months_est_min([aid], [age_min])
             app.ibs.set_annot_age_months_est_max([aid], [age_max])

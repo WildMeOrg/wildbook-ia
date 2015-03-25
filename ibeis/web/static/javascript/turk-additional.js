@@ -14,12 +14,13 @@ function update_label()
   additional_sex_strs[1] = 'Unknown';
 
   var additional_age_strs = [];
-  additional_age_strs[5] = '24+ Months';
-  additional_age_strs[4] = '12-24 Months';
-  additional_age_strs[3] = '6-12 Months';
-  additional_age_strs[2] = '3-6 Months';
-  additional_age_strs[1] = '0-3 Months';
-
+  additional_age_strs[7] = '36+ Months';
+  additional_age_strs[6] = '24-36 Months';
+  additional_age_strs[5] = '12-24 Months';
+  additional_age_strs[4] = '6-12 Months';
+  additional_age_strs[3] = '3-6 Months';
+  additional_age_strs[2] = '0-3 Months';
+  additional_age_strs[1] = 'Unknown';
 
   value_sex = parseFloat( $("#slider-additional-sex").val() );
   value_age = parseFloat( $("#slider-additional-age").val() );
@@ -40,21 +41,21 @@ $(window).keydown(function(event) {
     // Space key pressed, submit form as delete
     $('input#turk-submit-clear').click();
   }
-  else if(key == 85 || key == 56)
+  else if(key == 85 || key == 56 || key == 56 || key == 104)
   {
-    // 'U' for 'Unknown'
+    // 'U' & 8 for 'Unknown'
     $("#slider-additional-sex").val(1);
     update_label();
   }
-  else if(key == 70 || key == 57)
+  else if(key == 70 || key == 57 || key == 57 || key == 105)
   {
-    // 'F' for 'Female'
+    // 'F' & 9 for 'Female'
     $("#slider-additional-sex").val(2);
     update_label();
   }
-  else if(key == 77 || key == 48)
+  else if(key == 77 || key == 48 || key == 48 || key == 48)
   {
-    // 'M' for 'Male'
+    // 'M' & 0 for 'Male'
     $("#slider-additional-sex").val(3);
     update_label();
   }
