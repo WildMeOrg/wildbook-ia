@@ -1140,26 +1140,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
                     ibs = ibswgt.back.ibs
                     back = ibswgt.back
+
                     def run_splits(ibs, nid_list):
                         print('Checking for splits')
-                        METHOD = 1
-                        if METHOD == 1:
-                            aids_list = ibs.get_name_aids(nid_list)
-                            aid_list = sorted(list(set(ut.flatten(aids_list))))
-                            cfgdict = {
-                                'can_match_samename': True,
-                                'K': 3,
-                                'Knorm': 3,
-                                'prescore_method': 'csum',
-                                'score_method': 'csum'
-                            }
-                            ranks_lt = min(len(aid_list), 10)
-                            qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
-                            qres_list = ibs.query_chips(qreq_=qreq_)
-                            back.review_queries(qres_list, qreq_=qreq_,
-                                                filter_reviewed=False,
-                                                name_scoring=False,
-                                                ranks_lt=ranks_lt)
+                        aids_list = ibs.get_name_aids(nid_list)
+                        aid_list = sorted(list(set(ut.flatten(aids_list))))
+                        back.run_annot_splits(aid_list)
+                        #METHOD = 1
+                        #if METHOD == 1:
                         #elif METHOD == 2:
                         #    aids_list = ibs.get_name_aids(nid_list)
                         #    qreq_list = []

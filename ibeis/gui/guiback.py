@@ -956,6 +956,23 @@ class MainWindowBackend(QtCore.QObject):
         if not back.are_you_sure(**confirm_kw):
             raise guiexcept.UserCancel
 
+    def run_annot_splits(back, aid_list):
+        cfgdict = {
+            'can_match_samename': True,
+            'K': 3,
+            'Knorm': 3,
+            'prescore_method': 'csum',
+            'score_method': 'csum'
+        }
+        ranks_lt = min(len(aid_list), 10)
+        ibs = back.ibs
+        qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
+        qres_list = ibs.query_chips(qreq_=qreq_)
+        back.review_queries(qres_list, qreq_=qreq_,
+                            filter_reviewed=False,
+                            name_scoring=False,
+                            ranks_lt=ranks_lt)
+
     @blocking_slot()
     def compute_queries(back, refresh=True, daids_mode=None,
                         query_is_known=None, qaid_list=None,
