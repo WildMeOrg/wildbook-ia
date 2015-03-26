@@ -167,6 +167,45 @@ def _guitool_loop(main_locals, ipy=False):
             print('WARNING: back was not expected to be None')
 
 
+def set_newfile_permissions():
+    r"""
+    sets this processes default permission bits when creating new files
+
+    CommandLine:
+        python -m ibeis.main_module --test-set_newfile_permissions
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.main_module import *  # NOQA
+        >>> import os
+        >>> import utool as ut
+        >>> # write before umask
+        >>> ut.delete('tempfile1.txt')
+        >>> ut.write_to('tempfile1.txt', 'foo')
+        >>> stat_result1 = os.stat('tempfile1.txt')
+        >>> # apply umask
+        >>> set_newfile_permissions()
+        >>> ut.delete('tempfile2.txt')
+        >>> ut.write_to('tempfile2.txt', 'foo')
+        >>> stat_result2 = os.stat('tempfile2.txt')
+        >>> # verify results
+        >>> print('old masked all bits = %o' % (stat_result1.st_mode))
+        >>> print('new masked all bits = %o' % (stat_result2.st_mode))
+    """
+    import os
+    #import stat
+    # Set umask so all files written will be group read and writable
+    # To get the permissions we want subtract what you want from 0o0666 because
+    # umask subtracts the mask you give it.
+    #mask = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH
+    #mask = 0o000  # most permissive umask
+    mask = 0o000  # most permissive umask
+    prev_mask = os.umask(mask)
+    return prev_mask
+    #print('prev_mask = %o' % (prev_mask,))
+    #print('new_mask  = %o' % (mask,))
+
+
 #@profile
 def main(gui=True, dbdir=None, defaultdb='cache',
          allow_newdir=False, db=None,
@@ -187,13 +226,7 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     Returns:
         dict: main_locals
     """
-    import os
-    # import stat
-    # Set umask so all files written will be group read and writable
-    # mask = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH
-    mask = 0o000
-    print(mask)
-    os.umask(mask)
+    set_newfile_permissions()
     from ibeis.dev import main_commands
     from ibeis.dev import sysres
     # Display a visible intro message
