@@ -440,6 +440,7 @@ def turk():
 @app.route('/turk/detection')
 def turk_detection():
     try:
+        refer_aid = request.args.get('refer_aid', None)
         eid = request.args.get('eid', '')
         eid = None if eid == 'None' or eid == '' else int(eid)
 
@@ -500,6 +501,7 @@ def turk_detection():
         return ap.template('turk', 'detection',
                            eid=eid,
                            gid=gid,
+                           refer_aid=refer_aid,
                            species=species,
                            image_path=gpath,
                            image_src=image_src,

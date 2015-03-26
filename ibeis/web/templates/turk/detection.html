@@ -42,8 +42,8 @@
         <div class="row">
           <div class="col-lg-2"></div>
           <div class="col-lg-8" style="text-align:center;">
-            {% if refer %}
-              <a href="{{ REFER_DST_STR }}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back...</a>
+            {% if REFER_DST_STR and refer_aid %}
+              <a href="/{{ REFER_DST_STR }}&aid={{ refer_aid }}" class="btn btn-default" style="margin-left:auto; margin-right: auto;">Nevermind, take me back...</a>
             {% endif %}
           </div>
           <div class="col-lg-2"></div>

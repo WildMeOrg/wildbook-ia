@@ -32,7 +32,7 @@
       Path: {{ image_path }}
       <img src="{{ image_src }}" style="height: auto; max-width: 100%; margin: 20px auto; margin-bottom: 0px; display: block;">
       <div style="text-align: center; color: #aaa;">
-        <span>Hard to tell?  <a href="{{ url_for('turk_detection') }}?gid={{ gid }}&eid={{ eid }}&refer={{ REFER_SRC_ENCODED }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
+        <span>Hard to tell?  <a href="{{ url_for('turk_detection') }}?gid={{ gid }}&eid={{ eid }}&refer={{ REFER_SRC_ENCODED }}&refer_aid={{ aid }}" style="color: #aaa; text-decoration: underline;">Edit the annotation for gid: {{ gid }}</a></span>
       </div>
       <br/>
       <form method="post" action="{{ url_for('submit_viewpoint') }}?eid={{ eid }}&refer={{ REFER_DST_ENCODED }}">
