@@ -32,7 +32,7 @@ def export_ibeis_to_wildbook(ibs, eid_list):
         assert len(nids) == len(names_text) == len(gids_lists)
 
         # the actual text encounter name corresponding to the encounter id
-        enctext = ibs.get_encounter_enctext(eid)
+        enctext = ibs.get_encounter_text(eid)
 
         # ibeis encounter is wildbook occurrence!
         occurrence_id = str(enctext)
@@ -96,7 +96,7 @@ def export_ibeis_to_wildbook2(ibs, eid_list):
     wb_encounters = {}
 
     for encounter_id in eid_list:
-        encounter = ibs.get_encounter_enctext(encounter_id)
+        encounter = ibs.get_encounter_text(encounter_id)
         # make occurrence id from enctext
         name_annotation_mapping = {}
         image_annotation_mapping = {}

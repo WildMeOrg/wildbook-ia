@@ -121,6 +121,7 @@ rrrr = reload_subs
 
 from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
 __version__ = VERSION_CURRENT
+__version__ = '1.4.3'
 
 """
 Regen Command:

@@ -278,7 +278,6 @@ def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
 
 
 @__injectable
-#@accessor_decors.cache_getter(const.ANNOTATION_TABLE, native_rowids=False)
 def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
     """
     Returns a list of the aids that were reviewed as candidate matches to the input aid
@@ -1914,7 +1913,7 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
 
     location_text = ibs.cfg.other_cfg.location_for_names
     if eid is not None:
-        enc_text = ibs.get_encounter_enctext(eid)
+        enc_text = ibs.get_encounter_text(eid)
         enc_text = enc_text.replace(' ', '_').replace('\'', '').replace('"', '')
         new_name_list = ['%s_%s_%s_%04d' % (location_text, code, enc_text, get_next_index(code)) for code in code_list]
     else:
@@ -2027,7 +2026,7 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
 
 
 def hack(ibs):
-    #ibs.get_encounter_enctext(eid_list)
+    #ibs.get_encounter_text(eid_list)
     #eid = ibs.get_encounter_eids_from_text("NNP GZC Car '1PURPLE'")
 
     def get_name_linked_encounters_by_eid(ibs, eid):
@@ -2042,12 +2041,12 @@ def hack(ibs):
         nid_list = list(set(ibs.get_annot_nids(aid_list, distinguish_unknowns=False)))
         # remove unknown annots
         name_eids = ibs.get_name_eids(nid_list)
-        name_enctexts = ibs.get_encounter_enctext(name_eids)
+        name_enctexts = ibs.get_encounter_text(name_eids)
         return name_enctexts
 
     eid_list = ibs.get_valid_eids()
     linked_enctexts = [get_name_linked_encounters_by_eid(ibs, eid) for eid in eid_list]
-    enctext_list = ibs.get_encounter_enctext(eid_list)
+    enctext_list = ibs.get_encounter_text(eid_list)
     print(ut.dict_str(dict(zip(eid_list, linked_enctexts))))
     print(ut.align(ut.dict_str(dict(zip(enctext_list, linked_enctexts))), ':'))
     print(ut.align(ut.dict_str(dict(zip(enctext_list, eid_list)), sorted_=True), ':'))
@@ -2524,6 +2523,7 @@ def get_dbnotes_fpath(ibs, ensure=False):
     return notes_fpath
 
 
+@profile
 def get_yaw_viewtexts(yaw_list):
     r"""
     Args:
@@ -3397,9 +3397,9 @@ def check_chip_existence(ibs, aid_list=None):
 @__injectable
 def filter_aids_by_quality_and_viewpoint(ibs, aid_list, minqual, valid_yaws):
     qual_list = ibs.get_annot_qualities(aid_list)
-    yawtext_list = ibs.get_annot_yaw_texts(aid_list)
+    yaw_list = ibs.get_annot_yaw_texts(aid_list)
     qual_flags = (qual is None or qual > minqual for qual in qual_list)
-    yaw_flags  = (yaw is None or yaw in valid_yaws for yaw in yawtext_list)
+    yaw_flags  = (yaw is None or yaw in valid_yaws for yaw in yaw_list)
     flags_list = ut.and_iters(qual_flags, yaw_flags)
     aid_list_ = list(ut.ifilter_items(aid_list, flags_list))
     return aid_list_
@@ -3433,8 +3433,9 @@ def filter_aids_custom(ibs, aid_list):
     """
     minqual = const.QUALITY_TEXT_TO_INT['poor']
     #valid_yaws = {'left', 'frontleft', 'backleft'}
-    valid_yaws = {'left', 'frontleft'}
-    aid_list_ = ibs.filter_aids_by_quality_and_viewpoint(aid_list, minqual, valid_yaws)
+    valid_yawtexts = {'left', 'frontleft'}
+    #valid_yaws = {const._texts
+    aid_list_ = ibs.filter_aids_by_quality_and_viewpoint(aid_list, minqual, valid_yawtexts)
     return aid_list_
 
 

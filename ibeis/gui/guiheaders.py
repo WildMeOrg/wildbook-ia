@@ -114,6 +114,7 @@ TABLE_COLNAMES = {
         'enctext',
         'nImgs',
         'percent_annotmatch_reviewed_str',
+        'percent_names_with_exemplar_str',
         #'percent_imgs_reviewed_str',
         'encounter_start_datetime',
         #'num_imgs_reviewed',
@@ -250,24 +251,23 @@ COL_DEF = dict([
     ('percent_annotmatch_reviewed_str', (str, '%Queried')),
     ('num_imgs_reviewed', (str, '#Imgs Reviewed')),
     ('num_annotmatch_reviewed', (str, '#Matches Reviewed')),
+    ('percent_names_with_exemplar_str', (str, '%Names with Exemplar')),
 ])
 
 #----
 # Define the special metadata for annotation
 
 
-def expand_special_colnames(annot_metadata):
-    global COL_DEF
-    for name, nice, valid in annot_metadata:
-        #TABLE_COLNAMES[ANNOTATION_TABLE]
-        if isinstance(valid, list):
-            type_ = str
-        else:
-            type_ = valid
-        COL_DEF[name] = (type_, nice)
-
-
-expand_special_colnames(constants.ROSEMARY_ANNOT_METADATA)
+#def expand_special_colnames(annot_metadata):
+#    global COL_DEF
+#    for name, nice, valid in annot_metadata:
+#        #TABLE_COLNAMES[ANNOTATION_TABLE]
+#        if isinstance(valid, list):
+#            type_ = str
+#        else:
+#            type_ = valid
+#        COL_DEF[name] = (type_, nice)
+#expand_special_colnames(constants.ROSEMARY_ANNOT_METADATA)
 
 #-----
 
@@ -305,7 +305,7 @@ def make_ibeis_headers_dict(ibs):
     getters[ENCOUNTER_TABLE] = {
         'eid'        : lambda eids: eids,
         'nImgs'      : ibs.get_encounter_num_gids,
-        'enctext'    : ibs.get_encounter_enctext,
+        'enctext'    : ibs.get_encounter_text,
         'encounter_shipped_flag'     : ibs.get_encounter_shipped_flags,
         'encounter_processed_flag'   : ibs.get_encounter_processed_flags,
         #
@@ -465,17 +465,24 @@ def make_ibeis_headers_dict(ibs):
 
         def get_column_data(colname):
             try:
-                coltype   = COL_DEF[colname][0]
-                colnice   = COL_DEF[colname][1]
+                coldef_tup = COL_DEF[colname]
+                coltype, colnice = coldef_tup
             except KeyError as ex:
-                ut.printex(ex, 'Need to add type info for colname=%r to COL_DEF' % colname)
-                raise
+                strict = False
+                ut.printex(ex, 'Need to add type info for colname=%r to COL_DEF'
+                           % colname, iswarning=not strict)
+                if strict:
+                    raise
+                else:
+                    # default coldef to give a string type and nice=colname
+                    coltype, colnice = (str, colname)
             coledit   = colname in editset
             colgetter = tblgetters[colname]
             colsetter = None if not coledit else tblsetters.get(colname, None)
             return (coltype, colnice, coledit, colgetter, colsetter)
         try:
-            (coltypes, colnices, coledits, colgetters, colsetters) = list(zip(*list(map(get_column_data, colnames))))
+            _tuplist = list(zip(*list(map(get_column_data, colnames))))
+            (coltypes, colnices, coledits, colgetters, colsetters) = _tuplist
         except KeyError as ex:
             ut.printex(ex,  key_list=['tblname', 'colnames'])
             raise

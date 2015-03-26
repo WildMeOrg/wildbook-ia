@@ -35,7 +35,6 @@ FEAT_ROWID        = 'feature_rowid'
 
 @register_ibs_method
 @deleter
-#@accessor_decors.dev_cache_invalidator(const.FEAT, 'feature_rowid')
 def delete_annot_feats(ibs, aid_list, config2_=None):
     """ annot.feat.delete(aid_list)
 

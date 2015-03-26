@@ -421,7 +421,7 @@ class MainWindowBackend(QtCore.QObject):
     def update_selection_texts(back):
         if back.ibs is None:
             return
-        sel_enctexts = back.ibs.get_encounter_enctext(back.sel_eids)
+        sel_enctexts = back.ibs.get_encounter_text(back.sel_eids)
         if sel_enctexts == [None]:
             sel_enctexts = []
         else:
@@ -449,7 +449,7 @@ class MainWindowBackend(QtCore.QObject):
         if sel_eids is not None:
             sel_eids = ut.ensure_iterable(sel_eids)
             back.sel_eids = sel_eids
-            sel_enctexts = back.ibs.get_encounter_enctext(back.sel_eids)
+            sel_enctexts = back.ibs.get_encounter_text(back.sel_eids)
             if sel_enctexts == [None]:
                 sel_enctexts = []
             else:
@@ -1082,7 +1082,7 @@ class MainWindowBackend(QtCore.QObject):
             else:
                 # if not visual selection, then qaids are selected by encounter
                 qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
-                query_title += 'encounter=' + back.ibs.get_encounter_enctext(eid)
+                query_title += 'encounter=' + back.ibs.get_encounter_text(eid)
         else:
             query_title += 'custom'
         if use_prioritized_name_subset:
@@ -1618,7 +1618,7 @@ class MainWindowBackend(QtCore.QObject):
         return eid
 
     def contains_special_encounters(back, eid_list):
-        enctext_list = back.ibs.get_encounter_enctext(eid_list)
+        enctext_list = back.ibs.get_encounter_text(eid_list)
         is_valid = [enctext not in const.SPECIAL_ENCOUNTER_LABELS for enctext in enctext_list]
         #filtered_eid_list = ut.filter_items(eid_list, is_valid)
         return not all(is_valid)

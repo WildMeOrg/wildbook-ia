@@ -198,7 +198,7 @@ def postget_annot_verts(vertstr_list):
 
 def on_delete(ibs, aid_list):
     #ibs.delete_annot_relations(aid_list)
-    # image thumbs are deleted in here too
+    # image thumbs are deleted in here too, this needs to be fixed
     ibs.delete_annot_chips(aid_list)
 
 

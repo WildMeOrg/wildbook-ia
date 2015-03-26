@@ -45,10 +45,12 @@ from ibeis.control import _autogen_party_funcs  # NOQA
 from ibeis.control import _autogen_annotmatch_funcs  # NOQA
 from ibeis.control import manual_ibeiscontrol_funcs  # NOQA
 from ibeis.control import manual_meta_funcs  # NOQA
-from ibeis.control import manual_lbltype_funcs  # NOQA
-from ibeis.control import manual_lblannot_funcs  # NOQA
-from ibeis.control import manual_lblimage_funcs  # NOQA
+from ibeis.control import manual_lbltype_funcs  # NOQA   # DEPRICATE
+from ibeis.control import manual_lblannot_funcs  # NOQA  # DEPRICATE
+from ibeis.control import manual_lblimage_funcs  # NOQA  # DEPRICATE
 from ibeis.control import manual_image_funcs  # NOQA
+from ibeis.control import manual_encounter_funcs  # NOQA
+from ibeis.control import manual_egrelate_funcs  # NOQA
 from ibeis.control import manual_annot_funcs  # NOQA
 from ibeis.control import manual_name_funcs  # NOQA
 from ibeis.control import manual_species_funcs  # NOQA
@@ -65,10 +67,12 @@ autogenmodname_list = [
     #'_autogen_annot_funcs',
     'manual_ibeiscontrol_funcs',
     'manual_meta_funcs',
-    'manual_lbltype_funcs',
-    'manual_lblannot_funcs',
-    'manual_lblimage_funcs',
+    'manual_lbltype_funcs',   # DEPRICATE
+    'manual_lblannot_funcs',  # DEPRICATE
+    'manual_lblimage_funcs',  # DEPRICATE
     'manual_image_funcs',
+    'manual_encounter_funcs',
+    'manual_egrelate_funcs',
     'manual_annot_funcs',
     'manual_name_funcs',
     'manual_species_funcs',

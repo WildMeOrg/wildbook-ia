@@ -133,7 +133,6 @@ def sanatize_name_texts(ibs, name_text_list):
 
 @register_ibs_method
 @accessor_decors.deleter
-#@cache_invalidator(const.NAME_TABLE)
 def delete_names(ibs, name_rowid_list, safe=True, strict=False, verbose=ut.VERBOSE):
     """
     deletes names from the database
@@ -205,7 +204,6 @@ def delete_empty_nids(ibs):
 
 @register_ibs_method
 @accessor_decors.getter_1toM
-#@cache_getter(const.NAME_TABLE, ANNOT_ROWID, native_rowids=False)
 def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     """
     # TODO: Rename to get_anot_rowids_from_name_rowid
@@ -620,7 +618,7 @@ def get_name_alias_texts(ibs, name_rowid_list):
 
 
 @register_ibs_method
-@accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID, native_rowids=False)
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_SEMANTIC_UUID], rowidx=None)
 @accessor_decors.setter
 def set_name_alias_texts(ibs, name_rowid_list, name_alias_text_list):
     """

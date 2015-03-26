@@ -182,19 +182,6 @@ def add_image_relationship_one(ibs, gid_list, lblimage_rowid_list, config_rowid_
 
 
 @register_ibs_method
-@adder
-def add_image_relationship(ibs, gid_list, eid_list):
-    """ Adds a relationship between an image and and encounter """
-    colnames = ('image_rowid', 'encounter_rowid',)
-    params_iter = list(zip(gid_list, eid_list))
-    get_rowid_from_superkey = ibs.get_egr_rowid_from_superkey
-    superkey_paramx = (0, 1)
-    egrid_list = ibs.db.add_cleanly(const.EG_RELATION_TABLE, colnames, params_iter,
-                                    get_rowid_from_superkey, superkey_paramx)
-    return egrid_list
-
-
-@register_ibs_method
 @getter_1to1
 def get_glrid_from_superkey(ibs, gid_list, lblimage_rowid_list, config_rowid_list):
     """

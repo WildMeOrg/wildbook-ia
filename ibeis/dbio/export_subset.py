@@ -375,7 +375,7 @@ def export_encounter_transfer_data(ibs_src, eid_list, config_rowid_list):
     encounter_td = ENCOUNTER_TransferData(
         config_INDEX_list,
         ibs_src.get_encounter_uuid(eid_list),
-        ibs_src.get_encounter_enctext(eid_list),
+        ibs_src.get_encounter_text(eid_list),
         ibs_src.get_encounter_note(eid_list)
     )
     return encounter_td
