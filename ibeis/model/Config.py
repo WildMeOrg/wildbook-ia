@@ -1072,6 +1072,7 @@ class OtherConfig(ConfigBase):
         # maximum number of exemplars per name
         other_cfg.max_exemplars   = 6
         other_cfg.exemplars_per_view  = 2
+        other_cfg.prioritized_subset_annots_per_name  = 2
         other_cfg.exemplar_distinctiveness_thresh  = .95
         other_cfg.detect_add_after = 1
         # other_cfg.detect_use_chunks = True

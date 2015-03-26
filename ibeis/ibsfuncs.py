@@ -3061,7 +3061,7 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None, exemplars_per_v
 
 
 @__injectable
-def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
+def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=None):
     """
     CommandLine:
         python -m ibeis.ibsfuncs --test-get_prioritized_name_subset
@@ -3093,6 +3093,8 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=2):
         >>> qualtexts = ibs.get_annot_quality_texts(aid_list)
         >>> yawtexts = ibs.get_annot_yaw_texts(aid_list)
     """
+    if annots_per_name is None:
+        annots_per_name = ibs.cfg.other_cfg.prioritized_subset_annots_per_name
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
 
