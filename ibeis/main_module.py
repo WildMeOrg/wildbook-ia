@@ -188,9 +188,11 @@ def main(gui=True, dbdir=None, defaultdb='cache',
         dict: main_locals
     """
     import os
-    import stat
+    # import stat
     # Set umask so all files written will be group read and writable
-    mask = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH
+    # mask = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH
+    mask = 0o000
+    print(mask)
     os.umask(mask)
     from ibeis.dev import main_commands
     from ibeis.dev import sysres
