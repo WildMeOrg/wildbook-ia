@@ -86,7 +86,7 @@ def init_tablecache():
     return tablecache
 
 
-def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, native_rowids=True):
+def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
     """
     Creates a getter cacher
     the class must have a table_cache property
@@ -218,15 +218,24 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
                 kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys, None))
             else:
                 kwargs_hash = None
+            #+----------------------------
+            # There are 3 levels of caches
+            #+----------------------------
+            # All caches for this table
+            colscache_ = ibs.table_cache[tblname]
+            # All caches for the this column
+            kwargs_cache_ = colscache_[colname]
+            # All caches for this kwargs configuration
+            cache_ = kwargs_cache_[kwargs_hash]
+            #L____________________________
 
-            cache_ = ibs.table_cache[tblname][colname][kwargs_hash]
             # Load cached values for each rowid
             vals_list = ut.dict_take_list(cache_, rowid_list, None)
             # Mark rowids with cache misses
             ismiss_list = [val is None for val in vals_list]
             if debug or debug_:
-                # debug_cache_hits(ismiss_list, rowid_list)
-                print('[cache_getter] "debug_cache_hits" turned off')
+                debug_cache_hits(ismiss_list, rowid_list)
+                #print('[cache_getter] "debug_cache_hits" turned off')
             # HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT
             with_assert = ASSERT_API_CACHE
             if with_assert:
@@ -249,33 +258,46 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False, nativ
     return closure_getter_cacher
 
 
-def cache_invalidator(tblname, colnames=None, native_rowids=False, force=False):
-    """ cacher setter/deleter decorator
-    FIXME: this is more general than just setters
+def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
+    """ cacher decorator
+
+    Args:
+        tablename (str): the table that the owns the underlying cache
+        colnames (list): the list of cached column that this function will invalidate
+        rowidx (int): the position (not including self) of the invalidated
+                      table's native rowid in the argument signature.
     """
-    def closure_cache_invalidator(setter_func):
+    colnames = [colnames] if isinstance(colnames, six.string_types) else colnames
+    def closure_cache_invalidator(writer_func):
+        """
+        writer_func is either a setter, deleter, or an adder, something that writes to
+        the database.
+        """
         if not API_CACHE and not force:
-            return setter_func
-        def wrp_cache_invalidator(self, rowid_list, *args, **kwargs):
+            return writer_func
+        def wrp_cache_invalidator(self, *args, **kwargs):
             # the class must have a table_cache property
             colscache_ = self.table_cache[tblname]
             colnames_ =  list(six.iterkeys(colscache_)) if colnames is None else colnames
             # Clear the cache of any specified colname
             # when the invalidator is called
-            for colname in colnames_:
-                kwargs_cache_ = colscache_[colname]
-                if not native_rowids:
+            if rowidx is None:
+                for colname in colnames_:
+                    kwargs_cache_ = colscache_[colname]
                     # We dont know the rowsids so clear everything
                     for cache_ in six.itervalues(kwargs_cache_):
                         cache_.clear()
-                else:
+            else:
+                rowid_list = args[rowidx]
+                for colname in colnames_:
+                    kwargs_cache_ = colscache_[colname]
                     # We know the rowids to delete
                     # iterate over all getter kwargs values
                     for cache_ in six.itervalues(kwargs_cache_):
                         ut.delete_dict_keys(cache_, rowid_list)
             # Preform set/delete action
-            return setter_func(self, rowid_list, *args, **kwargs)
-        wrp_cache_invalidator = ut.preserve_sig(wrp_cache_invalidator, setter_func)
+            return writer_func(self, *args, **kwargs)
+        wrp_cache_invalidator = ut.preserve_sig(wrp_cache_invalidator, writer_func)
         return wrp_cache_invalidator
     return closure_cache_invalidator
 
@@ -287,11 +309,6 @@ def dev_cache_getter(tblname, colname, *args, **kwargs):
             return getter_func
         return cache_getter(tblname, colname, *args, **kwargs)(getter_func)
     return closure_dev_getter_cacher
-
-
-# alias for easy removal of dev functions.
-# dev case is same as normal case though
-dev_cache_invalidator = cache_invalidator
 
 
 #@decorator.decorator

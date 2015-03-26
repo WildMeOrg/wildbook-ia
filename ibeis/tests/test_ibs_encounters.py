@@ -29,7 +29,7 @@ def TEST_ENCOUNTERS(ibs):
     aids_list = ibs.get_encounter_aids(eid_list)
     nids_list = ibs.get_encounter_nids(eid_list)
 
-    enctext_list   = ibs.get_encounter_enctext(eid_list)
+    enctext_list   = ibs.get_encounter_text(eid_list)
     gid_uuids_list = list(map(list, ibsfuncs.unflat_map(ibs.get_image_uuids, gids_list)))
     annotation_uuids_list = list(map(list, ibsfuncs.unflat_map(ibs.get_annot_uuids, aids_list)))
     names_list     = list(map(list, ibsfuncs.unflat_map(ibs.get_name_texts, nids_list)))

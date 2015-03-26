@@ -38,6 +38,7 @@ NAME_ROWID               = 'name_rowid'
 SPECIES_ROWID            = 'species_rowid'
 ANNOT_EXEMPLAR_FLAG      = 'annot_exemplar_flag'
 ANNOT_QUALITY            = 'annot_quality'
+ANNOT_ROWIDS             = 'annot_rowids'
 
 ANNOT_IS_BLURY           = 'annot_is_blury'
 ANNOT_IS_COMMONPOSE      = 'annot_is_commonpose'
@@ -148,7 +149,7 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
     else:
         # HACK: Check to see if you want the
         # exemplar "encounter" (image group)
-        enctext = ibs.get_encounter_enctext(eid)
+        enctext = ibs.get_encounter_text(eid)
         if enctext == const.EXEMPLAR_ENCTEXT:
             is_exemplar = True
         aid_list = ibs.get_encounter_aids(eid)
@@ -194,6 +195,9 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
 
 @register_ibs_method
 @accessor_decors.adder
+@accessor_decors.cache_invalidator(const.IMAGE_TABLE, colnames=[ANNOT_ROWIDS], rowidx=0)
+@accessor_decors.cache_invalidator(const.NAME_TABLE, colnames=[ANNOT_ROWIDS])
+@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_names_with_exemplar_str'])
 def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
                 species_list=None, nid_list=None, name_list=None,
                 detect_confidence_list=None, notes_list=None,
@@ -465,7 +469,10 @@ def delete_annot_speciesids(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.deleter
-@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE)
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, rowidx=0)
+@accessor_decors.cache_invalidator(const.IMAGE_TABLE, colnames=[ANNOT_ROWIDS], rowidx=0)
+@accessor_decors.cache_invalidator(const.NAME_TABLE, colnames=[ANNOT_ROWIDS], rowidx=0)
+@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_names_with_exemplar_str'])
 def delete_annots(ibs, aid_list):
     """ deletes annotations from the database """
     if ut.VERBOSE:
@@ -973,7 +980,7 @@ def get_annot_uuids(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-#@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID)
+#@accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID)
 def get_annot_semantic_uuids(ibs, aid_list):
     """ annot_semantic_uuid_list <- annot.annot_semantic_uuid[aid_list]
 
@@ -990,7 +997,7 @@ def get_annot_semantic_uuids(ibs, aid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()[0:1]
         >>> annot_semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
@@ -1007,7 +1014,7 @@ def get_annot_semantic_uuids(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, ANNOT_VISUAL_UUID, native_rowids=True)
+@accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_VISUAL_UUID)
 def get_annot_visual_uuids(ibs, aid_list):
     """ annot_visual_uuid_list <- annot.annot_visual_uuid[aid_list]
 
@@ -1024,7 +1031,7 @@ def get_annot_visual_uuids(ibs, aid_list):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()[0:1]
         >>> annot_visual_uuid_list = ibs.get_annot_visual_uuids(aid_list)
@@ -1056,6 +1063,7 @@ def get_annot_verts(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_YAW)
 def get_annot_yaws(ibs, aid_list):
     """
     A yaw is the yaw of the annotation in radians
@@ -1094,6 +1102,7 @@ def get_annot_yaws(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.setter
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_YAW], rowidx=0)
 def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
     """
     Sets the  yaw of a list of chips by aid
@@ -1341,7 +1350,7 @@ def get_annot_species_texts(ibs, aid_list):
 @register_ibs_method
 @ut.accepts_numpy
 @accessor_decors.getter_1to1
-@accessor_decors.dev_cache_getter(const.ANNOTATION_TABLE, SPECIES_ROWID, native_rowids=True)
+@accessor_decors.cache_getter(const.ANNOTATION_TABLE, SPECIES_ROWID)
 def get_annot_species_rowids(ibs, aid_list):
     """
     species_rowid_list <- annot.species_rowid[aid_list]
@@ -1550,7 +1559,7 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
 
 
 @register_ibs_method
-@accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, ANNOT_SEMANTIC_UUID, native_rowids=True)
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_SEMANTIC_UUID], rowidx=0)
 def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
     """ Updater for semantic uuids """
     from ibeis.model.preproc import preproc_annot
@@ -1560,7 +1569,7 @@ def update_annot_semantic_uuids(ibs, aid_list, _visual_infotup=None):
 
 
 @register_ibs_method
-@accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, ANNOT_VISUAL_UUID, native_rowids=True)
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_VISUAL_UUID], rowidx=0)
 def update_annot_visual_uuids(ibs, aid_list):
     """ Updater for visual uuids """
     from ibeis.model.preproc import preproc_annot
@@ -1604,7 +1613,8 @@ def set_annot_detect_confidence(ibs, aid_list, confidence_list):
 
 @register_ibs_method
 @accessor_decors.setter
-@accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, ANNOT_EXEMPLAR_FLAG, native_rowids=True)
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_EXEMPLAR_FLAG], rowidx=0)
+@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_names_with_exemplar_str'])
 def set_annot_exemplar_flags(ibs, aid_list, flag_list):
     """ Sets if an annotation is an exemplar """
     id_iter = ((aid,) for aid in aid_list)
@@ -1614,8 +1624,8 @@ def set_annot_exemplar_flags(ibs, aid_list, flag_list):
 
 @register_ibs_method
 @accessor_decors.setter
-#@cache_invalidator(const.NAME_TABLE)
-@accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, NAME_ROWID, native_rowids=True)
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [NAME_ROWID], rowidx=0)
+@accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_names_with_exemplar_str'])
 def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
     """ name_rowid_list -> annot.name_rowid[aid_list]
 
@@ -1714,7 +1724,7 @@ def set_annot_species(ibs, aid_list, species_text_list):
 
 @register_ibs_method
 @accessor_decors.setter
-@accessor_decors.dev_cache_invalidator(const.ANNOTATION_TABLE, SPECIES_ROWID, native_rowids=True)
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [SPECIES_ROWID], rowidx=0)
 def set_annot_species_rowids(ibs, aid_list, species_rowid_list):
     """ species_rowid_list -> annot.species_rowid[aid_list]
 
@@ -1812,8 +1822,8 @@ def get_annot_probchip_fpaths(ibs, aid_list, qreq_=None):
 # ---
 
 @register_ibs_method
-#@accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_QUALITY)
 @accessor_decors.getter_1to1
+@accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_QUALITY)
 def get_annot_qualities(ibs, aid_list, eager=True):
     """ annot_quality_list <- annot.annot_quality[aid_list]
 
@@ -1835,7 +1845,7 @@ def get_annot_qualities(ibs, aid_list, eager=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annot_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> ibs, qreq_ = testdata_ibs()
         >>> aid_list = ibs._get_all_aids()
         >>> eager = True
@@ -1851,7 +1861,8 @@ def get_annot_qualities(ibs, aid_list, eager=True):
 
 
 @register_ibs_method
-#@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, ANNOT_QUALITY, native_rowids=True)
+@accessor_decors.setter
+@accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_QUALITY], rowidx=0)
 def set_annot_qualities(ibs, aid_list, annot_quality_list):
     """ annot_quality_list -> annot.annot_quality[aid_list]
 

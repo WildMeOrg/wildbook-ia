@@ -950,6 +950,7 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
     MATCH_THUMB_TEXT = 'MatchThumb'
 
     col_name_list = [
+        'result_index',
         'score',
         REVIEWED_STATUS_TEXT,
         MATCHED_STATUS_TEXT,
@@ -960,7 +961,6 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         'rank',
         'qaid',
         'aid',
-        'result_index',
     ]
     #if ut.is_developer():
     #    pass
@@ -1015,6 +1015,8 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         'qaid': 42,
         'aid': 42,
         'result_index': 42,
+        'qname': 60,
+        'name': 60,
     }
 
     if USE_MATCH_THUMBS:
@@ -1050,10 +1052,10 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
     USE_BOOLS = True
     if USE_BOOLS:
         boolean_annotmatch_columns = [
-            'is_scenerymatch',
-            'is_nondistinct',
-            'is_photobomb',
             'is_hard',
+            'is_nondistinct',
+            'is_scenerymatch',
+            'is_photobomb',
         ]
 
         boolean_annot_columns = [
@@ -1089,13 +1091,14 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         for colname in boolean_annotmatch_columns:
             #annotmatch_rowid_list = ibs.add_annotmatch(qaids, daids)
             #col_name_list.append(colname)
-            col_name_list.insert(col_name_list.index('rank'), colname)
+            col_name_list.insert(col_name_list.index('qname'), colname)
             #rank
             #col_ider_dict[colname] = annotmatch_rowid_list
             col_ider_dict[colname] = ('qaid', 'aid')
             col_types_dict[colname] = bool
             col_getter_dict[colname] = make_annotmatch_boolean_getter_wrapper(ibs, colname)
             col_setter_dict[colname] = make_annotmatch_boolean_setter_wrapper(ibs, colname)
+            col_width_dict[colname] = 70
             editable_colnames.append(colname)
 
         for colname_ in boolean_annot_columns:

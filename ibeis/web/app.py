@@ -178,7 +178,7 @@ def view_encounters():
         reviewed_list = [ all(images_reviewed) and all(annots_reviewed_viewpoint) and all(annot_processed_quality) for images_reviewed, annots_reviewed_viewpoint, annot_processed_quality in zip(images_reviewed_list, annots_reviewed_viewpoint_list, annots_reviewed_quality_list) ]
         encounter_list = zip(
             eid_list,
-            app.ibs.get_encounter_enctext(eid_list),
+            app.ibs.get_encounter_text(eid_list),
             app.ibs.get_encounter_num_gids(eid_list),
             image_processed_list,
             app.ibs.get_encounter_num_aids(eid_list),
@@ -448,7 +448,7 @@ def turk_detection():
         reviewed_list = encounter_image_processed(gid_list)
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list), )
 
-        enctext = None if eid is None else app.ibs.get_encounter_enctext(eid)
+        enctext = None if eid is None else app.ibs.get_encounter_text(eid)
         gid = request.args.get('gid', '')
         if len(gid) > 0:
             gid = int(gid)
@@ -528,7 +528,7 @@ def turk_viewpoint():
         reviewed_list = encounter_annot_viewpoint_processed(aid_list)
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
 
-        enctext = None if eid is None else app.ibs.get_encounter_enctext(eid)
+        enctext = None if eid is None else app.ibs.get_encounter_text(eid)
         aid = request.args.get('aid', '')
         if len(aid) > 0:
             aid = int(aid)
@@ -581,7 +581,7 @@ def turk_quality():
         reviewed_list = encounter_annot_quality_processed(aid_list)
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
 
-        enctext = None if eid is None else app.ibs.get_encounter_enctext(eid)
+        enctext = None if eid is None else app.ibs.get_encounter_text(eid)
         aid = request.args.get('aid', '')
         if len(aid) > 0:
             aid = int(aid)
@@ -639,7 +639,7 @@ def turk_additional():
         reviewed_list = encounter_annot_additional_processed(aid_list, nid_list)
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
 
-        enctext = None if eid is None else app.ibs.get_encounter_enctext(eid)
+        enctext = None if eid is None else app.ibs.get_encounter_text(eid)
         aid = request.args.get('aid', '')
         if len(aid) > 0:
             aid = int(aid)

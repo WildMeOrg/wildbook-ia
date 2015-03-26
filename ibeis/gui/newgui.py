@@ -662,7 +662,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #    # HACK
             #    enctext = const.ALL_IMAGE_ENCTEXT
             #else:
-            #    enctext = ibswgt.ibs.get_encounter_enctext(eid)
+            #    enctext = ibswgt.ibs.get_encounter_text(eid)
             ibswgt.back.select_eid(eid)
             ibswgt.species_combo.setDefault(ibswgt.ibs.cfg.detect_cfg.species_text)
             #text_list = [
@@ -715,7 +715,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         else:
             prefix = ''
         print(prefix + '[newgui] select_encounter_tab eid=%r' % (eid,))
-        enctext = ibswgt.ibs.get_encounter_enctext(eid)
+        enctext = ibswgt.ibs.get_encounter_text(eid)
         #ibswgt.back.select_eid(eid)
         ibswgt.enc_tabwgt._add_enc_tab(eid, enctext)
 
@@ -953,7 +953,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # ---- ENCOUNTER CONTEXT ----
         if model.name == ENCOUNTER_TABLE:
             merge_destination_id = model._get_row_id(qtindex)  # This is for the benefit of merge encounters
-            enctext = ibswgt.back.ibs.get_encounter_enctext(merge_destination_id)
+            enctext = ibswgt.back.ibs.get_encounter_text(merge_destination_id)
             eid_list = level2_ids[0]
             # Conditional context menu
             if len(eid_list) == 1:
@@ -980,7 +980,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ]
         # ---- IMAGE CONTEXT ----
         elif model.name == IMAGE_TABLE:
-            current_enctext = ibswgt.back.ibs.get_encounter_enctext(ibswgt.back.get_selected_eid())
+            current_enctext = ibswgt.back.ibs.get_encounter_text(ibswgt.back.get_selected_eid())
             gid_list = level2_ids[0]
             # Conditional context menu
             if len(gid_list) == 1:
@@ -1038,7 +1038,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ]
         # ---- IMAGE GRID CONTEXT ----
         elif model.name == IMAGE_GRID:
-            current_enctext = ibswgt.back.ibs.get_encounter_enctext(ibswgt.back.get_selected_eid())
+            current_enctext = ibswgt.back.ibs.get_encounter_text(ibswgt.back.get_selected_eid())
             # Conditional context menu
             gid_list = level2_ids[0]
             if len(gid_list) == 1:

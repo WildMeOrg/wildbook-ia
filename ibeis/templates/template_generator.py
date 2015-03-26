@@ -304,7 +304,7 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
         if func_type == '2_Native.deleter':
             func_code = '@accessor_decors.cache_invalidator({TABLE})\n'.format(**fmtdict) + func_code
         if func_type == '2_Native.setter':
-            func_code = '@accessor_decors.cache_invalidator({TABLE}, {COLNAME}, native_rowids=True)\n'.format(**fmtdict) + func_code
+            func_code = '@accessor_decors.cache_invalidator({TABLE}, [{COLNAME}], rowidx=0)\n'.format(**fmtdict) + func_code
     if with_web_api:
         if func_type == '2_Native.adder':
             func_code = '@register_route(\'/{tbl}/\', methods=[\'POST\'])\n'.format(**fmtdict) + func_code
