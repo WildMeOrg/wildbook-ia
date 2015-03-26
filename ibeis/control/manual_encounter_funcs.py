@@ -233,7 +233,7 @@ def get_encounter_fraction_imgs_reviewed(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, 'percent_names_with_exemplar_str', debug=True)  # HACK
+@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, 'percent_names_with_exemplar_str', debug=False)  # HACK
 def get_encounter_percent_names_with_exemplar_str(ibs, eid_list):
     fraction_exemplared_names_list = ibs.get_encounter_fraction_names_with_exemplar(eid_list)
     percent_exemplared_names_list_str = list(map(ut.percent_str, fraction_exemplared_names_list))
@@ -242,7 +242,7 @@ def get_encounter_percent_names_with_exemplar_str(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, 'percent_imgs_reviewed_str', debug=True)  # HACK
+@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, 'percent_imgs_reviewed_str', debug=False)  # HACK
 def get_encounter_percent_imgs_reviewed_str(ibs, eid_list):
     fraction_imgs_reviewed_list = ibs.get_encounter_fraction_imgs_reviewed(eid_list)
     percent_imgs_reviewed_str_list = list(map(ut.percent_str, fraction_imgs_reviewed_list))
@@ -251,7 +251,7 @@ def get_encounter_percent_imgs_reviewed_str(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, 'percent_annotmatch_reviewed_str', debug=True)  # HACK
+@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, 'percent_annotmatch_reviewed_str', debug=False)  # HACK
 def get_encounter_percent_annotmatch_reviewed_str(ibs, eid_list):
     fraction_annotmatch_reviewed_list = ibs.get_encounter_fraction_annotmatch_reviewed(eid_list)
     percent_annotmach_reviewed_str_list = list(map(ut.percent_str, fraction_annotmatch_reviewed_list))
