@@ -956,6 +956,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             enctext = ibswgt.back.ibs.get_encounter_text(merge_destination_id)
             eid_list = level2_ids[0]
             # Conditional context menu
+            # TODO: remove duplicate code
             if len(eid_list) == 1:
                 context_options += [
                     ('Run detection on encounter (can cause duplicates)',
@@ -972,6 +973,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 context_options += [
                     ('Run detection on encounters (can cause duplicates)',
                         lambda: ibswgt.back.run_detection_on_encounter(eid_list)),
+                    ('Copy encounter', lambda: ibswgt.back.copy_encounter(eid_list)),
                     ('Merge %d encounters into %s' %  (len(eid_list), (enctext)),
                         lambda: ibswgt.back.merge_encounters(eid_list, merge_destination_id)),
                     ('----', lambda: None),
