@@ -262,10 +262,10 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         >>> theta_list2 = ibs.get_annot_thetas(aid_list)
         >>> name_list2 = ibs.get_annot_names(aid_list)
         >>> print('Ensure=False. Should get back None chip fpaths')
-        >>> chip_fpaths2 = ibs.get_annot_chip_fpaths(aid_list, ensure=False)
+        >>> chip_fpaths2 = ibs.get_annot_chip_fpath(aid_list, ensure=False)
         >>> assert [fpath is None for fpath in chip_fpaths2]
         >>> print('Ensure=True. Should get back None chip fpaths')
-        >>> chip_fpaths = ibs.get_annot_chip_fpaths(aid_list, ensure=True)
+        >>> chip_fpaths = ibs.get_annot_chip_fpath(aid_list, ensure=True)
         >>> assert all([ut.checkpath(fpath, verbose=True) for fpath in chip_fpaths])
         >>> assert len(aid_list) == num_add
         >>> assert len(vert_list2[0]) == 4
@@ -1806,14 +1806,14 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_annot_probchip_fpaths(ibs, aid_list, qreq_=None):
+def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
     """
     Returns paths to probability images.
     """
     # FIXME: this is implemented very poorly. Caches not robust. IE they are
     # never invalidated. Not all config information is passed through
     from ibeis.model.preproc import preproc_probchip
-    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, qreq_=qreq_)
+    probchip_fpath_list = preproc_probchip.compute_and_write_probchip(ibs, aid_list, config2_=config2_)
     return probchip_fpath_list
 
 

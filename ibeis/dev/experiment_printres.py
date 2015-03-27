@@ -723,10 +723,10 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, cfg
         fulldir = join(figdir, dumpkw['subdir'])
         if DUMP_PROBCHIP:
             # just copy it
-            probchip_fpath = ibs.get_annot_probchip_fpaths([aid], config2_=config2_)[0]
+            probchip_fpath = ibs.get_annot_probchip_fpath([aid], config2_=config2_)[0]
             ut.copy(probchip_fpath, fulldir, overwrite=False)
         if DUMP_REGCHIP:
-            chip_fpath = ibs.get_annot_chip_fpaths([aid], config2_=config2_)[0]
+            chip_fpath = ibs.get_annot_chip_fpath([aid], config2_=config2_)[0]
             ut.copy(chip_fpath, fulldir, overwrite=False)
 
         viz.show_chip(ibs, aid, in_image=in_image, config2_=config2_)

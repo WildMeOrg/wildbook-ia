@@ -303,7 +303,7 @@ def myquery():
 
 def get_dev_test_fpaths(index):
     ibs, aid1, aid2, tn_aid = testdata_my_exmaples(index)
-    fpath1, fpath2, fpath3 = ibs.get_annot_chip_fpaths([aid1, aid2, tn_aid])
+    fpath1, fpath2, fpath3 = ibs.get_annot_chip_fpath([aid1, aid2, tn_aid])
     return fpath1, fpath2, fpath3
 
 

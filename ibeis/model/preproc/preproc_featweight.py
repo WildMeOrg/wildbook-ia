@@ -284,7 +284,7 @@ def generate_featweight_properties(ibs, feat_rowid_list, config2_=None):
 #        >>> probchip_fname_iter = get_annot_probchip_fname_iter(ibs, aid_list)
 #        >>> probchip_fname_list = list(probchip_fname_iter)
 #    """
-#    cfpath_list = ibs.get_annot_chip_fpaths(aid_list, config2_=config2_)
+#    cfpath_list = ibs.get_annot_chip_fpath(aid_list, config2_=config2_)
 #    cfname_list = [splitext(basename(cfpath))[0] for cfpath in cfpath_list]
 #    suffix = ibs.cfg.detect_cfg.get_cfgstr()
 #    ext = '.png'

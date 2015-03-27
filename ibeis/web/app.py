@@ -544,7 +544,7 @@ def turk_viewpoint():
         display_instructions = request.cookies.get('viewpoint_instructions_seen', 0) == 0
         if not finished:
             gid       = app.ibs.get_annot_gids(aid)
-            gpath     = app.ibs.get_annot_chip_fpaths(aid)
+            gpath     = app.ibs.get_annot_chip_fpath(aid)
             image     = ap.open_oriented_image(gpath)
             image_src = ap.embed_image_html(image)
         else:
@@ -601,7 +601,7 @@ def turk_quality():
         display_instructions = request.cookies.get('quality_instructions_seen', 0) == 0
         if not finished:
             gid       = app.ibs.get_annot_gids(aid)
-            gpath     = app.ibs.get_annot_chip_fpaths(aid)
+            gpath     = app.ibs.get_annot_chip_fpath(aid)
             image     = ap.open_oriented_image(gpath)
             image_src = ap.embed_image_html(image)
         else:
@@ -676,7 +676,7 @@ def turk_additional():
         display_instructions = request.cookies.get('additional_instructions_seen', 0) == 0
         if not finished:
             gid       = app.ibs.get_annot_gids(aid)
-            gpath     = app.ibs.get_annot_chip_fpaths(aid)
+            gpath     = app.ibs.get_annot_chip_fpath(aid)
             image     = ap.open_oriented_image(gpath)
             image_src = ap.embed_image_html(image)
         else:
@@ -970,7 +970,7 @@ def image_src(gid=None):
 
 @app.route('/ajax/annotation/src/<aid>')
 def annotation_src(aid=None):
-    gpath = app.ibs.get_annot_chip_fpaths(aid)
+    gpath = app.ibs.get_annot_chip_fpath(aid)
     return ap.return_src(gpath)
 
 

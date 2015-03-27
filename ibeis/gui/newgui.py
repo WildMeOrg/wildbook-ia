@@ -962,10 +962,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.back.run_detection_on_encounter(eid_list)),
                     ('Merge %d encounter into %s' %  (len(eid_list), (enctext)),
                         lambda: ibswgt.back.merge_encounters(eid_list, merge_destination_id)),
+                    ('Copy encounter', lambda: ibswgt.back.copy_encounter(eid_list)),
+                    ('Export encounter', lambda: ibswgt.back.export_encounters(eid_list)),
                     ('----', lambda: None),
                     ('Delete encounter', lambda: ibswgt.back.delete_encounter(eid_list)),
                     ('Delete encounter (and images)', lambda: ibswgt.back.delete_encounter_and_images(eid_list)),
-                    ('Export encounter', lambda: ibswgt.back.export_encounters(eid_list)),
                 ]
             else:
                 context_options += [

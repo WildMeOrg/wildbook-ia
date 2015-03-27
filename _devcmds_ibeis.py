@@ -267,7 +267,7 @@ def export(ibs, aid_pairs=None):
                 ) + ', '
                 for kp1, kp2 in zip(kpts1_m, kpts2_m)]
 
-            mcpaths_list = ibs.get_annot_chip_fpaths(mkeys)
+            mcpaths_list = ibs.get_annot_chip_fpath(mkeys)
             fnames_list = list(map(lambda x: split(x)[1], mcpaths_list))
             for path in mcpaths_list:
                 utool.copy(path, export_path)

@@ -55,7 +55,7 @@ def show_probability_chip(ibs, aid, species=None, fnum=None, **kwargs):
         fnum = df2.next_fnum()
     title = 'Probability Chip: ' + ', '.join(vh.get_annot_text(ibs, [aid], True))
     print(title)
-    hough_cpath = ibs.get_annot_probchip_fpaths(aid)
+    hough_cpath = ibs.get_annot_probchip_fpath(aid)
     img = gtool.imread(hough_cpath)
     fig, ax = viz_image2.show_image(img, title=title, fnum=fnum, **kwargs)
     return fig, ax

@@ -194,7 +194,7 @@ def get_annot_chip_rowids_(ibs, aid_list, config2_=None, eager=True, nInput=None
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_annot_chip_fpaths(ibs, aid_list, ensure=True, config2_=None):
+def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None):
     """
     Returns the cached chip uri based off of the current
     configuration.
@@ -365,7 +365,7 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
         thumbsize = ibs.cfg.other_cfg.thumb_size
     thumb_gpaths = ibs.get_annot_chip_thumbpath(aid_list, thumbsize=thumbsize, config2_=config2_)
     #print(thumb_gpaths)
-    chip_paths = ibs.get_annot_chip_fpaths(aid_list, ensure=True, config2_=config2_)
+    chip_paths = ibs.get_annot_chip_fpath(aid_list, ensure=True, config2_=config2_)
     chipsize_list = ibs.get_annot_chip_sizes(aid_list, ensure=False, config2_=config2_)
     thumbtup_list = [
         (thumb_path, chip_path, chipsize, [], [])

@@ -690,6 +690,17 @@ class MainWindowBackend(QtCore.QObject):
             back.front.enc_tabwgt._close_tab_with_eid(eid)
         back.front.update_tables([gh.ENCOUNTER_TABLE], clear_view_selection=True)
 
+    @blocking_slot(int)
+    def copy_encounter(back, eid_list):
+        print('[back] copy_encounter: %r' % (eid_list,))
+        if back.contains_special_encounters(eid_list):
+            back.display_special_encounters_error()
+            return
+        ibs = back.ibs
+        new_eid_list = ibs.copy_encounters(eid_list)
+        print('[back] new_eid_list: %r' % (new_eid_list,))
+        back.front.update_tables([gh.ENCOUNTER_TABLE], clear_view_selection=True)
+
     @blocking_slot(list)
     def remove_from_encounter(back, gid_list):
         eid = back.get_selected_eid()

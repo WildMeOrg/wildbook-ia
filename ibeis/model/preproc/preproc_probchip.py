@@ -7,7 +7,7 @@ forground.
 TODO:
     * Create a probchip controller table.
     * Integrate into the the controller using autogen functions.
-        - get_probchip_fpaths, get_annot_probchip_fpaths, add_annot_probchip
+        - get_probchip_fpaths, get_annot_probchip_fpath, add_annot_probchip
 
     * User should be able to manually paint on a chip to denote the foreground
       when the randomforest algorithm messes up.
@@ -41,17 +41,78 @@ def postprocess_dev():
     import cv2
     import numpy as np  # NOQA
 
-    fpath = '/media/raid/work/GZ_ALL/_ibsdb/figures/nsum_hard/qaid=420_res_5ujbs8h&%vw1olnx_quuid=31cfdc3e/probchip_aid=478_auuid=5c327c5d-4bcc-22e4-764e-535e5874f1c7_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP()_zebra_grevys.png.png'
-    img = cv2.imread(fpath)
-    df2.imshow(img, fnum=1)
-    kernel = np.ones((5, 5), np.uint8)
-    blur = cv2.GaussianBlur(img, (5, 5), 1.6)
-    dilation = cv2.dilate(img, kernel, iterations=10)
-    df2.imshow(blur, fnum=2)
-    df2.imshow(dilation, fnum=3)
-    closing = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel, iterations=5)
-    df2.imshow(closing, fnum=4)
-    df2.present()
+    #fpath = '/media/raid/work/GZ_ALL/_ibsdb/figures/nsum_hard/qaid=420_res_5ujbs8h&%vw1olnx_quuid=31cfdc3e/probchip_aid=478_auuid=5c327c5d-4bcc-22e4-764e-535e5874f1c7_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP()_zebra_grevys.png.png'
+    import ibeis
+    ibs = ibeis.opendb('PZ_MTEST')
+    aid_list = ibs.get_valid_aids()
+
+    def test_grabcut_on_aid(aid):
+        chip_fpath = ibs.get_annot_chip_fpath(aid)
+        probchip_fpath = ibs.get_annot_probchip_fpath(aid)
+
+        chip_img = cv2.imread(chip_fpath)
+        probchip_img = cv2.imread(probchip_fpath, flags=cv2.IMREAD_GRAYSCALE)
+
+        label_values = [cv2.GC_BGD, cv2.GC_PR_BGD, cv2.GC_PR_FGD, cv2.GC_FGD]
+
+        def probchip_to_grabcut_labels(probchip_img, w, h):
+            scaled_probchip = cv2.resize(probchip_img, dsize=(w, h))
+            mask = (len(label_values) * (scaled_probchip / 255)).astype(np.uint8)
+            # No certainty
+            mask[mask == 3] = 2
+            # Except for one center pixel
+            #mask[mask.shape[0] // 2, mask.shape[1] // 2] = 3
+            label_mask = mask.copy()
+            for index, value in enumerate(label_values):
+                label_mask[mask == index] = value
+            return label_mask
+
+        def grabcut_labels_to_probchip(label_mask):
+            image_mask = label_mask.copy()
+            label_colors = np.linspace(0, 255, len(label_values)).astype(np.uint8)
+            for value, color in zip(label_values, label_colors):
+                image_mask[label_mask == value] = (color)
+            return image_mask
+
+        def grabcut_from_probchip(chip_img, label_mask):
+            rect = (0, 0, w, h)
+            bgd_model = np.zeros((1, 13 * 5), np.float64)
+            fgd_model = np.zeros((1, 13 * 5), np.float64)
+            num_iters = 5
+            mode = cv2.GC_INIT_WITH_MASK
+            # label_mask is an outvar
+            label_mask_ = label_mask.copy()
+            cv2.grabCut(chip_img, label_mask_, rect, bgd_model, fgd_model, num_iters, mode=mode)
+            #is_foreground = (label_mask == cv2.GC_FGD) + (label_mask == cv2.GC_PR_FGD)
+            #is_foreground = (label_mask_ == cv2.GC_FGD)  # + (label_mask == cv2.GC_PR_FGD)
+            return label_mask_
+
+        (h, w) = chip_img.shape[0:2]
+        label_mask = probchip_to_grabcut_labels(probchip_img, w, h)
+        label_mask_ = grabcut_from_probchip(chip_img, label_mask)
+        float_mask = grabcut_labels_to_probchip(label_mask_) / 255.0
+        segmented_chip = chip_img * float_mask[:, :, None]
+
+        next_pnum = df2.make_pnum_nextgen(2, 3)
+        df2.imshow(chip_img,                               fnum=1, pnum=next_pnum())
+        df2.imshow(probchip_img,                           fnum=1, pnum=next_pnum())
+        df2.imshow(grabcut_labels_to_probchip(label_mask), fnum=1, pnum=next_pnum())
+        df2.imshow(segmented_chip,                         fnum=1, pnum=next_pnum())
+        df2.imshow(255 * (float_mask),                  fnum=1, pnum=next_pnum())
+        df2.imshow(chip_img * (float_mask > .6)[:, :, None],   fnum=1, pnum=next_pnum())
+        df2.present()
+    aid = aid_list[0]
+    for aid in ut.InteractiveIter(aid_list):
+        test_grabcut_on_aid(aid)
+        #input('press enter to continue')
+    #kernel = np.ones((5, 5), np.uint8)
+    #blur = cv2.GaussianBlur(img, (5, 5), 1.6)
+    #dilation = cv2.dilate(img, kernel, iterations=10)
+    #df2.imshow(blur, fnum=2)
+    #df2.imshow(dilation, fnum=3)
+    #cv2.floodFill(image, mask, seedPoint, newVal)
+    #closing = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel, iterations=5)
+    #df2.imshow(closing, fnum=4)
     pass
 
 
@@ -244,7 +305,7 @@ def compute_and_write_probchip(ibs, aid_list, config2_=None, lazy=True):
              probchip_extramargin_fpath_list,
              halfoffset_cs_list,
              ) = compute_extramargin_detectchip(ibs, dirty_aids, config2_=config2_, species=species, FACTOR=4)
-            #dirty_cfpath_list  = ibs.get_annot_chip_fpaths(dirty_aids, ensure=True, config2_=config2_)
+            #dirty_cfpath_list  = ibs.get_annot_chip_fpath(dirty_aids, ensure=True, config2_=config2_)
             config = {
                 'scale_list': [1.0],
                 'output_gpath_list': probchip_extramargin_fpath_list,

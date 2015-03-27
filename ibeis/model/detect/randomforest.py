@@ -63,7 +63,7 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, tea
     ##### TEMP #####
 
     aid_list = ut.flatten(aids_list)
-    train_pos_cpath_list = ibs.get_annot_chip_fpaths(aid_list)
+    train_pos_cpath_list = ibs.get_annot_chip_fpath(aid_list)
 
     # Ensure directories for negatives
     negatives_cache = join(ibs.get_cachedir(), 'pyrf_train_negatives')

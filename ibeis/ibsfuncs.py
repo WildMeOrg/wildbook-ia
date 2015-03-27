@@ -1018,6 +1018,51 @@ def fix_invalid_name_texts(ibs):
 
 
 @__injectable
+def copy_encounters(ibs, eid_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        eid_list (list):
+
+    Returns:
+        list: new_eid_list
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-copy_encounters
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs.delete_all_encounters()
+        >>> ibs.compute_encounters()
+        >>> eid_list = ibs.get_valid_eids()
+        >>> # execute function
+        >>> new_eid_list = copy_encounters(ibs, eid_list)
+        >>> # verify results
+        >>> result = str(ibs.get_encounter_text(new_eid_list))
+        >>> assert [2] == list(set(map(len, ibs.get_image_eids(ibs.get_valid_gids()))))
+        >>> print(result)
+        >>> ibs.delete_all_encounters()
+        >>> ibs.compute_encounters()
+    """
+    all_enctext_list = ibs.get_encounter_text(ibs.get_valid_eids())
+    enctext_list = ibs.get_encounter_text(eid_list)
+    new_enctext_list = [
+        ut.get_nonconflicting_string(enctext + '_Copy(%d)', set(all_enctext_list))
+        for enctext in enctext_list
+    ]
+    new_eid_list = ibs.add_encounters(new_enctext_list)
+    gids_list = ibs.get_encounter_gids(eid_list)
+    #new_eid_list =
+    for gids, new_eid in zip(gids_list, new_eid_list):
+        ibs.set_image_eids(gids, [new_eid] * len(gids))
+    return new_eid_list
+
+
+@__injectable
 def fix_unknown_exemplars(ibs):
     """
     Goes through all of the annotations, and sets their exemplar flag to 0 if it
@@ -2535,24 +2580,37 @@ def get_yaw_viewtexts(yaw_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import numpy as np
         >>> # build test data
-        >>> yaw_list = [0.0, 3.15, -.4, -8, .2, 4, 7, 20, None]
+        >>> yaw_list = [0.0, np.pi / 2, np.pi / 4, np.pi, 3.15, -.4, -8, .2, 4, 7, 20, None]
         >>> # execute function
         >>> text_list = get_yaw_viewtexts(yaw_list)
         >>> result = str(text_list)
         >>> # verify results
         >>> print(result)
-        ['right', 'left', 'backright', 'back', 'right', 'backleft', 'frontright', 'frontright', None]
+        ['right', 'front', 'frontright', 'left', 'left', 'backright', 'back', 'right', 'backleft', 'frontright', 'frontright', None]
+
     """
-    import vtool as vt
+    #import vtool as vt
     import numpy as np
     import six
     stdlblyaw_list = list(six.iteritems(const.VIEWTEXT_TO_YAW_RADIANS))
     stdlbl_list = ut.get_list_column(stdlblyaw_list, 0)
-    stdyaw_list = np.array(ut.get_list_column(stdlblyaw_list, 1))
-    textdists_list = [None if yaw is None else vt.ori_distance(stdyaw_list, yaw) for yaw in yaw_list]
-    index_list = [None if dists is None else dists.argmin() for dists in textdists_list]
-    text_list = [None if index is None else stdlbl_list[index] for index in index_list]
+    ALTERNATE = True
+    if ALTERNATE:
+        #with ut.Timer('fdsa'):
+        TAU = np.pi * 2
+        binsize = TAU / len(const.VIEWTEXT_TO_YAW_RADIANS)
+        yaw_list_ = np.array([np.nan if yaw is None else yaw for yaw in yaw_list])
+        index_list = np.floor(.5 + (yaw_list_ % TAU) / binsize)
+        text_list = [None if np.isnan(index) else stdlbl_list[int(index)] for index in index_list]
+    else:
+        #with ut.Timer('fdsa'):
+        stdyaw_list = np.array(ut.get_list_column(stdlblyaw_list, 1))
+        textdists_list = [None if yaw is None else vt.ori_distance(stdyaw_list, yaw) for yaw in yaw_list]
+        index_list = [None if dists is None else dists.argmin() for dists in textdists_list]
+        text_list = [None if index is None else stdlbl_list[index] for index in index_list]
+        #yaw_list_ / binsize
     #errors = ['%.2f' % dists[index] for dists, index in zip(textdists_list, index_list)]
     #return list(zip(yaw_list, errors, text_list))
     return text_list
