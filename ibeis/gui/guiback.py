@@ -1629,9 +1629,7 @@ class MainWindowBackend(QtCore.QObject):
         return eid
 
     def contains_special_encounters(back, eid_list):
-        enctext_list = back.ibs.get_encounter_text(eid_list)
-        is_valid = [enctext not in const.SPECIAL_ENCOUNTER_LABELS for enctext in enctext_list]
-        #filtered_eid_list = ut.filter_items(eid_list, is_valid)
+        is_valid = back.ibs.is_special_encounter(eid_list)
         return not all(is_valid)
 
     def display_special_encounters_error(back):

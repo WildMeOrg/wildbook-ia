@@ -315,7 +315,9 @@ def get_annot_pair_truth(ibs, aid1_list, aid2_list):
 
 @__injectable
 def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
-    annotmatch_truth_list = ibs.get_annot_pair_truth(aid1_list, aid2_list)
+    annotmatch_truth_list1 = ibs.get_annot_pair_truth(aid1_list, aid2_list)
+    annotmatch_truth_list2 = ibs.get_annot_pair_truth(aid2_list, aid1_list)
+    annotmatch_truth_list = ut.or_lists(annotmatch_truth_list1, annotmatch_truth_list2)
     annotmatch_reviewed_list = [truth is not None for truth in annotmatch_truth_list]
     return annotmatch_reviewed_list
 
@@ -3463,6 +3465,14 @@ def filter_aids_by_quality_and_viewpoint(ibs, aid_list, minqual, valid_yaws):
     flags_list = ut.and_iters(qual_flags, yaw_flags)
     aid_list_ = list(ut.ifilter_items(aid_list, flags_list))
     return aid_list_
+
+
+@__injectable
+def is_special_encounter(ibs, eid_list):
+    enctext_list = ibs.get_encounter_text(eid_list)
+    isspecial_list = [str(enctext) in set(const.SPECIAL_ENCOUNTER_LABELS)
+                      for enctext in enctext_list]
+    return isspecial_list
 
 
 @__injectable

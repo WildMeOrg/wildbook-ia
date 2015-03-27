@@ -165,7 +165,7 @@ TABLE_EDITSET = {
     ANNOTATION_TABLE : set(['name', 'species', 'annotnotes', 'exemplar', 'yaw', 'yaw_text', 'quality_text']),
     NAME_TABLE       : set(['name', 'namenotes']),
     QRES_TABLE       : set(['name']),
-    ENCOUNTER_TABLE  : set(['encounter_shipped_flag', 'encounter_processed_flag']),
+    ENCOUNTER_TABLE  : set(['enctext', 'encounter_shipped_flag', 'encounter_processed_flag']),
     IMAGE_GRID       : set([]),
     THUMB_TABLE      : set([]),
     NAMES_TREE       : set(['exemplar', 'name', 'namenotes', 'yaw', 'yaw_text', 'quality_text']),

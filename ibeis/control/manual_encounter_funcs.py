@@ -96,10 +96,13 @@ def add_encounters(ibs, enctext_list, encounter_uuid_list=None, config_rowid_lis
 
 @register_ibs_method
 @accessor_decors.setter
-def set_encounter_text(ibs, eid_list, names_list):
+def set_encounter_text(ibs, eid_list, encounter_text_list):
     """ Sets names of encounters (groups of animals) """
+    # Special set checks
+    if any(ibs.is_special_encounter(eid_list)):
+        raise ValueError('cannot rename special encounters')
     id_iter = ((eid,) for eid in eid_list)
-    val_list = ((names,) for names in names_list)
+    val_list = ((encounter_text,) for encounter_text in encounter_text_list)
     ibs.db.set(const.ENCOUNTER_TABLE, ('encounter_text',), val_list, id_iter)
 
 #
