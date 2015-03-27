@@ -351,7 +351,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         >>> qaid_list = ibs.get_valid_aids()[0:1]
         >>> daid_list = ibs.get_valid_aids()[10:100]
         >>> qaid2_qres = ibs._query_chips4(qaid_list, daid_list)
-        >>> ranks_lt = 0
+        >>> ranks_lt = 1
         >>> directed = False
         >>> name_scoring = False
         >>> filter_reviewed = False
@@ -370,7 +370,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         >>> qaid_list = ibs.get_valid_aids()[0:10]
         >>> daid_list = ibs.get_valid_aids()[0:10]
         >>> qaid2_qres = ibs._query_chips4(qaid_list, daid_list)
-        >>> ranks_lt = 0
+        >>> ranks_lt = 3
         >>> directed = False
         >>> name_scoring = False
         >>> filter_reviewed = False

@@ -315,11 +315,44 @@ def get_annot_pair_truth(ibs, aid1_list, aid2_list):
 
 @__injectable
 def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1_list (list):
+        aid2_list (list):
+
+    Returns:
+        list: annotmatch_reviewed_list
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_annot_pair_is_reviewed
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb2')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> pairs = list(ut.product(aid_list, aid_list))
+        >>> aid1_list = ut.get_list_column(pairs, 0)
+        >>> aid2_list = ut.get_list_column(pairs, 1)
+        >>> # execute function
+        >>> annotmatch_reviewed_list = get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list)
+        >>> # verify results
+        >>> reviewed_pairs = ut.list_compress(pairs, annotmatch_reviewed_list)
+        >>> result = len(reviewed_pairs)
+        >>> print(result)
+        104
+    """
+    flag_non_None_items = lambda list_: (item_ is not None for item_ in list_)
     annotmatch_truth_list1 = ibs.get_annot_pair_truth(aid1_list, aid2_list)
     annotmatch_truth_list2 = ibs.get_annot_pair_truth(aid2_list, aid1_list)
-    annotmatch_truth_list = ut.or_lists(annotmatch_truth_list1, annotmatch_truth_list2)
-    annotmatch_reviewed_list = [truth is not None for truth in annotmatch_truth_list]
-    return annotmatch_reviewed_list
+    annotmatch_truth_list = ut.or_lists(
+        flag_non_None_items(annotmatch_truth_list1),
+        flag_non_None_items(annotmatch_truth_list2))
+    #annotmatch_reviewed_list = [truth is not None for truth in annotmatch_truth_list]
+    return annotmatch_truth_list
 
 
 @__injectable

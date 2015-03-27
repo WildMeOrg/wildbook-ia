@@ -840,7 +840,11 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     # This is where you create the result widigt
     guitool.ensure_qapp()
     print('[inspect_matches] make_qres_widget')
-    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, ranks_lt=ranks_lt, qreq_=qreq_)
+    #qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, ranks_lt=ranks_lt, qreq_=qreq_)
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
+                                              ranks_lt=ranks_lt, qreq_=qreq_,
+                                              filter_reviewed=False,
+                                              filter_duplicate_namepair_matches=True)
     print('[inspect_matches] show')
     qres_wgt.show()
     print('[inspect_matches] raise')
