@@ -2596,7 +2596,7 @@ def get_yaw_viewtexts(yaw_list):
     import six
     stdlblyaw_list = list(six.iteritems(const.VIEWTEXT_TO_YAW_RADIANS))
     stdlbl_list = ut.get_list_column(stdlblyaw_list, 0)
-    ALTERNATE = True
+    ALTERNATE = False
     if ALTERNATE:
         #with ut.Timer('fdsa'):
         TAU = np.pi * 2
