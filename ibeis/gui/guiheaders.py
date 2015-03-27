@@ -317,7 +317,7 @@ def make_ibeis_headers_dict(ibs):
     }
     infer_unspecified_getters(ENCOUNTER_TABLE, 'encounter')
     setters[ENCOUNTER_TABLE] = {
-        'enctext'    : ibs.set_encounter_enctext,
+        'enctext'    : ibs.set_encounter_text,
         'encounter_shipped_flag'    : ibs.set_encounter_shipped_flags,
         'encounter_processed_flag'  : ibs.set_encounter_processed_flags,
     }

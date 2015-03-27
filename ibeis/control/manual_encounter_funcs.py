@@ -96,7 +96,7 @@ def add_encounters(ibs, enctext_list, encounter_uuid_list=None, config_rowid_lis
 
 @register_ibs_method
 @accessor_decors.setter
-def set_encounter_enctext(ibs, eid_list, names_list):
+def set_encounter_text(ibs, eid_list, names_list):
     """ Sets names of encounters (groups of animals) """
     id_iter = ((eid,) for eid in eid_list)
     val_list = ((names,) for names in names_list)
