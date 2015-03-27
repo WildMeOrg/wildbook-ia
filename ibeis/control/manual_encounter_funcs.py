@@ -177,22 +177,24 @@ def get_encounter_num_names_with_exemplar(ibs, eid_list):
 def get_encounter_fraction_names_with_exemplar(ibs, eid_list):
     """
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.control.manual_encounter_funcs import *  # NOQA
         >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs = ibeis.opendb('testdb2')
         >>> eid_list = ibs._get_all_encounter_rowids()
-        >>> num_annots_reviewed_list = ibs.get_encounter_num_annotmatch_reviewed(eid_list)
+        >>> fraction_exemplared_names_list = ibs.get_encounter_fraction_names_with_exemplar(eid_list)
     """
     aids_list = ibs.get_encounter_custom_filtered_aids(eid_list)
-    exflags_list = ibs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)
-    nids_list = ibs.unflat_map(ibs.get_annot_name_rowids, aids_list)
-    groups_list = [ut.group_items(exflags, nids)
-                   for exflags, nids in zip(exflags_list, nids_list)]
-    num_names_list = [len(groups) for groups in groups_list]
+    #exflags_list = ibs.unflat_map(ibs.get_annot_exemplar_flags, aids_list)
+    nids_list = list(map(list, map(set, ibs.unflat_map(ibs.get_annot_name_rowids, aids_list))))
+    aids_list_list = ibs.unflat_map(ibs.get_name_aids, nids_list)
+    flags_list_list = list(map(lambda x: ibs.unflat_map(ibs.get_annot_exemplar_flags, x), aids_list_list))
+    #groups_list = [ut.group_items(exflags, nids)
+    #               for exflags, nids in zip(exflags_list, nids_list)]
+    num_names_list = list(map(len, nids_list))
     num_exemplared_names_list = [
-        sum([any(exflags) for exflags in six.itervalues(groups)])
-        for groups in groups_list
+        sum([any(exflags) for exflags in flags_list])
+        for flags_list in flags_list_list
     ]
     fraction_exemplared_names_list = [
         None if num_names == 0 else num_exemplared_names / num_names
