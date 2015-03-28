@@ -105,19 +105,31 @@ def testdata_points(nPts=53, nDims=11, dtype=np.float64):
 
 def test_pyflann_hkmeans():
     """
-    hkmeans
-    Clusters the data by using multiple runs of kmeans to
-    recursively partition the dataset.  The number of resulting
-    clusters is given by (branch_size-1)*num_branches+1.
-    This method can be significantly faster when the number of
-    desired clusters is quite large (e.g. a hundred or more).
-    Higher branch sizes are slower but may give better results.
-    If dtype is None (the default), the array returned is the same
-    type as pts.  Otherwise, the returned array is of type dtype.
+    hkmeans:
+        Clusters the data by using multiple runs of kmeans to
+        recursively partition the dataset.  The number of resulting
+        clusters is given by (branch_size-1)*num_branches+1.
+        This method can be significantly faster when the number of
+        desired clusters is quite large (e.g. a hundred or more).
+        Higher branch sizes are slower but may give better results.
+        If dtype is None (the default), the array returned is the same
+        type as pts.  Otherwise, the returned array is of type dtype.
 
-    #>>> from vtool.tests.test_pyflann import * # NOQA
-    #>>> test_pyflann_hkmeans()  #doctest: +ELLIPSIS
-    #HKmeans...
+        #>>> from vtool.tests.test_pyflann import * # NOQA
+        #>>> test_pyflann_hkmeans()  #doctest: +ELLIPSIS
+        #HKmeans...
+
+    CommandLine:
+        python -m vtool.tests.test_pyflann --test-test_pyflann_hkmeans
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.tests.test_pyflann import *  # NOQA
+        >>> # build test data
+        >>> # execute function
+        >>> result = test_pyflann_hkmeans()
+        >>> # verify results
+        >>> print(result)
     """
 
     # Test parameters
@@ -139,7 +151,8 @@ def test_pyflann_hkmeans():
 
 def test_pyflann_kmeans():
     """
-    kmeans(self, pts, num_clusters, max_iterations=None, dtype=None, **kwargs)
+    kmeans:
+        (self, pts, num_clusters, max_iterations=None, dtype=None, **kwargs)
         Runs kmeans on pts with num_clusters centroids.  Returns a
         numpy array of size num_clusters x dim.
         If max_iterations is not None, the algorithm terminates after
@@ -147,9 +160,18 @@ def test_pyflann_kmeans():
         default is to run until convergence.
         If dtype is None (the default), the array returned is the same
         type as pts.  Otherwise, the returned array is of type dtype.
-    #>>> from vtool.tests.test_pyflann import * # NOQA
-    #>>> test_pyflann_kmeans()  #doctest: +ELLIPSIS
-    #Kmeans...
+
+    CommandLine:
+        python -m vtool.tests.test_pyflann --test-test_pyflann_kmeans
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.tests.test_pyflann import *  # NOQA
+        >>> # build test data
+        >>> # execute function
+        >>> result = test_pyflann_kmeans()
+        >>> # verify results
+        >>> print(result)
     """
     print('Kmeans')
     flann = pyflann.FLANN()
@@ -166,8 +188,17 @@ def test_pyflann_kmeans():
 
 def test_pyflann_add_point():
     """
-    #>>> from vtool.tests.test_pyflann import * # NOQA
-    #>>> test_pyflann_add_point()
+    CommandLine:
+        python -m vtool.tests.test_pyflann --test-test_pyflann_add_point
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.tests.test_pyflann import *  # NOQA
+        >>> # build test data
+        >>> # execute function
+        >>> result = test_pyflann_add_point()
+        >>> # verify results
+        >>> print(result)
     """
     # Test parameters
     num_neighbors = 3
@@ -183,6 +214,7 @@ def test_pyflann_add_point():
 
     print('NN_Index')
     indices1, dists1 = flann.nn_index(qpts, num_neighbors=num_neighbors)
+    assert np.all(indices1 < pts.shape[0]), 'indicies should be less than num pts'
     print(utool.hz_str('indices1, dists1 = ', indices1,  dists1))
 
     print('Adding points')
@@ -191,20 +223,31 @@ def test_pyflann_add_point():
     print('NN_Index')
     indices2, dists2 = flann.nn_index(qpts, num_neighbors=num_neighbors)
     print(utool.hz_str('indices2, dists2 = ', indices2,  dists2))
+    assert np.any(indices2 > pts.shape[0]), 'should be some indexes into new points'
+    assert np.all(indices2 < pts.shape[0] + newpts.shape[0]), 'but not more than the points being added'
 
 
 def test_pyflann_searches():
     """
-    #>>> from vtool.tests.test_pyflann import * # NOQA
-    #>>> test_pyflann_searches()
+    CommandLine:
+        python -m vtool.tests.test_pyflann --test-test_pyflann_searches
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.tests.test_pyflann import *  # NOQA
+        >>> # build test data
+        >>> # execute function
+        >>> result = test_pyflann_searches()
+        >>> # verify results
+        >>> print(result)
     """
     try:
         num_neighbors = 3
         pts = testdata_points(nPts=5743, nDims=2)
         qpts = testdata_points(nPts=7, nDims=2)
-        from vtool import linalg
+        import vtool as vt
         # sample a radius
-        radius = linalg.L2(pts[0:1], qpts[0:1])[0] * 2 + 1
+        radius = vt.L2(pts[0:1], qpts[0:1])[0] * 2 + 1
 
         flann = pyflann.FLANN()
 
@@ -240,8 +283,17 @@ def test_pyflann_searches():
 
 def test_pyflann_tune():
     """
-    #>>> from vtool.tests.test_pyflann import * # NOQA
-    #>>> test_pyflann_tune()
+    CommandLine:
+        python -m vtool.tests.test_pyflann --test-test_pyflann_tune
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.tests.test_pyflann import *  # NOQA
+        >>> # build test data
+        >>> # execute function
+        >>> result = test_pyflann_tune()
+        >>> # verify results
+        >>> print(result)
     """
     print('Create random qpts and database data')
     pts = testdata_points(nPts=1009)
@@ -275,11 +327,7 @@ def test_pyflann_tune():
 
 
 def test_pyflann_io():
-    # Test parameters
     """
-    #>>> from vtool.tests.test_pyflann import * # NOQA
-    #>>> test_pyflann_io()
-
     CommandLine:
         python -m vtool.tests.test_pyflann --test-test_pyflann_io
 
@@ -334,37 +382,40 @@ def test_pyflann_io():
         raise AssertionError('...data is the different! FAILURE!')
 
 
-if __name__ == '__main__':
-    """
-    build_index(self, pts, **kwargs) method of pyflann.index.FLANN instance
-        This builds and internally stores an index to be used for
-        future nearest neighbor matchings.  It erases any previously
-        stored indexes, so use multiple instances of this class to
-        work with multiple stored indices.  Use nn_index(...) to find
-        the nearest neighbors in this index.
+#if __name__ == '__main__':
+#    """
+#    python -m vtool.tests.test_pyflann
 
-        pts is a 2d numpy array or matrix. All the computation is done
-        in float32 type, but pts may be any type that is convertable
-        to float32.
 
-    delete_index(self, **kwargs) method of pyflann.index.FLANN instance
-        Deletes the current index freeing all the momory it uses.
-        The memory used by the dataset that was indexed is not freed.
+#    build_index(self, pts, **kwargs) method of pyflann.index.FLANN instance
+#        This builds and internally stores an index to be used for
+#        future nearest neighbor matchings.  It erases any previously
+#        stored indexes, so use multiple instances of this class to
+#        work with multiple stored indices.  Use nn_index(...) to find
+#        the nearest neighbors in this index.
 
-    """
-    np.random.seed(1)
-    tests = [
-        test_pyflann_io,
-        test_pyflann_hkmeans,
-        test_pyflann_kmeans,
-        test_pyflann_add_point,
-        test_pyflann_searches,
-        test_pyflann_tune,
-    ]
-    passed = 0
-    for test in tests:
-        passed += not (False is utool.run_test(test))
-    print('%d/%d passed in test_pyflann' % (passed, len(tests)))
+#        pts is a 2d numpy array or matrix. All the computation is done
+#        in float32 type, but pts may be any type that is convertable
+#        to float32.
+
+#    delete_index(self, **kwargs) method of pyflann.index.FLANN instance
+#        Deletes the current index freeing all the momory it uses.
+#        The memory used by the dataset that was indexed is not freed.
+
+#    """
+#    np.random.seed(1)
+#    tests = [
+#        test_pyflann_io,
+#        test_pyflann_hkmeans,
+#        test_pyflann_kmeans,
+#        test_pyflann_add_point,
+#        test_pyflann_searches,
+#        test_pyflann_tune,
+#    ]
+#    passed = 0
+#    for test in tests:
+#        passed += not (False is utool.run_test(test))
+#    print('%d/%d passed in test_pyflann' % (passed, len(tests)))
 
 #if __name__ == '__main__':
 #    """
@@ -377,3 +428,16 @@ if __name__ == '__main__':
 #    multiprocessing.freeze_support()  # for win32
 #    import utool as ut  # NOQA
 #    ut.doctest_funcs()
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m vtool.tests.test_pyflann
+        python -m vtool.tests.test_pyflann --allexamples
+        python -m vtool.tests.test_pyflann --allexamples --noface --nosrc
+    """
+    np.random.seed(1)
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
