@@ -536,6 +536,18 @@ class QueryRequest(object):
         query_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(qaids, prefix='Q')
         return query_hashid
 
+    def get_internal_query_hashid(qreq_):
+        if qreq_.qparams.vsmany:
+            return qreq_.get_query_hashid()
+        else:
+            return qreq_.get_data_hashid()
+
+    def get_internal_data_hashid(qreq_):
+        if qreq_.qparams.vsmany:
+            return qreq_.get_data_hashid()
+        else:
+            return qreq_.get_query_hashid()
+
     @profile
     def get_query_cfgstr(qreq_):
         query_cfgstr = qreq_.qparams.query_cfgstr

@@ -1629,8 +1629,8 @@ class MainWindowBackend(QtCore.QObject):
         return eid
 
     def contains_special_encounters(back, eid_list):
-        is_valid = back.ibs.is_special_encounter(eid_list)
-        return not all(is_valid)
+        isspecial_list = back.ibs.is_special_encounter(eid_list)
+        return any(isspecial_list)
 
     def display_special_encounters_error(back):
         back.user_info(msg="Contains special encounters")
@@ -1653,3 +1653,42 @@ class MainWindowBackend(QtCore.QObject):
     def run_tests(back):
         from ibeis.tests import run_tests
         run_tests.run_tests()
+
+    @slot_()
+    def display_dbinfo(back):
+        r"""
+        CommandLine:
+            python -m ibeis.gui.guiback --test-display_dbinfo
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> # build test data
+            >>> back = testdata_guiback()
+            >>> # execute function
+            >>> result = back.display_dbinfo()
+            >>> # verify results
+            >>> print(result)
+        """
+        dbinfo = back.ibs.get_dbinfo_str()
+        guitool.msgbox(msg=back.ibs.get_infostr(), title="DBInfo", detailed_msg=dbinfo)
+
+
+def testdata_guiback():
+    import ibeis
+    main_locals = ibeis.main(db='testdb2')
+    back = main_locals['back']
+    return back
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.gui.guiback
+        python -m ibeis.gui.guiback --allexamples
+        python -m ibeis.gui.guiback --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

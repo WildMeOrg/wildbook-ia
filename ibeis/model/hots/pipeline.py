@@ -370,6 +370,17 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     # For each internal query annotation
     internal_qaids = qreq_.get_internal_qaids()
     # Find the nearest neighbors of each descriptor vector
+    #USE_NN_MID_CACHE = ut.is_developer()
+    USE_NN_MID_CACHE = False
+    if USE_NN_MID_CACHE:
+        internal_daids = qreq_.get_internal_daids()
+        query_hashid   = qreq_.ibs.get_annot_hashid_visual_uuid(internal_qaids, prefix='Q')
+        data_hashid    = qreq_.ibs.get_annot_hashid_visual_uuid(internal_daids, prefix='D')
+        nn_cfgstr      = qreq_.qparams.nn_cfgstr
+        num_neigbors_list_hashid = ut.hashstr_arr(num_neighbors_list)
+        nn_mid_cacheid = 'nn_mid' + query_hashid + data_hashid + nn_cfgstr + num_neigbors_list_hashid
+        nn_mid_cacheid += 'aug_quryside' if  qreq_.qparams.augment_queryside_hack else ''
+
     qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids, config2_=qreq_.get_internal_query_config2())
     # Mark progress ane execute nearest indexer nearest neighbor code
     qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, **PROGKW)

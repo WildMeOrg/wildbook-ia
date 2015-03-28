@@ -62,11 +62,11 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
 
     CommandLine:
         python -m ibeis.dev.dbinfo --test-get_dbinfo
+        python -m ibeis.dev.dbinfo --test-get_dbinfo:1
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.dev.dbinfo import *  # NOQA
-        >>> from ibeis.dev import dbinfo
         >>> import ibeis
         >>> verbose = True
         >>> #ibs = ibeis.opendb(db='GZ_ALL')
@@ -75,7 +75,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         >>> ibs.delete_contributors(ibs.get_valid_contrib_rowids())
         >>> ibs.delete_empty_nids()
         >>> #ibs = ibeis.opendb(db='PZ_MTEST')
-        >>> output = dbinfo.get_dbinfo(ibs, verbose=False)
+        >>> output = get_dbinfo(ibs, verbose=False)
         >>> result = (output['info_str'])
         >>> print(result)
         +============================
@@ -133,6 +133,16 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
             'min'  : '1969/12/31 19:01:41',
         }
         L============================
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.dev.dbinfo import *  # NOQA
+        >>> import ibeis
+        >>> verbose = True
+        >>> ibs = ibeis.opendb(db='testdb2')
+        >>> output = get_dbinfo(ibs, verbose=False)
+        >>> result = (output['info_str'])
+        >>> print(result)
     """
     # TODO Database size in bytes
     # TODO: encounters, contributors, etc...
@@ -142,10 +152,20 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     valid_nids = ibs.get_valid_nids()
     valid_gids = ibs.get_valid_gids()
     associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation
+    FILTER_HACK = True
+    if FILTER_HACK:
+        # HUGE HACK - get only images and names with filtered aids
+        valid_aids = ibs.filter_aids_custom(valid_aids)  # HACK FOR FILTER
+        valid_nids = ut.list_compress(valid_nids, map(any, ibs.unflat_map(ibs.get_annot_custom_filterflags, ibs.get_name_aids(valid_nids))))
+        valid_gids = ut.list_compress(valid_gids, map(any, ibs.unflat_map(ibs.get_annot_custom_filterflags, ibs.get_image_aids(valid_gids))))
+        associated_nids = ut.list_compress(associated_nids, map(any, ibs.unflat_map(ibs.get_annot_custom_filterflags, ibs.get_name_aids(associated_nids))))
 
     # Image info
     gname_list = ibs.get_image_gnames(valid_gids)
     gx2_aids = ibs.get_image_aids(valid_gids)
+    if FILTER_HACK:
+        gx2_aids = ibs.unflat_map(ibs.filter_aids_custom, gx2_aids)  # HACK FOR FILTER
+
     gx2_nAnnots = np.array(map(len, gx2_aids))
     image_without_annots = len(np.where(gx2_nAnnots == 0)[0])
     gx2_nAnnots_stats  = ut.get_stats_str(gx2_nAnnots, newlines=True)
@@ -153,6 +173,10 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
 
     # Name stats
     nx2_aids = np.array(ibs.get_name_aids(valid_nids))
+    if FILTER_HACK:
+        nx2_aids = np.array(ibs.unflat_map(ibs.filter_aids_custom, nx2_aids))  # HACK FOR FILTER
+
+    #ibs.check_name_mapping_consistency(nx2_aids)
 
     # Annot Stats
     # TODO: number of images where chips cover entire image
@@ -177,29 +201,6 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     assert len(np.intersect1d(singleton_nxs, multiton_nxs)) == 0, 'intersecting names'
     valid_nxs      = np.hstack([multiton_nxs, singleton_nxs])
     num_names_with_gt = len(multiton_nxs)
-
-    # DEBUGGING CODE
-    try:
-        from ibeis import ibsfuncs
-        _nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, nx2_aids)
-        assert all(map(ut.list_allsame, _nids_list))
-    except Exception as ex:
-        # THESE SHOULD BE CONSISTENT BUT THEY ARE NOT!!?
-        #name_annots = [ibs.get_annot_name_rowids(aids) for aids in nx2_aids]
-        bad = 0
-        good = 0
-        huh = 0
-        for nx, aids in enumerate(nx2_aids):
-            nids = ibs.get_annot_name_rowids(aids)
-            if np.all(np.array(nids) > 0):
-                print(nids)
-                if ut.list_allsame(nids):
-                    good += 1
-                else:
-                    huh += 1
-            else:
-                bad += 1
-        ut.printex(ex, keys=['good', 'bad', 'huh'])
 
     # Annot Info
     multiton_aids_list = nx2_aids[multiton_nxs]
@@ -253,7 +254,9 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
 
     # Time stats
     unixtime_list = ibs.get_image_unixtime(valid_gids)
-    unixtime_statstr = ibs.get_image_time_statstr(valid_gids)
+    valid_unixtime_list = [time for time in unixtime_list if time != -1]
+    #unixtime_statstr = ibs.get_image_time_statstr(valid_gids)
+    unixtime_statstr = ut.get_timestats_str(valid_unixtime_list, newlines=True)
 
     # GPS stats
     gps_list_ = ibs.get_image_gps(valid_gids)
@@ -276,21 +279,22 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     num_unknown_annots = len(unknown_aids)
     num_annots = len(valid_aids)
 
-    try:
-        bad_aids = np.intersect1d(multiton_aids, unknown_aids)
-        assert len(bad_aids) == 0, 'intersecting multiton aids and unknown aids'
-        assert num_names_singleton + num_names_unassociated + num_names_multiton == num_names, 'inconsistent num names'
-        assert num_unknown_annots + num_singleton_annots + num_multiton_annots == num_annots, 'inconsistent num annots'
-    except Exception as ex:
-        ut.printex(ex, keys=[
-            'num_names_singleton',
-            'num_names_multiton',
-            'num_names',
-            'num_unknown_annots',
-            'num_multiton_annots',
-            'num_singleton_annots',
-            'num_annots'])
-        raise
+    if not FILTER_HACK:
+        try:
+            bad_aids = np.intersect1d(multiton_aids, unknown_aids)
+            assert len(bad_aids) == 0, 'intersecting multiton aids and unknown aids'
+            assert num_names_singleton + num_names_unassociated + num_names_multiton == num_names, 'inconsistent num names'
+            assert num_unknown_annots + num_singleton_annots + num_multiton_annots == num_annots, 'inconsistent num annots'
+        except Exception as ex:
+            ut.printex(ex, keys=[
+                'num_names_singleton',
+                'num_names_multiton',
+                'num_names',
+                'num_unknown_annots',
+                'num_multiton_annots',
+                'num_singleton_annots',
+                'num_annots'])
+            raise
 
     # Get contributor statistics
     contrib_rowids = ibs.get_valid_contrib_rowids()
@@ -346,7 +350,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         ('# Img                        = %d' % len(valid_gids)),
         ('# Img reviewed               = %d' % sum(image_reviewed_list)),
         ('# Img with gps               = %d' % len(gps_list)),
-        ('# Img with timestamp         = %d' % len(unixtime_list)),
+        ('# Img with timestamp         = %d' % len(valid_unixtime_list)),
         ('Img Time Stats               = %s' % (ut.align(unixtime_statstr, ':'),)),
     ]
 

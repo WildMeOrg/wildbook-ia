@@ -314,6 +314,11 @@ def setup_help_menu(mainwin, back):
         text='About',
         shortcut='',
         slot_fn=guitool.msg_event('About', about_msg))
+    mainwin.menuHelp.newAction(
+        name='actionDBInfo',
+        text='Database Info',
+        shortcut='',
+        slot_fn=back.display_dbinfo),
     #mainwin.menuHelp.newAction(
     #    name='actionView_Docs',
     #    text='View Documentation',

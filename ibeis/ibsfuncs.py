@@ -725,6 +725,32 @@ def check_name_consistency(ibs, nid_list):
 
 
 @__injectable
+def check_name_mapping_consistency(ibs, nx2_aids):
+    # DEBUGGING CODE
+    try:
+        from ibeis import ibsfuncs
+        _nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, nx2_aids)
+        assert all(map(ut.list_allsame, _nids_list))
+    except Exception as ex:
+        # THESE SHOULD BE CONSISTENT BUT THEY ARE NOT!!?
+        #name_annots = [ibs.get_annot_name_rowids(aids) for aids in nx2_aids]
+        bad = 0
+        good = 0
+        huh = 0
+        for nx, aids in enumerate(nx2_aids):
+            nids = ibs.get_annot_name_rowids(aids)
+            if np.all(np.array(nids) > 0):
+                print(nids)
+                if ut.list_allsame(nids):
+                    good += 1
+                else:
+                    huh += 1
+            else:
+                bad += 1
+        ut.printex(ex, keys=['good', 'bad', 'huh'])
+
+
+@__injectable
 def check_annot_size(ibs):
     print('Checking annot sizes')
     aid_list = ibs.get_valid_aids()
@@ -3490,22 +3516,30 @@ def check_chip_existence(ibs, aid_list=None):
 
 
 @__injectable
-def filter_aids_by_quality_and_viewpoint(ibs, aid_list, minqual, valid_yaws):
-    qual_list = ibs.get_annot_qualities(aid_list)
-    yaw_list = ibs.get_annot_yaw_texts(aid_list)
-    qual_flags = (qual is None or qual > minqual for qual in qual_list)
-    yaw_flags  = (yaw is None or yaw in valid_yaws for yaw in yaw_list)
-    flags_list = ut.and_iters(qual_flags, yaw_flags)
-    aid_list_ = list(ut.ifilter_items(aid_list, flags_list))
-    return aid_list_
-
-
-@__injectable
 def is_special_encounter(ibs, eid_list):
     enctext_list = ibs.get_encounter_text(eid_list)
     isspecial_list = [str(enctext) in set(const.SPECIAL_ENCOUNTER_LABELS)
                       for enctext in enctext_list]
     return isspecial_list
+
+
+@__injectable
+def get_quality_viewpoint_filterflags(ibs, aid_list, minqual, valid_yaws):
+    qual_list = ibs.get_annot_qualities(aid_list)
+    yaw_list = ibs.get_annot_yaw_texts(aid_list)
+    qual_flags = (qual is None or qual > minqual for qual in qual_list)
+    yaw_flags  = (yaw is None or yaw in valid_yaws for yaw in yaw_list)
+    flags_list = list(ut.and_iters(qual_flags, yaw_flags))
+    return flags_list
+
+
+@__injectable
+def get_annot_custom_filterflags(ibs, aid_list):
+    minqual = const.QUALITY_TEXT_TO_INT['poor']
+    #valid_yaws = {'left', 'frontleft', 'backleft'}
+    valid_yawtexts = {'left', 'frontleft'}
+    flags_list = ibs.get_quality_viewpoint_filterflags(aid_list, minqual, valid_yawtexts)
+    return flags_list
 
 
 @__injectable
@@ -3534,11 +3568,8 @@ def filter_aids_custom(ibs, aid_list):
         >>> result = str(aid_list_)
         >>> print(result)
     """
-    minqual = const.QUALITY_TEXT_TO_INT['poor']
-    #valid_yaws = {'left', 'frontleft', 'backleft'}
-    valid_yawtexts = {'left', 'frontleft'}
-    #valid_yaws = {const._texts
-    aid_list_ = ibs.filter_aids_by_quality_and_viewpoint(aid_list, minqual, valid_yawtexts)
+    flags_list = ibs.get_annot_custom_filterflags(aid_list)
+    aid_list_ = list(ut.ifilter_items(aid_list, flags_list))
     return aid_list_
 
 
