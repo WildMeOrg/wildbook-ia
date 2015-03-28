@@ -1,3 +1,8 @@
+"""
+CommandLine:
+    rm -rf /media/raid/work/PZ_MTEST/_ibsdb/_ibeis_cache/match_thumbs/
+    python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show --verbose-thumb
+"""
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtGui, QtCore
 #import cv2  # NOQA
@@ -126,6 +131,9 @@ DELEGATE_BASE = QtGui.QItemDelegate
 
 class APIThumbDelegate(DELEGATE_BASE):
     """
+    There is one Thumb Delegate per column. Keep that in mind when writing for
+    this class.
+
     TODO: The delegate can have a reference to the view, and it is allowed
     to resize the rows to fit the images.  It probably should not resize columns
     but it can get the column width and resize the image to that size.

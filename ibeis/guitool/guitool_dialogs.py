@@ -275,13 +275,33 @@ def _register_msgbox(msgbox):
     msgbox.destroyed.connect(_close_msgbox)
 
 
-def msgbox(msg, title='msgbox'):
-    """ Make a non modal critical QtGui.QMessageBox. """
+def msgbox(msg='', title='msgbox', detailed_msg=None):
+    """ Make a non modal critical QtGui.QMessageBox.
+
+    CommandLine:
+        python -m guitool.guitool_dialogs --test-msgbox
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.guitool_dialogs import *  # NOQA
+        >>> from guitool.guitool_dialogs import _register_msgbox  # NOQA
+        >>> # build test data
+        >>> msg = 'Hello World!'
+        >>> title = 'msgbox'
+        >>> # execute function
+        >>> msgbox = msgbox(msg, title)
+        >>> # verify results
+        >>> result = str(msgbox)
+        >>> print(result)
+    """
     msgbox = QtGui.QMessageBox(None)
     msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
     msgbox.setStandardButtons(QtGui.QMessageBox.Ok)
     msgbox.setWindowTitle(title)
+    # TODO: custom resizable msgbox
     msgbox.setText(msg)
+    if detailed_msg is not None:
+        msgbox.setDetailedText(detailed_msg)
     msgbox.setModal(False)
     msgbox.open(msgbox.close)
     msgbox.show()
