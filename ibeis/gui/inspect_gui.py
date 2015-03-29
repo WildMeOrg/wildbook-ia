@@ -409,7 +409,7 @@ def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False):
             MERGE_NEEDS_VERIFICATION = True
             aid1_and_groundtruth = ibs.get_annot_groundtruth(aid1, noself=False)
             aid2_and_groundtruth = ibs.get_annot_groundtruth(aid2, noself=False)
-            trivial_merge = len(aid1_and_groundtruth) == 1 or len(aid2_and_groundtruth) == 1
+            trivial_merge = len(aid1_and_groundtruth) == 1 and len(aid2_and_groundtruth) == 1
             if not trivial_merge:
                 if MERGE_NEEDS_INTERACTION:
                     raise guiexcept.NeedsUserInput('confirm merge')

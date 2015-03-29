@@ -950,6 +950,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         level2_ids_ = ut.group_items(id_list, level_list)
         level2_ids = {level: ut.unique_keep_order2(ids) for level, ids in six.iteritems(level2_ids_)}
 
+        ibs = ibswgt.back.ibs
+        back = ibswgt.back
+
         # ---- ENCOUNTER CONTEXT ----
         if model.name == ENCOUNTER_TABLE:
             merge_destination_id = model._get_row_id(qtindex)  # This is for the benefit of merge encounters
@@ -1141,12 +1144,15 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         ('View annotation', lambda: ibswgt.back.select_aid(aid, eid, show=True)),
                         ('View image', lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
                     ]
+                if len(aid_list) > 0:
+                    def set_annot_names_to_same_new_name(ibswgt, aid_list):
+                        ibswgt.back.ibs.set_annot_names_to_same_new_name(aid_list)
+                        ibswgt.update_tables(tblnames=[gh.NAMES_TREE])
+                    context_options += [
+                        ('Rename annots (%s) to new name' % ut.list_str_summarized(aid_list, 'aid_list'),
+                            lambda: set_annot_names_to_same_new_name(ibswgt, aid_list)),
+                    ]
                 if len(nid_list) > 0:
-                    print('sup?')
-
-                    ibs = ibswgt.back.ibs
-                    back = ibswgt.back
-
                     def run_splits(ibs, nid_list):
                         print('Checking for splits')
                         aids_list = ibs.get_name_aids(nid_list)

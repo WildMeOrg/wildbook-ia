@@ -2029,6 +2029,24 @@ def get_consecutive_newname_list_via_species(ibs, eid=None):
 
 
 @__injectable
+def set_annot_names_to_same_new_name(ibs, aid_list):
+    new_nid = ibs.make_next_nids(num=1)[0]
+    if ut.VERBOSE:
+        print('Setting aid_list={aid_list} to have new_nid={new_nid}'.format(
+            aid_list=aid_list, new_nid=new_nid))
+    ibs.set_annot_name_rowids(aid_list, [new_nid] * len(aid_list))
+
+
+@__injectable
+def set_annot_names_to_different_new_names(ibs, aid_list):
+    new_nid_list = ibs.make_next_nids(num=len(aid_list))
+    if ut.VERBOSE:
+        print('Setting aid_list={aid_list} to have new_nid_list={new_nid_list}'.format(
+            aid_list=aid_list, new_nid_list=new_nid_list))
+    ibs.set_annot_name_rowids(aid_list, new_nid_list)
+
+
+@__injectable
 def make_next_nids(ibs, *args, **kwargs):
     """
     makes name and adds it to the database returning the newly added name rowid(s)
@@ -2093,6 +2111,8 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         )
 
     """
+    # HACK TO FORCE TIMESTAMPS FOR NEW NAMES
+    str_format = 1
     if species_text is None:
         # TODO: optionally specify qreq_ or qparams?
         species_text  = ibs.cfg.detect_cfg.species_text

@@ -562,8 +562,7 @@ class MatchVerificationInteraction(AbstractInteraction):
     def mark_annotation_as_new_name(self, aid, event=None):
         if ut.VERBOSE:
             print('new name')
-        new_nids = self.ibs.make_next_nids(num=1)
-        self.ibs.set_annot_name_rowids([aid], new_nids)
+        self.ibs.set_annot_names_to_same_new_name([aid])
         self.update_callback()
         self.backend_callback()
         self.show_page()
@@ -612,13 +611,8 @@ class MatchVerificationInteraction(AbstractInteraction):
         # Delete all original names
         aid_list = self.all_aid_list
         aid_list_filtered = ut.filterfalse_items(aid_list, self.ibs.get_annot_isjunk(aid_list))
-        # Get next nagge from the controller
-        next_nid = self.ibs.make_next_nids(num=1)[0]
-        # Readd the new names to all aids
-        if ut.VERBOSE:
-            print('Setting aid_list_filtered={aid_list_filtered} to have next_nid={next_nid}'.format(
-                aid_list_filtered=aid_list_filtered, next_nid=next_nid))
-        self.ibs.set_annot_name_rowids(aid_list_filtered, [next_nid] * len(aid_list_filtered))
+        # Rename annotations
+        ibs.set_annot_names_to_same_new_name(aid_list_filtered)
         self.update_callback()
         self.backend_callback()
         self.show_page()
@@ -628,14 +622,10 @@ class MatchVerificationInteraction(AbstractInteraction):
         # Delete all original names
         ibs = self.ibs
         aid_list    = self.all_aid_list
-        # Get next name from the controller
-        nid_list    = ibs.get_annot_name_rowids(aid_list)
-        is_unknown  = ibsfuncs.is_nid_unknown(ibs, nid_list)
+        is_unknown  = ibs.is_aid_unknown(aid_list)
         aid_list_filtered = ut.filter_items(aid_list, is_unknown)
-        #aid_list_filtered = ut.filterfalse_items(_aid_list_filtered, ibs.get_annot_isjunk(_aid_list_filtered))
-        next_nids = self.ibs.make_next_nids(num=len(aid_list_filtered))
-        # Readd the new names to all aids
-        ibs.set_annot_name_rowids(aid_list_filtered, next_nids)
+        # Rename annotations
+        ibs.set_annot_names_to_different_new_names(aid_list_filtered)
         self.update_callback()
         self.backend_callback()
         self.show_page()
