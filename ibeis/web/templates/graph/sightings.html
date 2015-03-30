@@ -1,20 +1,33 @@
 {% extends "layout.html" %}
 {% block content %}
-  <div class="row" style="margin: 50px 0px; text-align: center;">
-    <div class="col-lg-2"></div>
-    
-    <div class="col-lg-8">
+  <div class="row" style="margin-top: 50px; text-align: center;">
+    <div class="col-lg-1"></div>
+    <div class="col-lg-10">
         <canvas id="canvasLine" height="150"></canvas>
         <div style="color: #999; font-style: italic; margin-bottom: 40px;">
-          Unique sightings over time (grey line gives f(x) = x)
+          Unique sightings over time (Grey line gives upper-bound f(x) = x)
         </div>
         <canvas id="canvasBar"  height="150"></canvas>
         <div style="color: #999; font-style: italic; margin-bottom: 40px;">
           Sightings by day (Grey - number of sightings, Blue - number of new sightings)
         </div>
     </div>
+    <div class="col-lg-1"></div>
+  </div>
 
-    <div class="col-lg-2"></div>
+  <div class="row" style="margin-bottom: 50px; text-align: center;">
+    <div class="col-md-3 col-lg-3">
+      <a href="{{ url_for('display_sightings') }}" target="_blank">View Data</a>
+    </div>
+    <div class="col-md-3 col-lg-3">
+      <a href="{{ url_for('download_sightings') }}" target="_blank">Download Data (CSV)</a>
+    </div>
+    <div class="col-md-3 col-lg-3">
+      <a href="{{ url_for('display_sightings') }}?complete" target="_blank">View Complete Data</a>
+    </div>
+    <div class="col-md-3 col-lg-3">
+      <a href="{{ url_for('download_sightings') }}?complete" target="_blank">Download Complete Data (CSV)</a>
+    </div>
   </div>
 {% endblock %}
 {% block content_custom_javascript %}  
@@ -27,9 +40,11 @@
         {
           fillColor : "rgba(220,220,220,0.2)",
           strokeColor : "rgba(220,220,220,1)",
-          pointColor : "rgba(220,220,220,1)",
-          pointStrokeColor : "#fff",
-          pointHighlightFill : "#fff",
+          pointColor : "rgba(220,220,220,0.5)",
+          pointStrokeColor : "transparent",
+          pointHighlightFill : "transparent",
+          // pointStrokeColor : "#fff",
+          // pointHighlightFill : "#fff",
           pointHighlightStroke : "rgba(220,220,220,1)",
           data : {{ line_index_list }}
         },
@@ -38,9 +53,11 @@
           fillColor : "rgba(151,187,205,0.2)",
           strokeColor : "rgba(151,187,205,1)",
           pointColor : "rgba(151,187,205,1)",
-          pointStrokeColor : "#fff",
-          pointHighlightFill : "#fff",
-          pointHighlightStroke : "rgba(151,187,205,1)",
+          pointStrokeColor : "transparent",
+          pointHighlightFill : "transparent",
+          // pointStrokeColor : "#fff",
+          // pointHighlightFill : "#fff",
+          pointHighlightStroke : "rgba(240, 173, 78, 0.5)",
           data : {{ line_value_list }}
         },
       ]
@@ -76,7 +93,7 @@
     var chartLine = new Chart(ctxLine).Line(dataLine, {
       responsive: true,
       animation: false,
-      pointDotRadius: 1,
+      pointDotRadius: 2,
       pointHitDetectionRadius : 1,
     });
     var ctxBar = document.getElementById("canvasBar").getContext("2d");
