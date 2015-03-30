@@ -841,6 +841,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     guitool.ensure_qapp()
     print('[inspect_matches] make_qres_widget')
     #qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, ranks_lt=ranks_lt, qreq_=qreq_)
+    ut.view_directory(ibs.get_match_thumbdir())
     qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
                                               ranks_lt=ranks_lt, qreq_=qreq_,
                                               filter_reviewed=False,
@@ -857,6 +858,84 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     #qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))
     locals_ =  locals()
     return locals_
+
+
+def get_match_thumb_fname(qres, daid):
+    """
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis.dev import results_all
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> qaid_list = ibs.get_valid_aids()[0:2]
+        >>> daid_list = ibs.get_valid_aids()[0:20]
+        >>> allres = results_all.get_allres(ibs, qaid_list)
+        >>> thumbsize = (128, 128)
+        >>> qreq_ = None
+        >>> qres = allres.qaid2_qres[qaid_list[0]]
+        >>> daid = daid_list[0]
+        >>> match_thumb_fname = get_match_thumb_fname(qres, daid)
+        >>> result = match_thumb_fname
+        match_aids=1,1_cfgstr=ubpzwu5k54h6xbnr.jpg
+    """
+    # Make thumbnail name
+    config_hash = ut.hashstr(qres.cfgstr)
+    qaid = qres.qaid
+    match_thumb_fname = 'match_aids=%d,%d_cfgstr=%s.jpg' % ((qaid, daid, config_hash))
+    return match_thumb_fname
+
+
+def ensure_match_img(ibs, qres, daid, qreq_=None, match_thumbtup_cache={}):
+    r"""
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-ensure_match_img
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> daids = ibs.get_valid_aids(species=species)
+        >>> qaids = ibs.get_valid_aids(species=species)
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]
+        >>> daid = qaids[0]
+        >>> qreq_ = None
+        >>> match_thumbtup_cache = {}
+        >>> # execute function
+        >>> match_thumb_fpath_ = ensure_match_img(ibs, qres, daid, qreq_, match_thumbtup_cache)
+        >>> # verify results
+        >>> result = str(match_thumb_fpath_)
+        >>> print(result)
+        >>> ut.quit_if_noshow():
+        >>> ut.startfile(match_thumb_fpath_, quote=True)
+    """
+    #from os.path import exists
+    match_thumbdir = ibs.get_match_thumbdir()
+    match_thumb_fname = get_match_thumb_fname(qres, daid)
+    match_thumb_fpath_ = ut.unixjoin(match_thumbdir, match_thumb_fname)
+    #if exists(match_thumb_fpath_):
+    #    return match_thumb_fpath_
+    if match_thumb_fpath_ in match_thumbtup_cache:
+        fpath = match_thumbtup_cache[match_thumb_fpath_]
+    else:
+        fpath = qres.dump_match_img(
+            ibs, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32,
+            notitle=True, verbose=False, qreq_=qreq_)
+        match_thumbtup_cache[match_thumb_fpath_] = fpath
+    return fpath
+
+
+def get_match_thumbtup(ibs, qaid2_qres, qaids, daids, index, qreq_=None, thumbsize=(128, 128), match_thumbtup_cache={}):
+    qaid, daid = qaids[index], daids[index]
+    qres = qaid2_qres[qaid]
+    fpath = ensure_match_img(ibs, qres, daid, qreq_=qreq_, match_thumbtup_cache=match_thumbtup_cache)
+    if isinstance(thumbsize, int):
+        thumbsize = (thumbsize, thumbsize)
+    thumbtup = (ut.augpath(fpath, 'thumb_%d,%d' % thumbsize), fpath, thumbsize, [], [])
+    return thumbtup
 
 
 def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
@@ -904,45 +983,6 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
     )
     # Get extra info
     (qaids, daids, scores, ranks) = candidate_matches
-
-    # Preprocess Thumbs
-    USE_MATCH_THUMBS = True
-    if USE_MATCH_THUMBS:
-        match_thumb_dir = ut.unixjoin(ibs.get_cachedir(), 'match_thumbs')
-        ut.ensuredir(match_thumb_dir)
-        #match_thumb_fpath_list = []
-        #_prog = functools.partial(ut.ProgressIter, lbl='match chip: ', nTotal=len(qaids))
-
-        #for qres, qaid, daid in _prog(zip(ut.dict_take(qaid2_qres, qaids), qaids, daids)):
-        #    assert qres.qaid == qaid
-        #    match_thumb_fpath_ = ut.unixjoin(match_thumb_dir, 'matchthumb-aid1=%d-aid2=%d.jpg' % ((qaid, daid)))
-        #    match_thumb_fpath = qres.dump_match_img(ibs, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32, notitle=True, verbose=False)
-        #    match_thumb_fpath_list.append(match_thumb_fpath)
-
-        #thumbtup_list = [(ut.augpath(fpath, 'thumb'), fpath, (128, 128), [], []) far fpath in match_thumb_fpath_list ]
-        #print(ut.list_str(thumbtup_list))
-
-        match_thumbtup_cache = {}
-        def get_match_thumbtup(index, thumbsize=(128, 128)):
-            qaid, daid = qaids[index], daids[index]
-            qres = qaid2_qres[qaid]
-            match_thumb_fpath_ = ut.unixjoin(match_thumb_dir, 'matchthumb-aid1=%d-aid2=%d.jpg' % ((qaid, daid)))
-            if match_thumb_fpath_  not in match_thumbtup_cache:
-                match_thumb_fpath = qres.dump_match_img(
-                    ibs, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32,
-                    notitle=True, verbose=False, qreq_=qreq_)
-                #match_thumb_fpath_list.append(match_thumb_fpath)
-                match_thumbtup_cache[match_thumb_fpath_] = match_thumb_fpath
-            fpath = match_thumbtup_cache[match_thumb_fpath_]
-            #print(thumbsize)
-            if isinstance(thumbsize, int):
-                # HACK
-                thumbsize = (thumbsize, thumbsize)
-            thumbtup = (ut.augpath(fpath, 'thumb'), fpath, thumbsize, [], [])
-            return thumbtup
-
-    #ut.view_directory(match_thumb_dir)
-    #return
 
     #opts = np.zeros(len(qaids))
     # Define column information
@@ -1023,10 +1063,14 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
         'name': 60,
     }
 
+    USE_MATCH_THUMBS = True
     if USE_MATCH_THUMBS:
         col_name_list.insert(col_name_list.index(RES_THUMB_TEXT) + 1, MATCH_THUMB_TEXT)
         col_types_dict[MATCH_THUMB_TEXT] = 'PIXMAP'
-        col_getter_dict[MATCH_THUMB_TEXT] = get_match_thumbtup
+        get_match_thumbtup_ = partial(get_match_thumbtup, ibs, qaid2_qres,
+                                      qaids, daids, qreq_=qreq_,
+                                      match_thumbtup_cache={})
+        col_getter_dict[MATCH_THUMB_TEXT] = get_match_thumbtup_
 
     #get_status_bgrole_func = partial(get_match_status_bgrole, ibs)
     col_bgrole_dict = {

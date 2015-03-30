@@ -793,6 +793,7 @@ class QueryResult(__OBJECT_BASE__):
 
     def dump_match_img(qres, ibs, aid, qreq_=None, fnum=None, *args, **kwargs):
         import plottool as pt
+        import matplotlib as mpl
         # Pop save kwargs from kwargs
         save_keys = ['dpi', 'figsize', 'saveax', 'fpath', 'fpath_strict', 'verbose']
         save_vals = ut.dict_take_pop(kwargs, save_keys, None)
@@ -800,6 +801,9 @@ class QueryResult(__OBJECT_BASE__):
         fpath = savekw.pop('fpath')
         if fpath is None and 'fpath_strict' not in savekw:
             savekw['usetitle'] = True
+        was_interactive = mpl.is_interactive()
+        if was_interactive:
+            mpl.interactive(False)
         # Make new figure
         if fnum is None:
             fnum = pt.next_fnum()
@@ -814,8 +818,9 @@ class QueryResult(__OBJECT_BASE__):
         #pt.adjust_subplots(0, 0, 1, 1, 0, 0)
         # Save Figure
         # Setting fig=fig might make the dpi and figsize code not work
-        img_fpath = 'fsd'
         img_fpath = pt.save_figure(fpath=fpath, fig=fig, **savekw)
+        if was_interactive:
+            mpl.interactive(was_interactive)
         #if False:
         #    ut.startfile(img_fpath)
         return img_fpath

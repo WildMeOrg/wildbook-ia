@@ -588,6 +588,11 @@ class IBEISController(object):
             list_ (list): database directory of all cached files """
         return ibs.cachedir
 
+    def get_match_thumbdir(ibs):
+        match_thumb_dir = ut.unixjoin(ibs.get_cachedir(), 'match_thumbs')
+        ut.ensuredir(match_thumb_dir)
+        return match_thumb_dir
+
     def get_ibeis_resource_dir(ibs):
         """ returns the global resource dir in .config or AppData or whatever """
         resource_dir = sysres.get_ibeis_resource_dir()

@@ -1096,7 +1096,10 @@ def update_1_4_3(db, ibs=None):
 def update_1_4_4(db, ibs=None):
     db.modify_table(
         const.ANNOTMATCH_TABLE, [
-            (None, 'annotmatch_is_interesting',         'INTEGER', None),
+            (None, 'annotmatch_is_interesting',      'INTEGER', None),
+            (None, 'annotmatch_posixtime_modified',  'INTEGER', None),
+            (None, 'annotmatch_score',  'INTEGER', None),
+            (None, 'config_rowid',  'INTEGER', None),
         ]
     )
 
