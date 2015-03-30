@@ -1028,6 +1028,24 @@ def download_sightings():
     return ap.send_file(sightings, filename)
 
 
+@app.route('/graph/sightings')
+def graph_sightings():
+    aid_list = app.ibs.filter_aids_count()
+    nid_list = app.ibs.get_annot_name_rowids(aid_list)
+    value = 0
+    value_list = []
+    seen_set = set()
+    for aid, nid in zip(aid_list, nid_list):
+        if nid not in seen_set:
+            value += 1
+            seen_set.add(nid)
+        value_list.append(value)
+    return ap.template('graph', 'sightings',
+                       # index_list=range(len(value_list)),
+                       index_list=[''] * len(value_list),
+                       value_list=value_list)
+
+
 @app.route('/404')
 def error404(exception):
     exception_str = str(exception)

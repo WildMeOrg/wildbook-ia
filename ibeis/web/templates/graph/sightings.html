@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+{% block content %}
+  <div class="row" style="margin: 50px 0px;">
+    <div class="col-lg-2"></div>
+    
+    <div class="col-lg-8">
+        <canvas id="canvas" height="150"></canvas>
+    </div>
+
+    <div class="col-lg-2"></div>
+  </div>
+{% endblock %}
+{% block content_custom_javascript %}  
+  <script>
+    var lineChartData = {
+      {% autoescape false %}
+      labels : {{ index_list }},
+      {% endautoescape %}
+      datasets : [
+        {
+          label: "Unique Sightings by Car",
+          fillColor : "rgba(151,187,205,0.2)",
+          strokeColor : "rgba(151,187,205,1)",
+          pointColor : "rgba(151,187,205,1)",
+          pointStrokeColor : "#fff",
+          pointHighlightFill : "#fff",
+          pointHighlightStroke : "rgba(151,187,205,1)",
+          data : {{ value_list }}
+        },
+      ]
+    }
+
+  window.onload = function(){
+    var ctx = document.getElementById("canvas").getContext("2d");
+    window.myLine = new Chart(ctx).Line(lineChartData, {
+      responsive: true,
+      animation: false,
+      showTooltips: false,
+    });
+  }
+  </script>
+{% endblock %}
