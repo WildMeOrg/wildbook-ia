@@ -1014,6 +1014,20 @@ def api(function=None):
     return json.dumps(template)
 
 
+@app.route('/display/sightings')
+def display_sightings():
+    complete = request.args.get('complete', None) is not None
+    sightings = app.ibs.report_sightings_str(complete=complete)
+    return sightings
+
+
+@app.route('/download/sightings')
+def download_sightings():
+    filename = 'sightings.csv'
+    sightings = display_sightings()
+    return ap.send_file(sightings, filename)
+
+
 @app.route('/404')
 def error404(exception):
     exception_str = str(exception)

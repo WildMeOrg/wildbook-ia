@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 from PIL import Image
 import numpy as np
 import cStringIO as StringIO
-from flask import request, render_template
+from flask import request, render_template, make_response
 # Others
 from os.path import join
 from datetime import date
@@ -119,3 +119,13 @@ def template(template_directory=None, template_filename=None, **kwargs):
     _global_args.update(kwargs)
     print(template_)
     return render_template(template_, **_global_args)
+
+
+def send_file(string, filename):
+    response = make_response(str(string))
+    response.headers['Content-Description'] = 'File Transfer'
+    response.headers['Cache-Control'] = 'no-cache'
+    response.headers['Content-Type'] = 'text/csv'
+    response.headers['Content-Disposition'] = 'attachment; filename=%s' % filename
+    response.headers['Content-Length'] = len(string)
+    return response
