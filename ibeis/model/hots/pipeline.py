@@ -715,6 +715,7 @@ def spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
 
     CommandLine:
         python -m ibeis.model.hots.pipeline --test-spatial_verification --show
+        python -m ibeis.model.hots.pipeline --test-spatial_verification --show --qaid 1
         python -m ibeis.model.hots.pipeline --test-spatial_verification:0
 
     Example:

@@ -833,11 +833,15 @@ class NeighborIndex(object):
         """ indexes all vectors with FLANN. """
         num_vecs = nnindexer.num_indexed
         notify_num = 1E6
-        if ut.VERYVERBOSE or verbose or (not ut.QUIET and num_vecs > notify_num):
+        verbose_ = ut.VERYVERBOSE or verbose or (not ut.QUIET and num_vecs > notify_num)
+        if verbose_:
             print('[nnindex] ...building kdtree over %d points (this may take a sec).' % num_vecs)
+            tt = ut.tic(msg='Building index')
         idx2_vec = nnindexer.idx2_vec
         flann_params = nnindexer.flann_params
         nnindexer.flann.build_index(idx2_vec, **flann_params)
+        if verbose_:
+            ut.toc(tt)
 
     # ---- <cachable_interface> ---
 

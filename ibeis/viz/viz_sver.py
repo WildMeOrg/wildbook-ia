@@ -25,7 +25,7 @@ def _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, con
 
 def _compute_svvars(ibs, aid1):
     """ If spatial-verfication dbginfo is not in we need to compute it """
-    from ibeis.model.hots import pipeline
+    from ibeis.model.hots import _pipeline_helpers as plh
     from ibeis.model.hots import query_request
     daids = ibs.get_valid_aids()
     qaids = [aid1]
@@ -34,7 +34,7 @@ def _compute_svvars(ibs, aid1):
     assert len(daids) > 0, '!!! nothing to search'
     assert len(qaids) > 0, '!!! nothing to query'
     qreq_.lazy_load()
-    pipeline_locals_ = pipeline.testrun_pipeline_upto(qreq_, None)
+    pipeline_locals_ = plh.testrun_pipeline_upto(qreq_, None)
     qaid2_chipmatch_FILT = pipeline_locals_['qaid2_chipmatch_FILT']
     qaid2_svtups         = qreq_.metadata['qaid2_svtups']
     chipmatch_FILT = qaid2_chipmatch_FILT[aid1]
@@ -46,6 +46,9 @@ def _compute_svvars(ibs, aid1):
 def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=None, **kwargs):
     """
     Compiles IBEIS information and sends it to plottool
+
+    CommandLine:
+        python -m ibeis.viz.viz_sver --test-show_sver --show
 
     Example:
         >>> # SLOW_DOCTEST
@@ -59,9 +62,9 @@ def show_sver(ibs, aid1, aid2, chipmatch_FILT=None, aid2_svtup=None, config2_=No
         >>> aid2_svtup = None
         >>> kwargs = {}
         >>> show_sver(ibs, aid1, aid2)
-        >>> if ut.get_argflag('--show') or ut.inIPython():
-        ...     import plottool as pt
-        ...     exec(pt.present())
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> exec(pt.present())
     """
     print('\n[show_sver] ====================== [show_sver]')
     #print(utool.func_str(show_sv, kwargs=locals()))

@@ -8,27 +8,6 @@ python dev.py -t custom:augment_queryside_hack=True,affine_invariance=False --db
 python dev.py -t custom:augment_queryside_hack=True,affine_invariance=False,scale_max=50 --db PZ_Master0 --allgt
 
 
-python dev.py -t custom:scale_max=60                             --db PZ_Master0 --allgt
-python dev.py -t custom:affine_invariance=False,scale_max=60     --db PZ_Master0 --allgt
-python dev.py -t custom:affine_invariance=False                  --db PZ_Master0 --allgt
-python dev.py -t custom                                          --db PZ_Master0 --allgt
-python dev.py -t custom:augment_queryside_hack=True              --db PZ_Master0 --allgt
-python dev.py -t custom:augment_queryside_hack=True,scale_max=60 --db PZ_Master0 --allgt
-python dev.py -t custom:augment_queryside_hack=True,affine_invariance=False --db PZ_Master0 --allgt
-python dev.py -t custom:augment_queryside_hack=True,affine_invariance=False,scale_max=60 --db PZ_Master0 --allgt
-
-
-
-python dev.py -t custom:scale_max=100                             --db PZ_Master0 --allgt
-python dev.py -t custom:affine_invariance=False,scale_max=100     --db PZ_Master0 --allgt
-python dev.py -t custom:affine_invariance=False                  --db PZ_Master0 --allgt
-python dev.py -t custom                                          --db PZ_Master0 --allgt
-python dev.py -t custom:augment_queryside_hack=True              --db PZ_Master0 --allgt
-python dev.py -t custom:augment_queryside_hack=True,scale_max=100 --db PZ_Master0 --allgt
-python dev.py -t custom:augment_queryside_hack=True,affine_invariance=False --db PZ_Master0 --allgt
-python dev.py -t custom:augment_queryside_hack=True,affine_invariance=False,scale_max=100 --db PZ_Master0 --allgt
-
-
 python dev.py -t custom:scale_max=150                             --db PZ_Master0 --allgt
 python dev.py -t custom:affine_invariance=False,scale_max=150     --db PZ_Master0 --allgt
 python dev.py -t custom:affine_invariance=False                  --db PZ_Master0 --allgt
@@ -37,6 +16,12 @@ python dev.py -t custom:augment_queryside_hack=True              --db PZ_Master0
 python dev.py -t custom:augment_queryside_hack=True,scale_max=150 --db PZ_Master0 --allgt
 python dev.py -t custom:augment_queryside_hack=True,affine_invariance=False --db PZ_Master0 --allgt
 python dev.py -t custom:augment_queryside_hack=True,affine_invariance=False,scale_max=150 --db PZ_Master0 --allgt
+
+
+python dev.py -t custom:rotation_invariance=True              --db PZ_Master0 --allgt
+python dev.py -t custom:rotation_invariance=True,scale_max=150 --db PZ_Master0 --allgt
+python dev.py -t custom:rotation_invariance=True,affine_invariance=False --db PZ_Master0 --allgt
+python dev.py -t custom:rotation_invariance=True,affine_invariance=False,scale_max=150 --db PZ_Master0 --allgt
 
 
 python dev.py -t custom:scale_max=200                            --db PZ_Master0 --allgt

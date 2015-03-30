@@ -40,7 +40,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         >>> #kpts = None
         >>> #color = np.array([pt.ORANGE] * len(kpts))
         >>> #kwargs = dict(kpts=kpts, color=color)
-        >>> kwargs = dict(ori=True)
+        >>> kwargs = dict(ori=False, weight_label='fg_weights')
         >>> show_chip(ibs, aid, in_image=in_image, annote=annote, **kwargs)
         >>> pt.show_if_requested()
     """
