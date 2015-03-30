@@ -217,13 +217,6 @@ def view():
 
     label_list += ['Models'] + [''] * (len(index_list) - len(label_list) - 1)
     value_list += [0] * (len(index_list) - len(value_list))
-    print(len(index_list))
-    print(len(label_list))
-    print(len(value_list))
-    print(len(prediction_list))
-    print(len(prediction_list[0]))
-    print(len(prediction_list[1]))
-    print(len(prediction_list[2]))
 
     # Counts
     eid_list = app.ibs.get_valid_eids()
