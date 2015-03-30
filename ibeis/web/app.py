@@ -1031,18 +1031,39 @@ def download_sightings():
 @app.route('/graph/sightings')
 def graph_sightings():
     aid_list = app.ibs.filter_aids_count()
+    gid_list = app.ibs.get_annot_gids(aid_list)
     nid_list = app.ibs.get_annot_name_rowids(aid_list)
+    unixtime_list = app.ibs.get_image_unixtime(gid_list)
+    datetime_list = [
+        ut.unixtime_to_datetime(unixtime)
+        if unixtime is not None else
+        'UNKNOWN'
+        for unixtime in unixtime_list
+    ]
+    datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
+    date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+
     value = 0
+    label_list = []
     value_list = []
+    index_list = []
     seen_set = set()
-    for aid, nid in zip(aid_list, nid_list):
+    last_date = None
+    for index, (aid, nid, date) in enumerate(zip(aid_list, nid_list, date_list)):
+        index_list.append(index)
         if nid not in seen_set:
             value += 1
             seen_set.add(nid)
         value_list.append(value)
+        if date != last_date and date != 'UNKNOWN':
+            print(date)
+            label_list.append(date)
+        else:
+            label_list.append('')
+        last_date = date
     return ap.template('graph', 'sightings',
-                       # index_list=range(len(value_list)),
-                       index_list=[''] * len(value_list),
+                       index_list=index_list,
+                       label_list=label_list,
                        value_list=value_list)
 
 

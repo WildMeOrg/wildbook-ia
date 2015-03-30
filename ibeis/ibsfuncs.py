@@ -3534,8 +3534,8 @@ def report_sightings(ibs, complete=True):
         for unixtime in unixtime_list
     ]
     datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
-    time_list      = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
-    date_list      = [ datetime_split[1] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+    date_list      = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+    time_list      = [ datetime_split[1] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
     lat_list       = ibs.get_image_lat(gid_list)
     lon_list       = ibs.get_image_lon(gid_list)
     marked_list    = ibs.flag_aids_count(aid_list)

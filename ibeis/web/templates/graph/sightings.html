@@ -14,9 +14,18 @@
   <script>
     var lineChartData = {
       {% autoescape false %}
-      labels : {{ index_list }},
+      labels : {{ label_list }},
       {% endautoescape %}
       datasets : [
+        {
+          fillColor : "rgba(220,220,220,0.2)",
+          strokeColor : "rgba(220,220,220,1)",
+          pointColor : "rgba(220,220,220,1)",
+          pointStrokeColor : "#fff",
+          pointHighlightFill : "#fff",
+          pointHighlightStroke : "rgba(220,220,220,1)",
+          data : {{ index_list }}
+        },
         {
           label: "Unique Sightings by Car",
           fillColor : "rgba(151,187,205,0.2)",
@@ -35,7 +44,9 @@
     window.myLine = new Chart(ctx).Line(lineChartData, {
       responsive: true,
       animation: false,
-      showTooltips: false,
+      // showTooltips: false,
+      pointDotRadius: 1,
+      pointHitDetectionRadius : 1,
     });
   }
   </script>
