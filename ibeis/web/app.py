@@ -130,11 +130,60 @@ def root():
 
 @app.route('/view')
 def view():
+    aid_list = app.ibs.filter_aids_count()
+    gid_list = app.ibs.get_annot_gids(aid_list)
+    nid_list = app.ibs.get_annot_name_rowids(aid_list)
+    unixtime_list = app.ibs.get_image_unixtime(gid_list)
+    datetime_list = [
+        ut.unixtime_to_datetime(unixtime)
+        if unixtime is not None else
+        'UNKNOWN'
+        for unixtime in unixtime_list
+    ]
+    datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
+    date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+
+    value = 0
+    label_list = []
+    value_list = []
+    index_list = []
+    seen_set = set()
+    last_date = None
+    date_seen_dict = {}
+    for index, (aid, nid, date) in enumerate(zip(aid_list, nid_list, date_list)):
+        if date not in date_seen_dict:
+            date_seen_dict[date] = [0, 0]
+        date_seen_dict[date][0] += 1
+        index_list.append(index)
+        if nid not in seen_set:
+            value += 1
+            seen_set.add(nid)
+            date_seen_dict[date][1] += 1
+        value_list.append(value)
+        if date != last_date and date != 'UNKNOWN':
+            label_list.append(date)
+        else:
+            label_list.append('')
+        last_date = date
+
+    date_seen_dict.pop('UNKNOWN', None)
+    bar_label_list = sorted(date_seen_dict.keys())
+    bar_value_list1 = [ date_seen_dict[date][0] for date in bar_label_list ]
+    bar_value_list2 = [ date_seen_dict[date][1] for date in bar_label_list ]
+
+    # Counts
     eid_list = app.ibs.get_valid_eids()
     gid_list = app.ibs.get_valid_gids()
     aid_list = app.ibs.get_valid_aids()
     nid_list = app.ibs.get_valid_nids()
+
     return ap.template('view',
+                       line_index_list=index_list,
+                       line_label_list=label_list,
+                       line_value_list=value_list,
+                       bar_label_list=bar_label_list,
+                       bar_value_list1=bar_value_list1,
+                       bar_value_list2=bar_value_list2,
                        eid_list=eid_list,
                        eid_list_str=','.join(map(str, eid_list)),
                        num_eids=len(eid_list),
@@ -1030,53 +1079,7 @@ def download_sightings():
 
 @app.route('/graph/sightings')
 def graph_sightings():
-    aid_list = app.ibs.filter_aids_count()
-    gid_list = app.ibs.get_annot_gids(aid_list)
-    nid_list = app.ibs.get_annot_name_rowids(aid_list)
-    unixtime_list = app.ibs.get_image_unixtime(gid_list)
-    datetime_list = [
-        ut.unixtime_to_datetime(unixtime)
-        if unixtime is not None else
-        'UNKNOWN'
-        for unixtime in unixtime_list
-    ]
-    datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
-    date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
-
-    value = 0
-    label_list = []
-    value_list = []
-    index_list = []
-    seen_set = set()
-    last_date = None
-    date_seen_dict = {}
-    for index, (aid, nid, date) in enumerate(zip(aid_list, nid_list, date_list)):
-        if date not in date_seen_dict:
-            date_seen_dict[date] = [0, 0]
-        date_seen_dict[date][0] += 1
-        index_list.append(index)
-        if nid not in seen_set:
-            value += 1
-            seen_set.add(nid)
-            date_seen_dict[date][1] += 1
-        value_list.append(value)
-        if date != last_date and date != 'UNKNOWN':
-            label_list.append(date)
-        else:
-            label_list.append('')
-        last_date = date
-
-    date_seen_dict.pop('UNKNOWN', None)
-    bar_label_list = sorted(date_seen_dict.keys())
-    bar_value_list1 = [ date_seen_dict[date][0] for date in bar_label_list ]
-    bar_value_list2 = [ date_seen_dict[date][1] for date in bar_label_list ]
-    return ap.template('graph', 'sightings',
-                       line_index_list=index_list,
-                       line_label_list=label_list,
-                       line_value_list=value_list,
-                       bar_label_list=bar_label_list,
-                       bar_value_list1=bar_value_list1,
-                       bar_value_list2=bar_value_list2)
+    return redirect(url_for('view'))
 
 
 @app.route('/404')
