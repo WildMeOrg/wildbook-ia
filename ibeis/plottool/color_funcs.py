@@ -76,6 +76,14 @@ def desaturate_rgb(rgb, amount):
     return new_rgb
 
 
+def darken_rgb(rgb, amount):
+    hue_adjust = 0.0
+    sat_adjust = 0.0
+    val_adjust = -amount
+    new_rgb = adjust_hsv_of_rgb(rgb, hue_adjust, sat_adjust, val_adjust)
+    return new_rgb
+
+
 def lighten_rgb(rgb, amount):
     r"""
     CommandLine:

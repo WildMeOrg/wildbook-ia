@@ -66,7 +66,8 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> import plottool as pt
         >>> import vtool as vt
         >>> imgBGR = vt.get_star_patch(jitter=True)
-        >>> fig, ax = pt.imshow(imgBGR * 255)
+        >>> H = np.array([[1, 0, 0], [.5, 2, 0], [0, 0, 1]])
+        >>> #H = None
         >>> TAU = 2 * np.pi
         >>> kpts_ = vt.make_test_image_keypoints(imgBGR, scale=.5, skew=2, theta=TAU / 8.0)
         >>> scale_factor=1.0
@@ -79,8 +80,12 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> ori=True
         >>> sifts=None
         >>> siftkw = {}
-        >>> kwargs = dict(ori_color=[0, 1, 0], rect_color=[0, 0, 1], eig_color=[1, 1, 0])
-        >>> draw_keypoints(ax, kpts_, scale_factor, offset, rotation, ell, pts, rect, eig, ori, sifts, siftkw, **kwargs)
+        >>> kwargs = dict(ori_color=[0, 1, 0], rect_color=[0, 0, 1], eig_color=[1, 1, 0], pts_size=.1)
+        >>> w, h = imgBGR.shape[0:2][::-1]
+        >>> imgBGR_ = imgBGR if H is None else vt.warpAffine(imgBGR, H, (w * 2, h * 2))
+        >>> fig, ax = pt.imshow(imgBGR_ * 255)
+        >>> draw_keypoints(ax, kpts_, scale_factor, offset, rotation, ell, pts,
+        ...                rect, eig, ori, sifts, siftkw, H=H, **kwargs)
         >>> pt.iup()
         >>> pt.show_if_requested()
     """
@@ -106,8 +111,6 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
     assert len(kpts_) > 0, 'cannot draw no keypoints1'
     kpts = ktool.offset_kpts(kpts_, offset, scale_factor)
     assert len(kpts) > 0, 'cannot draw no keypoints2'
-    # Extract keypoint components
-    _xs, _ys = ktool.get_xys(kpts)
     # Build list of keypoint shape transforms from unit circles to ellipes
     invVR_aff2Ds = get_invVR_aff2Ds(kpts, H=H)
     try:
@@ -130,10 +133,16 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
             _draw_patches(ax, eig_patches, eig_color, ell_alpha, eig_linewidth)
         if ori:
             # Keypoint orientation
-            ori_patches = orientation_actors(kpts)
+            ori_patches = orientation_actors(kpts, H=H)
             _draw_patches(ax, ori_patches, ori_color, ell_alpha, ori_linewidth, ori_color)
         if pts:
             # Keypoint locations
+            _xs, _ys = ktool.get_xys(kpts)
+            if H is not None:
+                # adjust for homogrpahy
+                import vtool as vt
+                _xs, _ys = vt.transform_points_with_homography(H, np.vstack((_xs, _ys)))
+
             pts_patches = _draw_pts(ax, _xs, _ys, pts_size, pts_color, pts_alpha)
             if pts_patches is not None:
                 _draw_patches(ax, pts_patches, 'none', pts_alpha, pts_size, pts_color)
@@ -249,7 +258,7 @@ def eigenvector_actors(invVR_aff2Ds):
     return eig_actors
 
 
-def orientation_actors(kpts):
+def orientation_actors(kpts, H=None):
     """ creates orientation actors w.r.t. the gravity vector """
     try:
         # Get xy diretion of the keypoint orientations
@@ -264,6 +273,13 @@ def orientation_actors(kpts):
         # invV.dot(R)
         _dxs = _coss * _iv11s
         _dys = _coss * _iv21s +  _sins * _iv22s
+        #ut.embed()
+
+        #if H is not None:
+        #    # adjust for homogrpahy
+        #    import vtool as vt
+        #    _xs, _ys = vt.transform_points_with_homography(H, np.vstack((_xs, _ys)))
+        #    _dxs, _dys = vt.transform_points_with_homography(H, np.vstack((_dxs, _dys)))
 
         #head_width_list = np.log(_iv11s * _iv22s) / 5
         head_width_list = np.ones(len(_iv11s)) / 10
@@ -273,6 +289,9 @@ def orientation_actors(kpts):
             'overhang': 0,
             'head_starts_at_zero': False,
         }
+        if H is not None:
+            kwargs['transform'] = HomographyTransform(H)
+
         ori_actors = [mpl.patches.FancyArrow(x, y, dx, dy, head_width=hw, **kwargs)
                       for (x, y, dx, dy, hw) in
                       zip(_xs, _ys, _dxs, _dys, head_width_list)]

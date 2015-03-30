@@ -51,7 +51,7 @@ distinct_colors = color_fns.distinct_colors
 lighten_rgb = color_fns.lighten_rgb
 to_base255 = color_fns.to_base255
 
-DARKEN = .3 if ut.get_argflag('--darken') else None
+DARKEN = ut.get_argval('--darken', type_=float, default=(.3 if ut.get_argflag('--darken') else None))
 
 
 all_figures_bring_to_front = fig_presenter.all_figures_bring_to_front
@@ -1433,6 +1433,7 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
         ut.assertpath(img_fpath)
         import vtool as vt
         img = vt.imread(img_fpath)
+    #darken = .4
     if darken is not None:
         if darken is True:
             darken = .5
@@ -1554,7 +1555,7 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True):
 def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None,
                     fm_norm=None, title=None,
                     vert=None, fnum=None, pnum=None, heatmap=False,
-                    draw_fmatch=True, darken=None, H1=None, H2=None, **kwargs):
+                    draw_fmatch=True, darken=DARKEN, H1=None, H2=None, **kwargs):
     """
     Draws two chips and the feature matches between them. feature matches
     kpts1 and kpts2 use the (x,y,a,c,d)
