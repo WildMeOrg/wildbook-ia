@@ -3488,36 +3488,110 @@ def detect_join_cases(ibs):
     #return qres_list
 
 
+def _split_car_contrib_tag(contrib_tag, distinguish_invalids=True):
+        if contrib_tag is not None and 'NNP GZC Car' in contrib_tag:
+            contrib_tag_split = contrib_tag.strip().split(',')
+            if len(contrib_tag_split) == 2:
+                contrib_tag = contrib_tag_split[0].strip()
+        elif distinguish_invalids:
+            contrib_tag = None
+        return contrib_tag
+
+
 @__injectable
-def report_sigtings(ibs):
+def report_sightings(ibs, complete=True):
     def sanitize_list(data_list):
         data_list = [ str(data).replace(',', '<COMMA>') for data in list(data_list) ]
-        return ','.join(data_list)
-
-    aid_list     = ibs.get_valid_aids()
-    gid_list     = ibs.get_annot_gids(aid_list)
-    species_list = ibs.get_annot_species_texts(aid_list)
-    contrib_list = ibs.get_image_contributor_tag(gid_list)
-    uri_list     = ibs.get_image_uris(gid_list)
-    name_list    = ibs.get_annot_names(aid_list)
-    time_list    = ibs.get_image_unixtime(gid_list)
-    lat_list     = ibs.get_image_lat(gid_list)
-    lon_list     = ibs.get_image_lon(gid_list)
-    cols_list    = [
-        ('annotation_id',      aid_list),
-        ('annotation_species', species_list),
-        ('annotation_name',    name_list),
-        ('image_id',           gid_list),
-        ('image_contributor',  contrib_list),
-        ('image_filename',     uri_list),
-        ('image_time',         time_list),
-        ('image_lat',          lat_list),
-        ('image_lon',          lon_list),
+        return_str = (','.join(data_list))
+        return_str = return_str.replace(',None,', ',UNKNOWN,')
+        return_str = return_str.replace(',%s,' % (const.UNKNOWN, ) , ',UNKNOWN,')
+        return_str = return_str.replace(',-1,', ',UNKNOWN,')
+        return_str = return_str.replace(',-1,', ',UNKNOWN,')
+        return_str = return_str.replace(',-1.0,', ',UNKNOWN,')
+        return_str = return_str.replace(',-1.0,', ',UNKNOWN,')
+        return return_str
+    # Grab primitives
+    if complete:
+        aid_list   = ibs.get_valid_aids()
+    else:
+        aid_list   = ibs.filter_aids_count(pre_unixtime_sort=False)
+    gid_list       = ibs.get_annot_gids(aid_list)
+    species_list   = ibs.get_annot_species_texts(aid_list)
+    viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
+    quality_list   = ibs.get_annot_quality_texts(aid_list)
+    contrib_list   = ibs.get_image_contributor_tag(gid_list)
+    car_list       = [ _split_car_contrib_tag(contrib_tag) for contrib_tag in contrib_list ]
+    uri_list       = ibs.get_image_uris(gid_list)
+    sex_list       = ibs.get_annot_sex_texts(aid_list)
+    age_min_list   = ibs.get_annot_age_months_est_min(aid_list)
+    age_max_list   = ibs.get_annot_age_months_est_max(aid_list)
+    name_list      = ibs.get_annot_names(aid_list)
+    unixtime_list      = ibs.get_image_unixtime(gid_list)
+    datetime_list = [
+        ut.unixtime_to_datetime(unixtime)
+        if unixtime is not None else
+        'UNKNOWN'
+        for unixtime in unixtime_list
     ]
-    header_list  = [[ cols[0] for cols in cols_list ]]
-    data_list    = zip(*[ cols[1] for cols in cols_list ])
-    line_list    = [ sanitize_list(data) for data in header_list + list(data_list) ]
-    print('\n'.join(line_list))
+    datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
+    date_list      = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+    time_list      = [ datetime_split[1] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+    lat_list       = ibs.get_image_lat(gid_list)
+    lon_list       = ibs.get_image_lon(gid_list)
+    marked_list    = ibs.flag_aids_count(aid_list)
+    seen_list      = []
+    seen_set       = set()
+    for name in name_list:
+        if name is not None and name != const.UNKNOWN and name not in seen_set:
+            seen_list.append(True)
+            seen_set.add(name)
+            continue
+        seen_list.append(False)
+    if complete:
+        cols_list      = [
+            ('annotation_id',        aid_list),
+            ('annotation_species',   species_list),
+            ('annotation_viewpoint', viewpoint_list),
+            ('annotation_qualities', quality_list),
+            ('annotation_sex',       sex_list),
+            ('annotation_age_min',   age_min_list),
+            ('annotation_age_max',   age_max_list),
+            ('annotation_name',      name_list),
+            ('image_id',             gid_list),
+            ('image_contributor',    contrib_list),
+            ('image_car',            car_list),
+            ('image_filename',       uri_list),
+            ('image_unixtime',       unixtime_list),
+            ('image_time_str',       time_list),
+            ('image_date_str',       date_list),
+            ('image_lat',            lat_list),
+            ('image_lon',            lon_list),
+            ('flag_first_seen',      seen_list),
+            ('flag_marked',          marked_list),
+        ]
+    else:
+        cols_list      = [
+            ('annotation_id',        aid_list),
+            ('image_time_str',       time_list),
+            ('image_date_str',       date_list),
+            ('flag_first_seen',      seen_list),
+            ('image_lat',            lat_list),
+            ('image_lon',            lon_list),
+            ('image_car',            car_list),
+            ('annotation_age_min',   age_min_list),
+            ('annotation_age_max',   age_max_list),
+            ('annotation_sex',       sex_list),
+        ]
+    header_list    = [[ cols[0] for cols in cols_list ]]
+    data_list      = zip(*[ cols[1] for cols in cols_list ])
+    line_list      = [ sanitize_list(data) for data in header_list + list(data_list) ]
+    return line_list
+
+
+@__injectable
+def report_sightings_str(ibs, complete=True):
+    line_list = ibs.report_sightings(complete=complete)
+    return '\n'.join(line_list)
 
 
 @__injectable
@@ -3590,6 +3664,55 @@ def filter_aids_custom(ibs, aid_list):
     """
     flags_list = ibs.get_annot_custom_filterflags(aid_list)
     aid_list_ = list(ut.ifilter_items(aid_list, flags_list))
+    return aid_list_
+
+
+@__injectable
+def flag_aids_count(ibs, aid_list=None, pre_unixtime_sort=True):
+    if aid_list is None:
+        # Get all aids and pre-sort by unixtime
+        aid_list = ibs.get_valid_aids()
+        if pre_unixtime_sort:
+            unixtime_list = ibs.get_image_unixtime(ibs.get_annot_gids(aid_list))
+            aid_list      = ut.sortedby(aid_list, unixtime_list)
+    # Get primitives
+    unixtime_list = ibs.get_image_unixtime(ibs.get_annot_gids(aid_list))
+    index_list    = ut.list_argsort(unixtime_list)
+    aid_list      = ut.sortedby(aid_list, unixtime_list)
+    gid_list      = ibs.get_annot_gids(aid_list)
+    nid_list      = ibs.get_annot_name_rowids(aid_list)
+    contrib_list  = ibs.get_image_contributor_tag(gid_list)
+    # Get filter flags for aids
+    flag_list     = ibs.get_annot_custom_filterflags(aid_list)
+    flag_list     = [ nid is not None and flag for nid, flag in zip(nid_list, flag_list) ]
+    # Filter by seen and car
+    flag_list_    = []
+    seen_dict     = {}
+    values_list   = zip(aid_list, gid_list, nid_list, flag_list, contrib_list)
+    for aid, gid, nid, flag, contrib in values_list:
+        if flag:
+            contrib_ = _split_car_contrib_tag(contrib, distinguish_invalids=False)
+            if contrib_ not in seen_dict:
+                seen_dict[contrib_] = set()
+            if nid not in seen_dict[contrib_]:
+                seen_dict[contrib_].add(nid)
+                flag_list_.append(True)
+                continue
+        flag_list_.append(False)
+    # Take the inverse of the sorted
+    return ut.list_inverse_take(flag_list_, index_list)
+
+
+@__injectable
+def filter_aids_count(ibs, aid_list=None, pre_unixtime_sort=True):
+    if aid_list is None:
+        # Get all aids and pre-sort by unixtime
+        aid_list = ibs.get_valid_aids()
+        if pre_unixtime_sort:
+            unixtime_list = ibs.get_image_unixtime(ibs.get_annot_gids(aid_list))
+            aid_list      = ut.sortedby(aid_list, unixtime_list)
+    flags_list = ibs.flag_aids_count(aid_list)
+    aid_list_  = list(ut.ifilter_items(aid_list, flags_list))
     return aid_list_
 
 

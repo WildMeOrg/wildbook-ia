@@ -18,6 +18,9 @@ import utool as ut
 # Web Internal
 from ibeis.web import appfuncs as ap
 # Others
+import numpy as np
+from scipy.optimize import curve_fit
+
 import traceback
 import ibeis.constants as const
 import random
@@ -130,11 +133,111 @@ def root():
 
 @app.route('/view')
 def view():
+    aid_list = app.ibs.filter_aids_count()
+    gid_list = app.ibs.get_annot_gids(aid_list)
+    nid_list = app.ibs.get_annot_name_rowids(aid_list)
+    unixtime_list = app.ibs.get_image_unixtime(gid_list)
+    datetime_list = [
+        ut.unixtime_to_datetime(unixtime)
+        if unixtime is not None else
+        'UNKNOWN'
+        for unixtime in unixtime_list
+    ]
+    datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
+    date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+
+    value = 0
+    label_list = []
+    value_list = []
+    index_list = []
+    seen_set = set()
+    previous_seen_set = set()
+    current_seen_set = set()
+    last_date = None
+    date_seen_dict = {}
+    for index, (aid, nid, date) in enumerate(zip(aid_list, nid_list, date_list)):
+        if date not in date_seen_dict:
+            date_seen_dict[date] = [0, 0, 0]
+        date_seen_dict[date][0] += 1
+        index_list.append(index + 1)
+        if nid not in seen_set:
+            value += 1
+            seen_set.add(nid)
+            current_seen_set.add(nid)
+            date_seen_dict[date][1] += 1
+        if nid not in previous_seen_set:
+            date_seen_dict[date][2] += 1
+        value_list.append(value)
+        if date != last_date and date != 'UNKNOWN':
+            last_date = date
+            previous_seen_set = set(current_seen_set)
+            current_seen_set = set()
+            label_list.append(date)
+        else:
+            label_list.append('')
+
+    def optimization1(x, a, b, c):
+        return a * np.log(b * x) + c
+
+    def optimization2(x, a, b, c):
+        return a * np.sqrt(x) ** b + c
+
+    def optimization3(x, a, b, c):
+        return 1.0 / (a * np.exp(-b * x) + c)
+
+    def process(func, opts, domain, zero_index, zero_value):
+        values = func(domain, *opts)
+        diff = values[zero_index] - zero_value
+        values -= diff
+        values[ values < 0.0 ] = 0.0
+        values[:zero_index] = 0.0
+        values = values.astype(int)
+        return list(values)
+
+    optimization_funcs = [
+        optimization1,
+        optimization2,
+        optimization3,
+    ]
+    # Get data
+    x = np.array(index_list)
+    y = np.array(value_list)
+    # Fit curves
+    end    = int(len(index_list) * 1.25)
+    domain = np.array(range(1, end))
+    zero_index = len(value_list) - 1
+    zero_value = value_list[zero_index]
+    regressed_opts = [ curve_fit(func, x, y)[0] for func in optimization_funcs ]
+    prediction_list = [
+        process(func, opts, domain, zero_index, zero_value)
+        for func, opts in zip(optimization_funcs, regressed_opts)
+    ]
+    index_list = list(domain)
+
+    date_seen_dict.pop('UNKNOWN', None)
+    bar_label_list = sorted(date_seen_dict.keys())
+    bar_value_list1 = [ date_seen_dict[date][0] for date in bar_label_list ]
+    bar_value_list2 = [ date_seen_dict[date][1] for date in bar_label_list ]
+    bar_value_list3 = [ date_seen_dict[date][2] for date in bar_label_list ]
+
+    label_list += ['Models'] + [''] * (len(index_list) - len(label_list) - 1)
+    value_list += [0] * (len(index_list) - len(value_list))
+
+    # Counts
     eid_list = app.ibs.get_valid_eids()
     gid_list = app.ibs.get_valid_gids()
     aid_list = app.ibs.get_valid_aids()
     nid_list = app.ibs.get_valid_nids()
+
     return ap.template('view',
+                       line_index_list=index_list,
+                       line_label_list=label_list,
+                       line_value_list=value_list,
+                       prediction_list=prediction_list,
+                       bar_label_list=bar_label_list,
+                       bar_value_list1=bar_value_list1,
+                       bar_value_list2=bar_value_list2,
+                       bar_value_list3=bar_value_list3,
                        eid_list=eid_list,
                        eid_list_str=','.join(map(str, eid_list)),
                        num_eids=len(eid_list),
@@ -1012,6 +1115,25 @@ def api(function=None):
             template['status']['success'] = False
             template['status']['code'] = 'ERROR: Specified IBEIS function not valid Python function'
     return json.dumps(template)
+
+
+@app.route('/display/sightings')
+def display_sightings():
+    complete = request.args.get('complete', None) is not None
+    sightings = app.ibs.report_sightings_str(complete=complete)
+    return sightings
+
+
+@app.route('/download/sightings')
+def download_sightings():
+    filename = 'sightings.csv'
+    sightings = display_sightings()
+    return ap.send_file(sightings, filename)
+
+
+@app.route('/graph/sightings')
+def graph_sightings():
+    return redirect(url_for('view'))
 
 
 @app.route('/404')

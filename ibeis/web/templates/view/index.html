@@ -34,6 +34,40 @@
     </div>
   </div>
 
+  <div class="row" style="margin-top: 50px; text-align: center;">
+    <div class="col-lg-1"></div>
+    <div class="col-lg-10">
+        <canvas id="canvasBar"  height="150"></canvas>
+        <div style="color: #999; font-style: italic; margin-bottom: 40px;">
+          Sightings by day
+          <br/>
+          (Blue - number of sightings, Green - number of new sightings, Grey - number of new from previous day)
+        </div>
+
+        <canvas id="canvasLine" height="150"></canvas>
+        <div style="color: #999; font-style: italic; margin-bottom: 40px;">
+          Unique sightings over time
+          <br/>
+          (Blue - number of sightings cumulatively, Green - three predicted models of growth, Grey - upper-bound f(x) = x)
+        </div>
+    </div>
+    <div class="col-lg-1"></div>
+  </div>
+
+  <div class="row" style="margin-bottom: 50px; text-align: center;">
+    <div class="col-md-3 col-lg-3">
+      <a href="{{ url_for('display_sightings') }}" target="_blank">View Data</a>
+    </div>
+    <div class="col-md-3 col-lg-3">
+      <a href="{{ url_for('download_sightings') }}" target="_blank">Download Data (CSV)</a>
+    </div>
+    <div class="col-md-3 col-lg-3">
+      <a href="{{ url_for('display_sightings') }}?complete" target="_blank">View Complete Data</a>
+    </div>
+    <div class="col-md-3 col-lg-3">
+      <a href="{{ url_for('download_sightings') }}?complete" target="_blank">Download Complete Data (CSV)</a>
+    </div>
+  </div>
 {% endblock %}
 {% block content_custom_javascript %}
 <script type="text/javascript">
@@ -45,5 +79,97 @@
   imageNumber.start();
   annotationNumber.start();
   namesNumber.start();
+
+  var dataLine = {
+    {% autoescape false %}
+    labels : {{ line_label_list }},
+    {% endautoescape %}
+    datasets : [
+      {% for prediction in prediction_list %}
+      {
+        label: "Prediction",
+        fillColor : "rgba(92,184,92,0.0)",
+        strokeColor : "rgba(92,184,92,0.2)",
+        pointColor : "rgba(92,184,92,0.2)",
+        pointStrokeColor : "transparent",
+        pointHighlightFill : "transparent",
+        // pointStrokeColor : "#fff",
+        // pointHighlightFill : "#fff",
+        pointHighlightStroke : "rgba(240, 173, 78, 0.5)",
+        data : {{ prediction }}
+      },
+      {% endfor %}
+      {
+        fillColor : "rgba(220,220,220,0.2)",
+        strokeColor : "rgba(220,220,220,1)",
+        pointColor : "rgba(220,220,220,0.5)",
+        pointStrokeColor : "transparent",
+        pointHighlightFill : "transparent",
+        // pointStrokeColor : "#fff",
+        // pointHighlightFill : "#fff",
+        pointHighlightStroke : "rgba(220,220,220,1)",
+        data : {{ line_index_list }}
+      },
+      {
+        label: "Unique Sightings by Car",
+        fillColor : "rgba(151,187,205,0.2)",
+        strokeColor : "rgba(151,187,205,1)",
+        pointColor : "rgba(151,187,205,1)",
+        pointStrokeColor : "transparent",
+        pointHighlightFill : "transparent",
+        // pointStrokeColor : "#fff",
+        // pointHighlightFill : "#fff",
+        pointHighlightStroke : "rgba(240, 173, 78, 0.5)",
+        data : {{ line_value_list }}
+      },
+
+    ]
+  };
+
+  var dataBar = {
+    {% autoescape false %}
+    labels: {{ bar_label_list }},
+    {% endautoescape %}
+    datasets: [
+      {
+          fillColor: "rgba(151,187,205,0.5)",
+          strokeColor: "rgba(151,187,205,0.8)",
+          highlightFill: "rgba(151,187,205,0.75)",
+          highlightStroke: "rgba(151,187,205,1)",
+          data: {{ bar_value_list1 }}
+      },
+      {
+          fillColor: "rgba(92,184,92,0.5)",
+          strokeColor: "rgba(92,184,92,0.8)",
+          highlightFill: "rgba(92,184,92,0.75)",
+          highlightStroke: "rgba(92,184,92,1)",
+          data: {{ bar_value_list2 }}
+      },
+      {
+          fillColor: "rgba(220,220,220,0.5)",
+          strokeColor: "rgba(220,220,220,0.8)",
+          highlightFill: "rgba(220,220,220,0.75)",
+          highlightStroke: "rgba(220,220,220,1)",
+          data: {{ bar_value_list3 }}
+      },
+    ]
+  };
+
+  window.onload = function(){
+    var ctxLine = document.getElementById("canvasLine").getContext("2d");
+    var chartLine = new Chart(ctxLine).Line(dataLine, {
+      responsive: true,
+      animation: false,
+      pointDotRadius: 2,
+      pointHitDetectionRadius : 1,
+      maintainAspectRatio: false,
+    });
+    var ctxBar = document.getElementById("canvasBar").getContext("2d");
+    var chartBar = new Chart(ctxBar).Bar(dataBar, {
+      responsive: true,
+      // animation: false,
+    });
+  };
+
 </script>  
 {% endblock %}
