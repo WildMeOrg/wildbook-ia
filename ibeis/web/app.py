@@ -18,6 +18,9 @@ import utool as ut
 # Web Internal
 from ibeis.web import appfuncs as ap
 # Others
+import numpy as np
+from scipy.optimize import curve_fit
+
 import traceback
 import ibeis.constants as const
 import random
@@ -156,7 +159,7 @@ def view():
         if date not in date_seen_dict:
             date_seen_dict[date] = [0, 0, 0]
         date_seen_dict[date][0] += 1
-        index_list.append(index)
+        index_list.append(index + 1)
         if nid not in seen_set:
             value += 1
             seen_set.add(nid)
@@ -173,11 +176,54 @@ def view():
         else:
             label_list.append('')
 
+    def optimization1(x, a, b, c):
+        return a * np.log(b * x) + c
+
+    def optimization2(x, a, b, c):
+        return a * np.sqrt(x) ** b + c
+
+    def optimization3(x, a, b, c):
+        return 1.0 / (a * np.exp(-b * x) + c)
+
+    def process(func, opts, domain):
+        values = func(domain, *opts)
+        values[ values < 0.0 ] = 0.0
+        values = values.astype(int)
+        return list(values)
+
+    optimization_funcs = [
+        optimization1,
+        optimization2,
+        optimization3,
+    ]
+    # Get data
+    x = np.array(index_list)
+    y = np.array(value_list)
+    # Fit curves
+    end    = int(len(index_list) * 1.5)
+    domain = np.array(range(1, end))
+    regressed_opts = [ curve_fit(func, x, y)[0] for func in optimization_funcs ]
+    prediction_list = [
+        process(func, opts, domain)
+        for func, opts in zip(optimization_funcs, regressed_opts)
+    ]
+    index_list = list(domain)
+
     date_seen_dict.pop('UNKNOWN', None)
     bar_label_list = sorted(date_seen_dict.keys())
     bar_value_list1 = [ date_seen_dict[date][0] for date in bar_label_list ]
     bar_value_list2 = [ date_seen_dict[date][1] for date in bar_label_list ]
     bar_value_list3 = [ date_seen_dict[date][2] for date in bar_label_list ]
+
+    label_list += ['Models'] + [''] * (len(index_list) - len(label_list) - 1)
+    value_list += [0] * (len(index_list) - len(value_list))
+    print(len(index_list))
+    print(len(label_list))
+    print(len(value_list))
+    print(len(prediction_list))
+    print(len(prediction_list[0]))
+    print(len(prediction_list[1]))
+    print(len(prediction_list[2]))
 
     # Counts
     eid_list = app.ibs.get_valid_eids()
@@ -189,6 +235,7 @@ def view():
                        line_index_list=index_list,
                        line_label_list=label_list,
                        line_value_list=value_list,
+                       prediction_list=prediction_list,
                        bar_label_list=bar_label_list,
                        bar_value_list1=bar_value_list1,
                        bar_value_list2=bar_value_list2,
