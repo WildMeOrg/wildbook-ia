@@ -39,12 +39,16 @@
     <div class="col-lg-10">
         <canvas id="canvasBar"  height="150"></canvas>
         <div style="color: #999; font-style: italic; margin-bottom: 40px;">
-          Sightings by day (Grey - number of sightings, Blue - number of new sightings)
+          Sightings by day
+          <br/>
+          (Blue - number of sightings, Green - number of new sightings, Grey - number of new from previous day)
         </div>
 
         <canvas id="canvasLine" height="150"></canvas>
         <div style="color: #999; font-style: italic; margin-bottom: 40px;">
-          Unique sightings over time (Grey line gives upper-bound f(x) = x)
+          Unique sightings over time
+          <br/>
+          (Grey line gives upper-bound f(x) = x)
         </div>
     </div>
     <div class="col-lg-1"></div>
@@ -113,21 +117,26 @@
     {% endautoescape %}
     datasets: [
       {
-          label: "My First dataset",
-          fillColor: "rgba(220,220,220,0.5)",
-          strokeColor: "rgba(220,220,220,0.8)",
-          highlightFill: "rgba(220,220,220,0.75)",
-          highlightStroke: "rgba(220,220,220,1)",
-          data: {{ bar_value_list1 }}
-      },
-      {
-          label: "My Second dataset",
           fillColor: "rgba(151,187,205,0.5)",
           strokeColor: "rgba(151,187,205,0.8)",
           highlightFill: "rgba(151,187,205,0.75)",
           highlightStroke: "rgba(151,187,205,1)",
+          data: {{ bar_value_list1 }}
+      },
+      {
+          fillColor: "rgba(92,184,92,0.5)",
+          strokeColor: "rgba(92,184,92,0.8)",
+          highlightFill: "rgba(92,184,92,0.75)",
+          highlightStroke: "rgba(92,184,92,1)",
           data: {{ bar_value_list2 }}
-      }
+      },
+      {
+          fillColor: "rgba(220,220,220,0.5)",
+          strokeColor: "rgba(220,220,220,0.8)",
+          highlightFill: "rgba(220,220,220,0.75)",
+          highlightStroke: "rgba(220,220,220,1)",
+          data: {{ bar_value_list3 }}
+      },
     ]
   };
 

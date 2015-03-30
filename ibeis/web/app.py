@@ -148,28 +148,36 @@ def view():
     value_list = []
     index_list = []
     seen_set = set()
+    previous_seen_set = set()
+    current_seen_set = set()
     last_date = None
     date_seen_dict = {}
     for index, (aid, nid, date) in enumerate(zip(aid_list, nid_list, date_list)):
         if date not in date_seen_dict:
-            date_seen_dict[date] = [0, 0]
+            date_seen_dict[date] = [0, 0, 0]
         date_seen_dict[date][0] += 1
         index_list.append(index)
         if nid not in seen_set:
             value += 1
             seen_set.add(nid)
+            current_seen_set.add(nid)
             date_seen_dict[date][1] += 1
+        if nid not in previous_seen_set:
+            date_seen_dict[date][2] += 1
         value_list.append(value)
         if date != last_date and date != 'UNKNOWN':
+            last_date = date
+            previous_seen_set = set(current_seen_set)
+            current_seen_set = set()
             label_list.append(date)
         else:
             label_list.append('')
-        last_date = date
 
     date_seen_dict.pop('UNKNOWN', None)
     bar_label_list = sorted(date_seen_dict.keys())
     bar_value_list1 = [ date_seen_dict[date][0] for date in bar_label_list ]
     bar_value_list2 = [ date_seen_dict[date][1] for date in bar_label_list ]
+    bar_value_list3 = [ date_seen_dict[date][2] for date in bar_label_list ]
 
     # Counts
     eid_list = app.ibs.get_valid_eids()
@@ -184,6 +192,7 @@ def view():
                        bar_label_list=bar_label_list,
                        bar_value_list1=bar_value_list1,
                        bar_value_list2=bar_value_list2,
+                       bar_value_list3=bar_value_list3,
                        eid_list=eid_list,
                        eid_list_str=','.join(map(str, eid_list)),
                        num_eids=len(eid_list),
