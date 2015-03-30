@@ -841,7 +841,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     guitool.ensure_qapp()
     print('[inspect_matches] make_qres_widget')
     #qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres, ranks_lt=ranks_lt, qreq_=qreq_)
-    ut.view_directory(ibs.get_match_thumbdir())
+    #ut.view_directory(ibs.get_match_thumbdir())
     qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
                                               ranks_lt=ranks_lt, qreq_=qreq_,
                                               filter_reviewed=False,
