@@ -1049,22 +1049,34 @@ def graph_sightings():
     index_list = []
     seen_set = set()
     last_date = None
+    date_seen_dict = {}
     for index, (aid, nid, date) in enumerate(zip(aid_list, nid_list, date_list)):
+        if date not in date_seen_dict:
+            date_seen_dict[date] = [0, 0]
+        date_seen_dict[date][0] += 1
         index_list.append(index)
         if nid not in seen_set:
             value += 1
             seen_set.add(nid)
+            date_seen_dict[date][1] += 1
         value_list.append(value)
         if date != last_date and date != 'UNKNOWN':
-            print(date)
             label_list.append(date)
         else:
             label_list.append('')
         last_date = date
+
+    date_seen_dict.pop('UNKNOWN', None)
+    bar_label_list = sorted(date_seen_dict.keys())
+    bar_value_list1 = [ date_seen_dict[date][0] for date in bar_label_list ]
+    bar_value_list2 = [ date_seen_dict[date][1] for date in bar_label_list ]
     return ap.template('graph', 'sightings',
-                       index_list=index_list,
-                       label_list=label_list,
-                       value_list=value_list)
+                       line_index_list=index_list,
+                       line_label_list=label_list,
+                       line_value_list=value_list,
+                       bar_label_list=bar_label_list,
+                       bar_value_list1=bar_value_list1,
+                       bar_value_list2=bar_value_list2)
 
 
 @app.route('/404')
