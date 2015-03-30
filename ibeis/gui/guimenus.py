@@ -214,7 +214,7 @@ def setup_batch_menu(mainwin, back):
                                   cfgdict=dict(can_match_samename=False, use_k_padding=False)),
     )
     mainwin.menuBatch.newAction(
-        name='actionNameVsExemplarsQuery',
+        name='actionNameVsExemplarsMode3',
         text='Query: Names vs Exemplar + Ori Hack + Scale + No Affine',
         slot_fn=functools.partial(back.compute_queries,
                                   use_prioritized_name_subset=True,
