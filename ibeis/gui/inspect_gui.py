@@ -921,6 +921,8 @@ def ensure_match_img(ibs, qres, daid, qreq_=None, match_thumbtup_cache={}):
     if match_thumb_fpath_ in match_thumbtup_cache:
         fpath = match_thumbtup_cache[match_thumb_fpath_]
     else:
+        # TODO: just draw the image at the correct thumbnail size
+        # TODO: draw without matplotlib?
         fpath = qres.dump_match_img(
             ibs, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32,
             notitle=True, verbose=False, qreq_=qreq_)

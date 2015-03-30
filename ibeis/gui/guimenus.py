@@ -213,6 +213,15 @@ def setup_batch_menu(mainwin, back):
                                   daids_mode=const.VS_EXEMPLARS_KEY,
                                   cfgdict=dict(can_match_samename=False, use_k_padding=False)),
     )
+    mainwin.menuBatch.newAction(
+        name='actionNameVsExemplarsQuery',
+        text='Query: Names vs Exemplar + Ori Hack + Scale + No Affine',
+        slot_fn=functools.partial(back.compute_queries,
+                                  use_prioritized_name_subset=True,
+                                  daids_mode=const.VS_EXEMPLARS_KEY,
+                                  cfgdict=dict(can_match_samename=False, use_k_padding=False,
+                                               affine_invariance=False, scale_max=150, augment_queryside_hack=True)),
+    )
     mainwin.menuBatch.addSeparator()  # ---------
     mainwin.menuBatch.newAction(
         name='actionQueryInEncMode1',
