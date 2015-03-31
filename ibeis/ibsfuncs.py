@@ -3775,23 +3775,65 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
 
 
 def find_location_disparate_splits(ibs):
+    """
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-find_location_disparate_splits
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('NNP_Master3')
+        >>> # execute function
+        >>> result = find_location_disparate_splits(ibs)
+        >>> # verify results
+        >>> print(result)
+
+    """
     import scipy.spatial.distance as spdist
     import functools
+    #aid_list_count = ibs.get_valid_aids()
     aid_list_count = ibs.filter_aids_count()
-    aid_list_count = ibs.get_valid_aids()
     nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list_count)
-    gps_track_list = list(map(lambda x: list(map(list, x)), gps_track_list))
+    #gps_track_list = list(map(lambda x: list(map(list, x)), gps_track_list))
 
     # Get names with multiple sightings
     has_multiple_list = [len(gps_track) > 1 for gps_track in gps_track_list]
     gps_track_list_ = ut.list_compress(gps_track_list, has_multiple_list)
-    #aid_track_list_ = ut.list_compress(aid_track_list, has_multiple_list)
-    #nid_list_ = ut.list_compress(nid_list, has_multiple_list)
+    aid_track_list_ = ut.list_compress(aid_track_list, has_multiple_list)
+    unixtime_track_list_ = ibs.unflat_map(ibs.get_annot_image_unixtimes, aid_track_list_)
+    nid_list_ = ut.list_compress(nid_list, has_multiple_list)
 
+    # Move into arrays
     gpsarr_track_list_ = list(map(np.array, gps_track_list_))
+    unixtimearr_track_list_ = [np.array(unixtimes)[:, None] for unixtimes in unixtime_track_list_]
+
     haversin_pdist = functools.partial(spdist.pdist, metric=ut.haversine)
-    dist_vector_list = list(map(haversin_pdist, gpsarr_track_list_))
-    dist_matrix_list = list(map(spdist.squareform, dist_vector_list))
+    unixtime_pdist = functools.partial(spdist.pdist, metric=lambda x, y: (np.abs(np.subtract(x, y)) / (60 ** 2)))
+    # Get distances
+    gpsdist_vector_list = list(map(haversin_pdist, gpsarr_track_list_))
+    hourdist_vector_list = list(map(unixtime_pdist, unixtimearr_track_list_))
+
+    # Get the speed in kilometers per hour for each animal
+    speed_vector_list = [gpsdist / hourdist for gpsdist, hourdist in zip(gpsdist_vector_list, hourdist_vector_list)]
+
+    #maxgpsdist_list  = np.array([gpsdist_vector.max() for gpsdist_vector in gpsdist_vector_list])
+    #maxhourdist_list = np.array([hourdist_vector.max() for hourdist_vector in hourdist_vector_list])
+
+    maxspeed_list = np.array([speed_vector.max() for speed_vector in speed_vector_list])
+    sortx  = maxspeed_list.argsort()
+
+    if False:
+        import plottol as pt
+        pt.plot(maxspeed_list[sortx])
+
+    thresh = 5  # kilometers per hour
+    offending_sortx = sortx.compress(maxspeed_list[sortx] > thresh)
+    offending_nids = ut.list_take(nid_list_, offending_sortx)
+    return offending_nids
+
+    #gpsdist_matrix_list = list(map(spdist.squareform, gpsdist_vector_list))
 
 
 if __name__ == '__main__':
