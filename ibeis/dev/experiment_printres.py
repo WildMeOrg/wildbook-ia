@@ -92,6 +92,7 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     scoreexpdiff_mat   = np.array(ut.replace_nones(cfgx2_scoreexpdiff, np.nan))
 
     print(' --- PRINT RESULTS ---')
+    #X_LIST = [1]  # Num of ranks less than to score
     X_LIST = [1]  # Num of ranks less than to score
     #X_LIST = [1, 5]  # Num of ranks less than to score
 

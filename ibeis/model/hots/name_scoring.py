@@ -109,7 +109,7 @@ def compute_nsum_score(cm, qreq_=None):
         >>> ut.quit_if_noshow()
         >>> cm.show_ranked_matches(qreq_, ori=True)
     """
-    HACK_SINGLE_ORI =  qreq_ is not None and qreq_.qparams.augment_queryside_hack
+    HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
     if HACK_SINGLE_ORI:
         # keypoints with the same xy can only have one of them vote
         #qreq_ = None
