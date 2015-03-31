@@ -427,12 +427,18 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.status_widget_list = [
             _NEWLBL('Selected Encounter: ', fontkw=secondary_fontkw, align='right'),
             _NEWTEXT(enabled=True, readOnly=True),
+            ##
             _NEWLBL('Selected Image: ', fontkw=secondary_fontkw, align='right'),
-            _NEWTEXT(enabled=True, readOnly=True),
+            _NEWTEXT(enabled=True, readOnly=False,
+                     editingFinishedSlot=ibswgt.select_image_text_editing_finished),
+            ##
             _NEWLBL('Selected Annotation: ', fontkw=secondary_fontkw, align='right'),
-            _NEWTEXT(enabled=True, readOnly=False, editingFinishedSlot=ibswgt.selected_annotation_editing_finished),
+            _NEWTEXT(enabled=True, readOnly=False,
+                     editingFinishedSlot=ibswgt.select_annot_text_editing_finished),
+            ##
             _NEWLBL('Selected Name: ', fontkw=secondary_fontkw, align='right'),
-            _NEWTEXT(enabled=True, readOnly=True),
+            _NEWTEXT(enabled=True, readOnly=False,
+                     editingFinishedSlot=ibswgt.select_name_text_editing_finished),
         ]
 
         back = ibswgt.back
@@ -864,10 +870,25 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     #------------
 
     @slot_(str)
-    def selected_annotation_editing_finished(ibswgt):
-        index = ibswgt.tablename_to_status_widget_index[gh.ANNOTATION_TABLE]
+    def select_annot_text_editing_finished(ibswgt):
+        tablename = gh.ANNOTATION_TABLE
+        index = ibswgt.tablename_to_status_widget_index[tablename]
         text = ibswgt.status_widget_list[index].text()
-        ibswgt.select_table_indicies_from_text(gh.ANNOTATION_TABLE, text)
+        ibswgt.select_table_indicies_from_text(tablename, text)
+
+    @slot_(str)
+    def select_name_text_editing_finished(ibswgt):
+        tablename = gh.NAMES_TREE
+        index = ibswgt.tablename_to_status_widget_index[tablename]
+        text = ibswgt.status_widget_list[index].text()
+        ibswgt.select_table_indicies_from_text(tablename, text)
+
+    @slot_(str)
+    def select_image_text_editing_finished(ibswgt):
+        tablename = gh.IMAGE_TABLE
+        index = ibswgt.tablename_to_status_widget_index[tablename]
+        text = ibswgt.status_widget_list[index].text()
+        ibswgt.select_table_indicies_from_text(tablename, text)
 
     def select_table_indicies_from_text(ibswgt, tblname, text):
         #print('new text: %r' % (text,))
