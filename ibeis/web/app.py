@@ -151,23 +151,27 @@ def view():
     value_list = []
     index_list = []
     seen_set = set()
-    previous_seen_set = set()
     current_seen_set = set()
+    previous_seen_set = set()
     last_date = None
     date_seen_dict = {}
     for index, (aid, nid, date) in enumerate(zip(aid_list, nid_list, date_list)):
+        index_list.append(index + 1)
+        # Add to counters
         if date not in date_seen_dict:
             date_seen_dict[date] = [0, 0, 0]
-        date_seen_dict[date][0] += 1
-        index_list.append(index + 1)
-        if nid not in seen_set:
-            value += 1
-            seen_set.add(nid)
+        if nid not in current_seen_set:
             current_seen_set.add(nid)
+            date_seen_dict[date][0] += 1
+            if nid in previous_seen_set:
+                date_seen_dict[date][2] += 1
+        if nid not in seen_set:
+            seen_set.add(nid)
+            value += 1
             date_seen_dict[date][1] += 1
-        if nid not in previous_seen_set:
-            date_seen_dict[date][2] += 1
+        # Add to register
         value_list.append(value)
+        # Reset step (per day)
         if date != last_date and date != 'UNKNOWN':
             last_date = date
             previous_seen_set = set(current_seen_set)
