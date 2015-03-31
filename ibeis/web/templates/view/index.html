@@ -246,18 +246,20 @@
         {
           console.log(track);
           var last = undefined;
+          var color = randomHexColor();
+          // var color = "#d9534f";
           for (var index2 in track)
           {
               marker = track[index2];
               var gps = new google.maps.LatLng(marker[0], marker[1]);
               if(last !== undefined)
               {
-                  color = "#d9534f";
                   console.log(last + " " + gps);
                   new google.maps.Polyline({
                       path: [last, gps],
+                      clickable: false,
                       strokeColor: color,
-                      strokeOpacity: 1.0,
+                      strokeOpacity: 0.50,
                       strokeWeight: 1,
                       map: map
                   });
@@ -271,10 +273,11 @@
     {
         marker = markers[index];
         gps = new google.maps.LatLng(marker[0], marker[1]);
-        gps2 = new google.maps.LatLng(marker[0] + 0.0001, marker[1] + 0.0001);
+        gps2 = new google.maps.LatLng(marker[0] + 0.0003, marker[1] + 0.0003);
         color = "#428BCA";
         new google.maps.Polyline({
             path: [gps, gps2],
+            clickable: false,
             strokeColor: color,
             strokeOpacity: 1.0,
             strokeWeight: 5,

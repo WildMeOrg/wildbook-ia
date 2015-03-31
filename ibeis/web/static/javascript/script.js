@@ -52,3 +52,9 @@ function removeIndexFromArray(index, array)
         array.splice(index, 1);
     }
 }
+
+function randomHexColor()
+{
+  // 16777215 base 10 === ffffff base 16
+  return '#'+Math.floor(Math.random()*16777215).toString(16);
+}
