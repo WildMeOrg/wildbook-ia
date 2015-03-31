@@ -222,7 +222,7 @@ def get_encounter_custom_filtered_aids(ibs, eid_list):
     """ hacks to filter aids to only certain views and qualities """
     aids_list_ = ibs.get_encounter_aids(eid_list)
     # HACK: Get percentage for the annots we currently care about
-    aids_list = ibs.unflat_map(ibs.filter_aids_custom, aids_list_)
+    aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
     return aids_list
 
 
