@@ -891,23 +891,31 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.select_table_indicies_from_text(tablename, text)
 
     def select_table_indicies_from_text(ibswgt, tblname, text):
-        #print('new text: %r' % (text,))
+        if not ut.QUIET:
+            print('[newgui] select_table_indicies_from_text')
+            print('[newgui]  * tblname = %r' % (tblname,))
+            print('[newgui]  * text = %r' % (text,))
         to_backend_tablename = {
             gh.ANNOTATION_TABLE : const.ANNOTATION_TABLE,
             gh.NAMES_TREE       : const.NAME_TABLE,
             gh.IMAGE_TABLE      : const.IMAGE_TABLE,
         }
         backend_tablename = to_backend_tablename[tblname]
+        if text == '':
+            text = '[]'
         try:
             id_list = ut.ensure_iterable(eval(text))  # NOQA
         except Exception as ex:
             ut.printex(ex, iswarning=True)
         else:
+            if not ut.QUIET:
+                print('[newgui]  * id_list = %r' % (id_list,))
             #print(id_list)
             ibswgt.back._set_selection3(backend_tablename, id_list, mode='set')
-            pass
 
         if len(id_list) == 1 and ibswgt._tab_table_wgt.current_tblname == tblname:
+            if not ut.QUIET:
+                print('[newgui]  * attempting to select from rowid')
             view = ibswgt.views[tblname]
             view.select_row_from_id(id_list[0])
             pass
