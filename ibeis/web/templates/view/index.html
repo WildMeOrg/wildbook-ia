@@ -12,7 +12,7 @@
 {% endblock %}
 {% block content %}
 
-  <div class="row marketing">
+  <div class="row marketing" style="text-align: center;">
     <div class="col-lg-3">
       <a href="{{ url_for('view_encounters') }}"><h4>Encounters</h4></a>
       <h4 class="total-label" id="encounter-total"></h4>
@@ -32,6 +32,17 @@
       <a href="{{ url_for('view_names') }}"><h4>Names</h4></a>
       <h4 class="total-label" id="names-total"></h4>
     </div>
+  </div>
+
+  <div class="row marketing" style="margin-top: 40px; text-align: center;">
+    <div class="col-lg-4"></div>
+    
+    <div class="col-lg-4">
+      <h4>Petersen-Lincoln Index</h4>
+      <h4 class="total-label" id="pl-total"></h4>
+    </div>
+    
+    <div class="col-lg-4"></div>
   </div>
 
   <div class="row" style="margin-top: 50px; text-align: center;">
@@ -75,10 +86,12 @@
   var imageNumber      = new countUp("image-total",      0, {{ num_gids }}, 0, 2.0);
   var annotationNumber = new countUp("annotation-total", 0, {{ num_aids }}, 0, 2.0);
   var namesNumber      = new countUp("names-total",      0, {{ num_nids }}, 0, 2.0);
+  var plNumber         = new countUp("pl-total",         0, {{ pl_index }}, 0, 2.0);
   encounterNumber.start();
   imageNumber.start();
   annotationNumber.start();
   namesNumber.start();
+  plNumber.start();
 
   var dataLine = {
     {% autoescape false %}

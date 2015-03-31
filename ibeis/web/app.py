@@ -235,11 +235,19 @@ def view():
     aid_list_count = app.ibs.filter_aids_count()
     nid_list = list(set(app.ibs.get_annot_name_rowids(aid_list_count)))
 
+    # Calculate the Petersen-Lincoln index form the last two days
+    if bar_value_list3[-1] > 0:
+        pl_index = int(math.ceil((bar_value_list1[-1] * bar_value_list1[-2]) / bar_value_list3[-1]))
+    else:
+        # pl_index = 'Undefined - Zero recaptured (k = 0)'
+        pl_index = 0
+
     return ap.template('view',
                        line_index_list=index_list,
                        line_label_list=label_list,
                        line_value_list=value_list,
                        prediction_list=prediction_list,
+                       pl_index=pl_index,
                        bar_label_list=bar_label_list,
                        bar_value_list1=bar_value_list1,
                        bar_value_list2=bar_value_list2,
