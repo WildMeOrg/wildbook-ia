@@ -18,9 +18,8 @@ import utool as ut
 # Web Internal
 from ibeis.web import appfuncs as ap
 # Others
-import numpy as np
-from scipy.optimize import curve_fit
-
+# import numpy as np
+# from scipy.optimize import curve_fit
 import traceback
 import ibeis.constants as const
 import random
@@ -180,43 +179,44 @@ def view():
         else:
             label_list.append('')
 
-    def optimization1(x, a, b, c):
-        return a * np.log(b * x) + c
+    # def optimization1(x, a, b, c):
+    #     return a * np.log(b * x) + c
 
-    def optimization2(x, a, b, c):
-        return a * np.sqrt(x) ** b + c
+    # def optimization2(x, a, b, c):
+    #     return a * np.sqrt(x) ** b + c
 
-    def optimization3(x, a, b, c):
-        return 1.0 / (a * np.exp(-b * x) + c)
+    # def optimization3(x, a, b, c):
+    #     return 1.0 / (a * np.exp(-b * x) + c)
 
-    def process(func, opts, domain, zero_index, zero_value):
-        values = func(domain, *opts)
-        diff = values[zero_index] - zero_value
-        values -= diff
-        values[ values < 0.0 ] = 0.0
-        values[:zero_index] = 0.0
-        values = values.astype(int)
-        return list(values)
+    # def process(func, opts, domain, zero_index, zero_value):
+    #     values = func(domain, *opts)
+    #     diff = values[zero_index] - zero_value
+    #     values -= diff
+    #     values[ values < 0.0 ] = 0.0
+    #     values[:zero_index] = 0.0
+    #     values = values.astype(int)
+    #     return list(values)
 
-    optimization_funcs = [
-        optimization1,
-        optimization2,
-        optimization3,
-    ]
-    # Get data
-    x = np.array(index_list)
-    y = np.array(value_list)
-    # Fit curves
-    end    = int(len(index_list) * 1.25)
-    domain = np.array(range(1, end))
-    zero_index = len(value_list) - 1
-    zero_value = value_list[zero_index]
-    regressed_opts = [ curve_fit(func, x, y)[0] for func in optimization_funcs ]
-    prediction_list = [
-        process(func, opts, domain, zero_index, zero_value)
-        for func, opts in zip(optimization_funcs, regressed_opts)
-    ]
-    index_list = list(domain)
+    # optimization_funcs = [
+    #     optimization1,
+    #     optimization2,
+    #     optimization3,
+    # ]
+    # # Get data
+    # x = np.array(index_list)
+    # y = np.array(value_list)
+    # # Fit curves
+    # end    = int(len(index_list) * 1.25)
+    # domain = np.array(range(1, end))
+    # zero_index = len(value_list) - 1
+    # zero_value = value_list[zero_index]
+    # regressed_opts = [ curve_fit(func, x, y)[0] for func in optimization_funcs ]
+    # prediction_list = [
+    #     process(func, opts, domain, zero_index, zero_value)
+    #     for func, opts in zip(optimization_funcs, regressed_opts)
+    # ]
+    # index_list = list(domain)
+    prediction_list = []
 
     date_seen_dict.pop('UNKNOWN', None)
     bar_label_list = sorted(date_seen_dict.keys())
@@ -224,8 +224,8 @@ def view():
     bar_value_list2 = [ date_seen_dict[date][1] for date in bar_label_list ]
     bar_value_list3 = [ date_seen_dict[date][2] for date in bar_label_list ]
 
-    label_list += ['Models'] + [''] * (len(index_list) - len(label_list) - 1)
-    value_list += [0] * (len(index_list) - len(value_list))
+    # label_list += ['Models'] + [''] * (len(index_list) - len(label_list) - 1)
+    # value_list += [0] * (len(index_list) - len(value_list))
 
     # Counts
     eid_list = app.ibs.get_valid_eids()
