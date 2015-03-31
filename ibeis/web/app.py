@@ -233,7 +233,8 @@ def view():
     aid_list = app.ibs.get_valid_aids()
     # nid_list = app.ibs.get_valid_nids()
     aid_list_count = app.ibs.filter_aids_count()
-    nid_list = list(set(app.ibs.get_annot_name_rowids(aid_list_count)))
+    nid_list_count = app.ibs.get_annot_name_rowids(aid_list_count)
+    nid_list = list(set(nid_list_count))
 
     # Calculate the Petersen-Lincoln index form the last two days
     if bar_value_list3[-1] > 0:
@@ -242,12 +243,30 @@ def view():
         # pl_index = 'Undefined - Zero recaptured (k = 0)'
         pl_index = 0
 
+    # Get the markers
+    gid_list_markers = app.ibs.get_annot_gids(aid_list_count)
+    gps_list_markers = map(list, app.ibs.get_image_gps(gid_list_markers))
+
+    # Get the tracks
+    print(len(nid_list_count), len(set(nid_list_count)))
+    nid_track_dict = {}
+    for nid, gps in zip(nid_list_count, gps_list_markers):
+        if gps[0] == -1.0 and gps[1] == -1.0:
+            continue
+        if nid not in nid_track_dict:
+            nid_track_dict[nid] = []
+        nid_track_dict[nid].append(gps)
+    gps_list_tracks = [ nid_track_dict[nid] for nid in sorted(nid_track_dict.keys()) ]
+    print(len(gps_list_tracks))
+
     return ap.template('view',
                        line_index_list=index_list,
                        line_label_list=label_list,
                        line_value_list=value_list,
                        prediction_list=prediction_list,
                        pl_index=pl_index,
+                       gps_list_markers=gps_list_markers,
+                       gps_list_tracks=gps_list_tracks,
                        bar_label_list=bar_label_list,
                        bar_value_list1=bar_value_list1,
                        bar_value_list2=bar_value_list2,

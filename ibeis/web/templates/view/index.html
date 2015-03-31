@@ -8,6 +8,15 @@
     text-align: center;
     color: #23527c;
   }
+  
+  #gps-map-canvas
+  {
+      width: 100%;
+      position: absolute !important;
+      height: 100%;
+      top: 0;
+      left: 0;
+  }
 </style>
 {% endblock %}
 {% block content %}
@@ -62,10 +71,18 @@
           (Blue - number of sightings cumulatively, Green - three predicted models of growth, Grey - upper-bound f(x) = x)
         </div>
     </div>
-    <div class="col-lg-1"></div>
+    <div class="col-lg-1"></div>    
   </div>
 
-  <div class="row" style="margin-bottom: 50px; text-align: center;">
+  <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
+    <div class="col-lg-1"></div>
+    <div class="col-lg-10" style="height: 100%;">
+        <div id="gps-map-canvas"></div>
+    </div>
+    <div class="col-lg-1"></div>    
+  </div>
+    
+  <div class="row" style="margin: 50px 0px; text-align: center;">
     <div class="col-md-3 col-lg-3">
       <a href="{{ url_for('display_sightings') }}" target="_blank">View Data</a>
     </div>
@@ -81,6 +98,9 @@
   </div>
 {% endblock %}
 {% block content_custom_javascript %}
+<script type="text/javascript"
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvpv54I9K-wuUhm2D_FhnRjvLuZRmLd7k">
+</script> 
 <script type="text/javascript">
   var encounterNumber  = new countUp("encounter-total",  0, {{ num_eids }}, 0, 2.0);
   var imageNumber      = new countUp("image-total",      0, {{ num_gids }}, 0, 2.0);
@@ -168,6 +188,9 @@
     ]
   };
 
+  var tracks = {{ gps_list_tracks }};
+  var markers = {{ gps_list_markers }};
+
   window.onload = function(){
     var ctxLine = document.getElementById("canvasLine").getContext("2d");
     var chartLine = new Chart(ctxLine).Line(dataLine, {
@@ -182,7 +205,83 @@
       responsive: true,
       // animation: false,
     });
+
+    var center = new google.maps.LatLng(-1.385, 36.860); // Nairobi
+    // var center = new google.maps.LatLng(42.728, -73.687); // Troy
+    loadGPSMap(tracks, markers, center);
   };
+
+  function loadGPSMap(tracks, markers, center)
+  {
+    var gps;
+    var styles = [
+        {
+            featureType: "poi.business",
+            // featureType: "poi",
+            elementType: "labels",
+            stylers: [
+                  { visibility: "off" }
+            ]
+        }
+    ];
+
+    // Initialize the Google Maps API v3
+    var map = new google.maps.Map(document.getElementById('gps-map-canvas'), {
+        zoom: 12,
+        center: center,
+        // mapTypeId: google.maps.MapTypeId.HYBRID,
+        // mapTypeId: google.maps.MapTypeId.ROADMAP,
+        // mapTypeId: google.maps.MapTypeId.SATELLITE,
+        mapTypeId: google.maps.MapTypeId.TERRAIN,
+        disableDefaultUI: true,
+        scrollwheel: false,
+        draggable: false,
+        styles: styles,
+    });
+
+    for (var index1 in tracks)
+    {
+        track = tracks[index1]
+        if(track.length > 1)
+        {
+          console.log(track);
+          var last = undefined;
+          for (var index2 in track)
+          {
+              marker = track[index2];
+              var gps = new google.maps.LatLng(marker[0], marker[1]);
+              if(last !== undefined)
+              {
+                  color = "#d9534f";
+                  console.log(last + " " + gps);
+                  new google.maps.Polyline({
+                      path: [last, gps],
+                      strokeColor: color,
+                      strokeOpacity: 1.0,
+                      strokeWeight: 1,
+                      map: map
+                  });
+              }
+              last = gps;
+          }
+        }
+    }
+
+    for (var index in markers)
+    {
+        marker = markers[index];
+        gps = new google.maps.LatLng(marker[0], marker[1]);
+        gps2 = new google.maps.LatLng(marker[0] + 0.0001, marker[1] + 0.0001);
+        color = "#428BCA";
+        new google.maps.Polyline({
+            path: [gps, gps2],
+            strokeColor: color,
+            strokeOpacity: 1.0,
+            strokeWeight: 5,
+            map: map
+        });
+    }
+  }
 
 </script>  
 {% endblock %}
