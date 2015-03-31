@@ -3775,6 +3775,8 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
 
 
 def find_location_disparate_splits(ibs):
+    import scipy.spatial.distance as spdist
+    import functools
     aid_list_count = ibs.filter_aids_count()
     aid_list_count = ibs.get_valid_aids()
     nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list_count)
@@ -3783,26 +3785,13 @@ def find_location_disparate_splits(ibs):
     # Get names with multiple sightings
     has_multiple_list = [len(gps_track) > 1 for gps_track in gps_track_list]
     gps_track_list_ = ut.list_compress(gps_track_list, has_multiple_list)
-    aid_track_list_ = ut.list_compress(aid_track_list, has_multiple_list)
-    nid_list_ = ut.list_compress(nid_list, has_multiple_list)
+    #aid_track_list_ = ut.list_compress(aid_track_list, has_multiple_list)
+    #nid_list_ = ut.list_compress(nid_list, has_multiple_list)
 
     gpsarr_track_list_ = list(map(np.array, gps_track_list_))
-    """
-    >>> gpsarr_track_list_ = [
-    ...    np.array([[ -80.21895315, -158.81099213],
-    ...              [ -12.08338926,   67.50368014],
-    ...              [ -11.08338926,   67.50368014],
-    ...              [ -11.08338926,   67.50368014],]
-    ...    ),
-    ...    np.array([[   9.77816711,  -17.27471498],
-    ...              [ -51.67678814, -158.91065495],])
-    ...    ]
-
-    """
-    from scipy.spatial.distance import pdist
-    list(map(pdist, gpsarr_track_list_))
-
-    pass
+    haversin_pdist = functools.partial(spdist.pdist, metric=ut.haversine)
+    dist_vector_list = list(map(haversin_pdist, gpsarr_track_list_))
+    dist_matrix_list = list(map(spdist.squareform, dist_vector_list))
 
 
 if __name__ == '__main__':

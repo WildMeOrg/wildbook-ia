@@ -80,7 +80,7 @@ def _compute_encounter_datetime(ibs, enc_gids):
 
 def _prepare_X_data(ibs, gid_list, use_gps=False):
     """
-    FIXME: use haversine formula on gps dimensions
+    FIXME: use ut.haversine formula on gps dimensions
     fix weighting between seconds and gps
     """
     # Data to cluster
@@ -167,32 +167,10 @@ def _filter_and_relabel(labels, label_gids, min_imgs_per_enc, enc_unixtimes=None
     return enc_ids, enc_gids
 
 
-def haversine(lon1, lat1, lon2, lat2):
-    """
-    #http://gis.stackexchange.com/questions/81551/matching-gps-tracks
-    Calculate the great circle distance between two points
-    on the earth (specified in decimal degrees)
-    http://en.wikipedia.org/wiki/Haversine_formula
-    http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
-    """
-    # convert decimal degrees to radians
-    lon1, lat1, lon2, lat2 = list(map(np.radians, [lon1, lat1, lon2, lat2]))
-
-    # haversine formula
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = (np.sin(dlat / 2) ** 2) + np.cos(lat1) * np.cos(lat2) * (np.sin(dlon / 2) ** 2)
-    c = 2 * np.arcsin(np.sqrt(a))
-
-    EARTH_RADIUS_KM = 6367
-    kilometers = EARTH_RADIUS_KM * c
-    return kilometers
-
-
 def timespace_distance(pt1, pt2):
     (sec1, lat1, lon1) = pt1
     (sec2, lat2, lon2) = pt2
-    km_dist = haversine(lon1, lat1, lon2, lat2)
+    km_dist = ut.haversine((lat1, lon1), (lat1, lon2))
     km_per_sec = .002  # conversion ratio for reasonable animal walking speed
     sec_dist = (((sec1 - sec2) * km_per_sec) ** 2)
     timespace_dist = km_dist + sec_dist
