@@ -893,7 +893,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def select_table_indicies_from_text(ibswgt, tblname, text):
         if not ut.QUIET:
             print('[newgui] select_table_indicies_from_text')
-            print('[newgui]  * tblname = %r' % (tblname,))
+            print('[newgui]  * gh.tblname = %r' % (tblname,))
             print('[newgui]  * text = %r' % (text,))
         to_backend_tablename = {
             gh.ANNOTATION_TABLE : const.ANNOTATION_TABLE,
@@ -901,6 +901,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             gh.IMAGE_TABLE      : const.IMAGE_TABLE,
         }
         backend_tablename = to_backend_tablename[tblname]
+        if not ut.QUIET:
+            print('[newgui]  * backend_tablename = %r' % (backend_tablename,))
         if text == '':
             text = '[]'
         try:
