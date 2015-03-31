@@ -139,8 +139,8 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         >>> from ibeis.dev.dbinfo import *  # NOQA
         >>> import ibeis
         >>> verbose = True
-        >>> ibs = ibeis.opendb(db='testdb2')
-        >>> #ibs = ibeis.opendb(db='NNP_Master3')
+        >>> #ibs = ibeis.opendb(db='testdb2')
+        >>> ibs = ibeis.opendb(db='NNP_Master3')
         >>> output = get_dbinfo(ibs, verbose=False)
         >>> result = (output['info_str'])
         >>> print(result)
@@ -180,12 +180,12 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         valid_aids_ = ibs.filter_aids_custom(valid_aids)
         valid_nids_ = filter_nids_custom(valid_nids)
         valid_gids_ = filter_gids_custom(valid_gids)
-        valid_gids = valid_gids_
-        valid_nids = valid_nids_
-        valid_aids = valid_aids_
         print('Filtered %d names' % (len(valid_nids) - len(valid_nids_)))
         print('Filtered %d images' % (len(valid_gids) - len(valid_gids_)))
         print('Filtered %d annots' % (len(valid_aids) - len(valid_aids_)))
+        valid_gids = valid_gids_
+        valid_nids = valid_nids_
+        valid_aids = valid_aids_
         #associated_nids = ut.filter_items(associated_nids, map(any, ibs.unflat_map(ibs.get_annot_custom_filterflags, ibs.get_name_aids(associated_nids))))
 
     # Image info
