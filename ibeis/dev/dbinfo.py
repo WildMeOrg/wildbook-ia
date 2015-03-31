@@ -8,6 +8,7 @@ import utool as ut
 # Science
 import six
 import numpy as np
+import ibeis.constants as const
 from collections import OrderedDict
 from utool import util_latex as util_latex
 from vtool import keypoint as ktool
@@ -61,7 +62,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         dict:
 
     CommandLine:
-        python -m ibeis.dev.dbinfo --test-get_dbinfo
+        python -m ibeis.dev.dbinfo --test-get_dbinfo:0
         python -m ibeis.dev.dbinfo --test-get_dbinfo:1
 
     Example:
@@ -78,6 +79,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         >>> output = get_dbinfo(ibs, verbose=False)
         >>> result = (output['info_str'])
         >>> print(result)
+
         +============================
         + singleton := single sighting
         + multiton  := multiple sightings
@@ -139,8 +141,8 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         >>> from ibeis.dev.dbinfo import *  # NOQA
         >>> import ibeis
         >>> verbose = True
-        >>> #ibs = ibeis.opendb(db='testdb2')
-        >>> ibs = ibeis.opendb(db='NNP_Master3')
+        >>> ibs = ibeis.opendb(db='testdb2')
+        >>> #ibs = ibeis.opendb(db='NNP_Master3')
         >>> output = get_dbinfo(ibs, verbose=False)
         >>> result = (output['info_str'])
         >>> print(result)
@@ -297,6 +299,18 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     imgdir_space  = ut.byte_str2(ut.get_disk_space(ibs.get_imgdir()))
     cachedir_space  = ut.byte_str2(ut.get_disk_space(ibs.get_cachedir()))
 
+    # Quality and Viewpoint Stats
+    annot_yawtext_list = ibs.get_annot_yaw_texts(valid_aids)
+    annot_qualtext_list = ibs.get_annot_quality_texts(valid_aids)
+    qualtext2_aids = ut.group_items(valid_aids, annot_qualtext_list)
+    yawtext2_aids = ut.group_items(valid_aids, annot_yawtext_list)
+
+    qual_keys = list(const.QUALITY_TEXT_TO_INT.keys())
+    yaw_keys = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
+
+    qualtext2_nAnnots = ut.odict([(key, len(qualtext2_aids.get(key, []))) for key in qual_keys])
+    yawtext2_nAnnots = ut.odict([(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
+
     # Summarize stats
     num_names = len(valid_nids)
     num_names_unassociated = len(valid_nids) - len(associated_nids)
@@ -362,6 +376,13 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         ('# Names (multiton)           = %d' % num_names_multiton),
     ]
 
+    def align2(str_):
+        return ut.align(str_, ':', ' :')
+
+    def align_dict2(dict_):
+        str_ = ut.dict_str(dict_)
+        return align2(str_)
+
     annot_block_lines = [
         ('--' * num_tabs),
         ('# Annots                     = %d' % num_annots),
@@ -369,9 +390,14 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         ('# Annots (singleton)         = %d' % num_singleton_annots),
         ('# Annots (multiton)          = %d' % num_multiton_annots),
         ('--' * num_tabs),
-        ('# Annots per Name (multiton) = %s' % (ut.align(multiton_stats, ':'),)),
-        ('# Annots per Image           = %s' % (ut.align(gx2_nAnnots_stats, ':'),)),
-        ('# Annots per Species         = %s' % (ut.align(ut.dict_str(species2_nAids), ':'),)),
+        ('# Annots per Name (multiton) = %s' % (align2(multiton_stats),)),
+        ('# Annots per Image           = %s' % (align2(gx2_nAnnots_stats),)),
+        ('# Annots per Species         = %s' % (align2(ut.dict_str(species2_nAids)),)),
+    ]
+
+    qualview_block_lines = [
+        '# Annots per Viewpoint = %s' % align_dict2(yawtext2_nAnnots),
+        '# Annots per Quality = %s' % align_dict2(qualtext2_nAnnots),
     ]
 
     img_block_lines = [
@@ -380,7 +406,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         ('# Img reviewed               = %d' % sum(image_reviewed_list)),
         ('# Img with gps               = %d' % len(gps_list)),
         ('# Img with timestamp         = %d' % len(valid_unixtime_list)),
-        ('Img Time Stats               = %s' % (ut.align(unixtime_statstr, ':'),)),
+        ('Img Time Stats               = %s' % (align2(unixtime_statstr),)),
     ]
 
     info_str_lines = (
@@ -389,6 +415,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         source_block_lines +
         name_block_lines +
         annot_block_lines +
+        qualview_block_lines +
         img_block_lines +
         imgsize_stat_lines +
         [('L============================'), ]
