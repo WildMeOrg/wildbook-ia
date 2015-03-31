@@ -232,7 +232,8 @@ def select_row_from_id(view, _id, scroll=False, collapse=True):
         _id is from the iders function (i.e. an ibeis rowid)
         selects the row in that view if it exists
     """
-    with ut.Timer('selecting row from id'):
+    with ut.Timer('[api_item_view] select_row_from_id(id=%r, scroll=%r, collapse=%r)' %
+                  (_id, scroll, collapse)):
         qtindex, row = view.get_row_and_qtindex_from_id(_id)
         if row is not None:
             if isinstance(view, QtGui.QTreeView):
@@ -242,9 +243,9 @@ def select_row_from_id(view, _id, scroll=False, collapse=True):
                 select_flag = QtGui.QItemSelectionModel.ClearAndSelect
                 #select_flag = QtGui.QItemSelectionModel.Select
                 #select_flag = QtGui.QItemSelectionModel.NoUpdate
-                with ut.Timer('selecting name'):
+                with ut.Timer('[api_item_view] selecting name. qtindex=%r' % (qtindex,)):
                     select_model.select(qtindex, select_flag)
-                with ut.Timer('expanding'):
+                with ut.Timer('[api_item_view] expanding'):
                     view.setExpanded(qtindex, True)
             else:
                 # For Table Views
