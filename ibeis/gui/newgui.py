@@ -915,6 +915,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #print(id_list)
             ibswgt.back._set_selection3(backend_tablename, id_list, mode='set')
 
+        # Select the index if we are in the right table tab
         if len(id_list) == 1 and ibswgt._tab_table_wgt.current_tblname == tblname:
             if not ut.QUIET:
                 print('[newgui]  * attempting to select from rowid')

@@ -3856,15 +3856,22 @@ def find_location_disparate_splits(ibs):
         annotmatch_truth_list = ut.replace_nones(annotmatch_truth_list, -1)
         truth_mat = np.array(annotmatch_truth_list).reshape((len(aids), len(aids)))
 
+        contrib_rowids = ibs.get_image_contributor_rowid(ibs.get_annot_gids(aids))
+        contrib_tags = ibs.get_contributor_tag(contrib_rowids)
+
         print('nid = %r' % (nid,))
         print('maxspeed = %.2f km/h' % (maxspeed_list[index],))
         print('aids = %r' % (aids,))
-        print('speedist_mat = \n' + ut.numpy_str(spdist.squareform(hourdist_vector_list[index]), precision=2))
+        print('gpss = %s' % (ut.list_str(gps_track_list_[index]),))
+        print('contribs = %s' % (ut.list_str(contrib_tags),))
+
+        print('speedist_mat = \n' + ut.numpy_str(spdist.squareform(speed_vector_list[index]), precision=2))
         truth_mat_str = ut.numpy_str(truth_mat, precision=2)
         truth_mat_str = truth_mat_str.replace('-1' , ' _')
+
         print('truth_mat = \n' + truth_mat_str)
-        #print('gpsdist_mat  = \n' + ut.numpy_str(spdist.squareform(gpsdist_vector_list[index]), precision=2))
-        #print('hourdist_mat = \n' + ut.numpy_str(spdist.squareform(hourdist_vector_list[index]), precision=2))
+        print('gpsdist_mat  = \n' + ut.numpy_str(spdist.squareform(gpsdist_vector_list[index]), precision=2))
+        print('hourdist_mat = \n' + ut.numpy_str(spdist.squareform(hourdist_vector_list[index]), precision=2))
 
     return offending_nids
 
