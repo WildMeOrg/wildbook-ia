@@ -247,17 +247,20 @@ def view():
     gid_list_markers = app.ibs.get_annot_gids(aid_list_count)
     gps_list_markers = map(list, app.ibs.get_image_gps(gid_list_markers))
 
-    # Get the tracks
-    print(len(nid_list_count), len(set(nid_list_count)))
-    nid_track_dict = {}
-    for nid, gps in zip(nid_list_count, gps_list_markers):
-        if gps[0] == -1.0 and gps[1] == -1.0:
-            continue
-        if nid not in nid_track_dict:
-            nid_track_dict[nid] = []
-        nid_track_dict[nid].append(gps)
-    gps_list_tracks = [ nid_track_dict[nid] for nid in sorted(nid_track_dict.keys()) ]
-    print(len(gps_list_tracks))
+    REMOVE_DUP_CODE = True
+    if not REMOVE_DUP_CODE:
+        # Get the tracks
+        print(len(nid_list_count), len(set(nid_list_count)))
+        nid_track_dict = ut.ddict(list)
+        for nid, gps in zip(nid_list_count, gps_list_markers):
+            if gps[0] == -1.0 and gps[1] == -1.0:
+                continue
+            nid_track_dict[nid].append(gps)
+        gps_list_tracks = [ nid_track_dict[nid] for nid in sorted(nid_track_dict.keys()) ]
+        print(len(gps_list_tracks))
+    else:
+        __nid_list, gps_track_list, aid_track_list = app.ibs.get_name_gps_tracks(aid_list=aid_list_count)
+        gps_list_tracks = list(map(lambda x: list(map(list, x)), gps_track_list))
 
     return ap.template('view',
                        line_index_list=index_list,

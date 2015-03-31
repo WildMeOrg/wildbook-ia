@@ -36,6 +36,21 @@ def postprocess_dev():
     """
     References:
         http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
+
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_probchip --test-postprocess_dev
+
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_probchip --test-postprocess_dev
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
+        >>> # build test data
+        >>> # execute function
+        >>> result = postprocess_dev()
+        >>> # verify results
+        >>> print(result)
     """
     from plottool import df2 as df2
     import cv2

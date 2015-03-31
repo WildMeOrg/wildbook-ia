@@ -3668,39 +3668,61 @@ def filter_aids_custom(ibs, aid_list):
 
 
 @__injectable
-def flag_aids_count(ibs, aid_list=None, pre_unixtime_sort=True):
-    if aid_list is None:
-        # Get all aids and pre-sort by unixtime
-        aid_list = ibs.get_valid_aids()
-        if pre_unixtime_sort:
-            unixtime_list = ibs.get_image_unixtime(ibs.get_annot_gids(aid_list))
-            aid_list      = ut.sortedby(aid_list, unixtime_list)
+def flag_aids_count(ibs, aid_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+        pre_unixtime_sort (bool):
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-flag_aids_count
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> # execute function
+        >>> gzc_flag_list = flag_aids_count(ibs, aid_list)
+        >>> result = gzc_flag_list
+        >>> # verify results
+        >>> print(result)
+        [False, True, False, False, True, False, True, True, False, True, False, True, True]
+
+    """
     # Get primitives
-    unixtime_list = ibs.get_image_unixtime(ibs.get_annot_gids(aid_list))
-    index_list    = ut.list_argsort(unixtime_list)
-    aid_list      = ut.sortedby(aid_list, unixtime_list)
-    gid_list      = ibs.get_annot_gids(aid_list)
-    nid_list      = ibs.get_annot_name_rowids(aid_list)
-    contrib_list  = ibs.get_image_contributor_tag(gid_list)
+    unixtime_list  = ibs.get_annot_image_unixtimes(aid_list)
+    index_list     = ut.list_argsort(unixtime_list)
+    aid_list       = ut.sortedby(aid_list, unixtime_list)
+    gid_list       = ibs.get_annot_gids(aid_list)
+    nid_list       = ibs.get_annot_name_rowids(aid_list)
+    contrib_list   = ibs.get_image_contributor_tag(gid_list)
     # Get filter flags for aids
-    flag_list     = ibs.get_annot_custom_filterflags(aid_list)
-    flag_list     = [ nid is not None and flag for nid, flag in zip(nid_list, flag_list) ]
+    flag_list      = ibs.get_annot_custom_filterflags(aid_list)
+    isunknown_list = ibs.is_aid_unknown(aid_list)
+    flag_list      = [ not unknown and flag for unknown, flag in zip(isunknown_list, flag_list) ]
     # Filter by seen and car
-    flag_list_    = []
-    seen_dict     = {}
-    values_list   = zip(aid_list, gid_list, nid_list, flag_list, contrib_list)
+    flag_list_     = []
+    seen_dict      = ut.ddict(set)
+    # Mark the first annotation (for each name) seen per car
+    values_list    = zip(aid_list, gid_list, nid_list, flag_list, contrib_list)
     for aid, gid, nid, flag, contrib in values_list:
         if flag:
             contrib_ = _split_car_contrib_tag(contrib, distinguish_invalids=False)
-            if contrib_ not in seen_dict:
-                seen_dict[contrib_] = set()
             if nid not in seen_dict[contrib_]:
                 seen_dict[contrib_].add(nid)
                 flag_list_.append(True)
                 continue
         flag_list_.append(False)
     # Take the inverse of the sorted
-    return ut.list_inverse_take(flag_list_, index_list)
+    gzc_flag_list = ut.list_inverse_take(flag_list_, index_list)
+    return gzc_flag_list
 
 
 @__injectable
@@ -3714,6 +3736,73 @@ def filter_aids_count(ibs, aid_list=None, pre_unixtime_sort=True):
     flags_list = ibs.flag_aids_count(aid_list)
     aid_list_  = list(ut.ifilter_items(aid_list, flags_list))
     return aid_list_
+
+
+@__injectable
+def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> #ibs = ibeis.opendb('PZ_Master0')
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> #nid_list = ibs.get_valid_nids()
+        >>> aid_list = ibs.get_valid_aids()
+        >>> nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list)
+        >>> nonempty_list = list(map(lambda x: len(x) > 0, gps_track_list))
+        >>> ut.list_compress(nid_list, nonempty_list)
+        >>> ut.list_compress(gps_track_list, nonempty_list)
+        >>> ut.list_compress(aid_track_list, nonempty_list)
+        >>> result = str(aid_track_list)
+        >>> print(result)
+        [[11], [], [4], [1], [2, 3], [5, 6], [7], [8], [10], [12], [13]]
+    """
+    assert aid_list is None or nid_list is None, 'only specify one please'
+    if aid_list is None:
+        aids_list_ = ibs.get_name_aids(nid_list)
+    else:
+        aids_list_, nid_list = ibs.group_annots_by_name(aid_list)
+    aids_list = [ut.sortedby(aids, ibs.get_annot_image_unixtimes(aids)) for aids in aids_list_]
+    gids_list = ibs.unflat_map(ibs.get_annot_gids, aids_list)
+    gpss_list = ibs.unflat_map(ibs.get_image_gps, gids_list)
+
+    isvalids_list = [[gps[0] != -1.0 or gps[1] != -1.0 for gps in gpss] for gpss in gpss_list]
+    gps_track_list = [ut.list_compress(gpss, isvalids) for gpss, isvalids in zip(gpss_list, isvalids_list)]
+    aid_track_list  = [ut.list_compress(aids, isvalids) for aids, isvalids in zip(aids_list, isvalids_list)]
+    return nid_list, gps_track_list, aid_track_list
+
+
+def find_location_disparate_splits(ibs):
+    aid_list_count = ibs.filter_aids_count()
+    aid_list_count = ibs.get_valid_aids()
+    nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list_count)
+    gps_track_list = list(map(lambda x: list(map(list, x)), gps_track_list))
+
+    # Get names with multiple sightings
+    has_multiple_list = [len(gps_track) > 1 for gps_track in gps_track_list]
+    gps_track_list_ = ut.list_compress(gps_track_list, has_multiple_list)
+    aid_track_list_ = ut.list_compress(aid_track_list, has_multiple_list)
+    nid_list_ = ut.list_compress(nid_list, has_multiple_list)
+
+    gpsarr_track_list_ = list(map(np.array, gps_track_list_))
+    """
+    >>> gpsarr_track_list_ = [
+    ...    np.array([[ -80.21895315, -158.81099213],
+    ...              [ -12.08338926,   67.50368014],
+    ...              [ -11.08338926,   67.50368014],
+    ...              [ -11.08338926,   67.50368014],]
+    ...    ),
+    ...    np.array([[   9.77816711,  -17.27471498],
+    ...              [ -51.67678814, -158.91065495],])
+    ...    ]
+
+    """
+    from scipy.spatial.distance import pdist
+    list(map(pdist, gpsarr_track_list_))
+
+    pass
 
 
 if __name__ == '__main__':

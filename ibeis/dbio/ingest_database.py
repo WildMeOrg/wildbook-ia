@@ -9,7 +9,6 @@ import ibeis
 from os.path import relpath, split, exists, join
 from ibeis import ibsfuncs
 from ibeis import constants as const
-import utool
 import utool as ut  # NOQA:
 import parse
 
@@ -54,21 +53,21 @@ def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext
     Output: names based on the parent folder of each image
     """
     INGEST_FORMATS = {
-        FMT_KEYS.name_fmt: utool.named_field_regex([
+        FMT_KEYS.name_fmt: ut.named_field_regex([
             ('name', r'[a-zA-Z]+'),  # all alpha characters
             ('id',   r'\d*'),        # first numbers (if existant)
             ( None,  r'\.'),
             ('ext',  r'\w+'),
         ]),
 
-        FMT_KEYS.snails_fmt: utool.named_field_regex([
+        FMT_KEYS.snails_fmt: ut.named_field_regex([
             ('name', r'[a-zA-Z]+\d\d'),  # species and 2 numbers
             ('id',   r'\d\d'),  # 2 more numbers
             ( None,  r'\.'),
             ('ext',  r'\w+'),
         ]),
 
-        FMT_KEYS.giraffe1_fmt: utool.named_field_regex([
+        FMT_KEYS.giraffe1_fmt: ut.named_field_regex([
             ('name',  r'G\d+'),
             ('under', r'_'),
             ('id',    r'\d+'),
@@ -76,7 +75,7 @@ def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext
             ('ext',   r'\w+'),
         ]),
 
-        FMT_KEYS.seal2_fmt: utool.named_field_regex([
+        FMT_KEYS.seal2_fmt: ut.named_field_regex([
             ('name',  r'Phs\d+'),  # Phs and then numbers
             ('id',    r'[A-Z]+'),  # 1 or more letters
             ( None,   r'\.'),
@@ -84,8 +83,8 @@ def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext
         ]),
     }
     regex = INGEST_FORMATS.get(fmtkey, fmtkey)
-    gname_list = utool.fpaths_to_fnames(gpath_list)
-    parsed_list = [utool.regex_parse(regex, gname) for gname in gname_list]
+    gname_list = ut.fpaths_to_fnames(gpath_list)
+    parsed_list = [ut.regex_parse(regex, gname) for gname in gname_list]
 
     anyfailed = False
     for gpath, parsed in zip(gpath_list, parsed_list):
@@ -103,15 +102,15 @@ def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext
 
 def resolve_name_conflicts(gid_list, name_list):
     # Build conflict map
-    conflict_gid_to_names = utool.build_conflict_dict(gid_list, name_list)
+    conflict_gid_to_names = ut.build_conflict_dict(gid_list, name_list)
 
     # Check to see which gid has more than one name
-    unique_gids = utool.unique_keep_order2(gid_list)
+    unique_gids = ut.unique_keep_order2(gid_list)
     unique_names = []
     unique_notes = []
 
     for gid in unique_gids:
-        names = utool.unique_keep_order2(conflict_gid_to_names[gid])
+        names = ut.unique_keep_order2(conflict_gid_to_names[gid])
         unique_name = names[0]
         unique_note = ''
         if len(names) > 1:
@@ -156,16 +155,15 @@ def ingest_testdb1(dbname):
     ingest_testdb1
 
     Example:
-        >>> # DOCTEST = OFF
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.dbio.ingest_database import *  # NOQA
-        >>> from
-        >>> import utool
+        >>> import utool as ut
         >>> from vtool.tests import grabdata
+        >>> import ibeis
         >>> grabdata.ensure_testdata()
         >>> # DELETE TESTDB1
-        >>> TESTDB1 = join(ibeis.sysres.get_workdir(), 'testdb1')
-        >>> utool.delete(TESTDB1, ignore_errors=False)
-        >>>
+        >>> TESTDB1 = ut.unixjoin(ibeis.sysres.get_workdir(), 'testdb1')
+        >>> ut.delete(TESTDB1, ignore_errors=False)
         >>> result = ingest_testdb1(dbname)
     """
     from vtool.tests import grabdata
@@ -183,14 +181,14 @@ def ingest_testdb1(dbname):
         aid_list = ibs.get_valid_aids()
         nid_list = ibs.get_annot_name_rowids(aid_list)
         nid_list = [ (nid if nid > 0 else None) for nid in nid_list]
-        unique_flag = utool.flag_unique_items(nid_list)
-        unique_nids = utool.filter_items(nid_list, unique_flag)
+        unique_flag = ut.flag_unique_items(nid_list)
+        unique_nids = ut.filter_items(nid_list, unique_flag)
         none_nids = [ nid is not None for nid in nid_list]
         flagged_nids = [nid for nid in unique_nids if nid_list.count(nid) > 1]
         plural_flag = [nid in flagged_nids for nid in nid_list]
         flag_list = list(map(all, zip(plural_flag, unique_flag, none_nids)))
-        flagged_aids = utool.filter_items(aid_list, flag_list)
-        if utool.VERYVERBOSE:
+        flagged_aids = ut.filter_items(aid_list, flag_list)
+        if ut.VERYVERBOSE:
             def print2(*args):
                 print('[post_testdb1] ' + ', '.join(args))
             print2('aid_list=%r' % aid_list)
@@ -204,12 +202,12 @@ def ingest_testdb1(dbname):
             print2('flagged_aids=%r' % flagged_aids)
             # print2('new_nids=%r' % new_nids)
         # Unname, some annotations for testing
-        unname_aids = utool.filter_items(aid_list, flag_list)
+        unname_aids = ut.filter_items(aid_list, flag_list)
         ibs.delete_annot_nids(unname_aids)
         # Add all annotations with names as exemplars
         from ibeis.control.IBEISControl import IBEISController
         assert isinstance(ibs, IBEISController)
-        unflagged_aids = utool.get_dirty_items(aid_list, flag_list)
+        unflagged_aids = ut.get_dirty_items(aid_list, flag_list)
         exemplar_flags = [True] * len(unflagged_aids)
         ibs.set_annot_exemplar_flags(unflagged_aids, exemplar_flags)
         # Set some test species labels
@@ -229,7 +227,22 @@ def ingest_testdb1(dbname):
         ibs.set_annot_notes(aid_list[0:1], ['aid 1 and 2 are correct matches'])
         ibs.set_annot_notes(aid_list[6:7], ['very simple image to debug feature detector'])
         ibs.set_annot_notes(aid_list[7:8], ['standard test image'])
+
+        # Set some randomish gps flags that are within nnp
+        unixtime_list = ibs.get_image_unixtime(gid_list)
+        valid_lat_min = -1.4446
+        valid_lat_max = -1.3271
+        valid_lon_min = 36.7619
+        valid_lon_max = 36.9622
+        valid_lat_range = valid_lat_max - valid_lat_min
+        valid_lon_range = valid_lon_max - valid_lon_min
+        randstate = np.random.RandomState(unixtime_list)
+        new_gps_list = randstate.rand(len(gid_list), 2)
+        new_gps_list[:, 0] = (new_gps_list[:, 0] * valid_lat_range) + valid_lat_min
+        new_gps_list[:, 1] = (new_gps_list[:, 1] * valid_lon_range) + valid_lon_min
+        #new_gps_list[8, :] = [-1, -1]
         #ut.embed()
+        ibs.set_image_gps(gid_list, new_gps_list)
         return None
     return Ingestable(dbname, ingest_type='named_images',
                       fmtkey=FMT_KEYS.name_fmt,
@@ -300,7 +313,7 @@ def ingest_standard_database(dbname, force_delete=False):
     print('[ingest] Ingest Standard Database: dbname=%r' % (dbname,))
     ingestable = get_standard_ingestable(dbname)
     dbdir = ibeis.sysres.db_to_dbdir(ingestable.dbname, allow_newdir=True, use_sync=False)
-    utool.ensuredir(dbdir, verbose=True)
+    ut.ensuredir(dbdir, verbose=True)
     if force_delete:
         ibsfuncs.delete_ibeis_database(dbdir)
     ibs = IBEISControl.IBEISController(dbdir)
@@ -395,7 +408,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
     gid_list_ = ibs.add_images(gpath_list)
     # <DEBUG>
-    #print('added: ' + utool.indentjoin(map(str, zip(gid_list_, gpath_list))))
+    #print('added: ' + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))
     unique_gids = list(set(gid_list_))
     print("[ingest] Length gid list: %d" % len(gid_list_))
     print("[ingest] Length unique gid list: %d" % len(unique_gids))
@@ -404,7 +417,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         if gid is None:
             print('[ingest] big fat warning')
     # </DEBUG>
-    gid_list = utool.filter_Nones(gid_list_)
+    gid_list = ut.filter_Nones(gid_list_)
     unique_gids, unique_names, unique_notes = resolve_name_conflicts(
         gid_list, name_list)
     # Add ANNOTATIONs with names and notes
@@ -474,25 +487,25 @@ def ingest_oxford_style_db(dbdir):
                 oxsty_annot_info_list.append(oxsty_annot_info)
         return oxsty_annot_info_list
 
-    gt_dpath = utool.existing_subpath(dbdir,
+    gt_dpath = ut.existing_subpath(dbdir,
                                       ['oxford_style_gt',
                                        'gt_files_170407',
                                        'oxford_groundtruth'])
 
-    img_dpath = utool.existing_subpath(dbdir,
+    img_dpath = ut.existing_subpath(dbdir,
                                        ['oxbuild_images',
                                         'images'])
 
     corrupted_file_fpath = join(gt_dpath, 'corrupted_files.txt')
     ignore_list = []
     # Check for corrupted files (Looking at your Paris Buildings Dataset)
-    if utool.checkpath(corrupted_file_fpath):
-        ignore_list = utool.read_from(corrupted_file_fpath).splitlines()
+    if ut.checkpath(corrupted_file_fpath):
+        ignore_list = ut.read_from(corrupted_file_fpath).splitlines()
 
-    #utool.rrrr()
-    #utool.list_images = utool.util_path.list_images
+    #ut.rrrr()
+    #ut.list_images = ut.util_path.list_images
 
-    gname_list = utool.list_images(img_dpath, ignore_list=ignore_list,
+    gname_list = ut.list_images(img_dpath, ignore_list=ignore_list,
                                    recursive=True, full=False)
 
     # just in case utool broke
@@ -504,12 +517,12 @@ def ingest_oxford_style_db(dbdir):
     gt_fname_list = os.listdir(gt_dpath)
     num_gt_files = len(gt_fname_list)
     query_annots  = []
-    gname2_annots_raw = utool.ddict(list)
+    gname2_annots_raw = ut.ddict(list)
     name_set = set([])
     print(' * num_gt_files = %d ' % num_gt_files)
     #
     # Iterate over each groundtruth file
-    mark_, end_ = utool.log_progress('parsed oxsty gtfile: ', num_gt_files)
+    mark_, end_ = ut.log_progress('parsed oxsty gtfile: ', num_gt_files)
     for gtx, gt_fname in enumerate(gt_fname_list):
         mark_(gtx)
         if gt_fname == 'corrupted_files.txt':
@@ -530,7 +543,7 @@ def ingest_oxford_style_db(dbdir):
     print(' * num_query images = %d ' % len(query_annots))
     #
     # Remove duplicates img.jpg : (*1.txt, *2.txt, ...) -> (*.txt)
-    gname2_annots     = utool.ddict(list)
+    gname2_annots     = ut.ddict(list)
     multinamed_gname_list = []
     for gname, val in gname2_annots_raw.iteritems():
         val_repr = list(map(repr, val))
@@ -613,14 +626,14 @@ if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # win32
     print('__main__ = ingest_database.py')
-    print(utool.unindent(
+    print(ut.unindent(
         '''
         usage:
         python ibeis/ingest/ingest_database.py --db [dbname]
 
-        Valid dbnames:''') + utool.indentjoin(STANDARD_INGEST_FUNCS.keys(), '\n  * '))
-    dbname = utool.get_argval('--db', str, None)
-    force_delete = utool.get_argflag('--force_delete')
+        Valid dbnames:''') + ut.indentjoin(STANDARD_INGEST_FUNCS.keys(), '\n  * '))
+    dbname = ut.get_argval('--db', str, None)
+    force_delete = ut.get_argflag('--force_delete')
     ibs = ingest_standard_database(dbname, force_delete)
     print('finished db injest')
     #img_dir = join(ibeis.sysres.get_workdir(), 'polar_bears')
