@@ -1179,6 +1179,53 @@ def launch_review_matches_interface(ibs, qres_list, dodraw=False):
     return qres_wgt
 
 
+def inspect_orphaned_qres_bigcache(ibs, fname, cfgdict={}):
+    """
+    Hack to try and grab the last big query
+
+    import ibeis
+    ibs = ibeis.opendb('PZ_Master0')
+    fname = 'PZ_Master0_QRESMAP_QSUUIDS((187)85k!tqcpgtb8k%rj)_DSUUIDS((200)4%t0tenxktstb676)2m8fp@nto!s@@0f+_a@2duauqcb4r18g7.cPkl'
+
+    import os
+    fpath_list = ut.ls(bc_dpath)
+    ctime_list = list(map(os.path.getctime, fpath_list))
+    sorted_fpath_list = ut.sortedby(fpath_list, ctime_list, reverse=True)
+
+    """
+    from os.path import join
+    bc_dpath = ibs.get_big_cachedir()
+    bc_fpath = join(bc_dpath, fname)
+    qaid2_qres = ut.load_cPkl(bc_fpath)
+    qaid_list = list(qaid2_qres.keys())
+    qres = qaid2_qres[qaid_list[0]]
+    daid_list = qres.daids
+    #for qres in six.itervalues(qaid2_qres):
+    #    assert np.all(daid_list == qres.daids)
+    qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict)
+
+    true_cfgstr = qres.cfgstr
+    guess_cfgstr = qreq_.get_cfgstr()
+
+    true_cfgstr_ = '\n'.join(true_cfgstr.split('_'))
+    guess_cfgstr_ = '\n'.join(guess_cfgstr.split('_'))
+    textdiff = (ut.get_textdiff(true_cfgstr_, guess_cfgstr_))
+    print(textdiff)
+    if len(textdiff) > 0:
+        raise Exception('you may need to fix the configstr')
+
+    from ibeis.viz.interact import interact_qres2  # NOQA
+    from ibeis.gui import inspect_gui
+    guitool.ensure_qapp()
+    ranks_lt = 2
+    qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
+                                              ranks_lt=ranks_lt, qreq_=qreq_,
+                                              filter_reviewed=True,
+                                              filter_duplicate_namepair_matches=True)
+    qres_wgt.show()
+    qres_wgt.raise_()
+
+
 if __name__ == '__main__':
     """
     CommandLine:

@@ -132,7 +132,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     use_bigcache_ = (use_bigcache and use_cache and
                      len(qaid_list) > MIN_BIGCACHE_BUNDLE)
     if (use_bigcache_ or save_qcache) and len(qaid_list) > MIN_BIGCACHE_BUNDLE:
-        bc_dpath = ibs.bigcachedir
+        bc_dpath = ibs.get_big_cachedir()
         # TODO: SYSTEM : semantic should only be used if name scoring is on
         qhashid = ibs.get_annot_hashid_semantic_uuid(qaid_list, prefix='Q')
         dhashid = ibs.get_annot_hashid_semantic_uuid(daid_list, prefix='D')
