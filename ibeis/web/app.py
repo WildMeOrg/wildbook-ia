@@ -231,7 +231,9 @@ def view():
     eid_list = app.ibs.get_valid_eids()
     gid_list = app.ibs.get_valid_gids()
     aid_list = app.ibs.get_valid_aids()
-    nid_list = app.ibs.get_valid_nids()
+    # nid_list = app.ibs.get_valid_nids()
+    aid_list_count = app.ibs.filter_aids_count()
+    nid_list = list(set(app.ibs.get_annot_name_rowids(aid_list_count)))
 
     return ap.template('view',
                        line_index_list=index_list,
