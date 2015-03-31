@@ -77,19 +77,18 @@ class TreeNode(TREE_NODE_BASE):
         try:
             return self.parent_node
         except AttributeError as ex:
-            import utool
-            utool.printex(ex)
-            print(ex)
-            print('[tree_node] dir(self)=')
-            print(dir(self))
-            print('[tree_node] self.__dict__=')
-            print(utool.dict_str(self.__dict__))
+            import utool as ut
+            ut.printex(ex)
+            #print(ex)
+            #print('[tree_node] dir(self)=')
+            #print(dir(self))
+            #print('[tree_node] self.__dict__=')
+            #print(utool.dict_str(self.__dict__))
             raise
 
     def get_num_children(self):
         """ <CYTH returns=long>
-
-            """
+        """
         self.lazy_checks()
         return len(self.child_nodes)
 
