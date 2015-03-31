@@ -1455,8 +1455,20 @@ def unflat_map(method, unflat_rowids, **kwargs):
     flat_rowids, reverse_list = _invertible_flatten(unflat_rowids)
     # Then preform the lookup / implicit mapping
     flat_vals = method(flat_rowids, **kwargs)
+
+    if True:
+        assert len(flat_vals) == len(flat_rowids), (
+            'flat lens not the same, len(flat_vals)=%d len(flat_rowids)=%d' %
+            (len(flat_vals), len(flat_rowids),))
+
     # Then _unflatten the results to the original input dimensions
     unflat_vals = _unflatten(flat_vals, reverse_list)
+
+    if True:
+        assert len(unflat_vals) == len(unflat_rowids), (
+            'unflat lens not the same, len(unflat_vals)=%d len(unflat_rowids)=%d' %
+            (len(unflat_vals), len(unflat_rowids),))
+
     return unflat_vals
 
 
@@ -3823,17 +3835,39 @@ def find_location_disparate_splits(ibs):
     speed_vector_list = [gpsdist / hourdist for gpsdist, hourdist in
                          zip(gpsdist_vector_list, hourdist_vector_list)]
 
-    #maxgpsdist_list  = np.array([gpsdist_vector.max() for gpsdist_vector in gpsdist_vector_list])
     #maxhourdist_list = np.array([hourdist_vector.max() for hourdist_vector in hourdist_vector_list])
-
+    maxgpsdist_list  = np.array([gpsdist_vector.max() for gpsdist_vector in gpsdist_vector_list])
     maxspeed_list = np.array([speed_vector.max() for speed_vector in speed_vector_list])
     sortx  = maxspeed_list.argsort()
     sorted_maxspeed_list = maxspeed_list[sortx]
     #sorted_nid_list = np.array(ut.list_take(nid_list_, sortx))
 
     if False:
-        import plottol as pt
+        import plottool as pt
         pt.plot(sorted_maxspeed_list)
+        allgpsdist_list = np.array(ut.flatten(gpsdist_vector_list))
+        alltimedist_list = np.array(ut.flatten(hourdist_vector_list))
+
+        pt.figure(fnum1=1, doclf=True, docla=True)
+        alltime_sortx = alltimedist_list.argsort()
+        pt.plot(allgpsdist_list[alltime_sortx])
+        pt.plot(alltimedist_list[alltime_sortx])
+        pt.iup()
+
+        pt.figure(fnum1=2, doclf=True, docla=True)
+        allgps_sortx = allgpsdist_list.argsort()
+        pt.plot(allgpsdist_list[allgps_sortx])
+        pt.plot(alltimedist_list[allgps_sortx])
+        pt.iup()
+
+        #maxgps_sortx = maxgpsdist_list.argsort()
+        #pt.plot(maxgpsdist_list[maxgps_sortx])
+        pt.iup()
+
+    maxgps_sortx = maxgpsdist_list.argsort()
+    gpsdist_thresh = 15
+    sorted_maxgps_list = maxgpsdist_list[maxgps_sortx]
+    offending_sortx = maxgps_sortx.compress(sorted_maxgps_list > gpsdist_thresh)
 
     speed_thresh_kph = 6  # kilometers per hour
     offending_sortx = sortx.compress(sorted_maxspeed_list > speed_thresh_kph)

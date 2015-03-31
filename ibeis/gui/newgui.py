@@ -947,6 +947,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt._tab_table_wgt.setTabText(index, text)
 
     def goto_table_id(ibswgt, tablename, _id):
+        print('[newgui] goto_table_id(tablenamd=%r, _id=%r)' % (tablename, _id))
         ibswgt.set_table_tab(tablename)
         view = ibswgt.views[tablename]
         view.select_row_from_id(_id, scroll=True)

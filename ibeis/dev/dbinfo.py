@@ -140,6 +140,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         >>> import ibeis
         >>> verbose = True
         >>> ibs = ibeis.opendb(db='testdb2')
+        >>> #ibs = ibeis.opendb(db='NNP_Master3')
         >>> output = get_dbinfo(ibs, verbose=False)
         >>> result = (output['info_str'])
         >>> print(result)
@@ -151,20 +152,46 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     valid_aids = ibs.get_valid_aids()
     valid_nids = ibs.get_valid_nids()
     valid_gids = ibs.get_valid_gids()
-    associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation
+    #associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation
     FILTER_HACK = True
     if FILTER_HACK:
         # HUGE HACK - get only images and names with filtered aids
-        valid_aids = ibs.filter_aids_custom(valid_aids)  # HACK FOR FILTER
-        valid_nids = ut.list_compress(valid_nids, map(any, ibs.unflat_map(ibs.get_annot_custom_filterflags, ibs.get_name_aids(valid_nids))))
-        valid_gids = ut.list_compress(valid_gids, map(any, ibs.unflat_map(ibs.get_annot_custom_filterflags, ibs.get_image_aids(valid_gids))))
-        associated_nids = ut.list_compress(associated_nids, map(any, ibs.unflat_map(ibs.get_annot_custom_filterflags, ibs.get_name_aids(associated_nids))))
+        def some(flags):
+            """ like any, but some at least one must be True """
+            return len(flags) != 0 and any(flags)
+
+        def filterflags_unflat_aids_custom(aids_list):
+            filtered_aids_list = ibs.unflat_map(ibs.get_annot_custom_filterflags, aids_list)
+            isvalid_list = list(map(some, filtered_aids_list))
+            return isvalid_list
+
+        def filter_nids_custom(nid_list):
+            aids_list = ibs.get_name_aids(nid_list)
+            isvalid_list = filterflags_unflat_aids_custom(aids_list)
+            filtered_nid_list = ut.filter_items(nid_list, isvalid_list)
+            return filtered_nid_list
+
+        def filter_gids_custom(gid_list):
+            aids_list = ibs.get_image_aids(gid_list)
+            isvalid_list = filterflags_unflat_aids_custom(aids_list)
+            filtered_gid_list = ut.filter_items(gid_list, isvalid_list)
+            return filtered_gid_list
+
+        valid_aids_ = ibs.filter_aids_custom(valid_aids)
+        valid_nids_ = filter_nids_custom(valid_nids)
+        valid_gids_ = filter_gids_custom(valid_gids)
+        valid_gids = valid_gids_
+        valid_nids = valid_nids_
+        valid_aids = valid_aids_
+        print('Filtered %d names' % (len(valid_nids) - len(valid_nids_)))
+        print('Filtered %d images' % (len(valid_gids) - len(valid_gids_)))
+        print('Filtered %d annots' % (len(valid_aids) - len(valid_aids_)))
+        #associated_nids = ut.filter_items(associated_nids, map(any, ibs.unflat_map(ibs.get_annot_custom_filterflags, ibs.get_name_aids(associated_nids))))
 
     # Image info
-    gname_list = ibs.get_image_gnames(valid_gids)
     gx2_aids = ibs.get_image_aids(valid_gids)
     if FILTER_HACK:
-        gx2_aids = ibs.unflat_map(ibs.filter_aids_custom, gx2_aids)  # HACK FOR FILTER
+        gx2_aids = [ibs.filter_aids_custom(aids) for aids in gx2_aids]  # HACK FOR FILTER
 
     gx2_nAnnots = np.array(map(len, gx2_aids))
     image_without_annots = len(np.where(gx2_nAnnots == 0)[0])
@@ -172,11 +199,12 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     image_reviewed_list = ibs.get_image_reviewed(valid_gids)
 
     # Name stats
-    nx2_aids = np.array(ibs.get_name_aids(valid_nids))
+    nx2_aids = ibs.get_name_aids(valid_nids)
     if FILTER_HACK:
-        nx2_aids = np.array(ibs.unflat_map(ibs.filter_aids_custom, nx2_aids))  # HACK FOR FILTER
+        nx2_aids =  [ibs.filter_aids_custom(aids) for aids in nx2_aids]    # HACK FOR FILTER
+    associated_nids = ut.filter_items(valid_nids, map(len, nx2_aids))
 
-    #ibs.check_name_mapping_consistency(nx2_aids)
+    ibs.check_name_mapping_consistency(nx2_aids)
 
     # Annot Stats
     # TODO: number of images where chips cover entire image
@@ -198,19 +226,20 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     # Seperate singleton / multitons
     multiton_nxs  = np.where(nx2_nAnnots > 1)[0]
     singleton_nxs = np.where(nx2_nAnnots == 1)[0]
+    unassociated_nxs = np.where(nx2_nAnnots == 0)[0]
     assert len(np.intersect1d(singleton_nxs, multiton_nxs)) == 0, 'intersecting names'
     valid_nxs      = np.hstack([multiton_nxs, singleton_nxs])
     num_names_with_gt = len(multiton_nxs)
 
     # Annot Info
-    multiton_aids_list = nx2_aids[multiton_nxs]
+    multiton_aids_list = ut.list_take(nx2_aids, multiton_nxs)
     assert len(set(multiton_nxs)) == len(multiton_nxs)
     if len(multiton_aids_list) == 0:
         multiton_aids = np.array([], dtype=np.int)
     else:
         multiton_aids = np.hstack(multiton_aids_list)
         assert len(set(multiton_aids)) == len(multiton_aids), 'duplicate annot'
-    singleton_aids = nx2_aids[singleton_nxs]
+    singleton_aids = ut.list_take(nx2_aids, singleton_nxs)
     multiton_nid2_nannots = list(map(len, multiton_aids_list))
 
     # Image size stats
@@ -279,7 +308,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     num_unknown_annots = len(unknown_aids)
     num_annots = len(valid_aids)
 
-    if not FILTER_HACK:
+    if True:
         try:
             bad_aids = np.intersect1d(multiton_aids, unknown_aids)
             assert len(bad_aids) == 0, 'intersecting multiton aids and unknown aids'
