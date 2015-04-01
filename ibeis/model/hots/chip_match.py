@@ -698,6 +698,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
 
         CommandLine:
             python -m ibeis.model.hots.chip_match --test-show_single_namematch --show
+            python -m ibeis.model.hots.chip_match --test-show_single_namematch --show --qaid 1
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -715,10 +716,13 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         qaid = cm.qaid
         nidx = cm.nid2_nidx[dnid]
         groupxs = cm.name_groupxs[nidx]
-        name_daid_list = ut.list_take(cm.daid_list, groupxs)
-        name_fm_list   = ut.list_take(cm.fm_list, groupxs)
-        name_H1_list   = None if not homog or cm.H_list is None else ut.list_take(cm.H_list, groupxs)
-        name_fsv_list  = None if cm.fsv_list is None else ut.list_take(cm.fsv_list, groupxs)
+        # TODO: Flag nonvoting features and then this visualization is complete.
+        # flag_namescore_nonvoting_features
+        sorted_groupxs = groupxs.take(cm.csum_score_list.take(groupxs).argsort()[::-1])
+        name_daid_list = ut.list_take(cm.daid_list, sorted_groupxs)
+        name_fm_list   = ut.list_take(cm.fm_list, sorted_groupxs)
+        name_H1_list   = None if not homog or cm.H_list is None else ut.list_take(cm.H_list, sorted_groupxs)
+        name_fsv_list  = None if cm.fsv_list is None else ut.list_take(cm.fsv_list, sorted_groupxs)
         name_fs_list   = None if name_fsv_list is None else [fsv.prod(axis=1) for fsv in name_fsv_list]
         #showkw = dict(fm=fm, fs=fs, H1=H1, fnum=fnum, pnum=pnum, **kwargs)
         #viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_, **showkw)
