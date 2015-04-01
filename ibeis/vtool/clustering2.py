@@ -631,6 +631,7 @@ def apply_grouping(items, groupxs):
 
     SeeAlso:
         group_indices
+        invert_apply_grouping
 
     CommandLine:
         python -m vtool.clustering2 --test-apply_grouping
@@ -698,11 +699,20 @@ def invert_apply_grouping(grouped_items, groupxs):
         assert len(groupxs) == 0, 'inconsistant'
         return []
     maxval = max(map(max, groupxs))
-    items = [None] * (maxval + 1)  # np.full((maxval + 1,), None)
+    ungrouped_items = [None] * (maxval + 1)  # np.full((maxval + 1,), None)
     for itemgroup, xs in zip(grouped_items, groupxs):
         for item, x in zip(itemgroup, xs):
-            items[x] = item
-    return items
+            ungrouped_items[x] = item
+    return ungrouped_items
+
+
+def invert_apply_grouping2(grouped_items, groupxs, dtype=None):
+    """ use only when ungrouping will be complete """
+    maxval = max(map(np.max, groupxs))
+    ungrouped_items = np.zeros((maxval + 1,), dtype=dtype)
+    for itemgroup, ix_list in zip(grouped_items, groupxs):
+        ungrouped_items[ix_list] = itemgroup
+    return ungrouped_items
 
 
 def apply_grouping_iter(items, groupxs):

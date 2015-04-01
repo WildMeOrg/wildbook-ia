@@ -617,7 +617,7 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
                   [ 32.  ,  31.  ,  16.05,   3.41,  11.74,   0.  ]], dtype=np.float32)
 
     """
-    if offset == (0.0, 0.0) and (scale_factor == 1.0 or scale_factor == (1.0, 1.0)):
+    if np.all(offset == (0.0, 0.0)) and (np.all(scale_factor == 1.0) or np.all(scale_factor == (1.0, 1.0))):
         return kpts
     M = ltool.scaleedoffset_mat3x3(offset, scale_factor)
     kpts_ = transform_kpts(kpts, M)

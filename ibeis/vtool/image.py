@@ -146,8 +146,8 @@ def imwrite(img_fpath, imgBGR, fallback=False):
 
 def get_size(img):
     """ Returns the image size in (width, height) """
-    (h, w) = img.shape[0:2]
-    return (w, h)
+    wh = img.shape[0:2][::-1]
+    return wh
 
 
 def get_num_channels(img):
@@ -357,10 +357,16 @@ def rotate_image(img, theta, **kwargs):
 
 
 def resize_image_by_scale(img, scale, interpolation=cv2.INTER_LANCZOS4):
-    height, width = img.shape[0:2]
-    #img_size = (width, height)
-    dsize = (int(round(width * scale)), int(round(height * scale)))
-    return cv2.resize(img, dsize, interpolation=interpolation)
+    dsize, tonew_sf = get_round_scaled_dsize(get_size(img), scale)
+    new_img = cv2.resize(img, dsize, interpolation=interpolation)
+    return new_img
+
+
+def get_round_scaled_dsize(dsize_old, scale):
+    w, h = dsize_old
+    dsize = int(round(w * scale)), int(round(h * scale))
+    tonew_sf = dsize[0] / w, dsize[1] / h
+    return dsize, tonew_sf
 
 
 def resized_dims_and_ratio(img_size, max_dsize):
