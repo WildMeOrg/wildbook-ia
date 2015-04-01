@@ -6,7 +6,18 @@
     font-size: 100px;
     margin: 0;
     text-align: center;
+    display: inline-block;
     color: #23527c;
+  }
+
+  .plusmn
+  {
+      display: inline-block;
+      font-size: 60px;
+      top: -23px;
+      position: relative;
+      margin: 0px 10px;
+      /*color: #23527c;*/
   }
   
   #gps-map-canvas
@@ -24,34 +35,39 @@
   <div class="row marketing" style="text-align: center;">
     <div class="col-lg-3">
       <a href="{{ url_for('view_encounters') }}"><h4>Encounters</h4></a>
+      <br/>
       <h4 class="total-label" id="encounter-total"></h4>
     </div>
     
     <div class="col-lg-3">
       <a href="{{ url_for('view_images') }}"><h4>Images</h4></a>
+      <br/>
       <h4 class="total-label" id="image-total"></h4>
     </div>
     
     <div class="col-lg-3">
       <a href="{{ url_for('view_annotations') }}"><h4>Annotations</h4></a>
+      <br/>
       <h4 class="total-label" id="annotation-total"></h4>
     </div>
     
     <div class="col-lg-3">
       <a href="{{ url_for('view_names') }}"><h4>Names</h4></a>
+      <br/>
       <h4 class="total-label" id="names-total"></h4>
     </div>
   </div>
 
   <div class="row marketing" style="margin-top: 40px; text-align: center;">
-    <div class="col-lg-4"></div>
+    <div class="col-lg-1"></div>
     
-    <div class="col-lg-4">
+    <div class="col-lg-10">
       <h4>Petersen-Lincoln Index</h4>
-      <h4 class="total-label" id="pl-total"></h4>
+      <br/>
+      <h4 class="total-label" id="pl-total"></h4><h4 class="plusmn">&plusmn;</h4><h4 class="total-label" id="error-total">
     </div>
     
-    <div class="col-lg-4"></div>
+    <div class="col-lg-1"></div>
   </div>
 
   <div class="row" style="margin-top: 50px; text-align: center;">
@@ -107,11 +123,13 @@
   var annotationNumber = new countUp("annotation-total", 0, {{ num_aids }}, 0, 2.0);
   var namesNumber      = new countUp("names-total",      0, {{ num_nids }}, 0, 2.0);
   var plNumber         = new countUp("pl-total",         0, {{ pl_index }}, 0, 2.0);
+  var errorNumber      = new countUp("error-total",         0, {{ pl_error }}, 0, 2.0);
   encounterNumber.start();
   imageNumber.start();
   annotationNumber.start();
   namesNumber.start();
   plNumber.start();
+  errorNumber.start();
 
   var dataLine = {
     {% autoescape false %}

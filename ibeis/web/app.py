@@ -238,10 +238,17 @@ def view():
 
     # Calculate the Petersen-Lincoln index form the last two days
     if bar_value_list3[-1] > 0:
-        pl_index = int(math.ceil((bar_value_list1[-1] * bar_value_list1[-2]) / bar_value_list3[-1]))
+        c1 = bar_value_list1[-1]
+        c2 = bar_value_list1[-2]
+        c3 = bar_value_list3[-1]
+        pl_index = int(math.ceil( (c1 * c2) / c3 ))
+        pl_error_num = float(c1 * c1 * c2 * (c2 - c3))
+        pl_error_dom = float(c3 ** 3)
+        pl_error = int(math.ceil( 1.96 * math.sqrt(pl_error_num / pl_error_dom) ))
     else:
         # pl_index = 'Undefined - Zero recaptured (k = 0)'
         pl_index = 0
+        pl_error = 0
 
     # Get the markers
     gid_list_markers = app.ibs.get_annot_gids(aid_list_count)
@@ -268,6 +275,7 @@ def view():
                        line_value_list=value_list,
                        prediction_list=prediction_list,
                        pl_index=pl_index,
+                       pl_error=pl_error,
                        gps_list_markers=gps_list_markers,
                        gps_list_tracks=gps_list_tracks,
                        bar_label_list=bar_label_list,
