@@ -1249,7 +1249,7 @@ def start_from_terminal():
     start_tornado(app, opts.port)
 
 
-def start_from_ibeis(ibs, port=None):
+def start_from_ibeis(ibs, port=None, browser=BROWSER):
     '''
     Parse command line options and start the server.
     '''
@@ -1285,7 +1285,7 @@ def start_from_ibeis(ibs, port=None):
     print('[web] Pre-computing all annotation chips...')
     app.ibs.check_chip_existence()
     app.ibs.compute_all_chips()
-    start_tornado(app, port)
+    start_tornado(app, port, browser)
 
 
 if __name__ == '__main__':

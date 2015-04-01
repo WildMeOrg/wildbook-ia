@@ -396,28 +396,31 @@ def setup_developer_menu(mainwin, back):
     """ DEV MENU """
     mainwin.menuDev = guitool.newMenu(mainwin, mainwin.menubar, 'menuDev', 'Dev')
     mainwin.menuDev.newAction(
-        name='actionExpandNamesTree',
-        text='Expand Names Tree',
-        slot_fn=mainwin.expand_names_tree)
+        name='actionDeveloper_mode',
+        text='Developer IPython',
+        shortcut='Ctrl+Shift+I',
+        slot_fn=back.dev_mode)
+    mainwin.menuDev.newAction(
+        name='actionDevRunTests',
+        text='Run Developer Tests',
+        slot_fn=back.run_tests)
+    mainwin.menuDev.addSeparator()
     mainwin.menuDev.newAction(
         name='actionDeveloper_reload',
         text='Developer Reload',
         shortcut='Ctrl+Shift+R',
         slot_fn=back.dev_reload)
     mainwin.menuDev.newAction(
-        name='actionDevRunTests',
-        text='Run Developer Tests',
-        slot_fn=back.run_tests)
-    mainwin.menuDev.newAction(
-        name='actionDeveloper_mode',
-        text='Developer IPython',
-        shortcut='Ctrl+Shift+I',
-        slot_fn=back.dev_mode)
-    mainwin.menuDev.newAction(
         name='actionDeveloper_CLS',
         text='Refresh Tables',
         shortcut='Ctrl+Shift+C',
         slot_fn=back.dev_cls)
+    mainwin.menuDev.addSeparator()
+    mainwin.menuDev.newAction(
+        name='actionExpandNamesTree',
+        text='Expand Names Tree',
+        slot_fn=mainwin.expand_names_tree)
+    mainwin.menuDev.addSeparator()
     mainwin.menuDev.newAction(
         name='actionDeveloper_DumpDB',
         text='Dump SQL Database',
@@ -426,7 +429,7 @@ def setup_developer_menu(mainwin, back):
         name='export_learning_data',
         text='Export learning data',
         slot_fn=back.dev_export_annotations)
-    mainwin.menuHelp.addSeparator()
+    mainwin.menuDev.addSeparator()
     mainwin.menuDev.newAction(
         name='start_web_server_parallel',
         text='Start web interface',

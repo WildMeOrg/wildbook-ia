@@ -71,7 +71,7 @@ def _init_gui():
 
 
 #@profile
-def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=False):
+def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=False, web_browser=False):
     import utool as ut
     from ibeis import params
     from ibeis.control import IBEISControl
@@ -88,7 +88,7 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=False):
         if params.args.webapp or web:
             from ibeis.web import app
             port = params.args.webport
-            app.start_from_ibeis(ibs, port=port)
+            app.start_from_ibeis(ibs, port=port, browser=web_browser)
     return ibs
 
 
@@ -267,7 +267,8 @@ def main(gui=True, dbdir=None, defaultdb='cache',
 
 
 def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
-           delete_ibsdir=False, verbose=False, use_cache=True, web=False):
+           delete_ibsdir=False, verbose=False, use_cache=True,
+           web=False, web_browser=False):
     """
     main without the preload (except for option to delete database before opening)
 
@@ -303,7 +304,7 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
     if delete_ibsdir is True:
         assert allow_newdir, 'must be making new directory if you are deleting everything!'
         ibsfuncs.delete_ibeis_database(dbdir)
-    ibs = _init_ibeis(dbdir, verbose=verbose, use_cache=use_cache, web=web)
+    ibs = _init_ibeis(dbdir, verbose=verbose, use_cache=use_cache, web=web, web_browser=web_browser)
     return ibs
 
 

@@ -1388,7 +1388,7 @@ class MainWindowBackend(QtCore.QObject):
     def start_web_server_parallel(back):
         import ibeis
         ibs = back.ibs
-        ibs.web_instance = ut.spawn_background_process(ibeis.opendb, dbdir=ibs.get_dbdir(), web=True)
+        ibs.web_instance = ut.spawn_background_process(ibeis.opendb, dbdir=ibs.get_dbdir(), web=True, web_browser=True)
 
     def kill_web_server_parallel(back):
         ibs = back.ibs
@@ -1396,7 +1396,7 @@ class MainWindowBackend(QtCore.QObject):
             ibs.web_instance.terminate()
             ibs.web_instance = None
         else:
-            print('[guiback] WEB INSTANCE NOT RUNNING')
+            print('[guiback] CANNOT TERMINATE WEB SERVER: WEB INSTANCE NOT RUNNING')
 
     @blocking_slot()
     def fix_and_clean_database(back):
