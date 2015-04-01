@@ -190,24 +190,66 @@ def compute_nsum_score2(cm, qreq_=None):
     fm_list = cm.fm_list
     kpts1 = None if not HACK_SINGLE_ORI else qreq_.ibs.get_annot_kpts(cm.qaid, config2_=qreq_.get_external_query_config2())
     dnid_list = cm.dnid_list
-    flag_namescore_nonvoting_features(fm_list, fs_list, dnid_list, kpts1=kpts1)
+    name_groupxs = cm.name_groupxs
+    isvalids_list = flag_namescore_nonvoting_features(fm_list, fs_list, dnid_list, name_groupxs, kpts1=kpts1)
+    name_grouped_valid_fs_list = vt.apply_grouping_(vt.zipcompress(fs_list, isvalids_list),  name_groupxs)
+    nsum_nid_list = dnid_list
+    nsum_score_list = [sum(list(map(np.sum, valid_fs_group))) for valid_fs_group in name_grouped_valid_fs_list]
+    return nsum_nid_list, nsum_score_list, isvalids_list
 
 
-def flag_namescore_nonvoting_features(fm_list, fs_list, dnid_list, kpts1=None):
+def flag_namescore_nonvoting_features(fm_list, fs_list, dnid_list, name_groupxs, kpts1=None):
     """
     fm_list = [fm[:min(len(fm), 10)] for fm in fm_list]
     fs_list = [fs[:min(len(fs), 10)] for fs in fs_list]
     """
     fx1_list = [fm.T[0] for fm in fm_list]
     # Group annotation matches by name
-    nsum_nid_list, name_groupxs = vt.group_indices(dnid_list)
     name_grouped_fx1_list = vt.apply_grouping_(fx1_list, name_groupxs)
     name_grouped_fs_list  = vt.apply_grouping_(fs_list,  name_groupxs)
     # Stack up all matches to a particular name, keep track of original indicies via offets
-    name_invertable_flat_fx1_list = list(map(ut.invertible_flatten2, name_grouped_fx1_list))
-    name_invertable_flat_fs_list = list(map(np.hstack, name_grouped_fs_list))
-    name_grouped_fx1_flat = list(map(np.hstack, name_grouped_fx1_list))
-    name_grouped_fs_flat  = list(map(np.hstack, name_grouped_fs_list))
+    name_invertable_flat_fx1_list = list(map(ut.invertible_flatten2_numpy, name_grouped_fx1_list))
+    name_grouped_fx1_flat = ut.get_list_column(name_invertable_flat_fx1_list, 0)
+    name_grouped_invertable_cumsum_list = ut.get_list_column(name_invertable_flat_fx1_list, 1)
+    name_grouped_fs_flat = list(map(np.hstack, name_grouped_fs_list))
+    if kpts1 is not None:
+        xys1_ = vt.get_xys(kpts1).T
+        kpts_xyid_list = vt.compute_unique_data_ids(xys1_)
+        # Make nested group for every name by query feature index (accounting for duplicate orientation)
+        name_grouped_xyid_flat = list(kpts_xyid_list.take(fx1) for fx1 in name_grouped_fx1_flat)
+        xyid_groupxs_list = list(vt.group_indices(xyid_flat)[1] for xyid_flat in name_grouped_xyid_flat)
+        name_group_fx1_groupxs_list = xyid_groupxs_list
+    else:
+        # Make nested group for every name by query feature index
+        fx1_groupxs_list = (vt.group_indices(fx1_flat)[1] for fx1_flat in name_grouped_fx1_flat)
+        name_group_fx1_groupxs_list = fx1_groupxs_list
+    name_grouped_fid_grouped_fs_list = [
+        vt.apply_grouping(fs_flat, fid_groupxs)
+        for fs_flat, fid_groupxs in zip(name_grouped_fs_flat, name_group_fx1_groupxs_list)
+    ]
+
+    # Flag which features are valid in this grouped space. Only one keypoint should be able to vote
+    # for each group
+    name_grouped_fid_grouped_isvalid_list = [
+        np.array([fs_group.max() == fs_group for fs_group in fid_grouped_fs_list])
+        for fid_grouped_fs_list in name_grouped_fid_grouped_fs_list
+    ]
+
+    # Go back to being grouped only in name space
+    #dtype = np.bool
+    name_grouped_isvalid_flat_list = [
+        vt.invert_apply_grouping2(fid_grouped_isvalid_list, fid_groupxs, dtype=np.bool)
+        for fid_grouped_isvalid_list, fid_groupxs in zip(name_grouped_fid_grouped_isvalid_list, name_group_fx1_groupxs_list)
+    ]
+
+    name_grouped_isvalid_unflat_list = [
+        ut.unflatten2(isvalid_flat, invertable_cumsum_list)
+        for isvalid_flat, invertable_cumsum_list in zip(name_grouped_isvalid_flat_list, name_grouped_invertable_cumsum_list)
+    ]
+
+    # Reports which features were valid in name scoring for every annotation
+    isvalids_list = vt.invert_apply_grouping(name_grouped_isvalid_unflat_list, name_groupxs)
+    return isvalids_list
 
 
 def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list):
