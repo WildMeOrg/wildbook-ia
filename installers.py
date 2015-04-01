@@ -255,8 +255,13 @@ def build_pyinstaller():
     utool_python_path = dirname(dirname(ut.__file__))
     #import os
     #os.environ['PYTHONPATH'] = os.pathsep.join([utool_python_path] + os.environ['PYTHONPATH'].strip(os.pathsep).split(os.pathsep))
+    import os
     sys.path.insert(1, utool_python_path)
-    ut.cmd('pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-ibeis.spec -y')
+    pathcmd = 'export PYTHONPATH=%s%s$PYTHONPATH && ' % (utool_python_path, os.pathsep)
+    installcmd = 'pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-ibeis.spec -y'
+    ut.cmd(pathcmd + installcmd)
+    #ut.cmd(installcmd)
+    #ut.cmd('pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-ibeis.spec -y')
     #else:
     #ut.cmd('pyinstaller', '_installers/pyinstaller-ibeis.spec', '-y')
     #ut.cmd('pyinstaller', '--runtime-hook rthook_pyqt4.py', '_installers/pyinstaller-ibeis.spec')
