@@ -44,7 +44,7 @@ def postprocess_dev():
         python -m ibeis.model.preproc.preproc_probchip --test-postprocess_dev
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> # build test data
         >>> # execute function

@@ -723,6 +723,7 @@ class NeighborIndex(object):
         nnindexer.cores  = flann_params.get('cores', 0)
         nnindexer.checks = flann_params.get('checks', 1028)
         nnindexer.num_indexed = None
+        nnindexer.flann_fpath = None
 
     @profile
     def init_support(nnindexer, aid_list, vecs_list, fgws_list, verbose=True):
@@ -847,6 +848,7 @@ class NeighborIndex(object):
 
     def save(nnindexer, cachedir, verbose=True):
         flann_fpath = nnindexer.get_fpath(cachedir)
+        nnindexer.flann_fpath = flann_fpath
         if ut.VERYVERBOSE or verbose:
             print('[nnindex] flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=5))
         nnindexer.flann.save_index(flann_fpath)
@@ -854,13 +856,16 @@ class NeighborIndex(object):
     def load(nnindexer, cachedir, verbose=True):
         load_success = False
         flann_fpath = nnindexer.get_fpath(cachedir)
+        nnindexer.flann_fpath = flann_fpath
         if ut.checkpath(flann_fpath, verbose=ut.VERBOSE):
             try:
                 idx2_vec = nnindexer.idx2_vec
+                # CAREFUL THIS CAN FAIL SILENTLY IF THE FLANN HEADERS ARE OLD
                 nnindexer.flann.load_index(flann_fpath, idx2_vec)
-                load_success = True
-            except Exception as ex:
+            except (IOError, pyflann.FLANNException) as ex:
                 ut.printex(ex, '... cannot load nnindex flann', iswarning=True)
+            else:
+                load_success = True
         return load_success
         if ut.VERYVERBOSE or ut.VERBOSE:
             print('[nnindex] load_success = %r' % (load_success,))
@@ -963,9 +968,17 @@ class NeighborIndex(object):
         elif len(qfx2_vec) == 0:
             (qfx2_idx, qfx2_dist) = nnindexer.empty_neighbors(0, K)
         else:
-            # perform nearest neighbors
-            (qfx2_idx, qfx2_dist) = nnindexer.flann.nn_index(
-                qfx2_vec, K, checks=nnindexer.checks, cores=nnindexer.cores)
+            try:
+                # perform nearest neighbors
+                (qfx2_idx, qfx2_dist) = nnindexer.flann.nn_index(
+                    qfx2_vec, K, checks=nnindexer.checks, cores=nnindexer.cores)
+            except pyflann.FLANNException as ex:
+                ut.printex(ex, 'probably misread the cached flann_fpath=%r' % (nnindexer.flann_fpath,))
+                raise
+                #ut.embed()
+                #ibs = ut.search_stack_for_localvar('ibs')
+                #cachedir = ibs.get_flann_cachedir()
+                #flann_fpath = nnindexer.get_fpath(cachedir)
             # Ensure that distance returned are between 0 and 1
             qfx2_dist = np.divide(qfx2_dist, nnindexer.max_distance_sqrd)
             #qfx2_dist = np.sqrt(qfx2_dist) / nnindexer.max_distance_sqrd

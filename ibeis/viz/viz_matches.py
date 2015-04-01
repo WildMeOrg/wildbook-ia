@@ -1,33 +1,143 @@
 from __future__ import absolute_import, division, print_function
-import utool
+import utool as ut
 import plottool.draw_func2 as df2
 import plottool.plot_helpers as ph
 from ibeis.viz import viz_helpers as vh
-(print, print_, printDBG, rrr, profile) = utool.inject(
+(print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[viz_matches]', DEBUG=False)
 
 
 def _get_annot_pair_info(ibs, aid1, aid2, qreq_, draw_fmatches):
-    query_config2_ = None if qreq_ is None else qreq_.get_external_query_config2()
-    data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
-
-    rchip1 = vh.get_chips(ibs, [aid1], config2_=query_config2_)[0]
-    rchip2 = vh.get_chips(ibs, [aid2], config2_=data_config2_)[0]
-    if draw_fmatches:
-        kpts1 = vh.get_kpts(ibs, [aid1], config2_=query_config2_)[0]
-        kpts2 = vh.get_kpts(ibs, [aid2], config2_=data_config2_)[0]
-    else:
-        kpts1, kpts2 = None, None
+    rchip1, kpts1 = get_query_annot_pair_info(ibs, aid1, qreq_, draw_fmatches)
+    rchip2, kpts2 = ut.get_list_column(get_data_annot_pair_info(ibs, [aid2], qreq_, draw_fmatches), 0)
     return rchip1, rchip2, kpts1, kpts2
 
 
-#@utool.indent_func
+def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches):
+    query_config2_ = None if qreq_ is None else qreq_.get_external_query_config2()
+    rchip1 = vh.get_chips(ibs, [qaid], config2_=query_config2_)[0]
+    if draw_fmatches:
+        kpts1 = vh.get_kpts(ibs, [qaid], config2_=query_config2_)[0]
+    else:
+        kpts1 = None
+    return rchip1, kpts1
+
+
+def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches):
+    data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
+    rchip2_list = vh.get_chips(ibs, aid_list, config2_=data_config2_)
+    if draw_fmatches:
+        kpts2_list = vh.get_kpts(ibs, aid_list, config2_=data_config2_)
+    else:
+        kpts2_list = [None] * len(aid_list)
+    return rchip2_list, kpts2_list
+
+
+def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, qreq_=None, **kwargs):
+    """
+    kwargs = {}
+    draw_fmatches = True
+
+    CommandLine:
+        python -m ibeis.viz.viz_matches --test-show_name_matches --show --verobse
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots import chip_match
+        >>> from ibeis.viz.viz_matches import *  # NOQA
+        >>> from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
+        >>> func = chip_match.ChipMatch2.show_single_namematch
+        >>> sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
+        >>> setup = ut.regex_replace('viz_matches.show_name_matches', '#', sourcecode)
+        >>> print(setup)
+        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
+        >>> cm = cm_list[0]
+        >>> cm.score_nsum(qreq_)
+        >>> qaid = cm.qaid
+        >>> dnid = ibs.get_annot_nids(cm.qaid)
+        >>> nidx = cm.nid2_nidx[dnid]
+        >>> groupxs = cm.name_groupxs[nidx]
+        >>> name_daid_list = ut.list_take(cm.daid_list, groupxs)
+        >>> name_fm_list   = ut.list_take(cm.fm_list, groupxs)
+        >>> homog = False
+        >>> name_H1_list   = None if not homog or cm.H_list is None else ut.list_take(cm.H_list, groupxs)
+        >>> name_fsv_list  = None if cm.fsv_list is None else ut.list_take(cm.fsv_list, groupxs)
+        >>> name_fs_list   = None if name_fsv_list is None else [fsv.prod(axis=1) for fsv in name_fsv_list]
+        >>> kwargs = {}
+        >>> show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, qreq_=qreq_, **kwargs)
+        >>> ut.quit_if_noshow()
+        >>> ut.show_if_requested()
+    """
+    draw_fmatches = kwargs.get('draw_fmatches', True)
+    rchip1, kpts1 = get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches)
+    rchip2_list, kpts2_list = get_data_annot_pair_info(ibs, name_daid_list, qreq_, draw_fmatches)
+    fm_list = name_fm_list
+    fs_list = name_fs_list
+    show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_list)
+
+
+def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_list, fnum=None, pnum=None):
+    """ move to df2
+    rchip = rchip1
+    H = H1 = None
+    target_wh = None
+
+    """
+    import vtool.image as gtool
+    import plottool as pt
+    import numpy as np
+    def preprocess_chips(rchip, H, target_wh):
+        rchip_ = rchip if H is None else gtool.warpHomog(rchip, H, target_wh)
+        return rchip_
+
+    if fnum is None:
+        fnum = pt.next_fnum()
+
+    target_wh1 = None
+    H1 = None
+    rchip1_ = preprocess_chips(rchip1, H1, target_wh1)
+    wh1 = gtool.get_size(rchip1_)
+    rchip2_list_ = [preprocess_chips(rchip2, None, wh1) for rchip2 in rchip2_list]
+    wh2_list = [gtool.get_size(rchip2) for rchip2 in rchip2_list_]
+
+    match_img, offset_list, sf_list = pt.stack_image_list_special(rchip1_, rchip2_list_)
+
+    wh_list = np.array(ut.flatten([[wh1], wh2_list])) * sf_list
+
+    offset1 = offset_list[0]
+    wh1 = wh_list[0]
+    sf1 = sf_list[0]
+
+    fig, ax = pt.imshow(match_img, fnum=fnum, pnum=pnum)
+
+    for offset2, wh2, sf2, kpts2, fm2, fs2 in zip(offset_list[1:], wh_list[1:], sf_list[1:], kpts2_list, fm_list, fs_list):
+        xywh1 = (offset1[0], offset1[1], wh1[0], wh1[1])
+        xywh2 = (offset2[0], offset2[1], wh2[0], wh2[1])
+        if kpts1 is not None and kpts2 is not None:
+            pt.plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm2, fs2, fm_norm=None,
+                           H1=None, H2=None, scale_factor1=sf1,
+                           scale_factor2=sf2, colorbar_=False)
+
+    # Show the stacked chips
+    #annotate_matches2(ibs, aid1, aid2, fm, fs, xywh2=xywh2, xywh1=xywh1,
+    #                  offset1=offset1, offset2=offset2, **kwargs)
+
+
+#@ut.indent_func
 def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
                   H1=None, H2=None, qreq_=None, **kwargs):
     """
     TODO: use this as the main function.
     Have the qres version be a wrapper
     Integrate ChipMatch2
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.chip_match import *  # NOQA
+        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
+        >>> cm = cm_list[0]
+        >>> cm.score_nsum(qreq_)
+        >>> cm.show_single_annotmatch(qreq_, daid)
     """
     if qreq_ is None:
         print('[viz_matches] WARNING: qreq_ is None')
@@ -48,7 +158,7 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
                                                fs=fs, fm_norm=fm_norm,
                                                H1=H1, H2=H2, lbl1=lbl1, lbl2=lbl2, **kwargs)
     except Exception as ex:
-        utool.printex(ex, 'consider qr.remove_corrupted_queries',
+        ut.printex(ex, 'consider qr.remove_corrupted_queries',
                       '[viz_matches]')
         print('')
         raise
@@ -166,7 +276,7 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
 # OLD QRES BASED FUNCS STILL IN USE
 
 
-@utool.indent_func
+#@ut.indent_func
 def show_matches(ibs, qres, aid2, sel_fm=[], qreq_=None, **kwargs):
     """
     shows single annotated match result.
@@ -200,8 +310,8 @@ def show_matches(ibs, qres, aid2, sel_fm=[], qreq_=None, **kwargs):
         >>> # verify results
         >>> result = str((ax, xywh1, xywh2))
         >>> print(result)
-        >>> #if not utool.get_argflag('--noshow'):
-        >>> if utool.get_argflag('--show'):
+        >>> #if not ut.get_argflag('--noshow'):
+        >>> if ut.get_argflag('--show'):
         >>>    execstr = df2.present()
         >>>    exec(execstr)
     """
@@ -225,7 +335,7 @@ def show_matches(ibs, qres, aid2, sel_fm=[], qreq_=None, **kwargs):
                                                fm, fs=fs, lbl1=lbl1, lbl2=lbl2,
                                                **kwargs)
     except Exception as ex:
-        utool.printex(ex, 'consider qr.remove_corrupted_queries',
+        ut.printex(ex, 'consider qr.remove_corrupted_queries',
                       '[viz_matches]')
         print('')
         raise
@@ -243,7 +353,7 @@ def show_matches(ibs, qres, aid2, sel_fm=[], qreq_=None, **kwargs):
     return ax, xywh1, xywh2
 
 
-@utool.indent_func
+#@ut.indent_func
 def annotate_matches(ibs, qres, aid2,
                      offset1=(0, 0),
                      offset2=(0, 0),

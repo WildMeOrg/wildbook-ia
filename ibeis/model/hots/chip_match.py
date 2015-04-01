@@ -682,7 +682,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
     def testshow_single(cm, qreq_, daid=None, lastcall=True, **kwargs):
         if ut.show_was_requested():
             import plottool as pt
-            cm.show_single(qreq_, daid=None, **kwargs)
+            cm.show_single_annotmatch(qreq_, daid=None, **kwargs)
             if lastcall:
                 pt.show_if_requested()
 
@@ -693,7 +693,52 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             if lastcall:
                 pt.show_if_requested()
 
-    def show_single(cm, qreq_, daid=None, fnum=None, pnum=None, homog=ut.get_argflag('--homog'), **kwargs):
+    def show_single_namematch(cm, qreq_, dnid, fnum=None, pnum=None, homog=ut.get_argflag('--homog'), **kwargs):
+        """
+
+        CommandLine:
+            python -m ibeis.model.hots.chip_match --test-show_single_namematch --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
+            >>> cm = cm_list[0]
+            >>> cm.score_nsum(qreq_)
+            >>> ut.quit_if_noshow()
+            >>> homog = False
+            >>> dnid = ibs.get_annot_nids(cm.qaid)
+            >>> cm.show_single_namematch(qreq_, dnid)
+            >>> ut.show_if_requested()
+        """
+        from ibeis.viz import viz_matches
+        qaid = cm.qaid
+        nidx = cm.nid2_nidx[dnid]
+        groupxs = cm.name_groupxs[nidx]
+        name_daid_list = ut.list_take(cm.daid_list, groupxs)
+        name_fm_list   = ut.list_take(cm.fm_list, groupxs)
+        name_H1_list   = None if not homog or cm.H_list is None else ut.list_take(cm.H_list, groupxs)
+        name_fsv_list  = None if cm.fsv_list is None else ut.list_take(cm.fsv_list, groupxs)
+        name_fs_list   = None if name_fsv_list is None else [fsv.prod(axis=1) for fsv in name_fsv_list]
+        #showkw = dict(fm=fm, fs=fs, H1=H1, fnum=fnum, pnum=pnum, **kwargs)
+        #viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_, **showkw)
+        viz_matches.show_name_matches(qreq_.ibs, qaid, name_daid_list,
+                                      name_fm_list, name_fs_list, name_H1_list,
+                                      qreq_=qreq_, **kwargs)
+
+    def show_single_annotmatch(cm, qreq_, daid=None, fnum=None, pnum=None, homog=ut.get_argflag('--homog'), **kwargs):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
+            >>> cm = cm_list[0]
+            >>> cm.score_nsum(qreq_)
+            >>> ut.quit_if_noshow()
+            >>> daid = cm.get_groundtruth_daids()[0]
+            >>> cm.show_single_annotmatch(qreq_, daid)
+            >>> ut.show_if_requested()
+        """
         from ibeis.viz import viz_matches
         if daid is None:
             idx = cm.argsort()[0]
@@ -724,7 +769,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         for idx in idx_list:
             daid  = cm.daid_list[idx]
             pnum = next_pnum()
-            cm.show_single(qreq_, daid, fnum=fnum, pnum=pnum, **kwargs)
+            cm.show_single_annotmatch(qreq_, daid, fnum=fnum, pnum=pnum, **kwargs)
             score = vt.trytake(cm.score_list, idx)
             annot_score = vt.trytake(cm.annot_score_list, idx)
             score_str = ('score = %.3f' % (score,)

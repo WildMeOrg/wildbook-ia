@@ -108,61 +108,106 @@ def compute_nsum_score(cm, qreq_=None):
         >>> #nsum_nid_list, nsum_score_list = compute_nsum_score(cm, qreq_=qreq_)
         >>> ut.quit_if_noshow()
         >>> cm.show_ranked_matches(qreq_, ori=True)
+
+    Example3:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.name_scoring import *  # NOQA
+        >>> #ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])
+        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('testdb1', qaid_list=[1], cfgdict=dict(augment_queryside_hack=True))
+        >>> cm = cm_list[0]
+        >>> cm.score_nsum(qreq_)
+        >>> #cm.evaluate_dnids(qreq_.ibs)
+        >>> #cm.qnid = 1   # Hack for testdb1 names
+        >>> #nsum_nid_list, nsum_score_list = compute_nsum_score(cm, qreq_=qreq_)
+        >>> ut.quit_if_noshow()
+        >>> cm.show_ranked_matches(qreq_, ori=True)
     """
     HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
-    if HACK_SINGLE_ORI:
-        # keypoints with the same xy can only have one of them vote
-        #qreq_ = None
-        qkpts1 = qreq_.ibs.get_annot_kpts(cm.qaid, config2_=qreq_.get_external_query_config2())
-        #print(vt.get_oris(qkpts1))
-        data = vt.get_xys(qkpts1).T
-        kpts_xyid_list = vt.compute_unique_data_ids(data)
-        #fx1_list
+    # The core for each feature match
+    qaid = cm.qaid
+    dnid_list = cm.dnid_list
     fs_list = cm.get_fsv_prod_list()
-    fx1_list = [fm.T[0] for fm in cm.fm_list]
+    fm_list = cm.fm_list
+    #
+    # The query feature index for each feature match
+    fx1_list = [fm.T[0] for fm in fm_list]
     # Group annotation matches by name
-    nsum_nid_list, name_groupxs = vt.group_indices(cm.dnid_list)
+    nsum_nid_list, name_groupxs = vt.group_indices(dnid_list)
     name_grouped_fx1_list = vt.apply_grouping_(fx1_list, name_groupxs)
     name_grouped_fs_list  = vt.apply_grouping_(fs_list,  name_groupxs)
+    # Stack up all matches to a particular name
+    name_grouped_fx1_flat = (map(np.hstack, name_grouped_fx1_list))
+    name_grouped_fs_flat  = (map(np.hstack, name_grouped_fs_list))
     if HACK_SINGLE_ORI:
-        # Stack up all matches to a particular name
-        name_grouped_fx1_flat = (map(np.hstack, name_grouped_fx1_list))
-        name_grouped_fs_flat  = (map(np.hstack, name_grouped_fs_list))
+        # keypoints with the same xy can only have one of them vote
+        kpts1 = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_external_query_config2())
+        xys1_ = vt.get_xys(kpts1).T
+        kpts_xyid_list = vt.compute_unique_data_ids(xys1_)
         # Make nested group for every name by query feature index (accounting for duplicate orientation)
         name_grouped_xyid_flat = (kpts_xyid_list.take(fx1) for fx1 in name_grouped_fx1_flat)
         xyid_groupxs_list = (vt.group_indices(xyid_flat)[1] for xyid_flat in name_grouped_xyid_flat)
         feat_grouped_fs_list = list(
-            vt.apply_grouping(fs_flat, fx1_groupxs)
-            for fs_flat, fx1_groupxs in zip(name_grouped_fs_flat, xyid_groupxs_list)
-        )
-        # Prevent a feature from voting twice:
-        # take only the max score that a query feature produced
-        best_fs_list = list(
-            np.array([fs_group.max() for fs_group in feat_grouped_fs])
-            for feat_grouped_fs in feat_grouped_fs_list
+            vt.apply_grouping(fs_flat, xyid_groupxs)
+            for fs_flat, xyid_groupxs in zip(name_grouped_fs_flat, xyid_groupxs_list)
         )
     else:
-        # Stack up all matches to a particular name
-        name_grouped_fx1_flat = (map(np.hstack, name_grouped_fx1_list))
-        name_grouped_fs_flat  = (map(np.hstack, name_grouped_fs_list))
         # Make nested group for every name by query feature index
         fx1_groupxs_list = (vt.group_indices(fx1_flat)[1] for fx1_flat in name_grouped_fx1_flat)
         feat_grouped_fs_list = list(
             vt.apply_grouping(fs_flat, fx1_groupxs)
             for fs_flat, fx1_groupxs in zip(name_grouped_fs_flat, fx1_groupxs_list)
         )
-        # Prevent a feature from voting twice:
-        # take only the max score that a query feature produced
-        best_fs_list = list(
-            np.array([fs_group.max() for fs_group in feat_grouped_fs])
-            for feat_grouped_fs in feat_grouped_fs_list
-        )
+    # Prevent a feature from voting twice:
+    # take only the max score that a query feature produced
+    best_fs_list = list(
+        np.array([fs_group.max() for fs_group in feat_grouped_fs])
+        for feat_grouped_fs in feat_grouped_fs_list
+    )
     nsum_score_list = np.array([fs.sum() for fs in best_fs_list])
     # DO NOT Return sorted by the name score
     #name_score_sortx = nsum_score_list.argsort()[::-1]
     #nsum_score_list = nsum_score_list.take(name_score_sortx)
     #nsum_nid_list   = nsum_nid_list.take(name_score_sortx)
     return nsum_nid_list, nsum_score_list
+
+
+def compute_nsum_score2(cm, qreq_=None):
+    """
+    Example3:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.name_scoring import *  # NOQA
+        >>> #ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])
+        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('testdb1', qaid_list=[1], cfgdict=dict(augment_queryside_hack=True))
+        >>> cm = cm_list[0]
+        >>> cm.evaluate_dnids(qreq_.ibs)
+        >>> ut.quit_if_noshow()
+        >>> cm.show_ranked_matches(qreq_, ori=True)
+    """
+    HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
+    # The core for each feature match
+    fs_list = cm.get_fsv_prod_list()
+    # The query feature index for each feature match
+    fm_list = cm.fm_list
+    kpts1 = None if not HACK_SINGLE_ORI else qreq_.ibs.get_annot_kpts(cm.qaid, config2_=qreq_.get_external_query_config2())
+    dnid_list = cm.dnid_list
+    flag_namescore_nonvoting_features(fm_list, fs_list, dnid_list, kpts1=kpts1)
+
+
+def flag_namescore_nonvoting_features(fm_list, fs_list, dnid_list, kpts1=None):
+    """
+    fm_list = [fm[:min(len(fm), 10)] for fm in fm_list]
+    fs_list = [fs[:min(len(fs), 10)] for fs in fs_list]
+    """
+    fx1_list = [fm.T[0] for fm in fm_list]
+    # Group annotation matches by name
+    nsum_nid_list, name_groupxs = vt.group_indices(dnid_list)
+    name_grouped_fx1_list = vt.apply_grouping_(fx1_list, name_groupxs)
+    name_grouped_fs_list  = vt.apply_grouping_(fs_list,  name_groupxs)
+    # Stack up all matches to a particular name, keep track of original indicies via offets
+    name_invertable_flat_fx1_list = list(map(ut.invertible_flatten2, name_grouped_fx1_list))
+    name_invertable_flat_fs_list = list(map(np.hstack, name_grouped_fs_list))
+    name_grouped_fx1_flat = list(map(np.hstack, name_grouped_fx1_list))
+    name_grouped_fs_flat  = list(map(np.hstack, name_grouped_fs_list))
 
 
 def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list):

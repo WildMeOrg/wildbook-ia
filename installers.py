@@ -252,6 +252,10 @@ def build_pyinstaller():
     print('[installer] +--- BUILD_PYINSTALLER ---')
     # 1) RUN: PYINSTALLER
     # Run the pyinstaller command (does all the work)
+    utool_python_path = dirname(dirname(ut.__file__))
+    #import os
+    #os.environ['PYTHONPATH'] = os.pathsep.join([utool_python_path] + os.environ['PYTHONPATH'].strip(os.pathsep).split(os.pathsep))
+    sys.path.insert(1, utool_python_path)
     ut.cmd('pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-ibeis.spec -y')
     #else:
     #ut.cmd('pyinstaller', '_installers/pyinstaller-ibeis.spec', '-y')
