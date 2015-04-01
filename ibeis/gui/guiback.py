@@ -1385,6 +1385,19 @@ class MainWindowBackend(QtCore.QObject):
         ibs = back.ibs
         ibsfuncs.export_to_xml(ibs)
 
+    def start_web_server_parallel(back):
+        import ibeis
+        ibs = back.ibs
+        ibs.web_instance = ut.spawn_background_process(ibeis.opendb, dbdir=ibs.get_dbdir(), web=True)
+
+    def kill_web_server_parallel(back):
+        ibs = back.ibs
+        if ibs.web_instance is not None and ibs.web_instance.is_alive():
+            ibs.web_instance.terminate()
+            ibs.web_instance = None
+        else:
+            print('[guiback] WEB INSTANCE NOT RUNNING')
+
     @blocking_slot()
     def fix_and_clean_database(back):
         """ Help -> Fix/Clean Database """

@@ -426,3 +426,12 @@ def setup_developer_menu(mainwin, back):
         name='export_learning_data',
         text='Export learning data',
         slot_fn=back.dev_export_annotations)
+    mainwin.menuHelp.addSeparator()
+    mainwin.menuDev.newAction(
+        name='start_web_server_parallel',
+        text='Start web interface',
+        slot_fn=back.start_web_server_parallel)
+    mainwin.menuDev.newAction(
+        name='kill_web_server_parallel',
+        text='Terminate web interface',
+        slot_fn=back.kill_web_server_parallel)
