@@ -32,7 +32,7 @@ from plottool import fig_presenter
 #from plottool.fig_presenter import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
 import vtool.patch as ptool
 import vtool.image as gtool
-import vtool as vt  # NOQA
+import vtool as vt
 
 DEBUG = False
 # Try not injecting into plotting things
@@ -1178,14 +1178,19 @@ def colorbar(scalars, colors, custom=False, lbl=None):
 
 def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
                 color_list=None, scale_factor=1, lw=1.4, line_alpha=.35,
-                H1=None, H2=None, **kwargs):
-    printDBG('-------------')
-    printDBG('draw_lines2()')
-    printDBG(' * len(fm) = %r' % len(fm))
-    printDBG(' * scale_factor = %r' % scale_factor)
+                H1=None, H2=None, scale_factor1=None, scale_factor2=None, **kwargs):
+    if ut.VERYVERBOSE:
+        printDBG('-------------')
+        printDBG('draw_lines2()')
+        printDBG(' * len(fm) = %r' % len(fm))
+        printDBG(' * scale_factor = %r' % scale_factor)
+    if scale_factor1 is None:
+        scale_factor1 = 1.0, 1.0
+    if scale_factor2 is None:
+        scale_factor2 = 1.0, 1.0
     # input data
     if fm is None:  # assume kpts are in director correspondence
-        assert kpts1.shape == kpts2.shape
+        assert kpts1.shape == kpts2.shape, 'bad shape'
     if len(fm) == 0:
         return
     ax = gca()
@@ -1195,18 +1200,12 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
     kpts2_m = kpts2[fm[:, 1]].T
     xy1_m = (kpts1_m[0:2])
     xy2_m = (kpts2_m[0:2])
-    import vtool as vt
     if H1 is not None:
         xy1_m = vt.transform_points_with_homography(H1, xy1_m)
     if H2 is not None:
         xy2_m = vt.transform_points_with_homography(H2, xy2_m)
-    xy1_m = xy1_m * scale_factor
-    xy2_m = (xy2_m * scale_factor) + np.array([woff, hoff])[:, None]
-    #xxyy_iter = iter(zip(kpts1_m[0] * scale_factor,
-    #                     kpts2_m[0] * scale_factor + woff,
-    #                     kpts1_m[1] * scale_factor,
-    #                     kpts2_m[1] * scale_factor + hoff))
-    #xy1_iter =
+    xy1_m = xy1_m * scale_factor * np.array(scale_factor1)[:, None]
+    xy2_m = (xy2_m * scale_factor * np.array(scale_factor2)[:, None]) + np.array([woff, hoff])[:, None]
     if color_list is None:
         if fs is None:  # Draw with solid color
             color_list    = [RED for fx in range(len(fm))]
@@ -1216,9 +1215,6 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
         ((x1, y1), (x2, y2))
         for (x1, y1), (x2, y2) in zip(xy1_m.T, xy2_m.T)
     ]
-    #segments  = [
-    #    ((x1, y1), (x2, y2))
-    #    for (x1, x2, y1, y2) in xxyy_iter]
     linewidth = [lw for fx in range(len(fm))]
     line_alpha = line_alpha
     line_group = LineCollection(segments, linewidth, color_list, alpha=line_alpha)
@@ -1604,18 +1600,19 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None,
         >>> print(result)
         >>> pt.show_if_requested()
     """
-    printDBG('[df2] show_chipmatch2() fnum=%r, pnum=%r' % (fnum, pnum))
+    if ut.VERBOSE:
+        print('[df2] show_chipmatch2() fnum=%r, pnum=%r' % (fnum, pnum))
     #printDBG('[df2] show_chipmatch2() locals_=%s' % (ut.dict_str(locals())))
     wh1 = gtool.get_size(rchip1)
     wh2 = gtool.get_size(rchip2)
     # Warp if homography is specified
-    rchip1 = gtool.warpHomog(rchip1, H1, wh2) if H1 is not None else rchip1
-    rchip2 = gtool.warpHomog(rchip2, H2, wh1) if H2 is not None else rchip2
+    rchip1_ = gtool.warpHomog(rchip1, H1, wh2) if H1 is not None else rchip1
+    rchip2_ = gtool.warpHomog(rchip2, H2, wh1) if H2 is not None else rchip2
     # get matching keypoints + offset
-    (h1, w1) = rchip1.shape[0:2]  # get chip (h, w) dimensions
-    (h2, w2) = rchip2.shape[0:2]
+    (h1, w1) = rchip1_.shape[0:2]  # get chip (h, w) dimensions
+    (h2, w2) = rchip2_.shape[0:2]
     # Stack the compared chips
-    match_img, woff, hoff = stack_images(rchip1, rchip2, vert)
+    match_img, woff, hoff = stack_images(rchip1_, rchip2_, vert)
     xywh1 = (0, 0, w1, h1)
     xywh2 = (woff, hoff, w2, h2)
     # Show the stacked chips
@@ -1630,7 +1627,9 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None,
 # plot feature match
 def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None, lbl2=None,
                 fnum=None, pnum=None, rect=False, colorbar_=True,
-                draw_border=False, cmap=None, H1=None, H2=None, **kwargs):
+                draw_border=False, cmap=None, H1=None, H2=None,
+                scale_factor1=None, scale_factor2=None,
+                **kwargs):
     """
     Overlays the matching features over chips that were previously plotted.
 
@@ -1659,6 +1658,7 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None
     ell_alpha = kwargs.get('ell_alpha', .4)
     nMatch = len(fm)
     x2, y2, w2, h2 = xywh2
+    offset1 = (0., 0.)
     offset2 = (x2, y2)
     # THIS IS NOT WHERE THIS CODE BELONGS
     if False:
@@ -1676,7 +1676,7 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None
         all_args = dict(ell=False, pts=pts, pts_color=GREEN, pts_size=2,
                         ell_alpha=ell_alpha, rect=rect)
         all_args.update(kwargs)
-        draw_kpts2(kpts1, H=H1, **all_args)
+        draw_kpts2(kpts1, offset=offset1, H=H1, **all_args)
         draw_kpts2(kpts2, offset=offset2, H=H2, **all_args)
     if draw_border:
         draw_bbox(xywh1, bbox_color=BLACK, draw_arrow=False)
@@ -1698,12 +1698,15 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None
             fxs1 = fm.T[0]
             fxs2 = fm.T[1]
             if kpts1 is not None:
-                draw_kpts2(kpts1[fxs1], rect=rect, H=H1, **_kwargs)
-            draw_kpts2(kpts2[fxs2], offset=offset2, rect=rect, H=H2, **_kwargs)
+                draw_kpts2(kpts1[fxs1], offset=offset1, scale_factor=scale_factor1, rect=rect, H=H1, **_kwargs)
+            draw_kpts2(kpts2[fxs2], offset=offset2, scale_factor=scale_factor2, rect=rect, H=H2, **_kwargs)
 
         def _drawlines(**_kwargs):
             _kwargs.update(kwargs)
-            draw_lines2(kpts1, kpts2, fm, fs, kpts2_offset=offset2,
+            draw_lines2(kpts1, kpts2, fm, fs,
+                        kpts2_offset=offset2,
+                        scale_factor1=scale_factor1,
+                        scale_factor2=scale_factor2,
                         H1=H1, H2=H2, **_kwargs)
             if fm_norm is not None:
                 # NORMALIZING MATCHES IF GIVEN
@@ -1713,7 +1716,8 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None
                     colors = scores_to_color(fs, cmap)
                 _kwargs_norm['color_list'] = colors
                 draw_lines2(kpts1, kpts2, fm_norm, fs, kpts2_offset=offset2,
-                            H1=H1, H2=H2, **_kwargs_norm)
+                            H1=H1, H2=H2, scale_factor1=scale_factor1,
+                            scale_factor2=scale_factor2, **_kwargs_norm)
 
         if ell:
             _drawkpts(pts=False, ell=True, color_list=colors)
@@ -1949,20 +1953,261 @@ def make_ori_legend_img():
     return img_BGR
 
 
-def stack_image_list(img_list, **kwargs):
+def stack_image_list_special(img1, img_list):
+    r"""
+    CommandLine:
+        python -m plottool.draw_func2 --test-stack_image_list_special --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> # build test data
+        >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
+        >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+        >>> img3 = vt.imread(ut.grab_test_imgpath('ada.jpg'))
+        >>> img4 = vt.imread(ut.grab_test_imgpath('jeff.png'))
+        >>> img5 = vt.imread(ut.grab_test_imgpath('star.png'))
+        >>> img_list = [img2, img3, img4, img5]
+        >>> vert = True
+        >>> return_offset = True
+        >>> imgB, offset_list, sf_list = stack_image_list_special(img1, img_list)
+        >>> ut.quit_if_noshow()
+        >>> wh_list = np.array([vt.get_size(img1)] + list(map(vt.get_size, img_list)))
+        >>> wh_list_ = wh_list * sf_list
+        >>> import plottool as pt
+        >>> pt.imshow(imgB)
+        >>> for offset, wh, color in zip(offset_list, wh_list_, pt.distinct_colors(len(offset_list))):
+        ...    draw_bbox((offset[0], offset[1], wh[0], wh[1]), bbox_color=color)
+        >>> ut.show_if_requested()
+    """
+    img2 = img_list[0]
+    img_list_ = img_list[1:]
+
+    imgQ, offsetQ_, sf_tupQ = stack_images(img1, img2, vert=True, modifysize=True, return_sf=True)
+    imgR, offset_list_R_, sf_list_R = stack_image_list(img_list_, vert=True, modifysize=True, return_offset=True, return_sf=True)
+    imgB, offset3, sf_tup3 = stack_images(imgQ, imgR, modifysize=True, vert=False, return_sf=True)
+
+    # Adjust offsets for multiple transforms
+    sfQ, sfR = sf_tup3
+    offset1 = (0, 0)
+    offset2 = np.multiply(offsetQ_, sfQ)
+    offset_list_R = np.array(offset_list_R_) * np.array(sfR)[None, :] + np.array(offset3)[None, :]
+    offset_list = np.array(ut.flatten([[offset1, offset2], offset_list_R]))
+
+    # Adjust scales for multiple transforms
+    sf_list = np.full((len(img_list) + 1, 2), np.nan)
+    sf_list[0:2, :] = sf_tupQ
+    sf_list[0:2, :] *= np.array(sf_tup3[0])[None, :]
+    sf_list[2:, :] = sf_list_R * np.array(sf_tup3[1])[None, :]
+    return imgB, offset_list, sf_list
+
+
+def stack_image_list(img_list, return_offset=False, return_sf=False, **kwargs):
+    r"""
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-stack_image_list --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> # build test data
+        >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
+        >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+        >>> img3 = vt.imread(ut.grab_test_imgpath('ada.jpg'))
+        >>> img4 = vt.imread(ut.grab_test_imgpath('jeff.png'))
+        >>> img5 = vt.imread(ut.grab_test_imgpath('star.png'))
+        >>> img_list = [img1, img2, img3, img4, img5]
+        >>> vert = False
+        >>> return_offset = True
+        >>> modifysize = True
+        >>> return_sf=True
+        >>> kwargs = dict(modifysize=modifysize, vert=vert)
+        >>> # execute function
+        >>> imgB, offset_list, sf_list = stack_image_list(img_list, return_offset=return_offset, return_sf=return_sf, **kwargs)
+        >>> print(offset_list)
+        >>> print(sf_list)
+        >>> # verify results
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(imgB)
+        >>> pt.show_if_requested()
+        >>> #wh1 = img1.shape[0:2][::-1]
+        >>> #wh2 = img2.shape[0:2][::-1]
+        >>> #draw_bbox((0, 0) + wh1, bbox_color=(1, 0, 0))
+        >>> #draw_bbox((woff, hoff) + wh2, bbox_color=(0, 1, 0))
+    """
     if len(img_list) == 0:
         return None
     imgB = img_list[0]
-    offset_list = []
-    for count, img2 in enumerate(img_list):
-        if count == 0:
-            continue
-        imgB, woff, hoff = stack_images(imgB, img2, **kwargs)
-        offset_list.append((woff, hoff))
-    return imgB
+    offset_list = [(0, 0)]
+    sf_list = np.full((len(img_list), 2), np.nan)
+    #sf_list = [(1., 1.)]
+    sf_list[0, :] = (1, 1)
+    #sf_list = np
+    for count, img2 in enumerate(img_list[1:], start=1):
+        out_ = stack_images(imgB, img2, return_sf=return_sf, **kwargs)
+        if return_sf:
+            imgB, offset2, sf_tup = out_
+            # need to modify scales of previous images
+            sf1, sf2 = sf_tup
+            #sf_list = [np.multiply(sf, sf1) for sf in sf_list]
+            sf_list[:count, :] *= sf1
+            sf_list[count, :] = sf2
+        else:
+            imgB, woff, hoff = out_
+            offset2 = (woff, hoff)
+        offset_list.append(offset2)
+    if return_offset:
+        if return_sf:
+            return imgB, offset_list, sf_list
+        else:
+            return imgB, offset_list
+    else:
+        return imgB
+
+
+def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False):
+    r"""
+    Args:
+        img1 (ndarray[uint8_t, ndim=2]):  image data
+        img2 (ndarray[uint8_t, ndim=2]):  image data
+        vert (None):
+        modifysize (bool):
+
+    Returns:
+        tuple: (imgB, woff, hoff)
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-stack_images --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> # build test data
+        >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
+        >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+        >>> vert = None
+        >>> modifysize = False
+        >>> # execute function
+        >>> return_sf = True
+        >>> #(imgB, woff, hoff) = stack_images(img1, img2, vert, modifysize, return_sf=return_sf)
+        >>> imgB, offset2, sf_tup = stack_images(img1, img2, vert, modifysize, return_sf=return_sf)
+        >>> woff, hoff = offset2
+        >>> # verify results
+        >>> result = str((imgB.shape, woff, hoff))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> imshow(imgB)
+        >>> wh1 = np.multiply(vt.get_size(img1), sf_tup[0])
+        >>> wh2 = np.multiply(vt.get_size(img2), sf_tup[1])
+        >>> draw_bbox((0, 0, wh1[0], wh1[1]), bbox_color=(1, 0, 0))
+        >>> draw_bbox((woff, hoff, wh2[0], wh2[0]), bbox_color=(0, 1, 0))
+        >>> pt.show_if_requested()
+        ((762, 512, 3), 0, 250)
+    """
+    # TODO: move this to the same place I'm doing the color gradient
+    nChannels = gtool.get_num_channels(img1)
+    nChannels2 = gtool.get_num_channels(img2)
+    assert nChannels == nChannels2
+    def infer_vert(img1, img2, vert):
+        (h1, w1) = img1.shape[0: 2]  # get chip dimensions
+        (h2, w2) = img2.shape[0: 2]
+        woff, hoff = 0, 0
+        vert_wh  = max(w1, w2), h1 + h2
+        horiz_wh = w1 + w2, max(h1, h2)
+        if vert is None:
+            # Display the orientation with the better (closer to 1) aspect ratio
+            vert_ar  = max(vert_wh) / min(vert_wh)
+            horiz_ar = max(horiz_wh) / min(horiz_wh)
+            vert = vert_ar < horiz_ar
+        if vert:
+            wB, hB = vert_wh
+            hoff = h1
+        else:
+            wB, hB = horiz_wh
+            woff = w1
+        return vert, h1, h2, w1, w2, wB, hB, woff, hoff
+    vert, h1, h2, w1, w2, wB, hB, woff, hoff = infer_vert(img1, img2, vert)
+    if modifysize:
+        import cv2
+        index = 1 if vert else 0
+        if img1.shape[index] < img2.shape[index]:
+            scale = img2.shape[index] / img1.shape[index]
+            dsize, tonew_sf1 = vt.get_round_scaled_dsize(vt.get_size(img1), scale)
+            tonew_sf2 = (1., 1.)
+            img1 = cv2.resize(img1, dsize, interpolation=cv2.INTER_NEAREST)
+            #img1 = vt.resize_image_by_scale(img1, scale, interpolation=cv2.INTER_NEAREST)
+        elif img2.shape[index] < img1.shape[index]:
+            scale = img1.shape[index] / img2.shape[index]
+            dsize, tonew_sf2 = vt.get_round_scaled_dsize(vt.get_size(img2), scale)
+            tonew_sf1 = (1., 1.)
+            img2 = cv2.resize(img2, dsize, interpolation=cv2.INTER_NEAREST)
+            #img2 = vt.resize_image_by_scale(img2, scale, interpolation=cv2.INTER_NEAREST)
+        else:
+            tonew_sf1 = (1., 1.)
+            tonew_sf2 = (1., 1.)
+        vert, h1, h2, w1, w2, wB, hB, woff, hoff = infer_vert(img1, img2, vert)
+    else:
+        tonew_sf1 = (1., 1.)
+        tonew_sf2 = (1., 1.)
+    # concatentate images
+    dtype = img1.dtype
+    assert img1.dtype == img2.dtype, 'img1.dtype=%r, img2.dtype=%r' % (img1.dtype, img2.dtype)
+    if nChannels == 3:
+        imgB = np.zeros((hB, wB, 3), dtype)
+        imgB[0:h1, 0:w1, :] = img1
+        imgB[hoff:(hoff + h2), woff:(woff + w2), :] = img2
+    elif nChannels == 1:
+        imgB = np.zeros((hB, wB), dtype)
+        imgB[0:h1, 0:w1] = img1
+        imgB[hoff:(hoff + h2), woff:(woff + w2)] = img2
+    if return_sf:
+        offset2 = (woff, hoff)
+        sf_tup = (tonew_sf1, tonew_sf2)
+        return imgB, offset2, sf_tup
+    else:
+        return imgB, woff, hoff
 
 
 def stack_image_recurse(img_list1, img_list2=None, vert=True):
+    r"""
+    Args:
+        img_list1 (list):
+        img_list2 (list):
+        vert (bool):
+
+    Returns:
+        ndarray: None
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-stack_image_recurse
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> # build test data
+        >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
+        >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+        >>> img3 = vt.imread(ut.grab_test_imgpath('ada.jpg'))
+        >>> img4 = vt.imread(ut.grab_test_imgpath('jeff.png'))
+        >>> img5 = vt.imread(ut.grab_test_imgpath('star.png'))
+        >>> img_list1 = [img1, img2, img3, img4, img5]
+        >>> img_list2 = None
+        >>> vert = True
+        >>> # execute function
+        >>> imgB = stack_image_recurse(img_list1, img_list2, vert)
+        >>> # verify results
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> imshow(imgB)
+        >>> #wh1 = img1.shape[0:2][::-1]
+        >>> #wh2 = img2.shape[0:2][::-1]
+        >>> #draw_bbox((0, 0) + wh1, bbox_color=(1, 0, 0))
+        >>> #draw_bbox((woff, hoff) + wh2, bbox_color=(0, 1, 0))
+        >>> pt.show_if_requested()
+    """
     if img_list2 is None:
         # Initialization and error checking
         if len(img_list1) == 0:
@@ -1993,97 +2238,9 @@ def stack_square_images(img_list):
         return img_list[0]
     num_vert = int(np.ceil(np.sqrt(len(img_list))))
     num_horiz = int(np.ceil(len(img_list) / float(num_vert)))
-    vert_patches = [stack_image_list(imgs, vert=True) for imgs in list(ut.ichunks(img_list, num_horiz))]
-    bigpatch = stack_image_list(vert_patches, vert=False)
+    vert_patches = [stack_image_list(imgs, vert=True, return_offset=False) for imgs in list(ut.ichunks(img_list, num_horiz))]
+    bigpatch = stack_image_list(vert_patches, vert=False, return_offset=False)
     return bigpatch
-
-
-def stack_images(img1, img2, vert=None, modifysize=False):
-    r"""
-    Args:
-        img1 (ndarray[uint8_t, ndim=2]):  image data
-        img2 (ndarray[uint8_t, ndim=2]):  image data
-        vert (None):
-        modifysize (bool):
-
-    Returns:
-        tuple: (imgB, woff, hoff)
-
-    CommandLine:
-        python -m plottool.draw_func2 --test-stack_images --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> # build test data
-        >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
-        >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
-        >>> vert = None
-        >>> modifysize = False
-        >>> # execute function
-        >>> (imgB, woff, hoff) = stack_images(img1, img2, vert, modifysize)
-        >>> # verify results
-        >>> result = str((imgB.shape, woff, hoff))
-        >>> print(result)
-        >>> if ut.show_was_requested():
-        >>>     import plottool as pt
-        >>>     imshow(imgB)
-        >>>     wh1 = img1.shape[0:2][::-1]
-        >>>     wh2 = img2.shape[0:2][::-1]
-        >>>     draw_bbox((0, 0) + wh1, bbox_color=(1, 0, 0))
-        >>>     draw_bbox((woff, hoff) + wh2, bbox_color=(0, 1, 0))
-        >>>     pt.show_if_requested()
-        ((762, 512, 3), 0, 250)
-    """
-    # TODO: move this to the same place I'm doing the color gradient
-    nChannels = gtool.get_num_channels(img1)
-    nChannels2 = gtool.get_num_channels(img2)
-    assert nChannels == nChannels2
-    def infer_vert(img1, img2, vert):
-        (h1, w1) = img1.shape[0: 2]  # get chip dimensions
-        (h2, w2) = img2.shape[0: 2]
-        woff, hoff = 0, 0
-        vert_wh  = max(w1, w2), h1 + h2
-        horiz_wh = w1 + w2, max(h1, h2)
-        if vert is None:
-            # Display the orientation with the better (closer to 1) aspect ratio
-            vert_ar  = max(vert_wh) / min(vert_wh)
-            horiz_ar = max(horiz_wh) / min(horiz_wh)
-            vert = vert_ar < horiz_ar
-        if vert:
-            wB, hB = vert_wh
-            hoff = h1
-        else:
-            wB, hB = horiz_wh
-            woff = w1
-        return vert, h1, h2, w1, w2, wB, hB, woff, hoff
-    vert, h1, h2, w1, w2, wB, hB, woff, hoff = infer_vert(img1, img2, vert)
-    if modifysize:
-        import vtool as vt
-        import cv2
-        index = 1 if vert else 0
-        if img1.shape[index] < img2.shape[index]:
-            scale = img2.shape[index] / img1.shape[index]
-            print(scale)
-            img1 = vt.resize_image_by_scale(img1, scale,
-                                            interpolation=cv2.INTER_NEAREST)
-        elif img2.shape[index] < img1.shape[index]:
-            scale = img1.shape[index] / img2.shape[index]
-            img2 = vt.resize_image_by_scale(img2, scale,
-                                            interpolation=cv2.INTER_NEAREST)
-        vert, h1, h2, w1, w2, wB, hB, woff, hoff = infer_vert(img1, img2, vert)
-    # concatentate images
-    dtype = img1.dtype
-    assert img1.dtype == img2.dtype, 'img1.dtype=%r, img2.dtype=%r' % (img1.dtype, img2.dtype)
-    if nChannels == 3:
-        imgB = np.zeros((hB, wB, 3), dtype)
-        imgB[0:h1, 0:w1, :] = img1
-        imgB[hoff:(hoff + h2), woff:(woff + w2), :] = img2
-    elif nChannels == 1:
-        imgB = np.zeros((hB, wB), dtype)
-        imgB[0:h1, 0:w1] = img1
-        imgB[hoff:(hoff + h2), woff:(woff + w2)] = img2
-    return imgB, woff, hoff
 
 
 def remove_patches(ax=None):

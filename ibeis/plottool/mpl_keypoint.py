@@ -89,6 +89,8 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> pt.iup()
         >>> pt.show_if_requested()
     """
+    if scale_factor is None:
+        scale_factor = 1.0
     #print('[mpl_keypoint.draw_keypoints] kwargs = ' + ut.dict_str(kwargs))
     # ellipse and point properties
     pts_size       = kwargs.get('pts_size', 2)
