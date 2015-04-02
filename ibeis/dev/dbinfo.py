@@ -160,30 +160,9 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     FILTER_HACK = True
     if FILTER_HACK:
         # HUGE HACK - get only images and names with filtered aids
-        def some(flags):
-            """ like any, but some at least one must be True """
-            return len(flags) != 0 and any(flags)
-
-        def filterflags_unflat_aids_custom(aids_list):
-            filtered_aids_list = ibs.unflat_map(ibs.get_annot_custom_filterflags, aids_list)
-            isvalid_list = list(map(some, filtered_aids_list))
-            return isvalid_list
-
-        def filter_nids_custom(nid_list):
-            aids_list = ibs.get_name_aids(nid_list)
-            isvalid_list = filterflags_unflat_aids_custom(aids_list)
-            filtered_nid_list = ut.filter_items(nid_list, isvalid_list)
-            return filtered_nid_list
-
-        def filter_gids_custom(gid_list):
-            aids_list = ibs.get_image_aids(gid_list)
-            isvalid_list = filterflags_unflat_aids_custom(aids_list)
-            filtered_gid_list = ut.filter_items(gid_list, isvalid_list)
-            return filtered_gid_list
-
         valid_aids_ = ibs.filter_aids_custom(valid_aids)
-        valid_nids_ = filter_nids_custom(valid_nids)
-        valid_gids_ = filter_gids_custom(valid_gids)
+        valid_nids_ = ibs.filter_nids_custom(valid_nids)
+        valid_gids_ = ibs.filter_gids_custom(valid_gids)
         print('Filtered %d names' % (len(valid_nids) - len(valid_nids_)))
         print('Filtered %d images' % (len(valid_gids) - len(valid_gids_)))
         print('Filtered %d annots' % (len(valid_aids) - len(valid_aids_)))

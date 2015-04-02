@@ -814,7 +814,7 @@ def vector_stats(vectors, name, verbose=True):
     ).split('\n')
     strlist_ = ut.parse_locals_keylist(locals(), key_list)
     line_list.extend(strlist_)
-    line_list.append(vectors)
+    #line_list.append(vectors)
     line_list.append('L--- Vector Stats --')
 
     statstr = '\n'.join(line_list)
@@ -984,18 +984,18 @@ def query_smk_test(annots_df, invindex, qreq_):
     smk_alpha     = qreq_.qparams.smk_alpha
     smk_thresh    = qreq_.qparams.smk_thresh
     lbl = '[smk_match] asmk query: ' if aggregate else '[smk_match] smk query: '
-    mark, end_ = ut.log_progress(lbl, len(qaids), freq=1, with_time=True, backspace=False)
+    #mark, end_ = ut.log_progress(lbl, len(qaids), freq=1, with_time=True, backspace=False)
     withinfo = True
-    for count, qaid in enumerate(qaids):
-        mark(count)
+    for qaid in ut.ProgressIter(enumerate(qaids), lbl=lbl, freq=1):
         daid2_score, daid2_chipmatch = smk_match.query_inverted_index(
             annots_df, qaid, invindex, withinfo, aggregate, smk_alpha, smk_thresh)
         qaid2_scores[qaid]    = daid2_score
         qaid2_chipmatch[qaid] = daid2_chipmatch
-    end_()
     try:
-        filt2_meta = {}
-        qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
+        #filt2_meta = {}
+        cm_list = convert_smkmatch_to_chipmatch(qaid2_chipmatch, qaid2_scores)
+        #qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
+        qaid2_qres_ = pipeline.chipmatch_to_resdict(qreq_, cm_list)
     except Exception as ex:
         ut.printex(ex)
         ut.qflag()
@@ -1003,10 +1003,36 @@ def query_smk_test(annots_df, invindex, qreq_):
     return qaid2_qres_
 
 
-def main():
+def convert_smkmatch_to_chipmatch(qaid2_chipmatch, qaid2_scores):
+    """ function to fix oldstyle chipmatches into newstyle that is accepted by the pipeline """
+    from ibeis.model.hots import chip_match
+    qaid_list = list(six.iterkeys(qaid2_chipmatch))
+    score_smk_list = ut.dict_take(qaid2_scores, qaid_list)
+    chipmatch_smk_list = ut.dict_take(qaid2_chipmatch, qaid_list)
+    aid2_H = None
+
+    def aid2_fs_to_fsv(aid2_fs):
+        return {aid: fs[:, None] for aid, fs in six.iteritems(aid2_fs)}
+
+    cmtup_old_list = [
+        (aid2_fm, aid2_fs_to_fsv(aid2_fs), aid2_fk, aid2_score, aid2_H)
+        for (aid2_fm, aid2_fs, aid2_fk), aid2_score in zip(chipmatch_smk_list, score_smk_list)
+    ]
+    cm_list = [
+        chip_match.ChipMatch2.from_cmtup_old(cmtup_old, qaid=qaid)
+        for qaid, cmtup_old in zip(qaid_list, cmtup_old_list)
+    ]
+    return cm_list
+
+
+def main_smk_debug():
     """
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_debug --test-main_smk_debug
+
     Example:
         >>> from ibeis.model.hots.smk.smk_debug import *  # NOQA
+        >>> main_smk_debug()
     """
     print('+------------')
     print('SMK_DEBUG MAIN')
@@ -1015,11 +1041,11 @@ def main():
     ibs, annots_df, taids, daids, qaids, qreq_, nWords = testdata_dataframe()
     # Query using SMK
     #qaid = qaids[0]
-    nWords    = qreq_.qparams.nWords
-    aggregate = qreq_.qparams.aggregate
+    nWords     = qreq_.qparams.nWords
+    aggregate  = qreq_.qparams.aggregate
     smk_alpha  = qreq_.qparams.smk_alpha
     smk_thresh = qreq_.qparams.smk_thresh
-    nAssign   = qreq_.qparams.nAssign
+    nAssign    = qreq_.qparams.nAssign
     #aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate
     #smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha
     #smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh
@@ -1056,8 +1082,11 @@ def main():
     print('+------------')
     print('SMK_DEBUG DISPLAY RESULT')
     print('+------------')
-    filt2_meta = {}
-    qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
+    cm_list = convert_smkmatch_to_chipmatch(qaid2_chipmatch, qaid2_scores)
+    #filt2_meta = {}
+    #qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
+    qaid2_qres_ = pipeline.chipmatch_to_resdict(qreq_, cm_list)
+    #qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)
     for count, (qaid, qres) in enumerate(six.iteritems(qaid2_qres_)):
         print('+================')
         #qres = qaid2_qres_[qaid]
@@ -1089,18 +1118,30 @@ def main():
     return locals()
 
 
+#if __name__ == '__main__':
+#    print('\n\n\n\n\n\n')
+#    from ibeis.model.hots.smk import smk_plots
+#    import multiprocessing
+#    from plottool import draw_func2 as df2
+#    mode = ut.get_argval('--mode', int, default=0)
+#    if mode == 0 or ut.get_argflag('--view-vocabs'):
+#        smk_plots.view_vocabs()
+#    else:
+#        np.set_printoptions(precision=2)
+#        multiprocessing.freeze_support()  # for win32
+#        main_locals = main_smk_debug()
+#        main_execstr = ut.execstr_dict(main_locals, 'main_locals')
+#        exec(main_execstr)
+#    exec(df2.present())
+
 if __name__ == '__main__':
-    print('\n\n\n\n\n\n')
-    from ibeis.model.hots.smk import smk_plots
+    """
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_debug
+        python -m ibeis.model.hots.smk.smk_debug --allexamples
+        python -m ibeis.model.hots.smk.smk_debug --allexamples --noface --nosrc
+    """
     import multiprocessing
-    from plottool import draw_func2 as df2
-    mode = ut.get_argval('--mode', int, default=0)
-    if mode == 0 or ut.get_argflag('--view-vocabs'):
-        smk_plots.view_vocabs()
-    else:
-        np.set_printoptions(precision=2)
-        multiprocessing.freeze_support()  # for win32
-        main_locals = main()
-        main_execstr = ut.execstr_dict(main_locals, 'main_locals')
-        exec(main_execstr)
-    exec(df2.present())
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

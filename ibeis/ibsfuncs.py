@@ -3753,6 +3753,32 @@ def filter_aids_count(ibs, aid_list=None, pre_unixtime_sort=True):
 
 
 @__injectable
+def filterflags_unflat_aids_custom(ibs, aids_list):
+    def some(flags):
+        """ like any, but some at least one must be True """
+        return len(flags) != 0 and any(flags)
+    filtered_aids_list = ibs.unflat_map(ibs.get_annot_custom_filterflags, aids_list)
+    isvalid_list = list(map(some, filtered_aids_list))
+    return isvalid_list
+
+
+@__injectable
+def filter_nids_custom(ibs, nid_list):
+    aids_list = ibs.get_name_aids(nid_list)
+    isvalid_list = ibs.filterflags_unflat_aids_custom(aids_list)
+    filtered_nid_list = ut.filter_items(nid_list, isvalid_list)
+    return filtered_nid_list
+
+
+@__injectable
+def filter_gids_custom(ibs, gid_list):
+    aids_list = ibs.get_image_aids(gid_list)
+    isvalid_list = ibs.filterflags_unflat_aids_custom(aids_list)
+    filtered_gid_list = ut.filter_items(gid_list, isvalid_list)
+    return filtered_gid_list
+
+
+@__injectable
 def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
     """
     CommandLine:
@@ -3791,9 +3817,74 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
     return nid_list, gps_track_list, aid_track_list
 
 
+@__injectable
 def get_name_speeds(ibs, nid_list):
-    gpss_list = ibs.unflat_map(ibs.get_image_gps, gids_list)
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        nid_list (list):
 
+    Returns:
+        ?: offending_nids
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_name_speeds
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('NNP_Master3')
+        >>> nid_list = ibs._get_all_known_nids()
+        >>> # execute function
+        >>> offending_nids = get_name_speeds(ibs, nid_list)
+        >>> # verify results
+        >>> result = str(offending_nids)
+        >>> print(result)
+    """
+    import scipy.spatial.distance as spdist
+    import functools
+    aids_list_ = ibs.get_name_aids(nid_list)
+    aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
+    latlons_list = ibs.unflat_map(ibs.get_annot_image_gps, aids_list)
+    unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes, aids_list)
+    # Define metrics
+    def unixtime_hourdiff(x, y):
+        return np.abs(np.subtract(x, y)) / (60 ** 2)
+    haversin_pdist = functools.partial(spdist.pdist, metric=ut.haversine)
+    unixtime_pdist = functools.partial(spdist.pdist, metric=unixtime_hourdiff)
+    # Convert to arrays
+    latlon_arrs = [np.array(latlons) for latlons in latlons_list]
+    unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
+    # Get distances
+    km_dists_list = [None if len(latlon_arr) < 2 else haversin_pdist(latlon_arr) for latlon_arr in latlon_arrs]
+    hour_dists_list = [None if len(unixtime_arr) < 2 else unixtime_pdist(unixtime_arr) for unixtime_arr in unixtime_arrs]
+    speeds_list = [km_dists / hours_dists if km_dists is not None else None for km_dists, hours_dists in zip(km_dists_list, hour_dists_list)]
+    return speeds_list
+
+
+@__injectable
+def get_name_max_speeds(ibs, nid_list):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('NNP_Master3')
+        >>> nid_list = ibs._get_all_known_nids()
+        >>> maxspeed_list = ibs.get_name_max_speeds(nid_list)
+
+    """
+    def max_(arr):
+        if arr is None:
+            return np.nan
+        else:
+            return arr.max()
+    speeds_list = ibs.get_name_speeds(nid_list)
+    maxspeed_list = np.array(list(map(max_, speeds_list)))
+    return maxspeed_list
 
 
 def find_location_disparate_splits(ibs):

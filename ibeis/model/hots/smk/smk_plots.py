@@ -291,7 +291,11 @@ def vizualize_vocabulary(ibs, invindex):
     """
     cleaned up version of dump_word_patches
 
-    Dev:
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_plots --test-vizualize_vocabulary
+        python -m ibeis.model.hots.smk.smk_plots --test-vizualize_vocabulary --vf
+
+    Example:
         >>> from ibeis.model.hots.smk.smk_plots import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> from ibeis.model.hots.smk import smk_repr
@@ -301,7 +305,7 @@ def vizualize_vocabulary(ibs, invindex):
         >>> tup = smk_debug.testdata_raw_internals0(db='PZ_Mothers', nWords=8000)
         >>> ibs, annots_df, daids, qaids, invindex, qreq_ = tup
         >>> smk_repr.compute_data_internals_(invindex, qreq_.qparams, delete_rawvecs=False)
-        >>> #aid = qaids[0]
+        >>> vizualize_vocabulary(ibs, invindex)
     """
     invindex.idx2_wxs = np.array(invindex.idx2_wxs)
 
@@ -315,13 +319,16 @@ def vizualize_vocabulary(ibs, invindex):
 
     # Compute Word Statistics
     metrics = compute_word_metrics(invindex)
-    (wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats) = metrics
+    wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats = metrics
+    #(wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats) = metrics
 
     #wx2_prad = {wx: pdist_stats['max'] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if 'max' in pdist_stats}
     #wx2_wrad = {wx: wdist_stats['max'] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if 'max' in wdist_stats}
 
-    wx2_prad = get_metric(metrics, 'wx2_pdist_stats', 'max')
-    wx2_wrad = get_metric(metrics, 'wx2_wdist_stats', 'max')
+    wx2_prad = {wx: stats['max'] for wx, stats in wx2_pdist_stats.items() if 'max' in stats}
+    wx2_wrad = {wx: stats['max'] for wx, stats in wx2_wdist_stats.items() if 'max' in stats}
+    #wx2_prad = get_metric(metrics, 'wx2_pdist_stats', 'max')
+    #wx2_wrad = get_metric(metrics, 'wx2_wdist_stats', 'max')
 
     wx_sample1 = select_by_metric(wx2_nMembers)
     wx_sample2 = select_by_metric(wx2_prad)
@@ -356,6 +363,18 @@ def get_cached_vocabs():
 def view_vocabs():
     """
     looks in vocab cachedir and prints info / vizualizes the vocabs
+
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_plots --test-view_vocabs --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.smk.smk_plots import *  # NOQA
+        >>> # build test data
+        >>> # execute function
+        >>> view_vocabs()
+        >>> ut.quit_if_noshow()
+        >>> ut.show_if_requested()
     """
     from vtool import clustering2 as clustertool
     import numpy as np
@@ -453,14 +472,15 @@ def plot_chip_metric(ibs, aid, metric=None, fnum=1, lbl='', figtitle='', colorty
         cb.set_label(lbl)
 
 
-def get_qres_and_closet_valid_k(ibs, aid, K=4):
+def get_qres_and_closest_valid_k(ibs, aid, K=4):
     """
-    >>> from ibeis.model.hots.smk.smk_plots import *  # NOQA
-    >>> import numpy as np
-    >>> from ibeis.model.hots import query_request
-    >>> import ibeis
-    >>> ibs = ibeis.opendb('testdb1')
-    >>> aid = 2
+    Example:
+        >>> from ibeis.model.hots.smk.smk_plots import *  # NOQA
+        >>> import numpy as np
+        >>> from ibeis.model.hots import query_request
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid = 2
     """
     # FIXME: Put query_cfg into the qreq_ structure by itself.
     # Don't change the IBEIS Structure
@@ -468,7 +488,8 @@ def get_qres_and_closet_valid_k(ibs, aid, K=4):
         'pipeline_root': 'vsmany',
         'with_metadata': True,
         'K': K,
-        'sv_on': False,
+        #'sv_on': False,
+        'sv_on': True,
         #K=4
     }
     #ibs.cfg.query_cfg.pipeline_root = 'vsmany'
@@ -476,6 +497,7 @@ def get_qres_and_closet_valid_k(ibs, aid, K=4):
     qaid2_qres, qreq_ = ibs.query_all([aid], use_cache=False, return_request=True, cfgdict=cfgdict)
     indexer = qreq_.indexer
     qres = qaid2_qres[aid]
+    return qres, None
     (qfx2_idx, qfx2_dist) = qres.metadata['nns']
     nid = ibs.get_annot_name_rowids(aid)
     qfx2_aids = indexer.get_nn_aids(qfx2_idx)
@@ -588,37 +610,44 @@ def viz_annot_with_metrics(ibs, invindex, aid, metrics,
         fnum = _plot(wxs, fnum=fnum, lbl='Words', colortype='label')
 
     # LNBNN Result Plots
-    for qres, qfx2_closest_k in zip(qres_list, qfx2_closest_k_list):
-        print('  --- qres item ---')
-        if qres is not None:
-            from ibeis.model.hots.hots_query_result import QueryResult
-            assert isinstance(qres, QueryResult)
-            if show_analysis:
-                qres.show_analysis(ibs=ibs, fnum=fnum, figtitle=qres.make_smaller_title())
-                fnum += 1
-            if show_aveprecision:
-                qres.show_precision_recall_curve(ibs=ibs, fnum=fnum)
-                fnum += 1
+    if qfx2_closest_k_list is not None:
+        for qres, qfx2_closest_k in zip(qres_list, qfx2_closest_k_list):
+            print('  --- qres item ---')
+            if qres is not None:
+                from ibeis.model.hots.hots_query_result import QueryResult
+                assert isinstance(qres, QueryResult)
+                if show_analysis:
+                    qres.show_analysis(ibs=ibs, fnum=fnum, figtitle=qres.make_smaller_title())
+                    fnum += 1
+                if show_aveprecision:
+                    qres.show_precision_recall_curve(ibs=ibs, fnum=fnum)
+                    fnum += 1
 
-        if qfx2_closest_k is not None:
-            # Plot ranked positions
-            qfx2_closest_k = np.array(qfx2_closest_k)
-            qfx2_closest_k_qeq0 = qfx2_closest_k[qfx2_closest_k >= 0]
-            qfx2_closest_k_lt0  = qfx2_closest_k[qfx2_closest_k < 0]
-            print('stats(qfx2_closest_k_qeq0) = ' + ut.get_stats_str(qfx2_closest_k_qeq0))
-            print('stats(qfx2_closest_k_lt0)  = ' + ut.get_stats_str(qfx2_closest_k_lt0))
-            fnum = _plot(qfx2_closest_k, fnum=fnum, lbl='Correct Ranks ' + qres.make_smaller_title(), colortype='custom', reverse_cmap=True)
+            if qfx2_closest_k is not None:
+                # Plot ranked positions
+                qfx2_closest_k = np.array(qfx2_closest_k)
+                qfx2_closest_k_qeq0 = qfx2_closest_k[qfx2_closest_k >= 0]
+                qfx2_closest_k_lt0  = qfx2_closest_k[qfx2_closest_k < 0]
+                print('stats(qfx2_closest_k_qeq0) = ' + ut.get_stats_str(qfx2_closest_k_qeq0))
+                print('stats(qfx2_closest_k_lt0)  = ' + ut.get_stats_str(qfx2_closest_k_lt0))
+                fnum = _plot(qfx2_closest_k, fnum=fnum, lbl='Correct Ranks ' + qres.make_smaller_title(), colortype='custom', reverse_cmap=True)
 
     # Correct word assignment plots
     if show_word_correct_assignments:
         unique_wxs, unique_inverse = np.unique(wxs, return_inverse=True)
-        _idxs_list = [invindex.wx2_idxs[wx] for wx in unique_wxs]
-        _aids_list = [invindex.idx2_daid[idxs] for idxs in _idxs_list]
-        # Check if this word will provide a correct assignment
+        # Get the aids that belong to each word
+        _idxs_list = ut.dict_take(invindex.wx2_idxs, unique_wxs)
+        _aids_list = [invindex.idx2_daid.take(idxs) for idxs in _idxs_list]
+        # Check if this word will provide a correct assignment -
+        # two ground truth chip exist within the same word
         gt_aids = np.array(ibs.get_annot_groundtruth(aid))
         _hastp_list = np.array([len(np.intersect1d(aids, gt_aids)) > 0 for aids in _aids_list])
-        hascorrectmatch = _hastp_list[unique_inverse].astype(np.int32) * 3 - 2
-        fnum = _plot(hascorrectmatch, fnum=fnum, lbl='Correct Words ' + qres.make_smaller_title(), colortype='custom', reverse_cmap=False)
+        # Map back to the space of features
+        # mark each feature match as having a correct word mapping or not
+        hascorrectmatch = _hastp_list[unique_inverse]
+        hascorrectmatch_ = hascorrectmatch.astype(np.int32) * 3 - 2
+        lbl = 'Correct Words ' + qres.make_smaller_title() + '\n Yellow means the word contains a correct match in the word\'s invindex. Blue is the opposite.'
+        fnum = _plot(hascorrectmatch_, fnum=fnum, lbl=lbl, colortype='custom', reverse_cmap=False)
 
     # Feature Weight Plots
     if show_featweights:
@@ -640,14 +669,23 @@ def viz_annot_with_metrics(ibs, invindex, aid, metrics,
         fnum = _plot(metric_list, fnum=fnum, lbl=lbl)
 
 
-def main():
+def smk_plots_main():
     """
     smk
-    python smk_plots.py --db PZ_Mothers --notoolbar
+    python smk_plots.py --db PZ_MTEST --notoolbar
+
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_plots --test-smk_plots_main
+        python -m ibeis.model.hots.smk.smk_plots --test-smk_plots_main --db PZ_MTEST --notoolbar
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.smk.smk_plots import *  # NOQA
+        >>> smk_plots_main()
     """
     from ibeis.model.hots.smk import smk_plots
     import utool as ut
-    from plottool import draw_func2 as df2
+    #from plottool import draw_func2 as df2
     kwargs = {
         #'db': 'GZ_ALL',
         #'db': 'PZ_MTEST',
@@ -677,22 +715,22 @@ def main():
     startx = ut.get_argval(('--startx', '--x'), int, default=min(18, len(valid_aids) - 1))
 
     for aid in ut.InteractiveIter(valid_aids, startx=startx):
-        df2.rrr()
-        smk_plots.rrr()
+        #df2.rrr()
+        #smk_plots.rrr()
         print('[smk_plot] visualizing annotation aid=%r' % (aid,))
         kwargs = smk_plots.main_options()
         qres_list = []
         qfx2_closest_k_list = []
         K_list = kwargs.pop('K_list')
         for K in K_list:
-            qres, qfx2_closest_k = smk_plots.get_qres_and_closet_valid_k(ibs, aid, K=K)
+            qres, qfx2_closest_k = smk_plots.get_qres_and_closest_valid_k(ibs, aid, K=K)
             qres_list.append(qres)
             qfx2_closest_k_list.append(qfx2_closest_k)
         smk_plots.viz_annot_with_metrics(ibs, invindex, aid, metrics,
                                          qfx2_closest_k_list=qfx2_closest_k_list,
                                          qres_list=qres_list, **kwargs)
         smk_plots.present()
-    return execstr
+    #return execstr
 
 
 def present():
@@ -724,9 +762,25 @@ def main_options():
     return kwargs
 
 
+#if __name__ == '__main__':
+#    """
+#    >>> aid = 1
+#    """
+#    execstr = smk_plots_main()
+#    #exec(execstr)
+
 if __name__ == '__main__':
     """
-    >>> aid = 1
+    python -m ibeis.model.hots.smk.smk_plots --test-view_vocabs --show
+    python -m ibeis.model.hots.smk.smk_debug --test-main_smk_debug
+    python -m ibeis.model.hots.smk.smk_plots --test-smk_plots_main --db PZ_MTEST --notoolbar
+
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_plots
+        python -m ibeis.model.hots.smk.smk_plots --allexamples
+        python -m ibeis.model.hots.smk.smk_plots --allexamples --noface --nosrc
     """
-    execstr = main()
-    #exec(execstr)
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

@@ -1403,6 +1403,21 @@ def get_annot_image_unixtimes(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+def get_annot_image_gps(ibs, aid_list):
+    """
+    Args:
+        aid_list (list):
+
+    Returns:
+        list: unixtime_list
+    """
+    gid_list = ibs.get_annot_gids(aid_list)
+    gps_list = ibs.get_image_gps(gid_list)
+    return gps_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 def get_annot_image_paths(ibs, aid_list):
     """
     Args:
