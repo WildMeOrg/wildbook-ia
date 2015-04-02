@@ -716,19 +716,23 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         qaid = cm.qaid
         nidx = cm.nid2_nidx[dnid]
         groupxs = cm.name_groupxs[nidx]
-        # TODO: Flag nonvoting features and then this visualization is complete.
-        # flag_namescore_nonvoting_features
+        # find features marked as invalid by name scoring
+        featflag_list  = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=qreq_)
+        # sort annots in this name by the chip score
         sorted_groupxs = groupxs.take(cm.csum_score_list.take(groupxs).argsort()[::-1])
+        # get the info for this name
         name_daid_list = ut.list_take(cm.daid_list, sorted_groupxs)
         name_fm_list   = ut.list_take(cm.fm_list, sorted_groupxs)
         name_H1_list   = None if not homog or cm.H_list is None else ut.list_take(cm.H_list, sorted_groupxs)
         name_fsv_list  = None if cm.fsv_list is None else ut.list_take(cm.fsv_list, sorted_groupxs)
         name_fs_list   = None if name_fsv_list is None else [fsv.prod(axis=1) for fsv in name_fsv_list]
+        name_featflag_list = ut.list_take(featflag_list, sorted_groupxs)
+
         #showkw = dict(fm=fm, fs=fs, H1=H1, fnum=fnum, pnum=pnum, **kwargs)
         #viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_, **showkw)
-        viz_matches.show_name_matches(qreq_.ibs, qaid, name_daid_list,
-                                      name_fm_list, name_fs_list, name_H1_list,
-                                      qreq_=qreq_, **kwargs)
+        viz_matches.show_name_matches(
+            qreq_.ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
+            name_H1_list, name_featflag_list, qreq_=qreq_, **kwargs)
 
     def show_single_annotmatch(cm, qreq_, daid=None, fnum=None, pnum=None, homog=ut.get_argflag('--homog'), **kwargs):
         """

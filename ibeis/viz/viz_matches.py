@@ -33,7 +33,7 @@ def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches):
     return rchip2_list, kpts2_list
 
 
-def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, qreq_=None, **kwargs):
+def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, name_featflag_list, qreq_=None, **kwargs):
     """
     kwargs = {}
     draw_fmatches = True
@@ -49,20 +49,25 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, nam
         >>> func = chip_match.ChipMatch2.show_single_namematch
         >>> sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
         >>> setup = ut.regex_replace('viz_matches.show_name_matches', '#', sourcecode)
-        >>> print(setup)
+        >>> print(ut.indent(setup, '>>> '))
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
         >>> cm = cm_list[0]
         >>> cm.score_nsum(qreq_)
-        >>> qaid = cm.qaid
         >>> dnid = ibs.get_annot_nids(cm.qaid)
+        >>> qaid = cm.qaid
         >>> nidx = cm.nid2_nidx[dnid]
         >>> groupxs = cm.name_groupxs[nidx]
-        >>> name_daid_list = ut.list_take(cm.daid_list, groupxs)
-        >>> name_fm_list   = ut.list_take(cm.fm_list, groupxs)
-        >>> homog = False
-        >>> name_H1_list   = None if not homog or cm.H_list is None else ut.list_take(cm.H_list, groupxs)
-        >>> name_fsv_list  = None if cm.fsv_list is None else ut.list_take(cm.fsv_list, groupxs)
+        >>> # find features marked as invalid by name scoring
+        >>> featflag_list  = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=qreq_)
+        >>> # sort annots in this name by the chip score
+        >>> sorted_groupxs = groupxs.take(cm.csum_score_list.take(groupxs).argsort()[::-1])
+        >>> # get the info for this name
+        >>> name_daid_list = ut.list_take(cm.daid_list, sorted_groupxs)
+        >>> name_fm_list   = ut.list_take(cm.fm_list, sorted_groupxs)
+        >>> name_H1_list   = None if not homog or cm.H_list is None else ut.list_take(cm.H_list, sorted_groupxs)
+        >>> name_fsv_list  = None if cm.fsv_list is None else ut.list_take(cm.fsv_list, sorted_groupxs)
         >>> name_fs_list   = None if name_fsv_list is None else [fsv.prod(axis=1) for fsv in name_fsv_list]
+        >>> name_featflag_list = ut.list_take(featflag_list, sorted_groupxs)
         >>> kwargs = {}
         >>> show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, qreq_=qreq_, **kwargs)
         >>> ut.quit_if_noshow()
@@ -73,10 +78,11 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, nam
     rchip2_list, kpts2_list = get_data_annot_pair_info(ibs, name_daid_list, qreq_, draw_fmatches)
     fm_list = name_fm_list
     fs_list = name_fs_list
-    show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_list)
+    featflag_list = name_featflag_list
+    show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_list, featflag_list, **kwargs)
 
 
-def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_list, fnum=None, pnum=None):
+def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_list, featflag_list, fnum=None, pnum=None, **kwargs):
     """ move to df2
     rchip = rchip1
     H = H1 = None
@@ -110,13 +116,26 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_lis
 
     fig, ax = pt.imshow(match_img, fnum=fnum, pnum=pnum)
 
-    for offset2, wh2, sf2, kpts2, fm2, fs2 in zip(offset_list[1:], wh_list[1:], sf_list[1:], kpts2_list, fm_list, fs_list):
+    NONVOTE_MODE = kwargs.get('nonvote_mode', 'filter')
+    for _tup in zip(offset_list[1:], wh_list[1:], sf_list[1:], kpts2_list, fm_list, fs_list, featflag_list):
+        offset2, wh2, sf2, kpts2, fm2_, fs2_, featflags = _tup
         xywh1 = (offset1[0], offset1[1], wh1[0], wh1[1])
         xywh2 = (offset2[0], offset2[1], wh2[0], wh2[1])
+        #colors = pt.scores_to_color(fs2)
         if kpts1 is not None and kpts2 is not None:
+            if NONVOTE_MODE == 'filter':
+                fm2 = fm2_.compress(featflags, axis=0)
+                fs2 = fs2_.compress(featflags, axis=0)
+            elif NONVOTE_MODE == 'only':
+                fm2 = fm2_.compress(np.logical_not(featflags), axis=0)
+                fs2 = fs2_.compress(np.logical_not(featflags), axis=0)
+            else:
+                # TODO: optional coloring of nonvotes instead
+                fm2 = fm2_
+                fs2 = fs2_
             pt.plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm2, fs2, fm_norm=None,
                            H1=None, H2=None, scale_factor1=sf1,
-                           scale_factor2=sf2, colorbar_=False)
+                           scale_factor2=sf2, colorbar_=False, **kwargs)
 
     # Show the stacked chips
     #annotate_matches2(ibs, aid1, aid2, fm, fs, xywh2=xywh2, xywh1=xywh1,

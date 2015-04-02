@@ -171,6 +171,7 @@ def compute_nsum_score(cm, qreq_=None):
     return nsum_nid_list, nsum_score_list
 
 
+@profile
 def compute_nsum_score2(cm, qreq_=None):
     """
     Example3:
@@ -183,6 +184,18 @@ def compute_nsum_score2(cm, qreq_=None):
         >>> ut.quit_if_noshow()
         >>> cm.show_ranked_matches(qreq_, ori=True)
     """
+    featflag_list = get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_)
+    fs_list = cm.get_fsv_prod_list()
+    name_groupxs = cm.name_groupxs
+    valid_fs_list = vt.zipcompress(fs_list, featflag_list)
+    name_grouped_valid_fs_list = vt.apply_grouping_(valid_fs_list,  name_groupxs)
+    nsum_nid_list = cm.dnid_list
+    nsum_score_list = [sum(list(map(np.sum, valid_fs_group))) for valid_fs_group in name_grouped_valid_fs_list]
+    return nsum_nid_list, nsum_score_list, featflag_list
+
+
+@profile
+def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
     HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
     # The core for each feature match
     fs_list = cm.get_fsv_prod_list()
@@ -191,14 +204,12 @@ def compute_nsum_score2(cm, qreq_=None):
     kpts1 = None if not HACK_SINGLE_ORI else qreq_.ibs.get_annot_kpts(cm.qaid, config2_=qreq_.get_external_query_config2())
     dnid_list = cm.dnid_list
     name_groupxs = cm.name_groupxs
-    isvalids_list = flag_namescore_nonvoting_features(fm_list, fs_list, dnid_list, name_groupxs, kpts1=kpts1)
-    name_grouped_valid_fs_list = vt.apply_grouping_(vt.zipcompress(fs_list, isvalids_list),  name_groupxs)
-    nsum_nid_list = dnid_list
-    nsum_score_list = [sum(list(map(np.sum, valid_fs_group))) for valid_fs_group in name_grouped_valid_fs_list]
-    return nsum_nid_list, nsum_score_list, isvalids_list
+    featflag_list = get_namescore_nonvoting_feature_flags(fm_list, fs_list, dnid_list, name_groupxs, kpts1=kpts1)
+    return featflag_list
 
 
-def flag_namescore_nonvoting_features(fm_list, fs_list, dnid_list, name_groupxs, kpts1=None):
+@profile
+def get_namescore_nonvoting_feature_flags(fm_list, fs_list, dnid_list, name_groupxs, kpts1=None):
     """
     fm_list = [fm[:min(len(fm), 10)] for fm in fm_list]
     fs_list = [fs[:min(len(fs), 10)] for fs in fs_list]
@@ -221,7 +232,7 @@ def flag_namescore_nonvoting_features(fm_list, fs_list, dnid_list, name_groupxs,
         name_group_fx1_groupxs_list = xyid_groupxs_list
     else:
         # Make nested group for every name by query feature index
-        fx1_groupxs_list = (vt.group_indices(fx1_flat)[1] for fx1_flat in name_grouped_fx1_flat)
+        fx1_groupxs_list = [vt.group_indices(fx1_flat)[1] for fx1_flat in name_grouped_fx1_flat]
         name_group_fx1_groupxs_list = fx1_groupxs_list
     name_grouped_fid_grouped_fs_list = [
         vt.apply_grouping(fs_flat, fid_groupxs)
@@ -248,10 +259,11 @@ def flag_namescore_nonvoting_features(fm_list, fs_list, dnid_list, name_groupxs,
     ]
 
     # Reports which features were valid in name scoring for every annotation
-    isvalids_list = vt.invert_apply_grouping(name_grouped_isvalid_unflat_list, name_groupxs)
-    return isvalids_list
+    featflag_list = vt.invert_apply_grouping(name_grouped_isvalid_unflat_list, name_groupxs)
+    return featflag_list
 
 
+@profile
 def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list):
     """
     takes name scores and gives them to the best annotation
@@ -366,6 +378,7 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
 #    annot_idx_list = np.add(baseindex_list, offset_list)
 
 
+@profile
 def group_scores_by_name(ibs, aid_list, score_list):
     """
     Converts annotation scores to name scores.
