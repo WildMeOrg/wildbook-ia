@@ -3914,6 +3914,29 @@ def find_location_disparate_splits(ibs):
     #gpsdist_matrix_list = list(map(spdist.squareform, gpsdist_vector_list))
 
 
+def find_offending_contributors(ibs):
+    lat_min, lon_min = (-1.340726, 36.792234)
+    lat_max, lon_max = (-1.341633, 36.793340)
+    gid_list = ibs.get_valid_gids()
+    gps_list = ibs.get_image_gps(gid_list)
+
+    gid_list_filtered = [
+        gid
+        for gid, (lat, lon) in zip(gid_list, gps_list)
+        if lat_min >= lat and lat >= lat_max  and lon_min <= lon and lon <= lon_max
+    ]
+    contrib_list_filtered = ibs.get_image_contributor_tag(gid_list_filtered)
+
+    contribs = {}
+    for gid, contrib in zip(gid_list_filtered, contrib_list_filtered):
+        if contrib not in contribs:
+            contribs[contrib] = []
+        contribs[contrib].append(gid)
+
+    lengths_list = list(zip(contribs.keys(), [ len(contribs[k]) for k in contribs.keys() ]))
+    print(lengths_list)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
