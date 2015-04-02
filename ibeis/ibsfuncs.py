@@ -3795,7 +3795,6 @@ def get_name_speeds(ibs, nid_list):
     gpss_list = ibs.unflat_map(ibs.get_image_gps, gids_list)
 
 
-
 def find_location_disparate_splits(ibs):
     """
     CommandLine:
@@ -3922,6 +3921,7 @@ def find_location_disparate_splits(ibs):
     #gpsdist_matrix_list = list(map(spdist.squareform, gpsdist_vector_list))
 
 
+@__injectable
 def find_offending_contributors(ibs):
     lat_min, lon_min = (-1.340726, 36.792234)
     lat_max, lon_max = (-1.341633, 36.793340)
