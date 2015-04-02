@@ -3843,6 +3843,7 @@ def get_unflat_annots_hourdists_list(ibs, aids_list):
     """
     assert all(list(map(ut.isunique, aids_list)))
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes, aids_list)
+    assert all(list(map(ut.isunique, unixtimes_list)))
     unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
     hour_dists_list = [ut.safe_pdist(unixtime_arr, metric=ut.unixtime_hourdiff) for unixtime_arr in unixtime_arrs]
     return hour_dists_list
