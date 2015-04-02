@@ -141,7 +141,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         >>> from ibeis.dev.dbinfo import *  # NOQA
         >>> import ibeis
         >>> verbose = True
-        >>> ibs = ibeis.opendb(db='testdb2')
+        >>> ibs = ibeis.opendb(db=ut.get_argval('--db', default='testdb2'))
         >>> #ibs = ibeis.opendb(db='NNP_Master3')
         >>> output = get_dbinfo(ibs, verbose=False)
         >>> result = (output['info_str'])
@@ -311,6 +311,16 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     qualtext2_nAnnots = ut.odict([(key, len(qualtext2_aids.get(key, []))) for key in qual_keys])
     yawtext2_nAnnots = ut.odict([(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
 
+    # Contributor Statistics
+    image_contrib_tags = ibs.get_image_contributor_tag(valid_gids)
+    contrib_tag_to_gids = ut.group_items(valid_gids, image_contrib_tags)
+
+    annot_contrib_tags = ibs.get_annot_image_contributor_tag(valid_aids)
+    contrib_tag_to_aids = ut.group_items(valid_gids, annot_contrib_tags)
+
+    contrib_tag_to_nImages = {key: len(val) for key, val in six.iteritems(contrib_tag_to_gids)}
+    contrib_tag_to_nAnnots = {key: len(val) for key, val in six.iteritems(contrib_tag_to_aids)}
+
     # Summarize stats
     num_names = len(valid_nids)
     num_names_unassociated = len(valid_nids) - len(associated_nids)
@@ -392,12 +402,17 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         ('--' * num_tabs),
         ('# Annots per Name (multiton) = %s' % (align2(multiton_stats),)),
         ('# Annots per Image           = %s' % (align2(gx2_nAnnots_stats),)),
-        ('# Annots per Species         = %s' % (align2(ut.dict_str(species2_nAids)),)),
+        ('# Annots per Species         = %s' % (align_dict2(species2_nAids),)),
     ]
 
     qualview_block_lines = [
         '# Annots per Viewpoint = %s' % align_dict2(yawtext2_nAnnots),
         '# Annots per Quality = %s' % align_dict2(qualtext2_nAnnots),
+    ]
+
+    contrib_block_lines = [
+        '# Images per contributor       = ' + align_dict2(contrib_tag_to_nImages),
+        '# Annots per contributor       = ' + align_dict2(contrib_tag_to_nAnnots),
     ]
 
     img_block_lines = [
@@ -417,6 +432,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         annot_block_lines +
         qualview_block_lines +
         img_block_lines +
+        contrib_block_lines +
         imgsize_stat_lines +
         [('L============================'), ]
     )

@@ -2474,6 +2474,14 @@ def set_annot_is_washedout(ibs, aid_list, annot_is_washedout_list, duplicate_beh
                id_iter, duplicate_behavior=duplicate_behavior)
 
 
+@register_ibs_method
+@accessor_decors.getter
+def get_annot_image_contributor_tag(ibs, aid_list):
+    gid_list = ibs.get_annot_gids(aid_list)
+    contrib_tag_list = ibs.get_image_contributor_tag(gid_list)
+    return contrib_tag_list
+
+
 #==========
 # Testdata
 #==========
