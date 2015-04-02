@@ -240,7 +240,7 @@ def ingest_testdb1(dbname):
         new_gps_list = randstate.rand(len(gid_list), 2)
         new_gps_list[:, 0] = (new_gps_list[:, 0] * valid_lat_range) + valid_lat_min
         new_gps_list[:, 1] = (new_gps_list[:, 1] * valid_lon_range) + valid_lon_min
-        #new_gps_list[8, :] = [-1, -1]
+        new_gps_list[8, :] = [-1, -1]
         #ut.embed()
         ibs.set_image_gps(gid_list, new_gps_list)
         return None

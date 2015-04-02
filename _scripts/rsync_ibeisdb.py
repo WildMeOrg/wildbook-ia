@@ -96,6 +96,7 @@ if __name__ == '__main__':
 
         python _scripts/rsync_ibeisdb.py pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy --dryrun
         python _scripts/rsync_ibeisdb.py pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy
+        python _scripts/rsync_ibeisdb.py pull --db NNP_Master3 --user jonc --remote pachy
     """
     import sys
     default_user = ut.get_user_name()

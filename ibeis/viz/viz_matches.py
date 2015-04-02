@@ -42,7 +42,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, nam
         python -m ibeis.viz.viz_matches --test-show_name_matches --show --verobse
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots import chip_match
         >>> from ibeis.viz.viz_matches import *  # NOQA
         >>> from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
@@ -151,7 +151,7 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
     Integrate ChipMatch2
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.chip_match import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
         >>> cm = cm_list[0]

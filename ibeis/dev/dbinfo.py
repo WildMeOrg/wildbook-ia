@@ -327,8 +327,10 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
 
     # Contributor Statistics
     # hack remove colon for image alignment
-    image_contrib_tags = [tag.replace(':', ';') for tag in ibs.get_image_contributor_tag(valid_gids)]
-    annot_contrib_tags = [tag.replace(':', ';') for tag in ibs.get_annot_image_contributor_tag(valid_aids)]
+    def fix_tag_list(tag_list):
+        return [None if tag is None else tag.replace(':', ';') for tag in tag_list]
+    image_contrib_tags = fix_tag_list(ibs.get_image_contributor_tag(valid_gids))
+    annot_contrib_tags = fix_tag_list(ibs.get_annot_image_contributor_tag(valid_aids))
     contrib_tag_to_gids = ut.group_items(valid_gids, image_contrib_tags)
     contrib_tag_to_aids = ut.group_items(valid_aids, annot_contrib_tags)
 
