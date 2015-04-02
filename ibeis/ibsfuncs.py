@@ -726,6 +726,9 @@ def check_name_consistency(ibs, nid_list):
 
 @__injectable
 def check_name_mapping_consistency(ibs, nx2_aids):
+    """
+    checks that all the aids grouped in a name ahave the same name
+    """
     # DEBUGGING CODE
     try:
         from ibeis import ibsfuncs
@@ -3818,70 +3821,124 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
 
 
 @__injectable
+def get_unflat_annots_kmdists_list(ibs, aids_list):
+    #ibs.check_name_mapping_consistency(aids_list)
+    latlons_list = ibs.unflat_map(ibs.get_annot_image_gps, aids_list)
+    latlon_arrs   = [np.array(latlons) for latlons in latlons_list]
+    km_dists_list   = [ut.safe_pdist(latlon_arr, metric=ut.haversine) for latlon_arr in latlon_arrs]
+    return km_dists_list
+
+
+@__injectable
+def get_unflat_annots_hourdists_list(ibs, aids_list):
+    """
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> ibs = testdata_ibs('NNP_Master3')
+        >>> nid_list = get_valid_multiton_nids_custom(ibs)
+        >>> aids_list_ = ibs.get_name_aids(nid_list)
+        >>> aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
+
+    """
+    assert all(list(map(ut.isunique, aids_list)))
+    unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes, aids_list)
+    unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
+    hour_dists_list = [ut.safe_pdist(unixtime_arr, metric=ut.unixtime_hourdiff) for unixtime_arr in unixtime_arrs]
+    return hour_dists_list
+
+
+@__injectable
+def get_unflat_annots_speeds_list(ibs, aids_list):
+    km_dists_list   = ibs.get_unflat_annots_kmdists_list(aids_list)
+    hour_dists_list = ibs.get_unflat_annots_hourdists_list(aids_list)
+    speeds_list     = [ut.safe_div(km_dists, hours_dists) for km_dists, hours_dists in zip(km_dists_list, hour_dists_list)]
+    return speeds_list
+
+
+def testdata_ibs(defaultdb='testdb1'):
+    import ibeis
+    ibs = ibeis.opendb(defaultdb=defaultdb)
+    return ibs
+
+
+def get_valid_multiton_nids_custom(ibs):
+    nid_list_ = ibs._get_all_known_nids()
+    ismultiton_list = [len(ibs.filter_aids_custom(aids)) > 1 for aids in ibs.get_name_aids(nid_list_)]
+    nid_list = ut.list_compress(nid_list_, ismultiton_list)
+    return nid_list
+
+
+@__injectable
 def get_name_speeds(ibs, nid_list):
     r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        nid_list (list):
-
-    Returns:
-        ?: offending_nids
-
     CommandLine:
         python -m ibeis.ibsfuncs --test-get_name_speeds
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('NNP_Master3')
-        >>> nid_list = ibs._get_all_known_nids()
-        >>> # execute function
-        >>> offending_nids = get_name_speeds(ibs, nid_list)
-        >>> # verify results
-        >>> result = str(offending_nids)
+        >>> ibs = testdata_ibs('NNP_Master3')
+        >>> nid_list = get_valid_multiton_nids_custom(ibs)
+        >>> speeds_list = get_name_speeds(ibs, nid_list)
+        >>> result = str(speeds_list)
         >>> print(result)
     """
-    import scipy.spatial.distance as spdist
-    import functools
     aids_list_ = ibs.get_name_aids(nid_list)
+    #ibs.check_name_mapping_consistency(aids_list_)
     aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
-    latlons_list = ibs.unflat_map(ibs.get_annot_image_gps, aids_list)
-    unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes, aids_list)
-    # Define metrics
-    def unixtime_hourdiff(x, y):
-        return np.abs(np.subtract(x, y)) / (60 ** 2)
-    haversin_pdist = functools.partial(spdist.pdist, metric=ut.haversine)
-    unixtime_pdist = functools.partial(spdist.pdist, metric=unixtime_hourdiff)
-    # Convert to arrays
-    latlon_arrs = [np.array(latlons) for latlons in latlons_list]
-    unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
-    # Get distances
-    km_dists_list = [None if len(latlon_arr) < 2 else haversin_pdist(latlon_arr) for latlon_arr in latlon_arrs]
-    hour_dists_list = [None if len(unixtime_arr) < 2 else unixtime_pdist(unixtime_arr) for unixtime_arr in unixtime_arrs]
-    speeds_list = [km_dists / hours_dists if km_dists is not None else None for km_dists, hours_dists in zip(km_dists_list, hour_dists_list)]
+    speeds_list = ibs.get_unflat_annots_speeds_list(aids_list)
     return speeds_list
 
 
 @__injectable
 def get_name_max_speed(ibs, nid_list):
     """
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_name_max_speed
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> ibs = testdata_ibs('NNP_Master3')
+        >>> nid_list = ibs.filter_nids_custom(ibs._get_all_known_nids())
+        >>> maxspeed_list = ibs.get_name_max_speed(nid_list)
+        >>> result = maxspeed_list
+        >>> print(maxspeed_list)
+    """
+    speeds_list = ibs.get_name_speeds(nid_list)
+    maxspeed_list = np.array(list(map(ut.safe_max, speeds_list)))
+    return maxspeed_list
+
+
+def get_fastest_names(ibs, nid_list=None):
+    r"""
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_fastest_names
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('NNP_Master3')
-        >>> nid_list = ibs._get_all_known_nids()
-        >>> maxspeed_list = ibs.get_name_max_speed(nid_list)
-
+        >>> ibs = testdata_ibs('NNP_Master3')
+        >>> nid_list = None
+        >>> # execute function
+        >>> nid_list_, maxspeed_list_ = get_fastest_names(ibs, nid_list)
+        >>> # verify results
+        >>> result = str(list(zip(nid_list_, maxspeed_list_))[0:10])
+        >>> print(result)
     """
-    def max_(arr):
-        return np.nan if arr is None else arr.max()
-    speeds_list = ibs.get_name_speeds(nid_list)
-    maxspeed_list = np.array(list(map(max_, speeds_list)))
-    return maxspeed_list
+    if nid_list is None:
+        nid_list = ibs._get_all_known_nids()
+    maxspeed_list = ibs.get_name_max_speed(nid_list)
+    # filter nans
+    notnan_flags = ~np.isnan(maxspeed_list)
+    maxspeed_list__ = maxspeed_list.compress(notnan_flags)
+    nid_list__      = np.array(nid_list).compress(notnan_flags)
+    # sort by speed
+    sortx = maxspeed_list__.argsort()[::-1]
+    nid_list_      = nid_list__.take(sortx)
+    maxspeed_list_ = maxspeed_list__.take(sortx)
+    return nid_list_, maxspeed_list_
 
 
 def find_location_disparate_splits(ibs):
