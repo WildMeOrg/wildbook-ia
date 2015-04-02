@@ -430,8 +430,8 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     contrib_block_lines = [
         '# Images per contributor       = ' + align_dict2(contrib_tag_to_nImages),
         '# Annots per contributor       = ' + align_dict2(contrib_tag_to_nAnnots),
-        '# Quality per contributor      = ' + ut.dict_str(contrib_tag_to_qualstats),
-        '# Viewpoint per contributor    = ' + ut.dict_str(contrib_tag_to_viewstats),
+        '# Quality per contributor      = ' + ut.dict_str(contrib_tag_to_qualstats, sorted_=True),
+        '# Viewpoint per contributor    = ' + ut.dict_str(contrib_tag_to_viewstats, sorted_=True),
     ]
 
     img_block_lines = [
