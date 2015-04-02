@@ -238,8 +238,8 @@ def view():
 
     # Calculate the Petersen-Lincoln index form the last two days
     try:
-        c1 = bar_value_list1[-1]
-        c2 = bar_value_list1[-2]
+        c1 = bar_value_list1[-2]
+        c2 = bar_value_list1[-1]
         c3 = bar_value_list3[-1]
         pl_index = int(math.ceil( (c1 * c2) / c3 ))
         pl_error_num = float(c1 * c1 * c2 * (c2 - c3))
