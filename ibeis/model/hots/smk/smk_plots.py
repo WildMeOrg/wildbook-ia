@@ -679,7 +679,7 @@ def smk_plots_main():
         python -m ibeis.model.hots.smk.smk_plots --test-smk_plots_main --db PZ_MTEST --notoolbar
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.smk.smk_plots import *  # NOQA
         >>> smk_plots_main()
     """
