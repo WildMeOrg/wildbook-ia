@@ -330,7 +330,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     image_contrib_tags = [tag.replace(':', ';') for tag in ibs.get_image_contributor_tag(valid_gids)]
     annot_contrib_tags = [tag.replace(':', ';') for tag in ibs.get_annot_image_contributor_tag(valid_aids)]
     contrib_tag_to_gids = ut.group_items(valid_gids, image_contrib_tags)
-    contrib_tag_to_aids = ut.group_items(valid_gids, annot_contrib_tags)
+    contrib_tag_to_aids = ut.group_items(valid_aids, annot_contrib_tags)
 
     contrib_tag_to_qualstats = {key: get_annot_qual_stats(aids) for key, aids in six.iteritems(contrib_tag_to_aids)}
     contrib_tag_to_viewstats = {key: get_annot_yaw_stats(aids) for key, aids in six.iteritems(contrib_tag_to_aids)}
