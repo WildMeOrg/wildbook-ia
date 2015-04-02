@@ -1,7 +1,7 @@
 # -*- mode: python -*-
 import os
 import sys
-from os.path import join, exists, realpath
+from os.path import join, exists, realpath, abspath
 import utool
 # import utool
 
@@ -156,6 +156,8 @@ if APPLE:
     DATATUP_LIST.append((libbsddb_dst, libbsddb_src))
     libgomp_src = '/opt/local/lib/libgomp.dylib'
     BINARYTUP_LIST.append(('libgomp.1.dylib', libgomp_src, 'BINARY'))
+    libgomp_src = '/Users/bluemellophone/code/libomp_oss/exports/mac_32e/lib.thin/libiomp5.dylib'
+    BINARYTUP_LIST.append(('libiomp5.dylib', libgomp_src, 'BINARY'))
 if LINUX:
     libgomp_src = utool.search_in_dirs('libgomp.so.1', linux_lib_dpaths)
     #libgomp_src = join('/usr', 'lib',  'libgomp.so.1')
@@ -221,7 +223,7 @@ if APPLE:
             DATATUP_LIST.append((toc_dst, toc_src))
 
 ##################################
-# Documentation and Icon
+# Documentation, Icons, and Web Assets
 ##################################
 # Documentation
 #userguide_dst = join('.', '_docs', 'IBEISUserGuide.pdf')
@@ -236,6 +238,27 @@ iconfile = join('_installers', 'ibsicon' + ICON_EXT)
 icon_src = join(root_dir, iconfile)
 icon_dst = join(ibsbuild, iconfile)
 DATATUP_LIST.append((icon_dst, icon_src))
+
+# Web Assets
+web_root = join('ibeis', 'web/')
+walk_path = join(web_root, 'static')
+for root, dirs, files in os.walk(walk_path):
+    root2 = root.replace(web_root, '')
+    for icon_fname in files:
+        if '.DS_Store' not in icon_fname:
+            toc_src = join(abspath(root), icon_fname)
+            toc_dst = join(root2, icon_fname)
+            DATATUP_LIST.append((toc_dst, toc_src))
+
+web_root = join('ibeis', 'web/')
+walk_path = join(web_root, 'templates')
+for root, dirs, files in os.walk(walk_path):
+    root2 = root.replace(web_root, '')
+    for icon_fname in files:
+        if '.DS_Store' not in icon_fname:
+            toc_src = join(abspath(root), icon_fname)
+            toc_dst = join(root2, icon_fname)
+            DATATUP_LIST.append((toc_dst, toc_src))
 
 ##################################
 # Build executable
