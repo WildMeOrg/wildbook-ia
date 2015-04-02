@@ -696,7 +696,7 @@ def invert_apply_grouping(grouped_items, groupxs):
         []
     """
     if len(grouped_items) == 0:
-        assert len(groupxs) == 0, 'inconsistant'
+        assert len(groupxs) == 0, 'inconsistant. len(grouped_items)=%d, len(groupxs)=%d' % (len(grouped_items), len(groupxs))
         return []
     maxval = max(map(max, groupxs))
     ungrouped_items = [None] * (maxval + 1)  # np.full((maxval + 1,), None)
