@@ -308,6 +308,8 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         qual_keys = list(const.QUALITY_TEXT_TO_INT.keys())
         assert set(qual_keys) >= set(qualtext2_aids), 'bad keys: ' + str(set(qualtext2_aids) - set(qual_keys))
         qualtext2_nAnnots = ut.odict([(key, len(qualtext2_aids.get(key, []))) for key in qual_keys])
+        # Filter 0's
+        qualtext2_nAnnots = {key: val for key, val in six.iteritems(qualtext2_nAnnots) if val != 0}
         return qualtext2_nAnnots
 
     def get_annot_yaw_stats(aid_list):
@@ -316,6 +318,8 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         yaw_keys = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
         assert set(yaw_keys) >= set(annot_yawtext_list), 'bad keys: ' + str(set(annot_yawtext_list) - set(yaw_keys))
         yawtext2_nAnnots = ut.odict([(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
+        # Filter 0's
+        yawtext2_nAnnots = {key: val for key, val in six.iteritems(yawtext2_nAnnots) if val != 0}
         return yawtext2_nAnnots
 
     qualtext2_nAnnots = get_annot_qual_stats(valid_aids)
