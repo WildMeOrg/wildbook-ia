@@ -2124,7 +2124,7 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
 
     """
     # HACK TO FORCE TIMESTAMPS FOR NEW NAMES
-    str_format = 1
+    #str_format = 1
     if species_text is None:
         # TODO: optionally specify qreq_ or qparams?
         species_text  = ibs.cfg.detect_cfg.species_text
@@ -3755,6 +3755,9 @@ def filter_aids_count(ibs, aid_list=None, pre_unixtime_sort=True):
 @__injectable
 def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
     """
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_name_gps_tracks
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
@@ -3786,6 +3789,11 @@ def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
     gps_track_list = [ut.list_compress(gpss, isvalids) for gpss, isvalids in zip(gpss_list, isvalids_list)]
     aid_track_list  = [ut.list_compress(aids, isvalids) for aids, isvalids in zip(aids_list, isvalids_list)]
     return nid_list, gps_track_list, aid_track_list
+
+
+def get_name_speeds(ibs, nid_list):
+    gpss_list = ibs.unflat_map(ibs.get_image_gps, gids_list)
+
 
 
 def find_location_disparate_splits(ibs):
