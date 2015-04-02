@@ -64,6 +64,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     CommandLine:
         python -m ibeis.dev.dbinfo --test-get_dbinfo:0
         python -m ibeis.dev.dbinfo --test-get_dbinfo:1
+        python -m ibeis.dev.dbinfo --test-get_dbinfo:1  --db NNP_Master3
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -107,6 +108,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
             'nMax' : 2,
             'shape': (2,),
         }
+
         # Annots per Image           = {
             'max'  : 1.0,
             'min'  : 1.0,
@@ -300,23 +302,32 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     cachedir_space  = ut.byte_str2(ut.get_disk_space(ibs.get_cachedir()))
 
     # Quality and Viewpoint Stats
-    annot_yawtext_list = ibs.get_annot_yaw_texts(valid_aids)
-    annot_qualtext_list = ibs.get_annot_quality_texts(valid_aids)
-    qualtext2_aids = ut.group_items(valid_aids, annot_qualtext_list)
-    yawtext2_aids = ut.group_items(valid_aids, annot_yawtext_list)
+    def get_annot_qual_stats(aid_list):
+        annot_qualtext_list = ibs.get_annot_quality_texts(aid_list)
+        qualtext2_aids = ut.group_items(aid_list, annot_qualtext_list)
+        qual_keys = list(const.QUALITY_TEXT_TO_INT.keys())
+        qualtext2_nAnnots = ut.odict([(key, len(qualtext2_aids.get(key, []))) for key in qual_keys])
+        return qualtext2_nAnnots
 
-    qual_keys = list(const.QUALITY_TEXT_TO_INT.keys())
-    yaw_keys = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
+    def get_annot_yaw_stats(aid_list):
+        annot_yawtext_list = ibs.get_annot_yaw_texts(aid_list)
+        yawtext2_aids = ut.group_items(aid_list, annot_yawtext_list)
+        yaw_keys = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
+        yawtext2_nAnnots = ut.odict([(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
+        return yawtext2_nAnnots
 
-    qualtext2_nAnnots = ut.odict([(key, len(qualtext2_aids.get(key, []))) for key in qual_keys])
-    yawtext2_nAnnots = ut.odict([(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
+    qualtext2_nAnnots = get_annot_qual_stats(valid_aids)
+    yawtext2_nAnnots = get_annot_yaw_stats(valid_aids)
 
     # Contributor Statistics
-    image_contrib_tags = ibs.get_image_contributor_tag(valid_gids)
+    # hack remove colon for image alignment
+    image_contrib_tags = [tag.replace(':', ';') for tag in ibs.get_image_contributor_tag(valid_gids)]
+    annot_contrib_tags = [tag.replace(':', ';') for tag in ibs.get_annot_image_contributor_tag(valid_aids)]
     contrib_tag_to_gids = ut.group_items(valid_gids, image_contrib_tags)
-
-    annot_contrib_tags = ibs.get_annot_image_contributor_tag(valid_aids)
     contrib_tag_to_aids = ut.group_items(valid_gids, annot_contrib_tags)
+
+    contrib_tag_to_qualstats = {key: get_annot_qual_stats(aids) for key, aids in six.iteritems(contrib_tag_to_aids)}
+    contrib_tag_to_viewstats = {key: get_annot_yaw_stats(aids) for key, aids in six.iteritems(contrib_tag_to_aids)}
 
     contrib_tag_to_nImages = {key: len(val) for key, val in six.iteritems(contrib_tag_to_gids)}
     contrib_tag_to_nAnnots = {key: len(val) for key, val in six.iteritems(contrib_tag_to_aids)}
@@ -413,6 +424,8 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     contrib_block_lines = [
         '# Images per contributor       = ' + align_dict2(contrib_tag_to_nImages),
         '# Annots per contributor       = ' + align_dict2(contrib_tag_to_nAnnots),
+        '# Quality per contributor      = ' + ut.dict_str(contrib_tag_to_qualstats),
+        '# Viewpoint per contributor    = ' + ut.dict_str(contrib_tag_to_viewstats),
     ]
 
     img_block_lines = [
