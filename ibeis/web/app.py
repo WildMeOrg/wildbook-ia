@@ -237,7 +237,7 @@ def view():
     nid_list = list(set(nid_list_count))
 
     # Calculate the Petersen-Lincoln index form the last two days
-    if bar_value_list3[-1] > 0:
+    try:
         c1 = bar_value_list1[-1]
         c2 = bar_value_list1[-2]
         c3 = bar_value_list3[-1]
@@ -245,7 +245,11 @@ def view():
         pl_error_num = float(c1 * c1 * c2 * (c2 - c3))
         pl_error_dom = float(c3 ** 3)
         pl_error = int(math.ceil( 1.96 * math.sqrt(pl_error_num / pl_error_dom) ))
-    else:
+    except IndexError:
+        # pl_index = 'Undefined - Zero recaptured (k = 0)'
+        pl_index = 0
+        pl_error = 0
+    except ZeroDivisionError:
         # pl_index = 'Undefined - Zero recaptured (k = 0)'
         pl_index = 0
         pl_error = 0

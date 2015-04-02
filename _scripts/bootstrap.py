@@ -158,6 +158,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'setuptools',
         'Pygments',
         'Cython',
+        # 'requests==2.5.1',
         'requests',
         'colorama',
         'psutil',

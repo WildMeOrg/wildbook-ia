@@ -268,7 +268,7 @@ a = Analysis(  # NOQA
         'sklearn.utils.lgamma',
         'sklearn.utils.weight_vector',
         'sklearn.neighbors.typedefs',
-        'mpl_toolkits.axes_grid1'
+        'mpl_toolkits.axes_grid1',
     ],
     hookspath=None,
     runtime_hooks=None
