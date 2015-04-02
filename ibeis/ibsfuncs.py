@@ -3865,7 +3865,7 @@ def get_name_speeds(ibs, nid_list):
 
 
 @__injectable
-def get_name_max_speeds(ibs, nid_list):
+def get_name_max_speed(ibs, nid_list):
     """
     Example:
         >>> # ENABLE_DOCTEST
@@ -3874,17 +3874,15 @@ def get_name_max_speeds(ibs, nid_list):
         >>> # build test data
         >>> ibs = ibeis.opendb('NNP_Master3')
         >>> nid_list = ibs._get_all_known_nids()
-        >>> maxspeed_list = ibs.get_name_max_speeds(nid_list)
+        >>> maxspeed_list = ibs.get_name_max_speed(nid_list)
 
     """
     def max_(arr):
-        if arr is None:
-            return np.nan
-        else:
-            return arr.max()
+        return np.nan if arr is None else arr.max()
     speeds_list = ibs.get_name_speeds(nid_list)
     maxspeed_list = np.array(list(map(max_, speeds_list)))
     return maxspeed_list
+
 
 def find_location_disparate_splits(ibs):
     """
