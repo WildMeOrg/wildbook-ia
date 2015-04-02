@@ -3641,6 +3641,8 @@ def get_quality_viewpoint_filterflags(ibs, aid_list, minqual, valid_yaws):
 
 @__injectable
 def get_annot_custom_filterflags(ibs, aid_list):
+    if not ibs.cfg.other_cfg.enable_custom_filter:
+        return [True] * len(aid_list)
     minqual = const.QUALITY_TEXT_TO_INT['poor']
     #valid_yaws = {'left', 'frontleft', 'backleft'}
     valid_yawtexts = {'left', 'frontleft'}

@@ -1040,6 +1040,9 @@ class MainWindowBackend(QtCore.QObject):
         """
         MAIN QUERY FUNCTION
 
+        def query
+        execute_query
+
         Batch -> Compute OldStyle Queries
         and Actions -> Query
 
@@ -1116,7 +1119,8 @@ class MainWindowBackend(QtCore.QObject):
         #if daids_mode == const.INTRA_ENC_KEY:
         FILTER_HACK = True
         if FILTER_HACK:
-            qaid_list = back.ibs.filter_aids_custom(qaid_list)
+            if not use_visual_selection:
+                qaid_list = back.ibs.filter_aids_custom(qaid_list)
             daid_list = back.ibs.filter_aids_custom(daid_list)
         qreq_ = back.ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict)
         back.confirm_query_dialog(daid_list, qaid_list, cfgdict=cfgdict)

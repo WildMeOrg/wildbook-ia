@@ -131,7 +131,7 @@ TABLE_COLNAMES = {
         'nid',
         'exemplar',
         'nExAids',
-        #'aid',
+        'aid',
         #'annot_gname',
         #'namenotes',
         'yaw_text',

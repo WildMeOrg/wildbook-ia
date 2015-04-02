@@ -296,10 +296,10 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     gpsvalid_list = [gps != (-1, -1) for gps in gps_list_]
     gps_list  = ut.filter_items(gps_list_, gpsvalid_list)
 
-    ibsdir_space = ut.byte_str2(ut.get_disk_space(ibs.get_ibsdir()))
-    dbdir_space  = ut.byte_str2(ut.get_disk_space(ibs.get_dbdir()))
-    imgdir_space  = ut.byte_str2(ut.get_disk_space(ibs.get_imgdir()))
-    cachedir_space  = ut.byte_str2(ut.get_disk_space(ibs.get_cachedir()))
+    ibsdir_space   = ut.byte_str2(ut.get_disk_space(ibs.get_ibsdir()))
+    dbdir_space    = ut.byte_str2(ut.get_disk_space(ibs.get_dbdir()))
+    imgdir_space   = ut.byte_str2(ut.get_disk_space(ibs.get_imgdir()))
+    cachedir_space = ut.byte_str2(ut.get_disk_space(ibs.get_cachedir()))
 
     # Quality and Viewpoint Stats
     def get_annot_qual_stats(aid_list):
