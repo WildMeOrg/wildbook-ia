@@ -2069,6 +2069,8 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, **kwargs):
 
 def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False):
     r"""
+    TODO: move to vtool.images
+
     Args:
         img1 (ndarray[uint8_t, ndim=2]):  image data
         img2 (ndarray[uint8_t, ndim=2]):  image data
