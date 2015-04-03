@@ -92,6 +92,14 @@
           <br/>
           (Blue - number of sightings cumulatively, Green - three predicted models of growth, Grey - upper-bound f(x) = x)
         </div>
+
+        <canvas id="canvasAge" height="150"></canvas>
+        {{ age_list }}
+        <div style="color: #999; font-style: italic; margin-bottom: 40px;">
+          Animal ages by sex
+          <br/>
+          (Blue - Female, Green - Male, Grey - Unknown)
+        </div>
     </div>
     <div class="col-lg-1"></div>    
   </div>
@@ -224,6 +232,50 @@
     ]
   };
 
+    var dataAge = {
+    {% autoescape false %}
+    labels : ['Infant', 'Juvenile', 'Adult'],
+    {% endautoescape %}
+    datasets : [
+      {
+        label: "Prediction",
+        fillColor : "rgba(92,184,92,0.0)",
+        strokeColor : "rgba(92,184,92,0.2)",
+        pointColor : "rgba(92,184,92,0.2)",
+        pointStrokeColor : "transparent",
+        pointHighlightFill : "transparent",
+        // pointStrokeColor : "#fff",
+        // pointHighlightFill : "#fff",
+        pointHighlightStroke : "rgba(240, 173, 78, 0.5)",
+        data : {{ age_list[2] }}
+      },
+      {
+        fillColor : "rgba(220,220,220,0.2)",
+        strokeColor : "rgba(220,220,220,1)",
+        pointColor : "rgba(220,220,220,0.5)",
+        pointStrokeColor : "transparent",
+        pointHighlightFill : "transparent",
+        // pointStrokeColor : "#fff",
+        // pointHighlightFill : "#fff",
+        pointHighlightStroke : "rgba(220,220,220,1)",
+        data : {{ age_list[0] }}
+      },
+      {
+        label: "Unique Sightings by Car",
+        fillColor : "rgba(151,187,205,0.2)",
+        strokeColor : "rgba(151,187,205,1)",
+        pointColor : "rgba(151,187,205,1)",
+        pointStrokeColor : "transparent",
+        pointHighlightFill : "transparent",
+        // pointStrokeColor : "#fff",
+        // pointHighlightFill : "#fff",
+        pointHighlightStroke : "rgba(240, 173, 78, 0.5)",
+        data : {{ age_list[1] }}
+      },
+
+    ]
+  };
+
   var tracks = {{ gps_list_tracks }};
   var markers = {{ gps_list_markers }};
 
@@ -240,6 +292,11 @@
     var chartBar = new Chart(ctxBar).Bar(dataBar, {
       responsive: true,
       // animation: false,
+    });
+
+    var ctxAge = document.getElementById("canvasAge").getContext("2d");
+    var chartAge = new Chart(ctxAge).Line(dataAge, {
+      responsive: true,
     });
 
     var center = new google.maps.LatLng(-1.385, 36.860); // Nairobi

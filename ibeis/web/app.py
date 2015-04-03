@@ -274,12 +274,28 @@ def view():
         __nid_list, gps_track_list, aid_track_list = app.ibs.get_name_gps_tracks(aid_list=aid_list_count)
         gps_list_tracks = list(map(lambda x: list(map(list, x)), gps_track_list))
 
-    dbinfo_str = dbinfo()
-
     valid_aids = app.ibs.get_valid_aids()
     valid_gids = app.ibs.get_valid_gids()
     valid_aids_ = app.ibs.filter_aids_custom(valid_aids)
     valid_gids_ = app.ibs.filter_gids_custom(valid_gids)
+
+    # Get Age and sex
+    annot_sex_list = app.ibs.get_annot_sex(valid_aids_)
+    annot_age_months_est_min = app.ibs.get_annot_age_months_est_min(valid_aids_)
+    annot_age_months_est_max = app.ibs.get_annot_age_months_est_max(valid_aids_)
+    age_list = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    for sex, min_age, max_age in zip(annot_sex_list, annot_age_months_est_min, annot_age_months_est_max):
+        if sex not in [0, 1]:
+            sex = 2
+            # continue
+        if (min_age is None or min_age < 12) and max_age < 12:
+            age_list[sex][0] += 1
+        elif 12 <= min_age and min_age < 36 and 12 <= max_age and max_age < 36:
+            age_list[sex][1] += 1
+        elif 36 <= min_age and (36 <= max_age or max_age is None):
+            age_list[sex][2] += 1
+
+    dbinfo_str = dbinfo()
 
     return ap.template('view',
                        line_index_list=index_list,
@@ -294,6 +310,7 @@ def view():
                        bar_value_list1=bar_value_list1,
                        bar_value_list2=bar_value_list2,
                        bar_value_list3=bar_value_list3,
+                       age_list=age_list,
                        dbinfo_str=dbinfo_str,
                        eid_list=eid_list,
                        eid_list_str=','.join(map(str, eid_list)),
