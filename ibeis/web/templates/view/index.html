@@ -42,19 +42,25 @@
     <div class="col-lg-4">
       <a href="{{ url_for('view_images') }}"><h4>Images</h4></a>
       <br/>
-      <h4 class="total-label" id="image-total"></h4>
+      <h4 class="total-label" id="image-count-total"></h4>
+      <br/>
+      <h4>(<span id="image-total"></span> Total)</h4>
     </div>
     
     <div class="col-lg-4">
       <a href="{{ url_for('view_annotations') }}"><h4>Annotations</h4></a>
       <br/>
-      <h4 class="total-label" id="annotation-total"></h4>
+      <h4 class="total-label" id="annotation-count-total"></h4>
+      <br/>
+      <h4>(<span id="annotation-total"></span> Total)</h4>
     </div>
     
     <div class="col-lg-4">
       <a href="{{ url_for('view_names') }}"><h4>Names</h4></a>
       <br/>
-      <h4 class="total-label" id="names-total"></h4>
+      <h4 class="total-label" id="names-count-total"></h4>
+      <br/>
+      <h4>(<span id="names-total"></span> Total)</h4>
     </div>
   </div>
 
@@ -125,15 +131,21 @@
 </script> 
 <script type="text/javascript">
   // var encounterNumber  = new countUp("encounter-total",  0, {{ num_eids }}, 0, 2.0);
-  var imageNumber      = new countUp("image-total",      0, {{ num_gids }}, 0, 2.0);
-  var annotationNumber = new countUp("annotation-total", 0, {{ num_aids }}, 0, 2.0);
-  var namesNumber      = new countUp("names-total",      0, {{ num_nids }}, 0, 2.0);
-  var plNumber         = new countUp("pl-total",         0, {{ pl_index }}, 0, 2.0);
-  var errorNumber      = new countUp("error-total",         0, {{ pl_error }}, 0, 2.0);
+  var imageNumber           = new countUp("image-total",      0, {{ num_gids }}, 0, 2.0);
+  var imageCountNumber      = new countUp("image-count-total",      0, {{ num_gids_count }}, 0, 2.0);
+  var annotationNumber      = new countUp("annotation-total", 0, {{ num_aids }}, 0, 2.0);
+  var annotationCountNumber = new countUp("annotation-count-total", 0, {{ num_aids_count }}, 0, 2.0);
+  var namesNumber           = new countUp("names-total",      0, {{ num_nids }}, 0, 2.0);
+  var namesCountNumber      = new countUp("names-count-total",      0, {{ num_nids_count }}, 0, 2.0);
+  var plNumber              = new countUp("pl-total",         0, {{ pl_index }}, 0, 2.0);
+  var errorNumber           = new countUp("error-total",         0, {{ pl_error }}, 0, 2.0);
   // encounterNumber.start();
   imageNumber.start();
+  imageCountNumber.start();
   annotationNumber.start();
+  annotationCountNumber.start();
   namesNumber.start();
+  namesCountNumber.start();
   plNumber.start();
   errorNumber.start();
 

@@ -231,10 +231,12 @@ def view():
     eid_list = app.ibs.get_valid_eids()
     gid_list = app.ibs.get_valid_gids()
     aid_list = app.ibs.get_valid_aids()
+    nid_list = app.ibs.get_valid_nids()
     # nid_list = app.ibs.get_valid_nids()
     aid_list_count = app.ibs.filter_aids_count()
-    nid_list_count = app.ibs.get_annot_name_rowids(aid_list_count)
-    nid_list = list(set(nid_list_count))
+    gid_list_count = list(set(app.ibs.get_annot_gids(aid_list_count)))
+    nid_list_count_dup = app.ibs.get_annot_name_rowids(aid_list_count)
+    nid_list_count = list(set(nid_list_count_dup))
 
     # Calculate the Petersen-Lincoln index form the last two days
     try:
@@ -261,9 +263,8 @@ def view():
     REMOVE_DUP_CODE = True
     if not REMOVE_DUP_CODE:
         # Get the tracks
-        print(len(nid_list_count), len(set(nid_list_count)))
         nid_track_dict = ut.ddict(list)
-        for nid, gps in zip(nid_list_count, gps_list_markers):
+        for nid, gps in zip(nid_list_count_dup, gps_list_markers):
             if gps[0] == -1.0 and gps[1] == -1.0:
                 continue
             nid_track_dict[nid].append(gps)
@@ -295,12 +296,21 @@ def view():
                        gid_list=gid_list,
                        gid_list_str=','.join(map(str, gid_list)),
                        num_gids=len(gid_list),
+                       gid_list_count=gid_list_count,
+                       gid_list_count_str=','.join(map(str, gid_list_count)),
+                       num_gids_count=len(gid_list_count),
                        aid_list=aid_list,
                        aid_list_str=','.join(map(str, aid_list)),
                        num_aids=len(aid_list),
+                       aid_list_count=aid_list_count,
+                       aid_list_count_str=','.join(map(str, aid_list_count)),
+                       num_aids_count=len(aid_list_count),
                        nid_list=nid_list,
                        nid_list_str=','.join(map(str, nid_list)),
-                       num_nids=len(nid_list))
+                       num_nids=len(nid_list),
+                       nid_list_count=nid_list_count,
+                       nid_list_count_str=','.join(map(str, nid_list_count)),
+                       num_nids_count=len(nid_list_count))
 
 
 @app.route('/view/encounters')
