@@ -273,6 +273,8 @@ def view():
         __nid_list, gps_track_list, aid_track_list = app.ibs.get_name_gps_tracks(aid_list=aid_list_count)
         gps_list_tracks = list(map(lambda x: list(map(list, x)), gps_track_list))
 
+    dbinfo_str = dbinfo()
+
     return ap.template('view',
                        line_index_list=index_list,
                        line_label_list=label_list,
@@ -286,6 +288,7 @@ def view():
                        bar_value_list1=bar_value_list1,
                        bar_value_list2=bar_value_list2,
                        bar_value_list3=bar_value_list3,
+                       dbinfo_str=dbinfo_str,
                        eid_list=eid_list,
                        eid_list_str=','.join(map(str, eid_list)),
                        num_eids=len(eid_list),
@@ -1182,6 +1185,13 @@ def download_sightings():
 @app.route('/graph/sightings')
 def graph_sightings():
     return redirect(url_for('view'))
+
+
+@app.route('/dbinfo')
+def dbinfo():
+    dbinfo_str = app.ibs.get_dbinfo_str()
+    dbinfo_str_formatted = '<pre>%s</pre>' % (dbinfo_str, )
+    return dbinfo_str_formatted
 
 
 @app.route('/404')
