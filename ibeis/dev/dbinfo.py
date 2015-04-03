@@ -310,7 +310,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
                 age_dict['Infant'] += 1
             elif 12 <= min_age and min_age < 36 and 12 <= max_age and max_age < 36:
                 age_dict['Juvenile'] += 1
-            elif 36 <= min_age and 36 <= max_age:
+            elif 36 <= min_age and (36 <= max_age or max_age is None):
                 age_dict['Adult'] += 1
             else:
                 print('Found UNKNOWN Age: %r, %r' % (min_age, max_age, ))
