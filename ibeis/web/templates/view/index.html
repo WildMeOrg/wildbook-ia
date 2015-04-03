@@ -238,38 +238,32 @@
     {% endautoescape %}
     datasets : [
       {
-        label: "Prediction",
-        fillColor : "rgba(92,184,92,0.0)",
-        strokeColor : "rgba(92,184,92,0.2)",
-        pointColor : "rgba(92,184,92,0.2)",
-        pointStrokeColor : "transparent",
-        pointHighlightFill : "transparent",
-        // pointStrokeColor : "#fff",
-        // pointHighlightFill : "#fff",
-        pointHighlightStroke : "rgba(240, 173, 78, 0.5)",
-        data : {{ age_list[0] }}
-      },
-      {
         label: "Unique Sightings by Car",
         fillColor : "rgba(151,187,205,0.2)",
         strokeColor : "rgba(151,187,205,1)",
         pointColor : "rgba(151,187,205,1)",
-        pointStrokeColor : "transparent",
-        pointHighlightFill : "transparent",
-        // pointStrokeColor : "#fff",
-        // pointHighlightFill : "#fff",
+        pointStrokeColor : "#fff",
+        pointHighlightFill : "#fff",
+        pointHighlightStroke : "rgba(240, 173, 78, 0.5)",
+        data : {{ age_list[0] }}
+      },
+      {
+        label: "Prediction",
+        fillColor : "rgba(92,184,92,0.2)",
+        strokeColor : "rgba(92,184,92,1)",
+        pointColor : "rgba(92,184,92,1)",
+        pointStrokeColor : "#fff",
+        pointHighlightFill : "#fff",
         pointHighlightStroke : "rgba(240, 173, 78, 0.5)",
         data : {{ age_list[1] }}
       },
       {
-        fillColor : "rgba(220,220,220,0.2)",
+        fillColor : "rgba(220,220,220,0.0)",
         strokeColor : "rgba(220,220,220,1)",
-        pointColor : "rgba(220,220,220,0.5)",
-        pointStrokeColor : "transparent",
-        pointHighlightFill : "transparent",
-        // pointStrokeColor : "#fff",
-        // pointHighlightFill : "#fff",
-        pointHighlightStroke : "rgba(220,220,220,1)",
+        pointColor : "rgba(220,220,220,1)",
+        pointStrokeColor : "#fff",
+        pointHighlightFill : "#fff",
+        pointHighlightStroke : "rgba(220,220,220,0.5)",
         data : {{ age_list[2] }}
       },
     ]
