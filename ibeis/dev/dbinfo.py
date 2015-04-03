@@ -301,8 +301,35 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         yawtext2_nAnnots = {key: val for key, val in six.iteritems(yawtext2_nAnnots) if val != 0}
         return yawtext2_nAnnots
 
+    def get_annot_age_stats(aid_list):
+        annot_age_months_est_min = ibs.get_annot_age_months_est_min(aid_list)
+        annot_age_months_est_max = ibs.get_annot_age_months_est_max(aid_list)
+        age_dict = ut.ddict((lambda : 0))
+        for min_age, max_age in zip(annot_age_months_est_min, annot_age_months_est_max):
+            if (min_age is None or min_age < 12) and max_age < 12:
+                age_dict['Infant'] += 1
+            elif 12 <= min_age and min_age < 36 and 12 <= max_age and max_age < 36:
+                age_dict['Juvenile'] += 1
+            elif 36 <= min_age and 36 <= max_age:
+                age_dict['Adult'] += 1
+            else:
+                age_dict['UNKNOWN'] += 1
+        return age_dict
+
+    def get_annot_sex_stats(aid_list):
+        annot_sextext_list = ibs.get_annot_sex_texts(aid_list)
+        sextext2_aids = ut.group_items(aid_list, annot_sextext_list)
+        sex_keys = list(const.SEX_TEXT_TO_INT.keys())
+        assert set(sex_keys) >= set(annot_sextext_list), 'bad keys: ' + str(set(annot_sextext_list) - set(sex_keys))
+        sextext2_nAnnots = ut.odict([(key, len(sextext2_aids.get(key, []))) for key in sex_keys])
+        # Filter 0's
+        sextext2_nAnnots = {key: val for key, val in six.iteritems(sextext2_nAnnots) if val != 0}
+        return sextext2_nAnnots
+
     qualtext2_nAnnots = get_annot_qual_stats(valid_aids)
     yawtext2_nAnnots = get_annot_yaw_stats(valid_aids)
+    agetext2_nAnnots = get_annot_age_stats(valid_aids)
+    sextext2_nAnnots = get_annot_sex_stats(valid_aids)
 
     # Contributor Statistics
     # hack remove colon for image alignment
@@ -406,6 +433,8 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     qualview_block_lines = [
         '# Annots per Viewpoint = %s' % align_dict2(yawtext2_nAnnots),
         '# Annots per Quality = %s' % align_dict2(qualtext2_nAnnots),
+        '# Annots per Age = %s' % align_dict2(agetext2_nAnnots),
+        '# Annots per Sex = %s' % align_dict2(sextext2_nAnnots),
     ]
 
     contrib_block_lines = [
