@@ -234,7 +234,7 @@ def view():
     nid_list = app.ibs.get_valid_nids()
     # nid_list = app.ibs.get_valid_nids()
     aid_list_count = app.ibs.filter_aids_count()
-    gid_list_count = list(set(app.ibs.get_annot_gids(aid_list_count)))
+    # gid_list_count = list(set(app.ibs.get_annot_gids(aid_list_count)))
     nid_list_count_dup = app.ibs.get_annot_name_rowids(aid_list_count)
     nid_list_count = list(set(nid_list_count_dup))
 
@@ -276,6 +276,11 @@ def view():
 
     dbinfo_str = dbinfo()
 
+    valid_aids = app.ibs.get_valid_aids()
+    valid_gids = app.ibs.get_valid_gids()
+    valid_aids_ = app.ibs.filter_aids_custom(valid_aids)
+    valid_gids_ = app.ibs.filter_gids_custom(valid_gids)
+
     return ap.template('view',
                        line_index_list=index_list,
                        line_label_list=label_list,
@@ -296,15 +301,15 @@ def view():
                        gid_list=gid_list,
                        gid_list_str=','.join(map(str, gid_list)),
                        num_gids=len(gid_list),
-                       gid_list_count=gid_list_count,
-                       gid_list_count_str=','.join(map(str, gid_list_count)),
-                       num_gids_count=len(gid_list_count),
+                       gid_list_count=valid_gids_,
+                       gid_list_count_str=','.join(map(str, valid_gids_)),
+                       num_gids_count=len(valid_gids_),
                        aid_list=aid_list,
                        aid_list_str=','.join(map(str, aid_list)),
                        num_aids=len(aid_list),
-                       aid_list_count=aid_list_count,
-                       aid_list_count_str=','.join(map(str, aid_list_count)),
-                       num_aids_count=len(aid_list_count),
+                       aid_list_count=valid_aids_,
+                       aid_list_count_str=','.join(map(str, valid_aids_)),
+                       num_aids_count=len(valid_aids_),
                        nid_list=nid_list,
                        nid_list_str=','.join(map(str, nid_list)),
                        num_nids=len(nid_list),
