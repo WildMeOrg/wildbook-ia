@@ -20,7 +20,7 @@
       /*color: #23527c;*/
   }
   
-  #gps-map-canvas1, #gps-map-canvas2, #gps-map-canvas3, #gps-map-canvas4
+  #gps-map-canvas1, #gps-map-canvas2, #gps-map-canvas3, #gps-map-canvas4, #gps-map-canvas5
   {
       width: 100%;
       position: absolute !important;
@@ -122,7 +122,7 @@
     <div class="col-lg-1"></div>    
   </div>
     <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
-      Locations of all taken images (including images with no animals)
+      Heatmap of named animals
     </div>
 
   <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
@@ -133,7 +133,7 @@
     <div class="col-lg-1"></div>    
   </div>
     <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
-    Heatmap of named animals
+        Locations of all taken images (including images with no animals)
     </div>
 
   <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
@@ -145,6 +145,17 @@
   </div>
     <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
       Heatmap of all taken images (including images with no animals)
+    </div>
+
+  <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
+    <div class="col-lg-1"></div>
+    <div class="col-lg-10" style="height: 100%;">
+        <div id="gps-map-canvas5"></div>
+    </div>
+    <div class="col-lg-1"></div>    
+  </div>
+    <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
+      Tracks for all named animals
     </div>
     
   <div class="jumbotron" id="source" style="margin-top: 60px;">
@@ -402,35 +413,20 @@
         styles: styles,
     });
 
-    // for (var index1 in tracks)
-    // {
-    //     track = tracks[index1]
-    //     if(track.length > 1)
-    //     {
-    //       console.log(track);
-    //       var last = undefined;
-    //       var color = randomHexColor();
-    //       // var color = "#d9534f";
-    //       for (var index2 in track)
-    //       {
-    //           marker = track[index2];
-    //           var gps = new google.maps.LatLng(marker[0], marker[1]);
-    //           if(last !== undefined)
-    //           {
-    //               console.log(last + " " + gps);
-    //               new google.maps.Polyline({
-    //                   path: [last, gps],
-    //                   clickable: false,
-    //                   strokeColor: color,
-    //                   strokeOpacity: 0.50,
-    //                   strokeWeight: 1,
-    //                   map: map
-    //               });
-    //           }
-    //           last = gps;
-    //       }
-    //     }
-    // }
+    var map5 = new google.maps.Map(document.getElementById('gps-map-canvas5'), {
+        zoom: 12,
+        center: center,
+        // mapTypeId: google.maps.MapTypeId.HYBRID,
+        // mapTypeId: google.maps.MapTypeId.ROADMAP,
+        // mapTypeId: google.maps.MapTypeId.SATELLITE,
+        mapTypeId: google.maps.MapTypeId.TERRAIN,
+        disableDefaultUI: true,
+        scrollwheel: false,
+        draggable: false,
+        styles: styles,
+    });
+
+    // Add data
 
     var heatmap_data = Array();
     var heatmap_data_all = Array();
@@ -471,17 +467,67 @@
 
     var pointArray = new google.maps.MVCArray(heatmap_data);
     heatmap = new google.maps.visualization.HeatmapLayer({
-        data: pointArray
+        data: pointArray,
+        opacity: 0.5,
+        maxIntensity: 20,
+        radius: 20,
     });
     heatmap.setMap(map2);
-    heatmap.set('radius', heatmap.get('radius') ? null : 50);
 
     var pointArray = new google.maps.MVCArray(heatmap_data_all);
     heatmap = new google.maps.visualization.HeatmapLayer({
-        data: pointArray
+        data: pointArray,
+        opacity: 0.5,
+        maxIntensity: 20,
+        radius: 20,
     });
     heatmap.setMap(map4);
-    heatmap.set('radius', heatmap.get('radius') ? null : 50);
+
+    for (var index1 in tracks)
+    {
+        track = tracks[index1]
+        if(track.length > 1)
+        {
+          console.log(track);
+          var last = undefined;
+          var color = randomHexColor();
+          // var color = "#d9534f";
+          for (var index2 in track)
+          {
+              marker = track[index2];
+              var gps = new google.maps.LatLng(marker[0], marker[1]);
+              if(last !== undefined)
+              {
+                  console.log(last + " " + gps);
+                  new google.maps.Polyline({
+                      path: [last, gps],
+                      clickable: false,
+                      strokeColor: color,
+                      strokeOpacity: 0.50,
+                      strokeWeight: 1,
+                      map: map5
+                  });
+              }
+              last = gps;
+          }
+        }
+    }
+
+    for (var index in markers)
+    {
+        marker = markers[index];
+        gps = new google.maps.LatLng(marker[0], marker[1]);
+        gps2 = new google.maps.LatLng(marker[0] + 0.0004, marker[1] + 0.0004);
+        color = "#428BCA";
+        new google.maps.Polyline({
+            path: [gps, gps2],
+            clickable: false,
+            strokeColor: color,
+            strokeOpacity: 1.0,
+            strokeWeight: 5,
+            map: map5
+        });
+    }
   }
 
 </script>  
