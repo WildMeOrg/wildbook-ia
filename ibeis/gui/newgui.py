@@ -919,8 +919,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if len(id_list) == 1 and ibswgt._tab_table_wgt.current_tblname == tblname:
             if not ut.QUIET:
                 print('[newgui]  * attempting to select from rowid')
-            view = ibswgt.views[tblname]
-            view.select_row_from_id(id_list[0])
+            #view = ibswgt.views[tblname]
+            #view.select_row_from_id(id_list[0])
+            ibswgt.goto_table_id(tblname, id_list[0])
+
             pass
         #if goto_table_id:
         #    pass
