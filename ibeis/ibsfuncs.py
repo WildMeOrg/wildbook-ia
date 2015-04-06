@@ -28,7 +28,7 @@ try:
 except ImportError as ex:
     ut.printex('COMMIT TO DETECTTOOLS')
     pass
-from ibeis.control.accessor_decors import getter_1to1
+from ibeis.control import accessor_decors
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = ut.inject(
@@ -1381,7 +1381,7 @@ def set_annot_is_hard(ibs, aid_list, flag_list):
 
 
 @__injectable
-@getter_1to1
+@accessor_decors.getter_1to1
 def is_nid_unknown(ibs, nid_list):
     return [ nid <= 0 for nid in nid_list]
 
@@ -3893,6 +3893,7 @@ def get_name_speeds(ibs, nid_list):
 
 
 @__injectable
+@accessor_decors.getter
 def get_name_max_speed(ibs, nid_list):
     """
     CommandLine:

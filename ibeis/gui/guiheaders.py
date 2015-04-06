@@ -136,6 +136,7 @@ TABLE_COLNAMES = {
         #'namenotes',
         'yaw_text',
         'quality_text',
+        'max_speed'
     ],
 
     IMAGE_GRID     : [
@@ -151,25 +152,13 @@ TABLE_COLNAMES = {
 
 }
 
-# Columns for developers
-if True or ut.is_developer():
+# Quality / Viewpoint Columns
+if True:
     TABLE_COLNAMES[ANNOTATION_TABLE].append('yaw_text')
     TABLE_COLNAMES[ANNOTATION_TABLE].append('quality_text')
 
 #THUMB_TABLE     : ['thumb' 'thumb' 'thumb' 'thumb'],
 #NAMES_TREE      : {('name' 'nid' 'nAids') : ['aid' 'bbox' 'thumb']}
-
-# the columns which are editable
-TABLE_EDITSET = {
-    IMAGE_TABLE      : set(['reviewed', 'imgnotes']),
-    ANNOTATION_TABLE : set(['name', 'species', 'annotnotes', 'exemplar', 'yaw', 'yaw_text', 'quality_text']),
-    NAME_TABLE       : set(['name', 'namenotes']),
-    QRES_TABLE       : set(['name']),
-    ENCOUNTER_TABLE  : set(['enctext', 'encounter_shipped_flag', 'encounter_processed_flag']),
-    IMAGE_GRID       : set([]),
-    THUMB_TABLE      : set([]),
-    NAMES_TREE       : set(['exemplar', 'name', 'namenotes', 'yaw', 'yaw_text', 'quality_text']),
-}
 
 TABLE_TREE_LEVELS = {
     NAMES_TREE :
@@ -185,8 +174,20 @@ TABLE_TREE_LEVELS = {
         'yaw_text': 1,
         'quality_text': 1,
         'aid': 1,
-
+        'max_speed': 0,
     },
+}
+
+# the columns which are editable
+TABLE_EDITSET = {
+    IMAGE_TABLE      : set(['reviewed', 'imgnotes']),
+    ANNOTATION_TABLE : set(['name', 'species', 'annotnotes', 'exemplar', 'yaw', 'yaw_text', 'quality_text']),
+    NAME_TABLE       : set(['name', 'namenotes']),
+    QRES_TABLE       : set(['name']),
+    ENCOUNTER_TABLE  : set(['enctext', 'encounter_shipped_flag', 'encounter_processed_flag']),
+    IMAGE_GRID       : set([]),
+    THUMB_TABLE      : set([]),
+    NAMES_TREE       : set(['exemplar', 'name', 'namenotes', 'yaw', 'yaw_text', 'quality_text']),
 }
 
 TABLE_HIDDEN_LIST = {
@@ -252,6 +253,7 @@ COL_DEF = dict([
     ('num_imgs_reviewed', (str, '#Imgs Reviewed')),
     ('num_annotmatch_reviewed', (str, '#Matches Reviewed')),
     ('percent_names_with_exemplar_str', (str, '%Names with Exemplar')),
+    ('max_speed', (float, 'Max Speed km/h')),
 ])
 
 #----
@@ -432,6 +434,7 @@ def make_ibeis_headers_dict(ibs):
         'nAids': 65,
         'nid': 50,
     }
+    infer_unspecified_getters(NAMES_TREE, 'name')
     # +--------------------------
     # THUMB TABLE
     iders[THUMB_TABLE]   = [ibs.get_valid_gids]
