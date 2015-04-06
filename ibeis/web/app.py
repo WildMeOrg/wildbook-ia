@@ -304,6 +304,8 @@ def view():
         if len(set(min_ages)) > 1 or len(set(max_ages)) > 1:
             print('[web] Invalid name: Cannot have more than one age')
             continue
+        print(min_ages)
+        print(max_ages)
         min_age = None
         max_age = None
         if len(min_ages) > 0:
