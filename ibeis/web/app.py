@@ -299,10 +299,13 @@ def view():
     name_age_months_est_mins_list = app.ibs.get_name_age_months_est_min(nid_list_count)
     name_age_months_est_maxs_list = app.ibs.get_name_age_months_est_max(nid_list_count)
     age_list = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    age_unreviewed = 0
+    age_ambiguous = 0
     for nid, sex, min_ages, max_ages in zip(nid_list_count, name_sex_list, name_age_months_est_mins_list, name_age_months_est_maxs_list):
         if len(set(min_ages)) > 1 or len(set(max_ages)) > 1:
-            print('[web] Invalid name %r: Cannot have more than one age' % (nid, ))
-            # continue
+            # print('[web] Invalid name %r: Cannot have more than one age' % (nid, ))
+            age_ambiguous += 1
+            continue
         min_age = None
         max_age = None
         if len(min_ages) > 0:
@@ -311,6 +314,8 @@ def view():
             max_age = max_ages[0]
         # Histogram
         if (min_age is None and max_age is None) or (min_age is -1 and max_age is -1):
+            # print('[web] Unreviewded name %r: Specify the age for the name' % (nid, ))
+            age_unreviewed += 1
             continue
         if sex not in [0, 1]:
             sex = 2
@@ -338,6 +343,8 @@ def view():
                        bar_value_list2=bar_value_list2,
                        bar_value_list3=bar_value_list3,
                        age_list=age_list,
+                       age_ambiguous=age_ambiguous,
+                       age_unreviewed=age_unreviewed,
                        dbinfo_str=dbinfo_str,
                        eid_list=eid_list,
                        eid_list_str=','.join(map(str, eid_list)),
