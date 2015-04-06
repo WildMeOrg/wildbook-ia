@@ -897,6 +897,20 @@ def set_name_sex_text(ibs, name_rowid_list, name_sex_text_list):
 
 
 @register_ibs_method
+def get_name_age_months_est_min(ibs, name_rowid_list):
+    aids_list = ibs.get_name_aids(name_rowid_list)
+    age_list = [ ibs.get_annot_age_months_est_max(aid_list) for aid_list in aids_list ]
+    return age_list
+
+
+@register_ibs_method
+def get_name_age_months_est_max(ibs, name_rowid_list):
+    aids_list = ibs.get_name_aids(name_rowid_list)
+    age_list = [ ibs.get_annot_age_months_est_max(aid_list) for aid_list in aids_list ]
+    return age_list
+
+
+@register_ibs_method
 def get_name_eids(ibs, nid_list):
     import utool as ut
     name_aids_list = ibs.get_name_aids(nid_list)

@@ -279,12 +279,38 @@ def view():
     valid_aids_ = app.ibs.filter_aids_custom(valid_aids)
     valid_gids_ = app.ibs.filter_gids_custom(valid_gids)
 
-    # Get Age and sex
-    annot_sex_list = app.ibs.get_annot_sex(valid_aids_)
-    annot_age_months_est_min = app.ibs.get_annot_age_months_est_min(valid_aids_)
-    annot_age_months_est_max = app.ibs.get_annot_age_months_est_max(valid_aids_)
+    # Get Age and sex (By Annot)
+    # annot_sex_list = app.ibs.get_annot_sex(valid_aids_)
+    # annot_age_months_est_min = app.ibs.get_annot_age_months_est_min(valid_aids_)
+    # annot_age_months_est_max = app.ibs.get_annot_age_months_est_max(valid_aids_)
+    # age_list = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    # for sex, min_age, max_age in zip(annot_sex_list, annot_age_months_est_min, annot_age_months_est_max):
+    #     if sex not in [0, 1]:
+    #         sex = 2
+    #         # continue
+    #     if (min_age is None or min_age < 12) and max_age < 12:
+    #         age_list[sex][0] += 1
+    #     elif 12 <= min_age and min_age < 36 and 12 <= max_age and max_age < 36:
+    #         age_list[sex][1] += 1
+    #     elif 36 <= min_age and (36 <= max_age or max_age is None):
+    #         age_list[sex][2] += 1
+
+    # Get Age and sex (By Name)
+    name_sex_list = app.ibs.get_name_sex(nid_list_count)
+    name_age_months_est_mins_list = app.ibs.get_name_age_months_est_min(valid_aids_)
+    name_age_months_est_maxs_list = app.ibs.get_name_age_months_est_max(valid_aids_)
     age_list = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-    for sex, min_age, max_age in zip(annot_sex_list, annot_age_months_est_min, annot_age_months_est_max):
+    for sex, min_ages, max_ages in zip(name_sex_list, name_age_months_est_mins_list, name_age_months_est_maxs_list):
+        if len(set(min_ages)) > 1 or len(set(max_ages)) > 1:
+            print('[web] Invalid name: Cannot have more than one age')
+            continue
+        min_age = None
+        max_age = None
+        if len(min_ages) > 0:
+            min_age = min_ages[0]
+        if len(max_ages) > 0:
+            max_age = max_ages[0]
+        # Histogram
         if sex not in [0, 1]:
             sex = 2
             # continue
