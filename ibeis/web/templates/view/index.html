@@ -122,7 +122,7 @@
     <div class="col-lg-1"></div>    
   </div>
     <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
-      Locations of all taken images (including images with no animals)
+      Heatmap of named animals
     </div>
 
   <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
@@ -133,7 +133,7 @@
     <div class="col-lg-1"></div>    
   </div>
     <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
-    Heatmap of named animals
+        Locations of all taken images (including images with no animals)
     </div>
 
   <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
@@ -471,17 +471,21 @@
 
     var pointArray = new google.maps.MVCArray(heatmap_data);
     heatmap = new google.maps.visualization.HeatmapLayer({
-        data: pointArray
+        data: pointArray,
+        opacity: 0.5,
+        maxIntensity: 20,
+        radius: 20,
     });
     heatmap.setMap(map2);
-    heatmap.set('radius', heatmap.get('radius') ? null : 50);
 
     var pointArray = new google.maps.MVCArray(heatmap_data_all);
     heatmap = new google.maps.visualization.HeatmapLayer({
-        data: pointArray
+        data: pointArray,
+        opacity: 0.5,
+        maxIntensity: 20,
+        radius: 20,
     });
     heatmap.setMap(map4);
-    heatmap.set('radius', heatmap.get('radius') ? null : 50);
   }
 
 </script>  
