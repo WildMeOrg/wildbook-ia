@@ -269,7 +269,6 @@ def view():
                 continue
             nid_track_dict[nid].append(gps)
         gps_list_tracks = [ nid_track_dict[nid] for nid in sorted(nid_track_dict.keys()) ]
-        print(len(gps_list_tracks))
     else:
         __nid_list, gps_track_list, aid_track_list = app.ibs.get_name_gps_tracks(aid_list=aid_list_count)
         gps_list_tracks = list(map(lambda x: list(map(list, x)), gps_track_list))
@@ -303,7 +302,7 @@ def view():
     for nid, sex, min_ages, max_ages in zip(nid_list_count, name_sex_list, name_age_months_est_mins_list, name_age_months_est_maxs_list):
         if len(set(min_ages)) > 1 or len(set(max_ages)) > 1:
             print('[web] Invalid name %r: Cannot have more than one age' % (nid, ))
-            continue
+            # continue
         min_age = None
         max_age = None
         if len(min_ages) > 0:
@@ -607,7 +606,6 @@ def view_names():
             app.ibs.get_annot_age_months_est(aid_list_),
             [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(encounter_annot_viewpoint_processed(aid_list_), encounter_annot_quality_processed(aid_list_)) ],
         ) for aid_list_ in aids_list ]
-        print(len(annotations_list), len(annotations_list[0]), len(annotations_list[1]), len(annotations_list[2]), len(nid_list))
         name_list = zip(
             nid_list,
             annotations_list
