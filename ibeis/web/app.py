@@ -297,8 +297,8 @@ def view():
 
     # Get Age and sex (By Name)
     name_sex_list = app.ibs.get_name_sex(nid_list_count)
-    name_age_months_est_mins_list = app.ibs.get_name_age_months_est_min(valid_aids_)
-    name_age_months_est_maxs_list = app.ibs.get_name_age_months_est_max(valid_aids_)
+    name_age_months_est_mins_list = app.ibs.get_name_age_months_est_min(nid_list_count)
+    name_age_months_est_maxs_list = app.ibs.get_name_age_months_est_max(nid_list_count)
     age_list = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
     for sex, min_ages, max_ages in zip(name_sex_list, name_age_months_est_mins_list, name_age_months_est_maxs_list):
         if len(set(min_ages)) > 1 or len(set(max_ages)) > 1:
