@@ -300,12 +300,10 @@ def view():
     name_age_months_est_mins_list = app.ibs.get_name_age_months_est_min(nid_list_count)
     name_age_months_est_maxs_list = app.ibs.get_name_age_months_est_max(nid_list_count)
     age_list = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-    for sex, min_ages, max_ages in zip(name_sex_list, name_age_months_est_mins_list, name_age_months_est_maxs_list):
+    for nid, sex, min_ages, max_ages in zip(nid_list_count, name_sex_list, name_age_months_est_mins_list, name_age_months_est_maxs_list):
         if len(set(min_ages)) > 1 or len(set(max_ages)) > 1:
-            print('[web] Invalid name: Cannot have more than one age')
+            print('[web] Invalid name %r: Cannot have more than one age' % (nid, ))
             continue
-        print(min_ages)
-        print(max_ages)
         min_age = None
         max_age = None
         if len(min_ages) > 0:
