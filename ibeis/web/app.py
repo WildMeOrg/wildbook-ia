@@ -310,11 +310,11 @@ def view():
         if len(max_ages) > 0:
             max_age = max_ages[0]
         # Histogram
+        if (min_age is None and max_age is None) or (min_age is -1 and max_age is -1):
+            continue
         if sex not in [0, 1]:
             sex = 2
             # continue
-        if min_age is None and max_age is None:
-            continue
         if (min_age is None or min_age < 12) and max_age < 12:
             age_list[sex][0] += 1
         elif 12 <= min_age and min_age < 36 and 12 <= max_age and max_age < 36:
