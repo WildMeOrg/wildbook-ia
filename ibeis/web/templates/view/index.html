@@ -20,7 +20,7 @@
       /*color: #23527c;*/
   }
   
-  #gps-map-canvas
+  #gps-map-canvas1, #gps-map-canvas2, #gps-map-canvas3, #gps-map-canvas4
   {
       width: 100%;
       position: absolute !important;
@@ -106,10 +106,46 @@
   <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
     <div class="col-lg-1"></div>
     <div class="col-lg-10" style="height: 100%;">
-        <div id="gps-map-canvas"></div>
+        <div id="gps-map-canvas1"></div>
     </div>
     <div class="col-lg-1"></div>    
   </div>
+    <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
+      Locations of named animals
+    </div>
+
+  <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
+    <div class="col-lg-1"></div>
+    <div class="col-lg-10" style="height: 100%;">
+        <div id="gps-map-canvas2"></div>
+    </div>
+    <div class="col-lg-1"></div>    
+  </div>
+    <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
+      Locations of all taken images (including images with no animals)
+    </div>
+
+  <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
+    <div class="col-lg-1"></div>
+    <div class="col-lg-10" style="height: 100%;">
+        <div id="gps-map-canvas3"></div>
+    </div>
+    <div class="col-lg-1"></div>    
+  </div>
+    <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
+    Heatmap of named animals
+    </div>
+
+  <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
+    <div class="col-lg-1"></div>
+    <div class="col-lg-10" style="height: 100%;">
+        <div id="gps-map-canvas4"></div>
+    </div>
+    <div class="col-lg-1"></div>    
+  </div>
+    <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
+      Heatmap of all taken images (including images with no animals)
+    </div>
     
   <div class="jumbotron" id="source" style="margin-top: 60px;">
       {% autoescape false %}
@@ -134,8 +170,8 @@
 {% endblock %}
 {% block content_custom_javascript %}
 <script type="text/javascript"
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvpv54I9K-wuUhm2D_FhnRjvLuZRmLd7k">
-</script> 
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvpv54I9K-wuUhm2D_FhnRjvLuZRmLd7k&libraries=visualization">
+</script>
 <script type="text/javascript">
   // var encounterNumber  = new countUp("encounter-total",  0, {{ num_eids }}, 0, 2.0);
   var imageNumber           = new countUp("image-total",      0, {{ num_gids }}, 0, 2.0);
@@ -270,6 +306,7 @@
 
   var tracks = {{ gps_list_tracks }};
   var markers = {{ gps_list_markers }};
+  var markers_all = {{ gps_list_markers_all }};
 
   window.onload = function(){
     var ctxLine = document.getElementById("canvasLine").getContext("2d");
@@ -296,6 +333,8 @@
     loadGPSMap(tracks, markers, center);
   };
 
+  
+
   function loadGPSMap(tracks, markers, center)
   {
     var gps;
@@ -311,7 +350,46 @@
     ];
 
     // Initialize the Google Maps API v3
-    var map = new google.maps.Map(document.getElementById('gps-map-canvas'), {
+    var map1 = new google.maps.Map(document.getElementById('gps-map-canvas1'), {
+        zoom: 12,
+        center: center,
+        // mapTypeId: google.maps.MapTypeId.HYBRID,
+        // mapTypeId: google.maps.MapTypeId.ROADMAP,
+        // mapTypeId: google.maps.MapTypeId.SATELLITE,
+        mapTypeId: google.maps.MapTypeId.TERRAIN,
+        disableDefaultUI: true,
+        scrollwheel: false,
+        draggable: false,
+        styles: styles,
+    });
+
+    var map2 = new google.maps.Map(document.getElementById('gps-map-canvas2'), {
+        zoom: 12,
+        center: center,
+        // mapTypeId: google.maps.MapTypeId.HYBRID,
+        // mapTypeId: google.maps.MapTypeId.ROADMAP,
+        // mapTypeId: google.maps.MapTypeId.SATELLITE,
+        mapTypeId: google.maps.MapTypeId.TERRAIN,
+        disableDefaultUI: true,
+        scrollwheel: false,
+        draggable: false,
+        styles: styles,
+    });
+
+    var map3 = new google.maps.Map(document.getElementById('gps-map-canvas3'), {
+        zoom: 12,
+        center: center,
+        // mapTypeId: google.maps.MapTypeId.HYBRID,
+        // mapTypeId: google.maps.MapTypeId.ROADMAP,
+        // mapTypeId: google.maps.MapTypeId.SATELLITE,
+        mapTypeId: google.maps.MapTypeId.TERRAIN,
+        disableDefaultUI: true,
+        scrollwheel: false,
+        draggable: false,
+        styles: styles,
+    });
+
+    var map4 = new google.maps.Map(document.getElementById('gps-map-canvas4'), {
         zoom: 12,
         center: center,
         // mapTypeId: google.maps.MapTypeId.HYBRID,
@@ -354,11 +432,15 @@
     //     }
     // }
 
+    var heatmap_data = Array();
+    var heatmap_data_all = Array();
+
     for (var index in markers)
     {
         marker = markers[index];
         gps = new google.maps.LatLng(marker[0], marker[1]);
-        gps2 = new google.maps.LatLng(marker[0] + 0.0003, marker[1] + 0.0003);
+        gps2 = new google.maps.LatLng(marker[0] + 0.0004, marker[1] + 0.0004);
+        heatmap_data.push(gps);
         color = "#428BCA";
         new google.maps.Polyline({
             path: [gps, gps2],
@@ -366,9 +448,40 @@
             strokeColor: color,
             strokeOpacity: 1.0,
             strokeWeight: 5,
-            map: map
+            map: map1
         });
     }
+
+    for (var index in markers_all)
+    {
+        marker = markers_all[index];
+        gps = new google.maps.LatLng(marker[0], marker[1]);
+        gps2 = new google.maps.LatLng(marker[0] + 0.0004, marker[1] + 0.0004);
+        heatmap_data_all.push(gps);
+        color = "#428BCA";
+        new google.maps.Polyline({
+            path: [gps, gps2],
+            clickable: false,
+            strokeColor: color,
+            strokeOpacity: 1.0,
+            strokeWeight: 5,
+            map: map3
+        });
+    }
+
+    var pointArray = new google.maps.MVCArray(heatmap_data);
+    heatmap = new google.maps.visualization.HeatmapLayer({
+        data: pointArray
+    });
+    heatmap.setMap(map2);
+    heatmap.set('radius', heatmap.get('radius') ? null : 50);
+
+    var pointArray = new google.maps.MVCArray(heatmap_data_all);
+    heatmap = new google.maps.visualization.HeatmapLayer({
+        data: pointArray
+    });
+    heatmap.setMap(map4);
+    heatmap.set('radius', heatmap.get('radius') ? null : 50);
   }
 
 </script>  

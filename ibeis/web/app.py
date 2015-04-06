@@ -257,9 +257,11 @@ def view():
         pl_error = 0
 
     # Get the markers
-    # gid_list_markers = app.ibs.get_annot_gids(aid_list_count)
-    # gps_list_markers = map(list, app.ibs.get_image_gps(gid_list_markers))
-    gps_list_markers = map(list, app.ibs.get_image_gps(gid_list))
+    gid_list_markers = app.ibs.get_annot_gids(aid_list_count)
+    gps_list_markers = map(list, app.ibs.get_image_gps(gid_list_markers))
+    gps_list_markers_all = map(list, app.ibs.get_image_gps(gid_list))
+    print(len(gps_list_markers))
+    print(len(gps_list_markers_all))
 
     REMOVE_DUP_CODE = True
     if not REMOVE_DUP_CODE:
@@ -338,6 +340,7 @@ def view():
                        pl_index=pl_index,
                        pl_error=pl_error,
                        gps_list_markers=gps_list_markers,
+                       gps_list_markers_all=gps_list_markers_all,
                        gps_list_tracks=gps_list_tracks,
                        bar_label_list=bar_label_list,
                        bar_value_list1=bar_value_list1,
