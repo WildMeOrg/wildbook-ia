@@ -241,7 +241,7 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
         try:
             flann.load_index(flann_fpath, dpts)
             if not quiet:
-                print('...flann cache hit')
+                print('...flann cache hit: %d vectors' % (len(dpts)))
             if verbose:
                 print('L___ END FLANN INDEX ')
             return flann
