@@ -271,8 +271,7 @@ def index_data_annots(annots_df, daids, words, qparams, with_internals=True,
         print('[smk_repr] index_data_annots')
     flann_params = {}
     # Compute fast lookup index for the words
-    wordflann = nntool.flann_cache(words, flann_params=flann_params,
-                                   appname='smk')
+    wordflann = nntool.flann_cache(words, flann_params=flann_params, appname='smk')
     _vecs_list = annots_df['vecs'][daids]
     _label_list = annots_df['labels'][daids]
     idx2_dvec, idx2_daid, idx2_dfx = nntool.invertible_stack(_vecs_list, daids)

@@ -1202,8 +1202,22 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
     print('FINISHED MERGE %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname()))
 
 
-def export_names(ibs, nid_list):
+def make_new_dbpath(ibs, id_label, id_list):
+    """
+    Creates a new database path unique to the exported subset of ids.
+    """
+    import ibeis
+    tag_hash = ut.hashstr_arr(id_list, hashlen=8, alphabet=ut.ALPHABET_27)
+    base_fmtstr = ibs.get_dbname() + '_' + id_label + 's=' + tag_hash.replace('(', '_').replace(')', '_') + '_%d'
+    dpath = ibeis.get_workdir()
+    new_dbpath = ut.get_nonconflicting_path(base_fmtstr, dpath)
+    return new_dbpath
+
+
+def export_names(ibs, nid_list, new_dbpath=None):
     r"""
+    exports a subset of names and other required info
+
     Args:
         ibs (IBEISController):  ibeis controller object
         nid_list (list):
@@ -1224,17 +1238,32 @@ def export_names(ibs, nid_list):
         >>> # verify results
         >>> print(result)
     """
-    import ibeis
     print('Exporting name nid_list=%r' % (nid_list,))
-    nid_hash = ut.hashstr_arr(nid_list, hashlen=8, alphabet=ut.ALPHABET_27)
-    base_fmtstr = ibs.get_dbname() + '_nids=' + nid_hash.replace('(', '_').replace(')', '_') + '_%d'
-    dpath = ibeis.get_workdir()
-    new_dbpath = ut.get_nonconflicting_path(base_fmtstr, dpath)
-    ibs_src = ibs
+    if new_dbpath is None:
+        new_dbpath = make_new_dbpath(ibs, 'nid', nid_list)
     aid_list = ut.flatten(ibs.get_name_aids(nid_list))
-    gid_list = ibs_src.get_annot_gids(aid_list)
-    eid_list = list(set(ut.flatten(ibs.get_image_eids(gid_list))))
-    egrid_list = list(set(ut.flatten(ibs.get_image_egrids(gid_list))))
+    export_annots(ibs, aid_list, new_dbpath=new_dbpath)
+
+
+def export_images(ibs, gid_list, new_dbpath=None):
+    print('Exporting image gid_list=%r' % (gid_list,))
+    if new_dbpath is None:
+        new_dbpath = make_new_dbpath(ibs, 'gid', gid_list)
+    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+    export_annots(ibs, aid_list, new_dbpath=new_dbpath)
+
+
+def export_annots(ibs, aid_list, new_dbpath=None):
+    """
+    exports a subset of annotations and other required info
+    """
+    import ibeis
+    if new_dbpath is None:
+        new_dbpath = make_new_dbpath(ibs, 'aid', aid_list)
+    gid_list = ut.unique_unordered(ibs.get_annot_gids(aid_list))
+    nid_list = ut.unique_unordered(ibs.get_annot_nids(aid_list))
+    eid_list = ut.unique_unordered(ut.flatten(ibs.get_image_eids(gid_list)))
+    egrid_list = ut.unique_unordered(ut.flatten(ibs.get_image_egrids(gid_list)))
 
     annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
     flags1_list = [aid in set(aid_list) for aid in ibs.get_annotmatch_aid1(annotmatch_rowid_list)]
@@ -1246,14 +1275,15 @@ def export_names(ibs, nid_list):
     rowid_subsets = {
         const.ANNOTATION_TABLE: aid_list,
         const.NAME_TABLE: nid_list,
-        #ibs_src.get_annot_nids(aid_list),
+        #ibs.get_annot_nids(aid_list),
         const.IMAGE_TABLE: gid_list,
         const.ANNOTMATCH_TABLE: annotmatch_rowid_list,
         const.EG_RELATION_TABLE: egrid_list,
         const.ENCOUNTER_TABLE: eid_list,
     }
     ibs_dst = ibeis.opendb(dbdir=new_dbpath, allow_newdir=True)
-    merge_databases2(ibs_src, ibs_dst, rowid_subsets=rowid_subsets)
+    # Main merge driver
+    merge_databases2(ibs, ibs_dst, rowid_subsets=rowid_subsets)
     print('Exported to %r' % (new_dbpath,))
     return new_dbpath
 

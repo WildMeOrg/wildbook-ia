@@ -4093,6 +4093,46 @@ def find_offending_contributors(ibs):
     print(lengths_list)
 
 
+def export_nnp_master3_subset(ibs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-export_nnp_master3_subset
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('NNP_Master3')
+        >>> # execute function
+        >>> result = export_nnp_master3_subset(ibs)
+        >>> # verify results
+        >>> print(result)
+    """
+    # Get the subset of the dataset marked as difficult
+    annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
+    ishard_list         = ibs.get_annotmatch_is_hard(annotmatch_rowid_list)
+    isphotobomb_list    = ibs.get_annotmatch_is_photobomb(annotmatch_rowid_list)
+    isscenerymatch_list = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowid_list)
+    isnondistinct_list  = ibs.get_annotmatch_is_nondistinct(annotmatch_rowid_list)
+    hards        = np.array(ut.replace_nones(ishard_list, False))
+    photobombs   = np.array(ut.replace_nones(isphotobomb_list, False))
+    scenerys     = np.array(ut.replace_nones(isscenerymatch_list, False))
+    nondistincts = np.array(ut.replace_nones(isnondistinct_list, False))
+    flags = vt.and_lists(vt.or_lists(hards, nondistincts), ~photobombs, ~scenerys)
+    annotmatch_rowid_list_ = ut.list_compress(annotmatch_rowid_list, flags)
+
+    aid1_list = ibs.get_annotmatch_aid1(annotmatch_rowid_list_)
+    aid2_list = ibs.get_annotmatch_aid2(annotmatch_rowid_list_)
+    aid_list = sorted(list(set(aid1_list + aid2_list)))
+    from ibeis import dbio
+    gid_list = sorted(list(set(ibs.get_annot_gids(aid_list))))
+    dbio.export_subset.export_images(ibs, gid_list, new_dbpath=join(ibs.get_workdir(), 'testdb3'))
+
+
 if __name__ == '__main__':
     """
     CommandLine:

@@ -97,41 +97,11 @@ def draw_scatterplot(figdir, ibs, datax, datay, xlabel, ylabel, color, fnum=None
     df2.save_figure(fnum, figpath)
 
 
-def make_scatterplots(figdir, invindex, metrics):
-    from plottool import draw_func2 as df2
-    wx2_pdist_stats = metrics.wx2_pdist_stats
-    wx2_wdist_stats = metrics.wx2_pdist_stats
-    wx2_nMembers = metrics.wx2_nMembers
-
-    def wx2_avepdist(wx):
-        return wx2_pdist_stats[wx]['mean'] if wx in wx2_pdist_stats and 'mean' in wx2_pdist_stats[wx] else -1
-    def wx2_avewdist(wx):
-        return wx2_wdist_stats[wx]['mean'] if wx in wx2_wdist_stats and 'mean' in wx2_wdist_stats[wx] else -1
-
-    wx2_idf = invindex.wx2_idf
-
-    # data
-    wx_list  =  list(wx2_idf.keys())
-    idf_list =  [wx2_idf[wx] for wx in wx_list]
-    nPoints_list =  [wx2_nMembers[wx] if wx in wx2_nMembers else -1 for wx in wx_list]
-    avepdist_list = [wx2_avepdist(wx) for wx in wx_list]
-    avewdist_list = [wx2_avewdist(wx) for wx in wx_list]
-
-    df2.reset()
-    draw_scatterplot(figdir, idf_list, avepdist_list, 'idf', 'mean(pdist)', df2.WHITE, fnum=1)
-    draw_scatterplot(figdir, idf_list, avewdist_list, 'idf', 'mean(wdist)', df2.PINK, fnum=3)
-    draw_scatterplot(figdir, nPoints_list, avepdist_list, 'nPointsInWord', 'mean(pdist)', df2.GREEN, fnum=2)
-    draw_scatterplot(figdir, avepdist_list, avewdist_list, 'mean(pdist)', 'mean(wdist)', df2.YELLOW, fnum=4)
-    draw_scatterplot(figdir, nPoints_list, avewdist_list, 'nPointsInWord', 'mean(wdist)', df2.ORANGE, fnum=5)
-    draw_scatterplot(figdir, idf_list, nPoints_list, 'idf', 'nPointsInWord', df2.LIGHT_BLUE, fnum=6)
-    #df2.present()
-
-
-def dump_word_patches(ibs, vocabdir, invindex, wx_sample):
+def dump_word_patches(ibs, vocabdir, invindex, wx_sample, metrics):
     """
     Dumps word member patches to disk
     """
-    wx2_dpath = get_word_dpaths(vocabdir, wx_sample)
+    wx2_dpath = get_word_dpaths(vocabdir, wx_sample, metrics)
 
     # Write each patch from each annotation to disk
     idx2_daid = invindex.idx2_daid
@@ -175,16 +145,136 @@ def get_word_dname(wx, metrics):
     return word_dname
 
 
-def get_word_dpaths(vocabdir, wx_sample):
+def get_word_dpaths(vocabdir, wx_sample, metrics):
     """
     Gets word folder names and ensure they exist
     """
     ut.ensuredir(vocabdir)
-    wx2_dpath = {wx: join(vocabdir, get_word_dname(wx)) for wx in wx_sample}
-    progiter = ut.progiter(lbl='Ensuring word_dpath: ', freq=200)
-    for dpath in progiter(six.itervalues(wx2_dpath)):
+    wx2_dpath = {wx: join(vocabdir, get_word_dname(wx, metrics)) for wx in wx_sample}
+    iter_ = ut.progiter(six.itervalues(wx2_dpath), lbl='Ensuring word_dpath: ', freq=200)
+    for dpath in iter_:
         ut.ensuredir(dpath)
     return wx2_dpath
+
+
+def select_by_metric(wx2_metric, per_quantile=20):
+    # sample a few words around the quantile points
+    metric_list = np.array(list(wx2_metric.values()))
+    wx_list = np.array(list(wx2_metric.keys()))
+    metric_quantiles = spms.mquantiles(metric_list)
+    metric_quantiles = np.array(metric_quantiles.tolist() + [metric_list.max(), metric_list.min()])
+    wx_interest = []
+    for scalar in metric_quantiles:
+        dist = (metric_list - scalar) ** 2
+        wx_quantile = wx_list[dist.argsort()[0:per_quantile]]
+        wx_interest.extend(wx_quantile.tolist())
+    overlap = len(wx_interest) - len(set(wx_interest))
+    if overlap > 0:
+        print('warning: overlap=%r' % overlap)
+    return wx_interest
+
+
+def get_metric(metrics, tupkey, statkey=None):
+    wx2_metric = metrics.__dict__[tupkey]
+    if statkey is not None:
+        wx2_submetric = [stats_[statkey] for wx, stats_ in six.iteritems(wx2_metric) if statkey in stats_]
+        return wx2_submetric
+    return wx2_metric
+
+#{wx: pdist_stats['max'] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if 'max' in pdist_stats}
+#wx2_wrad = {wx: wdist_stats['max'] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if 'max' in wdist_stats}
+
+
+def vizualize_vocabulary(ibs, invindex):
+    """
+    cleaned up version of dump_word_patches. Makes idf scatter plots and dumps
+    the patches that contributed to each word.
+
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_plots --test-vizualize_vocabulary
+        python -m ibeis.model.hots.smk.smk_plots --test-vizualize_vocabulary --vf
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_plots import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> from ibeis.model.hots.smk import smk_repr
+        >>> #tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
+        >>> #tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=8000)
+        >>> #tup = smk_debug.testdata_raw_internals0(db='PZ_Master0', nWords=64000)
+        >>> tup = smk_debug.testdata_raw_internals0(db='PZ_Mothers', nWords=8000)
+        >>> ibs, annots_df, daids, qaids, invindex, qreq_ = tup
+        >>> smk_repr.compute_data_internals_(invindex, qreq_.qparams, delete_rawvecs=False)
+        >>> vizualize_vocabulary(ibs, invindex)
+    """
+    invindex.idx2_wxs = np.array(invindex.idx2_wxs)
+
+    print('[smk_plots] Vizualizing vocabulary')
+
+    # DUMPING PART --- dumps patches to disk
+    figdir = ibs.get_fig_dir()
+    ut.ensuredir(figdir)
+    if ut.get_argflag('--vf'):
+        ut.view_directory(figdir)
+
+    # Compute Word Statistics
+    metrics = compute_word_metrics(invindex)
+    wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats = metrics
+    #(wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats) = metrics
+
+    #wx2_prad = {wx: pdist_stats['max'] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if 'max' in pdist_stats}
+    #wx2_wrad = {wx: wdist_stats['max'] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if 'max' in wdist_stats}
+
+    wx2_prad = {wx: stats['max'] for wx, stats in wx2_pdist_stats.items() if 'max' in stats}
+    wx2_wrad = {wx: stats['max'] for wx, stats in wx2_wdist_stats.items() if 'max' in stats}
+    #wx2_prad = get_metric(metrics, 'wx2_pdist_stats', 'max')
+    #wx2_wrad = get_metric(metrics, 'wx2_wdist_stats', 'max')
+
+    wx_sample1 = select_by_metric(wx2_nMembers)
+    wx_sample2 = select_by_metric(wx2_prad)
+    wx_sample3 = select_by_metric(wx2_wrad)
+
+    wx_sample = wx_sample1 + wx_sample2 + wx_sample3
+    overlap123 = len(wx_sample) - len(set(wx_sample))
+    print('overlap123 = %r' % overlap123)
+    wx_sample  = set(wx_sample)
+    print('len(wx_sample) = %r' % len(wx_sample))
+
+    #make_scatterplots(ibs, figdir, invindex, metrics)
+
+    vocabdir = join(figdir, 'vocab_patches2')
+    wx2_dpath = get_word_dpaths(vocabdir, wx_sample, metrics)
+
+    make_wordfigures(ibs, metrics, invindex, figdir, wx_sample, wx2_dpath)
+
+
+def make_scatterplots(ibs, figdir, invindex, metrics):
+    from plottool import draw_func2 as df2
+    wx2_pdist_stats = metrics.wx2_pdist_stats
+    wx2_wdist_stats = metrics.wx2_pdist_stats
+    wx2_nMembers = metrics.wx2_nMembers
+
+    def wx2_avepdist(wx):
+        return wx2_pdist_stats[wx]['mean'] if wx in wx2_pdist_stats and 'mean' in wx2_pdist_stats[wx] else -1
+    def wx2_avewdist(wx):
+        return wx2_wdist_stats[wx]['mean'] if wx in wx2_wdist_stats and 'mean' in wx2_wdist_stats[wx] else -1
+
+    wx2_idf = invindex.wx2_idf
+
+    # data
+    wx_list  =  list(wx2_idf.keys())
+    idf_list =  [wx2_idf[wx] for wx in wx_list]
+    nPoints_list =  [wx2_nMembers[wx] if wx in wx2_nMembers else -1 for wx in wx_list]
+    avepdist_list = [wx2_avepdist(wx) for wx in wx_list]
+    avewdist_list = [wx2_avewdist(wx) for wx in wx_list]
+
+    df2.reset()
+    draw_scatterplot(figdir, ibs, idf_list, avepdist_list, 'idf', 'mean(pdist)', df2.WHITE, fnum=1)
+    draw_scatterplot(figdir, ibs, idf_list, avewdist_list, 'idf', 'mean(wdist)', df2.PINK, fnum=3)
+    draw_scatterplot(figdir, ibs, nPoints_list, avepdist_list, 'nPointsInWord', 'mean(pdist)', df2.GREEN, fnum=2)
+    draw_scatterplot(figdir, ibs, avepdist_list, avewdist_list, 'mean(pdist)', 'mean(wdist)', df2.YELLOW, fnum=4)
+    draw_scatterplot(figdir, ibs, nPoints_list, avewdist_list, 'nPointsInWord', 'mean(wdist)', df2.ORANGE, fnum=5)
+    draw_scatterplot(figdir, ibs, idf_list, nPoints_list, 'idf', 'nPointsInWord', df2.LIGHT_BLUE, fnum=6)
+    #df2.present()
 
 
 def make_wordfigures(ibs, metrics, invindex, figdir, wx_sample, wx2_dpath):
@@ -197,7 +287,7 @@ def make_wordfigures(ibs, metrics, invindex, figdir, wx_sample, wx2_dpath):
 
     vocabdir = join(figdir, 'vocab_patches2')
     ut.ensuredir(vocabdir)
-    dump_word_patches(ibs, invindex, wx_sample)
+    dump_word_patches(ibs, vocabdir, invindex, wx_sample, metrics)
 
     # COLLECTING PART --- collects patches in word folders
     #vocabdir
@@ -259,92 +349,6 @@ def make_wordfigures(ibs, metrics, invindex, figdir, wx_sample, wx2_dpath):
         #gtool.imwrite(bigpatch_fpath, bigpatch)
 
 
-def select_by_metric(wx2_metric, per_quantile=20):
-    # sample a few words around the quantile points
-    metric_list = np.array(list(wx2_metric.values()))
-    wx_list = np.array(list(wx2_metric.keys()))
-    metric_quantiles = spms.mquantiles(metric_list)
-    metric_quantiles = np.array(metric_quantiles.tolist() + [metric_list.max(), metric_list.min()])
-    wx_interest = []
-    for scalar in metric_quantiles:
-        dist = (metric_list - scalar) ** 2
-        wx_quantile = wx_list[dist.argsort()[0:per_quantile]]
-        wx_interest.extend(wx_quantile.tolist())
-    overlap = len(wx_interest) - len(set(wx_interest))
-    if overlap > 0:
-        print('warning: overlap=%r' % overlap)
-    return wx_interest
-
-
-def get_metric(metrics, tupkey, statkey=None):
-    wx2_metric = metrics.__dict__[tupkey]
-    if statkey is not None:
-        wx2_submetric = [stats_[statkey] for wx, stats_ in six.iteritems(wx2_metric) if statkey in stats_]
-        return wx2_submetric
-    return wx2_metric
-
-#{wx: pdist_stats['max'] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if 'max' in pdist_stats}
-#wx2_wrad = {wx: wdist_stats['max'] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if 'max' in wdist_stats}
-
-
-def vizualize_vocabulary(ibs, invindex):
-    """
-    cleaned up version of dump_word_patches
-
-    CommandLine:
-        python -m ibeis.model.hots.smk.smk_plots --test-vizualize_vocabulary
-        python -m ibeis.model.hots.smk.smk_plots --test-vizualize_vocabulary --vf
-
-    Example:
-        >>> from ibeis.model.hots.smk.smk_plots import *  # NOQA
-        >>> from ibeis.model.hots.smk import smk_debug
-        >>> from ibeis.model.hots.smk import smk_repr
-        >>> #tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
-        >>> #tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=8000)
-        >>> #tup = smk_debug.testdata_raw_internals0(db='PZ_Master0', nWords=64000)
-        >>> tup = smk_debug.testdata_raw_internals0(db='PZ_Mothers', nWords=8000)
-        >>> ibs, annots_df, daids, qaids, invindex, qreq_ = tup
-        >>> smk_repr.compute_data_internals_(invindex, qreq_.qparams, delete_rawvecs=False)
-        >>> vizualize_vocabulary(ibs, invindex)
-    """
-    invindex.idx2_wxs = np.array(invindex.idx2_wxs)
-
-    print('[smk_plots] Vizualizing vocabulary')
-
-    # DUMPING PART --- dumps patches to disk
-    figdir = ibs.get_fig_dir()
-    ut.ensuredir(figdir)
-    if ut.get_argflag('--vf'):
-        ut.view_directory(figdir)
-
-    # Compute Word Statistics
-    metrics = compute_word_metrics(invindex)
-    wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats = metrics
-    #(wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats) = metrics
-
-    #wx2_prad = {wx: pdist_stats['max'] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if 'max' in pdist_stats}
-    #wx2_wrad = {wx: wdist_stats['max'] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if 'max' in wdist_stats}
-
-    wx2_prad = {wx: stats['max'] for wx, stats in wx2_pdist_stats.items() if 'max' in stats}
-    wx2_wrad = {wx: stats['max'] for wx, stats in wx2_wdist_stats.items() if 'max' in stats}
-    #wx2_prad = get_metric(metrics, 'wx2_pdist_stats', 'max')
-    #wx2_wrad = get_metric(metrics, 'wx2_wdist_stats', 'max')
-
-    wx_sample1 = select_by_metric(wx2_nMembers)
-    wx_sample2 = select_by_metric(wx2_prad)
-    wx_sample3 = select_by_metric(wx2_wrad)
-
-    wx_sample = wx_sample1 + wx_sample2 + wx_sample3
-    overlap123 = len(wx_sample) - len(set(wx_sample))
-    print('overlap123 = %r' % overlap123)
-    wx_sample  = set(wx_sample)
-    print('len(wx_sample) = %r' % len(wx_sample))
-
-    make_scatterplots()
-
-    make_wordfigures()
-
-
 def get_cached_vocabs():
     import parse
     # Parse some of the training data from fname
@@ -362,7 +366,7 @@ def get_cached_vocabs():
 
 def view_vocabs():
     """
-    looks in vocab cachedir and prints info / vizualizes the vocabs
+    looks in vocab cachedir and prints info / vizualizes the vocabs using PCA
 
     CommandLine:
         python -m ibeis.model.hots.smk.smk_plots --test-view_vocabs --show

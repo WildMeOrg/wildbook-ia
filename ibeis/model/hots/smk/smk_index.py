@@ -15,6 +15,7 @@ import utool as ut
 #import weakref
 import numpy as np
 import six  # NOQA
+import pyflann
 #import pandas as pd
 from six.moves import zip, map, range  # NOQA
 from vtool import clustering2 as clustertool
@@ -134,7 +135,11 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign, massign_alpha,
         print('[smk_index.assign] assign_to_words_. len(idx2_vec) = %r' % len(idx2_vec))
     # Assign each vector to the nearest visual words
     assert nAssign > 0, 'cannot assign to 0 neighbors'
-    _idx2_wx, _idx2_wdist = wordflann.nn_index(idx2_vec, nAssign)
+    try:
+        _idx2_wx, _idx2_wdist = wordflann.nn_index(idx2_vec, nAssign)
+    except pyflann.FLANNException as ex:
+        ut.printex(ex, 'probably misread the cached flann_fpath=%r' % (wordflann.flann_fpath,))
+        raise
     _idx2_wx.shape    = (idx2_vec.shape[0], nAssign)
     _idx2_wdist.shape = (idx2_vec.shape[0], nAssign)
     if nAssign > 1:
