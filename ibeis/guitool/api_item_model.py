@@ -904,7 +904,7 @@ class APIItemModel(API_MODEL_BASE):
                 return None
             if role == Qt.CheckStateRole:
                 type_ = 'QtCheckState'
-                data = value == Qt.Checked
+                data = (value == Qt.Checked)
             elif role != Qt.EditRole:
                 return False
             else:

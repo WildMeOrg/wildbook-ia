@@ -15,6 +15,8 @@ from guitool import qtype
 import utool as ut
 ut.noinject(__name__, '[PreferenceWidget]', DEBUG=False)
 
+VERBOSE_PREF = ut.get_argflag('--verbpref')
+
 
 # Decorator to help catch errors that QT wont report
 def report_thread_error(fn):
@@ -81,15 +83,21 @@ class QPreferenceModel(QAbstractItemModel):
         return parentPref.qt_col_count()
 
     @report_thread_error
-    def data(self, index, role=Qt.DisplayRole):
+    def data(self, qtindex, role=Qt.DisplayRole):
         """ Returns the data stored under the given role
-        for the item referred to by the index. """
-        if not index.isValid():
+        for the item referred to by the qtindex. """
+        if not qtindex.isValid():
             return QVariantHack()
+        # Specify CheckState Role:
+        flags = self.flags(qtindex)
+        if role == Qt.CheckStateRole:
+            if flags & Qt.ItemIsUserCheckable:
+                data = self.index2Pref(qtindex).qt_get_data(qtindex.column())
+                return Qt.Checked if data else Qt.Unchecked
         if role != Qt.DisplayRole and role != Qt.EditRole:
             return QVariantHack()
-        nodePref = self.index2Pref(index)
-        data = nodePref.qt_get_data(index.column())
+        nodePref = self.index2Pref(qtindex)
+        data = nodePref.qt_get_data(qtindex.column())
         #print('--- data() ---')
         #print('role = %r' % role)
         #print('data = %r' % data)
@@ -112,6 +120,37 @@ class QPreferenceModel(QAbstractItemModel):
         #print('var= %r' % var)
         #print('type(var)= %r' % type(var))
         return str(var)
+
+    @report_thread_error
+    def setData(self, qtindex, value, role=Qt.EditRole):
+        """Sets the role data for the item at qtindex to value."""
+        if role == Qt.EditRole:
+            data = value
+        elif role == Qt.CheckStateRole:
+            data = (value == Qt.Checked)
+        else:
+            return False
+
+        if VERBOSE_PREF:
+            print('[qt] --- setData() ---')
+            print('[qt] role = %r' % role)
+            print('[qt] value = %r' % value)
+            print('[qt] type(data) = %r' % type(data))
+            print('[qt] type(value) = %r' % type(value))
+
+        leafPref = self.index2Pref(qtindex)
+        old_data = leafPref.qt_get_data(qtindex.column())
+        if VERBOSE_PREF:
+            print('[qt] old_data = %r' % (old_data,))
+            print('[qt] old_data != data = %r' % (old_data != data,))
+        if old_data != data:
+            result = leafPref.qt_set_leaf_data(data)
+            if VERBOSE_PREF:
+                print('[qt] result = %r' % (result,))
+            #if result is True:
+            #return result
+        self.dataChanged.emit(qtindex, qtindex)
+        return True
 
     @report_thread_error
     def index(self, row, col, parent=QModelIndex()):
@@ -140,8 +179,6 @@ class QPreferenceModel(QAbstractItemModel):
             return QModelIndex()
         return self.createIndex(parentPref.qt_parents_index_of_me(), 0, parentPref)
 
-    #-----------
-    # Overloaded ItemModel Write Functions
     @report_thread_error
     def flags(self, index):
         """Returns the item flags for the given index."""
@@ -153,23 +190,14 @@ class QPreferenceModel(QAbstractItemModel):
         childPref = self.index2Pref(index)
         if childPref:
             if childPref.qt_is_editable():
-                return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+                if childPref._intern.get_type() is bool:
+                    #print(childPref)
+                    #print(childPref._intern.get_type())
+                    #print(childPref._intern.get_type() is bool)
+                    return Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
+                else:
+                    return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
         return Qt.ItemFlag(0)
-
-    @report_thread_error
-    def setData(self, index, data, role=Qt.EditRole):
-        """Sets the role data for the item at index to value."""
-        if role != Qt.EditRole:
-            return False
-        #print('--- setData() ---')
-        #print('role = %r' % role)
-        #print('data = %r' % data)
-        #print('type(data) = %r' % type(data))
-        leafPref = self.index2Pref(index)
-        result = leafPref.qt_set_leaf_data(data)
-        if result is True:
-            self.dataChanged.emit(index, index)
-        return result
 
     @report_thread_error
     def headerData(self, section, orientation, role=Qt.DisplayRole):
