@@ -1080,7 +1080,7 @@ class OtherConfig(ConfigBase):
         other_cfg.location_for_names = 'IBEIS'
         #other_cfg.location_for_names = 'MUGU'
         other_cfg.smart_enabled = True
-        other_cfg.enable_custom_filter = True
+        other_cfg.enable_custom_filter = False
         other_cfg.hots_batch_size = 256
         other_cfg.update(**kwargs)
 
