@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 #from guitool.__PYQT__.QtCore import Qt
 #import six
 from guitool.__PYQT__.QtCore import QLocale
-import utool
+import utool as ut
 import uuid
 import numpy as np
 from guitool.__PYQT__ import QtGui
@@ -14,7 +14,7 @@ from guitool.guitool_decorators import checks_qt_error
 QVariant = None
 QString = str
 
-(print, print_, printDBG, rrr, profile) = utool.inject(
+(print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[qtype]', DEBUG=False)
 
 
@@ -75,7 +75,7 @@ def qindexinfo(index):
 #    #    'G':    use E or f format, whichever is the most concise
 #    #}
 #    data = 1000000
-#    print(utool.dict_str({
+#    print(ut.dict_str({
 #        'out1': str(QString.number(float(data), format='g', precision=8))
 #    }))
 
@@ -111,33 +111,33 @@ def cast_into_qt(data):
     Casts python data into a representation suitable for QT (usually a string)
     """
     if SIMPLE_CASTING:
-        if utool.is_str(data):
+        if ut.is_str(data):
             return str(data)
-        elif utool.is_float(data):
+        elif ut.is_float(data):
             #qnumber = QString.number(float(data), format='g', precision=8)
             return locale_float(data)
-        elif utool.is_bool(data):
+        elif ut.is_bool(data):
             return bool(data)
-        elif  utool.is_int(data):
+        elif  ut.is_int(data):
             return int(data)
         elif isinstance(data, uuid.UUID):
             return str(data)
-        elif utool.isiterable(data):
+        elif ut.isiterable(data):
             return ', '.join(map(str, data))
         else:
             return str(data)
-    if utool.is_str(data):
+    if ut.is_str(data):
         return str(data)
-    elif utool.is_float(data):
+    elif ut.is_float(data):
         #qnumber = QString.number(float(data), format='g', precision=8)
         return locale_float(data)
-    elif utool.is_bool(data):
+    elif ut.is_bool(data):
         return bool(data)
-    elif  utool.is_int(data):
+    elif  ut.is_int(data):
         return int(data)
     elif isinstance(data, uuid.UUID):
         return str(data)
-    elif utool.isiterable(data):
+    elif ut.isiterable(data):
         return ', '.join(map(str, data))
     elif data is None:
         return 'None'
@@ -148,18 +148,18 @@ def cast_into_qt(data):
 #@profile
 #def __cast_into_qt_py2(data):
 #    """ Casts data to a QVariant """
-#    if utool.is_str(data):
+#    if ut.is_str(data):
 #        return QVariant(str(data)).toString()
-#    if utool.is_float(data):
+#    if ut.is_float(data):
 #        #qnumber = QString.number(float(data), format='g', precision=8)
 #        return QVariant(LOCALE.toString(float(data), format='g', precision=8))
-#    elif utool.is_bool(data):
+#    elif ut.is_bool(data):
 #        return QVariant(bool(data)).toString()
-#    elif  utool.is_int(data):
+#    elif  ut.is_int(data):
 #        return QVariant(int(data)).toString()
 #    elif isinstance(data, uuid.UUID):
 #        return QVariant(str(data)).toString()
-#    elif utool.isiterable(data):
+#    elif ut.isiterable(data):
 #        return QVariant(', '.join(map(str, data))).toString()
 #    elif data is None:
 #        return QVariant('None').toString()
@@ -176,7 +176,7 @@ def cast_from_qt(var, type_=None):
             return None
         if type_ is not None:
             reprstr = str(var)
-            return utool.smart_cast(reprstr, type_)
+            return ut.smart_cast(reprstr, type_)
         return var
 
     # TODO: sip api v2 should take care of this.
@@ -187,7 +187,7 @@ def cast_from_qt(var, type_=None):
     #if type_ is not None and isinstance(var, QVariant):
     #    # Most cases will be qvariants
     #    reprstr = str(var.toString())
-    #    data = utool.smart_cast(reprstr, type_)
+    #    data = ut.smart_cast(reprstr, type_)
     #elif isinstance(var, QVariant):
     #    if var.typeName() == 'bool':
     #        data = bool(var.toBool())
@@ -216,7 +216,7 @@ def cast_from_qt(var, type_=None):
 #    if type_ is not None and isinstance(var, QVariant):
 #        # Most cases will be qvariants
 #        reprstr = str(var.toString())
-#        data = utool.smart_cast(reprstr, type_)
+#        data = ut.smart_cast(reprstr, type_)
 #    elif isinstance(var, QVariant):
 #        if var.typeName() == 'bool':
 #            data = bool(var.toBool())

@@ -1,15 +1,21 @@
-# TODO: Rename api_item_model
+"""
+TODO:
+    Fix slowness
+    Fix sorting so columns are initially sorted in ascending order
+
+
+"""
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtCore, QtGui, QVariantHack
 from guitool.__PYQT__.QtCore import Qt
 from guitool import qtype
 from guitool.guitool_decorators import checks_qt_error, signal_  # NOQA
-from six.moves import zip  # builtins
+from six.moves import zip  # builtins  # NOQA
 #from utool._internal.meta_util_six import get_funcname
 import functools
 import utool as ut
 #from .api_thumb_delegate import APIThumbDelegate
-#import numpy as np
+import numpy as np
 #profile = lambda func: func
 #printDBG = lambda *args: None
 # UTOOL PRINT STATEMENTS CAUSE RACE CONDITIONS IN QT THAT CAN LEAD TO SEGFAULTS
@@ -257,14 +263,32 @@ class APIItemModel(API_MODEL_BASE):
                 print('[APIItemModel] lazy_update_rows len(id_list) = %r' % (len(id_list)))
             # start sort
             if model.col_sort_index is not None:
+                type_ = model.col_type_list[sort_index]
                 getter = model.col_getter_list[sort_index]
                 values = getter(id_list)
+                if type_ == 'PIXMAP':
+                    # TODO: find a better sorting metric for pixmaps
+                    values = ut.get_list_column(values, 0)
                 #print('values got')
             else:
+                type_ = int
                 values = id_list
             reverse = model.col_sort_reverse
-            sorted_pairs = sorted(zip(values, id_list, children), reverse=reverse)
-            nodes = [child for (value, id_, child) in sorted_pairs]
+
+            #ut.embed()
+            # <NUMPY MULTIARRAY SORT>
+            with ut.embed_on_exception_context:
+                #values = np.array(values)
+                if type_ is float:
+                    values[np.isnan(values)] = -np.inf  # Force nan to be the smallest number
+                sorting_records = np.rec.fromarrays([values, id_list])
+                sort_stride = (-reverse * 2) + 1
+                sortx = sorting_records.argsort()[::sort_stride]
+                # </NUMPY MULTIARRAY SORT>
+                nodes = ut.list_take(children, sortx)
+
+            #sorted_pairs = sorted(zip(values, id_list, children), reverse=reverse)
+            #nodes = [child for (value, id_, child) in sorted_pairs]
             level = model.col_level_list[sort_index]
             #print("row_indices sorted")
             if level == 0:

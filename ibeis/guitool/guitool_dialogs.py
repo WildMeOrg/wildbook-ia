@@ -275,26 +275,73 @@ def _register_msgbox(msgbox):
     msgbox.destroyed.connect(_close_msgbox)
 
 
+class ResizableMessageBox(QtGui.QMessageBox):
+    """
+    References:
+        http://stackoverflow.com/questions/2655354/how-to-allow-resizing-of-qmessagebox-in-pyqt4
+    """
+    def __init__(self, *args):
+        QtGui.QMessageBox.__init__(self, *args)
+        self.setSizeGripEnabled(True)
+
+    def event(self, event):
+
+        #print(event)
+        #print(event.type())
+        #print(ut.invert_dict(dict(QtCore.QEvent.__dict__))[event.type()])
+        #print(event.spontaneous())
+        #print(event.isAccepted())
+        result = QtGui.QMessageBox.event(self, event)
+        #print(event.isAccepted())
+        #print('----')
+        #if event != QtCore.QEvent.DeferredDelete:
+        try:
+            self.setMinimumHeight(0)
+            self.setMaximumHeight(16777215)
+            self.setMinimumWidth(0)
+            self.setMaximumWidth(16777215)
+            self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+
+            textEdit = self.findChild(QtGui.QTextEdit)
+            if textEdit is not None:
+                textEdit.setMinimumHeight(0)
+                textEdit.setMaximumHeight(16777215)
+                textEdit.setMinimumWidth(0)
+                textEdit.setMaximumWidth(16777215)
+                textEdit.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        except RuntimeError as ex:
+            msg = 'Closing seems to cause C++ errors. Unsure how to fix properly.'
+            ut.printex(ex, msg, iswarning=True, keys=['event', 'event.type()'])
+
+        return result
+
+
 def msgbox(msg='', title='msgbox', detailed_msg=None):
     """ Make a non modal critical QtGui.QMessageBox.
 
     CommandLine:
-        python -m guitool.guitool_dialogs --test-msgbox
+        python -m guitool.guitool_dialogs --test-msgbox --show
 
     Example:
         >>> # DISABLE_DOCTEST
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
         >>> from guitool.guitool_dialogs import *  # NOQA
         >>> from guitool.guitool_dialogs import _register_msgbox  # NOQA
         >>> # build test data
         >>> msg = 'Hello World!'
+        >>> detailed_msg = 'I have a detailed message for you.'
         >>> title = 'msgbox'
         >>> # execute function
-        >>> msgbox = msgbox(msg, title)
+        >>> msgbox = msgbox(msg, title, detailed_msg=detailed_msg)
         >>> # verify results
         >>> result = str(msgbox)
         >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> msgbox.exec_()
     """
-    msgbox = QtGui.QMessageBox(None)
+    #msgbox = QtGui.QMessageBox(None)
+    msgbox = ResizableMessageBox(None)
     msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
     msgbox.setStandardButtons(QtGui.QMessageBox.Ok)
     msgbox.setWindowTitle(title)
