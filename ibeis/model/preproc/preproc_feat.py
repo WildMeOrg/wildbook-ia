@@ -145,7 +145,8 @@ def generate_feats(cfpath_list, hesaff_params={}, cid_list=None, nInput=None, **
     arg_list = list(arg_iter)
     #if ut.VERBOSE:
     #    print('arg_list = ' + ut.list_str(arg_list))
-    featgen = utool.util_parallel.generate(gen_feat_worker, arg_list, nTasks=nInput, **kwargs)
+    featgen = utool.util_parallel.generate(gen_feat_worker, arg_list, nTasks=nInput,
+                                           freq=10, **kwargs)
     return featgen
 
 

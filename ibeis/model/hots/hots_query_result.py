@@ -720,12 +720,12 @@ class QueryResult(__OBJECT_BASE__):
         return fig
 
     def show_analysis(qres, ibs, qreq_=None, *args, **kwargs):
-        print('[qres] show_analysis')
+        #print('[qres] show_analysis')
         from ibeis.viz import viz_qres
         return viz_qres.show_qres_analysis(ibs, qres, *args, qreq_=qreq_, **kwargs)
 
     def ishow_analysis(qres, ibs, qreq_=None, *args, **kwargs):
-        print('[qres] show_analysis')
+        #print('[qres] ishow_analysis')
         from ibeis.viz.interact import interact_qres
         return interact_qres.ishow_analysis(ibs, qres, *args, qreq_=qreq_, **kwargs)
 

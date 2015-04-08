@@ -76,7 +76,7 @@ def get_num_annotations(ibs, **kwargs):
 @accessor_decors.ider
 def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
                    yaw='no-filter', is_exemplar=None, species=None,
-                   is_known=None, nojunk=False):
+                   is_known=None, nojunk=False, hasgt=None):
     """
     Note: The yaw value cannot be None as a default because None is used as a
           filtering value
@@ -185,6 +185,9 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         quality_list = ibs.get_annot_qualities(aid_list)
         isjunk_list = [quality == const.QUALITY_TEXT_TO_INT['junk'] for quality in quality_list]
         aid_list = ut.filterfalse_items(aid_list, isjunk_list)
+    if hasgt:
+        hasgt_list = ibs.get_annot_has_groundtruth(aid_list)
+        aid_list = ut.filter_items(aid_list, hasgt_list)
     return aid_list
 
 

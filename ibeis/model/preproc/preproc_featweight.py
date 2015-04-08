@@ -220,7 +220,7 @@ def compute_fgweights(ibs, aid_list, config2_=None):
 
     print('[preproc_featweight.compute_fgweights] Computing %d fgweights' % (nTasks,))
     arg_iter = zip(aid_list, kpts_list, probchip_list, chipsize_list)
-    featweight_gen = utool.generate(gen_featweight_worker, arg_iter, nTasks=nTasks, ordered=True)
+    featweight_gen = utool.generate(gen_featweight_worker, arg_iter, nTasks=nTasks, ordered=True, freq=10)
     featweight_param_list = list(featweight_gen)
     #arg_iter = zip(aid_list, kpts_list, probchip_list)
     #featweight_param_list1 = [gen_featweight_worker((aid, kpts, probchip)) for aid, kpts, probchip in arg_iter]

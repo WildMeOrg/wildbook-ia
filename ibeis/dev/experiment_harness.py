@@ -82,8 +82,6 @@ def get_qres_name_result_info(ibs, qres):
     )
     return qresinfo_dict
 
-#ibs.get_aids_and_scores()
-
 
 @profile
 def get_config_result_info(ibs, qaids, daids):
@@ -93,7 +91,6 @@ def get_config_result_info(ibs, qaids, daids):
     Runs queries of a specific configuration returns the best rank of each query
 
     Args:
-        ibs : IBEIS Controller
         qaids (list) : query annotation ids
         daids (list) : database annotation ids
 
@@ -133,27 +130,7 @@ def get_config_result_info(ibs, qaids, daids):
     qx2_qres = ut.dict_take(qaid2_qres, qaids)
     # Get the groundtruth that could have been matched in this experiment
     qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
-    # Get the groundtruth ranks
-    #
-    # <TECHNICALLY NONNECESSARY, BUT MAKES LIFE EASIER>
-    # Pick a good max rank that isn't None
-    #worst_possible_value = max(9001, len(daids) + len(qaids) + 2)
-    #ut.embed()
-    #qx2_gtranks = [qaid2_qres[qaid].get_gt_ranks(ibs=ibs, gt_aids=gt_aids, fillvalue=worst_possible_value)
-    #               for qaid, gt_aids in zip(qaids, qx2_gtaids)]
-    #qx2_sorted_gtaids = [np.array(ut.sortedby(gt_aids, gt_ranks))
-    #                     for gt_aids, gt_ranks in zip(qx2_gtaids, qx2_gtranks)]
-    #qx2_sorted_gtranks = [qaid2_qres[qaid].get_gt_ranks(ibs=ibs, gt_aids=gt_aids, fillvalue=worst_possible_value)
-    #                      for qaid, gt_aids in zip(qaids, qx2_sorted_gtaids)]
-    #qx2_gtaids = qx2_sorted_gtaids
-    #qx2_gtranks = qx2_sorted_gtranks
-    # </TECHNICALLY NONNECESSARY, BUT MAKES LIFE EASIER>
-    #
-    #with ut.EmbedOnException():
-    # qres = qaid2_qres[qaid]
-
-    # Compute accuracy measures
-
+    # Get the groundtruth ranks and accuracy measures
     qx2_qresinfo = [get_qres_name_result_info(ibs, qres) for qres in qx2_qres]
 
     cfgres_info = ut.dict_stack(qx2_qresinfo, 'qx2_')
@@ -162,55 +139,13 @@ def get_config_result_info(ibs, qaids, daids):
         'qx2_' + key
         ut.get_list_column(qx2_qresinfo, key)
 
-    #qx2_bestranks      = ut.get_list_column(qx2_qresinfotup, 0)
-    #qx2_next_bestranks = ut.get_list_column(qx2_qresinfotup, 1)
-    #qx2_gt_raw_score   = ut.get_list_column(qx2_qresinfotup, 4)
-    #qx2_gf_raw_score   = ut.get_list_column(qx2_qresinfotup, 5)
-    #qx2_scorediff      = ut.get_list_column(qx2_qresinfotup, 6)
-    #qx2_scorefactor    = ut.get_list_column(qx2_qresinfotup, 7)
-    #qx2_scorelogfactor = ut.get_list_column(qx2_qresinfotup, 8)
-    #qx2_scoreexpdiff   = ut.get_list_column(qx2_qresinfotup, 9)
-
-    #qx2_gtranks = [qaid2_qres[qaid].get_aid_ranks(gt_aids)
-    #               for qaid, gt_aids in zip(qaids, qx2_gtaids)]
-
-    #qx2_gfranks = [list(set(range(len(gtranks) + 1)) - set(gtranks))
-    #               for gtranks in qx2_gtranks]
-
-    #qx2_best_gt_aid = [-1 ]
-
-    ##qx2_bestranks = [[qaid2_qres[qaid].get_best_gt_rank(ibs=ibs, gt_aids=gt_aids)]
-    ##                 for qaid, gt_aids in zip(qaids, qx2_gtaids)]
-    #qx2_bestranks = [-1 if len(gtranks) == 0 else min(gtranks) for gtranks in qx2_gtranks]
-
-    #qx2_bestranks_gf = [-1 if len(gtranks) == 0 else min(gtranks) for gtranks in qx2_gfranks]
-
-    #qx2_bestscores = []
-    #qx2_bestscores_gf = []
-
     qx2_avepercision = np.array(
         [qaid2_qres[qaid].get_average_percision(ibs=ibs, gt_aids=gt_aids) for
          (qaid, gt_aids) in zip(qaids, qx2_gtaids)])
     cfgres_info['qx2_avepercision'] = qx2_avepercision
-
     # Compute mAP score  # TODO: use mAP score
     # (Actually map score doesn't make much sense if using name scoring
-    mAP = qx2_avepercision[~np.isnan(qx2_avepercision)].mean()  # NOQA
-
-    #qx2_bestranks = ut.replace_nones(qx2_bestranks, -1)
-
-    #cfgres_info = qx2_bestranks, qx2_next_bestranks, qx2_scorediff, qx2_avepercision
-    #cfgres_info = {
-    #    'qx2_bestranks'      : qx2_bestranks,
-    #    'qx2_next_bestranks' : qx2_next_bestranks,
-    #    'qx2_avepercision'   : qx2_avepercision,
-    #    'qx2_gt_raw_score'   : qx2_gt_raw_score,
-    #    'qx2_gf_raw_score'   : qx2_gf_raw_score,
-    #    'qx2_scorediff'      : qx2_scorediff,
-    #    'qx2_scorefactor'    : qx2_scorefactor,
-    #    'qx2_scorelogfactor' : qx2_scorelogfactor,
-    #    'qx2_scoreexpdiff'   : qx2_scoreexpdiff,
-    #}
+    #mAP = qx2_avepercision[~np.isnan(qx2_avepercision)].mean()  # NOQA
     cfgres_info['qx2_bestranks'] = ut.replace_nones(cfgres_info['qx2_bestranks'] , -1)
     return cfgres_info, qreq_
 
@@ -240,18 +175,38 @@ def test_configurations(ibs, qaids, daids, test_cfg_name_list):
     if test_result is None:
         return
     else:
-        experiment_printres.print_results(
-            ibs, qaids, daids, test_result)
+        experiment_printres.print_results(ibs, test_result)
+        experiment_printres.draw_results(ibs, test_result)
 
 
 class TestResult(object):
-    def __init__(test_result, cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_):
+    def __init__(test_result, cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, daids, qaids):
+        test_result.qaids = qaids
+        test_result.daids = daids
         test_result.cfg_list         = cfg_list
         test_result.cfgx2_lbl        = cfgx2_lbl
         test_result.lbl              = lbl
         test_result.testnameid       = testnameid
         test_result.cfgx2_cfgresinfo = cfgx2_cfgresinfo
         test_result.cfgx2_qreq_      = cfgx2_qreq_
+
+    @ut.memoize
+    def get_rank_mat(test_result):
+        # Ranks of Best Results
+        cfgx2_bestranks = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_bestranks')
+        rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
+        # Set invalid ranks to the worse possible rank
+        worst_possible_rank = max(9001, len(test_result.daids) + 1)
+        rank_mat[rank_mat == -1] =  worst_possible_rank
+        return rank_mat
+
+    @ut.memoize
+    def get_new_hard_qx_list(test_result):
+        new_hard_qx_list = []
+        rank_mat = test_result.get_rank_mat()
+        # Mark examples as hard
+        [qx for qx, ranks in enumerate(rank_mat) if ranks.max() > 0]
+        return new_hard_qx_list
 
 
 @profile
@@ -305,7 +260,7 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
     # TODO: should probably just use a cfgdict to build a list of QueryRequest
     # objects. That would avoid the entire problem
     ibs.set_query_cfg(orig_query_cfg)
-    test_result = TestResult(cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_)
+    test_result = TestResult(cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, daids, qaids)
     return test_result
 
 if __name__ == '__main__':

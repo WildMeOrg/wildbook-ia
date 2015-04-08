@@ -58,7 +58,7 @@ def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
 
     if aid_list is None:
         # Compare to aid_list instead of using top ranks
-        print('[analysis] showing top aids')
+        #print('[analysis] showing top aids')
         top_aids = qres.get_top_aids(num=N)
         if figtitle is None:
             if len(top_aids) == 0:
