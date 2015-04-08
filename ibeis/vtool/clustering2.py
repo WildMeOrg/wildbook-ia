@@ -708,7 +708,8 @@ def invert_apply_grouping(grouped_items, groupxs):
 
 def invert_apply_grouping2(grouped_items, groupxs, dtype=None):
     """ use only when ungrouping will be complete """
-    maxval = max(map(np.max, groupxs))
+    max_ = lambda x: np.max(x) if len(x) > 0 else 0
+    maxval = max_(map(max_, groupxs))
     ungrouped_items = np.zeros((maxval + 1,), dtype=dtype)
     for itemgroup, ix_list in zip(grouped_items, groupxs):
         ungrouped_items[ix_list] = itemgroup
