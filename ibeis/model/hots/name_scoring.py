@@ -419,11 +419,21 @@ def group_scores_by_name(ibs, aid_list, score_list):
 
     array([ 1,  5, 26])
     [2 6 5]
+
+    Timeit::
+        import ibeis
+        ibs = ibeis.opendb('PZ_MTEST')
+        aid_list = ibs.get_valid_aids()
+        aid_arr = np.array(aid_list)
+        %timeit ibs.get_annot_name_rowids(aid_list)
+        %timeit ibs.get_annot_name_rowids(aid_arr)
+
+
     """
     assert len(score_list) == len(aid_list), 'scores and aids must be associated'
     score_arr = np.array(score_list)
-    aid_list  = np.array(aid_list)
     nid_list  = np.array(ibs.get_annot_name_rowids(aid_list))
+    aid_list  = np.array(aid_list)
     # Group scores by name
     unique_nids, groupxs = vt.group_indices(nid_list)
     grouped_scores = np.array(vt.apply_grouping(score_arr, groupxs))

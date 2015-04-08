@@ -348,6 +348,7 @@ class QueryResult(__OBJECT_BASE__):
 
     # ----------------------------------------
 
+    @profile
     def get_nscoretup(qres, ibs):
         r"""
         Args:

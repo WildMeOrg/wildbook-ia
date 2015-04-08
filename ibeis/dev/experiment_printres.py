@@ -16,6 +16,7 @@ from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
 from six.moves import map, range, input  # NOQA
 import vtool as vt
+from ibeis import params
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[expt_report]')
 
 
@@ -34,22 +35,55 @@ DUMP_PROBCHIP = True
 DUMP_REGCHIP = True
 
 
-def get_diffmat_str(rank_mat, qaids, nConfig):
-    # Find rows which scored differently over the various configs
+def get_diffranks(rank_mat, qaids):
+    """ Find rows which scored differently over the various configs """
     row2_aid = np.array(qaids)
-    diff_rows = np.where([not np.all(row == row[0]) for row in rank_mat])[0]
-    diff_aids = row2_aid[diff_rows]
-    diff_rank = rank_mat[diff_rows]
+    isdiff_flags = [not np.all(row == row[0]) for row in rank_mat]
+    diff_aids = row2_aid.compress(isdiff_flags, axis=0)
+    diff_rank = rank_mat.compress(isdiff_flags, axis=0)
+    return diff_aids, diff_rank
+
+
+def get_interesting_ranks(rank_mat, qaids):
+    # find the rows that vary greatest with the parameter settings
+    diff_aids, diff_rank = get_diffranks(rank_mat, qaids)
+    if False:
+        rankcategory = np.log(diff_rank + 1)
+    else:
+        rankcategory = diff_rank.copy()
+        rankcategory[diff_rank == 0]  = 0
+        rankcategory[diff_rank > 0]   = 1
+        rankcategory[diff_rank > 2]   = 2
+        rankcategory[diff_rank > 5]   = 3
+        rankcategory[diff_rank > 50]  = 4
+        rankcategory[diff_rank > 100] = 5
+    row_rankcategory_std = np.std(rankcategory, axis=1)
+    row_rankcategory_mean = np.mean(rankcategory, axis=1)
+    row_sortx = vt.argsort_multiarray([row_rankcategory_std, row_rankcategory_mean], reverse=True)
+
+    interesting_qx_list = row_sortx.tolist()
+    print(interesting_qx_list)
+    print(row_rankcategory_std)
+    print(diff_rank.take(row_sortx, axis=0))
+    return interesting_qx_list
+
+
+def get_diffmat_str(rank_mat, qaids, nConfig):
+    diff_aids, diff_rank = get_diffranks(rank_mat, qaids)
+    # Find columns that ore strictly better than other columns
+    #def find_strictly_better_columns(diff_rank):
+    #    colmat = diff_rank.T
+    #    pairwise_betterness_ranks = np.array([np.sum(col <= colmat, axis=1) / len(col) for col in colmat], dtype=np.float).T
     diff_mat = np.vstack((diff_aids, diff_rank.T)).T
     col_lbls = list(chain(['qaid'], map(lambda x: 'cfg%d_rank' % x, range(nConfig))))
-    col_types  = list(chain([int], [int] * nConfig))
+    col_type  = list(chain([int], [int] * nConfig))
     header = 'diffmat'
-    diff_matstr = utool.numpy_to_csv(diff_mat, col_lbls, header, col_types)
+    diff_matstr = utool.numpy_to_csv(diff_mat, col_lbls, header, col_type)
     return diff_matstr
 
 
-def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
-                  testnameid, sel_rows, sel_cols, cfgx2_lbl, cfgx2_qreq_):
+@profile
+def print_results(ibs, qaids, daids, test_result):
     """
     Prints results from an experiment harness run.
     Rows store different qaids (query annotation ids)
@@ -67,7 +101,29 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
         python dev.py --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats
         python dev.py --db PZ_MTEST --allgt --noqcache --qaid4 -t custom:rrvsone_on=True --print-confusion-stats
 
+    CommandLine:
+        python -m ibeis.dev.experiment_printres --test-print_results
+        utprof.py -m ibeis.dev.experiment_printres --test-print_results
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.dev.experiment_printres import *  # NOQA
+        >>> from ibeis.dev import experiment_harness
+        >>> import ibeis
+        >>> # build test data
+        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> test_cfg_name_list = ['pyrscale']
+        >>> qaids = ibs.get_valid_aids(species=species)
+        >>> daids = ibs.get_valid_aids(species=species)
+        >>> test_result = experiment_harness.run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
+        >>> # execute function
+        >>> result = print_results(ibs, qaids, daids, test_result)
+        >>> # verify results
+        >>> print(result)
     """
+    (cfg_list, cfgx2_cfgresinfo, testnameid, cfgx2_lbl, cfgx2_qreq_) = ut.dict_take(
+        test_result.__dict__, ['cfg_list', 'cfgx2_cfgresinfo', 'testnameid', 'cfgx2_lbl', 'cfgx2_qreq_'])
 
     # cfgx2_cfgresinfo is a list of dicts of lists
     # Parse result info out of the lists
@@ -596,25 +652,30 @@ def print_results(ibs, qaids, daids, cfg_list, cfgx2_cfgresinfo,
     print('\n' + '\n'.join(sumstrs) + '\n')
 
     print('To enable all printouts add --print-all to the commandline')
+    interesting_qx_list = get_interesting_ranks(rank_mat, qaids)
 
     # Draw result figures
-    draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, cfgx2_qreq_, new_hard_qx_list)
+    draw_results(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgx2_qreq_, new_hard_qx_list, interesting_qx_list)
 
 
-def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, cfgx2_qreq_, new_hard_qx_list):
+def draw_results(ibs, qaids, daids, cfg_list, cfgx2_lbl, cfgx2_qreq_, new_hard_qx_list, interesting_qx_list):
     """
     Draws results from an experiment harness run.
     Rows store different qaids (query annotation ids)
     Cols store different configurations (algorithm parameters)
 
     CommandLine:
-        python dev.py -t best --db seals2 --allgt --vz --fig-dname query_analysis_easy
-        python dev.py -t best --db seals2 --allgt --vh --fig-dname query_analysis_hard
+        python dev.py -t best --db seals2 --allgt --vz --fig-dname query_analysis_easy --show
+        python dev.py -t best --db seals2 --allgt --vh --fig-dname query_analysis_hard --show
+        python dev.py -t pyrscale --db PZ_MTEST --allgt --vn --fig-dname query_analysis_interesting --show
     """
     print(' --- DRAW RESULTS ---')
-
-    sel_rows = []
-    sel_cols = []
+    sel_cols = params.args.sel_cols  # FIXME
+    sel_rows = params.args.sel_rows  # FIXME
+    sel_cols = [] if sel_cols is None else sel_cols
+    sel_rows = [] if sel_rows is None else sel_rows
+    #sel_rows = []
+    #sel_cols = []
     if utool.NOT_QUIET:
         print('remember to inspect with --sel-rows (-r) and --sel-cols (-c) ')
         print('other options:')
@@ -622,6 +683,7 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, cfg
         print('   --va - view all')
         print('   --vh - view hard')
         print('   --ve - view easy')
+        print('   --vn - view iNteresting')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
         sel_cols = list(range(len(cfg_list)))
     if len(sel_cols) > 0 and len(sel_rows) == 0:
@@ -635,6 +697,13 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, cfg
     if utool.get_argflag(('--view-easy', '--vz')):
         sel_rows += np.setdiff1d(np.arange(len(qaids)), new_hard_qx_list).tolist()
         sel_cols += list(range(len(cfg_list)))
+    if utool.get_argflag(('--view-interesting', '--vn')):
+        sel_rows += interesting_qx_list
+        # TODO: grab the best scoring and most interesting configs
+        sel_cols += list(range(len(cfg_list)))
+
+    #ut.embed()
+
     sel_rows = ut.unique_keep_order2(sel_rows)
     sel_cols = ut.unique_keep_order2(sel_cols)
 
@@ -871,3 +940,16 @@ def draw_results(ibs, qaids, daids, sel_rows, sel_cols, cfg_list, cfgx2_lbl, cfg
 
     if utool.NOT_QUIET:
         print('[DRAW_RESULT] EXIT EXPERIMENT HARNESS')
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.dev.experiment_printres
+        python -m ibeis.dev.experiment_printres --allexamples
+        python -m ibeis.dev.experiment_printres --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

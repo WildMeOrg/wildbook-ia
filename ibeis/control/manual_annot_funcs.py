@@ -1214,6 +1214,7 @@ def get_annot_parent_aid(ibs, aid_list):
 @register_ibs_method
 @ut.accepts_numpy
 @accessor_decors.getter_1to1
+@accessor_decors.cache_getter(const.ANNOTATION_TABLE, NAME_ROWID, cfgkeys=['distinguish_unknowns'])
 def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
     """
     Returns:
@@ -1221,7 +1222,7 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -1233,19 +1234,7 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
     """
     id_iter = aid_list
     colnames = (NAME_ROWID,)
-    nid_list_ = ibs.db.get(
-        const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
-
-    ## OLD LBLANNOT WAY
-    ## Get all the annotation lblannot relationships
-    ## filter out only the ones which specify names
-    #alrids_list = ibs.get_annot_alrids_oftype(aid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
-    #lblannot_rowids_list = ibsfuncs.unflat_map(ibs.get_alr_lblannot_rowids, alrids_list)
-    ## Get a single nid from the list of lblannot_rowids of type INDIVIDUAL
-    ## TODO: get index of highest confidence name
-    #nid_list_ = [lblannot_rowids[0] if len(lblannot_rowids) > 0 else ibs.UNKNOWN_LBLANNOT_ROWID for
-    #             lblannot_rowids in lblannot_rowids_list]
-
+    nid_list_ = ibs.db.get(const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
     if distinguish_unknowns:
         #from ibeis.model.preproc import preproc_annot
         #nid_list = preproc_annot.distinguish_unknown_nids(ibs, aid_list, nid_list_)

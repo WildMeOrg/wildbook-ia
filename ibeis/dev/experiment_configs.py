@@ -3,11 +3,9 @@
 In this file dicts specify all possible combinations of the varied parameters
 and lists specify the union of parameters
 """
-
 from __future__ import absolute_import, division, print_function
 import utool
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[cfgbank]')
-# Python
 
 
 def augbase(basedict, updatedict):
@@ -16,6 +14,12 @@ def augbase(basedict, updatedict):
     return newdict
 
 exclude_vars = vars().keys()   # this line is before tests
+
+
+pyrscale = {
+    'maxPyramidLevels': [-1, 1, 2],
+    'affine_invariance': [True, False],
+}
 
 
 small_best = {

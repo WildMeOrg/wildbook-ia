@@ -15,7 +15,8 @@ USE_CACHE    = not ut.get_argflag(('--nocache-query', '--noqcache'))
 USE_BIGCACHE = not ut.get_argflag(('--nocache-big', '--no-bigcache-query', '--noqcache', '--nobigcache'))
 SAVE_CACHE   = not ut.get_argflag('--nocache-save')
 #MIN_BIGCACHE_BUNDLE = 20
-MIN_BIGCACHE_BUNDLE = 150
+#MIN_BIGCACHE_BUNDLE = 150
+MIN_BIGCACHE_BUNDLE = 64
 
 
 #----------------------

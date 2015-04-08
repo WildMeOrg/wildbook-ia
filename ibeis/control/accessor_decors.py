@@ -207,41 +207,59 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
                 ut.embed()
                 raise
 
-        #@profile cannot profile this because it is alrady being profiled by
-        def wrp_getter_cacher(ibs, rowid_list, **kwargs):
-            """
-            Wrapper function that caches rowid values in a dictionary
-            """
-            # HACK TAKE OUT GETTING DEBUG OUT OF KWARGS
-            debug_ = kwargs.pop('debug', False)
-            if cfgkeys is not None:
-                kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys, None))
-            else:
-                kwargs_hash = None
-            #+----------------------------
-            # There are 3 levels of caches
-            #+----------------------------
-            # All caches for this table
-            colscache_ = ibs.table_cache[tblname]
-            # All caches for the this column
-            kwargs_cache_ = colscache_[colname]
-            # All caches for this kwargs configuration
-            cache_ = kwargs_cache_[kwargs_hash]
-            #L____________________________
+        if False:
+            #@profile cannot profile this because it is alrady being profiled by
+            def wrp_getter_cacher(ibs, rowid_list, **kwargs):
+                """
+                Wrapper function that caches rowid values in a dictionary
+                """
+                # HACK TAKE OUT GETTING DEBUG OUT OF KWARGS
+                debug_ = kwargs.pop('debug', False)
+                if cfgkeys is not None:
+                    #kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys, None))
+                    kwargs_hash = ut.get_dict_hashid([kwargs.get(key, None) for key in cfgkeys])
+                    #ut.dict_take_list(kwargs, cfgkeys, None))
+                else:
+                    kwargs_hash = None
+                #+----------------------------
+                # There are 3 levels of caches
+                #+----------------------------
+                # All caches for this table
+                #colscache_ = ibs.table_cache[tblname]
+                ## All caches for the this column
+                #kwargs_cache_ = colscache_[colname]
+                ## All caches for this kwargs configuration
+                #cache_ = kwargs_cache_[kwargs_hash]
+                cache_ = ibs.table_cache[tblname][colname][kwargs_hash]
+                #L____________________________
 
-            # Load cached values for each rowid
-            vals_list = ut.dict_take_list(cache_, rowid_list, None)
-            # Mark rowids with cache misses
-            ismiss_list = [val is None for val in vals_list]
-            if debug or debug_:
-                debug_cache_hits(ismiss_list, rowid_list)
-                #print('[cache_getter] "debug_cache_hits" turned off')
-            # HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT
-            with_assert = ASSERT_API_CACHE
-            if with_assert:
-                assert_cache_hits(ibs, ismiss_list, rowid_list, kwargs_hash, **kwargs)
-            # END HACK
-            if any(ismiss_list):
+                # Load cached values for each rowid
+                #vals_list = ut.dict_take_list(cache_, rowid_list, None)
+                vals_list = [cache_.get(rowid, None) for rowid in rowid_list]
+                # Mark rowids with cache misses
+                ismiss_list = [val is None for val in vals_list]
+                if debug or debug_:
+                    debug_cache_hits(ismiss_list, rowid_list)
+                    #print('[cache_getter] "debug_cache_hits" turned off')
+                # HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT
+                if ASSERT_API_CACHE:
+                    assert_cache_hits(ibs, ismiss_list, rowid_list, kwargs_hash, **kwargs)
+                # END HACK
+                if any(ismiss_list):
+                    miss_indices = ut.list_where(ismiss_list)
+                    miss_rowids  = ut.filter_items(rowid_list, ismiss_list)
+                    # call wrapped function
+                    miss_vals = getter_func(ibs, miss_rowids, **kwargs)
+                    # overwrite missed output
+                    for index, val in zip(miss_indices, miss_vals):
+                        vals_list[index] = val  # Output write
+                    # cache save
+                    for rowid, val in zip(miss_rowids, miss_vals):
+                        cache_[rowid] = val     # Cache write
+                return vals_list
+        else:
+
+            def handle_cache_misses(ibs, getter_func, rowid_list, ismiss_list, vals_list, cache_, kwargs):
                 miss_indices = ut.list_where(ismiss_list)
                 miss_rowids  = ut.filter_items(rowid_list, ismiss_list)
                 # call wrapped function
@@ -251,8 +269,28 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
                     vals_list[index] = val  # Output write
                 # cache save
                 for rowid, val in zip(miss_rowids, miss_vals):
-                    cache_[rowid] = val     # Cache writd(ne
-            return vals_list
+                    cache_[rowid] = val     # Cache write
+
+            def wrp_getter_cacher(ibs, rowid_list, **kwargs):
+                """
+                Wrapper function that caches rowid values in a dictionary
+                """
+                kwargs.pop('debug', False)
+                kwargs_hash = (
+                    None if cfgkeys is None else
+                    ut.get_dict_hashid([kwargs.get(key, None) for key in cfgkeys])
+                )
+                # There are 3 levels of caches
+                # All caches for this table, caches for the this column, and caches for this kwargs configuration
+                cache_ = ibs.table_cache[tblname][colname][kwargs_hash]
+                # Load cached values for each rowid
+                vals_list = [cache_.get(rowid, None) for rowid in rowid_list]
+                # Mark rowids with cache misses
+                ismiss_list = [val is None for val in vals_list]
+                # END HACK
+                if any(ismiss_list):
+                    handle_cache_misses(ibs, getter_func, rowid_list, ismiss_list, vals_list, cache_, kwargs)
+                return vals_list
         wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)
         return wrp_getter_cacher
     return closure_getter_cacher
