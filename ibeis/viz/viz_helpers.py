@@ -297,6 +297,12 @@ def get_query_text(ibs, qres, aid2, truth, **kwargs):
     if kwargs.get('show_timedelta', False):
         timedelta_str = ('\n' + get_timedelta_str(ibs, qaid, aid2))
         text_list.append(timedelta_str)
+    name_score = kwargs.get('name_score', None)
+    name_rank = kwargs.get('name_rank', None)
+    if name_score is not None:
+        text_list.append('name_score=' + ut.num_fmt(name_score))
+    if name_rank is not None:
+        text_list.append('name_rank=%s' % (str(name_rank),))
     query_text = ', '.join(text_list)
     return query_text
 

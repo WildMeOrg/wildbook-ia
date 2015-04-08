@@ -106,7 +106,8 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         qaid        = qres.qaid
         cmtup_old = (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_)
         fsv_col_lbls = qres.filtkey_list
-        cm = cls.from_cmtup_old(cmtup_old, qaid, fsv_col_lbls)
+        #ut.embed()
+        cm = cls.from_cmtup_old(cmtup_old, qaid, fsv_col_lbls, daid_list=qres.daids)
         fs_list = [fsv.T[cm.fsv_col_lbls.index('lnbnn')] for fsv in cm.fsv_list]
         cm.fs_list = fs_list
         return cm
@@ -714,25 +715,42 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         """
         from ibeis.viz import viz_matches
         qaid = cm.qaid
+        # <GET NAME GROUPXS>
         nidx = cm.nid2_nidx[dnid]
         groupxs = cm.name_groupxs[nidx]
-        # find features marked as invalid by name scoring
-        featflag_list  = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=qreq_)
+        daids = np.take(cm.daid_list, groupxs)
+        groupxs = groupxs.compress(daids != cm.qaid)
+        # </GET NAME GROUPXS>
         # sort annots in this name by the chip score
-        sorted_groupxs = groupxs.take(cm.csum_score_list.take(groupxs).argsort()[::-1])
+        group_sortx = cm.csum_score_list.take(groupxs).argsort()[::-1]
+        sorted_groupxs = groupxs.take(group_sortx)
         # get the info for this name
-        name_daid_list = ut.list_take(cm.daid_list, sorted_groupxs)
-        name_fm_list   = ut.list_take(cm.fm_list, sorted_groupxs)
+        name_fm_list  = ut.list_take(cm.fm_list, sorted_groupxs)
+        REMOVE_EMPTY_MATCHES = len(sorted_groupxs) > 3
+        if REMOVE_EMPTY_MATCHES:
+            isvalid_list = [len(fm) > 0 for fm in name_fm_list]
+            name_fm_list = ut.list_compress(name_fm_list, isvalid_list)
+            sorted_groupxs = sorted_groupxs.compress(isvalid_list)
+
         name_H1_list   = None if not homog or cm.H_list is None else ut.list_take(cm.H_list, sorted_groupxs)
         name_fsv_list  = None if cm.fsv_list is None else ut.list_take(cm.fsv_list, sorted_groupxs)
         name_fs_list   = None if name_fsv_list is None else [fsv.prod(axis=1) for fsv in name_fsv_list]
+        name_daid_list = ut.list_take(cm.daid_list, sorted_groupxs)
+        # find features marked as invalid by name scoring
+        featflag_list  = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=qreq_)
         name_featflag_list = ut.list_take(featflag_list, sorted_groupxs)
+        # Get the scores for names and chips
+        name_score = cm.name_score_list[nidx]
+        name_rank = ut.listfind(cm.name_score_list.argsort()[::-1].tolist(), nidx)
+        name_annot_scores = cm.csum_score_list.take(sorted_groupxs)
 
         #showkw = dict(fm=fm, fs=fs, H1=H1, fnum=fnum, pnum=pnum, **kwargs)
         #viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_, **showkw)
         viz_matches.show_name_matches(
             qreq_.ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
-            name_H1_list, name_featflag_list, qreq_=qreq_, **kwargs)
+            name_H1_list, name_featflag_list, name_score=name_score, name_rank=name_rank,
+            name_annot_scores=name_annot_scores, qreq_=qreq_, fnum=fnum,
+            pnum=pnum, **kwargs)
 
     def show_single_annotmatch(cm, qreq_, daid=None, fnum=None, pnum=None, homog=ut.get_argflag('--homog'), **kwargs):
         """

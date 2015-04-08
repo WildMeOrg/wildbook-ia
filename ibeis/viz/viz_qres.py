@@ -50,6 +50,7 @@ def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
     show_query = kwargs.pop('show_query', True)
     aid_list   = kwargs.pop('aid_list', None)
     figtitle   = kwargs.pop('figtitle', None)
+    viz_name_score  = kwargs.get('viz_name_score', qreq_ is not None)
 
     # Debug printing
     #print('[analysis] noshow_gt  = %r' % noshow_gt)
@@ -87,10 +88,14 @@ def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
         # Sort missed grountruth by score
         _gtscores = qres.get_aid_scores(_gtaids)
         _gtaids = ut.sortedby(_gtaids, _gtscores, reverse=True)
-        if len(_gtaids) > 3:
-            # Hack to not show too many unmatched groundtruths
-            #_isexmp = ibs.get_annot_exemplar_flags(_gtaids)
-            _gtaids = _gtaids[0:3]
+        if viz_name_score:
+            if len(_gtaids) > 1:
+                _gtaids = _gtaids[0:1]
+        else:
+            if len(_gtaids) > 3:
+                # Hack to not show too many unmatched groundtruths
+                #_isexmp = ibs.get_annot_exemplar_flags(_gtaids)
+                _gtaids = _gtaids[0:3]
         showgt_aids = _gtaids
 
     return show_qres(ibs, qres, gt_aids=showgt_aids, top_aids=top_aids,
@@ -133,11 +138,13 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
         >>> import plottool as pt
         >>> import ibeis
         >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qres = ibs.query_chips(ibs.get_valid_aids()[0:1])[0]
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> qaids = ibs.get_valid_aids()[0:1]
+        >>> daids = ibs.get_valid_aids()
+        >>> qreq_ = ibs.new_query_request(qaids, daids)
+        >>> qres = ibs.query_chips(qreq_=qreq_)[0]
         >>> # execute function
-        >>> qreq_ = None
-        >>> fig = show_qres(ibs, qres, sidebyside=False, show_query=True, qreq_=qreq_, top_aids=3)
+        >>> fig = show_qres(ibs, qres, sidebyside=True, show_query=False, qreq_=qreq_, top_aids=3)
         >>> # verify results
         >>> #fig.show()
         >>> pt.show_if_requested()
@@ -154,6 +161,7 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
     in_image      = kwargs.get('in_image', False)
     sidebyside    = kwargs.get('sidebyside', True)
     name_scoring  = kwargs.get('name_scoring', False)
+    viz_name_score  = kwargs.get('viz_name_score', qreq_ is not None)
 
     fnum = df2.ensure_fnum(kwargs.get('fnum', None))
 
@@ -274,7 +282,13 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
             # If we already are showing the query dont show it here
             if sidebyside:
                 # Draw each match side by side the query
-                viz_matches.show_matches(ibs, qres, aid, qreq_=qreq_, **_kwshow)
+                if viz_name_score:
+                    from ibeis.model.hots import chip_match
+                    cm = chip_match.ChipMatch2.from_qres(qres)
+                    cm.score_nsum(qreq_)
+                    cm.show_single_namematch(qreq_, ibs.get_annot_nids(aid), **_kwshow)
+                else:
+                    viz_matches.show_matches(ibs, qres, aid, qreq_=qreq_, **_kwshow)
             else:
                 # Draw each match by themselves
                 data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
@@ -328,7 +342,7 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
     df2.set_figtitle(figtitle, incanvas=not vh.NO_LBL_OVERRIDE)
 
     # Result Interaction
-    df2.adjust_subplots_safe()
+    #df2.adjust_subplots_safe()
     printDBG('[show_qres()] Finished')
     return fig
 

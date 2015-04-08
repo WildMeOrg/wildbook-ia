@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
-import plottool.draw_func2 as df2
+import plottool as pt
 import plottool.plot_helpers as ph
 from ibeis.viz import viz_helpers as vh
 (print, print_, printDBG, rrr, profile) = ut.inject(
@@ -33,7 +33,8 @@ def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches):
     return rchip2_list, kpts2_list
 
 
-def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, name_featflag_list, qreq_=None, **kwargs):
+def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
+                      name_H1_list, name_featflag_list, qreq_=None, **kwargs):
     """
     kwargs = {}
     draw_fmatches = True
@@ -44,6 +45,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, nam
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots import chip_match
+        >>> from ibeis.model.hots import name_scoring
         >>> from ibeis.viz.viz_matches import *  # NOQA
         >>> from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
         >>> func = chip_match.ChipMatch2.show_single_namematch
@@ -64,12 +66,13 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, nam
         >>> # get the info for this name
         >>> name_daid_list = ut.list_take(cm.daid_list, sorted_groupxs)
         >>> name_fm_list   = ut.list_take(cm.fm_list, sorted_groupxs)
+        >>> homog = False
         >>> name_H1_list   = None if not homog or cm.H_list is None else ut.list_take(cm.H_list, sorted_groupxs)
         >>> name_fsv_list  = None if cm.fsv_list is None else ut.list_take(cm.fsv_list, sorted_groupxs)
         >>> name_fs_list   = None if name_fsv_list is None else [fsv.prod(axis=1) for fsv in name_fsv_list]
         >>> name_featflag_list = ut.list_take(featflag_list, sorted_groupxs)
         >>> kwargs = {}
-        >>> show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, qreq_=qreq_, **kwargs)
+        >>> show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, name_featflag_list, qreq_=qreq_, **kwargs)
         >>> ut.quit_if_noshow()
         >>> ut.show_if_requested()
     """
@@ -79,7 +82,13 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, nam
     fm_list = name_fm_list
     fs_list = name_fs_list
     featflag_list = name_featflag_list
-    show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_list, featflag_list, **kwargs)
+    offset_list, sf_list, bbox_list = show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_list, featflag_list, **kwargs)
+    aid_list = [qaid] + name_daid_list
+    annotate_matches3(ibs, aid_list, bbox_list, offset_list, qreq_=None, **kwargs)
+    ax = pt.gca()
+    title = vh.get_query_text(ibs, None, name_daid_list, False, **kwargs)
+
+    pt.set_title(title, ax)
 
 
 def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_list, featflag_list, fnum=None, pnum=None, **kwargs):
@@ -87,6 +96,9 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_lis
     rchip = rchip1
     H = H1 = None
     target_wh = None
+
+    TODO:
+        color the features so the scores are comparabile within the multichip match
 
     """
     import vtool.image as gtool
@@ -106,7 +118,10 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_lis
     rchip2_list_ = [preprocess_chips(rchip2, None, wh1) for rchip2 in rchip2_list]
     wh2_list = [gtool.get_size(rchip2) for rchip2 in rchip2_list_]
 
-    match_img, offset_list, sf_list = pt.stack_image_list_special(rchip1_, rchip2_list_)
+    num = 0 if len(rchip2_list) < 3 else 1
+    vert = True if len(rchip2_list) > 1 else False
+
+    match_img, offset_list, sf_list = pt.stack_image_list_special(rchip1_, rchip2_list_, num=num, vert=vert)
 
     wh_list = np.array(ut.flatten([[wh1], wh2_list])) * sf_list
 
@@ -117,8 +132,13 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_lis
     fig, ax = pt.imshow(match_img, fnum=fnum, pnum=pnum)
 
     NONVOTE_MODE = kwargs.get('nonvote_mode', 'filter')
-    for _tup in zip(offset_list[1:], wh_list[1:], sf_list[1:], kpts2_list, fm_list, fs_list, featflag_list):
-        offset2, wh2, sf2, kpts2, fm2_, fs2_, featflags = _tup
+    ut.flatten(fs_list)
+    #ut.embed()
+    flat_fs, cumlen_list = ut.invertible_flatten2(fs_list)
+    flat_colors = pt.scores_to_color(np.array(flat_fs), 'hot')
+    colors_list = ut.unflatten2(flat_colors, cumlen_list)
+    for _tup in zip(offset_list[1:], wh_list[1:], sf_list[1:], kpts2_list, fm_list, fs_list, featflag_list, colors_list):
+        offset2, wh2, sf2, kpts2, fm2_, fs2_, featflags, colors = _tup
         xywh1 = (offset1[0], offset1[1], wh1[0], wh1[1])
         xywh2 = (offset2[0], offset2[1], wh2[0], wh2[1])
         #colors = pt.scores_to_color(fs2)
@@ -135,11 +155,110 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_lis
                 fs2 = fs2_
             pt.plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm2, fs2, fm_norm=None,
                            H1=None, H2=None, scale_factor1=sf1,
-                           scale_factor2=sf2, colorbar_=False, **kwargs)
+                           scale_factor2=sf2, colorbar_=False, colors=colors,
+                           **kwargs)
+    pt.colorbar(flat_fs, flat_colors)
+    bbox_list = [(x, y, w, h) for (x, y), (w, h) in zip(offset_list, wh_list)]
+    return offset_list, sf_list, bbox_list
 
     # Show the stacked chips
     #annotate_matches2(ibs, aid1, aid2, fm, fs, xywh2=xywh2, xywh1=xywh1,
     #                  offset1=offset1, offset2=offset2, **kwargs)
+
+
+def annotate_matches3(ibs, aid_list, bbox_list, offset_list, qreq_=None, **kwargs):
+    """
+    TODO: use this as the main function.
+    Have the qres version be a wrapper
+    """
+    # TODO Use this function when you clean show_matches
+    in_image    = kwargs.get('in_image', False)
+    #show_query  = kwargs.get('show_query', True)
+    #draw_border = kwargs.get('draw_border', True)
+    draw_lbl    = kwargs.get('draw_lbl', True)
+    name_annot_scores = kwargs.get('name_annot_scores', None)
+
+    #printDBG('[viz] annotate_matches2()')
+    #truth = ibs.get_match_truth(aid1, aid2)
+    #truth_color = vh.get_truth_color(truth)
+    # Build title
+
+    #score         = kwargs.pop('score', None)
+    #rawscore      = kwargs.pop('rawscore', None)
+    #aid2_raw_rank = kwargs.pop('aid2_raw_rank', None)
+    #print(kwargs)
+    #title = vh.get_query_text(ibs, None, aid2, truth, qaid=aid1, **kwargs)
+    # Build xlbl
+    ax = pt.gca()
+    ph.set_plotdat(ax, 'viztype', 'multi_match')
+    ph.set_plotdat(ax, 'qaid', aid_list[0])
+    for count, aid in enumerate(aid_list, start=1):
+        ph.set_plotdat(ax, 'aid%d' % (count,), aid)
+
+    if draw_lbl:
+        # Build labels
+        nid_list = ibs.get_annot_nids(aid_list, distinguish_unknowns=False)
+        name_list = ibs.get_annot_names(aid_list)
+        lbls_list = [[] for _ in range(len(aid_list))]
+        if kwargs.get('show_aid', True):
+            for count, (lbls, aid) in enumerate(zip(lbls_list, aid_list)):
+                lbls.append(('q' if count == 0 else '') + vh.get_aidstrs(aid))
+        if kwargs.get('show_name', False):
+            for (lbls, name) in zip(lbls_list, name_list):
+                lbls.append(repr(str(name)))
+        if kwargs.get('show_nid', True):
+            for (lbls, nid) in zip(lbls_list, nid_list):
+                lbls.append(vh.get_nidstrs(nid))
+        if kwargs.get('show_annot_score', True):
+            for (lbls, score) in zip(lbls_list[1:], name_annot_scores):
+                lbls.append(ut.num_fmt(score))
+        lbl_list = [' : '.join(lbls) for lbls in lbls_list]
+    else:
+        lbl_list = [None] * len(aid_list)
+    #pt.set_title(title, ax)
+    # Plot annotations over images
+    if in_image:
+        in_image_bbox_list = vh.get_bboxes(ibs, aid_list, offset_list)
+        in_image_theta_list = ibs.get_annot_thetas(aid_list)
+        # HACK!
+        #if show_query:
+        #    pt.draw_bbox(bbox1, bbox_color=pt.ORANGE, lbl=lbl1, theta=theta1)
+        bbox_color = pt.ORANGE
+        #bbox_color2 = truth_color if draw_border else pt.ORANGE
+        for bbox, theta, lbl in zip(in_image_bbox_list, in_image_theta_list, lbl_list):
+            pt.draw_bbox(bbox, bbox_color=bbox_color, lbl=lbl, theta=theta)
+            pass
+    else:
+        xy, w, h = pt.get_axis_xy_width_height(ax)
+        #bbox2 = (xy[0], xy[1], w, h)
+        #theta2 = 0
+
+        #if xywh2 is None:
+        #    #xywh2 = (xy[0], xy[1], w, h)
+        #    # weird when sidebyside is off y seems to be inverted
+        #    xywh2 = (0,  0, w, h)
+
+        #if not show_query and xywh1 is None:
+        #    data_config2 = None if qreq_ is None else qreq_.get_external_data_config2()
+        #    kpts2 = ibs.get_annot_kpts([aid2], config2_=data_config2)[0]
+        #    #pt.draw_kpts2(kpts2.take(fm.T[1], axis=0))
+        #    # Draw any selected matches
+        #    #sm_kw = dict(rect=True, colors=pt.BLUE)
+        #    pt.plot_fmatch(None, xywh2, None, kpts2, fm, fs=fs, **kwargs)
+        #if draw_border:
+        #    pt.draw_border(ax, truth_color, 4, offset=offset2)
+        if draw_lbl:
+            # Custom user lbl for chips 1 and 2
+            #if show_query:
+            #    (x1, y1, w1, h1) = xywh1
+            #    pt.absolute_lbl(x1 + w1, y1, lbl1)
+            for bbox, lbl in zip(bbox_list, lbl_list):
+                (x, y, w, h) = bbox
+                pt.absolute_lbl(x + w, y, lbl)
+        # No matches draw a red box
+    #if fm is None or len(fm) == 0:
+    #    if draw_border:
+    #        pt.draw_boxedX(bbox2, theta=theta2)
 
 
 #@ut.indent_func
@@ -173,7 +292,7 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
         lbl2 = None
     # Draws the chips and keypoint matches
     try:
-        ax, xywh1, xywh2 = df2.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm,
+        ax, xywh1, xywh2 = pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm,
                                                fs=fs, fm_norm=fm_norm,
                                                H1=H1, H2=H2, lbl1=lbl1, lbl2=lbl2, **kwargs)
     except Exception as ex:
@@ -186,8 +305,8 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
     # TODO: MOVE TO ANNOTATE MATCHES
     if len(sel_fm) > 0:
         # Draw any selected matches
-        sm_kw = dict(rect=True, colors=df2.BLUE)
-        df2.plot_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, **sm_kw)
+        sm_kw = dict(rect=True, colors=pt.BLUE)
+        pt.plot_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, **sm_kw)
     offset1 = (x1, y1)
     offset2 = (x2, y2)
     annotate_matches2(ibs, aid1, aid2, fm, fs, xywh2=xywh2, xywh1=xywh1,
@@ -223,7 +342,7 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
     #print(kwargs)
     title = vh.get_query_text(ibs, None, aid2, truth, qaid=aid1, **kwargs)
     # Build xlbl
-    ax = df2.gca()
+    ax = pt.gca()
     ph.set_plotdat(ax, 'viztype', 'matches')
     ph.set_plotdat(ax, 'qaid', aid1)
     ph.set_plotdat(ax, 'aid1', aid1)
@@ -250,18 +369,18 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
         lbl1, lbl2 = None, None
     if vh.NO_LBL_OVERRIDE:
         title = ''
-    df2.set_title(title, ax)
+    pt.set_title(title, ax)
     # Plot annotations over images
     if in_image:
         bbox1, bbox2 = vh.get_bboxes(ibs, [aid1, aid2], [offset1, offset2])
         theta1, theta2 = ibs.get_annot_thetas([aid1, aid2])
         # HACK!
         if show_query:
-            df2.draw_bbox(bbox1, bbox_color=df2.ORANGE, lbl=lbl1, theta=theta1)
-        bbox_color2 = truth_color if draw_border else df2.ORANGE
-        df2.draw_bbox(bbox2, bbox_color=bbox_color2, lbl=lbl2, theta=theta2)
+            pt.draw_bbox(bbox1, bbox_color=pt.ORANGE, lbl=lbl1, theta=theta1)
+        bbox_color2 = truth_color if draw_border else pt.ORANGE
+        pt.draw_bbox(bbox2, bbox_color=bbox_color2, lbl=lbl2, theta=theta2)
     else:
-        xy, w, h = df2.get_axis_xy_width_height(ax)
+        xy, w, h = pt.get_axis_xy_width_height(ax)
         bbox2 = (xy[0], xy[1], w, h)
         theta2 = 0
 
@@ -273,23 +392,23 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
         if not show_query and xywh1 is None:
             data_config2 = None if qreq_ is None else qreq_.get_external_data_config2()
             kpts2 = ibs.get_annot_kpts([aid2], config2_=data_config2)[0]
-            #df2.draw_kpts2(kpts2.take(fm.T[1], axis=0))
+            #pt.draw_kpts2(kpts2.take(fm.T[1], axis=0))
             # Draw any selected matches
-            #sm_kw = dict(rect=True, colors=df2.BLUE)
-            df2.plot_fmatch(None, xywh2, None, kpts2, fm, fs=fs, **kwargs)
+            #sm_kw = dict(rect=True, colors=pt.BLUE)
+            pt.plot_fmatch(None, xywh2, None, kpts2, fm, fs=fs, **kwargs)
         if draw_border:
-            df2.draw_border(ax, truth_color, 4, offset=offset2)
+            pt.draw_border(ax, truth_color, 4, offset=offset2)
         if draw_lbl:
             # Custom user lbl for chips 1 and 2
             if show_query:
                 (x1, y1, w1, h1) = xywh1
-                df2.absolute_lbl(x1 + w1, y1, lbl1)
+                pt.absolute_lbl(x1 + w1, y1, lbl1)
             (x2, y2, w2, h2) = xywh2
-            df2.absolute_lbl(x2 + w2, y2, lbl2)
+            pt.absolute_lbl(x2 + w2, y2, lbl2)
         # No matches draw a red box
     if fm is None or len(fm) == 0:
         if draw_border:
-            df2.draw_boxedX(bbox2, theta=theta2)
+            pt.draw_boxedX(bbox2, theta=theta2)
 
 
 # OLD QRES BASED FUNCS STILL IN USE
@@ -331,7 +450,7 @@ def show_matches(ibs, qres, aid2, sel_fm=[], qreq_=None, **kwargs):
         >>> print(result)
         >>> #if not ut.get_argflag('--noshow'):
         >>> if ut.get_argflag('--show'):
-        >>>    execstr = df2.present()
+        >>>    execstr = pt.present()
         >>>    exec(execstr)
     """
     in_image = kwargs.get('in_image', False)
@@ -350,7 +469,7 @@ def show_matches(ibs, qres, aid2, sel_fm=[], qreq_=None, **kwargs):
         lbl2 = None
     # Draws the chips and keypoint matches
     try:
-        ax, xywh1, xywh2 = df2.show_chipmatch2(rchip1, rchip2, kpts1, kpts2,
+        ax, xywh1, xywh2 = pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2,
                                                fm, fs=fs, lbl1=lbl1, lbl2=lbl2,
                                                **kwargs)
     except Exception as ex:
@@ -363,8 +482,8 @@ def show_matches(ibs, qres, aid2, sel_fm=[], qreq_=None, **kwargs):
     # TODO: MOVE TO ANNOTATE MATCHES
     if len(sel_fm) > 0:
         # Draw any selected matches
-        sm_kw = dict(rect=True, colors=df2.BLUE)
-        df2.plot_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, **sm_kw)
+        sm_kw = dict(rect=True, colors=pt.BLUE)
+        pt.plot_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, **sm_kw)
     offset1 = (x1, y1)
     offset2 = (x2, y2)
     annotate_matches(ibs, qres, aid2, xywh2=xywh2, xywh1=xywh1,
@@ -411,7 +530,7 @@ def annotate_matches(ibs, qres, aid2,
     #truth_color = vh.get_truth_color(truth)
     ## Build title
     ## Build xlbl
-    #ax = df2.gca()
+    #ax = pt.gca()
     #ph.set_plotdat(ax, 'viztype', 'matches')
     #ph.set_plotdat(ax, 'qaid', aid1)
     #ph.set_plotdat(ax, 'aid1', aid1)
@@ -438,18 +557,18 @@ def annotate_matches(ibs, qres, aid2,
     #    lbl1, lbl2 = None, None
     #if vh.NO_LBL_OVERRIDE:
     #    title = ''
-    #df2.set_title(title, ax)
+    #pt.set_title(title, ax)
     ## Plot annotations over images
     #if in_image:
     #    bbox1, bbox2 = vh.get_bboxes(ibs, [aid1, aid2], [offset1, offset2])
     #    theta1, theta2 = ibs.get_annot_thetas([aid1, aid2])
     #    # HACK!
     #    if show_query:
-    #        df2.draw_bbox(bbox1, bbox_color=df2.ORANGE, lbl=lbl1, theta=theta1)
-    #    bbox_color2 = truth_color if draw_border else df2.ORANGE
-    #    df2.draw_bbox(bbox2, bbox_color=bbox_color2, lbl=lbl2, theta=theta2)
+    #        pt.draw_bbox(bbox1, bbox_color=pt.ORANGE, lbl=lbl1, theta=theta1)
+    #    bbox_color2 = truth_color if draw_border else pt.ORANGE
+    #    pt.draw_bbox(bbox2, bbox_color=bbox_color2, lbl=lbl2, theta=theta2)
     #else:
-    #    xy, w, h = df2.get_axis_xy_width_height(ax)
+    #    xy, w, h = pt.get_axis_xy_width_height(ax)
     #    bbox2 = (xy[0], xy[1], w, h)
     #    theta2 = 0
 
@@ -461,23 +580,23 @@ def annotate_matches(ibs, qres, aid2,
     #    if not show_query and xywh1 is None:
     #        data_config2 = None if qreq_ is None else qreq_.get_external_data_config2()
     #        kpts2 = ibs.get_annot_kpts([aid2], config2_=data_config2)[0]
-    #        #df2.draw_kpts2(kpts2.take(fm.T[1], axis=0))
+    #        #pt.draw_kpts2(kpts2.take(fm.T[1], axis=0))
     #        # Draw any selected matches
-    #        #sm_kw = dict(rect=True, colors=df2.BLUE)
-    #        df2.plot_fmatch(None, xywh2, None, kpts2, fm, fs=fs, **kwargs)
+    #        #sm_kw = dict(rect=True, colors=pt.BLUE)
+    #        pt.plot_fmatch(None, xywh2, None, kpts2, fm, fs=fs, **kwargs)
     #    if draw_border:
-    #        df2.draw_border(ax, truth_color, 4, offset=offset2)
+    #        pt.draw_border(ax, truth_color, 4, offset=offset2)
     #    if draw_lbl:
     #        # Custom user lbl for chips 1 and 2
     #        if show_query:
     #            (x1, y1, w1, h1) = xywh1
-    #            df2.absolute_lbl(x1 + w1, y1, lbl1)
+    #            pt.absolute_lbl(x1 + w1, y1, lbl1)
     #        (x2, y2, w2, h2) = xywh2
-    #        df2.absolute_lbl(x2 + w2, y2, lbl2)
+    #        pt.absolute_lbl(x2 + w2, y2, lbl2)
     #    # No matches draw a red box
     #if fm is None or len(fm) == 0:
     #    if draw_border:
-    #        df2.draw_boxedX(bbox2, theta=theta2)
+    #        pt.draw_boxedX(bbox2, theta=theta2)
 
 
 if __name__ == '__main__':

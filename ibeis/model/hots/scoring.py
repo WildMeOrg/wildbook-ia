@@ -522,7 +522,8 @@ def show_single_coverage_mask(qreq_, cm, weight_mask_m, weight_mask, daids, fnum
     #weight_mask_m = np.fliplr(np.flipud(weight_mask_m))
     #weight_mask = np.fliplr(np.flipud(weight_mask))
     # </FlipHack>
-    stacked_weights, woff, hoff = pt.stack_images(weight_mask_m, weight_mask)
+    stacked_weights, offset_tup, sf_tup = pt.stack_images(weight_mask_m, weight_mask, return_sf=True)
+    (woff, hoff) = offset_tup[1]
     wh1 = weight_mask_m.shape[0:2][::-1]
     wh2 = weight_mask.shape[0:2][::-1]
     pt.imshow(255 * (stacked_weights), fnum=fnum, pnum=pnum_(0))

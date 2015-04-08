@@ -194,21 +194,21 @@ class _OldStyleChipMatchSimulator(object):
     _oldfields = ('aid2_fm', 'aid2_fsv', 'aid2_fk', 'aid2_score', 'aid2_H')
 
     @classmethod
-    def from_cmtup_old(cls, cmtup_old, qaid=None, fsv_col_lbls=None):
+    def from_cmtup_old(cls, cmtup_old, qaid=None, fsv_col_lbls=None, daid_list=None):
         (aid2_fm_, aid2_fsv_, aid2_fk_, aid2_score_, aid2_H_) = cmtup_old
         assert len(aid2_fsv_) == len(aid2_fm_), 'bad old cmtup_old'
         assert len(aid2_fk_) == len(aid2_fm_), 'bad old cmtup_old'
         assert aid2_score_ is None or len(aid2_score_) == 0 or len(aid2_score_) == len(aid2_fm_), 'bad old cmtup_old'
         assert aid2_H_ is None or len(aid2_H_) == len(aid2_fm_), 'bad old cmtup_old'
-        aid_list = list(six.iterkeys(aid2_fm_))
-        daid_list    = aid_list
-        fm_list      = ut.dict_take(aid2_fm_, aid_list)
-        fsv_list     = ut.dict_take(aid2_fsv_, aid_list)
-        fk_list      = ut.dict_take(aid2_fk_, aid_list)
+        if daid_list is None:
+            daid_list = list(six.iterkeys(aid2_fm_))
+        fm_list      = ut.dict_take(aid2_fm_, daid_list, np.empty((0, 2), dtype=hstypes.FM_DTYPE))
+        fsv_list     = ut.dict_take(aid2_fsv_, daid_list, np.empty((0, 1), dtype=hstypes.FS_DTYPE))
+        fk_list      = ut.dict_take(aid2_fk_, daid_list, np.empty((0), dtype=hstypes.FK_DTYPE))
         score_list   = (None if aid2_score_ is None or (len(aid2_score_) == 0 and len(daid_list) > 0)
-                           else ut.dict_take(aid2_score_, aid_list))
+                           else ut.dict_take(aid2_score_, daid_list, None))
         H_list       = (None if aid2_H_ is None else
-                        ut.dict_take(aid2_H_, aid_list))
+                        ut.dict_take(aid2_H_, daid_list, None))
         fsv_col_lbls = fsv_col_lbls
         cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list, score_list, H_list, fsv_col_lbls)
         return cm

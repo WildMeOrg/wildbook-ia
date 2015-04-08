@@ -37,9 +37,9 @@ DUMP_REGCHIP = False
 def get_diffranks(rank_mat, qaids):
     """ Find rows which scored differently over the various configs """
     isdiff_flags = [not np.all(row == row[0]) for row in rank_mat]
-    diff_aids = ut.list_compress(qaids, isdiff_flags)
-    diff_rank = rank_mat.compress(isdiff_flags, axis=0)
-    diff_qxs  = np.where(isdiff_flags)[0]
+    diff_aids    = ut.list_compress(qaids, isdiff_flags)
+    diff_rank    = rank_mat.compress(isdiff_flags, axis=0)
+    diff_qxs     = np.where(isdiff_flags)[0]
     return diff_aids, diff_rank, diff_qxs
 
 
@@ -101,7 +101,11 @@ def draw_results(ibs, test_result):
     CommandLine:
         python dev.py -t best --db seals2 --allgt --vz --fig-dname query_analysis_easy --show
         python dev.py -t best --db seals2 --allgt --vh --fig-dname query_analysis_hard --show
+
         python dev.py -t pyrscale --db PZ_MTEST --allgt --vn --fig-dname query_analysis_interesting --show
+        python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf
+        python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf --quality
+
 
         python -m ibeis.dev.experiment_printres --test-draw_results --show --vn
         python -m ibeis.dev.experiment_printres --test-draw_results --show --vn --db PZ_MTEST
@@ -214,11 +218,9 @@ def draw_results(ibs, test_result):
         return fpath_clean
 
     if True:
-        for r in ut.InteractiveIter(sel_rows, enabled=SHOW):
+        for count, r in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW)):
             qreq_list = ut.list_take(cfgx2_qreq_, sel_cols)
             qres_list = [load_qres(ibs, qaids[r], daids, qreq_) for qreq_ in qreq_list]
-
-            print(rank_mat[r])
 
             for c, qres, qreq_ in zip(sel_cols, qres_list, qreq_list):
                 fnum = c if SHOW else 1
@@ -244,19 +246,23 @@ def draw_results(ibs, test_result):
                 query_lbl = query_lbl.replace(' ', '').replace('\'', '')
                 #qres.show(ibs, 'analysis', figtitle=query_lbl, fnum=fnum, **show_kwargs)
                 if SHOW:
+                    show_kwargs['show_query'] = False
                     qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
                     #qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
                 else:
+                    show_kwargs['show_query'] = False
                     qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
 
                 # Adjust subplots
                 #df2.adjust_subplots_safe()
                 fpath_orig = ph.dump_figure(figdir, reset=not SHOW, **dumpkw)
-                #append_copy_task(fpath_orig)
+                append_copy_task(fpath_orig)
 
             # if some condition of of batch sizes
-            # flush_copy_tasks()
-        #flush_copy_tasks()
+            flush_freq = 1
+            if count % flush_freq == (flush_freq - 1):
+                flush_copy_tasks()
+        flush_copy_tasks()
     else:
         chunksize = 4
         # <FOR RCITER_CHUNK>
@@ -965,7 +971,8 @@ def get_sel_rows_and_cols(qaids, cfg_list, new_hard_qx_list, interesting_qx_list
     if view_interesting:
         sel_rows.extend(interesting_qx_list)
         # TODO: grab the best scoring and most interesting configs
-        sel_cols.extend(list(range(len(cfg_list))))
+        if len(sel_cols) == 0:
+            sel_cols.extend(list(range(len(cfg_list))))
     #ut.embed()
     sel_rows = ut.unique_keep_order2(sel_rows)
     sel_cols = ut.unique_keep_order2(sel_cols)
