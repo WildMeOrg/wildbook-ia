@@ -16,6 +16,7 @@ import functools
 import utool as ut
 #from .api_thumb_delegate import APIThumbDelegate
 import numpy as np
+import vtool as vt
 #profile = lambda func: func
 #printDBG = lambda *args: None
 # UTOOL PRINT STATEMENTS CAUSE RACE CONDITIONS IN QT THAT CAN LEAD TO SEGFAULTS
@@ -281,9 +282,10 @@ class APIItemModel(API_MODEL_BASE):
                 #values = np.array(values)
                 if type_ is float:
                     values[np.isnan(values)] = -np.inf  # Force nan to be the smallest number
-                sorting_records = np.rec.fromarrays([values, id_list])
-                sort_stride = (-reverse * 2) + 1
-                sortx = sorting_records.argsort()[::sort_stride]
+                sortx = vt.argsort_multiarray([values, id_list], reverse=reverse)
+                #sorting_records = np.rec.fromarrays([values, id_list])
+                #sort_stride = (-reverse * 2) + 1
+                #sortx = sorting_records.argsort()[::sort_stride]
                 # </NUMPY MULTIARRAY SORT>
                 nodes = ut.list_take(children, sortx)
 
