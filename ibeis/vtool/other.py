@@ -8,6 +8,13 @@ from six.moves import zip, range  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[other]', DEBUG=False)
 
 
+def argsort_multiarray(arrays, reverse=False):
+    sorting_records = np.rec.fromarrays(arrays)
+    sort_stride = (-reverse * 2) + 1
+    sortx = sorting_records.argsort()[::sort_stride]
+    return sortx
+
+
 def compute_unique_data_ids(data):
     """
     CommandLine:
