@@ -5,7 +5,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import warnings
 import functools
-from plottool.custom_constants import FIGSIZE, DPI, FONTS
+from plottool import custom_constants
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[customfig]')
 ut.noinject(__name__, '[customfig]')
 
@@ -37,7 +37,7 @@ def clf():
 
 def get_fig(fnum=None):
     #printDBG('[df2] get_fig(fnum=%r)' % fnum)
-    fig_kwargs = dict(figsize=FIGSIZE, dpi=DPI)
+    fig_kwargs = dict(figsize=custom_constants.FIGSIZE, dpi=custom_constants.DPI)
     if fnum is None:
         try:
             fig = gcf()
@@ -131,9 +131,9 @@ def prepare_figure_for_save(fnum, dpi=None, figsize=None, fig=None):
         # HACK; doesnt set DPI this might cause issues
         return fig, fig.number
     if dpi is None:
-        dpi = DPI
+        dpi = custom_constants.DPI
     if figsize is None:
-        figsize = FIGSIZE
+        figsize = custom_constants.FIGSIZE
     # Resizes the figure for quality saving
     if fnum is None:
         fig = gcf()
@@ -183,7 +183,7 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose):
         fname += ext
         ext = ''
     # Add in DPI information
-    size_suffix = 'DPI=%r_WH=%d,%d' % (DPI, FIGSIZE[0], FIGSIZE[1])
+    size_suffix = 'DPI=%r_WH=%d,%d' % (custom_constants.DPI, custom_constants.FIGSIZE[0], custom_constants.FIGSIZE[1])
     # Sanatize
     fname = sanatize_img_fname(fname)
     ext = sanatize_img_ext(ext, defaultext)
@@ -223,7 +223,7 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwr
         http://robotics.usc.edu/~ampereir/wordpress/?p=626
     """
     if dpi is None:
-        dpi = DPI
+        dpi = custom_constants.DPI
 
     if defaultext is None:
         if mpl.get_backend().lower() == 'pdf':
@@ -304,7 +304,7 @@ def set_yticks(tick_set):
 def set_xlabel(lbl, ax=None):
     if ax is None:
         ax = gca()
-    ax.set_xlabel(lbl, fontproperties=FONTS.xlabel)
+    ax.set_xlabel(lbl, fontproperties=custom_constants.FONTS.xlabel)
 
 
 def customize_fontprop(font_prop, **fontkw):
@@ -323,13 +323,13 @@ def customize_fontprop(font_prop, **fontkw):
 def set_title(title='', ax=None, **fontkw):
     if ax is None:
         ax = gca()
-    font_prop = customize_fontprop(FONTS.axtitle, **fontkw)
+    font_prop = customize_fontprop(custom_constants.FONTS.axtitle, **fontkw)
     ax.set_title(title, fontproperties=font_prop)
 
 
 def set_ylabel(lbl):
     ax = gca()
-    ax.set_ylabel(lbl, fontproperties=FONTS.xlabel)
+    ax.set_ylabel(lbl, fontproperties=custom_constants.FONTS.xlabel)
 
 
 def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
@@ -341,9 +341,9 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
         if subtitle != '':
             subtitle = '\n' + subtitle
         #fig.suptitle(figtitle + subtitle, fontsize=14, fontweight='bold')
-        fontprop = getattr(FONTS, font)
+        fontprop = getattr(custom_constants.FONTS, font)
         fig.suptitle(figtitle + subtitle, fontproperties=fontprop)
-        #fig_relative_text(.5, .96, subtitle, fontproperties=FONTS.subtitle)
+        #fig_relative_text(.5, .96, subtitle, fontproperties=custom_constants.FONTS.subtitle)
     else:
         fig.suptitle('')
     # Set title in the window

@@ -23,6 +23,7 @@ def dump_figure(dumpdir, subdir=None, quality=False, overwrite=False, verbose=2,
     """ Dumps figure to disk based on the figurename """
     if quality is True:
         custom_constants.FIGSIZE = custom_constants.golden_wh2(14)
+        #custom_constants.DPI = 120
         custom_constants.DPI = 120
         #custom_constants.FIGSIZE = custom_constants.golden_wh2(12)
         #custom_constants.DPI = 120

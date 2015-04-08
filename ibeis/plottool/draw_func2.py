@@ -33,6 +33,7 @@ from plottool import fig_presenter
 import vtool.patch as ptool
 import vtool.image as gtool
 import vtool as vt
+import operator
 
 DEBUG = False
 # Try not injecting into plotting things
@@ -1612,7 +1613,8 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None,
     (h1, w1) = rchip1_.shape[0:2]  # get chip (h, w) dimensions
     (h2, w2) = rchip2_.shape[0:2]
     # Stack the compared chips
-    match_img, woff, hoff = stack_images(rchip1_, rchip2_, vert)
+    match_img, offset_tup, sf_tup = stack_images(rchip1_, rchip2_, vert, return_sf=True)
+    (woff, hoff) = offset_tup[1]
     xywh1 = (0, 0, w1, h1)
     xywh2 = (woff, hoff, w2, h2)
     # Show the stacked chips
@@ -1953,7 +1955,7 @@ def make_ori_legend_img():
     return img_BGR
 
 
-def stack_image_list_special(img1, img_list):
+def stack_image_list_special(img1, img_list, num=1, vert=True):
     r"""
     CommandLine:
         python -m plottool.draw_func2 --test-stack_image_list_special --show
@@ -1970,7 +1972,8 @@ def stack_image_list_special(img1, img_list):
         >>> img_list = [img2, img3, img4, img5]
         >>> vert = True
         >>> return_offset = True
-        >>> imgB, offset_list, sf_list = stack_image_list_special(img1, img_list)
+        >>> num_bot = 1
+        >>> imgB, offset_list, sf_list = stack_image_list_special(img1, img_list, num_bot)
         >>> ut.quit_if_noshow()
         >>> wh_list = np.array([vt.get_size(img1)] + list(map(vt.get_size, img_list)))
         >>> wh_list_ = wh_list * sf_list
@@ -1980,26 +1983,49 @@ def stack_image_list_special(img1, img_list):
         ...    draw_bbox((offset[0], offset[1], wh[0], wh[1]), bbox_color=color)
         >>> ut.show_if_requested()
     """
-    img2 = img_list[0]
-    img_list_ = img_list[1:]
+    #img2 = img_list[0]
+    img_list2 = img_list[:num]
+    img_list3 = img_list[num:]
+    #img_list_ = img_list[1:]
 
-    imgQ, offsetQ_, sf_tupQ = stack_images(img1, img2, vert=True, modifysize=True, return_sf=True)
-    imgR, offset_list_R_, sf_list_R = stack_image_list(img_list_, vert=True, modifysize=True, return_offset=True, return_sf=True)
-    imgB, offset3, sf_tup3 = stack_images(imgQ, imgR, modifysize=True, vert=False, return_sf=True)
+    stack_kw = dict(modifysize=True, return_sf=True)
 
-    # Adjust offsets for multiple transforms
-    sfQ, sfR = sf_tup3
-    offset1 = (0, 0)
-    offset2 = np.multiply(offsetQ_, sfQ)
-    offset_list_R = np.array(offset_list_R_) * np.array(sfR)[None, :] + np.array(offset3)[None, :]
-    offset_list = np.array(ut.flatten([[offset1, offset2], offset_list_R]))
+    offset_list1 = [(0, 0)]
+    sf_list1     = [(1., 1.)]
 
-    # Adjust scales for multiple transforms
-    sf_list = np.full((len(img_list) + 1, 2), np.nan)
-    sf_list[0:2, :] = sf_tupQ
-    sf_list[0:2, :] *= np.array(sf_tup3[0])[None, :]
-    sf_list[2:, :] = sf_list_R * np.array(sf_tup3[1])[None, :]
-    return imgB, offset_list, sf_list
+    # stack the bottom images
+    img_stack2, offset_list2, sf_list2 = stack_image_list(img_list2, vert=not vert, return_offset=True, **stack_kw)
+    # stack the top images
+    img_stack3, offset_list3, sf_list3 = stack_image_list(img_list3, vert=vert, return_offset=True, **stack_kw)
+
+    # Combine the stacks
+    def stack_multi_images(img1, img2, offset_list1, sf_list1, offset_list2, sf_list2, vert=True, use_larger=False, modifysize=True):
+        if img1 is None:
+            return img2, offset_list2, sf_list2
+        if img2 is None:
+            return img1, offset_list1, sf_list1
+        # combine with the main image
+        imgB, offset_tup, sf_tup = stack_images(img1, img2, vert=vert, use_larger=use_larger, modifysize=modifysize, return_sf=True)
+        # combine the offsets
+        def mult_tuplelist(tuple_list, scale_xy):
+            return [(tup[0] * scale_xy[0], tup[1] * scale_xy[1]) for tup in tuple_list]
+        def add_tuplelist(tuple_list, offset_xy):
+            return [(tup[0] + offset_xy[0], tup[1] + offset_xy[1]) for tup in tuple_list]
+        offset_list1_ = add_tuplelist(mult_tuplelist(offset_list1, sf_tup[0]), offset_tup[0])
+        offset_list2_ = add_tuplelist(mult_tuplelist(offset_list2, sf_tup[1]), offset_tup[1])
+        sf_list1_     = mult_tuplelist(sf_list1, sf_tup[0])
+        sf_list2_     = mult_tuplelist(sf_list2, sf_tup[1])
+
+        offset_listB = offset_list1_ + offset_list2_
+        sf_listB     = sf_list1_ + sf_list2_
+        return imgB, offset_listB, sf_listB
+
+    # stack img1 and the first stack
+    imgL, offset_listL, sf_listL = stack_multi_images(img1, img_stack2, offset_list1, sf_list1, offset_list2, sf_list2, vert=vert)
+    # stack the output and the second stack
+    img, offset_list, sf_list = stack_multi_images(imgL, img_stack3, offset_listL, sf_listL, offset_list3, sf_list3, vert=not vert)
+
+    return img, offset_list, sf_list
 
 
 def stack_image_list(img_list, return_offset=False, return_sf=False, **kwargs):
@@ -2022,7 +2048,7 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, **kwargs):
         >>> return_offset = True
         >>> modifysize = True
         >>> return_sf=True
-        >>> kwargs = dict(modifysize=modifysize, vert=vert)
+        >>> kwargs = dict(modifysize=modifysize, vert=vert, use_larger=False)
         >>> # execute function
         >>> imgB, offset_list, sf_list = stack_image_list(img_list, return_offset=return_offset, return_sf=return_sf, **kwargs)
         >>> print(offset_list)
@@ -2038,26 +2064,30 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, **kwargs):
         >>> #draw_bbox((woff, hoff) + wh2, bbox_color=(0, 1, 0))
     """
     if len(img_list) == 0:
-        return None
-    imgB = img_list[0]
-    offset_list = [(0, 0)]
-    sf_list = np.full((len(img_list), 2), np.nan)
-    #sf_list = [(1., 1.)]
-    sf_list[0, :] = (1, 1)
-    #sf_list = np
-    for count, img2 in enumerate(img_list[1:], start=1):
-        out_ = stack_images(imgB, img2, return_sf=return_sf, **kwargs)
-        if return_sf:
-            imgB, offset2, sf_tup = out_
-            # need to modify scales of previous images
-            sf1, sf2 = sf_tup
-            #sf_list = [np.multiply(sf, sf1) for sf in sf_list]
-            sf_list[:count, :] *= sf1
-            sf_list[count, :] = sf2
-        else:
-            imgB, woff, hoff = out_
-            offset2 = (woff, hoff)
-        offset_list.append(offset2)
+        imgB = None
+        offset_list = []
+        sf_list = []
+    else:
+        imgB = img_list[0]
+        offset_list = [(0, 0)]
+        sf_list = np.full((len(img_list), 2), np.nan)
+        #sf_list = [(1., 1.)]
+        sf_list[0, :] = (1, 1)
+        #sf_list = np
+        for count, img2 in enumerate(img_list[1:], start=1):
+            out_ = stack_images(imgB, img2, return_sf=return_sf, **kwargs)
+            if return_sf:
+                imgB, offset_tup, sf_tup = out_
+                offset2 = offset_tup[1]
+                # need to modify scales of previous images
+                sf1, sf2 = sf_tup
+                #sf_list = [np.multiply(sf, sf1) for sf in sf_list]
+                sf_list[:count, :] *= sf1
+                sf_list[count, :] = sf2
+            else:
+                imgB, woff, hoff = out_
+                offset2 = (woff, hoff)
+            offset_list.append(offset2)
     if return_offset:
         if return_sf:
             return imgB, offset_list, sf_list
@@ -2067,18 +2097,13 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, **kwargs):
         return imgB
 
 
-def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False):
+def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False, use_larger=True):
     r"""
     TODO: move to vtool.images
 
     Args:
         img1 (ndarray[uint8_t, ndim=2]):  image data
         img2 (ndarray[uint8_t, ndim=2]):  image data
-        vert (None):
-        modifysize (bool):
-
-    Returns:
-        tuple: (imgB, woff, hoff)
 
     CommandLine:
         python -m plottool.draw_func2 --test-stack_images --show
@@ -2133,20 +2158,20 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False):
         return vert, h1, h2, w1, w2, wB, hB, woff, hoff
     vert, h1, h2, w1, w2, wB, hB, woff, hoff = infer_vert(img1, img2, vert)
     if modifysize:
-        import cv2
-        index = 1 if vert else 0
-        if img1.shape[index] < img2.shape[index]:
-            scale = img2.shape[index] / img1.shape[index]
-            dsize, tonew_sf1 = vt.get_round_scaled_dsize(vt.get_size(img1), scale)
+        side_index = 1 if vert else 0
+        # Compre the lengths of the width and height
+        (length1, length2) = (img1.shape[side_index], img2.shape[side_index])
+        comp_ = (operator.lt if use_larger else operator.gt)
+        if comp_(length1, length2):
             tonew_sf2 = (1., 1.)
+            scale = length2 / length1
+            dsize, tonew_sf1 = vt.get_round_scaled_dsize(vt.get_size(img1), scale)
             img1 = cv2.resize(img1, dsize, interpolation=cv2.INTER_NEAREST)
-            #img1 = vt.resize_image_by_scale(img1, scale, interpolation=cv2.INTER_NEAREST)
-        elif img2.shape[index] < img1.shape[index]:
-            scale = img1.shape[index] / img2.shape[index]
-            dsize, tonew_sf2 = vt.get_round_scaled_dsize(vt.get_size(img2), scale)
+        elif comp_(length2, length1):
             tonew_sf1 = (1., 1.)
+            scale = length1 / length2
+            dsize, tonew_sf2 = vt.get_round_scaled_dsize(vt.get_size(img2), scale)
             img2 = cv2.resize(img2, dsize, interpolation=cv2.INTER_NEAREST)
-            #img2 = vt.resize_image_by_scale(img2, scale, interpolation=cv2.INTER_NEAREST)
         else:
             tonew_sf1 = (1., 1.)
             tonew_sf2 = (1., 1.)
@@ -2165,10 +2190,13 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False):
         imgB = np.zeros((hB, wB), dtype)
         imgB[0:h1, 0:w1] = img1
         imgB[hoff:(hoff + h2), woff:(woff + w2)] = img2
+    # return
     if return_sf:
+        offset1 = (0.0, 0.0)
         offset2 = (woff, hoff)
+        offset_tup = (offset1, offset2)
         sf_tup = (tonew_sf1, tonew_sf2)
-        return imgB, offset2, sf_tup
+        return imgB, offset_tup, sf_tup
     else:
         return imgB, woff, hoff
 
@@ -2184,7 +2212,7 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True):
         ndarray: None
 
     CommandLine:
-        python -m plottool.draw_func2 --test-stack_image_recurse
+        python -m plottool.draw_func2 --test-stack_image_recurse --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -2229,7 +2257,9 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True):
     else:
         # Right Recurse
         img2 = stack_image_recurse(img_list2[0::2], img_list2[1::2], vert=not vert)
-    imgB, woff, hoff = stack_images(img1, img2, vert=vert)
+    #imgB, woff, hoff = stack_images(img1, img2, vert=vert)
+    imgB, offset_tup, sf_tup = stack_images(img1, img2, vert=vert, return_sf=True)
+    (woff, hoff) = offset_tup[1]
     return imgB
 
 
