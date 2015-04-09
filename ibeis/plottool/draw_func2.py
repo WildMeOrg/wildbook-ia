@@ -153,13 +153,55 @@ def execstr_global():
 
 
 def show_was_requested():
-    return ut.show_was_requested()
+    """
+    returns True if --show is specified on the commandline or you are in
+    IPython (and presumably want some sort of interaction
+    """
+    return ut.get_argflag(('--show', '--save')) or ut.inIPython()
+    #return ut.show_was_requested()
 
 
 def show_if_requested():
     if VERBOSE:
         print('[pt] show_if_requested()')
 
+    fpath = ut.get_argval('--save', type_=str, default=None)
+    if fpath is not None:
+        dpath = ut.get_argval('--dpath', type_=str, default=None)
+        from os.path import basename, splitext
+        import plottool as pt
+        fig = pt.gcf()
+        fpath_ = pt.save_figure(fig=fig, fpath=fpath)
+        if dpath is not None:
+            fpath_ = ut.unixjoin(dpath, basename(fpath_))
+        fpath_list = [fpath_]
+
+        caption_str = ut.get_argval('--caption', type_=str, default=basename(fpath).replace('_', ' '))
+        label_str   = ut.get_argval('--label', type_=str, default=splitext(basename(fpath))[0])
+        figure_str  = ut.util_latex.get_latex_figure_str(fpath_list, label_str=label_str, caption_str=caption_str)
+        #import sys
+        #print(sys.argv)
+        latex_block = figure_str
+        try:
+            import os
+            import psutil
+            import pipes
+            #import shlex
+            # TODO: separate into get_process_cmdline_str
+            # TODO: replace home with ~
+            proc = psutil.Process(pid=os.getpid())
+            home = os.path.expanduser('~')
+            cmdline_str = ' '.join([pipes.quote(_).replace(home, '~') for _ in proc.cmdline()])
+            latex_block = ut.codeblock(
+                r'''
+                \begin{comment}
+                %s
+                \end{comment}
+                '''
+            ) % (cmdline_str,) + '\n' + latex_block
+        except OSError:
+            pass
+        print(ut.indent(latex_block, ' ' * (4 * 4)))
     if ut.inIPython():
         import plottool as pt
         pt.iup()
@@ -279,7 +321,7 @@ def rotate_plot(theta=TAU / 8, ax=None):
 
 # TODO SEPARTE THIS INTO DRAW BBOX AND DRAW_ANNOTATION
 def draw_bbox(bbox, lbl=None, bbox_color=(1, 0, 0), lbl_bgcolor=(0, 0, 0),
-              lbl_txtcolor=(1, 1, 1), draw_arrow=True, theta=0, ax=None):
+              lbl_txtcolor=(1, 1, 1), draw_arrow=True, theta=0, ax=None, lw=2):
     if ax is None:
         ax = gca()
     (rx, ry, rw, rh) = bbox
@@ -289,7 +331,7 @@ def draw_bbox(bbox, lbl=None, bbox_color=(1, 0, 0), lbl_bgcolor=(0, 0, 0),
     trans_annotation.rotate(theta)
     trans_annotation.translate(rx + rw / 2, ry + rh / 2)
     t_end = trans_annotation + ax.transData
-    bbox = mpl.patches.Rectangle((-.5, -.5), 1, 1, lw=2, transform=t_end)
+    bbox = mpl.patches.Rectangle((-.5, -.5), 1, 1, lw=lw, transform=t_end)
     bbox.set_fill(False)
     #bbox.set_transform(trans)
     bbox.set_edgecolor(bbox_color)
