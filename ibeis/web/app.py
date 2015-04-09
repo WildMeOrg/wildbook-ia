@@ -232,6 +232,7 @@ def view():
     gid_list = app.ibs.get_valid_gids()
     aid_list = app.ibs.get_valid_aids()
     nid_list = app.ibs.get_valid_nids()
+    contrib_list = app.ibs.get_valid_contrib_rowids()
     # nid_list = app.ibs.get_valid_nids()
     aid_list_count = app.ibs.filter_aids_count()
     # gid_list_count = list(set(app.ibs.get_annot_gids(aid_list_count)))
@@ -356,6 +357,9 @@ def view():
                        gid_list=gid_list,
                        gid_list_str=','.join(map(str, gid_list)),
                        num_gids=len(gid_list),
+                       contrib_list=contrib_list,
+                       contrib_list_str=','.join(map(str, contrib_list)),
+                       num_contribs=len(contrib_list),
                        gid_list_count=valid_gids_,
                        gid_list_count_str=','.join(map(str, valid_gids_)),
                        num_gids_count=len(valid_gids_),
