@@ -700,6 +700,7 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         CommandLine:
             python -m ibeis.model.hots.chip_match --test-show_single_namematch --show
             python -m ibeis.model.hots.chip_match --test-show_single_namematch --show --qaid 1
+            python -m ibeis.model.hots.chip_match --test-show_single_namematch --show --qaid 1 --dpath figures --save ~/latex/crall-candidacy-2015/figures/namematch.jpg
 
         Example:
             >>> # ENABLE_DOCTEST

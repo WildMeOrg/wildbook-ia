@@ -86,7 +86,7 @@ def init_tablecache():
     return tablecache
 
 
-def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
+def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
     """
     Creates a getter cacher
     the class must have a table_cache property
@@ -162,6 +162,7 @@ def cache_getter(tblname, colname, cfgkeys=None, force=False, debug=False):
         %timeit getter_func(ibs, rowid_list)
         %timeit wrp_getter_cacher(ibs, rowid_list)
     """
+    assert colname is not None, 'must specify a single colname'
     def closure_getter_cacher(getter_func):
         if not API_CACHE and not force:
             # Turn of API Cache

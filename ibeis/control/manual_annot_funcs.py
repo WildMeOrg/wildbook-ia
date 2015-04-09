@@ -1230,8 +1230,8 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> distinguish_unknowns = True
-        >>> nid_arr1 = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns))
-        >>> nid_arr2 = np.array(ibs.get_annot_name_rowids(aid_list, False))
+        >>> nid_arr1 = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=distinguish_unknowns))
+        >>> nid_arr2 = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=False))
         >>> assert ibs.UNKNOWN_LBLANNOT_ROWID == 0
         >>> assert np.all(nid_arr1[np.where(ibs.UNKNOWN_LBLANNOT_ROWID == nid_arr2)[0]] < 0)
     """

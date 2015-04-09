@@ -107,6 +107,14 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     title = vh.get_query_text(ibs, None, name_daid_list, False, **kwargs)
 
     pt.set_title(title, ax)
+    import numpy as np
+    from ibeis import constants as const
+    name_equality = ibs.get_annot_nids(qaid) == np.array(ibs.get_annot_nids(name_daid_list))
+    truth = 1 if np.all(name_equality) else (2 if np.any(name_equality) else 0)
+    if any(ibs.is_aid_unknown(name_daid_list)) or ibs.is_aid_unknown(qaid):
+        truth = const.TRUTH_UNKNOWN
+    truth_color = vh.get_truth_color(truth)
+    pt.draw_border(ax, color=truth_color)
 
 
 def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_list, featflag_list, fnum=None, pnum=None, **kwargs):

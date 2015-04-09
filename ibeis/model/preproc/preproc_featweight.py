@@ -81,27 +81,27 @@ def test_featweight_worker(ibs, qreq_):
                 break
         if ut.show_was_requested():
             import plottool as pt
-            sfx, sfy = (probchip.shape[1] / chipsize[0], probchip.shape[0] / chipsize[1])
-            kpts_ = vt.offset_kpts(kpts, (0, 0), (sfx, sfy))
-            pnum_ = pt.make_pnum_nextgen(*pt.get_square_row_cols(4))
+            #sfx, sfy = (probchip.shape[1] / chipsize[0], probchip.shape[0] / chipsize[1])
+            #kpts_ = vt.offset_kpts(kpts, (0, 0), (sfx, sfy))
+            pnum_ = pt.make_pnum_nextgen(1, 3)  # *pt.get_square_row_cols(4))
             fnum = 1
             pt.figure(fnum=fnum, doclf=True)
             ###
             pt.imshow(ibs.get_annot_chips(aid, config2_=qreq_.qparams), pnum=pnum_(0), fnum=fnum)
+            ###
+            pt.imshow(probchip, pnum=pnum_(2), fnum=fnum)
+            #pt.draw_kpts2(kpts_, ell_alpha=.4, color_list=pt.ORANGE)
+            ###
+            #pt.imshow(probchip, pnum=pnum_(3), fnum=fnum)
+            #color_list = pt.draw_kpts2(kpts_, weights=weights, ell_alpha=.7, cmap_='jet')
+            #cb = pt.colorbar(weights, color_list)
+            #cb.set_label('featweights')
             ###
             pt.imshow(ibs.get_annot_chips(aid, config2_=qreq_.qparams), pnum=pnum_(1), fnum=fnum)
             color_list = pt.draw_kpts2(kpts, weights=weights, ell_alpha=.3, cmap_='jet')
             cb = pt.colorbar(weights, color_list)
             cb.set_label('featweights')
             #pt.draw_kpts2(kpts, ell_alpha=.4)
-            ###
-            pt.imshow(probchip, pnum=pnum_(2), fnum=fnum)
-            #pt.draw_kpts2(kpts_, ell_alpha=.4, color_list=pt.ORANGE)
-            ###
-            pt.imshow(probchip, pnum=pnum_(3), fnum=fnum)
-            color_list = pt.draw_kpts2(kpts_, weights=weights, ell_alpha=.7, cmap_='jet')
-            cb = pt.colorbar(weights, color_list)
-            cb.set_label('featweights')
             pt.show_if_requested()
 
 
@@ -116,6 +116,7 @@ def gen_featweight_worker(tup):
 
     CommandLine:
         python -m ibeis.model.preproc.preproc_featweight --test-gen_featweight_worker --show
+        python -m ibeis.model.preproc.preproc_featweight --test-gen_featweight_worker --show --dpath figures --save ~/latex/crall-candidacy-2015/figures/gen_featweight.jpg
         python -m ibeis.model.preproc.preproc_featweight --test-gen_featweight_worker --show --db PZ_MTEST --qaid_list=1,2,3,4,5,6,7,8,9
 
     Example:
