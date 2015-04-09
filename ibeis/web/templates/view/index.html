@@ -44,7 +44,7 @@
       <br/>
       <h4 class="total-label" id="image-count-total"></h4>
       <br/>
-      <h4>(<span id="image-total"></span> Total)</h4>
+      <h4>(<span id="image-total"></span> Total from <span id="contrib-total"></span> Contributors)</h4>
     </div>
     
     <div class="col-lg-4">
@@ -184,17 +184,19 @@
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvpv54I9K-wuUhm2D_FhnRjvLuZRmLd7k&libraries=visualization">
 </script>
 <script type="text/javascript">
-  // var encounterNumber  = new countUp("encounter-total",  0, {{ num_eids }}, 0, 2.0);
-  var imageNumber           = new countUp("image-total",      0, {{ num_gids }}, 0, 2.0);
+  // var encounterNumber  = new countUp("encounter-total",             0, {{ num_eids }}, 0, 2.0);
+  var imageNumber           = new countUp("image-total",            0, {{ num_gids }}, 0, 2.0);
+  var contribNumber         = new countUp("contrib-total",          0, {{ num_contribs }}, 0, 2.0);
   var imageCountNumber      = new countUp("image-count-total",      0, {{ num_gids_count }}, 0, 2.0);
-  var annotationNumber      = new countUp("annotation-total", 0, {{ num_aids }}, 0, 2.0);
+  var annotationNumber      = new countUp("annotation-total",       0, {{ num_aids }}, 0, 2.0);
   var annotationCountNumber = new countUp("annotation-count-total", 0, {{ num_aids_count }}, 0, 2.0);
-  var namesNumber           = new countUp("names-total",      0, {{ num_nids }}, 0, 2.0);
+  var namesNumber           = new countUp("names-total",            0, {{ num_nids }}, 0, 2.0);
   var namesCountNumber      = new countUp("names-count-total",      0, {{ num_nids_count }}, 0, 2.0);
-  var plNumber              = new countUp("pl-total",         0, {{ pl_index }}, 0, 2.0);
-  var errorNumber           = new countUp("error-total",         0, {{ pl_error }}, 0, 2.0);
+  var plNumber              = new countUp("pl-total",               0, {{ pl_index }}, 0, 2.0);
+  var errorNumber           = new countUp("error-total",            0, {{ pl_error }}, 0, 2.0);
   // encounterNumber.start();
   imageNumber.start();
+  contribNumber.start();
   imageCountNumber.start();
   annotationNumber.start();
   annotationCountNumber.start();
