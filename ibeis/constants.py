@@ -233,6 +233,7 @@ class Species(object):
     ELEPHANT_SAV  = 'elephant_savanna'
     JAG           = 'jaguar'
     LEOPARD       = 'leopard'
+    SNOW_LEOPARD  = 'snow_leopard'
     LION          = 'lion'
     WILDDOG       = 'wild_dog'
     WHALESHARK    = 'whale_shark'
@@ -270,6 +271,7 @@ SPECIES_TUPS = [
     SpeciesTuple(Species.WILDEBEEST,         'WB', 'Wildebeest'),
     SpeciesTuple(Species.JAG,               'JAG', 'Jaguar'),
     SpeciesTuple(Species.LEOPARD,          'LOEP', 'Leopard'),
+    SpeciesTuple(Species.SNOW_LEOPARD,    'SLEOP', 'Snow Leopard'),
     SpeciesTuple(Species.TIGER,           'TIGER', 'Tiger'),
     SpeciesTuple(Species.HYENA,           'HYENA', 'Hyena'),
     SpeciesTuple(Species.LION,             'LION', 'Lion'),
