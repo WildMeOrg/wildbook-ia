@@ -17,7 +17,7 @@ exclude_vars = vars().keys()   # this line is before tests
 
 
 pyrscale = {
-    'maxPyramidLevels': [-1, 1, 2],
+    'maxPyramidLevels': [-1, 3],
     'affine_invariance': [True, False],
     'rotation_invariance': [False, True],
 }

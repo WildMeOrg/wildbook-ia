@@ -328,26 +328,6 @@ else:
     __STR__ = str
 
 
-def get_working_species_set():
-    """ hack to make only species with detectors show up """
-    # TODO: FUNCTIONS SHOULD NOT BE IN CONSTANTS
-    # TODO: allow for custom user-define species
-    #RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = not ut.get_argflag('--allspecies')
-    RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = ut.get_argflag('--no-allspecies')
-    if RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS:
-        working_species_tups = [
-            (species_tup.species_nice, species_tup.species_text)
-            for species_tup in SPECIES_TUPS
-            if species_tup.species_text in SPECIES_WITH_DETECTORS
-        ]
-    else:
-        working_species_tups = [
-            (species_tup.species_nice, species_tup.species_text)
-            for species_tup in SPECIES_TUPS
-        ]
-    return working_species_tups
-
-
 TRUTH_UNKNOWN = 2
 TRUTH_MATCH = 1
 TRUTH_NOT_MATCH = 0

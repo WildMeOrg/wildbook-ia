@@ -1,10 +1,10 @@
 from __future__ import absolute_import, division, print_function
 from plottool import interact_annotations
-from plottool import draw_func2 as df2
 import plottool as pt  # NOQA
 #from six.moves import zip
 import utool as ut
-from ibeis import constants as const
+#from ibeis import constants as const
+from ibeis import species
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[interact_annot2]')
 
 
@@ -59,7 +59,7 @@ class ANNOTATION_Interaction2(object):
         species_list  = ibs.get_annot_species_texts(self.aid_list)
         #valid_species = const.VALID_SPECIES
         valid_species = [tup[1] for tup in
-                         const.get_working_species_set()]
+                         species.get_working_species_set()]
         self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(
             img,
             bbox_list=bbox_list,
@@ -75,7 +75,7 @@ class ANNOTATION_Interaction2(object):
             #figure_to_use=None if reset_window else self.interact_ANNOTATIONS.fig,
         )
         if dodraw:
-            df2.update()
+            pt.update()
 
     def commit_callback(self, unchanged_indices, deleted_indices, changed_indices, changed_annottups, new_annottups):
         """
@@ -162,7 +162,7 @@ class ANNOTATION_Interaction2(object):
 #    gid_list = ibs.get_valid_gids()
 #    gid = gid_list[len(gid_list) - 1]
 #    annotation = ANNOTATION_Interaction2(ibs, gid)
-#    exec(df2.present())
+#    exec(pt.present())
 
 if __name__ == '__main__':
     """

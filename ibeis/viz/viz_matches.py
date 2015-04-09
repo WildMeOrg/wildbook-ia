@@ -48,29 +48,47 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> from ibeis.model.hots import name_scoring
         >>> from ibeis.viz.viz_matches import *  # NOQA
         >>> from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
+        >>> import numpy as np
         >>> func = chip_match.ChipMatch2.show_single_namematch
         >>> sourcecode = ut.get_func_sourcecode(func, stripdef=True, stripret=True)
         >>> setup = ut.regex_replace('viz_matches.show_name_matches', '#', sourcecode)
+        >>> homog = False
         >>> print(ut.indent(setup, '>>> '))
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
         >>> cm = cm_list[0]
         >>> cm.score_nsum(qreq_)
         >>> dnid = ibs.get_annot_nids(cm.qaid)
+        >>> # +--- COPIED SECTION
+        >>> from ibeis.viz import viz_matches
         >>> qaid = cm.qaid
+        >>> # <GET NAME GROUPXS>
         >>> nidx = cm.nid2_nidx[dnid]
         >>> groupxs = cm.name_groupxs[nidx]
-        >>> # find features marked as invalid by name scoring
-        >>> featflag_list  = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=qreq_)
+        >>> daids = np.take(cm.daid_list, groupxs)
+        >>> groupxs = groupxs.compress(daids != cm.qaid)
+        >>> # </GET NAME GROUPXS>
         >>> # sort annots in this name by the chip score
-        >>> sorted_groupxs = groupxs.take(cm.csum_score_list.take(groupxs).argsort()[::-1])
+        >>> group_sortx = cm.csum_score_list.take(groupxs).argsort()[::-1]
+        >>> sorted_groupxs = groupxs.take(group_sortx)
         >>> # get the info for this name
-        >>> name_daid_list = ut.list_take(cm.daid_list, sorted_groupxs)
-        >>> name_fm_list   = ut.list_take(cm.fm_list, sorted_groupxs)
-        >>> homog = False
+        >>> name_fm_list  = ut.list_take(cm.fm_list, sorted_groupxs)
+        >>> REMOVE_EMPTY_MATCHES = len(sorted_groupxs) > 3
+        >>> if REMOVE_EMPTY_MATCHES:
+        >>>     isvalid_list = [len(fm) > 0 for fm in name_fm_list]
+        >>>     name_fm_list = ut.list_compress(name_fm_list, isvalid_list)
+        >>>     sorted_groupxs = sorted_groupxs.compress(isvalid_list)
         >>> name_H1_list   = None if not homog or cm.H_list is None else ut.list_take(cm.H_list, sorted_groupxs)
         >>> name_fsv_list  = None if cm.fsv_list is None else ut.list_take(cm.fsv_list, sorted_groupxs)
         >>> name_fs_list   = None if name_fsv_list is None else [fsv.prod(axis=1) for fsv in name_fsv_list]
+        >>> name_daid_list = ut.list_take(cm.daid_list, sorted_groupxs)
+        >>> # find features marked as invalid by name scoring
+        >>> featflag_list  = name_scoring.get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=qreq_)
         >>> name_featflag_list = ut.list_take(featflag_list, sorted_groupxs)
+        >>> # Get the scores for names and chips
+        >>> name_score = cm.name_score_list[nidx]
+        >>> name_rank = ut.listfind(cm.name_score_list.argsort()[::-1].tolist(), nidx)
+        >>> name_annot_scores = cm.csum_score_list.take(sorted_groupxs)
+        >>> # L___ COPIED SECTION
         >>> kwargs = {}
         >>> show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list, name_H1_list, name_featflag_list, qreq_=qreq_, **kwargs)
         >>> ut.quit_if_noshow()
@@ -209,7 +227,7 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, qreq_=None, **kwarg
         if kwargs.get('show_nid', True):
             for (lbls, nid) in zip(lbls_list, nid_list):
                 lbls.append(vh.get_nidstrs(nid))
-        if kwargs.get('show_annot_score', True):
+        if kwargs.get('show_annot_score', True) and name_annot_scores is not None:
             for (lbls, score) in zip(lbls_list[1:], name_annot_scores):
                 lbls.append(ut.num_fmt(score))
         lbl_list = [' : '.join(lbls) for lbls in lbls_list]

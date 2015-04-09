@@ -612,7 +612,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         aid_list = self.all_aid_list
         aid_list_filtered = ut.filterfalse_items(aid_list, self.ibs.get_annot_isjunk(aid_list))
         # Rename annotations
-        ibs.set_annot_names_to_same_new_name(aid_list_filtered)
+        self.ibs.set_annot_names_to_same_new_name(aid_list_filtered)
         self.update_callback()
         self.backend_callback()
         self.show_page()

@@ -13,6 +13,7 @@ from six.moves import zip, map, filter  # NOQA
 from os.path import isdir
 import sys
 from ibeis import constants as const
+from ibeis import species
 import functools
 from guitool.__PYQT__ import QtGui, QtCore
 from guitool.__PYQT__.QtCore import Qt
@@ -448,7 +449,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         detection_combo_box_options = [
             # Text              # Value
             ('Select Species',  'none'),
-        ] + const.get_working_species_set()
+        ] + species.get_working_species_set()
 
         ibswgt.species_combo = _COMBO(detection_combo_box_options,
                                       ibswgt.back.change_detection_species,
