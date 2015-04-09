@@ -126,6 +126,7 @@ def show_hist_submaxima(hist_, edges=None, centers=None, maxima_thresh=.8, pnum=
     CommandLine:
         python -m vtool.histogram --test-show_hist_submaxima --show
         python -m pyhesaff._pyhesaff --test-test_rot_invar --show
+        python -m vtool.histogram --test-show_hist_submaxima --dpath figures --save ~/latex/crall-candidacy-2015/figures/show_hist_submaxima.jpg
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -431,6 +432,7 @@ def hist_interpolated_submaxima(hist, centers=None, maxima_thresh=.8,
 
     CommandLine:
         python -m vtool.histogram --test-hist_interpolated_submaxima
+        python -m vtool.histogram --test-hist_interpolated_submaxima --show
 
     Example:
         >>> # ENABLE_DOCTEST

@@ -665,6 +665,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
 
     CommandLine:
         python -m vtool.spatial_verification --test-spatially_verify_kpts --show
+        python -m vtool.spatial_verification --test-spatially_verify_kpts --dpath figures --show --save ~/latex/crall-candidacy-2015/figures/sver_kpts.jpg
         python -m vtool.spatial_verification --test-spatially_verify_kpts
 
     Example:

@@ -85,10 +85,10 @@ def get_test_patch(key='star', jitter=False):
     return patch
 
 
-def make_test_image_keypoints(imgBGR, scale=1.0, skew=0, theta=0):
+def make_test_image_keypoints(imgBGR, scale=1.0, skew=0, theta=0, shift=(0, 0)):
     h, w = imgBGR.shape[0:2]
     half_w, half_h = w / 2.0, h / 2.0
-    x, y = half_w - .5, half_h - .5
+    x, y = (half_w - .5) + (w * shift[0]), (half_h - .5) + (h * shift[1])
     a = (half_w) * scale
     c = skew
     d = (half_h) * scale
@@ -471,6 +471,38 @@ def get_warped_patches(img, kpts,
         kpts (ndarrays): keypoint ndarrays in [x, y, a, c, d, theta] format
     Returns:
         tuple : (warped_patches, warped_subkpts) the normalized 41x41 patches from the img corresonding to the keypoint
+
+    Args:
+        img (ndarray[uint8_t, ndim=2]):  image data
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
+        flags (long):
+        borderMode (long):
+
+    Returns:
+        tuple: (warped_patches, warped_subkpts)
+
+    CommandLine:
+        python -m vtool.patch --test-get_warped_patches
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.patch import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
+        >>> img = vt.imread(img_fpath)
+        >>> kpts, desc = vt.extract_features(img_fpath)
+        >>> kpts = kpts[0:1]
+        >>> flags = cv2.INTER_LANCZOS4
+        >>> borderMode = cv2.BORDER_REPLICATE
+        >>> # execute function
+        >>> (warped_patches, warped_subkpts) = get_warped_patches(img, kpts, flags, borderMode)
+        >>> # verify results
+        >>> result = str((warped_patches, warped_subkpts))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> pt.imshow(warped_patches[0])
+        >>> pt.show_if_requested()
     """
     # TODO: CLEAN ME
     warped_patches = []
@@ -678,6 +710,7 @@ def test_find_kp_direction():
     CommandLine:
         python -m vtool.patch --test-test_find_kp_direction --show
         python -m vtool.patch --test-test_find_kp_direction --show --interact
+        python -m vtool.patch --test-test_find_kp_direction --save ~/latex/crall-candidacy-2015/figures/test_fint_kp_direction.jpg --dpath figures
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -692,7 +725,7 @@ def test_find_kp_direction():
     import utool as ut
     #import vtool as vt
     np.random.seed(0)
-    USE_EXTERN_STAR = True
+    USE_EXTERN_STAR = False
     if USE_EXTERN_STAR:
         import vtool as vt
         img_fpath = ut.grab_test_imgpath('star.png')
@@ -703,12 +736,13 @@ def test_find_kp_direction():
     else:
         imgBGR = get_test_patch('stripe', jitter=True)
         #imgBGR = get_test_patch('star', jitter=True)
-        #imgBGR = get_test_patch('star2', jitter=True)
-        imgBGR = get_test_patch('cross', jitter=False)
+        imgBGR = get_test_patch('star2', jitter=True)
+        #imgBGR = get_test_patch('cross', jitter=False)
         #imgBGR = cv2.resize(imgBGR, (41, 41), interpolation=cv2.INTER_LANCZOS4)
         imgBGR = cv2.resize(imgBGR, (41, 41), interpolation=cv2.INTER_CUBIC)
         theta = 0  # 3.4  # TAU / 16
-        kpts = make_test_image_keypoints(imgBGR, scale=.9, theta=theta)
+        #kpts = make_test_image_keypoints(imgBGR, scale=.9, theta=theta)
+        kpts = make_test_image_keypoints(imgBGR, scale=.3, theta=theta, shift=(.3, .1))
         kp = kpts[0]
     bins = 36
     maxima_thresh = .8
@@ -728,13 +762,18 @@ def test_find_kp_direction():
         locals_['wkp'] = wkp
         old_ori = locals_['kp'][-1]
         #submax_ori_offsets = find_patch_dominant_orientations(patch, bins=bins, maxima_thresh=maxima_thresh, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
+        # <hackish>
+        # exec source code from find_patch_dominant_orientations to steal its
+        # local variables
         sourcecode = ut.get_func_sourcecode(find_patch_dominant_orientations, stripdef=True, stripret=True)
         six.exec_(sourcecode, globals_, locals_)
         submax_ori_offsets = locals_['submax_ori_offsets']
         new_oris = (old_ori + (submax_ori_offsets - ktool.GRAVITY_THETA)) % TAU
         keys = 'patch, gradx, grady, gmag, gori, hist, centers, gori_weights'.split(', ')
         patch, gradx, grady, gmag, gori, hist, centers, gori_weights = ut.dict_take(locals_, keys)
+        # </hackish>
         INTERACTIVE_ITERATION = ut.get_argflag('--interact')
+        import plottool as pt
         if INTERACTIVE_ITERATION:
             from six.moves import input
             # Change rotation
@@ -748,7 +787,6 @@ def test_find_kp_direction():
                 if count >= len(converge_lists):
                     converge_lists.append([])
                 converge_lists[count].append(ori)
-            import plottool as pt
 
             # Show any new keypoints that were created
             kpts = [kp.copy() for ori in new_oris]
@@ -771,6 +809,8 @@ def test_find_kp_direction():
             input('next')
         else:
             show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, gori, hist, centers, gori_weights)
+            pt.present()
+            print('no interaction')
             break
 
 
@@ -789,10 +829,10 @@ def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, g
     print(colors)
     pt.draw_kpts2(kpts, rect=True, ori=True, ell_color=colors)
     pt.imshow(patch * 255, fnum=fnum, pnum=next_pnum(), title='sample')
-    pt.imshow((np.abs(gradx)), fnum=fnum, pnum=next_pnum(), title='gradx')
-    pt.imshow((np.abs(grady)), fnum=fnum, pnum=next_pnum(), title='grady')
-    pt.imshow(gmag, fnum=fnum, pnum=next_pnum(), title='mag')
-    pt.imshow(gori_weights * 255, fnum=fnum, pnum=next_pnum(), title='weights')
+    pt.imshow((np.abs(gradx)) * 255, fnum=fnum, pnum=next_pnum(), title='gradx')
+    pt.imshow((np.abs(grady)) * 255, fnum=fnum, pnum=next_pnum(), title='grady')
+    pt.imshow(gmag * 255, fnum=fnum, pnum=next_pnum(), title='mag')
+    pt.imshow(gori_weights * 255, fnum=fnum, pnum=next_pnum(), title='weighted mag')
     #pt.imshow(ut.norm_zero_one(gori) * 255, fnum=fnum, pnum=next_pnum(), title='ori')
     pt.draw_vector_field(gradx, grady, pnum=next_pnum(), fnum=fnum, title='gori (vec)')
     pt.imshow(gorimag, fnum=fnum, pnum=next_pnum(), title='ori-color')
