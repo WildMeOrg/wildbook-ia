@@ -110,6 +110,7 @@ def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
     if eid is None:
         gid_list = ibs._get_all_gids()
     else:
+        assert not ut.isiterable(eid)
         gid_list = ibs.get_encounter_gids(eid)
     if require_unixtime:
         # Remove images without timestamps

@@ -42,7 +42,9 @@ def backreport(func):
             return None
         except Exception as ex:
             error_msg = "Error caught while performing function. \n %r" % ex
-            guitool.msgbox(title="Error Catch!", msg=error_msg)
+            import traceback
+            detailed_msg = traceback.format_exc()
+            guitool.msgbox(title="Error Catch!", msg=error_msg, detailed_msg=detailed_msg)
             raise
         return result
     backreport_wrapper = ut.preserve_sig(backreport_wrapper, func)
@@ -1125,6 +1127,8 @@ class MainWindowBackend(QtCore.QObject):
         daid_list = back.get_selected_daids(eid=eid, daids_mode=daids_mode)
         if len(qaid_list) == 0:
             raise guiexcept.InvalidRequest('No query annotations')
+        if len(daid_list) == 0:
+            raise guiexcept.InvalidRequest('No database annotations')
 
         # HACK
         #if daids_mode == const.INTRA_ENC_KEY:
@@ -1140,6 +1144,7 @@ class MainWindowBackend(QtCore.QObject):
         # HACK IN ENCOUNTER INFO
         if daids_mode == const.INTRA_ENC_KEY:
             for qres in qres_list:
+                #if qres is not None:
                 qres.eid = eid
         #back.encounter_query_results[eid].update(qaid2_qres)
         print('[back] About to finish compute_queries: eid=%r' % (eid,))
