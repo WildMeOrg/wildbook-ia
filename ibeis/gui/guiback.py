@@ -1105,7 +1105,14 @@ class MainWindowBackend(QtCore.QObject):
             query_title += 'custom'
         if use_prioritized_name_subset:
             # you do get unknowns back in this list
-            qaid_list = back.ibs.get_prioritized_name_subset(qaid_list, annots_per_name=2)
+            HACK = back.ibs.cfg.other_cfg.enable_custom_filter
+            #True
+            if not HACK:
+                new_aid_list, new_flag_list = back.ibs.get_annot_quality_viewpoint_subset(
+                    aid_list=qaid_list, annots_per_view=2, verbose=True)
+                qaid_list = ut.list_compress(new_aid_list, new_flag_list)
+            else:
+                qaid_list = back.ibs.get_prioritized_name_subset(qaid_list, annots_per_name=2)
             query_title += ' priority_subset'
             #qaid_list = ut.filter_items(
             #    *back.ibs.get_annot_quality_viewpoint_subset(aid_list=qaid_list, annots_per_view=2))

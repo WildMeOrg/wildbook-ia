@@ -3198,7 +3198,8 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None, exemplars_per_v
         exemplars_per_view = ibs.cfg.other_cfg.exemplars_per_view
     if aid_list is None:
         aid_list = ibs.get_valid_aids(eid=eid)
-    HACK = True
+    HACK = ibs.cfg.other_cfg.enable_custom_filter
+    #True
     if not HACK:
         new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
             ibs, aid_list=aid_list, annots_per_view=exemplars_per_view, verbose=verbose)
