@@ -9,7 +9,7 @@ import six  # NOQA
 import uuid
 import numpy as np  # NOQA
 from ibeis import constants as const
-from ibeis.control import accessor_decors
+from ibeis.control import accessor_decors, controller_inject
 import utool as ut
 from ibeis import ibsfuncs
 from ibeis.control.controller_inject import make_ibs_register_decorator
@@ -17,6 +17,10 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_annot]')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
+
+
+register_api   = controller_inject.get_ibeis_flask_api()
+register_route = controller_inject.get_ibeis_flask_route()
 
 
 ANNOT_AGE_MONTHS_EST_MAX = 'annot_age_months_est_max'
@@ -66,14 +70,22 @@ def _get_all_aids(ibs):
 
 
 @register_ibs_method
+@register_api('/api/annotation/num', methods=['GET'])
 def get_num_annotations(ibs, **kwargs):
-    """ Number of valid annotations """
+    """
+    Number of valid annotations
+
+    RESTful:
+        Method: GET
+        URL:    /api/annotation/num
+    """
     aid_list = ibs.get_valid_aids(**kwargs)
     return len(aid_list)
 
 
 @register_ibs_method
 @accessor_decors.ider
+@register_api('/api/annotation/', methods=['GET'])
 def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
                    yaw='no-filter', is_exemplar=None, species=None,
                    is_known=None, nojunk=False, hasgt=None):
@@ -98,6 +110,15 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
 
     Ignore:
         ibs.print_annotation_table()
+
+    RESTful:
+        Method: GET
+        URL:    /api/annotation/
+
+    RESTful:
+        Returns the base64 encoded image of <gid>  # Documented and routed in ibeis.web app.py
+        Method: GET
+        URL:    /api/annotation/<aid>
 
     Example:
         >>> # ENABLE_DOCTEST

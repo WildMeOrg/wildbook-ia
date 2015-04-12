@@ -1187,11 +1187,21 @@ def image_src(gid=None):
     return ap.return_src(gpath)
 
 
+@register_api('/api/image/<gid>', methods=['GET'])
+def image_src_api(gid=None):
+    return image_src(gid)
+
+
 @register_route('/ajax/annotation/src/<aid>')
 def annotation_src(aid=None):
     ibs = current_app.ibs
     gpath = ibs.get_annot_chip_fpath(aid)
     return ap.return_src(gpath)
+
+
+@register_api('/api/annotation/<aid>', methods=['GET'])
+def annotation_src_api(aid=None):
+    return annotation_src(aid)
 
 
 @register_route('/display/sightings')

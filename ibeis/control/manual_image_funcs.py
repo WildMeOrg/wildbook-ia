@@ -100,6 +100,11 @@ def get_valid_gids(ibs, eid=None, require_unixtime=False, reviewed=None):
         Method: GET
         URL:    /api/image/
 
+    RESTful:
+        Returns the base64 encoded image of <gid>  # Documented and routed in ibeis.web app.py
+        Method: GET
+        URL:    /api/image/<gid>
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
