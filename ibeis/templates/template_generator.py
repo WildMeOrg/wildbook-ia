@@ -291,6 +291,17 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
     with_api_cache = flagskw.get('with_api_cache', WITH_API_CACHE)
     with_web_api = flagskw.get('with_web_api', WITH_WEB_API)
     with_accesor_decors = flagskw.get('with_accesor_decors', True)
+    if with_web_api:
+        if func_type == '2_Native.adder':
+            func_code = '@register_api(\'/api/{tbl}/\', methods=[\'POST\'])\n'.format(**fmtdict) + func_code
+        if func_type == '2_Native.getter_col':
+            func_code = '@register_api(\'/api/{tbl}/{col}/\', methods=[\'GET\'])\n'.format(**fmtdict) + func_code
+        if func_type == '2_Native.ider':
+            func_code = '@register_api(\'/api/{tbl}/\', methods=[\'GET\'])\n'.format(**fmtdict) + func_code
+        if func_type == '2_Native.deleter':
+            func_code = '@register_api(\'/api/{tbl}/\', methods=[\'DELETE\'])\n'.format(**fmtdict) + func_code
+        if func_type == '2_Native.setter':
+            func_code = '@register_api(\'/api/{tbl}/{col}/\', methods=[\'PUT\'])\n'.format(**fmtdict) + func_code
     if with_accesor_decors:
         if func_type == '1_RL.getter_col':
             func_code = '@accessor_decors.getter_1to1\n' + func_code
@@ -305,17 +316,6 @@ def format_controller_func(func_code_fmtstr, flagskw, func_type, fmtdict):
             func_code = '@accessor_decors.cache_invalidator({TABLE})\n'.format(**fmtdict) + func_code
         if func_type == '2_Native.setter':
             func_code = '@accessor_decors.cache_invalidator({TABLE}, [{COLNAME}], rowidx=0)\n'.format(**fmtdict) + func_code
-    if with_web_api:
-        if func_type == '2_Native.adder':
-            func_code = '@register_route(\'/{tbl}/\', methods=[\'POST\'])\n'.format(**fmtdict) + func_code
-        if func_type == '2_Native.getter_col':
-            func_code = '@register_route(\'/{tbl}/{col}/\', methods=[\'GET\'])\n'.format(**fmtdict) + func_code
-        if func_type == '2_Native.ider':
-            func_code = '@register_route(\'/{tbl}/\', methods=[\'GET\'])\n'.format(**fmtdict) + func_code
-        if func_type == '2_Native.deleter':
-            func_code = '@register_route(\'/{tbl}/\', methods=[\'DELETE\'])\n'.format(**fmtdict) + func_code
-        if func_type == '2_Native.setter':
-            func_code = '@register_route(\'/{tbl}/{col}/\', methods=[\'PUT\'])\n'.format(**fmtdict) + func_code
     # Need to register all function with ibs
     if flagskw.get('with_decor', WITH_DECOR):
         func_code = '@register_ibs_method\n' + func_code

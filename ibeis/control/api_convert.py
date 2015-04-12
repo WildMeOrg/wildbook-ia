@@ -175,8 +175,8 @@ def process_file(filename, sub):
     # print(output)
 
 if __name__ == '__main__':
-    filename = 'manual_image_funcs'
-    submodule = 'image'
-    # filename = 'manual_annot_funcs'
-    # submodule = 'annot'
+    # filename = 'manual_image_funcs'
+    # submodule = 'image'
+    filename = 'manual_chip_funcs'
+    submodule = filename.split('_')[1]
     process_file(filename, submodule)

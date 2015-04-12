@@ -1199,7 +1199,7 @@ def annotation_src(aid=None):
     return ap.return_src(gpath)
 
 
-@register_api('/api/annotation/<aid>', methods=['GET'])
+@register_api('/api/annot/<aid>', methods=['GET'])
 def annotation_src_api(aid=None):
     return annotation_src(aid)
 
