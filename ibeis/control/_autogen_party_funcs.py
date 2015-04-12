@@ -24,7 +24,14 @@ CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_deco
 register_route = controller_inject.get_ibeis_flask_route()
 
 
+register_api   = controller_inject.get_ibeis_flask_api()
+register_route = controller_inject.get_ibeis_flask_route()
+
+
 def testdata_ibs(defaultdb='testdb1'):
+    r"""
+    Auto-docstr for 'testdata_ibs'
+    """
     import ibeis
     ibs = ibeis.opendb(defaultdb=defaultdb)
     qreq_ = None
@@ -39,7 +46,8 @@ PARTY_TAG        = 'party_tag'
 
 @register_ibs_method
 def _get_all_party_rowids(ibs):
-    """ all_party_rowids <- party.get_all_rowids()
+    r"""
+    all_party_rowids <- party.get_all_rowids()
 
     Returns:
         list_ (list): unfiltered party_rowids
@@ -59,14 +67,19 @@ def _get_all_party_rowids(ibs):
 
 
 @register_ibs_method
+@register_api('/api/autogen/', methods=['POST'])
 def add_party(ibs, party_tag_list):
-    """
+    r"""
     Returns:
         returns party_rowid_list of added (or already existing partys)
 
     TemplateInfo:
         Tadder_native
         tbl = party
+
+    RESTful:
+        Method: POST
+        URL:    /api/autogen/
     """
     # WORK IN PROGRESS
     colnames = (PARTY_TAG,)
@@ -82,8 +95,10 @@ def add_party(ibs, party_tag_list):
 
 
 @register_ibs_method
+@register_api('/api/autogen/party_rowid_from_superkey/', methods=['GET'])
 def get_party_rowid_from_superkey(ibs, party_tag_list, eager=True, nInput=None):
-    """ party_rowid_list <- party[party_tag_list]
+    r"""
+    party_rowid_list <- party[party_tag_list]
 
     Args:
         superkey lists: party_tag_list
@@ -94,6 +109,10 @@ def get_party_rowid_from_superkey(ibs, party_tag_list, eager=True, nInput=None):
     TemplateInfo:
         Tgetter_native_rowid_from_superkey
         tbl = party
+
+    RESTful:
+        Method: GET
+        URL:    /api/autogen/party_rowid_from_superkey/
     """
     colnames = (PARTY_ROWID,)
     # FIXME: col_rowid is not correct
@@ -105,8 +124,10 @@ def get_party_rowid_from_superkey(ibs, party_tag_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+@register_api('/api/autogen/party_tag/', methods=['GET'])
 def get_party_tag(ibs, party_rowid_list, eager=True, nInput=None):
-    """ party_tag_list <- party.party_tag[party_rowid_list]
+    r"""
+    party_tag_list <- party.party_tag[party_rowid_list]
 
     gets data from the "native" column "party_tag" in the "party" table
 
@@ -120,6 +141,10 @@ def get_party_tag(ibs, party_rowid_list, eager=True, nInput=None):
         Tgetter_table_column
         col = party_tag
         tbl = party
+
+    RESTful:
+        Method: GET
+        URL:    /api/autogen/party_tag/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -138,10 +163,14 @@ def get_party_tag(ibs, party_rowid_list, eager=True, nInput=None):
 
 
 if __name__ == '__main__':
-    """
+    r"""
     CommandLine:
         python -m ibeis.control._autogen_party_funcs
         python -m ibeis.control._autogen_party_funcs --allexamples
+
+    RESTful:
+        Method: GET
+        URL:    /api/autogen/party_tag/
     """
     import multiprocessing
     multiprocessing.freeze_support()

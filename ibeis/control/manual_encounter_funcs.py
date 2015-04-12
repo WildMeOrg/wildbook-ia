@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import six
 from ibeis import constants as const
-from ibeis.control import accessor_decors
+from ibeis.control import accessor_decors, controller_inject
 from ibeis.control.controller_inject import make_ibs_register_decorator
 import functools
 import utool as ut
@@ -24,10 +24,14 @@ ENCOUNTER_SMART_XML_FNAME   = 'encounter_smart_xml_fname'
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
+register_api   = controller_inject.get_ibeis_flask_api()
+register_route = controller_inject.get_ibeis_flask_route()
+
+
 @register_ibs_method
 @accessor_decors.ider
 def _get_all_encounter_rowids(ibs):
-    """
+    r"""
     Returns:
         list_ (list):  all unfiltered eids (encounter rowids)
     """
@@ -38,16 +42,24 @@ def _get_all_encounter_rowids(ibs):
 @register_ibs_method
 @accessor_decors.ider
 def _get_all_eids(ibs):
-    """ alias """
+    r"""
+    alias
+    """
     return _get_all_encounter_rowids(ibs)
 
 
 @register_ibs_method
 @accessor_decors.ider
+@register_api('/api/encounter/', methods=['GET'])
 def get_valid_eids(ibs, min_num_gids=0, processed=None, shipped=None):
-    """
+    r"""
     Returns:
-        list_ (list):  list of all encounter ids """
+        list_ (list):  list of all encounter ids
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/
+    """
     eid_list = ibs._get_all_eids()
     if min_num_gids > 0:
         num_gids_list = ibs.get_encounter_num_gids(eid_list)
@@ -67,13 +79,18 @@ def get_valid_eids(ibs, min_num_gids=0, processed=None, shipped=None):
 
 @register_ibs_method
 @accessor_decors.adder
+@register_api('/api/encounter/', methods=['POST'])
 def add_encounters(ibs, enctext_list, encounter_uuid_list=None, config_rowid_list=None,
                    notes_list=None):
-    """
+    r"""
     Adds a list of encounters.
 
     Returns:
         eid_list (list): added encounter rowids
+
+    RESTful:
+        Method: POST
+        URL:    /api/encounter/
     """
     if ut.VERBOSE:
         print('[ibs] adding %d encounters' % len(enctext_list))
@@ -96,8 +113,15 @@ def add_encounters(ibs, enctext_list, encounter_uuid_list=None, config_rowid_lis
 
 @register_ibs_method
 @accessor_decors.setter
+@register_api('/api/encounter/text/', methods=['PUT'])
 def set_encounter_text(ibs, eid_list, encounter_text_list):
-    """ Sets names of encounters (groups of animals) """
+    r"""
+    Sets names of encounters (groups of animals)
+
+    RESTful:
+        Method: PUT
+        URL:    /api/encounter/text/
+    """
     # Special set checks
     if any(ibs.is_special_encounter(eid_list)):
         raise ValueError('cannot rename special encounters')
@@ -111,8 +135,13 @@ def set_encounter_text(ibs, eid_list, encounter_text_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/num_imgs_reviewed/', methods=['GET'])
 def get_encounter_num_imgs_reviewed(ibs, eid_list):
-    """
+    r"""
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/num_imgs_reviewed/
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_encounter_funcs import *  # NOQA
@@ -134,8 +163,13 @@ def get_encounter_num_imgs_reviewed(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/num_annotmatch_reviewed/', methods=['GET'])
 def get_encounter_num_annotmatch_reviewed(ibs, eid_list):
-    """
+    r"""
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/num_annotmatch_reviewed/
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_encounter_funcs import *  # NOQA
@@ -152,8 +186,13 @@ def get_encounter_num_annotmatch_reviewed(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/num_names_with_exemplar/', methods=['GET'])
 def get_encounter_num_names_with_exemplar(ibs, eid_list):
-    """
+    r"""
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/num_names_with_exemplar/
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_encounter_funcs import *  # NOQA
@@ -177,8 +216,13 @@ def get_encounter_num_names_with_exemplar(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/fraction_names_with_exemplar/', methods=['GET'])
 def get_encounter_fraction_names_with_exemplar(ibs, eid_list):
-    """
+    r"""
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/fraction_names_with_exemplar/
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.control.manual_encounter_funcs import *  # NOQA
@@ -208,7 +252,15 @@ def get_encounter_fraction_names_with_exemplar(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/fraction_annotmatch_reviewed/', methods=['GET'])
 def get_encounter_fraction_annotmatch_reviewed(ibs, eid_list):
+    r"""
+    Auto-docstr for 'get_encounter_fraction_annotmatch_reviewed'
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/fraction_annotmatch_reviewed/
+    """
     aids_list = ibs.get_encounter_custom_filtered_aids(eid_list)
     flags_list = ibs.unflat_map(ibs.get_annot_has_reviewed_matching_aids, aids_list)
     fraction_annotmatch_reviewed_list = [None if len(flags) == 0 else sum(flags) / len(flags)
@@ -218,8 +270,15 @@ def get_encounter_fraction_annotmatch_reviewed(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.default_decorator
+@register_api('/api/encounter/custom_filtered_aids/', methods=['GET'])
 def get_encounter_custom_filtered_aids(ibs, eid_list):
-    """ hacks to filter aids to only certain views and qualities """
+    r"""
+    hacks to filter aids to only certain views and qualities
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/custom_filtered_aids/
+    """
     aids_list_ = ibs.get_encounter_aids(eid_list)
     # HACK: Get percentage for the annots we currently care about
     aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
@@ -228,7 +287,15 @@ def get_encounter_custom_filtered_aids(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/fraction_imgs_reviewed/', methods=['GET'])
 def get_encounter_fraction_imgs_reviewed(ibs, eid_list):
+    r"""
+    Auto-docstr for 'get_encounter_fraction_imgs_reviewed'
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/fraction_imgs_reviewed/
+    """
     gids_list = ibs.get_encounter_gids(eid_list)
     flags_list = ibs.unflat_map(ibs.get_image_reviewed, gids_list)
     fraction_imgs_reviewed_list = [None if len(flags) == 0 else sum(flags) / len(flags)
@@ -239,7 +306,15 @@ def get_encounter_fraction_imgs_reviewed(ibs, eid_list):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @accessor_decors.cache_getter(const.ENCOUNTER_TABLE, 'percent_names_with_exemplar_str', debug=False)  # HACK
+@register_api('/api/encounter/percent_names_with_exemplar_str/', methods=['GET'])
 def get_encounter_percent_names_with_exemplar_str(ibs, eid_list):
+    r"""
+    Auto-docstr for 'get_encounter_percent_names_with_exemplar_str'
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/percent_names_with_exemplar_str/
+    """
     fraction_exemplared_names_list = ibs.get_encounter_fraction_names_with_exemplar(eid_list)
     percent_exemplared_names_list_str = list(map(ut.percent_str, fraction_exemplared_names_list))
     return percent_exemplared_names_list_str
@@ -248,7 +323,15 @@ def get_encounter_percent_names_with_exemplar_str(ibs, eid_list):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @accessor_decors.cache_getter(const.ENCOUNTER_TABLE, 'percent_imgs_reviewed_str', debug=False)  # HACK
+@register_api('/api/encounter/percent_imgs_reviewed_str/', methods=['GET'])
 def get_encounter_percent_imgs_reviewed_str(ibs, eid_list):
+    r"""
+    Auto-docstr for 'get_encounter_percent_imgs_reviewed_str'
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/percent_imgs_reviewed_str/
+    """
     fraction_imgs_reviewed_list = ibs.get_encounter_fraction_imgs_reviewed(eid_list)
     percent_imgs_reviewed_str_list = list(map(ut.percent_str, fraction_imgs_reviewed_list))
     return percent_imgs_reviewed_str_list
@@ -257,7 +340,15 @@ def get_encounter_percent_imgs_reviewed_str(ibs, eid_list):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @accessor_decors.cache_getter(const.ENCOUNTER_TABLE, 'percent_annotmatch_reviewed_str', debug=False)  # HACK
+@register_api('/api/encounter/percent_annotmatch_reviewed_str/', methods=['GET'])
 def get_encounter_percent_annotmatch_reviewed_str(ibs, eid_list):
+    r"""
+    Auto-docstr for 'get_encounter_percent_annotmatch_reviewed_str'
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/percent_annotmatch_reviewed_str/
+    """
     fraction_annotmatch_reviewed_list = ibs.get_encounter_fraction_annotmatch_reviewed(eid_list)
     percent_annotmach_reviewed_str_list = list(map(ut.percent_str, fraction_annotmatch_reviewed_list))
     return percent_annotmach_reviewed_str_list
@@ -265,30 +356,47 @@ def get_encounter_percent_annotmatch_reviewed_str(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/num_gids/', methods=['GET'])
 def get_encounter_num_gids(ibs, eid_list):
-    """
+    r"""
     Returns:
-        nGids_list (list): number of images in each encounter """
+        nGids_list (list): number of images in each encounter
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/num_gids/
+    """
     nGids_list = list(map(len, ibs.get_encounter_gids(eid_list)))
     return nGids_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/num_aids/', methods=['GET'])
 def get_encounter_num_aids(ibs, eid_list):
-    """
+    r"""
     Returns:
-        nGids_list (list): number of images in each encounter """
+        nGids_list (list): number of images in each encounter
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/num_aids/
+    """
     nAids_list = list(map(len, ibs.get_encounter_aids(eid_list)))
     return nAids_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1toM
+@register_api('/api/encounter/aids/', methods=['GET'])
 def get_encounter_aids(ibs, eid_list):
-    """
+    r"""
     Returns:
         aids_list (list):  a list of list of aids in each encounter
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/aids/
     """
     gids_list = ibs.get_encounter_gids(eid_list)
     aids_list_ = ibs.unflat_map(ibs.get_image_aids, gids_list)
@@ -304,10 +412,16 @@ def get_encounter_aids(ibs, eid_list):
 @register_ibs_method
 @accessor_decors.getter_1toM
 @accessor_decors.cache_getter(const.ENCOUNTER_TABLE, 'image_rowids')
+@register_api('/api/encounter/gids/', methods=['GET'])
 def get_encounter_gids(ibs, eid_list):
-    """
+    r"""
     Returns:
-        gids_list (list):  a list of list of gids in each encounter """
+        gids_list (list):  a list of list of gids in each encounter
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/gids/
+    """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
     gids_list = ibs.db.get(const.EG_RELATION_TABLE, ('image_rowid',), eid_list, id_colname='encounter_rowid', unpack_scalars=False)
     #print('get_encounter_gids')
@@ -318,10 +432,15 @@ def get_encounter_gids(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.default_decorator
+@register_api('/api/encounter/egrids/', methods=['GET'])
 def get_encounter_egrids(ibs, eid_list=None, gid_list=None):
-    """
+    r"""
     Returns:
         list_ (list):  a list of encounter-image-relationship rowids for each encouterid
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/egrids/
     """
     # WEIRD FUNCTION FIXME
     assert eid_list is not None or gid_list is not None, "Either eid_list or gid_list must be None"
@@ -351,13 +470,18 @@ def get_encounter_egrids(ibs, eid_list=None, gid_list=None):
 
 @register_ibs_method
 @accessor_decors.getter_1toM
+@register_api('/api/encounter/nids/', methods=['GET'])
 def get_encounter_nids(ibs, eid_list):
-    """
+    r"""
     Returns:
         list_ (list):  a list of list of known nids in each encounter
 
     CommandLine:
         python -m ibeis.control.manual_encounter_funcs --test-get_encounter_nids
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/nids/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -389,10 +513,16 @@ def get_encounter_nids(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/uuid/', methods=['GET'])
 def get_encounter_uuid(ibs, eid_list):
-    """
+    r"""
     Returns:
-        list_ (list): encounter_uuid of each eid in eid_list """
+        list_ (list): encounter_uuid of each eid in eid_list
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/uuid/
+    """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
     encuuid_list = ibs.db.get(const.ENCOUNTER_TABLE, ('encounter_uuid',), eid_list, id_colname='encounter_rowid')
     return encuuid_list
@@ -400,10 +530,16 @@ def get_encounter_uuid(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/configid/', methods=['GET'])
 def get_encounter_configid(ibs, eid_list):
-    """
+    r"""
     Returns:
-        list_ (list): config_rowid of each eid in eid_list """
+        list_ (list): config_rowid of each eid in eid_list
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/configid/
+    """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
     config_rowid_list = ibs.db.get(const.ENCOUNTER_TABLE, ('config_rowid',), eid_list, id_colname='encounter_rowid')
     return config_rowid_list
@@ -411,10 +547,16 @@ def get_encounter_configid(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/text/', methods=['GET'])
 def get_encounter_text(ibs, eid_list):
-    """
+    r"""
     Returns:
-        list_ (list): encounter_text of each eid in eid_list """
+        list_ (list): encounter_text of each eid in eid_list
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/text/
+    """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
     enctext_list = ibs.db.get(const.ENCOUNTER_TABLE, ('encounter_text',), eid_list, id_colname='encounter_rowid')
     return enctext_list
@@ -422,12 +564,17 @@ def get_encounter_text(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/eids_from_text/', methods=['GET'])
 def get_encounter_eids_from_text(ibs, enctext_list, ensure=True):
-    """
+    r"""
     Returns:
         list_ (list): a list of eids corresponding to each encounter enctext
     #FIXME: make new naming scheme for non-primary-key-getters
     get_encounter_eids_from_text_from_text
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/eids_from_text/
     """
     if ensure:
         eid_list = ibs.add_encounters(enctext_list)
@@ -439,10 +586,16 @@ def get_encounter_eids_from_text(ibs, enctext_list, ensure=True):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/note/', methods=['GET'])
 def get_encounter_note(ibs, eid_list):
-    """
+    r"""
     Returns:
-        list_ (list): encounter_note of each eid in eid_list """
+        list_ (list): encounter_note of each eid in eid_list
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/note/
+    """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
     encnote_list = ibs.db.get(const.ENCOUNTER_TABLE, ('encounter_note',), eid_list, id_colname='encounter_rowid')
     return encnote_list
@@ -450,8 +603,15 @@ def get_encounter_note(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.deleter
+@register_api('/api/encounter/', methods=['DELETE'])
 def delete_encounters(ibs, eid_list):
-    """ Removes encounters and thier relationships (images are not effected) """
+    r"""
+    Removes encounters and thier relationships (images are not effected)
+
+    RESTful:
+        Method: DELETE
+        URL:    /api/encounter/
+    """
     # Optimization hack, less SQL calls
     #egrid_list = ut.flatten(ibs.get_encounter_egrids(eid_list=eid_list))
     #ibs.db.delete_rowids(const.EG_RELATION_TABLE, egrid_list)
@@ -464,8 +624,10 @@ def delete_encounters(ibs, eid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/end_time_posix/', methods=['GET'])
 def get_encounter_end_time_posix(ibs, encounter_rowid_list):
-    """ encounter_end_time_posix_list <- encounter.encounter_end_time_posix[encounter_rowid_list]
+    r"""
+    encounter_end_time_posix_list <- encounter.encounter_end_time_posix[encounter_rowid_list]
 
     gets data from the "native" column "encounter_end_time_posix" in the "encounter" table
 
@@ -479,6 +641,10 @@ def get_encounter_end_time_posix(ibs, encounter_rowid_list):
         Tgetter_table_column
         col = encounter_end_time_posix
         tbl = encounter
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/end_time_posix/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -497,8 +663,10 @@ def get_encounter_end_time_posix(ibs, encounter_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/gps_lats/', methods=['GET'])
 def get_encounter_gps_lats(ibs, encounter_rowid_list):
-    """ encounter_gps_lat_list <- encounter.encounter_gps_lat[encounter_rowid_list]
+    r"""
+    encounter_gps_lat_list <- encounter.encounter_gps_lat[encounter_rowid_list]
 
     gets data from the "native" column "encounter_gps_lat" in the "encounter" table
 
@@ -512,6 +680,10 @@ def get_encounter_gps_lats(ibs, encounter_rowid_list):
         Tgetter_table_column
         col = encounter_gps_lat
         tbl = encounter
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/gps_lats/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -530,10 +702,16 @@ def get_encounter_gps_lats(ibs, encounter_rowid_list):
 
 @register_ibs_method
 @accessor_decors.default_decorator
+@register_api('/api/encounter/info/', methods=['PUT'])
 def update_encounter_info(ibs, encounter_rowid_list):
-    """ sets start and end time for encounters
+    r"""
+    sets start and end time for encounters
 
     FIXME: should not need to bulk update, should be handled as it goes
+
+    RESTful:
+        Method: PUT
+        URL:    /api/encounter/info/
 
     Example:
         >>> # DOCTEST_DISABLE
@@ -552,8 +730,10 @@ def update_encounter_info(ibs, encounter_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/gps_lons/', methods=['GET'])
 def get_encounter_gps_lons(ibs, encounter_rowid_list):
-    """ encounter_gps_lon_list <- encounter.encounter_gps_lon[encounter_rowid_list]
+    r"""
+    encounter_gps_lon_list <- encounter.encounter_gps_lon[encounter_rowid_list]
 
     gets data from the "native" column "encounter_gps_lon" in the "encounter" table
 
@@ -567,6 +747,10 @@ def get_encounter_gps_lons(ibs, encounter_rowid_list):
         Tgetter_table_column
         col = encounter_gps_lon
         tbl = encounter
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/gps_lons/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -585,8 +769,10 @@ def get_encounter_gps_lons(ibs, encounter_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/notes/', methods=['GET'])
 def get_encounter_notes(ibs, encounter_rowid_list):
-    """ encounter_note_list <- encounter.encounter_note[encounter_rowid_list]
+    r"""
+    encounter_note_list <- encounter.encounter_note[encounter_rowid_list]
 
     gets data from the "native" column "encounter_note" in the "encounter" table
 
@@ -600,6 +786,10 @@ def get_encounter_notes(ibs, encounter_rowid_list):
         Tgetter_table_column
         col = encounter_note
         tbl = encounter
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/notes/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -618,8 +808,10 @@ def get_encounter_notes(ibs, encounter_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/processed_flags/', methods=['GET'])
 def get_encounter_processed_flags(ibs, encounter_rowid_list):
-    """ encounter_processed_flag_list <- encounter.encounter_processed_flag[encounter_rowid_list]
+    r"""
+    encounter_processed_flag_list <- encounter.encounter_processed_flag[encounter_rowid_list]
 
     gets data from the "native" column "encounter_processed_flag" in the "encounter" table
 
@@ -633,6 +825,10 @@ def get_encounter_processed_flags(ibs, encounter_rowid_list):
         Tgetter_table_column
         col = encounter_processed_flag
         tbl = encounter
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/processed_flags/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -651,8 +847,10 @@ def get_encounter_processed_flags(ibs, encounter_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/shipped_flags/', methods=['GET'])
 def get_encounter_shipped_flags(ibs, encounter_rowid_list):
-    """ encounter_shipped_flag_list <- encounter.encounter_shipped_flag[encounter_rowid_list]
+    r"""
+    encounter_shipped_flag_list <- encounter.encounter_shipped_flag[encounter_rowid_list]
 
     gets data from the "native" column "encounter_shipped_flag" in the "encounter" table
 
@@ -666,6 +864,10 @@ def get_encounter_shipped_flags(ibs, encounter_rowid_list):
         Tgetter_table_column
         col = encounter_shipped_flag
         tbl = encounter
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/shipped_flags/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -684,8 +886,10 @@ def get_encounter_shipped_flags(ibs, encounter_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/encounter/start_time_posix/', methods=['GET'])
 def get_encounter_start_time_posix(ibs, encounter_rowid_list):
-    """ encounter_start_time_posix_list <- encounter.encounter_start_time_posix[encounter_rowid_list]
+    r"""
+    encounter_start_time_posix_list <- encounter.encounter_start_time_posix[encounter_rowid_list]
 
     gets data from the "native" column "encounter_start_time_posix" in the "encounter" table
 
@@ -699,6 +903,10 @@ def get_encounter_start_time_posix(ibs, encounter_rowid_list):
         Tgetter_table_column
         col = encounter_start_time_posix
         tbl = encounter
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/start_time_posix/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -717,8 +925,10 @@ def get_encounter_start_time_posix(ibs, encounter_rowid_list):
 
 @register_ibs_method
 @accessor_decors.setter
+@register_api('/api/encounter/end_time_posix/', methods=['PUT'])
 def set_encounter_end_time_posix(ibs, encounter_rowid_list, encounter_end_time_posix_list):
-    """ encounter_end_time_posix_list -> encounter.encounter_end_time_posix[encounter_rowid_list]
+    r"""
+    encounter_end_time_posix_list -> encounter.encounter_end_time_posix[encounter_rowid_list]
 
     Args:
         encounter_rowid_list
@@ -728,6 +938,10 @@ def set_encounter_end_time_posix(ibs, encounter_rowid_list, encounter_end_time_p
         Tsetter_native_column
         tbl = encounter
         col = encounter_end_time_posix
+
+    RESTful:
+        Method: PUT
+        URL:    /api/encounter/end_time_posix/
     """
     id_iter = encounter_rowid_list
     colnames = (ENCOUNTER_END_TIME_POSIX,)
@@ -737,8 +951,10 @@ def set_encounter_end_time_posix(ibs, encounter_rowid_list, encounter_end_time_p
 
 @register_ibs_method
 @accessor_decors.setter
+@register_api('/api/encounter/gps_lats/', methods=['PUT'])
 def set_encounter_gps_lats(ibs, encounter_rowid_list, encounter_gps_lat_list):
-    """ encounter_gps_lat_list -> encounter.encounter_gps_lat[encounter_rowid_list]
+    r"""
+    encounter_gps_lat_list -> encounter.encounter_gps_lat[encounter_rowid_list]
 
     Args:
         encounter_rowid_list
@@ -748,6 +964,10 @@ def set_encounter_gps_lats(ibs, encounter_rowid_list, encounter_gps_lat_list):
         Tsetter_native_column
         tbl = encounter
         col = encounter_gps_lat
+
+    RESTful:
+        Method: PUT
+        URL:    /api/encounter/gps_lats/
     """
     id_iter = encounter_rowid_list
     colnames = (ENCOUNTER_GPS_LAT,)
@@ -756,8 +976,10 @@ def set_encounter_gps_lats(ibs, encounter_rowid_list, encounter_gps_lat_list):
 
 @register_ibs_method
 @accessor_decors.setter
+@register_api('/api/encounter/gps_lons/', methods=['PUT'])
 def set_encounter_gps_lons(ibs, encounter_rowid_list, encounter_gps_lon_list):
-    """ encounter_gps_lon_list -> encounter.encounter_gps_lon[encounter_rowid_list]
+    r"""
+    encounter_gps_lon_list -> encounter.encounter_gps_lon[encounter_rowid_list]
 
     Args:
         encounter_rowid_list
@@ -767,6 +989,10 @@ def set_encounter_gps_lons(ibs, encounter_rowid_list, encounter_gps_lon_list):
         Tsetter_native_column
         tbl = encounter
         col = encounter_gps_lon
+
+    RESTful:
+        Method: PUT
+        URL:    /api/encounter/gps_lons/
     """
     id_iter = encounter_rowid_list
     colnames = (ENCOUNTER_GPS_LON,)
@@ -775,8 +1001,10 @@ def set_encounter_gps_lons(ibs, encounter_rowid_list, encounter_gps_lon_list):
 
 @register_ibs_method
 @accessor_decors.setter
+@register_api('/api/encounter/notes/', methods=['PUT'])
 def set_encounter_notes(ibs, encounter_rowid_list, encounter_note_list):
-    """ encounter_note_list -> encounter.encounter_note[encounter_rowid_list]
+    r"""
+    encounter_note_list -> encounter.encounter_note[encounter_rowid_list]
 
     Args:
         encounter_rowid_list
@@ -786,6 +1014,10 @@ def set_encounter_notes(ibs, encounter_rowid_list, encounter_note_list):
         Tsetter_native_column
         tbl = encounter
         col = encounter_note
+
+    RESTful:
+        Method: PUT
+        URL:    /api/encounter/notes/
     """
     id_iter = encounter_rowid_list
     colnames = (ENCOUNTER_NOTE,)
@@ -794,8 +1026,10 @@ def set_encounter_notes(ibs, encounter_rowid_list, encounter_note_list):
 
 @register_ibs_method
 @accessor_decors.setter
+@register_api('/api/encounter/processed_flags/', methods=['PUT'])
 def set_encounter_processed_flags(ibs, encounter_rowid_list, encounter_processed_flag_list):
-    """ encounter_processed_flag_list -> encounter.encounter_processed_flag[encounter_rowid_list]
+    r"""
+    encounter_processed_flag_list -> encounter.encounter_processed_flag[encounter_rowid_list]
 
     Args:
         encounter_rowid_list
@@ -805,6 +1039,10 @@ def set_encounter_processed_flags(ibs, encounter_rowid_list, encounter_processed
         Tsetter_native_column
         tbl = encounter
         col = encounter_processed_flag
+
+    RESTful:
+        Method: PUT
+        URL:    /api/encounter/processed_flags/
     """
     id_iter = encounter_rowid_list
     colnames = (ENCOUNTER_PROCESSED_FLAG,)
@@ -814,8 +1052,10 @@ def set_encounter_processed_flags(ibs, encounter_rowid_list, encounter_processed
 
 @register_ibs_method
 @accessor_decors.setter
+@register_api('/api/encounter/shipped_flags/', methods=['PUT'])
 def set_encounter_shipped_flags(ibs, encounter_rowid_list, encounter_shipped_flag_list):
-    """ encounter_shipped_flag_list -> encounter.encounter_shipped_flag[encounter_rowid_list]
+    r"""
+    encounter_shipped_flag_list -> encounter.encounter_shipped_flag[encounter_rowid_list]
 
     Args:
         encounter_rowid_list
@@ -825,6 +1065,10 @@ def set_encounter_shipped_flags(ibs, encounter_rowid_list, encounter_shipped_fla
         Tsetter_native_column
         tbl = encounter
         col = encounter_shipped_flag
+
+    RESTful:
+        Method: PUT
+        URL:    /api/encounter/shipped_flags/
     """
     id_iter = encounter_rowid_list
     colnames = (ENCOUNTER_SHIPPED_FLAG,)
@@ -835,8 +1079,10 @@ def set_encounter_shipped_flags(ibs, encounter_rowid_list, encounter_shipped_fla
 
 @register_ibs_method
 @accessor_decors.setter
+@register_api('/api/encounter/start_time_posix/', methods=['PUT'])
 def set_encounter_start_time_posix(ibs, encounter_rowid_list, encounter_start_time_posix_list):
-    """ encounter_start_time_posix_list -> encounter.encounter_start_time_posix[encounter_rowid_list]
+    r"""
+    encounter_start_time_posix_list -> encounter.encounter_start_time_posix[encounter_rowid_list]
 
     Args:
         encounter_rowid_list
@@ -846,6 +1092,10 @@ def set_encounter_start_time_posix(ibs, encounter_rowid_list, encounter_start_ti
         Tsetter_native_column
         tbl = encounter
         col = encounter_start_time_posix
+
+    RESTful:
+        Method: PUT
+        URL:    /api/encounter/start_time_posix/
     """
     id_iter = encounter_rowid_list
     colnames = (ENCOUNTER_START_TIME_POSIX,)
@@ -855,8 +1105,10 @@ def set_encounter_start_time_posix(ibs, encounter_rowid_list, encounter_start_ti
 
 @register_ibs_method
 #@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_WAYPOINT_ID)
+@register_api('/api/encounter/smart_waypoint_ids/', methods=['GET'])
 def get_encounter_smart_waypoint_ids(ibs, encounter_rowid_list):
-    """ encounter_smart_waypoint_id_list <- encounter.encounter_smart_waypoint_id[encounter_rowid_list]
+    r"""
+    encounter_smart_waypoint_id_list <- encounter.encounter_smart_waypoint_id[encounter_rowid_list]
 
     gets data from the "native" column "encounter_smart_waypoint_id" in the "encounter" table
 
@@ -870,6 +1122,10 @@ def get_encounter_smart_waypoint_ids(ibs, encounter_rowid_list):
         Tgetter_table_column
         col = encounter_smart_waypoint_id
         tbl = encounter
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/smart_waypoint_ids/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -888,8 +1144,10 @@ def get_encounter_smart_waypoint_ids(ibs, encounter_rowid_list):
 
 @register_ibs_method
 #@accessor_decors.cache_getter(const.ENCOUNTER_TABLE, ENCOUNTER_SMART_XML_FNAME)
+@register_api('/api/encounter/smart_xml_fnames/', methods=['GET'])
 def get_encounter_smart_xml_fnames(ibs, encounter_rowid_list):
-    """ encounter_smart_xml_fname_list <- encounter.encounter_smart_xml_fname[encounter_rowid_list]
+    r"""
+    encounter_smart_xml_fname_list <- encounter.encounter_smart_xml_fname[encounter_rowid_list]
 
     gets data from the "native" column "encounter_smart_xml_fname" in the "encounter" table
 
@@ -903,6 +1161,10 @@ def get_encounter_smart_xml_fnames(ibs, encounter_rowid_list):
         Tgetter_table_column
         col = encounter_smart_xml_fname
         tbl = encounter
+
+    RESTful:
+        Method: GET
+        URL:    /api/encounter/smart_xml_fnames/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -920,8 +1182,10 @@ def get_encounter_smart_xml_fnames(ibs, encounter_rowid_list):
 
 
 @register_ibs_method
+@register_api('/api/encounter/smart_waypoint_ids/', methods=['PUT'])
 def set_encounter_smart_waypoint_ids(ibs, encounter_rowid_list, encounter_smart_waypoint_id_list):
-    """ encounter_smart_waypoint_id_list -> encounter.encounter_smart_waypoint_id[encounter_rowid_list]
+    r"""
+    encounter_smart_waypoint_id_list -> encounter.encounter_smart_waypoint_id[encounter_rowid_list]
 
     Args:
         encounter_rowid_list
@@ -931,6 +1195,10 @@ def set_encounter_smart_waypoint_ids(ibs, encounter_rowid_list, encounter_smart_
         Tsetter_native_column
         tbl = encounter
         col = encounter_smart_waypoint_id
+
+    RESTful:
+        Method: PUT
+        URL:    /api/encounter/smart_waypoint_ids/
     """
     id_iter = encounter_rowid_list
     colnames = (ENCOUNTER_SMART_WAYPOINT_ID,)
@@ -939,8 +1207,10 @@ def set_encounter_smart_waypoint_ids(ibs, encounter_rowid_list, encounter_smart_
 
 
 @register_ibs_method
+@register_api('/api/encounter/smart_xml_fnames/', methods=['PUT'])
 def set_encounter_smart_xml_fnames(ibs, encounter_rowid_list, encounter_smart_xml_fname_list):
-    """ encounter_smart_xml_fname_list -> encounter.encounter_smart_xml_fname[encounter_rowid_list]
+    r"""
+    encounter_smart_xml_fname_list -> encounter.encounter_smart_xml_fname[encounter_rowid_list]
 
     Args:
         encounter_rowid_list
@@ -950,6 +1220,10 @@ def set_encounter_smart_xml_fnames(ibs, encounter_rowid_list, encounter_smart_xm
         Tsetter_native_column
         tbl = encounter
         col = encounter_smart_xml_fname
+
+    RESTful:
+        Method: PUT
+        URL:    /api/encounter/smart_xml_fnames/
     """
     id_iter = encounter_rowid_list
     colnames = (ENCOUNTER_SMART_XML_FNAME,)
@@ -958,6 +1232,9 @@ def set_encounter_smart_xml_fnames(ibs, encounter_rowid_list, encounter_smart_xm
 
 
 def testdata_ibs():
+    r"""
+    Auto-docstr for 'testdata_ibs'
+    """
     import ibeis
     ibs = ibeis.opendb('testdb1')
     config2_ = None
@@ -965,7 +1242,7 @@ def testdata_ibs():
 
 
 if __name__ == '__main__':
-    """
+    r"""
     CommandLine:
         python -m ibeis.control.manual_encounter_funcs
         python -m ibeis.control.manual_encounter_funcs --allexamples

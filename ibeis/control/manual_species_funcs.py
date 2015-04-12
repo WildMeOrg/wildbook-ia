@@ -13,13 +13,17 @@ from ibeis import constants as const
 from ibeis import ibsfuncs
 #import numpy as np
 #import vtool as vt
-from ibeis.control import accessor_decors  # NOQA
+from ibeis.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_species]')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
+
+
+register_api   = controller_inject.get_ibeis_flask_api()
+register_route = controller_inject.get_ibeis_flask_route()
 
 SPECIES_ROWID       = 'species_rowid'
 SPECIES_UUID    = 'species_uuid'
@@ -30,7 +34,7 @@ SPECIES_NOTE    = 'species_note'
 @register_ibs_method
 @accessor_decors.ider
 def _get_all_species_rowids(ibs):
-    """
+    r"""
     Returns:
         list_ (list): all nids of known animals
         (does not include unknown names)
@@ -41,8 +45,10 @@ def _get_all_species_rowids(ibs):
 
 
 @register_ibs_method
+@register_api('/api/species/sanatize', methods=['PUT'])
 def sanatize_species_texts(ibs, species_text_list):
-    """ changes unknown species to the unknown value
+    r"""
+    changes unknown species to the unknown value
 
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -53,6 +59,10 @@ def sanatize_species_texts(ibs, species_text_list):
 
     CommandLine:
         python -m ibeis.control.manual_species_funcs --test-sanatize_species_texts
+
+    RESTful:
+        Method: POST
+        URL:    /api/species/sanatize
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -95,12 +105,17 @@ def sanatize_species_texts(ibs, species_text_list):
 
 @register_ibs_method
 @accessor_decors.adder
+@register_api('/api/species/', methods=['POST'])
 def add_species(ibs, species_text_list, species_uuid_list=None, note_list=None):
-    """
+    r"""
     Adds a list of species.
 
     Returns:
         list: speciesid_list - species rowids
+
+    RESTful:
+        Method: POST
+        URL:    /api/species/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -159,12 +174,17 @@ def add_species(ibs, species_text_list, species_uuid_list=None, note_list=None):
 @register_ibs_method
 @accessor_decors.deleter
 #@cache_invalidator(const.SPECIES_TABLE)
+@register_api('/api/species/', methods=['DELETE'])
 def delete_species(ibs, species_rowid_list):
-    """
+    r"""
     deletes species from the database
 
     CAREFUL. YOU PROBABLY DO NOT WANT TO USE THIS
     at least ensure that no annot is associated with any of these species rowids
+
+    RESTful:
+        Method: DELETE
+        URL:    /api/species/
     """
     if ut.VERBOSE:
         print('[ibs] deleting %d speciess' % len(species_rowid_list))
@@ -174,6 +194,7 @@ def delete_species(ibs, species_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/species/rowids_from_text/', methods=['GET'])
 def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
     r"""
     Returns:
@@ -182,6 +203,10 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
     CommandLine:
         python -m ibeis.control.manual_species_funcs --test-get_species_rowids_from_text:0
         python -m ibeis.control.manual_species_funcs --test-get_species_rowids_from_text:1
+
+    RESTful:
+        Method: GET
+        URL:    /api/species/rowids_from_text/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -247,13 +272,18 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/species/texts/', methods=['GET'])
 def get_species_texts(ibs, species_rowid_list):
-    """
+    r"""
     Returns:
         list: species_text_list text names
 
     CommandLine:
         python -m ibeis.control.manual_species_funcs --test-get_species_texts --enableall
+
+    RESTful:
+        Method: GET
+        URL:    /api/species/texts/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -276,10 +306,15 @@ def get_species_texts(ibs, species_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/species/uuids/', methods=['GET'])
 def get_species_uuids(ibs, species_rowid_list):
-    """
+    r"""
     Returns:
         list_ (list): uuids_list - species uuids
+
+    RESTful:
+        Method: GET
+        URL:    /api/species/uuids/
     """
     uuids_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_UUID,), species_rowid_list)
     #notes_list = ibs.get_lblannot_notes(nid_list)
@@ -288,10 +323,15 @@ def get_species_uuids(ibs, species_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/species/notes/', methods=['GET'])
 def get_species_notes(ibs, species_rowid_list):
-    """
+    r"""
     Returns:
         list_ (list): notes_list - species notes
+
+    RESTful:
+        Method: GET
+        URL:    /api/species/notes/
     """
     notes_list = ibs.db.get(const.SPECIES_TABLE, (SPECIES_NOTE,), species_rowid_list)
     #notes_list = ibs.get_lblannot_notes(nid_list)
@@ -299,11 +339,15 @@ def get_species_notes(ibs, species_rowid_list):
 
 
 if __name__ == '__main__':
-    """
+    r"""
     CommandLine:
         python -m ibeis.control.manual_species_funcs
         python -m ibeis.control.manual_species_funcs --allexamples
         python -m ibeis.control.manual_species_funcs --allexamples --noface --nosrc
+
+    RESTful:
+        Method: GET
+        URL:    /api/species/notes/
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
