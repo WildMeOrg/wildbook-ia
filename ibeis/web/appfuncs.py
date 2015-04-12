@@ -15,7 +15,6 @@ class NavbarClass(object):
             ('root', 'Home'),
             ('view', 'View'),
             ('turk', 'Turk'),
-            ('api',  'API'),
         ]
 
     def __iter__(nav):
@@ -117,7 +116,6 @@ def template(template_directory=None, template_filename=None, **kwargs):
     # Update global args with the template's args
     _global_args = dict(global_args)
     _global_args.update(kwargs)
-    print(template_)
     return render_template(template_, **_global_args)
 
 

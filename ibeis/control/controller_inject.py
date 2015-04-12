@@ -1,48 +1,126 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 #import sys
+import flask
+from flask import current_app, request
+from functools import wraps
+from os.path import abspath, join
+import simplejson as json
+import traceback
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[controller_inject]')
 
 
 #INJECTED_MODULES = []
 
-flaskapp = None
+GLOBAL_APP_ENABLED = True
+GLOBAL_APP_TEMPALTE_PATH = abspath(join('ibeis', 'web', 'templates'))
+GLOBAL_APP_STATIC_PATH = abspath(join('ibeis', 'web', 'static'))
+GLOBAL_APP = flask.Flask('IBEIS', template_folder=GLOBAL_APP_TEMPALTE_PATH, static_folder=GLOBAL_APP_STATIC_PATH)
+
+
+class WebException(Exception):
+    def __init__(self, message, code=400):
+        self.code = code
+        self.message = message
+
+    def __str__(self):
+        return repr('%r: %r' % (self.code, self.message, ))
+
+
+def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None):
+    import simplejson as json
+    if code is None:
+        code = ''
+    if message is None:
+        message = ''
+    template = {
+        'status': {
+            'success': success,
+            'code':    code,
+            'message': message,
+        },
+        'response' : rawreturn
+    }
+    return json.dumps(template)
 
 
 def translate_ibeis_webcall(func, *args, **kwargs):
-    from flask import request, make_response
-    rowid_list = request.form.get('rowid_list')
-    output = func(rowid_list, args)
-    responce = make_response(output)
-    return responce
+    def _process_input(multidict):
+        for (arg, value) in multidict.iterlists():
+            if len(value) > 1:
+                raise WebException('Cannot specify a parameter more than once: %r' % (arg, ))
+            value = str(value[0])
+            if ',' in value:
+                value = '[%s]' % (value, )
+            print('VALUE: %r' % (value, ))
+            kwargs[arg] = json.loads(value)
+    # Pipe web input into Python web call
+    _process_input(request.args)
+    _process_input(request.form)
+    ibs = current_app.ibs
+    try:
+        output = func(*args, **kwargs)
+    except TypeError:
+        output = func(ibs=ibs, *args, **kwargs)
+    return (output, True, None, None)
 
 
-def ensure_flaskapp():
-    global flaskapp
-    if flaskapp is None:
-        import flask
-        port = 5398
-        flaskapp = flask.Flask(port)
-    return flaskapp
+def get_ibeis_flask_api():
+    if GLOBAL_APP_ENABLED:
+        def register_api(rule, **options):
+            # accpet args to flask.route
+            def regsiter_closure(func):
+                # make translation function in closure scope
+                # and register it with flask.
+                @GLOBAL_APP.route(rule, **options)
+                @wraps(func)
+                def translated_call(*args, **kwargs):
+                    from flask import make_response
+                    try:
+                        rawreturn, success, code, message = translate_ibeis_webcall(func, *args, **kwargs)
+                    except WebException as webex:
+                        rawreturn = str(traceback.format_exc())
+                        success = False
+                        code = webex.code
+                        message = webex.message
+                    except Exception as ex:
+                        rawreturn = str(traceback.format_exc())
+                        success = False
+                        code = 400
+                        message = 'API error, Python Exception thrown: %r' % (str(ex))
+                    webreturn = translate_ibeis_webreturn(rawreturn, success, code, message)
+                    return make_response(webreturn)
+                # return the original unmodified function
+                return func
+            return regsiter_closure
+        return register_api
+    else:
+        return ut.dummy_args_decor
 
 
 def get_ibeis_flask_route():
-    WEB = False
-    if WEB:
-        flaskapp = ensure_flaskapp()
+    if GLOBAL_APP_ENABLED:
         def register_route(rule, **options):
             # accpet args to flask.route
             def regsiter_closure(func):
                 # make translation function in closure scope
                 # and register it with flask.
-                @flaskapp.route(rule, **options)
+                @GLOBAL_APP.route(rule, **options)
+                @wraps(func)
                 def translated_call(*args, **kwargs):
-                    return translate_ibeis_webcall(func, *args, **kwargs)
+                    try:
+                        result = func(*args, **kwargs)
+                    except Exception as ex:
+                        rawreturn = str(traceback.format_exc())
+                        success = False
+                        code = 400
+                        message = 'Route error, Python Exception thrown: %r' % (str(ex), )
+                        result = translate_ibeis_webreturn(rawreturn, success, code, message)
+                    return result
                 # return the original unmodified function
                 return func
             return regsiter_closure
         return register_route
-
     else:
         return ut.dummy_args_decor
 

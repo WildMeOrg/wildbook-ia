@@ -30,14 +30,13 @@ import ibeis  # NOQA
 from ibeis.dev import sysres
 from ibeis import constants as const
 from ibeis import params
-from ibeis.control import accessor_decors
+from ibeis.control import accessor_decors, controller_inject
 from ibeis.control.accessor_decors import (default_decorator, )
 import xml.etree.ElementTree as ET
 # Import modules which define injectable functions
 # Older manual ibeiscontrol functions
 from ibeis import ibsfuncs
 from ibeis.model.hots import pipeline
-#from ibeis.control import controller_inject
 
 # Pyinstaller hacks
 from ibeis.control import _autogen_featweight_funcs  # NOQA
@@ -95,6 +94,10 @@ for modname in autogenmodname_list:
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[ibs]')
+
+
+register_api   = controller_inject.get_ibeis_flask_api()
+register_route = controller_inject.get_ibeis_flask_route()
 
 
 __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
@@ -195,6 +198,7 @@ class IBEISController(object):
         ibs.observer_weakref_list = []
         # not completely working decorator cache
         ibs.table_cache = None
+        ibs.app = None
         ibs.web_instance = None
         ibs._initialize_self()
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
@@ -510,10 +514,16 @@ class IBEISController(object):
     # --- DIRS ----
     #--------------
 
+    @register_api('/api/core/dbname/', methods=['GET'])
     def get_dbname(ibs):
         """
         Returns:
-            list_ (list): database name """
+            list_ (list): database name
+
+        RESTful:
+            Method: GET
+            URL:    /api/core/dbname/
+        """
         return ibs.dbname
 
     def get_logdir(ibs):
@@ -741,8 +751,15 @@ class IBEISController(object):
         raise NotImplementedError()
 
     @default_decorator
+    @register_api('/api/core/wildbook_signal_eid_list/', methods=['PUT'])
     def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url=True):
-        """ Exports specified encounters to wildbook """
+        """
+        Exports specified encounters to wildbook
+
+        RESTful:
+            Method: PUT
+            URL:    /api/core/wildbook_signal_eid_list/
+        """
         def _send(eid, sudo=False):
             encounter_uuid = ibs.get_encounter_uuid(eid)
             submit_url_ = submit_url % (hostname, encounter_uuid)
@@ -853,6 +870,7 @@ class IBEISController(object):
     #------------------
 
     @default_decorator
+    @register_api('/api/core/detect_random_forest/', methods=['PUT'])
     def detect_random_forest(ibs, gid_list, species, **kwargs):
         """
         Runs animal detection in each image. Adds annotations to the database as
@@ -867,6 +885,10 @@ class IBEISController(object):
 
         CommandLine:
             python -m ibeis.control.IBEISControl --test-detect_random_forest --show
+
+        RESTful:
+            Method: PUT
+            URL:    /api/core/detect_random_forest/
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1122,10 +1144,17 @@ class IBEISController(object):
     #    return daid_list
 
     @default_decorator
+    @register_api('/api/core/recognition_query_aids/', methods=['GET'])
     def get_recognition_query_aids(ibs, is_known, species=None):
+        """
+        RESTful:
+            Method: PUT
+            URL:    /api/core/recognition_query_aids/
+        """
         qaid_list = ibs.get_valid_aids(is_known=is_known, species=species)
         return qaid_list
 
+    @register_api('/api/core/query_chips/', methods=['PUT'])
     def query_chips(ibs, qaid_list=None,
                     daid_list=None,
                     cfgdict=None,
@@ -1151,6 +1180,10 @@ class IBEISController(object):
 
         CommandLine:
             python -m ibeis.control.IBEISControl --test-query_chips
+
+        RESTful:
+            Method: PUT
+            URL:    /api/core/query_chips/
 
         Example:
             >>> # SLOW_DOCTEST
@@ -1187,6 +1220,7 @@ class IBEISController(object):
         else:
             return qres_list
 
+    @register_api('/api/core/query_chips4/', methods=['PUT'])
     def _query_chips4(ibs, qaid_list, daid_list,
                       use_cache=None,
                       use_bigcache=None,
@@ -1200,6 +1234,10 @@ class IBEISController(object):
 
         CommandLine:
             python -m ibeis.control.IBEISControl --test-_query_chips4
+
+        RESTful:
+            Method: PUT
+            URL:    /api/core/query_chips4/
 
         Example:
             >>> # SLOW_DOCTEST
@@ -1258,8 +1296,15 @@ class IBEISController(object):
     _query_chips = _query_chips4
 
     @default_decorator
+    @register_api('/api/core/query_encounter/', methods=['PUT'])
     def query_encounter(ibs, qaid_list, eid, **kwargs):
-        """ _query_chips wrapper """
+        """
+        _query_chips wrapper
+
+        RESTful:
+            Method: PUT
+            URL:    /api/core/query_encounter/
+        """
         daid_list = ibs.get_encounter_aids(eid)  # encounter database chips
         qaid2_qres = ibs._query_chips4(qaid_list, daid_list, **kwargs)
         # HACK IN ENCOUNTER INFO
@@ -1268,26 +1313,53 @@ class IBEISController(object):
         return qaid2_qres
 
     @default_decorator
+    @register_api('/api/core/query_exemplars/', methods=['PUT'])
     def query_exemplars(ibs, qaid_list, **kwargs):
-        """ Queries vs the exemplars """
+        """
+        Queries vs the exemplars
+
+        RESTful:
+            Method: PUT
+            URL:    /api/core/query_exemplars/
+        """
         daid_list = ibs.get_valid_aids(is_exemplar=True)
         assert len(daid_list) > 0, 'there are no exemplars'
         return ibs._query_chips4(qaid_list, daid_list, **kwargs)
 
     @default_decorator
+    @register_api('/api/core/query_all/', methods=['PUT'])
     def query_all(ibs, qaid_list, **kwargs):
-        """ Queries vs the exemplars """
+        """
+        Queries vs the exemplars
+
+        RESTful:
+            Method: PUT
+            URL:    /api/core/query_all/
+        """
         daid_list = ibs.get_valid_aids()
         qaid2_qres = ibs._query_chips4(qaid_list, daid_list, **kwargs)
         return qaid2_qres
 
     @default_decorator
+    @register_api('/api/core/has_species_detector/', methods=['GET'])
     def has_species_detector(ibs, species_text):
-        """ TODO: extend to use non-constant species """
+        """
+        TODO: extend to use non-constant species
+
+        RESTful:
+            Method: GET
+            URL:    /api/core/has_species_detector/
+        """
         return species_text in const.SPECIES_WITH_DETECTORS
 
     @default_decorator
+    @register_api('/api/core/species_with_detectors/', methods=['GET'])
     def get_species_with_detectors(ibs):
+        """
+        RESTful:
+            Method: GET
+            URL:    /api/core/species_with_detectors/
+        """
         return const.SPECIES_WITH_DETECTORS
         pass
 

@@ -17,6 +17,7 @@ ut.noinject('[const]')
 PI  = math.pi
 TAU = 2.0 * PI
 
+DEFAULT_WEB_API_PORT = 5000
 
 # Mapping of semantic viewpoints to yaw angles
 VIEWTEXT_TO_YAW_RADIANS = OrderedDict([

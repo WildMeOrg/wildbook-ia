@@ -100,3 +100,5 @@ failed_shelltests.txt
 #_page
 
 T*.sh
+tempfile*.txt
+testdb*
