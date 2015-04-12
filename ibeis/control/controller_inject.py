@@ -50,9 +50,8 @@ def translate_ibeis_webcall(func, *args, **kwargs):
             if len(value) > 1:
                 raise WebException('Cannot specify a parameter more than once: %r' % (arg, ))
             value = str(value[0])
-            if ',' in value:
+            if ',' in value and '[' not in value and ']' not in value:
                 value = '[%s]' % (value, )
-            print('VALUE: %r' % (value, ))
             kwargs[arg] = json.loads(value)
     # Pipe web input into Python web call
     _process_input(request.args)
