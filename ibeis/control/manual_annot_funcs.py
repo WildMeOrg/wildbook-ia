@@ -116,7 +116,7 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
         URL:    /api/annotation/
 
     RESTful:
-        Returns the base64 encoded image of <gid>  # Documented and routed in ibeis.web app.py
+        Returns the base64 encoded chip of annotation <aid>  # Documented and routed in ibeis.web app.py
         Method: GET
         URL:    /api/annotation/<aid>
 
