@@ -22,10 +22,10 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_species]')
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api()
-register_route = controller_inject.get_ibeis_flask_route()
+register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_route = controller_inject.get_ibeis_flask_route(__name__)
 
-SPECIES_ROWID       = 'species_rowid'
+SPECIES_ROWID   = 'species_rowid'
 SPECIES_UUID    = 'species_uuid'
 SPECIES_TEXT    = 'species_text'
 SPECIES_NOTE    = 'species_note'

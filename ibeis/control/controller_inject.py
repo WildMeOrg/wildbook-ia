@@ -100,11 +100,12 @@ def authentication_user_validate():
 
 def authentication_user_only(func):
     @wraps(func)
-    def decorated(*args, **kwargs):
+    def wrp_authenticate_user(*args, **kwargs):
         if not authentication_user_validate():
             return authentication_challenge()
         return func(*args, **kwargs)
-    return decorated
+    #wrp_authenticate_user = ut.preserve_sig(wrp_authenticate_user, func)
+    return wrp_authenticate_user
 
 
 def create_key():
@@ -144,23 +145,26 @@ def authentication_hash_validate():
 
 def authentication_hash_only(func):
     @wraps(func)
-    def decorated(*args, **kwargs):
+    def wrp_authentication_hash(*args, **kwargs):
         if not authentication_hash_validate():
             return authentication_challenge()
         return func(*args, **kwargs)
-    return decorated
+    return wrp_authentication_hash
 
 
-def authentication(func):
+def authentication_either(func):
+    """ authenticated by either hash or user """
     @wraps(func)
-    def decorated(*args, **kwargs):
+    def wrp_authentication_either(*args, **kwargs):
         if not (authentication_hash_validate() or authentication_user_validate()):
             return authentication_challenge()
         return func(*args, **kwargs)
-    return decorated
+    return wrp_authentication_either
 
 
-def get_ibeis_flask_api():
+def get_ibeis_flask_api(__name__):
+    if __name__ == '__main__':
+        return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
         def register_api(rule, **options):
             # accpet args to flask.route
@@ -168,10 +172,10 @@ def get_ibeis_flask_api():
                 # make translation function in closure scope
                 # and register it with flask.
                 @GLOBAL_APP.route(rule, **options)
-                @authentication
+                @authentication_either
                 @wraps(func)
                 def translated_call(*args, **kwargs):
-                    from flask import make_response
+                    #from flask import make_response
                     try:
                         rawreturn, success, code, message = translate_ibeis_webcall(func, *args, **kwargs)
                     except WebException as webex:
@@ -185,7 +189,7 @@ def get_ibeis_flask_api():
                         code = 500
                         message = 'API error, Python Exception thrown: %r' % (str(ex))
                     webreturn = translate_ibeis_webreturn(rawreturn, success, code, message)
-                    return make_response(webreturn, code)
+                    return flask.make_response(webreturn, code)
                 # return the original unmodified function
                 return func
             return regsiter_closure
@@ -194,7 +198,9 @@ def get_ibeis_flask_api():
         return ut.dummy_args_decor
 
 
-def get_ibeis_flask_route():
+def get_ibeis_flask_route(__name__):
+    if __name__ == '__main__':
+        return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
         def register_route(rule, **options):
             # accpet args to flask.route
@@ -214,6 +220,7 @@ def get_ibeis_flask_route():
                         message = 'Route error, Python Exception thrown: %r' % (str(ex), )
                         result = translate_ibeis_webreturn(rawreturn, success, code, message)
                     return result
+                #wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)
                 # return the original unmodified function
                 return func
             return regsiter_closure

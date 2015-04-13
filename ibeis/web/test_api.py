@@ -71,9 +71,38 @@ def post_api_result(uri, user_email=None, user_enc_pass=None, **kwargs):
                        user_enc_pass=user_enc_pass, **kwargs)
 
 
-if __name__ == '__main__':
+def run_test_api():
+    r"""
+    CommandLine:
+        python -m ibeis.web.test_api --test-run_test_api
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.web.test_api import *  # NOQA
+        >>> response = run_test_api()
+        >>> print('Server response: %r' % (response, ))
+        >>> result = response
+        (200, u'{"status": {"cache": -1, "message": "", "code": 200, "success": true}, "response": "testdb1"}', <bound method Response.json of <Response [200]>>)
+    """
+    import ibeis
+    #web_proc = ut.spawn_background_process(ibeis.opendb, dbname='testdb1', web=True)
+    ibs = ibeis.opendb(db='testdb1', web=True, blocking=False)
     uri = '/api/core/dbname'
     # Make GET request to the server as a test
     response = get_api_result(uri)
     status_code, text, json = response
-    print('Server response: %r' % (response, ))
+    ibs.web_instance.terminate()
+    return response
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.web.test_api
+        python -m ibeis.web.test_api --allexamples
+        python -m ibeis.web.test_api --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

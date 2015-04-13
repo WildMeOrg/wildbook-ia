@@ -24,8 +24,8 @@ ENCOUNTER_SMART_XML_FNAME   = 'encounter_smart_xml_fname'
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api()
-register_route = controller_inject.get_ibeis_flask_route()
+register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 @register_ibs_method

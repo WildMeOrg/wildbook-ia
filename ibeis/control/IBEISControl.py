@@ -96,8 +96,8 @@ for modname in autogenmodname_list:
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[ibs]')
 
 
-register_api   = controller_inject.get_ibeis_flask_api()
-register_route = controller_inject.get_ibeis_flask_route()
+register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers

@@ -23,8 +23,8 @@ import random
 import math
 
 
-register_api   = controller_inject.get_ibeis_flask_api()
-register_route = controller_inject.get_ibeis_flask_route()
+register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 BROWSER = ut.get_argflag('--browser')

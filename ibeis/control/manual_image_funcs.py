@@ -29,8 +29,8 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_image]')
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
-register_api   = controller_inject.get_ibeis_flask_api()
-register_route = controller_inject.get_ibeis_flask_route()
+register_api   = controller_inject.get_ibeis_flask_api(__name__)
+register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 IMAGE_TIME_POSIX      = 'image_time_posix'
