@@ -11,7 +11,6 @@ Subpackages
     ibeis.dev
     ibeis.gui
     ibeis.model
-    ibeis.templates
     ibeis.tests
     ibeis.viz
     ibeis.web
@@ -55,14 +54,6 @@ ibeis.params module
 -------------------
 
 .. automodule:: ibeis.params
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.species module
---------------------
-
-.. automodule:: ibeis.species
     :members:
     :undoc-members:
     :show-inheritance:

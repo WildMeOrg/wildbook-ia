@@ -4,6 +4,22 @@ ibeis.web package
 Submodules
 ----------
 
+ibeis.web.DBWEB_SCHEMA module
+-----------------------------
+
+.. automodule:: ibeis.web.DBWEB_SCHEMA
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.web.DBWEB_SCHEMA_CURRENT module
+-------------------------------------
+
+.. automodule:: ibeis.web.DBWEB_SCHEMA_CURRENT
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.web.app module
 --------------------
 
@@ -20,10 +36,10 @@ ibeis.web.appfuncs module
     :undoc-members:
     :show-inheritance:
 
-ibeis.web.test_api module
--------------------------
+ibeis.web.navbar module
+-----------------------
 
-.. automodule:: ibeis.web.test_api
+.. automodule:: ibeis.web.navbar
     :members:
     :undoc-members:
     :show-inheritance:

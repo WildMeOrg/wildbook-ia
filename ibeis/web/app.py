@@ -1249,7 +1249,7 @@ def start_tornado(ibs, port=None, browser=BROWSER):
         Initialize the web server
     '''
     def _start_tornado(ibs_, port_):
-        app = controller_inject.GLOBAL_APP
+        app = controller_inject.get_flask_app()
         app.ibs = ibs_
         http_server = tornado.httpserver.HTTPServer(
             tornado.wsgi.WSGIContainer(app))

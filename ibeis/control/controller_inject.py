@@ -8,18 +8,28 @@ from os.path import abspath, join
 import simplejson as json
 import traceback
 from hashlib import sha1
+import os
 import hmac
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[controller_inject]')
 
 
 #INJECTED_MODULES = []
+UTOOL_AUTOGEN_SPHINX_RUNNING = not (os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'OFF')
 
-GLOBAL_APP_ENABLED = True
+GLOBAL_APP_ENABLED = not UTOOL_AUTOGEN_SPHINX_RUNNING
 GLOBAL_APP_NAME = 'IBEIS'
 GLOBAL_APP_SECRET = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
 GLOBAL_APP_TEMPALTE_PATH = abspath(join('ibeis', 'web', 'templates'))
 GLOBAL_APP_STATIC_PATH = abspath(join('ibeis', 'web', 'static'))
-GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME, template_folder=GLOBAL_APP_TEMPALTE_PATH, static_folder=GLOBAL_APP_STATIC_PATH)
+
+GLOBAL_APP = None
+
+
+def get_flask_app():
+    global GLOBAL_APP
+    if GLOBAL_APP is None:
+        GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME, template_folder=GLOBAL_APP_TEMPALTE_PATH, static_folder=GLOBAL_APP_STATIC_PATH)
+    return GLOBAL_APP
 
 
 class WebException(Exception):
@@ -171,7 +181,8 @@ def get_ibeis_flask_api(__name__):
             def regsiter_closure(func):
                 # make translation function in closure scope
                 # and register it with flask.
-                @GLOBAL_APP.route(rule, **options)
+                app = get_flask_app()
+                @app.route(rule, **options)
                 @authentication_either
                 @wraps(func)
                 def translated_call(*args, **kwargs):
@@ -207,7 +218,8 @@ def get_ibeis_flask_route(__name__):
             def regsiter_closure(func):
                 # make translation function in closure scope
                 # and register it with flask.
-                @GLOBAL_APP.route(rule, **options)
+                app = get_flask_app()
+                @app.route(rule, **options)
                 @authentication_user_only
                 @wraps(func)
                 def translated_call(*args, **kwargs):

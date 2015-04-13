@@ -1,5 +1,9 @@
 .. ibeis documentation master file, created by
+<<<<<<< HEAD
    sphinx-quickstart on Mon Apr 13 13:01:21 2015.
+=======
+   sphinx-quickstart on Tue Dec 30 14:48:31 2014.
+>>>>>>> 41181401b4dc37b271dd6d54e0d240ca48d580b2
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
