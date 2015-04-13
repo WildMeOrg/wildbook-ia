@@ -89,7 +89,7 @@ def run_test_api():
     web_instance = ibeis.opendb_in_background(db='testdb1', web=True, precache=False)
     # let the webapi startup in the background
     time.sleep(.1)
-    uri = '/api/core/dbname'
+    uri = '/api/core/dbname/'
     # Make GET request to the server as a test
     response = get_api_result(uri)
     status_code, text, json = response

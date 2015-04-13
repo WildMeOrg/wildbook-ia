@@ -15,6 +15,7 @@ class NavbarClass(object):
             ('root', 'Home'),
             ('view', 'View'),
             ('turk', 'Turk'),
+            ('api',  'API'),
         ]
 
     def __iter__(nav):
