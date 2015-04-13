@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -268,6 +268,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span> <span class="o">=</span> <span class="n">update_callback</span>  <span class="c"># if something like qt needs a manual refresh on change</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span> <span class="o">=</span> <span class="n">backend_callback</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qres_callback</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qres_callback&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qres</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qres&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qreq_&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">infer_data</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">dodraw</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">(</span><span class="n">bring_to_front</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -428,7 +430,8 @@
         <span class="c"># Variables we will work with to paint a pretty picture</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
         <span class="n">nRows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nRows</span>
-        <span class="n">nCols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span>
+        <span class="n">colpad</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span>  <span class="bp">self</span><span class="o">.</span><span class="n">qres</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">nCols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span> <span class="o">+</span> <span class="n">colpad</span>
 
         <span class="c"># Distinct color for every unique name</span>
         <span class="n">unique_nids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
@@ -436,6 +439,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">nid2_color</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_nids</span><span class="p">,</span> <span class="n">unique_colors</span><span class="p">))</span>
 
         <span class="n">row_aids_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_row_aids_list</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">qres</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;DRAWING QRES&quot;</span><span class="p">)</span>
+            <span class="n">pnum</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">fulldraw</span><span class="p">:</span>
+                <span class="c"># not doing full draw so we have to clear any axes</span>
+                <span class="c"># that are here already manually</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="o">*</span><span class="n">pnum</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clear_parent_axes</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">qres</span><span class="o">.</span><span class="n">show_matches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="n">draw_fmatch</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">colorbar_</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">)</span>
+
         <span class="c"># For each row</span>
         <span class="k">for</span> <span class="n">rowx</span><span class="p">,</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">row_aids_list</span><span class="p">):</span>
             <span class="n">offset</span> <span class="o">=</span> <span class="n">rowx</span> <span class="o">*</span> <span class="n">nCols</span> <span class="o">+</span> <span class="mi">1</span>
@@ -443,8 +457,8 @@
                 <span class="k">continue</span>
             <span class="c">#ibsfuncs.assert_valid_aids(ibs, groundtruth)</span>
             <span class="c"># For each column</span>
-            <span class="k">for</span> <span class="n">colx</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aid_list</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">colx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">colx</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">colpad</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">colx</span> <span class="o">&gt;=</span> <span class="n">nCols</span><span class="p">:</span>
                     <span class="k">break</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
@@ -460,7 +474,7 @@
                 <span class="n">px</span> <span class="o">=</span> <span class="n">colx</span> <span class="o">+</span> <span class="n">offset</span>
                 <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_chip</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span> <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">,</span> <span class="n">px</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">fulldraw</span><span class="o">=</span><span class="n">fulldraw</span><span class="p">)</span>
                 <span class="c"># If there are still more in this row to display</span>
-                <span class="k">if</span> <span class="n">colx</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="ow">and</span> <span class="n">colx</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nCols</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">colx</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="ow">and</span> <span class="n">colx</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;=</span> <span class="n">nCols</span><span class="p">:</span>
                     <span class="n">total_indices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
                     <span class="n">current_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_offset_list</span><span class="p">[</span><span class="n">rowx</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
                     <span class="n">next_text</span> <span class="o">=</span> <span class="s">&#39;next</span><span class="se">\n</span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_index</span><span class="p">,</span> <span class="n">total_indices</span><span class="p">)</span>
@@ -595,6 +609,10 @@
             <span class="n">accum</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">return</span> <span class="n">hr_slot</span><span class="p">(</span><span class="n">accum</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
+        <span class="k">def</span> <span class="nf">next_rect2</span><span class="p">(</span><span class="n">accum</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">accum</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="n">hl_slot2</span><span class="p">(</span><span class="n">accum</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
         <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
         <span class="n">name1</span><span class="p">,</span> <span class="n">name2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name2</span>
         <span class="n">nid1_is_known</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nid1</span><span class="p">)</span>
@@ -626,9 +644,10 @@
             <span class="n">callback</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">merge_all_into_nid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nid2</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">join2_text</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">next_rect</span><span class="p">())</span>
         <span class="c">###</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;close&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">close_</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hl_slot2</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;review&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">review</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hl_slot2</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;reset&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_all_names</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hl_slot2</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;close&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">close_</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">next_rect2</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">qres_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;review&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">review</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">next_rect2</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;reset&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_all_names</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">next_rect2</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vsstr</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">vsstr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aid1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">)</span>
         <span class="n">figtitle_fmt</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
@@ -638,6 +657,11 @@
 <span class="s">        &#39;&#39;&#39;</span>
         <span class="n">figtitle</span> <span class="o">=</span> <span class="n">figtitle_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>  <span class="c"># sexy: using obj dict as fmtkw</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MatchVerificationInteraction.on_close"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.on_close">[docs]</a>    <span class="k">def</span> <span class="nf">on_close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MatchVerificationInteraction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">on_close</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="c"># closing this gui means you have reviewed the annotation.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">mark_annot_pair_as_reviewed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aid1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="MatchVerificationInteraction.unname_annotation"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.unname_annotation">[docs]</a>    <span class="k">def</span> <span class="nf">unname_annotation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
@@ -650,8 +674,7 @@
 <div class="viewcode-block" id="MatchVerificationInteraction.mark_annotation_as_new_name"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_name.MatchVerificationInteraction.mark_annotation_as_new_name">[docs]</a>    <span class="k">def</span> <span class="nf">mark_annotation_as_new_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;new name&#39;</span><span class="p">)</span>
-        <span class="n">new_nids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="n">new_nids</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names_to_same_new_name</span><span class="p">([</span><span class="n">aid</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
@@ -700,13 +723,8 @@
         <span class="c"># Delete all original names</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span>
         <span class="n">aid_list_filtered</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_isjunk</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
-        <span class="c"># Get next nagge from the controller</span>
-        <span class="n">next_nid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="c"># Readd the new names to all aids</span>
-        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Setting aid_list_filtered={aid_list_filtered} to have next_nid={next_nid}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">aid_list_filtered</span><span class="o">=</span><span class="n">aid_list_filtered</span><span class="p">,</span> <span class="n">next_nid</span><span class="o">=</span><span class="n">next_nid</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list_filtered</span><span class="p">,</span> <span class="p">[</span><span class="n">next_nid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list_filtered</span><span class="p">))</span>
+        <span class="c"># Rename annotations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names_to_same_new_name</span><span class="p">(</span><span class="n">aid_list_filtered</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
@@ -716,14 +734,10 @@
         <span class="c"># Delete all original names</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
         <span class="n">aid_list</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_aid_list</span>
-        <span class="c"># Get next name from the controller</span>
-        <span class="n">nid_list</span>    <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">is_unknown</span>  <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
+        <span class="n">is_unknown</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">aid_list_filtered</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">is_unknown</span><span class="p">)</span>
-        <span class="c">#aid_list_filtered = ut.filterfalse_items(_aid_list_filtered, ibs.get_annot_isjunk(_aid_list_filtered))</span>
-        <span class="n">next_nids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list_filtered</span><span class="p">))</span>
-        <span class="c"># Readd the new names to all aids</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list_filtered</span><span class="p">,</span> <span class="n">next_nids</span><span class="p">)</span>
+        <span class="c"># Rename annotations</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names_to_different_new_names</span><span class="p">(</span><span class="n">aid_list_filtered</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update_callback</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">backend_callback</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
@@ -739,7 +753,7 @@
         <span class="n">ax</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span>
         <span class="k">if</span> <span class="n">ih</span><span class="o">.</span><span class="n">clicked_inside_axis</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
             <span class="n">viztype</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;viztype&#39;</span><span class="p">)</span>
-            <span class="c">#print_(&#39; viztype=%r&#39; % viztype)</span>
+            <span class="n">print_</span><span class="p">(</span><span class="s">&#39; viztype=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s">&#39;chip&#39;</span><span class="p">:</span>
                 <span class="n">aid</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_ibsdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid&#39;</span><span class="p">)</span>
                 <span class="c">#print(&#39;... aid=%r&#39; % aid)</span>
@@ -760,6 +774,9 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">refresh_func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">)</span>
                     <span class="c">#ibs.print_annotation_table()</span>
                 <span class="c">#print(ut.dict_str(event.__dict__))</span>
+            <span class="k">elif</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s">&#39;matches&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">qres</span><span class="o">.</span><span class="n">ishow_matches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">)</span>
+
 </div></div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>

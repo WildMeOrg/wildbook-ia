@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -196,7 +196,7 @@
     <span class="k">return</span> <span class="n">tablecache</span>
 
 </div>
-<div class="viewcode-block" id="cache_getter"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.cache_getter">[docs]</a><span class="k">def</span> <span class="nf">cache_getter</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colname</span><span class="p">,</span> <span class="n">cfgkeys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">native_rowids</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="cache_getter"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.cache_getter">[docs]</a><span class="k">def</span> <span class="nf">cache_getter</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgkeys</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a getter cacher</span>
 <span class="sd">    the class must have a table_cache property</span>
@@ -212,7 +212,7 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.accessor_decors --test-cache_getter</span>
 
-<span class="sd">    Example:</span>
+<span class="sd">    Example0:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.accessor_decors import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
@@ -247,10 +247,32 @@
 <span class="sd">        &gt;&gt;&gt; wrp_cache_invalidator(ibs, rowid_list1)</span>
 <span class="sd">        &gt;&gt;&gt; print(ut.dict_str(ibs.table_cache))</span>
 
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.accessor_decors import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis import constants as const</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_feat_funcs import FEAT_KPTS</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; tblname = const.FEATURE_TABLE,</span>
+<span class="sd">        &gt;&gt;&gt; colname = FEAT_KPTS</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; # Check that config2 actually gets you different vectors in the cache</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict={&#39;affine_invariance&#39;: False})</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = qreq_.get_external_query_config2()</span>
+<span class="sd">        &gt;&gt;&gt; kpts_list1 = ibs.get_annot_kpts(aid_list, config2_=None, debug=True)</span>
+<span class="sd">        &gt;&gt;&gt; kpts_list2 = ibs.get_annot_kpts(aid_list, config2_=config2_, debug=True)</span>
+<span class="sd">        &gt;&gt;&gt; kp1 = kpts_list1[0][0:1]</span>
+<span class="sd">        &gt;&gt;&gt; kp2 = kpts_list2[0][0:1]</span>
+<span class="sd">        &gt;&gt;&gt; assert kp1.T[3] != 0</span>
+<span class="sd">        &gt;&gt;&gt; assert kp2.T[3] == 0</span>
+<span class="sd">        &gt;&gt;&gt; assert kp2.T[2] == kp2.T[4]</span>
+
 <span class="sd">    Ignore:</span>
 <span class="sd">        %timeit getter_func(ibs, rowid_list)</span>
 <span class="sd">        %timeit wrp_getter_cacher(ibs, rowid_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">colname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify a single colname&#39;</span>
     <span class="k">def</span> <span class="nf">closure_getter_cacher</span><span class="p">(</span><span class="n">getter_func</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">API_CACHE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
             <span class="c"># Turn of API Cache</span>
@@ -296,31 +318,59 @@
                 <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
                 <span class="k">raise</span>
 
-        <span class="c">#@profile cannot profile this because it is alrady being profiled by</span>
-        <span class="k">def</span> <span class="nf">wrp_getter_cacher</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Wrapper function that caches rowid values in a dictionary</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="c"># HACK TAKE OUT GETTING DEBUG OUT OF KWARGS</span>
-            <span class="n">debug_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;debug&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">cfgkeys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">kwargs_hash</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dict_hashid</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">cfgkeys</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">kwargs_hash</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+            <span class="c">#@profile cannot profile this because it is alrady being profiled by</span>
+            <span class="k">def</span> <span class="nf">wrp_getter_cacher</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Wrapper function that caches rowid values in a dictionary</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="c"># HACK TAKE OUT GETTING DEBUG OUT OF KWARGS</span>
+                <span class="n">debug_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;debug&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">cfgkeys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="c">#kwargs_hash = ut.get_dict_hashid(ut.dict_take_list(kwargs, cfgkeys, None))</span>
+                    <span class="n">kwargs_hash</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dict_hashid</span><span class="p">([</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfgkeys</span><span class="p">])</span>
+                    <span class="c">#ut.dict_take_list(kwargs, cfgkeys, None))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">kwargs_hash</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="c">#+----------------------------</span>
+                <span class="c"># There are 3 levels of caches</span>
+                <span class="c">#+----------------------------</span>
+                <span class="c"># All caches for this table</span>
+                <span class="c">#colscache_ = ibs.table_cache[tblname]</span>
+                <span class="c">## All caches for the this column</span>
+                <span class="c">#kwargs_cache_ = colscache_[colname]</span>
+                <span class="c">## All caches for this kwargs configuration</span>
+                <span class="c">#cache_ = kwargs_cache_[kwargs_hash]</span>
+                <span class="n">cache_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">[</span><span class="n">tblname</span><span class="p">][</span><span class="n">colname</span><span class="p">][</span><span class="n">kwargs_hash</span><span class="p">]</span>
+                <span class="c">#L____________________________</span>
 
-            <span class="n">cache_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">[</span><span class="n">tblname</span><span class="p">][</span><span class="n">colname</span><span class="p">][</span><span class="n">kwargs_hash</span><span class="p">]</span>
-            <span class="c"># Load cached values for each rowid</span>
-            <span class="n">vals_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">cache_</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-            <span class="c"># Mark rowids with cache misses</span>
-            <span class="n">ismiss_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals_list</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="n">debug_</span><span class="p">:</span>
-                <span class="n">debug_cache_hits</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
-            <span class="c"># HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT</span>
-            <span class="n">with_assert</span> <span class="o">=</span> <span class="n">ASSERT_API_CACHE</span>
-            <span class="k">if</span> <span class="n">with_assert</span><span class="p">:</span>
-                <span class="n">assert_cache_hits</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="n">kwargs_hash</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="c"># END HACK</span>
-            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">):</span>
+                <span class="c"># Load cached values for each rowid</span>
+                <span class="c">#vals_list = ut.dict_take_list(cache_, rowid_list, None)</span>
+                <span class="n">vals_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cache_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">rowid_list</span><span class="p">]</span>
+                <span class="c"># Mark rowids with cache misses</span>
+                <span class="n">ismiss_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals_list</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">debug</span> <span class="ow">or</span> <span class="n">debug_</span><span class="p">:</span>
+                    <span class="n">debug_cache_hits</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
+                    <span class="c">#print(&#39;[cache_getter] &quot;debug_cache_hits&quot; turned off&#39;)</span>
+                <span class="c"># HACK !!! DEBUG THESE GETTERS BY ASSERTING INFORMATION IN CACHE IS CORRECT</span>
+                <span class="k">if</span> <span class="n">ASSERT_API_CACHE</span><span class="p">:</span>
+                    <span class="n">assert_cache_hits</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="n">kwargs_hash</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="c"># END HACK</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">):</span>
+                    <span class="n">miss_indices</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_where</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">)</span>
+                    <span class="n">miss_rowids</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">)</span>
+                    <span class="c"># call wrapped function</span>
+                    <span class="n">miss_vals</span> <span class="o">=</span> <span class="n">getter_func</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">miss_rowids</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="c"># overwrite missed output</span>
+                    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">miss_indices</span><span class="p">,</span> <span class="n">miss_vals</span><span class="p">):</span>
+                        <span class="n">vals_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>  <span class="c"># Output write</span>
+                    <span class="c"># cache save</span>
+                    <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">miss_rowids</span><span class="p">,</span> <span class="n">miss_vals</span><span class="p">):</span>
+                        <span class="n">cache_</span><span class="p">[</span><span class="n">rowid</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>     <span class="c"># Cache write</span>
+                <span class="k">return</span> <span class="n">vals_list</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="k">def</span> <span class="nf">handle_cache_misses</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">getter_func</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">,</span> <span class="n">vals_list</span><span class="p">,</span> <span class="n">cache_</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
                 <span class="n">miss_indices</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_where</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">)</span>
                 <span class="n">miss_rowids</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">)</span>
                 <span class="c"># call wrapped function</span>
@@ -330,38 +380,73 @@
                     <span class="n">vals_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>  <span class="c"># Output write</span>
                 <span class="c"># cache save</span>
                 <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">miss_rowids</span><span class="p">,</span> <span class="n">miss_vals</span><span class="p">):</span>
-                    <span class="n">cache_</span><span class="p">[</span><span class="n">rowid</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>     <span class="c"># Cache writd(ne</span>
-            <span class="k">return</span> <span class="n">vals_list</span>
+                    <span class="n">cache_</span><span class="p">[</span><span class="n">rowid</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>     <span class="c"># Cache write</span>
+
+            <span class="k">def</span> <span class="nf">wrp_getter_cacher</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Wrapper function that caches rowid values in a dictionary</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;debug&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+                <span class="n">kwargs_hash</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">None</span> <span class="k">if</span> <span class="n">cfgkeys</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span>
+                    <span class="n">ut</span><span class="o">.</span><span class="n">get_dict_hashid</span><span class="p">([</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cfgkeys</span><span class="p">])</span>
+                <span class="p">)</span>
+                <span class="c"># There are 3 levels of caches</span>
+                <span class="c"># All caches for this table, caches for the this column, and caches for this kwargs configuration</span>
+                <span class="n">cache_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span><span class="p">[</span><span class="n">tblname</span><span class="p">][</span><span class="n">colname</span><span class="p">][</span><span class="n">kwargs_hash</span><span class="p">]</span>
+                <span class="c"># Load cached values for each rowid</span>
+                <span class="n">vals_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cache_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">rowid_list</span><span class="p">]</span>
+                <span class="c"># Mark rowids with cache misses</span>
+                <span class="n">ismiss_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">vals_list</span><span class="p">]</span>
+                <span class="c"># END HACK</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">ismiss_list</span><span class="p">):</span>
+                    <span class="n">handle_cache_misses</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">getter_func</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="n">ismiss_list</span><span class="p">,</span> <span class="n">vals_list</span><span class="p">,</span> <span class="n">cache_</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">vals_list</span>
         <span class="n">wrp_getter_cacher</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_getter_cacher</span><span class="p">,</span> <span class="n">getter_func</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">wrp_getter_cacher</span>
     <span class="k">return</span> <span class="n">closure_getter_cacher</span>
 
 </div>
-<div class="viewcode-block" id="cache_invalidator"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.cache_invalidator">[docs]</a><span class="k">def</span> <span class="nf">cache_invalidator</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">native_rowids</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; cacher setter decorator &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">closure_cache_invalidator</span><span class="p">(</span><span class="n">setter_func</span><span class="p">):</span>
+<div class="viewcode-block" id="cache_invalidator"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.cache_invalidator">[docs]</a><span class="k">def</span> <span class="nf">cache_invalidator</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rowidx</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; cacher decorator</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tablename (str): the table that the owns the underlying cache</span>
+<span class="sd">        colnames (list): the list of cached column that this function will invalidate</span>
+<span class="sd">        rowidx (int): the position (not including self) of the invalidated</span>
+<span class="sd">                      table&#39;s native rowid in the argument signature.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">colnames</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colnames</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="k">else</span> <span class="n">colnames</span>
+    <span class="k">def</span> <span class="nf">closure_cache_invalidator</span><span class="p">(</span><span class="n">writer_func</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        writer_func is either a setter, deleter, or an adder, something that writes to</span>
+<span class="sd">        the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">API_CACHE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">setter_func</span>
-        <span class="k">def</span> <span class="nf">wrp_cache_invalidator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">writer_func</span>
+        <span class="k">def</span> <span class="nf">wrp_cache_invalidator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="c"># the class must have a table_cache property</span>
             <span class="n">colscache_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table_cache</span><span class="p">[</span><span class="n">tblname</span><span class="p">]</span>
             <span class="n">colnames_</span> <span class="o">=</span>  <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">colscache_</span><span class="p">))</span> <span class="k">if</span> <span class="n">colnames</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">colnames</span>
             <span class="c"># Clear the cache of any specified colname</span>
             <span class="c"># when the invalidator is called</span>
-            <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">colnames_</span><span class="p">:</span>
-                <span class="n">kwargs_cache_</span> <span class="o">=</span> <span class="n">colscache_</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">native_rowids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rowidx</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">colnames_</span><span class="p">:</span>
+                    <span class="n">kwargs_cache_</span> <span class="o">=</span> <span class="n">colscache_</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span>
                     <span class="c"># We dont know the rowsids so clear everything</span>
                     <span class="k">for</span> <span class="n">cache_</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">kwargs_cache_</span><span class="p">):</span>
                         <span class="n">cache_</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-                <span class="k">else</span><span class="p">:</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="n">rowidx</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">colnames_</span><span class="p">:</span>
+                    <span class="n">kwargs_cache_</span> <span class="o">=</span> <span class="n">colscache_</span><span class="p">[</span><span class="n">colname</span><span class="p">]</span>
                     <span class="c"># We know the rowids to delete</span>
                     <span class="c"># iterate over all getter kwargs values</span>
                     <span class="k">for</span> <span class="n">cache_</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">kwargs_cache_</span><span class="p">):</span>
                         <span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">cache_</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
-            <span class="c"># Preform set action</span>
-            <span class="n">setter_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">wrp_cache_invalidator</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_cache_invalidator</span><span class="p">,</span> <span class="n">setter_func</span><span class="p">)</span>
+            <span class="c"># Preform set/delete action</span>
+            <span class="k">return</span> <span class="n">writer_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">wrp_cache_invalidator</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">preserve_sig</span><span class="p">(</span><span class="n">wrp_cache_invalidator</span><span class="p">,</span> <span class="n">writer_func</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">wrp_cache_invalidator</span>
     <span class="k">return</span> <span class="n">closure_cache_invalidator</span>
 
@@ -375,12 +460,7 @@
     <span class="k">return</span> <span class="n">closure_dev_getter_cacher</span>
 
 
-<span class="c"># alias for easy removal of dev functions.</span>
-<span class="c"># dev case is same as normal case though</span></div>
-<span class="n">dev_cache_invalidator</span> <span class="o">=</span> <span class="n">cache_invalidator</span>
-
-
-<span class="c">#@decorator.decorator</span>
+<span class="c">#@decorator.decorator</span></div>
 <div class="viewcode-block" id="adder"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.accessor_decors.adder">[docs]</a><span class="k">def</span> <span class="nf">adder</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="n">func_</span> <span class="o">=</span> <span class="n">default_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="c">#@ut.on_exception_report_input</span>

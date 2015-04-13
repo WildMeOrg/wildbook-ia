@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -118,7 +118,7 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="c">#import six</span>
 <span class="c">#from ibeis.model.hots import scoring</span>
-<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
+<span class="c">#from ibeis.model.hots import hstypes</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[nscoring]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -132,26 +132,26 @@
     <span class="c"># only the first indicies will matter in these test</span>
     <span class="c"># feature matches</span>
     <span class="n">fm_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">)]),</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">)]),</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">)]),</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">)]),</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">9</span><span class="p">)])</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">9</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="c"># score each feature match as 1</span>
     <span class="n">fsv_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)]),</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)]),</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)]),</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)]),</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">)]),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
     <span class="p">]</span>
     <span class="n">cm</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="p">(</span>
         <span class="n">qaid</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">daid_list</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]),</span>
+        <span class="n">daid_list</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
         <span class="n">fm_list</span><span class="o">=</span><span class="n">fm_list</span><span class="p">,</span>
         <span class="n">fsv_list</span><span class="o">=</span><span class="n">fsv_list</span><span class="p">,</span>
-        <span class="n">dnid_list</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span>
+        <span class="n">dnid_list</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
         <span class="n">fsv_col_lbls</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;count&#39;</span><span class="p">],</span>
     <span class="p">)</span>
     <span class="c">#print(cm.get_rawinfostr())</span>
@@ -164,7 +164,7 @@
 
 </div>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="compute_nsum_score"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.name_scoring.compute_nsum_score">[docs]</a><span class="k">def</span> <span class="nf">compute_nsum_score</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_nsum_score"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.name_scoring.compute_nsum_score">[docs]</a><span class="k">def</span> <span class="nf">compute_nsum_score</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    nsum</span>
 
@@ -176,8 +176,9 @@
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots.name_scoring --test-compute_nsum_score</span>
+<span class="sd">        python -m ibeis.model.hots.name_scoring --test-compute_nsum_score:2</span>
 
-<span class="sd">    Example:</span>
+<span class="sd">    Example0:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.name_scoring import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
@@ -187,11 +188,11 @@
 <span class="sd">        &gt;&gt;&gt; result = ut.list_str((unique_nids, nsum_score_list))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        (</span>
-<span class="sd">            np.array([1, 2, 3], dtype=np.int64),</span>
-<span class="sd">            np.array([4, 7, 5], dtype=np.int64),</span>
+<span class="sd">            np.array([1, 2, 3], dtype=np.int32),</span>
+<span class="sd">            np.array([ 4.,  7.,  5.], dtype=np.float32),</span>
 <span class="sd">        )</span>
 
-<span class="sd">    Example:</span>
+<span class="sd">    Example1:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.name_scoring import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; #ibs, qreq_, cm_list = plh.testdata_pre_sver(&#39;testdb1&#39;, qaid_list=[1])</span>
@@ -202,24 +203,72 @@
 <span class="sd">        &gt;&gt;&gt; nsum_nid_list, nsum_score_list = compute_nsum_score(cm)</span>
 <span class="sd">        &gt;&gt;&gt; assert np.all(nsum_nid_list == cm.unique_nids), &#39;nids out of alignment&#39;</span>
 <span class="sd">        &gt;&gt;&gt; flags = (nsum_nid_list == cm.qnid)</span>
-<span class="sd">        &gt;&gt;&gt; assert nsum_score_list[flags].max() &gt; nsum_score_list[~flags].max(), &#39;is this truely a hard case?&#39;</span>
-<span class="sd">        &gt;&gt;&gt; assert nsum_score_list[flags].max() &gt; 1.3, &#39;score should be higher for 18&#39;</span>
+<span class="sd">        &gt;&gt;&gt; max_true = nsum_score_list[flags].max()</span>
+<span class="sd">        &gt;&gt;&gt; max_false = nsum_score_list[~flags].max()</span>
+<span class="sd">        &gt;&gt;&gt; assert max_true &gt; max_false, &#39;is this truely a hard case?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert max_true &gt; 1.2, &#39;score=%r should be higher for aid=18&#39; % (max_true,)</span>
+
+<span class="sd">    Example2:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.name_scoring import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; #ibs, qreq_, cm_list = plh.testdata_pre_sver(&#39;testdb1&#39;, qaid_list=[1])</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_post_sver(&#39;PZ_MTEST&#39;, qaid_list=[18], cfgdict=dict(augment_queryside_hack=True))</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; cm.score_nsum(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; #cm.evaluate_dnids(qreq_.ibs)</span>
+<span class="sd">        &gt;&gt;&gt; #cm.qnid = 1   # Hack for testdb1 names</span>
+<span class="sd">        &gt;&gt;&gt; #nsum_nid_list, nsum_score_list = compute_nsum_score(cm, qreq_=qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.show_ranked_matches(qreq_, ori=True)</span>
+
+<span class="sd">    Example3:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.name_scoring import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; #ibs, qreq_, cm_list = plh.testdata_pre_sver(&#39;testdb1&#39;, qaid_list=[1])</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_post_sver(&#39;testdb1&#39;, qaid_list=[1], cfgdict=dict(augment_queryside_hack=True))</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; cm.score_nsum(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; #cm.evaluate_dnids(qreq_.ibs)</span>
+<span class="sd">        &gt;&gt;&gt; #cm.qnid = 1   # Hack for testdb1 names</span>
+<span class="sd">        &gt;&gt;&gt; #nsum_nid_list, nsum_score_list = compute_nsum_score(cm, qreq_=qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.show_ranked_matches(qreq_, ori=True)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">HACK_SINGLE_ORI</span> <span class="o">=</span>  <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">augment_queryside_hack</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">rotation_invariance</span><span class="p">)</span>
+    <span class="c"># The core for each feature match</span>
+    <span class="n">qaid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
+    <span class="n">dnid_list</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">dnid_list</span>
     <span class="n">fs_list</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_fsv_prod_list</span><span class="p">()</span>
-    <span class="n">fx1_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">]</span>
+    <span class="n">fm_list</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span>
+    <span class="c">#</span>
+    <span class="c"># The query feature index for each feature match</span>
+    <span class="n">fx1_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">fm_list</span><span class="p">]</span>
     <span class="c"># Group annotation matches by name</span>
-    <span class="n">nsum_nid_list</span><span class="p">,</span> <span class="n">name_groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">dnid_list</span><span class="p">)</span>
+    <span class="n">nsum_nid_list</span><span class="p">,</span> <span class="n">name_groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">dnid_list</span><span class="p">)</span>
     <span class="n">name_grouped_fx1_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping_</span><span class="p">(</span><span class="n">fx1_list</span><span class="p">,</span> <span class="n">name_groupxs</span><span class="p">)</span>
     <span class="n">name_grouped_fs_list</span>  <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping_</span><span class="p">(</span><span class="n">fs_list</span><span class="p">,</span>  <span class="n">name_groupxs</span><span class="p">)</span>
     <span class="c"># Stack up all matches to a particular name</span>
     <span class="n">name_grouped_fx1_flat</span> <span class="o">=</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">,</span> <span class="n">name_grouped_fx1_list</span><span class="p">))</span>
     <span class="n">name_grouped_fs_flat</span>  <span class="o">=</span> <span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">,</span> <span class="n">name_grouped_fs_list</span><span class="p">))</span>
-    <span class="c"># Group matches to a particular name by query feature index</span>
-    <span class="n">fx1_groupxs_list</span> <span class="o">=</span> <span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">fx1_flat</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">fx1_flat</span> <span class="ow">in</span> <span class="n">name_grouped_fx1_flat</span><span class="p">)</span>
-    <span class="n">feat_grouped_fs_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-        <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">fs_flat</span><span class="p">,</span> <span class="n">fx1_groupxs</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">fs_flat</span><span class="p">,</span> <span class="n">fx1_groupxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_grouped_fs_flat</span><span class="p">,</span> <span class="n">fx1_groupxs_list</span><span class="p">)</span>
-    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">HACK_SINGLE_ORI</span><span class="p">:</span>
+        <span class="c"># keypoints with the same xy can only have one of them vote</span>
+        <span class="n">kpts1</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">())</span>
+        <span class="n">xys1_</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_xys</span><span class="p">(</span><span class="n">kpts1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">kpts_xyid_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">compute_unique_data_ids</span><span class="p">(</span><span class="n">xys1_</span><span class="p">)</span>
+        <span class="c"># Make nested group for every name by query feature index (accounting for duplicate orientation)</span>
+        <span class="n">name_grouped_xyid_flat</span> <span class="o">=</span> <span class="p">(</span><span class="n">kpts_xyid_list</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fx1</span><span class="p">)</span> <span class="k">for</span> <span class="n">fx1</span> <span class="ow">in</span> <span class="n">name_grouped_fx1_flat</span><span class="p">)</span>
+        <span class="n">xyid_groupxs_list</span> <span class="o">=</span> <span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">xyid_flat</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">xyid_flat</span> <span class="ow">in</span> <span class="n">name_grouped_xyid_flat</span><span class="p">)</span>
+        <span class="n">feat_grouped_fs_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">fs_flat</span><span class="p">,</span> <span class="n">xyid_groupxs</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">fs_flat</span><span class="p">,</span> <span class="n">xyid_groupxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_grouped_fs_flat</span><span class="p">,</span> <span class="n">xyid_groupxs_list</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Make nested group for every name by query feature index</span>
+        <span class="n">fx1_groupxs_list</span> <span class="o">=</span> <span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">fx1_flat</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">fx1_flat</span> <span class="ow">in</span> <span class="n">name_grouped_fx1_flat</span><span class="p">)</span>
+        <span class="n">feat_grouped_fs_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">fs_flat</span><span class="p">,</span> <span class="n">fx1_groupxs</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">fs_flat</span><span class="p">,</span> <span class="n">fx1_groupxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_grouped_fs_flat</span><span class="p">,</span> <span class="n">fx1_groupxs_list</span><span class="p">)</span>
+        <span class="p">)</span>
     <span class="c"># Prevent a feature from voting twice:</span>
     <span class="c"># take only the max score that a query feature produced</span>
     <span class="n">best_fs_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
@@ -234,6 +283,99 @@
     <span class="k">return</span> <span class="n">nsum_nid_list</span><span class="p">,</span> <span class="n">nsum_score_list</span>
 
 </div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="compute_nsum_score2"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.name_scoring.compute_nsum_score2">[docs]</a><span class="k">def</span> <span class="nf">compute_nsum_score2</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example3:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.name_scoring import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; #ibs, qreq_, cm_list = plh.testdata_pre_sver(&#39;testdb1&#39;, qaid_list=[1])</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_post_sver(&#39;testdb1&#39;, qaid_list=[1], cfgdict=dict(augment_queryside_hack=True))</span>
+<span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
+<span class="sd">        &gt;&gt;&gt; cm.evaluate_dnids(qreq_.ibs)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.show_ranked_matches(qreq_, ori=True)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">featflag_list</span> <span class="o">=</span> <span class="n">get_chipmatch_namescore_nonvoting_feature_flags</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">fs_list</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_fsv_prod_list</span><span class="p">()</span>
+    <span class="n">name_groupxs</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">name_groupxs</span>
+    <span class="n">valid_fs_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">zipcompress</span><span class="p">(</span><span class="n">fs_list</span><span class="p">,</span> <span class="n">featflag_list</span><span class="p">)</span>
+    <span class="n">name_grouped_valid_fs_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping_</span><span class="p">(</span><span class="n">valid_fs_list</span><span class="p">,</span>  <span class="n">name_groupxs</span><span class="p">)</span>
+    <span class="n">nsum_nid_list</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">dnid_list</span>
+    <span class="n">nsum_score_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="n">valid_fs_group</span><span class="p">)))</span> <span class="k">for</span> <span class="n">valid_fs_group</span> <span class="ow">in</span> <span class="n">name_grouped_valid_fs_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">nsum_nid_list</span><span class="p">,</span> <span class="n">nsum_score_list</span><span class="p">,</span> <span class="n">featflag_list</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="get_chipmatch_namescore_nonvoting_feature_flags"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.name_scoring.get_chipmatch_namescore_nonvoting_feature_flags">[docs]</a><span class="k">def</span> <span class="nf">get_chipmatch_namescore_nonvoting_feature_flags</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">HACK_SINGLE_ORI</span> <span class="o">=</span>  <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">augment_queryside_hack</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">rotation_invariance</span><span class="p">)</span>
+    <span class="c"># The core for each feature match</span>
+    <span class="n">fs_list</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_fsv_prod_list</span><span class="p">()</span>
+    <span class="c"># The query feature index for each feature match</span>
+    <span class="n">fm_list</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span>
+    <span class="n">kpts1</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">HACK_SINGLE_ORI</span> <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">())</span>
+    <span class="n">dnid_list</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">dnid_list</span>
+    <span class="n">name_groupxs</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">name_groupxs</span>
+    <span class="n">featflag_list</span> <span class="o">=</span> <span class="n">get_namescore_nonvoting_feature_flags</span><span class="p">(</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">,</span> <span class="n">dnid_list</span><span class="p">,</span> <span class="n">name_groupxs</span><span class="p">,</span> <span class="n">kpts1</span><span class="o">=</span><span class="n">kpts1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">featflag_list</span>
+
+</div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="get_namescore_nonvoting_feature_flags"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.name_scoring.get_namescore_nonvoting_feature_flags">[docs]</a><span class="k">def</span> <span class="nf">get_namescore_nonvoting_feature_flags</span><span class="p">(</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">,</span> <span class="n">dnid_list</span><span class="p">,</span> <span class="n">name_groupxs</span><span class="p">,</span> <span class="n">kpts1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    fm_list = [fm[:min(len(fm), 10)] for fm in fm_list]</span>
+<span class="sd">    fs_list = [fs[:min(len(fs), 10)] for fs in fs_list]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fx1_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">fm_list</span><span class="p">]</span>
+    <span class="c"># Group annotation matches by name</span>
+    <span class="n">name_grouped_fx1_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping_</span><span class="p">(</span><span class="n">fx1_list</span><span class="p">,</span> <span class="n">name_groupxs</span><span class="p">)</span>
+    <span class="n">name_grouped_fs_list</span>  <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping_</span><span class="p">(</span><span class="n">fs_list</span><span class="p">,</span>  <span class="n">name_groupxs</span><span class="p">)</span>
+    <span class="c"># Stack up all matches to a particular name, keep track of original indicies via offets</span>
+    <span class="n">name_invertable_flat_fx1_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">invertible_flatten2_numpy</span><span class="p">,</span> <span class="n">name_grouped_fx1_list</span><span class="p">))</span>
+    <span class="n">name_grouped_fx1_flat</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">name_invertable_flat_fx1_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">name_grouped_invertable_cumsum_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">name_invertable_flat_fx1_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">name_grouped_fs_flat</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">,</span> <span class="n">name_grouped_fs_list</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">kpts1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">xys1_</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_xys</span><span class="p">(</span><span class="n">kpts1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">kpts_xyid_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">compute_unique_data_ids</span><span class="p">(</span><span class="n">xys1_</span><span class="p">)</span>
+        <span class="c"># Make nested group for every name by query feature index (accounting for duplicate orientation)</span>
+        <span class="n">name_grouped_xyid_flat</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">kpts_xyid_list</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fx1</span><span class="p">)</span> <span class="k">for</span> <span class="n">fx1</span> <span class="ow">in</span> <span class="n">name_grouped_fx1_flat</span><span class="p">)</span>
+        <span class="n">xyid_groupxs_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">xyid_flat</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">xyid_flat</span> <span class="ow">in</span> <span class="n">name_grouped_xyid_flat</span><span class="p">)</span>
+        <span class="n">name_group_fx1_groupxs_list</span> <span class="o">=</span> <span class="n">xyid_groupxs_list</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Make nested group for every name by query feature index</span>
+        <span class="n">fx1_groupxs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">fx1_flat</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">fx1_flat</span> <span class="ow">in</span> <span class="n">name_grouped_fx1_flat</span><span class="p">]</span>
+        <span class="n">name_group_fx1_groupxs_list</span> <span class="o">=</span> <span class="n">fx1_groupxs_list</span>
+    <span class="n">name_grouped_fid_grouped_fs_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">fs_flat</span><span class="p">,</span> <span class="n">fid_groupxs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">fs_flat</span><span class="p">,</span> <span class="n">fid_groupxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_grouped_fs_flat</span><span class="p">,</span> <span class="n">name_group_fx1_groupxs_list</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="c"># Flag which features are valid in this grouped space. Only one keypoint should be able to vote</span>
+    <span class="c"># for each group</span>
+    <span class="n">name_grouped_fid_grouped_isvalid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">fs_group</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">==</span> <span class="n">fs_group</span> <span class="k">for</span> <span class="n">fs_group</span> <span class="ow">in</span> <span class="n">fid_grouped_fs_list</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">fid_grouped_fs_list</span> <span class="ow">in</span> <span class="n">name_grouped_fid_grouped_fs_list</span>
+    <span class="p">]</span>
+
+    <span class="c"># Go back to being grouped only in name space</span>
+    <span class="c">#dtype = np.bool</span>
+    <span class="n">name_grouped_isvalid_flat_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">vt</span><span class="o">.</span><span class="n">invert_apply_grouping2</span><span class="p">(</span><span class="n">fid_grouped_isvalid_list</span><span class="p">,</span> <span class="n">fid_groupxs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">fid_grouped_isvalid_list</span><span class="p">,</span> <span class="n">fid_groupxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_grouped_fid_grouped_isvalid_list</span><span class="p">,</span> <span class="n">name_group_fx1_groupxs_list</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="n">name_grouped_isvalid_unflat_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">unflatten2</span><span class="p">(</span><span class="n">isvalid_flat</span><span class="p">,</span> <span class="n">invertable_cumsum_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">isvalid_flat</span><span class="p">,</span> <span class="n">invertable_cumsum_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_grouped_isvalid_flat_list</span><span class="p">,</span> <span class="n">name_grouped_invertable_cumsum_list</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="c"># Reports which features were valid in name scoring for every annotation</span>
+    <span class="n">featflag_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">invert_apply_grouping</span><span class="p">(</span><span class="n">name_grouped_isvalid_unflat_list</span><span class="p">,</span> <span class="n">name_groupxs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">featflag_list</span>
+
+</div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="align_name_scores_with_annots"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.name_scoring.align_name_scores_with_annots">[docs]</a><span class="k">def</span> <span class="nf">align_name_scores_with_annots</span><span class="p">(</span><span class="n">annot_score_list</span><span class="p">,</span> <span class="n">annot_aid_list</span><span class="p">,</span> <span class="n">daid2_idx</span><span class="p">,</span> <span class="n">name_groupxs</span><span class="p">,</span> <span class="n">name_score_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    takes name scores and gives them to the best annotation</span>
@@ -348,6 +490,7 @@
 <span class="c">#    annot_idx_list = np.add(baseindex_list, offset_list)</span>
 
 </div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="group_scores_by_name"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.name_scoring.group_scores_by_name">[docs]</a><span class="k">def</span> <span class="nf">group_scores_by_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts annotation scores to name scores.</span>
@@ -388,11 +531,21 @@
 
 <span class="sd">    array([ 1,  5, 26])</span>
 <span class="sd">    [2 6 5]</span>
+
+<span class="sd">    Timeit::</span>
+<span class="sd">        import ibeis</span>
+<span class="sd">        ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        aid_arr = np.array(aid_list)</span>
+<span class="sd">        %timeit ibs.get_annot_name_rowids(aid_list)</span>
+<span class="sd">        %timeit ibs.get_annot_name_rowids(aid_arr)</span>
+
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">score_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="s">&#39;scores and aids must be associated&#39;</span>
     <span class="n">score_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">score_list</span><span class="p">)</span>
-    <span class="n">aid_list</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">nid_list</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">aid_list</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="c"># Group scores by name</span>
     <span class="n">unique_nids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
     <span class="n">grouped_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">score_arr</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">))</span>
@@ -413,76 +566,6 @@
     <span class="n">sorted_aids</span>   <span class="o">=</span> <span class="p">[</span><span class="n">aids</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">sortx</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">sortx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_sorted_aids</span><span class="p">,</span> <span class="n">sorted_sortx</span><span class="p">)]</span>
     <span class="n">nscoretup</span>     <span class="o">=</span> <span class="n">NameScoreTup</span><span class="p">(</span><span class="n">sorted_nids</span><span class="p">,</span> <span class="n">sorted_nscore</span><span class="p">,</span> <span class="n">sorted_aids</span><span class="p">,</span> <span class="n">sorted_scores</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">nscoretup</span>
-
-</div>
-<div class="viewcode-block" id="name_scoring_dense_old"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.name_scoring.name_scoring_dense_old">[docs]</a><span class="k">def</span> <span class="nf">name_scoring_dense_old</span><span class="p">(</span><span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    dupvotes gives duplicate name votes a weight close to 0.</span>
-
-<span class="sd">    Dense version of name weighting</span>
-
-<span class="sd">    Each query feature is only allowed to vote for each name at most once.</span>
-<span class="sd">    IE: a query feature can vote for multiple names, but it cannot vote</span>
-<span class="sd">    for the same name twice.</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python dev.py --allgt -t best --db PZ_MTEST</span>
-<span class="sd">        python dev.py --allgt -t nsum --db PZ_MTEST</span>
-<span class="sd">        python dev.py --allgt -t dupvote --db PZ_MTEST</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        # Compares with dupvote on and dupvote off</span>
-<span class="sd">        ./dev.py -t custom:dupvote_weight=0.0 custom:dupvote_weight=1.0  --db GZ_ALL --show --va -w --qaid 1032</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.name_scoring import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; #tup = nn_weights.testdata_nn_weights(&#39;testdb1&#39;, slice(0, 1), slice(0, 11))</span>
-<span class="sd">        &gt;&gt;&gt; dbname = &#39;testdb1&#39;  # &#39;GZ_ALL&#39;  # &#39;testdb1&#39;</span>
-<span class="sd">        &gt;&gt;&gt; cfgdict = dict(K=10, Knorm=10)</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(dbname=dbname, qaid_list=[2], daid_list=[1, 2, 3], cfgdict=cfgdict)</span>
-<span class="sd">        &gt;&gt;&gt; print(print(qreq_.get_infostr()))</span>
-<span class="sd">        &gt;&gt;&gt; pipeline_locals_ = plh.testrun_pipeline_upto(qreq_, &#39;weight_neighbors&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; nns_list, nnvalid0_list = ut.dict_take(pipeline_locals_, [&#39;nns_list&#39;, &#39;nnvalid0_list&#39;])</span>
-<span class="sd">        &gt;&gt;&gt; # Test Function Call</span>
-<span class="sd">        &gt;&gt;&gt; dupvote_weight_list = name_scoring_dense_old(nns_list, nnvalid0_list, qreq_)</span>
-<span class="sd">        &gt;&gt;&gt; # Check consistency</span>
-<span class="sd">        &gt;&gt;&gt; qaid = qreq_.get_external_qaids()[0]</span>
-<span class="sd">        &gt;&gt;&gt; qfx2_dupvote_weight = dupvote_weight_list[0]</span>
-<span class="sd">        &gt;&gt;&gt; flags = qfx2_dupvote_weight  &gt; .5</span>
-<span class="sd">        &gt;&gt;&gt; qfx2_topnid = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(nns_list[0][0]))</span>
-<span class="sd">        &gt;&gt;&gt; isunique_list = [ut.isunique(row[flag]) for row, flag in zip(qfx2_topnid, flags)]</span>
-<span class="sd">        &gt;&gt;&gt; assert all(isunique_list), &#39;dupvote should only allow one vote per name&#39;</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">K</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
-    <span class="k">def</span> <span class="nf">find_dupvotes</span><span class="p">(</span><span class="n">nns</span><span class="p">,</span> <span class="n">qfx2_invalid0</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qfx2_invalid0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c"># hack for empty query features (should never happen, but it</span>
-            <span class="c"># inevitably will)</span>
-            <span class="n">qfx2_dupvote_weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">K</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">nns</span>
-            <span class="n">qfx2_topidx</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">K</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
-            <span class="n">qfx2_topaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_topidx</span><span class="p">)</span>
-            <span class="n">qfx2_topnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qfx2_topaid</span><span class="p">)</span>
-            <span class="n">qfx2_topnid</span><span class="p">[</span><span class="n">qfx2_invalid0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="c"># A duplicate vote is when any vote for a name after the first</span>
-            <span class="n">qfx2_isnondup</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ut</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">topnids</span><span class="p">)</span> <span class="k">for</span> <span class="n">topnids</span> <span class="ow">in</span> <span class="n">qfx2_topnid</span><span class="p">])</span>
-            <span class="c"># set invalids to be duplicates as well (for testing)</span>
-            <span class="n">qfx2_isnondup</span><span class="p">[</span><span class="n">qfx2_invalid0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
-            <span class="c"># Database feature index to chip index</span>
-            <span class="n">qfx2_dupvote_weight</span> <span class="o">=</span> <span class="p">(</span><span class="n">qfx2_isnondup</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">1E-7</span><span class="p">))</span> <span class="o">+</span> <span class="mf">1E-7</span>
-        <span class="k">return</span> <span class="n">qfx2_dupvote_weight</span>
-
-    <span class="c"># convert ouf of dict format</span>
-    <span class="n">nninvalid0_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">bitwise_not</span><span class="p">(</span><span class="n">qfx2_valid0</span><span class="p">)</span> <span class="k">for</span> <span class="n">qfx2_valid0</span> <span class="ow">in</span> <span class="n">nnvalid0_list</span><span class="p">]</span>
-    <span class="n">dupvote_weight_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">find_dupvotes</span><span class="p">(</span><span class="n">nns</span><span class="p">,</span> <span class="n">qfx2_invalid0</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">nns</span><span class="p">,</span> <span class="n">qfx2_invalid0</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nns_list</span><span class="p">,</span> <span class="n">nninvalid0_list</span><span class="p">)</span>
-    <span class="p">]</span>
-    <span class="c"># convert into dict format</span>
-    <span class="k">return</span> <span class="n">dupvote_weight_list</span>
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>

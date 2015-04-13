@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -117,7 +117,6 @@
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">relpath</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA:</span>
 <span class="kn">import</span> <span class="nn">parse</span>
 
@@ -162,21 +161,21 @@
 <span class="sd">    Output: names based on the parent folder of each image</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">INGEST_FORMATS</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">name_fmt</span><span class="p">:</span> <span class="n">utool</span><span class="o">.</span><span class="n">named_field_regex</span><span class="p">([</span>
+        <span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">name_fmt</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field_regex</span><span class="p">([</span>
             <span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">r&#39;[a-zA-Z]+&#39;</span><span class="p">),</span>  <span class="c"># all alpha characters</span>
             <span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span>   <span class="s">r&#39;\d*&#39;</span><span class="p">),</span>        <span class="c"># first numbers (if existant)</span>
             <span class="p">(</span> <span class="bp">None</span><span class="p">,</span>  <span class="s">r&#39;\.&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s">&#39;ext&#39;</span><span class="p">,</span>  <span class="s">r&#39;\w+&#39;</span><span class="p">),</span>
         <span class="p">]),</span>
 
-        <span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">snails_fmt</span><span class="p">:</span> <span class="n">utool</span><span class="o">.</span><span class="n">named_field_regex</span><span class="p">([</span>
+        <span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">snails_fmt</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field_regex</span><span class="p">([</span>
             <span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">r&#39;[a-zA-Z]+\d\d&#39;</span><span class="p">),</span>  <span class="c"># species and 2 numbers</span>
             <span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span>   <span class="s">r&#39;\d\d&#39;</span><span class="p">),</span>  <span class="c"># 2 more numbers</span>
             <span class="p">(</span> <span class="bp">None</span><span class="p">,</span>  <span class="s">r&#39;\.&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s">&#39;ext&#39;</span><span class="p">,</span>  <span class="s">r&#39;\w+&#39;</span><span class="p">),</span>
         <span class="p">]),</span>
 
-        <span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">giraffe1_fmt</span><span class="p">:</span> <span class="n">utool</span><span class="o">.</span><span class="n">named_field_regex</span><span class="p">([</span>
+        <span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">giraffe1_fmt</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field_regex</span><span class="p">([</span>
             <span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span>  <span class="s">r&#39;G\d+&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s">&#39;under&#39;</span><span class="p">,</span> <span class="s">r&#39;_&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span>    <span class="s">r&#39;\d+&#39;</span><span class="p">),</span>
@@ -184,7 +183,7 @@
             <span class="p">(</span><span class="s">&#39;ext&#39;</span><span class="p">,</span>   <span class="s">r&#39;\w+&#39;</span><span class="p">),</span>
         <span class="p">]),</span>
 
-        <span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">seal2_fmt</span><span class="p">:</span> <span class="n">utool</span><span class="o">.</span><span class="n">named_field_regex</span><span class="p">([</span>
+        <span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">seal2_fmt</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field_regex</span><span class="p">([</span>
             <span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span>  <span class="s">r&#39;Phs\d+&#39;</span><span class="p">),</span>  <span class="c"># Phs and then numbers</span>
             <span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span>    <span class="s">r&#39;[A-Z]+&#39;</span><span class="p">),</span>  <span class="c"># 1 or more letters</span>
             <span class="p">(</span> <span class="bp">None</span><span class="p">,</span>   <span class="s">r&#39;\.&#39;</span><span class="p">),</span>
@@ -192,8 +191,8 @@
         <span class="p">]),</span>
     <span class="p">}</span>
     <span class="n">regex</span> <span class="o">=</span> <span class="n">INGEST_FORMATS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fmtkey</span><span class="p">,</span> <span class="n">fmtkey</span><span class="p">)</span>
-    <span class="n">gname_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">fpaths_to_fnames</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
-    <span class="n">parsed_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">utool</span><span class="o">.</span><span class="n">regex_parse</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">gname</span><span class="p">)</span> <span class="k">for</span> <span class="n">gname</span> <span class="ow">in</span> <span class="n">gname_list</span><span class="p">]</span>
+    <span class="n">gname_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">fpaths_to_fnames</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
+    <span class="n">parsed_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">regex_parse</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">gname</span><span class="p">)</span> <span class="k">for</span> <span class="n">gname</span> <span class="ow">in</span> <span class="n">gname_list</span><span class="p">]</span>
 
     <span class="n">anyfailed</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">for</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">parsed</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">parsed_list</span><span class="p">):</span>
@@ -211,15 +210,15 @@
 </div>
 <div class="viewcode-block" id="resolve_name_conflicts"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.resolve_name_conflicts">[docs]</a><span class="k">def</span> <span class="nf">resolve_name_conflicts</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">):</span>
     <span class="c"># Build conflict map</span>
-    <span class="n">conflict_gid_to_names</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">build_conflict_dict</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">)</span>
+    <span class="n">conflict_gid_to_names</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">build_conflict_dict</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">)</span>
 
     <span class="c"># Check to see which gid has more than one name</span>
-    <span class="n">unique_gids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unique_keep_order2</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">unique_gids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order2</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">unique_names</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">unique_notes</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">unique_gids</span><span class="p">:</span>
-        <span class="n">names</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unique_keep_order2</span><span class="p">(</span><span class="n">conflict_gid_to_names</span><span class="p">[</span><span class="n">gid</span><span class="p">])</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order2</span><span class="p">(</span><span class="n">conflict_gid_to_names</span><span class="p">[</span><span class="n">gid</span><span class="p">])</span>
         <span class="n">unique_name</span> <span class="o">=</span> <span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">unique_note</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -264,16 +263,15 @@
 <span class="sd">    ingest_testdb1</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DOCTEST = OFF</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.dbio.ingest_database import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from</span>
-<span class="sd">        &gt;&gt;&gt; import utool</span>
+<span class="sd">        &gt;&gt;&gt; import utool as ut</span>
 <span class="sd">        &gt;&gt;&gt; from vtool.tests import grabdata</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; grabdata.ensure_testdata()</span>
 <span class="sd">        &gt;&gt;&gt; # DELETE TESTDB1</span>
-<span class="sd">        &gt;&gt;&gt; TESTDB1 = join(ibeis.sysres.get_workdir(), &#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; utool.delete(TESTDB1, ignore_errors=False)</span>
-<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; TESTDB1 = ut.unixjoin(ibeis.sysres.get_workdir(), &#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.delete(TESTDB1, ignore_errors=False)</span>
 <span class="sd">        &gt;&gt;&gt; result = ingest_testdb1(dbname)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">vtool.tests</span> <span class="kn">import</span> <span class="n">grabdata</span>
@@ -291,14 +289,14 @@
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
         <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">nid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="n">nid</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
-        <span class="n">unique_flag</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
-        <span class="n">unique_nids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">unique_flag</span><span class="p">)</span>
+        <span class="n">unique_flag</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+        <span class="n">unique_nids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">unique_flag</span><span class="p">)</span>
         <span class="n">none_nids</span> <span class="o">=</span> <span class="p">[</span> <span class="n">nid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
         <span class="n">flagged_nids</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">unique_nids</span> <span class="k">if</span> <span class="n">nid_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
         <span class="n">plural_flag</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="ow">in</span> <span class="n">flagged_nids</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
         <span class="n">flag_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">all</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">plural_flag</span><span class="p">,</span> <span class="n">unique_flag</span><span class="p">,</span> <span class="n">none_nids</span><span class="p">)))</span>
-        <span class="n">flagged_aids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+        <span class="n">flagged_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
             <span class="k">def</span> <span class="nf">print2</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[post_testdb1] &#39;</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
             <span class="n">print2</span><span class="p">(</span><span class="s">&#39;aid_list=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid_list</span><span class="p">)</span>
@@ -312,12 +310,12 @@
             <span class="n">print2</span><span class="p">(</span><span class="s">&#39;flagged_aids=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">flagged_aids</span><span class="p">)</span>
             <span class="c"># print2(&#39;new_nids=%r&#39; % new_nids)</span>
         <span class="c"># Unname, some annotations for testing</span>
-        <span class="n">unname_aids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+        <span class="n">unname_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_nids</span><span class="p">(</span><span class="n">unname_aids</span><span class="p">)</span>
         <span class="c"># Add all annotations with names as exemplars</span>
         <span class="kn">from</span> <span class="nn">ibeis.control.IBEISControl</span> <span class="kn">import</span> <span class="n">IBEISController</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">IBEISController</span><span class="p">)</span>
-        <span class="n">unflagged_aids</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
+        <span class="n">unflagged_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
         <span class="n">exemplar_flags</span> <span class="o">=</span> <span class="p">[</span><span class="bp">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">unflagged_aids</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">unflagged_aids</span><span class="p">,</span> <span class="n">exemplar_flags</span><span class="p">)</span>
         <span class="c"># Set some test species labels</span>
@@ -337,7 +335,22 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;aid 1 and 2 are correct matches&#39;</span><span class="p">])</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;very simple image to debug feature detector&#39;</span><span class="p">])</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">7</span><span class="p">:</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;standard test image&#39;</span><span class="p">])</span>
+
+        <span class="c"># Set some randomish gps flags that are within nnp</span>
+        <span class="n">unixtime_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="n">valid_lat_min</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.4446</span>
+        <span class="n">valid_lat_max</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.3271</span>
+        <span class="n">valid_lon_min</span> <span class="o">=</span> <span class="mf">36.7619</span>
+        <span class="n">valid_lon_max</span> <span class="o">=</span> <span class="mf">36.9622</span>
+        <span class="n">valid_lat_range</span> <span class="o">=</span> <span class="n">valid_lat_max</span> <span class="o">-</span> <span class="n">valid_lat_min</span>
+        <span class="n">valid_lon_range</span> <span class="o">=</span> <span class="n">valid_lon_max</span> <span class="o">-</span> <span class="n">valid_lon_min</span>
+        <span class="n">randstate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="n">unixtime_list</span><span class="p">)</span>
+        <span class="n">new_gps_list</span> <span class="o">=</span> <span class="n">randstate</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">new_gps_list</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_gps_list</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">valid_lat_range</span><span class="p">)</span> <span class="o">+</span> <span class="n">valid_lat_min</span>
+        <span class="n">new_gps_list</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_gps_list</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">valid_lon_range</span><span class="p">)</span> <span class="o">+</span> <span class="n">valid_lon_min</span>
+        <span class="n">new_gps_list</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="c">#ut.embed()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_gps</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">new_gps_list</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">None</span>
     <span class="k">return</span> <span class="n">Ingestable</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">ingest_type</span><span class="o">=</span><span class="s">&#39;named_images&#39;</span><span class="p">,</span>
                       <span class="n">fmtkey</span><span class="o">=</span><span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">name_fmt</span><span class="p">,</span>
@@ -408,7 +421,7 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ingest] Ingest Standard Database: dbname=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,))</span>
     <span class="n">ingestable</span> <span class="o">=</span> <span class="n">get_standard_ingestable</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
     <span class="n">dbdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="n">ingestable</span><span class="o">.</span><span class="n">dbname</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_sync</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">force_delete</span><span class="p">:</span>
         <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">delete_ibeis_database</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
@@ -479,7 +492,17 @@
     <span class="n">postingest_func</span> <span class="o">=</span> <span class="n">ingestable</span><span class="o">.</span><span class="n">postingest_func</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ingest] ingesting rawdata: img_dir=</span><span class="si">%r</span><span class="s">, injest_type=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">img_dir</span><span class="p">,</span> <span class="n">ingest_type</span><span class="p">))</span>
     <span class="c"># Get images in the image directory</span>
-    <span class="n">gpath_list</span>  <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">list_images</span><span class="p">(</span><span class="n">img_dir</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">list_images</span><span class="p">(</span><span class="n">img_dir</span><span class="p">,</span> <span class="n">fullpath</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; lists images that are not in an internal cache &quot;&quot;&quot;</span>
+        <span class="n">ignore_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_hsdb&#39;</span><span class="p">,</span> <span class="s">&#39;.hs_internals&#39;</span><span class="p">,</span> <span class="s">&#39;_ibeis_cache&#39;</span><span class="p">,</span> <span class="s">&#39;_ibsdb&#39;</span><span class="p">]</span>
+        <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_images</span><span class="p">(</span><span class="n">img_dir</span><span class="p">,</span>
+                                       <span class="n">fullpath</span><span class="o">=</span><span class="n">fullpath</span><span class="p">,</span>
+                                       <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span>
+                                       <span class="n">ignore_list</span><span class="o">=</span><span class="n">ignore_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gpath_list</span>
+
+    <span class="n">gpath_list</span>  <span class="o">=</span> <span class="n">list_images</span><span class="p">(</span><span class="n">img_dir</span><span class="p">)</span>
     <span class="c"># Parse structure for image names</span>
     <span class="k">if</span> <span class="n">ingest_type</span> <span class="o">==</span> <span class="s">&#39;named_folders&#39;</span><span class="p">:</span>
         <span class="n">name_list</span> <span class="o">=</span> <span class="n">get_name_texts_from_parent_folder</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="p">)</span>
@@ -493,7 +516,7 @@
     <span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gpath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list</span><span class="p">]</span>
     <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
     <span class="c"># &lt;DEBUG&gt;</span>
-    <span class="c">#print(&#39;added: &#39; + utool.indentjoin(map(str, zip(gid_list_, gpath_list))))</span>
+    <span class="c">#print(&#39;added: &#39; + ut.indentjoin(map(str, zip(gid_list_, gpath_list))))</span>
     <span class="n">unique_gids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">))</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;[ingest] Length gid list: </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">))</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&quot;[ingest] Length unique gid list: </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_gids</span><span class="p">))</span>
@@ -502,7 +525,7 @@
         <span class="k">if</span> <span class="n">gid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ingest] big fat warning&#39;</span><span class="p">)</span>
     <span class="c"># &lt;/DEBUG&gt;</span>
-    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
     <span class="n">unique_gids</span><span class="p">,</span> <span class="n">unique_names</span><span class="p">,</span> <span class="n">unique_notes</span> <span class="o">=</span> <span class="n">resolve_name_conflicts</span><span class="p">(</span>
         <span class="n">gid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">)</span>
     <span class="c"># Add ANNOTATIONs with names and notes</span>
@@ -572,25 +595,25 @@
                 <span class="n">oxsty_annot_info_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">oxsty_annot_info</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">oxsty_annot_info_list</span>
 
-    <span class="n">gt_dpath</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">existing_subpath</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span>
+    <span class="n">gt_dpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">existing_subpath</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span>
                                       <span class="p">[</span><span class="s">&#39;oxford_style_gt&#39;</span><span class="p">,</span>
                                        <span class="s">&#39;gt_files_170407&#39;</span><span class="p">,</span>
                                        <span class="s">&#39;oxford_groundtruth&#39;</span><span class="p">])</span>
 
-    <span class="n">img_dpath</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">existing_subpath</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span>
+    <span class="n">img_dpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">existing_subpath</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span>
                                        <span class="p">[</span><span class="s">&#39;oxbuild_images&#39;</span><span class="p">,</span>
                                         <span class="s">&#39;images&#39;</span><span class="p">])</span>
 
     <span class="n">corrupted_file_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">gt_dpath</span><span class="p">,</span> <span class="s">&#39;corrupted_files.txt&#39;</span><span class="p">)</span>
     <span class="n">ignore_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c"># Check for corrupted files (Looking at your Paris Buildings Dataset)</span>
-    <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">corrupted_file_fpath</span><span class="p">):</span>
-        <span class="n">ignore_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">corrupted_file_fpath</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">corrupted_file_fpath</span><span class="p">):</span>
+        <span class="n">ignore_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">corrupted_file_fpath</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
 
-    <span class="c">#utool.rrrr()</span>
-    <span class="c">#utool.list_images = utool.util_path.list_images</span>
+    <span class="c">#ut.rrrr()</span>
+    <span class="c">#ut.list_images = ut.util_path.list_images</span>
 
-    <span class="n">gname_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">list_images</span><span class="p">(</span><span class="n">img_dpath</span><span class="p">,</span> <span class="n">ignore_list</span><span class="o">=</span><span class="n">ignore_list</span><span class="p">,</span>
+    <span class="n">gname_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_images</span><span class="p">(</span><span class="n">img_dpath</span><span class="p">,</span> <span class="n">ignore_list</span><span class="o">=</span><span class="n">ignore_list</span><span class="p">,</span>
                                    <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
     <span class="c"># just in case utool broke</span>
@@ -602,12 +625,12 @@
     <span class="n">gt_fname_list</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">gt_dpath</span><span class="p">)</span>
     <span class="n">num_gt_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_fname_list</span><span class="p">)</span>
     <span class="n">query_annots</span>  <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">gname2_annots_raw</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">gname2_annots_raw</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">name_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39; * num_gt_files = </span><span class="si">%d</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">num_gt_files</span><span class="p">)</span>
     <span class="c">#</span>
     <span class="c"># Iterate over each groundtruth file</span>
-    <span class="n">mark_</span><span class="p">,</span> <span class="n">end_</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">log_progress</span><span class="p">(</span><span class="s">&#39;parsed oxsty gtfile: &#39;</span><span class="p">,</span> <span class="n">num_gt_files</span><span class="p">)</span>
+    <span class="n">mark_</span><span class="p">,</span> <span class="n">end_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">log_progress</span><span class="p">(</span><span class="s">&#39;parsed oxsty gtfile: &#39;</span><span class="p">,</span> <span class="n">num_gt_files</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">gtx</span><span class="p">,</span> <span class="n">gt_fname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gt_fname_list</span><span class="p">):</span>
         <span class="n">mark_</span><span class="p">(</span><span class="n">gtx</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">gt_fname</span> <span class="o">==</span> <span class="s">&#39;corrupted_files.txt&#39;</span><span class="p">:</span>
@@ -628,7 +651,7 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&#39; * num_query images = </span><span class="si">%d</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">query_annots</span><span class="p">))</span>
     <span class="c">#</span>
     <span class="c"># Remove duplicates img.jpg : (*1.txt, *2.txt, ...) -&gt; (*.txt)</span>
-    <span class="n">gname2_annots</span>     <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">gname2_annots</span>     <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">multinamed_gname_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">gname</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">gname2_annots_raw</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
         <span class="n">val_repr</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">repr</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
@@ -711,14 +734,14 @@
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># win32</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;__main__ = ingest_database.py&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        usage:</span>
 <span class="sd">        python ibeis/ingest/ingest_database.py --db [dbname]</span>
 
-<span class="sd">        Valid dbnames:&#39;&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">utool</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">STANDARD_INGEST_FUNCS</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">  * &#39;</span><span class="p">))</span>
-    <span class="n">dbname</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="n">force_delete</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--force_delete&#39;</span><span class="p">)</span>
+<span class="sd">        Valid dbnames:&#39;&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">STANDARD_INGEST_FUNCS</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">  * &#39;</span><span class="p">))</span>
+    <span class="n">dbname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">force_delete</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--force_delete&#39;</span><span class="p">)</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ingest_standard_database</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">force_delete</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;finished db injest&#39;</span><span class="p">)</span>
     <span class="c">#img_dir = join(ibeis.sysres.get_workdir(), &#39;polar_bears&#39;)</span>

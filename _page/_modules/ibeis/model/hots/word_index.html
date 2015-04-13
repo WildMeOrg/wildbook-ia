@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -111,6 +111,8 @@
             
   <h1>Source code for ibeis.model.hots.word_index</h1><div class="highlight"><pre>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TODO: DEPRICATE OR REFACTOR INTO SMK</span>
+
 <span class="sd">python -c &quot;import doctest, ibeis; print(doctest.testmod(ibeis.model.hots.word_index))&quot;</span>
 <span class="sd">python -m doctest -v ibeis/model/hots/word_index.py</span>
 <span class="sd">python -m doctest ibeis/model/hots/word_index.py</span>
@@ -180,7 +182,7 @@
 <span class="sd">    IBEIS interface into word_index</span>
 
 <span class="sd">    &gt;&gt;&gt; from ibeis.model.hots.word_index import *  # NOQA</span>
-<span class="sd">    &gt;&gt;&gt; windex, qreq_, ibs = test_windex() # doctest: +ELLIPSIS</span>
+<span class="sd">    &gt;&gt;&gt; windex, qreq_, ibs = test_windex()</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">daids_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="s">&#39;D&#39;</span><span class="p">)</span>
@@ -216,7 +218,7 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.word_index import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS</span>
+<span class="sd">        &gt;&gt;&gt; windex, qreq_, ibs = test_windex()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">windex</span><span class="p">,</span> <span class="n">ax2_aid</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_ax</span><span class="p">,</span> <span class="n">idx2_fx</span><span class="p">,</span> <span class="n">flann</span><span class="p">):</span>
@@ -244,10 +246,9 @@
 
 <span class="sd">        Example:</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.word_index import *  # NOQA</span>
-<span class="sd">            &gt;&gt;&gt; windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS</span>
+<span class="sd">            &gt;&gt;&gt; windex, qreq_, ibs = test_windex()</span>
 <span class="sd">            &gt;&gt;&gt; new_aid_list = [2, 3, 4]</span>
-<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)</span>
-<span class="sd">            &gt;&gt;&gt; new_vecs_list = ibs.get_annot_vecs(new_aid_list, qreq_=qreq_)</span>
+<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())</span>
 <span class="sd">            &gt;&gt;&gt; K = 2</span>
 <span class="sd">            &gt;&gt;&gt; checks = 1028</span>
 <span class="sd">            &gt;&gt;&gt; (qfx2_idx, qfx2_dist) = windex.knn(qfx2_vec, K, checks=checks)</span>
@@ -264,10 +265,10 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Example:</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.word_index import *  # NOQA</span>
-<span class="sd">            &gt;&gt;&gt; windex, qreq_, ibs = test_windex()  #doctest: +ELLIPSIS</span>
+<span class="sd">            &gt;&gt;&gt; windex, qreq_, ibs = test_windex()</span>
 <span class="sd">            &gt;&gt;&gt; new_aid_list = [2, 3, 4]</span>
-<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1, qreq_=qreq_)</span>
-<span class="sd">            &gt;&gt;&gt; new_vecs_list = ibs.get_annot_vecs(new_aid_list, qreq_=qreq_)</span>
+<span class="sd">            &gt;&gt;&gt; qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())</span>
+<span class="sd">            &gt;&gt;&gt; new_vecs_list = ibs.get_annot_vecs(new_aid_list, config2_=qreq_.get_internal_data_config2())</span>
 <span class="sd">            &gt;&gt;&gt; K = 2</span>
 <span class="sd">            &gt;&gt;&gt; checks = 1028</span>
 <span class="sd">            &gt;&gt;&gt; (qfx2_idx1, qfx2_dist1) = windex.knn(qfx2_vec, K, checks=checks)</span>

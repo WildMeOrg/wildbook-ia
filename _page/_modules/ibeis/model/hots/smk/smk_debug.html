@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -928,7 +928,7 @@
     <span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
     <span class="n">strlist_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_locals_keylist</span><span class="p">(</span><span class="nb">locals</span><span class="p">(),</span> <span class="n">key_list</span><span class="p">)</span>
     <span class="n">line_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">strlist_</span><span class="p">)</span>
-    <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vectors</span><span class="p">)</span>
+    <span class="c">#line_list.append(vectors)</span>
     <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;L--- Vector Stats --&#39;</span><span class="p">)</span>
 
     <span class="n">statstr</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span>
@@ -1098,18 +1098,18 @@
     <span class="n">smk_alpha</span>     <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">smk_alpha</span>
     <span class="n">smk_thresh</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">smk_thresh</span>
     <span class="n">lbl</span> <span class="o">=</span> <span class="s">&#39;[smk_match] asmk query: &#39;</span> <span class="k">if</span> <span class="n">aggregate</span> <span class="k">else</span> <span class="s">&#39;[smk_match] smk query: &#39;</span>
-    <span class="n">mark</span><span class="p">,</span> <span class="n">end_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">log_progress</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">with_time</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">backspace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="c">#mark, end_ = ut.log_progress(lbl, len(qaids), freq=1, with_time=True, backspace=False)</span>
     <span class="n">withinfo</span> <span class="o">=</span> <span class="bp">True</span>
-    <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qaids</span><span class="p">):</span>
-        <span class="n">mark</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">qaids</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="n">daid2_score</span><span class="p">,</span> <span class="n">daid2_chipmatch</span> <span class="o">=</span> <span class="n">smk_match</span><span class="o">.</span><span class="n">query_inverted_index</span><span class="p">(</span>
             <span class="n">annots_df</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">withinfo</span><span class="p">,</span> <span class="n">aggregate</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">)</span>
         <span class="n">qaid2_scores</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>    <span class="o">=</span> <span class="n">daid2_score</span>
         <span class="n">qaid2_chipmatch</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">=</span> <span class="n">daid2_chipmatch</span>
-    <span class="n">end_</span><span class="p">()</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">filt2_meta</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">qaid2_qres_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">filt2_meta</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+        <span class="c">#filt2_meta = {}</span>
+        <span class="n">cm_list</span> <span class="o">=</span> <span class="n">convert_smkmatch_to_chipmatch</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">qaid2_scores</span><span class="p">)</span>
+        <span class="c">#qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)</span>
+        <span class="n">qaid2_qres_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">qflag</span><span class="p">()</span>
@@ -1117,10 +1117,36 @@
     <span class="k">return</span> <span class="n">qaid2_qres_</span>
 
 </div>
-<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<div class="viewcode-block" id="convert_smkmatch_to_chipmatch"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.convert_smkmatch_to_chipmatch">[docs]</a><span class="k">def</span> <span class="nf">convert_smkmatch_to_chipmatch</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">qaid2_scores</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; function to fix oldstyle chipmatches into newstyle that is accepted by the pipeline &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">))</span>
+    <span class="n">score_smk_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">qaid2_scores</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
+    <span class="n">chipmatch_smk_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
+    <span class="n">aid2_H</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">aid2_fs_to_fsv</span><span class="p">(</span><span class="n">aid2_fs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">fs</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">]</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fs</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">aid2_fs</span><span class="p">)}</span>
+
+    <span class="n">cmtup_old_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs_to_fsv</span><span class="p">(</span><span class="n">aid2_fs</span><span class="p">),</span> <span class="n">aid2_fk</span><span class="p">,</span> <span class="n">aid2_score</span><span class="p">,</span> <span class="n">aid2_H</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">aid2_fm</span><span class="p">,</span> <span class="n">aid2_fs</span><span class="p">,</span> <span class="n">aid2_fk</span><span class="p">),</span> <span class="n">aid2_score</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chipmatch_smk_list</span><span class="p">,</span> <span class="n">score_smk_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="o">.</span><span class="n">from_cmtup_old</span><span class="p">(</span><span class="n">cmtup_old</span><span class="p">,</span> <span class="n">qaid</span><span class="o">=</span><span class="n">qaid</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">cmtup_old</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">cmtup_old_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">cm_list</span>
+
+</div>
+<div class="viewcode-block" id="main_smk_debug"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.main_smk_debug">[docs]</a><span class="k">def</span> <span class="nf">main_smk_debug</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.smk.smk_debug --test-main_smk_debug</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_debug import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; main_smk_debug()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;+------------&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;SMK_DEBUG MAIN&#39;</span><span class="p">)</span>
@@ -1129,11 +1155,11 @@
     <span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">taids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">nWords</span> <span class="o">=</span> <span class="n">testdata_dataframe</span><span class="p">()</span>
     <span class="c"># Query using SMK</span>
     <span class="c">#qaid = qaids[0]</span>
-    <span class="n">nWords</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nWords</span>
-    <span class="n">aggregate</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">aggregate</span>
+    <span class="n">nWords</span>     <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nWords</span>
+    <span class="n">aggregate</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">aggregate</span>
     <span class="n">smk_alpha</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">smk_alpha</span>
     <span class="n">smk_thresh</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">smk_thresh</span>
-    <span class="n">nAssign</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nAssign</span>
+    <span class="n">nAssign</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nAssign</span>
     <span class="c">#aggregate = ibs.cfg.query_cfg.smk_cfg.aggregate</span>
     <span class="c">#smk_alpha = ibs.cfg.query_cfg.smk_cfg.smk_alpha</span>
     <span class="c">#smk_thresh = ibs.cfg.query_cfg.smk_cfg.smk_thresh</span>
@@ -1170,8 +1196,11 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;+------------&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;SMK_DEBUG DISPLAY RESULT&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;+------------&#39;</span><span class="p">)</span>
-    <span class="n">filt2_meta</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">qaid2_qres_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">filt2_meta</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="n">convert_smkmatch_to_chipmatch</span><span class="p">(</span><span class="n">qaid2_chipmatch</span><span class="p">,</span> <span class="n">qaid2_scores</span><span class="p">)</span>
+    <span class="c">#filt2_meta = {}</span>
+    <span class="c">#qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)</span>
+    <span class="n">qaid2_qres_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">)</span>
+    <span class="c">#qaid2_qres_ = pipeline.chipmatch_to_resdict(qaid2_chipmatch, filt2_meta, qreq_)</span>
     <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qres</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">qaid2_qres_</span><span class="p">)):</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;+================&#39;</span><span class="p">)</span>
         <span class="c">#qres = qaid2_qres_[qaid]</span>
@@ -1202,22 +1231,34 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;finished main&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 
+
+<span class="c">#if __name__ == &#39;__main__&#39;:</span>
+<span class="c">#    print(&#39;\n\n\n\n\n\n&#39;)</span>
+<span class="c">#    from ibeis.model.hots.smk import smk_plots</span>
+<span class="c">#    import multiprocessing</span>
+<span class="c">#    from plottool import draw_func2 as df2</span>
+<span class="c">#    mode = ut.get_argval(&#39;--mode&#39;, int, default=0)</span>
+<span class="c">#    if mode == 0 or ut.get_argflag(&#39;--view-vocabs&#39;):</span>
+<span class="c">#        smk_plots.view_vocabs()</span>
+<span class="c">#    else:</span>
+<span class="c">#        np.set_printoptions(precision=2)</span>
+<span class="c">#        multiprocessing.freeze_support()  # for win32</span>
+<span class="c">#        main_locals = main_smk_debug()</span>
+<span class="c">#        main_execstr = ut.execstr_dict(main_locals, &#39;main_locals&#39;)</span>
+<span class="c">#        exec(main_execstr)</span>
+<span class="c">#    exec(df2.present())</span>
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n\n\n\n\n</span><span class="s">&#39;</span><span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_plots</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.smk.smk_debug</span>
+<span class="sd">        python -m ibeis.model.hots.smk.smk_debug --allexamples</span>
+<span class="sd">        python -m ibeis.model.hots.smk.smk_debug --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
-    <span class="n">mode</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--mode&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--view-vocabs&#39;</span><span class="p">):</span>
-        <span class="n">smk_plots</span><span class="o">.</span><span class="n">view_vocabs</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-        <span class="n">main_locals</span> <span class="o">=</span> <span class="n">main</span><span class="p">()</span>
-        <span class="n">main_execstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">main_locals</span><span class="p">,</span> <span class="s">&#39;main_locals&#39;</span><span class="p">)</span>
-        <span class="k">exec</span><span class="p">(</span><span class="n">main_execstr</span><span class="p">)</span>
-    <span class="k">exec</span><span class="p">(</span><span class="n">df2</span><span class="o">.</span><span class="n">present</span><span class="p">())</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -129,6 +129,7 @@
 <span class="c">#import weakref</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">pyflann</span>
 <span class="c">#import pandas as pd</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">clustering2</span> <span class="k">as</span> <span class="n">clustertool</span>
@@ -248,7 +249,11 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_index.assign] assign_to_words_. len(idx2_vec) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">))</span>
     <span class="c"># Assign each vector to the nearest visual words</span>
     <span class="k">assert</span> <span class="n">nAssign</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;cannot assign to 0 neighbors&#39;</span>
-    <span class="n">_idx2_wx</span><span class="p">,</span> <span class="n">_idx2_wdist</span> <span class="o">=</span> <span class="n">wordflann</span><span class="o">.</span><span class="n">nn_index</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_idx2_wx</span><span class="p">,</span> <span class="n">_idx2_wdist</span> <span class="o">=</span> <span class="n">wordflann</span><span class="o">.</span><span class="n">nn_index</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">pyflann</span><span class="o">.</span><span class="n">FLANNException</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;probably misread the cached flann_fpath=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wordflann</span><span class="o">.</span><span class="n">flann_fpath</span><span class="p">,))</span>
+        <span class="k">raise</span>
     <span class="n">_idx2_wx</span><span class="o">.</span><span class="n">shape</span>    <span class="o">=</span> <span class="p">(</span><span class="n">idx2_vec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nAssign</span><span class="p">)</span>
     <span class="n">_idx2_wdist</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">idx2_vec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nAssign</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">nAssign</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>

@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -148,6 +148,16 @@
 <span class="sd">            &gt;&gt;&gt; result = qparams.query_cfgstr</span>
 <span class="sd">            &gt;&gt;&gt; print(&#39;)_\n&#39;.join(result.split(&#39;)_&#39;)))</span>
 
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; from ibeis.model.hots import query_params</span>
+<span class="sd">            &gt;&gt;&gt; import ibeis</span>
+<span class="sd">            &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; cfg = ibs.cfg.query_cfg</span>
+<span class="sd">            &gt;&gt;&gt; #cfg.pipeline_root = &#39;asmk&#39;</span>
+<span class="sd">            &gt;&gt;&gt; cfgdict = dict(rotation_invariance=True)</span>
+<span class="sd">            &gt;&gt;&gt; qparams = query_params.QueryParams(cfg, cfgdict)</span>
+<span class="sd">            &gt;&gt;&gt; ut.assert_eq(qparams.hesaff_params[&#39;rotation_invariance&#39;], True)</span>
 
 <span class="sd">            _smk_SMK(agg=True,t=0.0,a=3.0,idf)_</span>
 <span class="sd">            VocabAssign(nAssign=10,a=1.2,s=None,eqw=T)_</span>
@@ -171,7 +181,7 @@
             <span class="nb">setattr</span><span class="p">(</span><span class="n">qparams</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
         <span class="c"># Add params not implicitly represented in Config object</span>
         <span class="n">pipeline_root</span>              <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pipeline_root</span>
-        <span class="n">qparams</span><span class="o">.</span><span class="n">chip_cfg_dict</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">chip_cfg_dict</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
         <span class="n">qparams</span><span class="o">.</span><span class="n">flann_params</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_flann_params</span><span class="p">()</span>
         <span class="n">qparams</span><span class="o">.</span><span class="n">hesaff_params</span>      <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">get_hesaff_params</span><span class="p">()</span>
         <span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span>      <span class="o">=</span> <span class="n">pipeline_root</span>
@@ -179,6 +189,7 @@
         <span class="n">qparams</span><span class="o">.</span><span class="n">vsone</span>              <span class="o">=</span> <span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;vsone&#39;</span>
         <span class="c"># Add custom strings to the mix as well</span>
         <span class="c"># TODO; Find better way to specify config strings</span>
+        <span class="n">qparams</span><span class="o">.</span><span class="n">probchip_cfgstr</span>   <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">use_feat</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_chip</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="n">qparams</span><span class="o">.</span><span class="n">featweight_cfgstr</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
         <span class="n">qparams</span><span class="o">.</span><span class="n">chip_cfgstr</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">_chip_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
         <span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span>       <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">_featweight_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
@@ -195,7 +206,7 @@
 <span class="sd">        dependant on specifically where you are in the pipeline</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">filtkey_list</span> <span class="o">=</span> <span class="n">qparams</span><span class="o">.</span><span class="n">active_filter_list</span>
-        <span class="k">if</span> <span class="n">qparams</span><span class="o">.</span><span class="n">sver_weighting</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">qparams</span><span class="o">.</span><span class="n">sver_output_weighting</span><span class="p">:</span>
             <span class="n">filtkey_list</span> <span class="o">=</span> <span class="n">filtkey_list</span><span class="p">[:]</span> <span class="o">+</span> <span class="p">[</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FiltKeys</span><span class="o">.</span><span class="n">HOMOGERR</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">filtkey_list</span>
 

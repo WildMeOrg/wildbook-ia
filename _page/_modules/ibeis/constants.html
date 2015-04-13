@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -122,8 +122,10 @@
 <span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="s">&#39;[const]&#39;</span><span class="p">)</span>
 
 
-<span class="n">TAU</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
+<span class="n">PI</span>  <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
+<span class="n">TAU</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">PI</span>
 
+<span class="n">DEFAULT_WEB_API_PORT</span> <span class="o">=</span> <span class="mi">5000</span>
 
 <span class="c"># Mapping of semantic viewpoints to yaw angles</span>
 <span class="n">VIEWTEXT_TO_YAW_RADIANS</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
@@ -148,24 +150,35 @@
 <span class="c">#    &#39;backright&#39;  : &#39;backright&#39;,</span>
 <span class="c">#}</span>
 
-<span class="n">QUAL_PERFECT</span> <span class="o">=</span> <span class="s">&#39;perfect&#39;</span>
-<span class="n">QUAL_GOOD</span>    <span class="o">=</span> <span class="s">&#39;good&#39;</span>
-<span class="n">QUAL_OK</span>      <span class="o">=</span> <span class="s">&#39;ok&#39;</span>
-<span class="n">QUAL_POOR</span>    <span class="o">=</span> <span class="s">&#39;poor&#39;</span>
-<span class="n">QUAL_JUNK</span>    <span class="o">=</span> <span class="s">&#39;junk&#39;</span>
-<span class="n">QUAL_UNKNOWN</span> <span class="o">=</span> <span class="s">&#39;UNKNOWN&#39;</span>
+<span class="n">QUAL_EXCELLENT</span> <span class="o">=</span> <span class="s">&#39;excellent&#39;</span>
+<span class="n">QUAL_GOOD</span>      <span class="o">=</span> <span class="s">&#39;good&#39;</span>
+<span class="n">QUAL_OK</span>        <span class="o">=</span> <span class="s">&#39;ok&#39;</span>
+<span class="n">QUAL_POOR</span>      <span class="o">=</span> <span class="s">&#39;poor&#39;</span>
+<span class="n">QUAL_JUNK</span>      <span class="o">=</span> <span class="s">&#39;junk&#39;</span>
+<span class="n">QUAL_UNKNOWN</span>   <span class="o">=</span> <span class="s">&#39;UNKNOWN&#39;</span>
 
 <span class="n">QUALITY_INT_TO_TEXT</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
-    <span class="p">(</span><span class="mi">5</span><span class="p">,</span>  <span class="n">QUAL_PERFECT</span><span class="p">,),</span>
+    <span class="p">(</span><span class="mi">5</span><span class="p">,</span>  <span class="n">QUAL_EXCELLENT</span><span class="p">,),</span>
     <span class="p">(</span><span class="mi">4</span><span class="p">,</span>  <span class="n">QUAL_GOOD</span><span class="p">,),</span>
     <span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="n">QUAL_OK</span><span class="p">,),</span>
     <span class="p">(</span><span class="mi">2</span><span class="p">,</span>  <span class="n">QUAL_POOR</span><span class="p">,),</span>
+    <span class="c"># oops forgot 1. will be mapped to poor</span>
     <span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="n">QUAL_JUNK</span><span class="p">,),</span>
     <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">QUAL_UNKNOWN</span><span class="p">,),</span>
 <span class="p">])</span>
 
-<span class="n">QUALITY_TEXT_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="p">)</span>
+<span class="n">QUALITY_TEXT_TO_INT</span>       <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="p">)</span>
+<span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>    <span class="o">=</span> <span class="n">QUAL_JUNK</span>
 <span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+
+<span class="n">SEX_INT_TO_TEXT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="bp">None</span><span class="p">:</span> <span class="s">&#39;UNKNOWN NAME&#39;</span><span class="p">,</span>
+    <span class="o">-</span><span class="mi">1</span>  <span class="p">:</span> <span class="s">&#39;UNKNOWN SEX&#39;</span><span class="p">,</span>
+    <span class="mi">0</span>   <span class="p">:</span> <span class="s">&#39;Female&#39;</span><span class="p">,</span>
+    <span class="mi">1</span>   <span class="p">:</span> <span class="s">&#39;Male&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">SEX_TEXT_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">SEX_INT_TO_TEXT</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="PATH_NAMES"><a class="viewcode-back" href="../../ibeis.html#ibeis.constants.PATH_NAMES">[docs]</a><span class="k">class</span> <span class="nc">PATH_NAMES</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -176,6 +189,7 @@
     <span class="n">cache</span>      <span class="o">=</span> <span class="s">&#39;_ibeis_cache&#39;</span>
     <span class="n">backups</span>    <span class="o">=</span> <span class="s">&#39;_ibeis_backups&#39;</span>
     <span class="n">chips</span>      <span class="o">=</span> <span class="s">&#39;chips&#39;</span>
+    <span class="n">figures</span>    <span class="o">=</span> <span class="s">&#39;figures&#39;</span>
     <span class="n">flann</span>      <span class="o">=</span> <span class="s">&#39;flann&#39;</span>
     <span class="n">images</span>     <span class="o">=</span> <span class="s">&#39;images&#39;</span>
     <span class="n">trees</span>      <span class="o">=</span> <span class="s">&#39;trees&#39;</span>
@@ -193,6 +207,7 @@
     <span class="sd">&quot;&quot;&quot; all paths are relative to ibs.dbdir &quot;&quot;&quot;</span>
     <span class="n">_ibsdb</span>   <span class="o">=</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span>
     <span class="n">trashdir</span> <span class="o">=</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">trashdir</span>
+    <span class="n">figures</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">figures</span><span class="p">)</span>
     <span class="n">cache</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
     <span class="n">backups</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">backups</span><span class="p">)</span>
     <span class="n">chips</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">chips</span><span class="p">)</span>
@@ -277,9 +292,13 @@
 <span class="n">NAME_TABLE_v121</span>      <span class="o">=</span> <span class="s">&#39;name&#39;</span>
 <span class="n">NAME_TABLE_v130</span>      <span class="o">=</span> <span class="s">&#39;names&#39;</span>
 <span class="n">NAME_TABLE</span>           <span class="o">=</span> <span class="n">NAME_TABLE_v130</span>
+<span class="n">ANNOTMATCH_TABLE</span>     <span class="o">=</span> <span class="s">&#39;annotmatch&#39;</span>
 <span class="n">SPECIES_TABLE</span>        <span class="o">=</span> <span class="s">&#39;species&#39;</span>
 <span class="n">RESIDUAL_TABLE</span>       <span class="o">=</span> <span class="s">&#39;residuals&#39;</span>
 <span class="n">VERSIONS_TABLE</span>       <span class="o">=</span> <span class="s">&#39;versions&#39;</span>
+<span class="c">#</span>
+<span class="n">PARTY_CONTRIB_RELATION_TABLE</span> <span class="o">=</span> <span class="s">&#39;party_contrib_relation&#39;</span>
+<span class="n">PARTY_TABLE</span>                  <span class="o">=</span> <span class="s">&#39;party&#39;</span>
 <span class="c">#################################################################</span>
 
 
@@ -308,6 +327,7 @@
 <span class="c">#IMAGE_THUMB_SUFFIX = &#39;_thumb.png&#39;</span>
 <span class="c">#CHIP_THUMB_SUFFIX  = &#39;_chip_thumb.png&#39;</span>
 <span class="n">IMAGE_THUMB_SUFFIX</span> <span class="o">=</span> <span class="s">&#39;_thumb.jpg&#39;</span>
+<span class="n">IMAGE_BARE_THUMB_SUFFIX</span> <span class="o">=</span> <span class="s">&#39;_thumb_bare.jpg&#39;</span>
 <span class="n">CHIP_THUMB_SUFFIX</span>  <span class="o">=</span> <span class="s">&#39;_chip_thumb.jpg&#39;</span>
 
 <span class="c"># FIXME UNKNOWN should not be a valid species</span>
@@ -322,6 +342,7 @@
     <span class="n">ELEPHANT_SAV</span>  <span class="o">=</span> <span class="s">&#39;elephant_savanna&#39;</span>
     <span class="n">JAG</span>           <span class="o">=</span> <span class="s">&#39;jaguar&#39;</span>
     <span class="n">LEOPARD</span>       <span class="o">=</span> <span class="s">&#39;leopard&#39;</span>
+    <span class="n">SNOW_LEOPARD</span>  <span class="o">=</span> <span class="s">&#39;snow_leopard&#39;</span>
     <span class="n">LION</span>          <span class="o">=</span> <span class="s">&#39;lion&#39;</span>
     <span class="n">WILDDOG</span>       <span class="o">=</span> <span class="s">&#39;wild_dog&#39;</span>
     <span class="n">WHALESHARK</span>    <span class="o">=</span> <span class="s">&#39;whale_shark&#39;</span>
@@ -359,6 +380,7 @@
     <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">WILDEBEEST</span><span class="p">,</span>         <span class="s">&#39;WB&#39;</span><span class="p">,</span> <span class="s">&#39;Wildebeest&#39;</span><span class="p">),</span>
     <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">JAG</span><span class="p">,</span>               <span class="s">&#39;JAG&#39;</span><span class="p">,</span> <span class="s">&#39;Jaguar&#39;</span><span class="p">),</span>
     <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">LEOPARD</span><span class="p">,</span>          <span class="s">&#39;LOEP&#39;</span><span class="p">,</span> <span class="s">&#39;Leopard&#39;</span><span class="p">),</span>
+    <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">SNOW_LEOPARD</span><span class="p">,</span>    <span class="s">&#39;SLEOP&#39;</span><span class="p">,</span> <span class="s">&#39;Snow Leopard&#39;</span><span class="p">),</span>
     <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">TIGER</span><span class="p">,</span>           <span class="s">&#39;TIGER&#39;</span><span class="p">,</span> <span class="s">&#39;Tiger&#39;</span><span class="p">),</span>
     <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">HYENA</span><span class="p">,</span>           <span class="s">&#39;HYENA&#39;</span><span class="p">,</span> <span class="s">&#39;Hyena&#39;</span><span class="p">),</span>
     <span class="n">SpeciesTuple</span><span class="p">(</span><span class="n">Species</span><span class="o">.</span><span class="n">LION</span><span class="p">,</span>             <span class="s">&#39;LION&#39;</span><span class="p">,</span> <span class="s">&#39;Lion&#39;</span><span class="p">),</span>
@@ -417,29 +439,20 @@
     <span class="n">__STR__</span> <span class="o">=</span> <span class="nb">str</span>
 
 
-<div class="viewcode-block" id="get_working_species_set"><a class="viewcode-back" href="../../ibeis.html#ibeis.constants.get_working_species_set">[docs]</a><span class="k">def</span> <span class="nf">get_working_species_set</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot; hack to make only species with detectors show up &quot;&quot;&quot;</span>
-    <span class="c"># TODO: FUNCTIONS SHOULD NOT BE IN CONSTANTS</span>
-    <span class="c"># TODO: allow for custom user-define species</span>
-    <span class="c">#RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = not ut.get_argflag(&#39;--allspecies&#39;)</span>
-    <span class="n">RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-allspecies&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS</span><span class="p">:</span>
-        <span class="n">working_species_tups</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="n">species_tup</span><span class="o">.</span><span class="n">species_nice</span><span class="p">,</span> <span class="n">species_tup</span><span class="o">.</span><span class="n">species_text</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">species_tup</span> <span class="ow">in</span> <span class="n">SPECIES_TUPS</span>
-            <span class="k">if</span> <span class="n">species_tup</span><span class="o">.</span><span class="n">species_text</span> <span class="ow">in</span> <span class="n">SPECIES_WITH_DETECTORS</span>
-        <span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">working_species_tups</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="n">species_tup</span><span class="o">.</span><span class="n">species_nice</span><span class="p">,</span> <span class="n">species_tup</span><span class="o">.</span><span class="n">species_text</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">species_tup</span> <span class="ow">in</span> <span class="n">SPECIES_TUPS</span>
-        <span class="p">]</span>
-    <span class="k">return</span> <span class="n">working_species_tups</span>
+<span class="n">TRUTH_UNKNOWN</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">TRUTH_MATCH</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">TRUTH_NOT_MATCH</span> <span class="o">=</span> <span class="mi">0</span>
 
+
+<span class="n">TRUTH_INT_TO_TEXT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">TRUTH_UNKNOWN</span>   <span class="p">:</span> <span class="s">&#39;Unknown&#39;</span><span class="p">,</span>
+    <span class="n">TRUTH_NOT_MATCH</span> <span class="p">:</span> <span class="s">&#39;Not Matched&#39;</span><span class="p">,</span>
+    <span class="n">TRUTH_MATCH</span>     <span class="p">:</span> <span class="s">&#39;Matched&#39;</span><span class="p">,</span>
+<span class="p">}</span>
 
 <span class="c"># clean namespace</span>
 <span class="c">#del utool</span>
-<span class="c">#del np</span></div>
+<span class="c">#del np</span>
 </pre></div>
 
           </div>

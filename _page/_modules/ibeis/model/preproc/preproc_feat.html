@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -154,40 +154,8 @@
         <span class="n">nFeat</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
         <span class="k">yield</span> <span class="n">cid</span><span class="p">,</span> <span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">desc</span>
 
-
-<span class="c">#def add_feat_params_gen(ibs, cid_list, qreq_=None, nInput=None):</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    still used in manual code</span>
-<span class="c">#    DEPRICATE IN FAVOR OF AUTOGEN</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    if nInput is None:</span>
-<span class="c">#        nInput = len(cid_list)</span>
-<span class="c">#    if qreq_ is not None:</span>
-<span class="c">#        # Get config from qreq_ object</span>
-<span class="c">#        hesaff_params   = qreq_.qparams.hesaff_params</span>
-<span class="c">#        feat_cfgstr     = qreq_.qparams.feat_cfgstr</span>
-<span class="c">#    else:</span>
-<span class="c">#        # Get config from IBEIS controller</span>
-<span class="c">#        hesaff_params   = ibs.cfg.feat_cfg.get_hesaff_params()</span>
-<span class="c">#        feat_cfgstr     = ibs.cfg.feat_cfg.get_cfgstr()</span>
-<span class="c">#    feat_config_rowid = ibs.get_feat_config_rowid()</span>
-<span class="c">#    cfpath_list       = ibs.get_chip_uris(cid_list)</span>
-<span class="c">#    if ut.VERBOSE:</span>
-<span class="c">#        print(&#39;[preproc_feat] cfgstr = %s&#39; % feat_cfgstr)</span>
-<span class="c">#    if USE_OPENMP:</span>
-<span class="c">#        # Use Avi&#39;s openmp parallelization</span>
-<span class="c">#        featgen_mp = gen_feat_openmp(cid_list, cfpath_list, hesaff_params)</span>
-<span class="c">#        return  ((cid, feat_config_rowid, nFeat, kpts, vecs,)</span>
-<span class="c">#                 for (cid, nFeat, kpts, vecs) in featgen_mp)</span>
-<span class="c">#    else:</span>
-<span class="c">#        # Multiprocessing parallelization</span>
-<span class="c">#        featgen = generate_feats(cfpath_list, hesaff_params=hesaff_params,</span>
-<span class="c">#                                 cid_list=cid_list, nInput=nInput)</span>
-<span class="c">#        return ((cid, feat_config_rowid, nKpts, kpts, vecs)</span>
-<span class="c">#                for cid, nKpts, kpts, vecs in featgen)</span>
-
 </div>
-<div class="viewcode-block" id="generate_feat_properties"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_feat.generate_feat_properties">[docs]</a><span class="k">def</span> <span class="nf">generate_feat_properties</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="generate_feat_properties"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_feat.generate_feat_properties">[docs]</a><span class="k">def</span> <span class="nf">generate_feat_properties</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes features and yields results asynchronously: TODO: Remove IBEIS from</span>
 <span class="sd">    this equation. Move the firewall towards the controller</span>
@@ -205,11 +173,13 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.preproc.preproc_feat import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[::2]</span>
-<span class="sd">        &gt;&gt;&gt; cid_list = ibs.get_annot_chip_rowids(aid_list)</span>
-<span class="sd">        &gt;&gt;&gt; qreq_ = None</span>
+<span class="sd">        &gt;&gt;&gt; config2_ = None</span>
 <span class="sd">        &gt;&gt;&gt; nInput = None</span>
-<span class="sd">        &gt;&gt;&gt; featgen = generate_feat_properties(ibs, cid_list, qreq_, nInput)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[::2]</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_all_not_None(aid_list, &#39;aid_list&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; cid_list = ibs.get_annot_chip_rowids(aid_list, config2_=config2_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_all_not_None(cid_list, &#39;cid_list&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; featgen = generate_feat_properties(ibs, cid_list, config2_, nInput)</span>
 <span class="sd">        &gt;&gt;&gt; feat_list = list(featgen)</span>
 <span class="sd">        &gt;&gt;&gt; assert len(feat_list) == len(aid_list)</span>
 <span class="sd">        &gt;&gt;&gt; (nFeat, kpts, vecs) = feat_list[0]</span>
@@ -219,25 +189,27 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">nInput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
-    <span class="c"># Get config from IBEIS controller</span>
-    <span class="c"># TODO: qreq_</span>
-    <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c"># Get config from qreq_ object</span>
-        <span class="n">hesaff_params</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">hesaff_params</span>
-        <span class="n">feat_cfgstr</span>     <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span>
+    <span class="k">if</span> <span class="n">config2_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># Get config from config2_ object</span>
+        <span class="c">#print(&#39;id(config2_) = &#39; + str(id(config2_)))</span>
+        <span class="n">feat_cfgstr</span>     <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;feat_cfgstr&#39;</span><span class="p">)</span>
+        <span class="n">hesaff_params</span>   <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;hesaff_params&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">feat_cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+        <span class="k">assert</span> <span class="n">hesaff_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c"># Get config from IBEIS controller</span>
-        <span class="n">hesaff_params</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_hesaff_params</span><span class="p">()</span>
         <span class="n">feat_cfgstr</span>     <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
-    <span class="n">feat_cfg</span>          <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span>
-    <span class="n">hesaff_params</span>     <span class="o">=</span> <span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_hesaff_params</span><span class="p">()</span>
-    <span class="n">cfpath_list</span>       <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_uris</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
+        <span class="n">hesaff_params</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_hesaff_params</span><span class="p">()</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="s">&#39;cid_list&#39;</span><span class="p">)</span>
+    <span class="n">cfpath_list</span>       <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_fpath</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_feat] cfgstr = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">feat_cfgstr</span><span class="p">)</span>
+        <span class="c">#print(&#39;hesaff_params = &#39; + ut.dict_str(hesaff_params))</span>
     <span class="k">if</span> <span class="n">USE_OPENMP</span><span class="p">:</span>
         <span class="c"># Use Avi&#39;s openmp parallelization</span>
         <span class="n">featgen_mp</span> <span class="o">=</span> <span class="n">gen_feat_openmp</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">cfpath_list</span><span class="p">,</span> <span class="n">hesaff_params</span><span class="p">)</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">cid</span><span class="p">,</span> <span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">)</span> <span class="ow">in</span> <span class="n">featgen_mp</span><span class="p">:</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">cid</span><span class="p">,</span> <span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">featgen_mp</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;openmp feat&#39;</span><span class="p">):</span>
             <span class="k">yield</span> <span class="p">(</span><span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c"># Multiprocessing parallelization</span>
@@ -283,7 +255,10 @@
     <span class="c"># TODO: see if we can just pass in the iterator or if there is benefit in</span>
     <span class="c"># doing so</span>
     <span class="n">arg_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">arg_iter</span><span class="p">)</span>
-    <span class="n">featgen</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_feat_worker</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c">#if ut.VERBOSE:</span>
+    <span class="c">#    print(&#39;arg_list = &#39; + ut.list_str(arg_list))</span>
+    <span class="n">featgen</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_feat_worker</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
+                                           <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">featgen</span>
 
 </div>

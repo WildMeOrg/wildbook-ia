@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -116,7 +116,8 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;0.1.0.dev1&#39;</span>
+<span class="c">#__version__ = &#39;0.1.0.dev1&#39;</span>
+<span class="c">#__version__ = &#39;1.4.3&#39;</span>
 
 <span class="n">utool</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.__init__]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
@@ -143,6 +144,7 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">main_module</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">species</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">dev</span>
 <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
 <span class="c">#main_module._preload()</span>
@@ -150,13 +152,11 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">control</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">dbio</span>
-
-<span class="c">#from ibeis import model</span>
-<span class="c">#from ibeis import viz</span>
 <span class="c">#from ibeis import web</span>
 
 <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
-<span class="kn">from</span> <span class="nn">ibeis.main_module</span> <span class="kn">import</span> <span class="n">main</span><span class="p">,</span> <span class="n">_preload</span><span class="p">,</span> <span class="n">_init_numpy</span><span class="p">,</span> <span class="n">main_loop</span><span class="p">,</span> <span class="n">test_main</span><span class="p">,</span> <span class="n">opendb</span>
+<span class="kn">from</span> <span class="nn">ibeis.main_module</span> <span class="kn">import</span> <span class="p">(</span><span class="n">main</span><span class="p">,</span> <span class="n">_preload</span><span class="p">,</span> <span class="n">_init_numpy</span><span class="p">,</span> <span class="n">main_loop</span><span class="p">,</span>
+                               <span class="n">test_main</span><span class="p">,</span> <span class="n">opendb</span><span class="p">,</span> <span class="n">opendb_in_background</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.IBEISControl</span> <span class="kn">import</span> <span class="n">IBEISController</span>
 <span class="kn">from</span> <span class="nn">ibeis.dev.sysres</span> <span class="kn">import</span> <span class="n">get_workdir</span><span class="p">,</span> <span class="n">set_workdir</span><span class="p">,</span> <span class="n">ensure_pz_mtest</span><span class="p">,</span> <span class="n">ensure_nauts</span>
 
@@ -169,6 +169,15 @@
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">web</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">gui</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">templates</span>
+
+<span class="c">#import_subs()</span>
+<span class="c">#from ibeis import gui</span>
+<span class="c">#from ibeis import model</span>
+<span class="c">#from ibeis import templates</span>
+<span class="c">#from ibeis import viz</span>
+<span class="c">#from ibeis import web</span>
+
 
 <span class="c">#class _VizProxy(object):</span>
 <span class="c">#    def __init__(self):</span>
@@ -218,6 +227,9 @@
 <span class="n">rrrr</span> <span class="o">=</span> <span class="n">reload_subs</span>
 
 
+<span class="kn">from</span> <span class="nn">ibeis.control.DB_SCHEMA_CURRENT</span> <span class="kn">import</span> <span class="n">VERSION_CURRENT</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="n">VERSION_CURRENT</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.4.3&#39;</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Regen Command:</span>

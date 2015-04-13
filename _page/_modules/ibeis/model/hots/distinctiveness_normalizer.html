@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -369,7 +369,7 @@
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; dstcnvs_normer, qreq_ = testdata_distinctiveness()</span>
 <span class="sd">            &gt;&gt;&gt; qaid = qreq_.get_external_qaids()[0]</span>
-<span class="sd">            &gt;&gt;&gt; qfx2_vec = qreq_.ibs.get_annot_vecs(qaid, qreq_=qreq_)</span>
+<span class="sd">            &gt;&gt;&gt; qfx2_vec = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.qparams)</span>
 <span class="sd">            &gt;&gt;&gt; default_dict = {&#39;dcvs_power&#39;: .25, &#39;dcvs_K&#39;: 5, &#39;dcvs_max_clip&#39;: .5}</span>
 <span class="sd">            &gt;&gt;&gt; kwargs = ut.argparse_dict(default_dict)</span>
 <span class="sd">            &gt;&gt;&gt; qfx2_dstncvs = dstcnvs_normer.get_distinctiveness(qfx2_vec, **kwargs)</span>
@@ -380,7 +380,7 @@
 <span class="sd">            &gt;&gt;&gt;     # Show distinctivness on an animal and a corresponding graph</span>
 <span class="sd">            &gt;&gt;&gt;     import plottool as pt</span>
 <span class="sd">            &gt;&gt;&gt;     chip = qreq_.ibs.get_annot_chips(qaid)</span>
-<span class="sd">            &gt;&gt;&gt;     qfx2_kpts = qreq_.ibs.get_annot_kpts(qaid, qreq_=qreq_)</span>
+<span class="sd">            &gt;&gt;&gt;     qfx2_kpts = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.qparams)</span>
 <span class="sd">            &gt;&gt;&gt;     show_chip_distinctiveness_plot(chip, qfx2_kpts, qfx2_dstncvs)</span>
 <span class="sd">            &gt;&gt;&gt;     #pt.figure(2)</span>
 <span class="sd">            &gt;&gt;&gt;     #pt.show_all_colormaps()</span>

@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -112,7 +112,8 @@
 <span class="sd">Module Licence and docstring</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">DBCACHE_SCHEMA_CURRENT</span>
     <span class="n">UPDATE_CURRENT</span>  <span class="o">=</span> <span class="n">DBCACHE_SCHEMA_CURRENT</span><span class="o">.</span><span class="n">update_current</span>
@@ -137,7 +138,7 @@
     <span class="c"># SECOND ORDER           #</span>
     <span class="c">##########################</span>
     <span class="c"># TODO: constraint needs modification</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;chip_rowid&#39;</span><span class="p">,</span>                   <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
@@ -145,11 +146,11 @@
         <span class="p">(</span><span class="s">&#39;chip_width&#39;</span><span class="p">,</span>                   <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;chip_height&#39;</span><span class="p">,</span>                  <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
     <span class="p">),</span>
-        <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,)],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        Used to store *processed* annots as chips&#39;&#39;&#39;</span><span class="p">)</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;chip_rowid&#39;</span><span class="p">,</span>                   <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
@@ -158,7 +159,7 @@
         <span class="c"># Maybe change name to feature_vecs</span>
         <span class="p">(</span><span class="s">&#39;feature_sifts&#39;</span><span class="p">,</span>                <span class="s">&#39;NUMPY&#39;</span><span class="p">),</span>
     <span class="p">),</span>
-        <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;chip_rowid, config_rowid&#39;</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;chip_rowid, config_rowid&#39;</span><span class="p">,)],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        Used to store individual chip features (ellipses)&#39;&#39;&#39;</span><span class="p">)</span>
 
@@ -172,14 +173,14 @@
 <div class="viewcode-block" id="update_1_0_1"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DBCACHE_SCHEMA.update_1_0_1">[docs]</a><span class="k">def</span> <span class="nf">update_1_0_1</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="c"># When you&#39;re ready to make this schema update go live, simply</span>
     <span class="c"># bump ibs.dbcache_version_expected in the controller to &#39;1.0.1&#39;</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">RESIDUAL_TABLE</span><span class="p">,</span> <span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">RESIDUAL_TABLE</span><span class="p">,</span> <span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;residual_rowid&#39;</span><span class="p">,</span>               <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>                 <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;residual_vector&#39;</span><span class="p">,</span>              <span class="s">&#39;NUMPY&#39;</span><span class="p">),</span>
     <span class="p">),</span>
         <span class="c"># TODO: Remove residual_rowid from being a superkey</span>
-        <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;residual_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;residual_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,)],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        Used to store individual SMK/ASMK residual vectors for features&#39;&#39;&#39;</span><span class="p">)</span>
     <span class="k">pass</span>
@@ -189,8 +190,8 @@
 <div class="viewcode-block" id="update_1_0_2"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DBCACHE_SCHEMA.update_1_0_2">[docs]</a><span class="k">def</span> <span class="nf">update_1_0_2</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="c"># Change name of feature_sifts to feature_vecs and</span>
     <span class="c"># add new column for feature_forground_weight</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span>
-        <span class="p">(</span><span class="s">&#39;feature_sifts&#39;</span><span class="p">,</span>   <span class="s">&#39;feature_vecs&#39;</span><span class="p">,</span>             <span class="s">&#39;&#39;</span><span class="p">,</span>      <span class="bp">None</span><span class="p">),</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;feature_sifts&#39;</span><span class="p">,</span>   <span class="s">&#39;feature_vecs&#39;</span><span class="p">,</span>             <span class="s">&#39;NUMPY&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
         <span class="p">(</span>           <span class="bp">None</span><span class="p">,</span>   <span class="s">&#39;feature_forground_weight&#39;</span><span class="p">,</span> <span class="s">&#39;NUMPY&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
     <span class="p">))</span>
 
@@ -198,23 +199,32 @@
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="update_1_0_3"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DBCACHE_SCHEMA.update_1_0_3">[docs]</a><span class="k">def</span> <span class="nf">update_1_0_3</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="c"># Move the forground weight column to a new table</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">drop_column</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="s">&#39;feature_forground_weight&#39;</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">drop_column</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="s">&#39;feature_forground_weight&#39;</span><span class="p">)</span>
 
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">FEATURE_WEIGHT_TABLE</span><span class="p">,</span> <span class="n">coldef_list</span><span class="o">=</span><span class="p">(</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_WEIGHT_TABLE</span><span class="p">,</span> <span class="n">coldef_list</span><span class="o">=</span><span class="p">(</span>
         <span class="p">(</span><span class="s">&#39;featweight_rowid&#39;</span><span class="p">,</span>            <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span>               <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>                <span class="s">&#39;INTEGER DEFAULT 0&#39;</span><span class="p">),</span>
         <span class="p">(</span><span class="s">&#39;featweight_forground_weight&#39;</span><span class="p">,</span> <span class="s">&#39;NUMPY&#39;</span><span class="p">),</span>
     <span class="p">),</span>
-        <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,)],</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,)],</span>
         <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
 <span class="s">        Stores weightings of features based on the forground... etc</span>
 <span class="s">        &#39;&#39;&#39;</span>
     <span class="p">)</span>
 
     <span class="c"># Fix the superkeys for the residual table</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">RESIDUAL_TABLE</span><span class="p">,</span> <span class="n">colmap_list</span><span class="o">=</span><span class="p">[],</span>
-                    <span class="n">superkey_colnames_list</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,)],)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">tablename</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">RESIDUAL_TABLE</span><span class="p">,</span> <span class="n">colmap_list</span><span class="o">=</span><span class="p">[],</span>
+                    <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;feature_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,)],)</span>
+
+</div>
+<div class="viewcode-block" id="update_1_0_4"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DBCACHE_SCHEMA.update_1_0_4">[docs]</a><span class="k">def</span> <span class="nf">update_1_0_4</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">,</span> <span class="n">dependson</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="n">dependson</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">CHIP_TABLE</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_WEIGHT_TABLE</span><span class="p">,</span> <span class="n">dependson</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">FEATURE_TABLE</span><span class="p">,</span> <span class="n">shortname</span><span class="o">=</span><span class="s">&#39;featweight&#39;</span><span class="p">)</span>
+    <span class="c">#db.modify_table(const.FEATURE_WEIGHT_TABLE, dependson=[const.FEATURE_TABLE, const.PROBCHIP_TABLE])</span>
+    <span class="c">#db.modify_table(const.RESIDUAL_TABLE, dependson=[const.FEATURE_TABLE, const.VOCAB_TABLE])</span>
+    <span class="c">#db.modify_table(const.PROBCHIP_TABLE, dependson=[const.CHIP_TABLE])</span>
 
 
 <span class="c"># ========================</span>
@@ -222,7 +232,7 @@
 <span class="c"># ========================</span>
 
 </div>
-<span class="n">base</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
+<span class="n">base</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
 <span class="n">VALID_VERSIONS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">odict</span><span class="p">([</span>
     <span class="c">#version:   (Pre-Update Function,  Update Function,    Post-Update Function)</span>
     <span class="p">(</span><span class="n">base</span>   <span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="bp">None</span><span class="p">,</span>               <span class="bp">None</span><span class="p">,)),</span>
@@ -230,34 +240,34 @@
     <span class="p">(</span><span class="s">&#39;1.0.1&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_0_1</span><span class="p">,</span>       <span class="bp">None</span><span class="p">,)),</span>
     <span class="p">(</span><span class="s">&#39;1.0.2&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_0_2</span><span class="p">,</span>       <span class="bp">None</span><span class="p">,)),</span>
     <span class="p">(</span><span class="s">&#39;1.0.3&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_0_3</span><span class="p">,</span>       <span class="bp">None</span><span class="p">,)),</span>
+    <span class="p">(</span><span class="s">&#39;1.0.4&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_0_4</span><span class="p">,</span>       <span class="bp">None</span><span class="p">,)),</span>
 <span class="p">])</span>
 
+<span class="n">LEGACY_UPDATE_FUNCTIONS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s">&#39;1.0.4&#39;</span><span class="p">,</span>  <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">fix_metadata_consistency</span><span class="p">),</span>
+<span class="p">]</span>
 
-<div class="viewcode-block" id="test_dbcache_schema"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DBCACHE_SCHEMA.test_dbcache_schema">[docs]</a><span class="k">def</span> <span class="nf">test_dbcache_schema</span><span class="p">():</span>
+
+<div class="viewcode-block" id="autogen_dbcache_schema"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DBCACHE_SCHEMA.autogen_dbcache_schema">[docs]</a><span class="k">def</span> <span class="nf">autogen_dbcache_schema</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    test_dbcache_schema</span>
+<span class="sd">    autogen_dbcache_schema</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.DBCACHE_SCHEMA import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; test_dbcache_schema()</span>
+<span class="sd">        &gt;&gt;&gt; autogen_dbcache_schema()</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.control.DBCACHE_SCHEMA --test-test_dbcache_schema</span>
-<span class="sd">        python -m ibeis.control.DBCACHE_SCHEMA --test-test_dbcache_schema --dump-autogen-schema</span>
+<span class="sd">        python -m ibeis.control.DBCACHE_SCHEMA --test-autogen_dbcache_schema</span>
+<span class="sd">        python -m ibeis.control.DBCACHE_SCHEMA --test-autogen_dbcache_schema --write</span>
 <span class="sd">        python -m ibeis.control.DBCACHE_SCHEMA --force-incremental-db-update</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">DBCACHE_SCHEMA</span>
     <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
-    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
-    <span class="n">autogenerate</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">dump_autogen_schema</span>
     <span class="n">n</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;-n&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">dbcache</span> <span class="o">=</span> <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">get_nth_test_schema_version</span><span class="p">(</span><span class="n">DBCACHE_SCHEMA</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">autogenerate</span><span class="o">=</span><span class="n">autogenerate</span><span class="p">)</span>
-    <span class="n">autogen_cmd</span> <span class="o">=</span> <span class="s">&#39;python -m ibeis.control.DBCACHE_SCHEMA --force-incremental-db-update --test-test_dbcache_schema --dump-autogen-schema&#39;</span>
-    <span class="n">autogen_str</span> <span class="o">=</span> <span class="n">dbcache</span><span class="o">.</span><span class="n">get_schema_current_autogeneration_str</span><span class="p">(</span><span class="n">autogen_cmd</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">autogen_str</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39; Run with --dump-autogen-schema to autogenerate latest schema version&#39;</span><span class="p">)</span>
+    <span class="n">schema_spec</span> <span class="o">=</span> <span class="n">DBCACHE_SCHEMA</span>
+    <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">autogenerate_nth_schema_version</span><span class="p">(</span><span class="n">schema_spec</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>

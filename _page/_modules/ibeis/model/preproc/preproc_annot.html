@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -292,11 +292,11 @@
 
     <span class="k">assert</span> <span class="n">annotation_uuid_list1</span> <span class="o">==</span> <span class="n">annotation_uuid_list2</span>
 
-</div>
-<div class="viewcode-block" id="distinguish_unknown_nids"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_annot.distinguish_unknown_nids">[docs]</a><span class="k">def</span> <span class="nf">distinguish_unknown_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list_</span><span class="p">):</span>
-    <span class="n">nid_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="n">aid</span> <span class="k">if</span> <span class="n">nid</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="k">else</span> <span class="n">nid</span>
-                <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nid_list_</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)]</span>
-    <span class="k">return</span> <span class="n">nid_list</span>
+
+<span class="c">#def distinguish_unknown_nids(ibs, aid_list, nid_list_):</span>
+<span class="c">#    nid_list = [-aid if nid == ibs.UNKNOWN_LBLANNOT_ROWID or nid is None else nid</span>
+<span class="c">#                for nid, aid in zip(nid_list_, aid_list)]</span>
+<span class="c">#    return nid_list</span>
 
 </div>
 <div class="viewcode-block" id="postget_annot_verts"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_annot.postget_annot_verts">[docs]</a><span class="k">def</span> <span class="nf">postget_annot_verts</span><span class="p">(</span><span class="n">vertstr_list</span><span class="p">):</span>
@@ -310,7 +310,7 @@
 </div>
 <div class="viewcode-block" id="on_delete"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_annot.on_delete">[docs]</a><span class="k">def</span> <span class="nf">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="c">#ibs.delete_annot_relations(aid_list)</span>
-    <span class="c"># image thumbs are deleted in here too</span>
+    <span class="c"># image thumbs are deleted in here too, this needs to be fixed</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_chips</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 
 </div>

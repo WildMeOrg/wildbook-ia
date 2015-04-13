@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -401,8 +401,10 @@
     <span class="k">return</span> <span class="n">allorg</span>
 
 </div>
+<span class="nd">@profile</span>
 <div class="viewcode-block" id="get_automatch_candidates"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.results_organizer.get_automatch_candidates">[docs]</a><span class="k">def</span> <span class="nf">get_automatch_candidates</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">directed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                             <span class="n">name_scoring</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                             <span class="n">name_scoring</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">filter_reviewed</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">filter_duplicate_namepair_matches</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a list of matches that should be inspected</span>
 <span class="sd">    This function is more lightweight than orgres or allres.</span>
@@ -415,66 +417,190 @@
 <span class="sd">        directed (bool):</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        tuple: candidate_matches = (qaid_arr, aid_arr, score_arr, rank_arr)</span>
+<span class="sd">        tuple: candidate_matches = (qaid_arr, daid_arr, score_arr, rank_arr)</span>
 
-<span class="sd">    Example:</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.dev.results_organizer --test-get_automatch_candidates:2</span>
+
+<span class="sd">    Example0:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.dev.results_organizer import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; qaid2_qres = &#39;?&#39;</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = ibs.get_valid_aids()[0:5]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids()[0:20]</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres = ibs._query_chips4(qaid_list, daid_list)</span>
 <span class="sd">        &gt;&gt;&gt; ranks_lt = 5</span>
 <span class="sd">        &gt;&gt;&gt; directed = True</span>
-<span class="sd">        &gt;&gt;&gt; candidate_matches = get_automatch_candidates(qaid2_qres, ranks_lt, directed)</span>
+<span class="sd">        &gt;&gt;&gt; name_scoring = False</span>
+<span class="sd">        &gt;&gt;&gt; candidate_matches = get_automatch_candidates(qaid2_qres, ranks_lt, directed, ibs=ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(candidate_matches)</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.results_organizer import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = ibs.get_valid_aids()[0:5]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids()[0:20]</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres = ibs._query_chips4(qaid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; ranks_lt = 5</span>
+<span class="sd">        &gt;&gt;&gt; directed = False</span>
+<span class="sd">        &gt;&gt;&gt; name_scoring = False</span>
+<span class="sd">        &gt;&gt;&gt; filter_reviewed = False</span>
+<span class="sd">        &gt;&gt;&gt; filter_duplicate_namepair_matches = True</span>
+<span class="sd">        &gt;&gt;&gt; candidate_matches = get_automatch_candidates(</span>
+<span class="sd">        ...    qaid2_qres, ranks_lt, directed, name_scoring=name_scoring,</span>
+<span class="sd">        ...    filter_reviewed=filter_reviewed,</span>
+<span class="sd">        ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,</span>
+<span class="sd">        ...    ibs=ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(candidate_matches)</span>
+
+<span class="sd">    Example3:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.results_organizer import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = ibs.get_valid_aids()[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids()[10:100]</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres = ibs._query_chips4(qaid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; ranks_lt = 1</span>
+<span class="sd">        &gt;&gt;&gt; directed = False</span>
+<span class="sd">        &gt;&gt;&gt; name_scoring = False</span>
+<span class="sd">        &gt;&gt;&gt; filter_reviewed = False</span>
+<span class="sd">        &gt;&gt;&gt; filter_duplicate_namepair_matches = True</span>
+<span class="sd">        &gt;&gt;&gt; candidate_matches = get_automatch_candidates(</span>
+<span class="sd">        ...    qaid2_qres, ranks_lt, directed, name_scoring=name_scoring,</span>
+<span class="sd">        ...    filter_reviewed=filter_reviewed,</span>
+<span class="sd">        ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,</span>
+<span class="sd">        ...    ibs=ibs)</span>
+<span class="sd">        &gt;&gt;&gt; print(candidate_matches)</span>
+
+<span class="sd">    Example4:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dev.results_organizer import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; qaid_list = ibs.get_valid_aids()[0:10]</span>
+<span class="sd">        &gt;&gt;&gt; daid_list = ibs.get_valid_aids()[0:10]</span>
+<span class="sd">        &gt;&gt;&gt; qaid2_qres = ibs._query_chips4(qaid_list, daid_list)</span>
+<span class="sd">        &gt;&gt;&gt; ranks_lt = 3</span>
+<span class="sd">        &gt;&gt;&gt; directed = False</span>
+<span class="sd">        &gt;&gt;&gt; name_scoring = False</span>
+<span class="sd">        &gt;&gt;&gt; filter_reviewed = False</span>
+<span class="sd">        &gt;&gt;&gt; filter_duplicate_namepair_matches = True</span>
+<span class="sd">        &gt;&gt;&gt; candidate_matches = get_automatch_candidates(</span>
+<span class="sd">        ...    qaid2_qres, ranks_lt, directed, name_scoring=name_scoring,</span>
+<span class="sd">        ...    filter_reviewed=filter_reviewed,</span>
+<span class="sd">        ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,</span>
+<span class="sd">        ...    ibs=ibs)</span>
 <span class="sd">        &gt;&gt;&gt; print(candidate_matches)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="k">print</span><span class="p">((</span><span class="s">&#39;[resorg] get_automatch_candidates(&#39;</span>
+           <span class="s">&#39;filter_reviewed={filter_reviewed},&#39;</span>
+           <span class="s">&#39;filter_duplicate_namepair_matches={filter_duplicate_namepair_matches},&#39;</span>
+           <span class="s">&#39;directed={directed},&#39;</span>
+           <span class="s">&#39;ranks_lt={ranks_lt},&#39;</span>
+           <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="nb">locals</span><span class="p">()))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[resorg] len(qaid2_qres) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">)))</span>
     <span class="n">qaids_stack</span>  <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">aids_stack</span>   <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">daids_stack</span>  <span class="o">=</span> <span class="p">[]</span>
     <span class="n">ranks_stack</span>  <span class="o">=</span> <span class="p">[]</span>
     <span class="n">scores_stack</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="c"># For each QueryResult, Extract inspectable candidate matches</span>
     <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">):</span>
         <span class="k">assert</span> <span class="n">qaid</span> <span class="o">==</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="s">&#39;qaid2_qres and qres disagree on qaid&#39;</span>
-        <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">ranks</span><span class="p">)</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_match_tbldata</span><span class="p">(</span><span class="n">ranks_lt</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">,</span>
-                                                              <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span>
-                                                              <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">ranks</span><span class="p">)</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_match_tbldata</span><span class="p">(</span><span class="n">ranks_lt</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">,</span>
+                                                               <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span>
+                                                               <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
         <span class="n">qaids_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
-        <span class="n">aids_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+        <span class="n">daids_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span>
         <span class="n">scores_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
         <span class="n">ranks_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ranks</span><span class="p">)</span>
 
     <span class="c"># Stack them into a giant array</span>
     <span class="c"># utool.embed()</span>
     <span class="n">qaid_arr</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">qaids_stack</span><span class="p">)</span>
-    <span class="n">aid_arr</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">aids_stack</span><span class="p">)</span>
+    <span class="n">daid_arr</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">daids_stack</span><span class="p">)</span>
     <span class="n">score_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">scores_stack</span><span class="p">)</span>
     <span class="n">rank_arr</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">ranks_stack</span><span class="p">)</span>
 
     <span class="c"># Sort by scores</span>
     <span class="n">sortx</span> <span class="o">=</span> <span class="n">score_arr</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">qaid_arr</span>  <span class="o">=</span> <span class="n">qaid_arr</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
-    <span class="n">aid_arr</span>   <span class="o">=</span> <span class="n">aid_arr</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+    <span class="n">daid_arr</span>   <span class="o">=</span> <span class="n">daid_arr</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
     <span class="n">score_arr</span> <span class="o">=</span> <span class="n">score_arr</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
     <span class="n">rank_arr</span>  <span class="o">=</span> <span class="n">rank_arr</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">filter_reviewed</span><span class="p">:</span>
+        <span class="n">_is_reviewed</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_pair_is_reviewed</span><span class="p">(</span><span class="n">qaid_arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">daid_arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="n">is_unreviewed</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">_is_reviewed</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="n">qaid_arr</span>  <span class="o">=</span> <span class="n">qaid_arr</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_unreviewed</span><span class="p">)</span>
+        <span class="n">daid_arr</span>   <span class="o">=</span> <span class="n">daid_arr</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_unreviewed</span><span class="p">)</span>
+        <span class="n">score_arr</span> <span class="o">=</span> <span class="n">score_arr</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_unreviewed</span><span class="p">)</span>
+        <span class="n">rank_arr</span>  <span class="o">=</span> <span class="n">rank_arr</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_unreviewed</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">find_best_undirected_edge_indexes</span><span class="p">(</span><span class="n">directed_edges</span><span class="p">,</span> <span class="n">score_arr</span><span class="p">):</span>
+        <span class="c">#flipped = qaid_arr &lt; daid_arr</span>
+        <span class="n">flipped</span> <span class="o">=</span> <span class="n">directed_edges</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">directed_edges</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c"># standardize edge order</span>
+        <span class="n">edges_dupl</span> <span class="o">=</span> <span class="n">directed_edges</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">edges_dupl</span><span class="p">[</span><span class="n">flipped</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">edges_dupl</span><span class="p">[</span><span class="n">flipped</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">][:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">edgeid_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">compute_unique_data_ids</span><span class="p">(</span><span class="n">edges_dupl</span><span class="p">)</span>
+        <span class="n">unique_edgeids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">edgeid_list</span><span class="p">)</span>
+        <span class="c"># if there is more than one edge in a group take the one with the highest score</span>
+        <span class="n">score_groups</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">score_arr</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+        <span class="n">unique_edge_xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span>
+            <span class="n">groupx</span><span class="p">[</span><span class="n">score_group</span><span class="o">.</span><span class="n">argmax</span><span class="p">()]</span> <span class="k">for</span> <span class="n">groupx</span><span class="p">,</span> <span class="n">score_group</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">score_groups</span><span class="p">)</span>
+        <span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">unique_edge_xs</span>
 
     <span class="c"># Remove directed edges</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">directed</span><span class="p">:</span>
         <span class="c">#nodes = np.unique(directed_edges.flatten())</span>
-        <span class="n">directed_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">qaid_arr</span><span class="p">,</span> <span class="n">aid_arr</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">flipped</span> <span class="o">=</span> <span class="n">qaid_arr</span> <span class="o">&lt;</span> <span class="n">aid_arr</span>
-        <span class="c"># standardize edge order</span>
-        <span class="n">edges_dupl</span> <span class="o">=</span> <span class="n">directed_edges</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">edges_dupl</span><span class="p">[</span><span class="n">flipped</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">edges_dupl</span><span class="p">[</span><span class="n">flipped</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">][:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="c"># Find unique row indexes</span>
-        <span class="n">unique_rowx</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">unique_row_indexes</span><span class="p">(</span><span class="n">edges_dupl</span><span class="p">)</span>
-        <span class="c">#edges_unique = edges_dupl[unique_rowx]</span>
-        <span class="c">#flipped_unique = flipped[unique_rowx]</span>
-        <span class="n">qaid_arr</span>  <span class="o">=</span> <span class="n">qaid_arr</span><span class="p">[</span><span class="n">unique_rowx</span><span class="p">]</span>
-        <span class="n">aid_arr</span>   <span class="o">=</span> <span class="n">aid_arr</span><span class="p">[</span><span class="n">unique_rowx</span><span class="p">]</span>
-        <span class="n">score_arr</span> <span class="o">=</span> <span class="n">score_arr</span><span class="p">[</span><span class="n">unique_rowx</span><span class="p">]</span>
-        <span class="n">rank_arr</span>  <span class="o">=</span> <span class="n">rank_arr</span><span class="p">[</span><span class="n">unique_rowx</span><span class="p">]</span>
+        <span class="n">directed_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">qaid_arr</span><span class="p">,</span> <span class="n">daid_arr</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+        <span class="c">#idx1, idx2 = vt.intersect2d_indices(directed_edges, directed_edges[:, ::-1])</span>
 
-    <span class="n">candidate_matches</span> <span class="o">=</span> <span class="p">(</span><span class="n">qaid_arr</span><span class="p">,</span> <span class="n">aid_arr</span><span class="p">,</span> <span class="n">score_arr</span><span class="p">,</span> <span class="n">rank_arr</span><span class="p">)</span>
+        <span class="n">unique_rowx</span> <span class="o">=</span> <span class="n">find_best_undirected_edge_indexes</span><span class="p">(</span><span class="n">directed_edges</span><span class="p">,</span> <span class="n">score_arr</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">candidate_matches</span></div>
+        <span class="n">qaid_arr</span>  <span class="o">=</span> <span class="n">qaid_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx</span><span class="p">)</span>
+        <span class="n">daid_arr</span>  <span class="o">=</span> <span class="n">daid_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx</span><span class="p">)</span>
+        <span class="n">score_arr</span> <span class="o">=</span> <span class="n">score_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx</span><span class="p">)</span>
+        <span class="n">rank_arr</span>  <span class="o">=</span> <span class="n">rank_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx</span><span class="p">)</span>
+
+    <span class="c"># Filter Double Name Matches</span>
+    <span class="k">if</span> <span class="n">filter_duplicate_namepair_matches</span><span class="p">:</span>
+        <span class="n">qnid_arr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qaid_arr</span><span class="p">)</span>
+        <span class="n">dnid_arr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">daid_arr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">directed</span><span class="p">:</span>
+            <span class="n">directed_name_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">qnid_arr</span><span class="p">,</span> <span class="n">dnid_arr</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">unique_rowx2</span> <span class="o">=</span> <span class="n">find_best_undirected_edge_indexes</span><span class="p">(</span><span class="n">directed_name_edges</span><span class="p">,</span> <span class="n">score_arr</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">namepair_id_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">compute_unique_data_ids_</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">qnid_arr</span><span class="p">,</span> <span class="n">dnid_arr</span><span class="p">))))</span>
+            <span class="n">unique_namepair_ids</span><span class="p">,</span> <span class="n">namepair_groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">namepair_id_list</span><span class="p">)</span>
+            <span class="n">score_namepair_groups</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">score_arr</span><span class="p">,</span> <span class="n">namepair_groupxs</span><span class="p">)</span>
+            <span class="n">unique_rowx2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span>
+                <span class="n">groupx</span><span class="p">[</span><span class="n">score_group</span><span class="o">.</span><span class="n">argmax</span><span class="p">()]</span>
+                <span class="k">for</span> <span class="n">groupx</span><span class="p">,</span> <span class="n">score_group</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">namepair_groupxs</span><span class="p">,</span> <span class="n">score_namepair_groups</span><span class="p">)</span>
+            <span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">qaid_arr</span>  <span class="o">=</span> <span class="n">qaid_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx2</span><span class="p">)</span>
+        <span class="n">daid_arr</span>  <span class="o">=</span> <span class="n">daid_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx2</span><span class="p">)</span>
+        <span class="n">score_arr</span> <span class="o">=</span> <span class="n">score_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx2</span><span class="p">)</span>
+        <span class="n">rank_arr</span>  <span class="o">=</span> <span class="n">rank_arr</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">unique_rowx2</span><span class="p">)</span>
+
+    <span class="n">candidate_matches</span> <span class="o">=</span> <span class="p">(</span><span class="n">qaid_arr</span><span class="p">,</span> <span class="n">daid_arr</span><span class="p">,</span> <span class="n">score_arr</span><span class="p">,</span> <span class="n">rank_arr</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">candidate_matches</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.dev.results_organizer</span>
+<span class="sd">        python -m ibeis.dev.results_organizer --allexamples</span>
+<span class="sd">        python -m ibeis.dev.results_organizer --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

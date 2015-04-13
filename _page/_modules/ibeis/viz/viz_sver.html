@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -118,10 +118,10 @@
 <span class="n">WRITE_SV_DEBUG</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--write-sv-debug&#39;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_get_sv_vartup_for_plottool</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_get_sv_vartup_for_plottool</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Compiles IBEIS information into info suitable for plottool &quot;&quot;&quot;</span>
-    <span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
-    <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+    <span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
     <span class="n">aid2_fm</span> <span class="o">=</span> <span class="n">chipmatch_FILT</span><span class="o">.</span><span class="n">aid2_fm</span>
     <span class="c">#aid2_fs = chipmatch_FILT.aid2_fs</span>
     <span class="c">#aid2_fk = chipmatch_FILT.aid2_fk</span>
@@ -135,7 +135,7 @@
 
 <span class="k">def</span> <span class="nf">_compute_svvars</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; If spatial-verfication dbginfo is not in we need to compute it &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
+    <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>
     <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
     <span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">qaids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
@@ -144,7 +144,7 @@
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;!!! nothing to search&#39;</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;!!! nothing to query&#39;</span>
     <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_load</span><span class="p">()</span>
-    <span class="n">pipeline_locals_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">pipeline_locals_</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="n">qaid2_chipmatch_FILT</span> <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_chipmatch_FILT&#39;</span><span class="p">]</span>
     <span class="n">qaid2_svtups</span>         <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;qaid2_svtups&#39;</span><span class="p">]</span>
     <span class="n">chipmatch_FILT</span> <span class="o">=</span> <span class="n">qaid2_chipmatch_FILT</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
@@ -153,9 +153,12 @@
 
 
 <span class="nd">@utool.indent_func</span>
-<div class="viewcode-block" id="show_sver"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_sver.show_sver">[docs]</a><span class="k">def</span> <span class="nf">show_sver</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="show_sver"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_sver.show_sver">[docs]</a><span class="k">def</span> <span class="nf">show_sver</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compiles IBEIS information and sends it to plottool</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_sver --test-show_sver --show</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
@@ -169,15 +172,15 @@
 <span class="sd">        &gt;&gt;&gt; aid2_svtup = None</span>
 <span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
 <span class="sd">        &gt;&gt;&gt; show_sver(ibs, aid1, aid2)</span>
-<span class="sd">        &gt;&gt;&gt; if ut.get_argflag(&#39;--show&#39;) or ut.inIPython():</span>
-<span class="sd">        ...     import plottool as pt</span>
-<span class="sd">        ...     exec(pt.present())</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; exec(pt.present())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[show_sver] ====================== [show_sver]&#39;</span><span class="p">)</span>
     <span class="c">#print(utool.func_str(show_sv, kwargs=locals()))</span>
     <span class="k">if</span> <span class="n">chipmatch_FILT</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">aid2_svtup</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span> <span class="o">=</span> <span class="n">_compute_svvars</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">)</span>
-    <span class="n">sv_vartup</span> <span class="o">=</span> <span class="n">_get_sv_vartup_for_plottool</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="p">)</span>
+    <span class="n">sv_vartup</span> <span class="o">=</span> <span class="n">_get_sv_vartup_for_plottool</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
     <span class="p">(</span><span class="n">chip1</span><span class="p">,</span> <span class="n">chip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">homog_tup</span><span class="p">,</span> <span class="n">aff_tup</span><span class="p">)</span> <span class="o">=</span> <span class="n">sv_vartup</span>
     <span class="k">if</span> <span class="n">WRITE_SV_DEBUG</span><span class="p">:</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;chip1&#39;</span><span class="p">,</span> <span class="s">&#39;chip2&#39;</span><span class="p">,</span> <span class="s">&#39;kpts1&#39;</span><span class="p">,</span> <span class="s">&#39;kpts2&#39;</span><span class="p">,</span> <span class="s">&#39;fm&#39;</span><span class="p">,</span> <span class="s">&#39;homog_tup&#39;</span><span class="p">,</span> <span class="s">&#39;aff_tup&#39;</span><span class="p">)</span>

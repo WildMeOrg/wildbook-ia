@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -140,7 +140,7 @@
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">nids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">names_text</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">gids_lists</span><span class="p">)</span>
 
         <span class="c"># the actual text encounter name corresponding to the encounter id</span>
-        <span class="n">enctext</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_enctext</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+        <span class="n">enctext</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
 
         <span class="c"># ibeis encounter is wildbook occurrence!</span>
         <span class="n">occurrence_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">enctext</span><span class="p">)</span>
@@ -204,7 +204,7 @@
     <span class="n">wb_encounters</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">for</span> <span class="n">encounter_id</span> <span class="ow">in</span> <span class="n">eid_list</span><span class="p">:</span>
-        <span class="n">encounter</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_enctext</span><span class="p">(</span><span class="n">encounter_id</span><span class="p">)</span>
+        <span class="n">encounter</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">encounter_id</span><span class="p">)</span>
         <span class="c"># make occurrence id from enctext</span>
         <span class="n">name_annotation_mapping</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">image_annotation_mapping</span> <span class="o">=</span> <span class="p">{}</span>

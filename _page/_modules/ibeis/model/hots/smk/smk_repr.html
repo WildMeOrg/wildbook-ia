@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -385,8 +385,7 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_repr] index_data_annots&#39;</span><span class="p">)</span>
     <span class="n">flann_params</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="c"># Compute fast lookup index for the words</span>
-    <span class="n">wordflann</span> <span class="o">=</span> <span class="n">nntool</span><span class="o">.</span><span class="n">flann_cache</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">flann_params</span><span class="o">=</span><span class="n">flann_params</span><span class="p">,</span>
-                                   <span class="n">appname</span><span class="o">=</span><span class="s">&#39;smk&#39;</span><span class="p">)</span>
+    <span class="n">wordflann</span> <span class="o">=</span> <span class="n">nntool</span><span class="o">.</span><span class="n">flann_cache</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">flann_params</span><span class="o">=</span><span class="n">flann_params</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;smk&#39;</span><span class="p">)</span>
     <span class="n">_vecs_list</span> <span class="o">=</span> <span class="n">annots_df</span><span class="p">[</span><span class="s">&#39;vecs&#39;</span><span class="p">][</span><span class="n">daids</span><span class="p">]</span>
     <span class="n">_label_list</span> <span class="o">=</span> <span class="n">annots_df</span><span class="p">[</span><span class="s">&#39;labels&#39;</span><span class="p">][</span><span class="n">daids</span><span class="p">]</span>
     <span class="n">idx2_dvec</span><span class="p">,</span> <span class="n">idx2_daid</span><span class="p">,</span> <span class="n">idx2_dfx</span> <span class="o">=</span> <span class="n">nntool</span><span class="o">.</span><span class="n">invertible_stack</span><span class="p">(</span><span class="n">_vecs_list</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>

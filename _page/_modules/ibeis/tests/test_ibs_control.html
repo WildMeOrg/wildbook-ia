@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -231,17 +231,17 @@
 
     <span class="sd">&quot;&quot;&quot; set encounter enctext / get encounter enctext &quot;&quot;&quot;</span>
     <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
-    <span class="n">enc_text_list_orig</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_enctext</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">enc_text_list_orig</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
     <span class="n">enc_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">))]</span>
     <span class="k">assert</span> <span class="n">eid_list</span><span class="p">,</span> <span class="s">&#39;eid_list is empty&#39;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;len eid_list: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">eid_list</span><span class="p">))</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_enctext</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">enc_text_list</span><span class="p">)</span>
-    <span class="n">enc_text_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_enctext</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_text</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">enc_text_list</span><span class="p">)</span>
+    <span class="n">enc_text_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;enc_text_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">enc_text_list</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;enc_text_list2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">enc_text_list2</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">enc_text_list</span> <span class="o">==</span> <span class="n">enc_text_list2</span><span class="p">,</span> <span class="s">&#39;encounter text lists do not match&#39;</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_enctext</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">enc_text_list_orig</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">enc_text_list_orig</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_enctext</span><span class="p">(</span><span class="n">eid_list</span><span class="p">),</span> <span class="s">&#39;enc text was not reset&#39;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_text</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">enc_text_list_orig</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">enc_text_list_orig</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid_list</span><span class="p">),</span> <span class="s">&#39;enc text was not reset&#39;</span>
 
     <span class="sd">&quot;&quot;&quot; set annotation names / get_annot_names &quot;&quot;&quot;</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>

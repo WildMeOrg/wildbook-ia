@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -111,12 +111,249 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="c">#import sys</span>
+<span class="kn">import</span> <span class="nn">flask</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">current_app</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">make_response</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">join</span>
+<span class="kn">import</span> <span class="nn">simplejson</span> <span class="kn">as</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">from</span> <span class="nn">hashlib</span> <span class="kn">import</span> <span class="n">sha1</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">hmac</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[controller_inject]&#39;</span><span class="p">)</span>
 
 
 <span class="c">#INJECTED_MODULES = []</span>
+<span class="n">UTOOL_AUTOGEN_SPHINX_RUNNING</span> <span class="o">=</span> <span class="ow">not</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;UTOOL_AUTOGEN_SPHINX_RUNNING&#39;</span><span class="p">,</span> <span class="s">&#39;OFF&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;OFF&#39;</span><span class="p">)</span>
+
+<span class="n">GLOBAL_APP_ENABLED</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">UTOOL_AUTOGEN_SPHINX_RUNNING</span>
+<span class="n">GLOBAL_APP_NAME</span> <span class="o">=</span> <span class="s">&#39;IBEIS&#39;</span>
+<span class="n">GLOBAL_APP_SECRET</span> <span class="o">=</span> <span class="s">&#39;CB73808F-A6F6-094B-5FCD-385EBAFF8FC0&#39;</span>
+<span class="n">GLOBAL_APP_TEMPALTE_PATH</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s">&#39;web&#39;</span><span class="p">,</span> <span class="s">&#39;templates&#39;</span><span class="p">))</span>
+<span class="n">GLOBAL_APP_STATIC_PATH</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s">&#39;web&#39;</span><span class="p">,</span> <span class="s">&#39;static&#39;</span><span class="p">))</span>
+
+<span class="n">GLOBAL_APP</span> <span class="o">=</span> <span class="bp">None</span>
 
 
+<div class="viewcode-block" id="get_flask_app"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.get_flask_app">[docs]</a><span class="k">def</span> <span class="nf">get_flask_app</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">GLOBAL_APP</span>
+    <span class="k">if</span> <span class="n">GLOBAL_APP</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">GLOBAL_APP</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Flask</span><span class="p">(</span><span class="n">GLOBAL_APP_NAME</span><span class="p">,</span> <span class="n">template_folder</span><span class="o">=</span><span class="n">GLOBAL_APP_TEMPALTE_PATH</span><span class="p">,</span> <span class="n">static_folder</span><span class="o">=</span><span class="n">GLOBAL_APP_STATIC_PATH</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">GLOBAL_APP</span>
+
+</div>
+<div class="viewcode-block" id="WebException"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.WebException">[docs]</a><span class="k">class</span> <span class="nc">WebException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="mi">400</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">message</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%r</span><span class="s">: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="translate_ibeis_webreturn"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.translate_ibeis_webreturn">[docs]</a><span class="k">def</span> <span class="nf">translate_ibeis_webreturn</span><span class="p">(</span><span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">simplejson</span> <span class="kn">as</span> <span class="nn">json</span>
+    <span class="k">if</span> <span class="n">code</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">message</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">template</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;success&#39;</span><span class="p">:</span> <span class="n">success</span><span class="p">,</span>
+            <span class="s">&#39;code&#39;</span><span class="p">:</span>    <span class="n">code</span><span class="p">,</span>
+            <span class="s">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span>
+            <span class="s">&#39;cache&#39;</span><span class="p">:</span>   <span class="n">cache</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s">&#39;response&#39;</span> <span class="p">:</span> <span class="n">rawreturn</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="translate_ibeis_webcall"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.translate_ibeis_webcall">[docs]</a><span class="k">def</span> <span class="nf">translate_ibeis_webcall</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_process_input</span><span class="p">(</span><span class="n">multidict</span><span class="p">):</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">multidict</span><span class="o">.</span><span class="n">iterlists</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">WebException</span><span class="p">(</span><span class="s">&#39;Cannot specify a parameter more than once: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="p">))</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="s">&#39;,&#39;</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">and</span> <span class="s">&#39;[&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">and</span> <span class="s">&#39;]&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="s">&#39;[</span><span class="si">%s</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="c"># Pipe web input into Python web call</span>
+    <span class="n">_process_input</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">_process_input</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="authentication_challenge"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.authentication_challenge">[docs]</a><span class="k">def</span> <span class="nf">authentication_challenge</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sends a 401 response that enables basic auth</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rawreturn</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">success</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="mi">401</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="s">&#39;Could not verify your authentication, login with proper credentials.&#39;</span>
+    <span class="n">webreturn</span> <span class="o">=</span> <span class="n">translate_ibeis_webreturn</span><span class="p">(</span><span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span><span class="n">webreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">&#39;WWW-Authenticate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Basic realm=&quot;Login Required&quot;&#39;</span>
+    <span class="k">return</span> <span class="n">response</span>
+
+</div>
+<div class="viewcode-block" id="authentication_user_validate"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.authentication_user_validate">[docs]</a><span class="k">def</span> <span class="nf">authentication_user_validate</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function is called to check if a username /</span>
+<span class="sd">    password combination is valid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">auth</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">authorization</span>
+    <span class="k">if</span> <span class="n">auth</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="n">auth</span><span class="o">.</span><span class="n">username</span>
+    <span class="n">password</span> <span class="o">=</span> <span class="n">auth</span><span class="o">.</span><span class="n">password</span>
+    <span class="k">return</span> <span class="n">username</span> <span class="o">==</span> <span class="s">&#39;ibeis&#39;</span> <span class="ow">and</span> <span class="n">password</span> <span class="o">==</span> <span class="s">&#39;ibeis&#39;</span>
+
+</div>
+<div class="viewcode-block" id="authentication_user_only"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.authentication_user_only">[docs]</a><span class="k">def</span> <span class="nf">authentication_user_only</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrp_authenticate_user</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">authentication_user_validate</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">authentication_challenge</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c">#wrp_authenticate_user = ut.preserve_sig(wrp_authenticate_user, func)</span>
+    <span class="k">return</span> <span class="n">wrp_authenticate_user</span>
+
+</div>
+<div class="viewcode-block" id="create_key"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.create_key">[docs]</a><span class="k">def</span> <span class="nf">create_key</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">string</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+    <span class="n">hyphen_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">23</span><span class="p">]</span>
+    <span class="n">key_list</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&#39;-&#39;</span> <span class="k">if</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">hyphen_list</span> <span class="k">else</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">hexdigits</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">36</span><span class="p">)</span> <span class="p">]</span>
+    <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">key_list</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="get_signature"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.get_signature">[docs]</a><span class="k">def</span> <span class="nf">get_signature</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">sha1</span><span class="p">)</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;base64&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="authentication_hash_validate"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.authentication_hash_validate">[docs]</a><span class="k">def</span> <span class="nf">authentication_hash_validate</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function is called to check if a username /</span>
+<span class="sd">    password combination is valid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hash_response</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;Authorization&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hash_response</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="n">hash_challenge_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c"># Check normal url</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+    <span class="n">hash_</span> <span class="o">=</span> <span class="n">get_signature</span><span class="p">(</span><span class="n">GLOBAL_APP_SECRET</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+    <span class="n">hash_challenge</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">GLOBAL_APP_NAME</span><span class="p">,</span> <span class="n">hash_</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">hash_challenge_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hash_challenge</span><span class="p">)</span>
+    <span class="c"># If hash at the end of the url, try alternate hash as well</span>
+    <span class="k">if</span> <span class="s">&#39;/&#39;</span> <span class="o">==</span> <span class="n">url</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">hash_</span> <span class="o">=</span> <span class="n">get_signature</span><span class="p">(</span><span class="n">GLOBAL_APP_SECRET</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+        <span class="n">hash_challenge</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">GLOBAL_APP_NAME</span><span class="p">,</span> <span class="n">hash_</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">hash_challenge_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hash_challenge</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hash_response</span> <span class="ow">in</span> <span class="n">hash_challenge_list</span>
+
+</div>
+<div class="viewcode-block" id="authentication_hash_only"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.authentication_hash_only">[docs]</a><span class="k">def</span> <span class="nf">authentication_hash_only</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrp_authentication_hash</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">authentication_hash_validate</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">authentication_challenge</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrp_authentication_hash</span>
+
+</div>
+<div class="viewcode-block" id="authentication_either"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.authentication_either">[docs]</a><span class="k">def</span> <span class="nf">authentication_either</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; authenticated by either hash or user &quot;&quot;&quot;</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrp_authentication_either</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">authentication_hash_validate</span><span class="p">()</span> <span class="ow">or</span> <span class="n">authentication_user_validate</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="n">authentication_challenge</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrp_authentication_either</span>
+
+</div>
+<div class="viewcode-block" id="get_ibeis_flask_api"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.get_ibeis_flask_api">[docs]</a><span class="k">def</span> <span class="nf">get_ibeis_flask_api</span><span class="p">(</span><span class="n">__name__</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dummy_args_decor</span>
+    <span class="k">if</span> <span class="n">GLOBAL_APP_ENABLED</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">register_api</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+            <span class="c"># accpet args to flask.route</span>
+            <span class="k">def</span> <span class="nf">regsiter_closure</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+                <span class="c"># make translation function in closure scope</span>
+                <span class="c"># and register it with flask.</span>
+                <span class="n">app</span> <span class="o">=</span> <span class="n">get_flask_app</span><span class="p">()</span>
+                <span class="nd">@app.route</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+                <span class="nd">@authentication_either</span>
+                <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+                <span class="k">def</span> <span class="nf">translated_call</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                    <span class="c">#from flask import make_response</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="n">translate_ibeis_webcall</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="n">WebException</span> <span class="k">as</span> <span class="n">webex</span><span class="p">:</span>
+                        <span class="n">rawreturn</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+                        <span class="n">success</span> <span class="o">=</span> <span class="bp">False</span>
+                        <span class="n">code</span> <span class="o">=</span> <span class="n">webex</span><span class="o">.</span><span class="n">code</span>
+                        <span class="n">message</span> <span class="o">=</span> <span class="n">webex</span><span class="o">.</span><span class="n">message</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                        <span class="n">rawreturn</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+                        <span class="n">success</span> <span class="o">=</span> <span class="bp">False</span>
+                        <span class="n">code</span> <span class="o">=</span> <span class="mi">500</span>
+                        <span class="n">message</span> <span class="o">=</span> <span class="s">&#39;API error, Python Exception thrown: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+                    <span class="n">webreturn</span> <span class="o">=</span> <span class="n">translate_ibeis_webreturn</span><span class="p">(</span><span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">flask</span><span class="o">.</span><span class="n">make_response</span><span class="p">(</span><span class="n">webreturn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
+                <span class="c"># return the original unmodified function</span>
+                <span class="k">return</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">regsiter_closure</span>
+        <span class="k">return</span> <span class="n">register_api</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dummy_args_decor</span>
+
+</div>
+<div class="viewcode-block" id="get_ibeis_flask_route"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.get_ibeis_flask_route">[docs]</a><span class="k">def</span> <span class="nf">get_ibeis_flask_route</span><span class="p">(</span><span class="n">__name__</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dummy_args_decor</span>
+    <span class="k">if</span> <span class="n">GLOBAL_APP_ENABLED</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">register_route</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+            <span class="c"># accpet args to flask.route</span>
+            <span class="k">def</span> <span class="nf">regsiter_closure</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+                <span class="c"># make translation function in closure scope</span>
+                <span class="c"># and register it with flask.</span>
+                <span class="n">app</span> <span class="o">=</span> <span class="n">get_flask_app</span><span class="p">()</span>
+                <span class="nd">@app.route</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+                <span class="nd">@authentication_user_only</span>
+                <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+                <span class="k">def</span> <span class="nf">translated_call</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                        <span class="n">rawreturn</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+                        <span class="n">success</span> <span class="o">=</span> <span class="bp">False</span>
+                        <span class="n">code</span> <span class="o">=</span> <span class="mi">400</span>
+                        <span class="n">message</span> <span class="o">=</span> <span class="s">&#39;Route error, Python Exception thrown: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="p">)</span>
+                        <span class="n">result</span> <span class="o">=</span> <span class="n">translate_ibeis_webreturn</span><span class="p">(</span><span class="n">rawreturn</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">result</span>
+                <span class="c">#wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)</span>
+                <span class="c"># return the original unmodified function</span>
+                <span class="k">return</span> <span class="n">func</span>
+            <span class="k">return</span> <span class="n">regsiter_closure</span>
+        <span class="k">return</span> <span class="n">register_route</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">dummy_args_decor</span>
+
+
+<span class="c">##########################################################################################</span>
+
+</div>
 <div class="viewcode-block" id="make_ibs_register_decorator"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.make_ibs_register_decorator">[docs]</a><span class="k">def</span> <span class="nf">make_ibs_register_decorator</span><span class="p">(</span><span class="n">modname</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    builds variables and functions that controller injectable modules need</span>
