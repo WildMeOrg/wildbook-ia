@@ -20,6 +20,14 @@ ibeis.tests.reset_testdbs module
     :undoc-members:
     :show-inheritance:
 
+ibeis.tests.run_tests module
+----------------------------
+
+.. automodule:: ibeis.tests.run_tests
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.tests.test_delete_annotation module
 -----------------------------------------
 

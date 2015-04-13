@@ -4,10 +4,26 @@ ibeis.gui package
 Submodules
 ----------
 
+ibeis.gui.clock_offset_gui module
+---------------------------------
+
+.. automodule:: ibeis.gui.clock_offset_gui
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.gui.guiback module
 ------------------------
 
 .. automodule:: ibeis.gui.guiback
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.gui.guiexcept module
+--------------------------
+
+.. automodule:: ibeis.gui.guiexcept
     :members:
     :undoc-members:
     :show-inheritance:

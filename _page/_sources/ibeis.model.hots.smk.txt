@@ -68,6 +68,14 @@ ibeis.model.hots.smk.smk_scoring module
     :undoc-members:
     :show-inheritance:
 
+ibeis.model.hots.smk.tmp module
+-------------------------------
+
+.. automodule:: ibeis.model.hots.smk.tmp
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

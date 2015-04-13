@@ -20,14 +20,6 @@ ibeis.model.preproc.preproc_chip module
     :undoc-members:
     :show-inheritance:
 
-ibeis.model.preproc.preproc_detectchip module
----------------------------------------------
-
-.. automodule:: ibeis.model.preproc.preproc_detectchip
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.model.preproc.preproc_detectimg module
 --------------------------------------------
 
