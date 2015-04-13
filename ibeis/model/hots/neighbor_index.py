@@ -840,7 +840,10 @@ class NeighborIndex(object):
             tt = ut.tic(msg='Building index')
         idx2_vec = nnindexer.idx2_vec
         flann_params = nnindexer.flann_params
-        nnindexer.flann.build_index(idx2_vec, **flann_params)
+        if num_vecs == 0:
+            print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS. THIS MAY BE A SIGN OF A DEEPER ISSUE')
+        else:
+            nnindexer.flann.build_index(idx2_vec, **flann_params)
         if verbose_:
             ut.toc(tt)
 
