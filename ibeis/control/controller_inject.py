@@ -2,20 +2,24 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 #import sys
 import flask
-from flask import current_app, request
+from flask import current_app, request, make_response
 from functools import wraps
 from os.path import abspath, join
 import simplejson as json
 import traceback
+from hashlib import sha1
+import hmac
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[controller_inject]')
 
 
 #INJECTED_MODULES = []
 
 GLOBAL_APP_ENABLED = True
+GLOBAL_APP_NAME = 'IBEIS'
+GLOBAL_APP_SECRET = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
 GLOBAL_APP_TEMPALTE_PATH = abspath(join('ibeis', 'web', 'templates'))
 GLOBAL_APP_STATIC_PATH = abspath(join('ibeis', 'web', 'static'))
-GLOBAL_APP = flask.Flask('IBEIS', template_folder=GLOBAL_APP_TEMPALTE_PATH, static_folder=GLOBAL_APP_STATIC_PATH)
+GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME, template_folder=GLOBAL_APP_TEMPALTE_PATH, static_folder=GLOBAL_APP_STATIC_PATH)
 
 
 class WebException(Exception):
@@ -27,17 +31,20 @@ class WebException(Exception):
         return repr('%r: %r' % (self.code, self.message, ))
 
 
-def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None):
+def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None, cache=None):
     import simplejson as json
     if code is None:
         code = ''
     if message is None:
         message = ''
+    if cache is None:
+        cache = -1
     template = {
         'status': {
             'success': success,
             'code':    code,
             'message': message,
+            'cache':   cache,
         },
         'response' : rawreturn
     }
@@ -61,7 +68,96 @@ def translate_ibeis_webcall(func, *args, **kwargs):
         output = func(*args, **kwargs)
     except TypeError:
         output = func(ibs=ibs, *args, **kwargs)
-    return (output, True, None, None)
+    return (output, True, 200, None)
+
+
+def authentication_challenge():
+    """
+    Sends a 401 response that enables basic auth
+    """
+    rawreturn = ''
+    success = False
+    code = 401
+    message = 'Could not verify your authentication, login with proper credentials.'
+    webreturn = translate_ibeis_webreturn(rawreturn, success, code, message)
+    response = make_response(webreturn, code)
+    response.headers['WWW-Authenticate'] = 'Basic realm="Login Required"'
+    return response
+
+
+def authentication_user_validate():
+    """
+    This function is called to check if a username /
+    password combination is valid.
+    """
+    auth = request.authorization
+    if auth is None:
+        return False
+    username = auth.username
+    password = auth.password
+    return username == 'ibeis' and password == 'ibeis'
+
+
+def authentication_user_only(func):
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        if not authentication_user_validate():
+            return authentication_challenge()
+        return func(*args, **kwargs)
+    return decorated
+
+
+def create_key():
+    import string
+    import random
+    hyphen_list = [8, 13, 18, 23]
+    key_list = [ '-' if _ in hyphen_list else random.choice(string.hexdigits) for _ in xrange(36) ]
+    return ''.join(key_list).upper()
+
+
+def get_signature(key, message):
+    return str(hmac.new(key, message, sha1).digest().encode("base64").rstrip('\n'))
+
+
+def authentication_hash_validate():
+    """
+    This function is called to check if a username /
+    password combination is valid.
+    """
+    hash_response = str(request.headers.get('Authorization', ''))
+    if len(hash_response) == 0:
+        return False
+    hash_challenge_list = []
+    # Check normal url
+    url = str(request.url)
+    hash_ = get_signature(GLOBAL_APP_SECRET, url)
+    hash_challenge = '%s:%s' % (GLOBAL_APP_NAME, hash_, )
+    hash_challenge_list.append(hash_challenge)
+    # If hash at the end of the url, try alternate hash as well
+    if '/' == url[-1]:
+        url = url[:-1]
+        hash_ = get_signature(GLOBAL_APP_SECRET, url)
+        hash_challenge = '%s:%s' % (GLOBAL_APP_NAME, hash_, )
+        hash_challenge_list.append(hash_challenge)
+    return hash_response in hash_challenge_list
+
+
+def authentication_hash_only(func):
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        if not authentication_hash_validate():
+            return authentication_challenge()
+        return func(*args, **kwargs)
+    return decorated
+
+
+def authentication(func):
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        if not (authentication_hash_validate() or authentication_user_validate()):
+            return authentication_challenge()
+        return func(*args, **kwargs)
+    return decorated
 
 
 def get_ibeis_flask_api():
@@ -72,6 +168,7 @@ def get_ibeis_flask_api():
                 # make translation function in closure scope
                 # and register it with flask.
                 @GLOBAL_APP.route(rule, **options)
+                @authentication
                 @wraps(func)
                 def translated_call(*args, **kwargs):
                     from flask import make_response
@@ -85,10 +182,10 @@ def get_ibeis_flask_api():
                     except Exception as ex:
                         rawreturn = str(traceback.format_exc())
                         success = False
-                        code = 400
+                        code = 500
                         message = 'API error, Python Exception thrown: %r' % (str(ex))
                     webreturn = translate_ibeis_webreturn(rawreturn, success, code, message)
-                    return make_response(webreturn)
+                    return make_response(webreturn, code)
                 # return the original unmodified function
                 return func
             return regsiter_closure
@@ -105,6 +202,7 @@ def get_ibeis_flask_route():
                 # make translation function in closure scope
                 # and register it with flask.
                 @GLOBAL_APP.route(rule, **options)
+                @authentication_user_only
                 @wraps(func)
                 def translated_call(*args, **kwargs):
                     try:
@@ -122,6 +220,9 @@ def get_ibeis_flask_route():
         return register_route
     else:
         return ut.dummy_args_decor
+
+
+##########################################################################################
 
 
 def make_ibs_register_decorator(modname):
