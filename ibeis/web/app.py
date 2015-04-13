@@ -11,7 +11,7 @@ import simplejson as json
 from ibeis.control import controller_inject
 from ibeis.control.SQLDatabaseControl import (SQLDatabaseController,  # NOQA
                                               SQLAtomicContext)
-from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, Species, DEFAULT_WEB_API_PORT
+from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, Species, DEFAULT_WEB_API_PORT, PI, TAU
 import utool as ut
 # Web Internal
 import ibeis
@@ -19,7 +19,6 @@ from ibeis.web import appfuncs as ap
 # Others
 # import numpy as np
 # from scipy.optimize import curve_fit
-import ibeis.constants as const
 import random
 import math
 
@@ -110,7 +109,7 @@ def convert_old_viewpoint_to_yaw(view_angle):
     if view_angle is None:
         return None
     view_angle = ut.deg_to_rad(view_angle)
-    yaw = (-view_angle + (const.TAU / 2)) % const.TAU
+    yaw = (-view_angle + (TAU / 2)) % TAU
     return yaw
 
 
@@ -138,7 +137,7 @@ def convert_yaw_to_old_viewpoint(yaw):
     '''
     if yaw is None:
         return None
-    view_angle = ((const.TAU / 2) - yaw) % const.TAU
+    view_angle = ((TAU / 2) - yaw) % TAU
     view_angle = ut.rad_to_deg(view_angle)
     return view_angle
 
@@ -1034,7 +1033,7 @@ def submit_viewpoint():
         aid = None  # Reset AID to prevent previous
     if method.lower() == 'rotate left':
         theta = ibs.get_annot_thetas(aid)
-        theta = (theta + const.PI / 2) % const.TAU
+        theta = (theta + PI / 2) % TAU
         ibs.set_annot_thetas(aid, theta)
         (xtl, ytl, w, h) = ibs.get_annot_bboxes(aid)
         diffx = int(round((w / 2.0) - (h / 2.0)))
@@ -1052,7 +1051,7 @@ def submit_viewpoint():
         return redirect(redirection)
     if method.lower() == 'rotate right':
         theta = ibs.get_annot_thetas(aid)
-        theta = (theta - const.PI / 2) % const.TAU
+        theta = (theta - PI / 2) % TAU
         ibs.set_annot_thetas(aid, theta)
         (xtl, ytl, w, h) = ibs.get_annot_bboxes(aid)
         diffx = int(round((w / 2.0) - (h / 2.0)))
