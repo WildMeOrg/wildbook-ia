@@ -138,8 +138,8 @@ if DOELSE:
     from plottool.custom_figure import (cla, clf, customize_figure, 
                                         customize_fontprop, figure, gca, gcf, 
                                         get_ax, prepare_figure_for_save, 
-                                        prepare_figure_fpath, sanatize_img_ext, 
-                                        sanatize_img_fname, save_figure, 
+                                        prepare_figure_fpath, sanitize_img_ext, 
+                                        sanitize_img_fname, save_figure, 
                                         set_figtitle, set_ticks, set_title, 
                                         set_xlabel, set_xticks, set_ylabel, 
                                         set_yticks, split,) 

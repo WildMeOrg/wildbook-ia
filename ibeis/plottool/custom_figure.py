@@ -145,7 +145,7 @@ def prepare_figure_for_save(fnum, dpi=None, figsize=None, fig=None):
     return fig, fnum
 
 
-def sanatize_img_fname(fname):
+def sanitize_img_fname(fname):
     """ Removes bad characters from images fnames """
     # Replace bad chars
     fname_clean = fname.replace('/', 'slash')
@@ -155,7 +155,7 @@ def sanatize_img_fname(fname):
     return fname_clean
 
 
-def sanatize_img_ext(ext, defaultext=None):
+def sanitize_img_ext(ext, defaultext=None):
     # Find good ext
     if defaultext is None:
         if mpl.get_backend().lower() == 'pdf':
@@ -171,9 +171,9 @@ def sanatize_img_ext(ext, defaultext=None):
 def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose):
     if fpath is None:
         # Find the title
-        fpath = sanatize_img_fname(fig.canvas.get_window_title())
+        fpath = sanitize_img_fname(fig.canvas.get_window_title())
     elif usetitle:
-        title = sanatize_img_fname(fig.canvas.get_window_title())
+        title = sanitize_img_fname(fig.canvas.get_window_title())
         fpath = join(fpath, title)
     # Split into dpath, fname, and extension
     dpath, fname_ = split(fpath)
@@ -185,8 +185,8 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose):
     # Add in DPI information
     size_suffix = 'DPI=%r_WH=%d,%d' % (custom_constants.DPI, custom_constants.FIGSIZE[0], custom_constants.FIGSIZE[1])
     # Sanatize
-    fname = sanatize_img_fname(fname)
-    ext = sanatize_img_ext(ext, defaultext)
+    fname = sanitize_img_fname(fname)
+    ext = sanitize_img_ext(ext, defaultext)
     # Format safely
     fname_fmt = '{fname}_{size_suffix}{ext}'
     fmt_dict = dict(fname=fname, ext=ext, size_suffix=size_suffix)
