@@ -25,7 +25,7 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 register_api   = controller_inject.get_ibeis_flask_api()
 register_route = controller_inject.get_ibeis_flask_route()
 
-SPECIES_ROWID       = 'species_rowid'
+SPECIES_ROWID   = 'species_rowid'
 SPECIES_UUID    = 'species_uuid'
 SPECIES_TEXT    = 'species_text'
 SPECIES_NOTE    = 'species_note'
@@ -45,7 +45,7 @@ def _get_all_species_rowids(ibs):
 
 
 @register_ibs_method
-@register_api('/api/species/sanatize', methods=['PUT'])
+# @register_api('/api/species/sanatize', methods=['PUT'])
 def sanatize_species_texts(ibs, species_text_list):
     r"""
     changes unknown species to the unknown value
@@ -59,10 +59,6 @@ def sanatize_species_texts(ibs, species_text_list):
 
     CommandLine:
         python -m ibeis.control.manual_species_funcs --test-sanatize_species_texts
-
-    RESTful:
-        Method: POST
-        URL:    /api/species/sanatize
 
     Example:
         >>> # ENABLE_DOCTEST
