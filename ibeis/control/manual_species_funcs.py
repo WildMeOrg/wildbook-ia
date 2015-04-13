@@ -45,7 +45,7 @@ def _get_all_species_rowids(ibs):
 
 
 @register_ibs_method
-# @register_api('/api/species/sanatize', methods=['PUT'])
+@register_api('/api/species/sanatize', methods=['PUT'])
 def sanatize_species_texts(ibs, species_text_list):
     r"""
     changes unknown species to the unknown value
@@ -59,6 +59,10 @@ def sanatize_species_texts(ibs, species_text_list):
 
     CommandLine:
         python -m ibeis.control.manual_species_funcs --test-sanatize_species_texts
+
+    RESTful:
+        Method: POST
+        URL:    /api/species/sanatize
 
     Example:
         >>> # ENABLE_DOCTEST
