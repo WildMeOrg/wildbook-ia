@@ -171,14 +171,23 @@ def show_if_requested():
         from os.path import basename, splitext
         import plottool as pt
         fig = pt.gcf()
-        fpath_ = pt.save_figure(fig=fig, fpath=fpath)
+
+        # make command line adjustments
+        adjust_kw = ut.get_dict_vals_from_commandline(dict(left=.04, right=.96, bottom=.05, top=.95, wspace=.1, hspace=.1))
+        adjust_subplots(**adjust_kw)
+
+        figsize = ut.get_argval('--figsize', type_=list, default=None)
+        dpi = ut.get_argval('--dpi', type_=int, default=custom_constants.DPI)
+
+        absfpath_ = pt.save_figure(fig=fig, fpath=fpath, figsize=figsize, dpi=dpi)
         if dpath is not None:
-            fpath_ = ut.unixjoin(dpath, basename(fpath_))
+            fpath_ = ut.unixjoin(dpath, basename(absfpath_))
         fpath_list = [fpath_]
 
         caption_str = ut.get_argval('--caption', type_=str, default=basename(fpath).replace('_', ' '))
         label_str   = ut.get_argval('--label', type_=str, default=splitext(basename(fpath))[0])
-        figure_str  = ut.util_latex.get_latex_figure_str(fpath_list, label_str=label_str, caption_str=caption_str)
+        height_str  = ut.get_argval('--height', type_=str, default='1.65')
+        figure_str  = ut.util_latex.get_latex_figure_str(fpath_list, label_str=label_str, caption_str=caption_str, height_str=height_str)
         #import sys
         #print(sys.argv)
         latex_block = figure_str
@@ -202,6 +211,10 @@ def show_if_requested():
         except OSError:
             pass
         print(ut.indent(latex_block, ' ' * (4 * 4)))
+
+        if ut.get_argflag('--diskshow'):
+            # show what we wrote
+            ut.startfile(absfpath_)
     if ut.inIPython():
         import plottool as pt
         pt.iup()
@@ -1205,7 +1218,10 @@ def colorbar(scalars, colors, custom=False, lbl=None):
             # SO HACKY
             ticks += (ticks[1] - ticks[0]) / 2
 
-        ticklabels = unique_scalars
+        if isinstance(unique_scalars, np.ndarray) and ut.is_float(unique_scalars):
+            ticklabels = ['%.2f' % scalar for scalar in unique_scalars]
+        else:
+            ticklabels = unique_scalars
         cb.set_ticks(ticks)  # tick locations
         cb.set_ticklabels(ticklabels)  # tick labels
 

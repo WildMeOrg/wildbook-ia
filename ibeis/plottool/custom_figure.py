@@ -129,6 +129,13 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
 def prepare_figure_for_save(fnum, dpi=None, figsize=None, fig=None):
     if fig is not None:
         # HACK; doesnt set DPI this might cause issues
+        if dpi is not None:
+            fig.set_dpi(dpi)
+        if figsize is not None:
+            # Enforce inches and DPI
+            figw, figh = figsize[0], figsize[1]
+            print('fig w,h (inches) = %r, %r' % (figw, figh))
+            fig.set_size_inches(figw, figh)
         return fig, fig.number
     if dpi is None:
         dpi = custom_constants.DPI
@@ -140,7 +147,8 @@ def prepare_figure_for_save(fnum, dpi=None, figsize=None, fig=None):
     else:
         fig = plt.figure(fnum, figsize=figsize, dpi=dpi)
     # Enforce inches and DPI
-    fig.set_size_inches(figsize[0], figsize[1])
+    figw, figh = figsize[0], figsize[1]
+    fig.set_size_inches(figw, figh)
     fnum = fig.number
     return fig, fnum
 
@@ -183,7 +191,8 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose):
         fname += ext
         ext = ''
     # Add in DPI information
-    size_suffix = 'DPI=%r_WH=%d,%d' % (custom_constants.DPI, custom_constants.FIGSIZE[0], custom_constants.FIGSIZE[1])
+    #size_suffix = 'DPI=%r_WH=%d,%d' % (custom_constants.DPI, custom_constants.FIGSIZE[0], custom_constants.FIGSIZE[1])
+    size_suffix = 'DPI=%r_WH=%d,%d' % (fig.dpi, int(fig.get_figwidth()), int(fig.get_figheight()))
     # Sanatize
     fname = sanitize_img_fname(fname)
     ext = sanitize_img_ext(ext, defaultext)
@@ -230,6 +239,7 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwr
             defaultext = '.pdf'
         else:
             defaultext = '.jpg'
+    print('figsize = %r' % (figsize,))
     fig, fnum = prepare_figure_for_save(fnum, dpi, figsize, fig)
     if fpath_strict is None:
         fpath_clean = prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose)
