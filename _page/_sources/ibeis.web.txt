@@ -20,6 +20,14 @@ ibeis.web.appfuncs module
     :undoc-members:
     :show-inheritance:
 
+ibeis.web.test_api module
+-------------------------
+
+.. automodule:: ibeis.web.test_api
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
