@@ -330,7 +330,7 @@
                 <span class="c"># and register it with flask.</span>
                 <span class="n">app</span> <span class="o">=</span> <span class="n">get_flask_app</span><span class="p">()</span>
                 <span class="nd">@app.route</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
-                <span class="nd">@authentication_user_only</span>
+                <span class="c"># @authentication_user_only</span>
                 <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
                 <span class="k">def</span> <span class="nf">translated_call</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
                     <span class="k">try</span><span class="p">:</span>

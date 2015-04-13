@@ -197,7 +197,7 @@
     <span class="n">web_instance</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb_in_background</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">precache</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="c"># let the webapi startup in the background</span>
     <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">uri</span> <span class="o">=</span> <span class="s">&#39;/api/core/dbname&#39;</span>
+    <span class="n">uri</span> <span class="o">=</span> <span class="s">&#39;/api/core/dbname/&#39;</span>
     <span class="c"># Make GET request to the server as a test</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">get_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
     <span class="n">status_code</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">json</span> <span class="o">=</span> <span class="n">response</span>

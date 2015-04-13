@@ -1293,8 +1293,15 @@
     <span class="k">return</span> <span class="n">ap</span><span class="o">.</span><span class="n">return_src</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
 
 </div>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/&lt;gid&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/&lt;gid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="image_src_api"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.image_src_api">[docs]</a><span class="k">def</span> <span class="nf">image_src_api</span><span class="p">(</span><span class="n">gid</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns the base64 encoded image of image &lt;gid&gt;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/image/&lt;aid&gt;/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">image_src</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
 
 </div>
@@ -1305,8 +1312,15 @@
     <span class="k">return</span> <span class="n">ap</span><span class="o">.</span><span class="n">return_src</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
 
 </div>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/&lt;aid&gt;&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/&lt;aid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="annotation_src_api"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.annotation_src_api">[docs]</a><span class="k">def</span> <span class="nf">annotation_src_api</span><span class="p">(</span><span class="n">aid</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns the base64 encoded image of annotation &lt;aid&gt;</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/annot/&lt;aid&gt;/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">annotation_src</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
 
 </div>
@@ -1337,16 +1351,41 @@
     <span class="n">dbinfo_str_formatted</span> <span class="o">=</span> <span class="s">&#39;&lt;pre&gt;</span><span class="si">%s</span><span class="s">&lt;/pre&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbinfo_str</span><span class="p">,</span> <span class="p">)</span>
     <span class="k">return</span> <span class="n">dbinfo_str_formatted</span>
 
+</div>
+<span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/api&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="api"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.api">[docs]</a><span class="k">def</span> <span class="nf">api</span><span class="p">():</span>
+    <span class="n">rules</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">url_map</span><span class="o">.</span><span class="n">iter_rules</span><span class="p">()</span>
+    <span class="n">rule_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">rules</span><span class="p">:</span>
+        <span class="n">methods</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">methods</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&#39;/api/&#39;</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">methods</span> <span class="o">-=</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;HEAD&#39;</span><span class="p">,</span> <span class="s">&#39;OPTIONS&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">methods</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">methods</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">methods</span><span class="p">)</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">methods</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rule_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">rule_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">rule_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">method</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">rule_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">rule_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ap</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;api&#39;</span><span class="p">,</span>
+                       <span class="n">app_name</span><span class="o">=</span><span class="n">controller_inject</span><span class="o">.</span><span class="n">GLOBAL_APP_NAME</span><span class="p">,</span>
+                       <span class="n">app_secret</span><span class="o">=</span><span class="n">controller_inject</span><span class="o">.</span><span class="n">GLOBAL_APP_SECRET</span><span class="p">,</span>
+                       <span class="n">rule_list</span><span class="o">=</span><span class="n">rule_dict</span><span class="p">)</span>
 
-<span class="c"># @register_route(&#39;/404&#39;)</span>
-<span class="c"># def error404(exception):</span>
-<span class="c">#     import traceback</span>
-<span class="c">#     exception_str = str(exception)</span>
-<span class="c">#     traceback_str = str(traceback.format_exc())</span>
-<span class="c">#     print(&#39;[web] %r&#39; % (exception_str, ))</span>
-<span class="c">#     print(&#39;[web] %r&#39; % (traceback_str, ))</span>
-<span class="c">#     return ap.template(None, &#39;404&#39;, exception_str=exception_str,</span>
-<span class="c">#                        traceback_str=traceback_str)</span>
+</div>
+<span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/404&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="error404"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.error404">[docs]</a><span class="k">def</span> <span class="nf">error404</span><span class="p">(</span><span class="n">exception</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">traceback</span>
+    <span class="n">exception_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span>
+    <span class="n">traceback_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">exception_str</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">traceback_str</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">return</span> <span class="n">ap</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;404&#39;</span><span class="p">,</span> <span class="n">exception_str</span><span class="o">=</span><span class="n">exception_str</span><span class="p">,</span>
+                       <span class="n">traceback_str</span><span class="o">=</span><span class="n">traceback_str</span><span class="p">)</span>
 
 
 <span class="c">################################################################################</span>
