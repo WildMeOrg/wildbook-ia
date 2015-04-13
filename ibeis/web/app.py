@@ -14,7 +14,6 @@ from ibeis.control.SQLDatabaseControl import (SQLDatabaseController,  # NOQA
 from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, Species, DEFAULT_WEB_API_PORT, PI, TAU
 import utool as ut
 # Web Internal
-import ibeis
 from ibeis.web import appfuncs as ap
 # Others
 # import numpy as np
@@ -1245,16 +1244,15 @@ def dbinfo():
 ################################################################################
 
 
-def start_tornado(ibs, port=None, blocking=True, browser=BROWSER):
+def start_tornado(ibs, port=None, browser=BROWSER):
     '''
         Initialize the web server
     '''
     def _start_tornado(ibs_, port_):
-        if ibs_.app is None:
-            ibs_.app =  controller_inject.GLOBAL_APP
-            ibs_.app.ibs = ibs_
+        app = controller_inject.GLOBAL_APP
+        app.ibs = ibs_
         http_server = tornado.httpserver.HTTPServer(
-            tornado.wsgi.WSGIContainer(ibs_.app))
+            tornado.wsgi.WSGIContainer(app))
         http_server.listen(port_)
         tornado.ioloop.IOLoop.instance().start()
 
@@ -1275,34 +1273,19 @@ def start_tornado(ibs, port=None, blocking=True, browser=BROWSER):
         import webbrowser
         webbrowser.open(url)
     # Launch the web handler
-    if blocking:
-        _start_tornado(ibs, port)
-    else:
-        ibs_ = ibeis.opendb(dbdir=ibs.get_dbdir())
-        ibs.web_instance = ut.spawn_background_process(_start_tornado, ibs_=ibs_, port_=port)
+    _start_tornado(ibs, port)
 
 
-def start_from_ibeis(ibs, port=None, blocking=True, browser=BROWSER, precache=True):
+def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=True):
     '''
     Parse command line options and start the server.
     '''
-    if ibs.web_instance is None:
-        if precache:
-            print('[web] Pre-computing all image thumbnails (with annots)...')
-            ibs.compute_all_thumbs()
-            print('[web] Pre-computing all image thumbnails (without annots)...')
-            ibs.compute_all_thumbs(draw_annots=False)
-            print('[web] Pre-computing all annotation chips...')
-            ibs.check_chip_existence()
-            ibs.compute_all_chips()
-        start_tornado(ibs, port, blocking, browser)
-    else:
-        print('[guiback] CANNOT START WEB SERVER: WEB INSTANCE ALREADY RUNNING')
-
-
-def terminate_from_ibeis(ibs):
-    if ibs.web_instance is not None and ibs.web_instance.is_alive():
-        ibs.web_instance.terminate()
-        ibs.web_instance = None
-    else:
-        print('[guiback] CANNOT TERMINATE WEB SERVER: WEB INSTANCE NOT RUNNING')
+    if precache:
+        print('[web] Pre-computing all image thumbnails (with annots)...')
+        ibs.compute_all_thumbs()
+        print('[web] Pre-computing all image thumbnails (without annots)...')
+        ibs.compute_all_thumbs(draw_annots=False)
+        print('[web] Pre-computing all annotation chips...')
+        ibs.check_chip_existence()
+        ibs.compute_all_chips()
+    start_tornado(ibs, port, browser)

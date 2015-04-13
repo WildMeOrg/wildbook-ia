@@ -134,6 +134,7 @@ class MainWindowBackend(QtCore.QObject):
         # Create GUIFrontend object
         back.mainwin = newgui.IBEISMainWindow(back=back, ibs=ibs)
         back.front = back.mainwin.ibswgt
+        back.web_instance = None
         back.ibswgt = back.front  # Alias
         # connect signals and other objects
         fig_presenter.register_qt4_win(back.mainwin)
@@ -1408,11 +1409,19 @@ class MainWindowBackend(QtCore.QObject):
 
     def start_web_server_parallel(back):
         ibs = back.ibs
+        if back.web_instance is None:
+            back.web_instance = ut.spawn_background_process(ibs.opendb, dbdir=ibs.get_dbdir())
+        else:
+            print('[guiback] CANNOT START WEB SERVER: WEB INSTANCE ALREADY RUNNING')
+
         app.start_from_ibeis(ibs, blocking=False)
 
     def kill_web_server_parallel(back):
-        ibs = back.ibs
-        app.terminate_from_ibeis(ibs)
+        if back.web_instance is not None:
+            back.web_instance.terminate()
+            back.web_instance = None
+        else:
+            print('[guiback] CANNOT TERMINATE WEB SERVER: WEB INSTANCE NOT RUNNING')
 
     @blocking_slot()
     def fix_and_clean_database(back):

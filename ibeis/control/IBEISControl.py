@@ -198,8 +198,6 @@ class IBEISController(object):
         ibs.observer_weakref_list = []
         # not completely working decorator cache
         ibs.table_cache = None
-        ibs.app = None
-        ibs.web_instance = None
         ibs._initialize_self()
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
         # _init_wb will do nothing if no wildbook address is specified
