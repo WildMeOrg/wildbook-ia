@@ -1185,8 +1185,15 @@ def image_src(gid=None):
     return ap.return_src(gpath)
 
 
-@register_api('/api/image/<gid>', methods=['GET'])
+@register_api('/api/image/<gid>/', methods=['GET'])
 def image_src_api(gid=None):
+    r"""
+    Returns the base64 encoded image of image <gid>
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/<aid>/
+    """
     return image_src(gid)
 
 
@@ -1197,8 +1204,15 @@ def annotation_src(aid=None):
     return ap.return_src(gpath)
 
 
-@register_api('/api/annot/<aid>', methods=['GET'])
+@register_api('/api/annot/<aid>/', methods=['GET'])
 def annotation_src_api(aid=None):
+    r"""
+    Returns the base64 encoded image of annotation <aid>
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/<aid>/
+    """
     return annotation_src(aid)
 
 
@@ -1230,15 +1244,40 @@ def dbinfo():
     return dbinfo_str_formatted
 
 
-# @register_route('/404')
-# def error404(exception):
-#     import traceback
-#     exception_str = str(exception)
-#     traceback_str = str(traceback.format_exc())
-#     print('[web] %r' % (exception_str, ))
-#     print('[web] %r' % (traceback_str, ))
-#     return ap.template(None, '404', exception_str=exception_str,
-#                        traceback_str=traceback_str)
+@register_route('/api')
+def api():
+    rules = current_app.url_map.iter_rules()
+    rule_dict = {}
+    for rule in rules:
+        methods = rule.methods
+        url = str(rule)
+        if '/api/' in url:
+            methods -= set(['HEAD', 'OPTIONS'])
+            if len(methods) == 0:
+                continue
+            if len(methods) > 1:
+                print(methods)
+            method = list(methods)[0]
+            if method not in rule_dict.keys():
+                rule_dict[method] = []
+            rule_dict[method].append((method, url, ))
+    for method in rule_dict.keys():
+        rule_dict[method].sort()
+    return ap.template(None, 'api',
+                       app_name=controller_inject.GLOBAL_APP_NAME,
+                       app_secret=controller_inject.GLOBAL_APP_SECRET,
+                       rule_list=rule_dict)
+
+
+@register_route('/404')
+def error404(exception=None):
+    import traceback
+    exception_str = str(exception)
+    traceback_str = str(traceback.format_exc())
+    print('[web] %r' % (exception_str, ))
+    print('[web] %r' % (traceback_str, ))
+    return ap.template(None, '404', exception_str=exception_str,
+                       traceback_str=traceback_str)
 
 
 ################################################################################

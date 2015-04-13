@@ -220,7 +220,7 @@ def get_ibeis_flask_route(__name__):
                 # and register it with flask.
                 app = get_flask_app()
                 @app.route(rule, **options)
-                @authentication_user_only
+                # @authentication_user_only
                 @wraps(func)
                 def translated_call(*args, **kwargs):
                     try:
