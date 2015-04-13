@@ -202,6 +202,7 @@ def get_ibeis_flask_route():
                 # make translation function in closure scope
                 # and register it with flask.
                 @GLOBAL_APP.route(rule, **options)
+                @authentication_user_only
                 @wraps(func)
                 def translated_call(*args, **kwargs):
                     try:
