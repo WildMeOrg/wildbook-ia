@@ -466,7 +466,7 @@ def get_operation_type(operation):
     return operation_type.upper()
 
 
-def sanatize_sql(db, tablename, columns=None):
+def sanitize_sql(db, tablename, columns=None):
     """ Sanatizes an sql tablename and column. Use sparingly """
     tablename = re.sub('[^a-z_0-9]', '', tablename)
     valid_tables = db.get_table_names()

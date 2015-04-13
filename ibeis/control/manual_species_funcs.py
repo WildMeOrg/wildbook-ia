@@ -45,8 +45,8 @@ def _get_all_species_rowids(ibs):
 
 
 @register_ibs_method
-@register_api('/api/species/sanatize', methods=['PUT'])
-def sanatize_species_texts(ibs, species_text_list):
+#@register_api('/api/species/sanitize', methods=['PUT'])
+def sanitize_species_texts(ibs, species_text_list):
     r"""
     changes unknown species to the unknown value
 
@@ -58,11 +58,11 @@ def sanatize_species_texts(ibs, species_text_list):
         list: species_text_list_
 
     CommandLine:
-        python -m ibeis.control.manual_species_funcs --test-sanatize_species_texts
+        python -m ibeis.control.manual_species_funcs --test-sanitize_species_texts
 
     RESTful:
         Method: POST
-        URL:    /api/species/sanatize
+        URL:    /api/species/sanitize
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -72,21 +72,21 @@ def sanatize_species_texts(ibs, species_text_list):
         >>> ibs = ibeis.opendb('testdb1')
         >>> species_text_list = ['foo', 'bar', 'zebra_plains']
         >>> # execute function
-        >>> species_text_list_ = sanatize_species_texts(ibs, species_text_list)
+        >>> species_text_list_ = sanitize_species_texts(ibs, species_text_list)
         >>> # verify results
         >>> result = str(species_text_list_)
         >>> print(result)
         ['____', '____', 'zebra_plains']
     """
     ibsfuncs.assert_valid_species_texts(ibs, species_text_list, iswarning=True)
-    def _sanatize_species_text(species_text):
+    def _sanitize_species_text(species_text):
         if species_text is None:
             return None
         elif species_text in const.VALID_SPECIES:
             return species_text
         else:
             return const.UNKNOWN
-    species_text_list_ = [_sanatize_species_text(species_text)
+    species_text_list_ = [_sanitize_species_text(species_text)
                           for species_text in species_text_list]
     # old but same logic
     #species_text_list_ = [None if species_text is None else
@@ -149,7 +149,7 @@ def add_species(ibs, species_text_list, species_uuid_list=None, note_list=None):
     if note_list is None:
         note_list = [''] * len(species_text_list)
     # Sanatize to remove ____
-    species_text_list_ = ibs.sanatize_species_texts(species_text_list)
+    species_text_list_ = ibs.sanitize_species_texts(species_text_list)
     # Get random uuids
     if species_uuid_list is None:
         species_uuid_list = [uuid.uuid4() for _ in range(len(species_text_list))]
@@ -162,7 +162,7 @@ def add_species(ibs, species_text_list, species_uuid_list=None, note_list=None):
     species_rowid_list = ibs.db.add_cleanly(const.SPECIES_TABLE, colnames, params_iter,
                                              get_rowid_from_superkey, superkey_paramx)
     return species_rowid_list
-    #value_list = ibs.sanatize_species_texts(species_text_list)
+    #value_list = ibs.sanitize_species_texts(species_text_list)
     #lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]
     #lbltype_rowid_list = [lbltype_rowid] * len(species_text_list)
     #species_rowid_list = ibs.add_lblannots(lbltype_rowid_list, value_list, note_list)
@@ -256,7 +256,7 @@ def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
     if ensure:
         species_rowid_list = ibs.add_species(species_text_list)
     else:
-        species_text_list_ = ibs.sanatize_species_texts(species_text_list)
+        species_text_list_ = ibs.sanitize_species_texts(species_text_list)
         #lbltype_rowid = ibs.lbltype_ids[const.SPECIES_KEY]
         #lbltype_rowid_list = [lbltype_rowid] * len(species_text_list_)
         #species_rowid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, species_text_list_)

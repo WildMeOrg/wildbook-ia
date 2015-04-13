@@ -111,7 +111,7 @@ def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
     return name_rowid_list
     # OLD WAY
     ## nid_list_ = [namenid_dict[name] for name in name_list_]
-    #name_text_list_ = ibs.sanatize_name_texts(name_text_list)
+    #name_text_list_ = ibs.sanitize_name_texts(name_text_list)
     ## All names are individuals and so may safely receive the INDIVIDUAL_KEY lblannot
     #lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
     #lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)
@@ -136,14 +136,14 @@ def add_names(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
 
 
 @register_ibs_method
-@register_api('/api/name/sanatize', methods=['PUT'])
-def sanatize_name_texts(ibs, name_text_list):
+@register_api('/api/name/sanitize', methods=['PUT'])
+def sanitize_name_texts(ibs, name_text_list):
     r"""
-    Auto-docstr for 'sanatize_name_texts'
+    Auto-docstr for 'sanitize_name_texts'
 
     RESTful:
         Method: PUT
-        URL:    /api/name/sanatize
+        URL:    /api/name/sanitize
     """
     ibsfuncs.assert_valid_names(name_text_list)
     name_text_list_ = [None
@@ -861,7 +861,7 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
     if ensure:
         name_rowid_list = ibs.add_names(name_text_list)
     else:
-        name_text_list_ = ibs.sanatize_name_texts(name_text_list)
+        name_text_list_ = ibs.sanitize_name_texts(name_text_list)
         #lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
         #lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)
         #name_rowid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, name_text_list_)
@@ -952,7 +952,7 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False):
     if verbose:
         print('[ibs] setting %d name texts' % (len(name_rowid_list),))
     ibsfuncs.assert_valid_names(name_text_list)
-    #sanatize_name_texts(ibs, name_text_list):
+    #sanitize_name_texts(ibs, name_text_list):
     #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
     #ibs.set_lblannot_values(nid_list, name_list)
     val_list = ((value,) for value in name_text_list)

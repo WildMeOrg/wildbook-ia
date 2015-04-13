@@ -9,7 +9,7 @@ import utool
 import utool as ut
 import cStringIO
 from ibeis import constants as const
-from ibeis.control._sql_helpers import (_unpacker, sanatize_sql,
+from ibeis.control._sql_helpers import (_unpacker, sanitize_sql,
                                         SQLExecutionContext, VERBOSE_SQL, NOT_QUIET)
 from ibeis.control import __SQLITE3__ as lite
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sql]')
@@ -1461,7 +1461,7 @@ class SQLDatabaseController(object):
     @default_decor
     def get_column(db, tablename, name):
         """ Conveinience: """
-        _table, (_column,) = sanatize_sql(db, tablename, (name,))
+        _table, (_column,) = sanitize_sql(db, tablename, (name,))
         column_vals = db.executeone(
             operation='''
             SELECT %s
