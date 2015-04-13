@@ -690,6 +690,39 @@ def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.l
     return output
 
 
+def norm01(array, dim=None):
+    """
+    normalizes a numpy array from 0 to 1 based in its extent
+
+    Args:
+        array (ndarray):
+        dim   (int):
+
+    Returns:
+        ndarray:
+
+    CommandLine:
+        python -m vtool.other --test-norm01
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> array = np.array([ 22, 1, 3, 2, 10, 42, ])
+        >>> dim = None
+        >>> array_norm = norm01(array, dim)
+        >>> result = np.array_str(array_norm, precision=3)
+        >>> print(result)
+        [ 0.512  0.     0.049  0.024  0.22   1.   ]
+    """
+    if not ut.is_float(array):
+        array = array.astype(np.float32)
+    array_max  = array.max(dim)
+    array_min  = array.min(dim)
+    array_exnt = np.subtract(array_max, array_min)
+    array_norm = np.divide(np.subtract(array, array_min), array_exnt)
+    return array_norm
+
+
 if __name__ == '__main__':
     """
     CommandLine:

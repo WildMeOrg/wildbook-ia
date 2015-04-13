@@ -708,9 +708,11 @@ def test_find_kp_direction():
     Shows steps in orientation estimation
 
     CommandLine:
-        python -m vtool.patch --test-test_find_kp_direction --show
+        python -m vtool.patch --test-test_find_kp_direction --show --diskshow
         python -m vtool.patch --test-test_find_kp_direction --show --interact
-        python -m vtool.patch --test-test_find_kp_direction --save ~/latex/crall-candidacy-2015/figures/test_fint_kp_direction.jpg --dpath figures
+        python -m vtool.patch --test-test_find_kp_direction --save ~/latex/crall-candidacy-2015/figures/test_fint_kp_direction.jpg --dpath figures '--caption=visualization of the steps in the computation of the dominant gradient orientations.' --figsize=14,9 --dpi=160 --height=2.65  --left=.04 --right=.96 --top=.95 --bottom=.05 --wspace=.1 --hspace=.1
+
+        python -m vtool.patch --test-test_find_kp_direction --save ~/latex/crall-candidacy-2015/figures/test_fint_kp_direction.jpg --dpath figures --diskshow --quality --figsize=14,9 --dpi=160
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -723,11 +725,13 @@ def test_find_kp_direction():
     #import vtool as vt
     # build test data
     import utool as ut
+    import plottool as pt
+    from six.moves import input
+    import vtool as vt
     #import vtool as vt
     np.random.seed(0)
     USE_EXTERN_STAR = False
     if USE_EXTERN_STAR:
-        import vtool as vt
         img_fpath = ut.grab_test_imgpath('star.png')
         imgBGR = vt.imread(img_fpath)
         kpts, vecs = vt.extract_features(img_fpath)
@@ -746,43 +750,40 @@ def test_find_kp_direction():
         kp = kpts[0]
     bins = 36
     maxima_thresh = .8
-    DEBUG_ROTINVAR = False
-    globals_ = globals()
-    locals_ = locals()
     converge_lists = []
 
-    while True:
-        # Execute test function
-        patch, wkp = get_warped_patch(imgBGR, kp, gray=True,
-                                      #flags=cv2.INTER_LANCZOS4,
-                                      flags=cv2.INTER_CUBIC,
-                                      borderMode=cv2.BORDER_CONSTANT)
-        locals_['kp'] = kp
-        locals_['patch'] = patch
-        locals_['wkp'] = wkp
-        old_ori = locals_['kp'][-1]
-        #submax_ori_offsets = find_patch_dominant_orientations(patch, bins=bins, maxima_thresh=maxima_thresh, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
-        # <hackish>
+    def exec_internals_find_patch_dominant_orientations(patch, bins, maxima_thresh, old_ori):
+        # <HACKISH>
         # exec source code from find_patch_dominant_orientations to steal its
         # local variables
+        # ARGS: patch, bins=36, maxima_thresh=.8, DEBUG_ROTINVAR
+        DEBUG_ROTINVAR = False
+        globals_ = globals()
+        locals_ = locals()
         sourcecode = ut.get_func_sourcecode(find_patch_dominant_orientations, stripdef=True, stripret=True)
         six.exec_(sourcecode, globals_, locals_)
         submax_ori_offsets = locals_['submax_ori_offsets']
         new_oris = (old_ori + (submax_ori_offsets - ktool.GRAVITY_THETA)) % TAU
         keys = 'patch, gradx, grady, gmag, gori, hist, centers, gori_weights'.split(', ')
-        patch, gradx, grady, gmag, gori, hist, centers, gori_weights = ut.dict_take(locals_, keys)
-        # </hackish>
-        INTERACTIVE_ITERATION = ut.get_argflag('--interact')
-        import plottool as pt
+        internal_tup = ut.dict_take(locals_, keys)
+        return new_oris, internal_tup
+        # </HACKISH>
+
+    INTERACTIVE_ITERATION = ut.get_argflag('--interact')
+
+    while True:
+        patch, wkp = get_warped_patch(imgBGR, kp, gray=True,
+                                      #flags=cv2.INTER_LANCZOS4,
+                                      flags=cv2.INTER_CUBIC,
+                                      borderMode=cv2.BORDER_CONSTANT)
+        old_ori = kp[-1]
+        # Execute test function
+        new_oris, internal_tup = exec_internals_find_patch_dominant_orientations(patch, bins, maxima_thresh, old_ori)
+        patch, gradx, grady, gmag, gori, hist, centers, gori_weights = internal_tup
         if INTERACTIVE_ITERATION:
-            from six.moves import input
             # Change rotation
-            old_ori = kp[-1]
-            #new_ori = (old_ori + (ori - vt.GRAVITY_THETA)) % TAU
-            #locals_['bins'] *= 2
-            #locals_['bins'] = min(locals_['bins'], 128)
             print('new_oris = %r' % (new_oris,))
-            print('bins = %r' % (locals_['bins'],))
+            print('bins = %r' % (bins,))
             for count, ori in enumerate(new_oris):
                 if count >= len(converge_lists):
                     converge_lists.append([])
@@ -816,6 +817,7 @@ def test_find_kp_direction():
 
 def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, gori, hist, centers, gori_weights):
     import plottool as pt
+    import vtool as vt
     # DRAW TEST INFO
     fnum = 1
     pt.figure(fnum=1, doclf=True, docla=True)
@@ -828,11 +830,15 @@ def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, g
     colors = pt.distinct_colors(len(kpts))
     print(colors)
     pt.draw_kpts2(kpts, rect=True, ori=True, ell_color=colors)
-    pt.imshow(patch * 255, fnum=fnum, pnum=next_pnum(), title='sample')
-    pt.imshow((np.abs(gradx)) * 255, fnum=fnum, pnum=next_pnum(), title='gradx')
-    pt.imshow((np.abs(grady)) * 255, fnum=fnum, pnum=next_pnum(), title='grady')
-    pt.imshow(gmag * 255, fnum=fnum, pnum=next_pnum(), title='mag')
-    pt.imshow(gori_weights * 255, fnum=fnum, pnum=next_pnum(), title='weighted mag')
+    pt.imshow(patch * 255, fnum=fnum, pnum=next_pnum(), title='sampled patch')
+    def normalize_grad_img(grad_):
+        #return np.abs(grad_) * 255
+        return vt.norm01(np.abs(grad_)) * 255
+        #return vt.norm01(grad_) * 255
+    pt.imshow(normalize_grad_img(gradx ** 2), fnum=fnum, pnum=next_pnum(), title='gradx ** 2')
+    pt.imshow(normalize_grad_img(grady ** 2), fnum=fnum, pnum=next_pnum(), title='grady ** 2')
+    pt.imshow(normalize_grad_img(gmag), fnum=fnum, pnum=next_pnum(), title='mag')
+    pt.imshow(normalize_grad_img(gori_weights), fnum=fnum, pnum=next_pnum(), title='weighted mag')
     #pt.imshow(ut.norm_zero_one(gori) * 255, fnum=fnum, pnum=next_pnum(), title='ori')
     pt.draw_vector_field(gradx, grady, pnum=next_pnum(), fnum=fnum, title='gori (vec)')
     pt.imshow(gorimag, fnum=fnum, pnum=next_pnum(), title='ori-color')
