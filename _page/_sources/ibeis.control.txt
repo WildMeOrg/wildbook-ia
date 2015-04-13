@@ -60,10 +60,10 @@ ibeis.control.__SQLITE3__ module
     :undoc-members:
     :show-inheritance:
 
-ibeis.control._autogen_annot_funcs module
------------------------------------------
+ibeis.control._autogen_annotmatch_funcs module
+----------------------------------------------
 
-.. automodule:: ibeis.control._autogen_annot_funcs
+.. automodule:: ibeis.control._autogen_annotmatch_funcs
     :members:
     :undoc-members:
     :show-inheritance:
@@ -72,6 +72,14 @@ ibeis.control._autogen_featweight_funcs module
 ----------------------------------------------
 
 .. automodule:: ibeis.control._autogen_featweight_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control._autogen_party_funcs module
+-----------------------------------------
+
+.. automodule:: ibeis.control._autogen_party_funcs
     :members:
     :undoc-members:
     :show-inheritance:
@@ -88,6 +96,14 @@ ibeis.control.accessor_decors module
 ------------------------------------
 
 .. automodule:: ibeis.control.accessor_decors
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.autowrap_api_decorators module
+--------------------------------------------
+
+.. automodule:: ibeis.control.autowrap_api_decorators
     :members:
     :undoc-members:
     :show-inheritance:
@@ -112,6 +128,22 @@ ibeis.control.manual_chip_funcs module
 --------------------------------------
 
 .. automodule:: ibeis.control.manual_chip_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_egrelate_funcs module
+------------------------------------------
+
+.. automodule:: ibeis.control.manual_egrelate_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_encounter_funcs module
+-------------------------------------------
+
+.. automodule:: ibeis.control.manual_encounter_funcs
     :members:
     :undoc-members:
     :show-inheritance:
@@ -172,26 +204,18 @@ ibeis.control.manual_meta_funcs module
     :undoc-members:
     :show-inheritance:
 
-ibeis.control.manual_name_species_funcs module
-----------------------------------------------
+ibeis.control.manual_name_funcs module
+--------------------------------------
 
-.. automodule:: ibeis.control.manual_name_species_funcs
+.. automodule:: ibeis.control.manual_name_funcs
     :members:
     :undoc-members:
     :show-inheritance:
 
-ibeis.control.template_definitions module
+ibeis.control.manual_species_funcs module
 -----------------------------------------
 
-.. automodule:: ibeis.control.template_definitions
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.control.template_generator module
----------------------------------------
-
-.. automodule:: ibeis.control.template_generator
+.. automodule:: ibeis.control.manual_species_funcs
     :members:
     :undoc-members:
     :show-inheritance:

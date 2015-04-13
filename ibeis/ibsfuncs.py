@@ -3218,6 +3218,10 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None, exemplars_per_v
 @__injectable
 def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=None):
     """
+    TODO: this needs to be integrated more cleanly with a nonhacky way of
+    getting a subset of exemplars. Currently ther is duplicate code in guiback
+    and here to use left side only when custom filter is on.
+
     CommandLine:
         python -m ibeis.ibsfuncs --test-get_prioritized_name_subset
 
