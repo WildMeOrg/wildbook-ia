@@ -14,7 +14,6 @@ from guitool.__PYQT__ import QtCore
 from ibeis import constants as const
 from ibeis import ibsfuncs, sysres
 from ibeis import viz
-from ibeis.web import app
 from ibeis.control import IBEISControl
 from ibeis.gui import clock_offset_gui
 from ibeis.gui import guiexcept
@@ -1408,13 +1407,15 @@ class MainWindowBackend(QtCore.QObject):
         ibsfuncs.export_to_xml(ibs)
 
     def start_web_server_parallel(back):
+        import ibeis
         ibs = back.ibs
         if back.web_instance is None:
-            back.web_instance = ut.spawn_background_process(ibs.opendb, dbdir=ibs.get_dbdir())
+            back.web_instance = ut.spawn_background_process(ibeis.opendb,
+                                                            dbdir=ibs.get_dbdir(),
+                                                            web=True,
+                                                            browser=True)
         else:
             print('[guiback] CANNOT START WEB SERVER: WEB INSTANCE ALREADY RUNNING')
-
-        app.start_from_ibeis(ibs, blocking=False)
 
     def kill_web_server_parallel(back):
         if back.web_instance is not None:
