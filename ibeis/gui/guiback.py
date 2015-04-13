@@ -1410,10 +1410,7 @@ class MainWindowBackend(QtCore.QObject):
         import ibeis
         ibs = back.ibs
         if back.web_instance is None:
-            back.web_instance = ut.spawn_background_process(ibeis.opendb,
-                                                            dbdir=ibs.get_dbdir(),
-                                                            web=True,
-                                                            browser=True)
+            back.web_instance = ibeis.opendb_in_background(dbdir=ibs.get_dbdir(), web=True, browser=True)
         else:
             print('[guiback] CANNOT START WEB SERVER: WEB INSTANCE ALREADY RUNNING')
 

@@ -85,13 +85,15 @@ def run_test_api():
         (200, u'{"status": {"cache": -1, "message": "", "code": 200, "success": true}, "response": "testdb1"}', <bound method Response.json of <Response [200]>>)
     """
     import ibeis
-    #web_proc = ut.spawn_background_process(ibeis.opendb, dbname='testdb1', web=True)
-    ibs = ibeis.opendb(db='testdb1', web=True, blocking=False)
+    import time
+    web_instance = ibeis.opendb_in_background(db='testdb1', web=True, precache=False)
+    # let the webapi startup in the background
+    time.sleep(.1)
     uri = '/api/core/dbname'
     # Make GET request to the server as a test
     response = get_api_result(uri)
     status_code, text, json = response
-    ibs.web_instance.terminate()
+    web_instance.terminate()
     return response
 
 
