@@ -68,6 +68,14 @@ ibeis.dev.main_helpers module
     :undoc-members:
     :show-inheritance:
 
+ibeis.dev.optimize_k module
+---------------------------
+
+.. automodule:: ibeis.dev.optimize_k
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.dev.results_all module
 ----------------------------
 
