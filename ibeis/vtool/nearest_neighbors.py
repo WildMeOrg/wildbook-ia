@@ -210,6 +210,9 @@ def build_flann_index(dpts, flann_params, quiet=False, verbose=True, flann=None)
         print('...flann cache miss.')
     if verbose or (not quiet and num_dpts > 1E6):
         print('...building kdtree over %d points (this may take a sec).' % num_dpts)
+    if num_dpts == 0:
+        print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS. THIS MAY BE A SIGN OF A DEEPER ISSUE')
+        return flann
     sys.stdout.flush()
     ut.util_logging.__UTOOL_FLUSH__()
     flann.build_index(dpts, **flann_params)
