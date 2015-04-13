@@ -266,6 +266,12 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     return main_locals
 
 
+def opendb_in_background(*args, **kwargs):
+    import utool as ut
+    proc = ut.spawn_background_process(opendb, *args, **kwargs)
+    return proc
+
+
 def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
            delete_ibsdir=False, verbose=False, use_cache=True,
            web=False, **kwargs):
