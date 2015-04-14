@@ -23,6 +23,7 @@ from numpy.core.umath_tests import matrix_multiply
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
 import vtool.distance as dtool
+import cv2
 
 try:
     #if ut.WIN32:
@@ -385,7 +386,7 @@ def compute_homog(xy1_mn, xy2_mn):
     return H
 
 
-def testdata_matching_affine_inliers_normalized():
+def testdata_matching_affine_inliers():
     import vtool.tests.dummy as dummy
     scale_thresh = 2.0
     xy_thresh = .01
@@ -395,9 +396,15 @@ def testdata_matching_affine_inliers_normalized():
     (kpts1, kpts2, fm, fs, rchip1, rchip2) = dummy.testdata_ratio_matches()
     aff_inliers, aff_errors, Aff = get_best_affine_inliers_(
         kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh)
-    # Matching affine inliers
+    return kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd
+
+
+def testdata_matching_affine_inliers_normalized():
+    kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
     kpts1_ma = kpts1.take(fm.T[0].take(aff_inliers), axis=0)
     kpts2_ma = kpts2.take(fm.T[1].take(aff_inliers), axis=0)
+    kpts1_ma, kpts2_ma, rchip1, rchip2 = testdata_matching_affine_inliers()
+    # Matching affine inliers
     xy1_ma = ktool.get_xys(kpts1_ma)
     xy2_ma = ktool.get_xys(kpts2_ma)
     # Matching affine inliers normalized
@@ -672,6 +679,79 @@ def get_best_affine_inliers(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh,
     return aff_inliers, aff_errors, Aff
 
 
+def get_normalized_affine_inliers(kpts1, kpts2, fm, aff_inliers):
+    """
+    returns xy-inliers that are normalized to have a mean of 0 and std of 1 as
+    well as the transformations so the inverse can be taken
+    """
+    fm_affine = fm.take(aff_inliers, axis=0)
+    # Get corresponding points and shapes
+    kpts1_ma = kpts1.take(fm_affine.T[0], axis=0)
+    kpts2_ma = kpts2.take(fm_affine.T[1], axis=0)
+    #kpts1_ma = kpts1.take(fm_affine.T[0], axis=0)
+    #kpts2_ma = kpts2.take(fm_affine.T[1], axis=0)
+    # Normalize affine inliers xy locations
+    xy1_ma = ktool.get_xys(kpts1_ma)
+    xy2_ma = ktool.get_xys(kpts2_ma)
+    xy1_man, T1 = ltool.whiten_xy_points(xy1_ma)
+    xy2_man, T2 = ltool.whiten_xy_points(xy2_ma)
+    return xy1_man, xy2_man, T1, T2
+
+
+def unnormalize_transform(M_prime, T1, T2):
+    # Then compute ax = b  [aka: x = npl.solve(a, b)]
+    M = npl.solve(T2, M_prime).dot(T1)  # Unnormalize
+    # homographies that only differ by a scale factor are equivalent
+    M /= M[2, 2]
+    return M
+
+
+def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd):
+    kpts1_m = kpts1.take(fm.T[0], axis=0)
+    kpts2_m = kpts2.take(fm.T[1], axis=0)
+    # Transform all xy1 matches to xy2 space
+    xy1_mt  = ktool.transform_kpts_xys(H, kpts1_m)
+    xy2_m   = ktool.get_xys(kpts2_m)
+    # --- Find (Squared) Homography Distance Error ---
+    # You cannot test for scale or orientation easily here because
+    # you no longer have an ellipse? (maybe, probably have a conic) when using a
+    # projective transformation
+    xy_err = dtool.L2_sqrd(xy1_mt.T, xy2_m.T)
+    homog_errors = (xy_err, None, None)
+    # Estimate final inliers
+    homog_inliers = np.where(xy_err < xy_thresh_sqrd)[0].astype(INDEX_DTYPE)
+    homog_tup1 = (homog_inliers, homog_errors, H)
+    return homog_tup1
+
+
+def estimate_final_transform(kpts1, kpts2, fm, aff_inliers):
+    """ estimates final transformation using normalized affine inliers """
+    xy1_man, xy2_man, T1, T2 = get_normalized_affine_inliers(kpts1, kpts2, fm, aff_inliers)
+    # Compute homgraphy transform from chip1 -> chip2 using affine inliers
+    if True:
+        H_prime = compute_homog(xy1_man, xy2_man)
+    elif False:
+        # homographys assume the two images are planar, or the camera is rotating around the subject
+        H_prime = cv2.findHomography(xy1_man.T, xy2_man.T, method=0)[0]
+        H_prime = cv2.findHomography(xy1_man.T, xy2_man.T, method=cv2.LMEDS)[0]
+    elif False:
+        # the fundamental matrix only implies: x'.T.dot(F).dot(x) == 0
+        # it maps a point from one image onto a line in the second image.
+        H_prime = cv2.findFundamentalMat(xy1_man.T, xy2_man.T, method=cv2.FM_LMEDS)[0]
+        H_prime = cv2.findFundamentalMat(xy1_man.T, xy2_man.T, method=cv2.FM_8POINT)[0]
+    elif False:
+        H_prime = compute_affine(xy1_man, xy2_man)
+    #H_prime /= H_prime[2, 2]
+    # Different methods?
+    #H_prime = compute_affine(xy1_man, xy2_man)
+    #import cv2
+    #H_prime = cv2.findHomography(xy1_man.T, xy2_man.T)[0]
+    #H = compute_affine(xy1_ma, xy2_ma)
+    #print(H)
+    H = unnormalize_transform(H_prime, T1, T2)
+    return H
+
+
 @profile
 def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
     """
@@ -680,8 +760,9 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
 
     CommandLine:
         python -m vtool.spatial_verification --test-get_homography_inliers
+        python -m vtool.spatial_verification --test-get_homography_inliers:1 --show
 
-    Example:
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from vtool.spatial_verification import *  # NOQA
         >>> import vtool.tests.dummy as dummy
@@ -703,51 +784,22 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
                       [ -1.213e-04,  -3.454e-04,   1.000e+00]], dtype=np.float64),
         )
 
+    Example1:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.spatial_verification import *  # NOQA
+        >>> import vtool.keypoint as ktool
+        >>> import plottool as pt
+        >>> kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
+        >>> homog_tup1 = get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
+        >>> homog_tup = (homog_tup1[0], homog_tup1[2])
+        >>> ut.quit_if_noshow()
+        >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, homog_tup=homog_tup)
+        >>> ut.show_if_requested()
+
     """
-    fm_affine = fm.take(aff_inliers, axis=0)
-
-    kpts1_m = kpts1.take(fm.T[0], axis=0)
-    kpts2_m = kpts2.take(fm.T[1], axis=0)
-
-    # Get corresponding points and shapes
-    kpts1_ma = kpts1.take(fm_affine.T[0], axis=0)
-    kpts2_ma = kpts2.take(fm_affine.T[1], axis=0)
-    #kpts1_ma = kpts1.take(fm_affine.T[0], axis=0)
-    #kpts2_ma = kpts2.take(fm_affine.T[1], axis=0)
-    # Normalize affine inliers xy locations
-    xy1_ma = ktool.get_xys(kpts1_ma)
-    xy2_ma = ktool.get_xys(kpts2_ma)
-    xy1_man, T1 = ltool.whiten_xy_points(xy1_ma)
-    xy2_man, T2 = ltool.whiten_xy_points(xy2_ma)
-    # Compute homgraphy transform from chip1 -> chip2 using affine inliers
-    H_prime = compute_homog(xy1_man, xy2_man)
-    #H_prime /= H_prime[2, 2]
-
-    # Different methods?
-    #H_prime = compute_affine(xy1_man, xy2_man)
-    #import cv2
-    #H_prime = cv2.findHomography(xy1_man.T, xy2_man.T)[0]
-    #H = compute_affine(xy1_ma, xy2_ma)
-    #print(H)
-
-    # Then compute ax = b  [aka: x = npl.solve(a, b)]
-    H = npl.solve(T2, H_prime).dot(T1)  # Unnormalize
-    # homographies that only differ by a scale factor are equivalent
-    H /= H[2, 2]
-
-    # Transform all xy1 matches to xy2 space
-    xy1_mt  = ktool.transform_kpts_xys(H, kpts1_m)
-    xy2_m   = ktool.get_xys(kpts2_m)
-
-    # --- Find (Squared) Homography Distance Error ---
-    # You cannot test for scale or orientation easily here because
-    # you no longer have an ellipse? (maybe, probably have a conic) when using a
-    # projective transformation
-    xy_err = dtool.L2_sqrd(xy1_mt.T, xy2_m.T)
-    homog_errors = (xy_err, None, None)
-    # Estimate final inliers
-    homog_inliers = np.where(xy_err < xy_thresh_sqrd)[0].astype(INDEX_DTYPE)
-    return homog_inliers, homog_errors, H
+    H = estimate_final_transform(kpts1, kpts2, fm, aff_inliers)
+    homog_tup1 = test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd)
+    return homog_tup1
 
 
 def get_best_affine_inliers_(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh):
