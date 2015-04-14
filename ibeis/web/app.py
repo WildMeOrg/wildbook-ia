@@ -1196,7 +1196,7 @@ def image_src_api(gid=None):
 
     RESTful:
         Method: GET
-        URL:    /api/image/<aid>/
+        URL:    /api/image/<gid>/
     """
     return image_src(gid)
 
