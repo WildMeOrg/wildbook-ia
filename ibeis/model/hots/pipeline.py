@@ -333,6 +333,23 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
 #============================
 
 
+def nearest_neighbor_cacheid(qreq_, num_neighbors_list):
+    """ cache-id for nearest_neighbors function """
+    internal_daids = qreq_.get_internal_daids()
+    internal_qaids = qreq_.get_internal_qaids()
+    query_hashid   = qreq_.ibs.get_annot_hashid_visual_uuid(internal_qaids, prefix='Q')
+    data_hashid    = qreq_.ibs.get_annot_hashid_visual_uuid(internal_daids, prefix='D')
+    nn_cfgstr      = qreq_.qparams.nn_cfgstr
+    num_neigbors_list_hashid = ut.hashstr_arr(num_neighbors_list, hashlen=8, lbl='neighblist')
+    nn_mid_cacheid = 'nn_mid' + query_hashid + data_hashid + nn_cfgstr + num_neigbors_list_hashid
+    nn_mid_cacheid += 'aug_quryside' if  qreq_.qparams.augment_queryside_hack else ''
+    neighbor_cachedir = ut.unixjoin(qreq_.ibs.get_cachedir(), 'neighborcache')
+    ut.ensuredir(neighbor_cachedir)
+    return neighbor_cachedir, nn_mid_cacheid
+
+USE_NN_MID_CACHE = True and ut.is_developer()
+
+
 #@ut.indent_func('[nn]')
 @profile
 def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
@@ -368,27 +385,26 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
         print('[hs] Step 1) Assign nearest neighbors: %s' %
               (qreq_.qparams.nn_cfgstr,))
     # For each internal query annotation
-    internal_qaids = qreq_.get_internal_qaids()
     # Find the nearest neighbors of each descriptor vector
     #USE_NN_MID_CACHE = ut.is_developer()
-    USE_NN_MID_CACHE = False
     if USE_NN_MID_CACHE:
-        internal_daids = qreq_.get_internal_daids()
-        query_hashid   = qreq_.ibs.get_annot_hashid_visual_uuid(internal_qaids, prefix='Q')
-        data_hashid    = qreq_.ibs.get_annot_hashid_visual_uuid(internal_daids, prefix='D')
-        nn_cfgstr      = qreq_.qparams.nn_cfgstr
-        num_neigbors_list_hashid = ut.hashstr_arr(num_neighbors_list)
-        nn_mid_cacheid = 'nn_mid' + query_hashid + data_hashid + nn_cfgstr + num_neigbors_list_hashid
-        nn_mid_cacheid += 'aug_quryside' if  qreq_.qparams.augment_queryside_hack else ''
-
+        neighbor_cachedir, nn_mid_cacheid = nearest_neighbor_cacheid(qreq_, num_neighbors_list)
+        try:
+            nns_list = ut.load_cache(neighbor_cachedir, 'neighbs', nn_mid_cacheid)
+        except IOError:
+            pass
+        else:
+            return nns_list
+    internal_qaids = qreq_.get_internal_qaids()
     qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids, config2_=qreq_.get_internal_query_config2())
     # Mark progress ane execute nearest indexer nearest neighbor code
     qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, **PROGKW)
-    nns_list = [qreq_.indexer.knn(qfx2_vec, num_neighbors)
-                for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
+    nns_list = [qreq_.indexer.knn(qfx2_vec, num_neighbors) for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
     # Verbose statistics reporting
     if verbose:
         plh.print_nearest_neighbor_assignments(qvecs_list, nns_list)
+    if USE_NN_MID_CACHE:
+        ut.save_cache(neighbor_cachedir, 'neighbs', nn_mid_cacheid, nns_list)
     #if qreq_.qparams.with_metadata:
     #    qreq_.metadata['nns'] = nns_list
     return nns_list

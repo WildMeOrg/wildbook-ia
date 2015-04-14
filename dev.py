@@ -9,6 +9,17 @@ dev.py is supposed to be a developer non-gui interface into the IBEIS software.
 dev.py runs experiments and serves as a scratchpad for new code and quick scripts
 
 
+TODO:
+    Cache nearest neighbors so different parameters later in the pipeline dont
+    take freaking forever.
+
+    Test to find typical "good" descriptor scores.  Find nearest neighbors and
+    noramlizers for each feature in a query image.  Based on ground truth and
+    spatial verification mark feature matches as true or false.  Visualize the
+    feature scores of good matches vs bad matches. Lowe shows the pdf of
+    correct matches and the PDF for incorrect matches. We should also show the
+    same thing.
+
 CommandLine:
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg score_method:nsum prescore_method:nsum
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110

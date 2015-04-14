@@ -137,7 +137,7 @@ def add_species(ibs, species_text_list, species_uuid_list=None, note_list=None):
         >>> result += str(all_species_rowids) + '\n'
         >>> result += str(ibs.get_species_texts(all_species_rowids))
         >>> print(result)
-        ['____', u'zebra_plains', u'zebra_plains', '____', '____', '____', u'zebra_grevys', u'bear_polar']
+        [u'jaguar', u'zebra_plains', u'zebra_plains', '____', '____', '____', u'zebra_grevys', u'bear_polar']
         [1, 2, 3]
         [u'zebra_plains', u'zebra_grevys', u'bear_polar']
 
