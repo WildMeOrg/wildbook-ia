@@ -186,8 +186,9 @@ def show_if_requested():
 
         caption_str = ut.get_argval('--caption', type_=str, default=basename(fpath).replace('_', ' '))
         label_str   = ut.get_argval('--label', type_=str, default=splitext(basename(fpath))[0])
-        height_str  = ut.get_argval('--height', type_=str, default='1.65')
-        figure_str  = ut.util_latex.get_latex_figure_str(fpath_list, label_str=label_str, caption_str=caption_str, height_str=height_str)
+        width_str = ut.get_argval('--width', type_=str, default=r'\textwidth')
+        height_str  = ut.get_argval('--height', type_=str, default=None)
+        figure_str  = ut.util_latex.get_latex_figure_str(fpath_list, label_str=label_str, caption_str=caption_str, width_str=width_str, height_str=height_str)
         #import sys
         #print(sys.argv)
         latex_block = figure_str

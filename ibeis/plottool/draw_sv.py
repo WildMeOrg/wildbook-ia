@@ -9,6 +9,16 @@ from vtool import image as gtool
 ut.noinject(__name__, '[viz_sv]')
 
 
+def get_blended_chip(chip1, chip2, M):
+    """
+    warps chip1 into chip2 space
+    """
+    wh2 = gtool.get_size(chip2)
+    chip1_Mt = gtool.warpHomog(chip1, M, wh2)
+    chip2_blendM = gtool.blend_images(chip1_Mt, chip2)
+    return chip2_blendM
+
+
 #@ut.indent_func
 def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
             mx=None, show_assign=True, show_lines=True, show_kpts=True, fnum=1, **kwargs):
