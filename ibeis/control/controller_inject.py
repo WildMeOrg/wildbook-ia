@@ -190,12 +190,14 @@ def get_ibeis_flask_api(__name__):
                     try:
                         rawreturn, success, code, message = translate_ibeis_webcall(func, *args, **kwargs)
                     except WebException as webex:
-                        rawreturn = str(traceback.format_exc())
+                        rawreturn = ''
+                        # rawreturn = str(traceback.format_exc())
                         success = False
                         code = webex.code
                         message = webex.message
                     except Exception as ex:
-                        rawreturn = str(traceback.format_exc())
+                        rawreturn = ''
+                        # rawreturn = str(traceback.format_exc())
                         success = False
                         code = 500
                         message = 'API error, Python Exception thrown: %r' % (str(ex))
