@@ -18,7 +18,11 @@ from ibeis.web import appfuncs as ap
 # Others
 # import numpy as np
 # from scipy.optimize import curve_fit
+from detecttools.directory import Directory
 import random
+from os.path import join
+import zipfile
+import time
 import math
 
 
@@ -1197,6 +1201,58 @@ def image_src_api(gid=None):
     return image_src(gid)
 
 
+@register_api('/api/image/', methods=['POST'])
+def image_upload(**kwargs):
+    r"""
+    Returns the gid_list for image files submitted in a ZIP archive.  The image
+    archive should be flat (no folders will be scanned for images) and must be smaller
+    than 100 MB.  The archive can submit multiple images, ideally in JPEG format to save
+    space.  Duplicate image uploads will result in the duplicate images receiving
+    the same gid based on the hashed pixel values.
+
+    Args:
+        image_zip_archive (binary): the POST variable containing the binary
+            (multi-form) image archive data
+        **kwargs: Arbitrary keyword arguments; the kwargs are passed down to
+            the add_images function
+
+    Returns:
+        gid_list (list if rowids): the list of gids corresponding to the images
+            submitted.  The gids correspond to the image names sorted in
+            lexigraphical order.
+
+    RESTful:
+        Method: POST
+        URL:    /api/image/
+    """
+    ibs = current_app.ibs
+    # Get image archive
+    image_archive = request.files.get('image_zip_archive', None)
+    if image_archive is None:
+        raise IOError('Image archive not given')
+
+    # If the directory already exists, delete it
+    uploadsdir = ibs.get_uploadsdir()
+    current_time = time.strftime('%Y_%m_%d_%H_%M_%S')
+    upload_path = join(uploadsdir, current_time)
+    print(upload_path)
+    ut.ensuredir(upload_path)
+
+    # Extract the content
+    try:
+        with zipfile.ZipFile(image_archive, 'r') as zfile:
+            zfile.extractall(upload_path)
+    except Exception:
+        ut.remove_dirs(upload_path)
+        raise IOError('Image archive extracton failed')
+
+    direct = Directory(upload_path, include_file_extensions='images', recursive=False)
+    gpath_list = direct.files()
+    gpath_list = sorted(gpath_list)
+    gid_list = ibs.add_images(gpath_list, **kwargs)
+    return gid_list
+
+
 @register_route('/ajax/annotation/src/<aid>')
 def annotation_src(aid=None):
     ibs = current_app.ibs
@@ -1267,6 +1323,11 @@ def api():
                        app_name=controller_inject.GLOBAL_APP_NAME,
                        app_secret=controller_inject.GLOBAL_APP_SECRET,
                        rule_list=rule_dict)
+
+
+@register_route('/upload')
+def upload():
+    return ap.template(None, 'upload')
 
 
 @register_route('/404')

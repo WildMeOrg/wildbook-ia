@@ -166,7 +166,7 @@ def get_num_images(ibs, **kwargs):
 @register_ibs_method
 @accessor_decors.adder
 @accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_imgs_reviewed_str'])
-@register_api('/api/image/', methods=['POST'])
+@register_api('/api/image/path', methods=['POST'])
 def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize=None):
     r"""
     Adds a list of image paths to the database.
@@ -188,7 +188,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
 
     RESTful:
         Method: POST
-        URL:    /api/image/
+        URL:    /api/image/path
 
     Example0:
         >>> # ENABLE_DOCTEST

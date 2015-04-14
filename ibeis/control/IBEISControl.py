@@ -478,6 +478,7 @@ class IBEISController(object):
         ibs.chipdir     = join(ibs.dbdir, REL_PATHS.chips)
         ibs.imgdir      = join(ibs.dbdir, REL_PATHS.images)
         ibs.treesdir    = join(ibs.dbdir, REL_PATHS.trees)
+        ibs.uploadsdir  = join(ibs.dbdir, REL_PATHS.uploads)
         # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
         ibs.thumb_dpath = join(ibs.dbdir, REL_PATHS.thumbs)
         ibs.flanndir    = join(ibs.dbdir, REL_PATHS.flann)
@@ -578,6 +579,12 @@ class IBEISController(object):
         Returns:
             list_ (list): ibs internal directory """
         return ibs.treesdir
+
+    def get_uploadsdir(ibs):
+        """
+        Returns:
+            list_ (list): ibs internal directory """
+        return ibs.uploadsdir
 
     def get_thumbdir(ibs):
         """
