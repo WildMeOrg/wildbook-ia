@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -276,7 +276,7 @@
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.adder</span>
 <span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_imgs_reviewed_str&#39;</span><span class="p">])</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/path&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="add_images"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.add_images">[docs]</a><span class="k">def</span> <span class="nf">add_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">params_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">as_annots</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">auto_localize</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Adds a list of image paths to the database.</span>
@@ -298,7 +298,7 @@
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: POST</span>
-<span class="sd">        URL:    /api/image/</span>
+<span class="sd">        URL:    /api/image/path</span>
 
 <span class="sd">    Example0:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>

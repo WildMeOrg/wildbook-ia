@@ -60,13 +60,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -126,7 +126,11 @@
 <span class="c"># Others</span>
 <span class="c"># import numpy as np</span>
 <span class="c"># from scipy.optimize import curve_fit</span>
+<span class="kn">from</span> <span class="nn">detecttools.directory</span> <span class="kn">import</span> <span class="n">Directory</span>
 <span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">math</span>
 
 
@@ -1305,6 +1309,58 @@
     <span class="k">return</span> <span class="n">image_src</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
 
 </div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="image_upload"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.image_upload">[docs]</a><span class="k">def</span> <span class="nf">image_upload</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns the gid_list for image files submitted in a ZIP archive.  The image</span>
+<span class="sd">    archive should be flat (no folders will be scanned for images) and must be smaller</span>
+<span class="sd">    than 100 MB.  The archive can submit multiple images, ideally in JPEG format to save</span>
+<span class="sd">    space.  Duplicate image uploads will result in the duplicate images receiving</span>
+<span class="sd">    the same gid based on the hashed pixel values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_zip_archive (binary): the POST variable containing the binary</span>
+<span class="sd">            (multi-form) image archive data</span>
+<span class="sd">        **kwargs: Arbitrary keyword arguments; the kwargs are passed down to</span>
+<span class="sd">            the add_images function</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        gid_list (list if rowids): the list of gids corresponding to the images</span>
+<span class="sd">            submitted.  The gids correspond to the image names sorted in</span>
+<span class="sd">            lexigraphical order.</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL:    /api/image/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="c"># Get image archive</span>
+    <span class="n">image_archive</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;image_zip_archive&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">image_archive</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&#39;Image archive not given&#39;</span><span class="p">)</span>
+
+    <span class="c"># If the directory already exists, delete it</span>
+    <span class="n">uploadsdir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_uploadsdir</span><span class="p">()</span>
+    <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y_%m_</span><span class="si">%d</span><span class="s">_%H_%M_%S&#39;</span><span class="p">)</span>
+    <span class="n">upload_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">uploadsdir</span><span class="p">,</span> <span class="n">current_time</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">upload_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">upload_path</span><span class="p">)</span>
+
+    <span class="c"># Extract the content</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">image_archive</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zfile</span><span class="p">:</span>
+            <span class="n">zfile</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">upload_path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">remove_dirs</span><span class="p">(</span><span class="n">upload_path</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&#39;Image archive extracton failed&#39;</span><span class="p">)</span>
+
+    <span class="n">direct</span> <span class="o">=</span> <span class="n">Directory</span><span class="p">(</span><span class="n">upload_path</span><span class="p">,</span> <span class="n">include_file_extensions</span><span class="o">=</span><span class="s">&#39;images&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">direct</span><span class="o">.</span><span class="n">files</span><span class="p">()</span>
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">gid_list</span>
+
+</div>
 <span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/ajax/annotation/src/&lt;aid&gt;&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="annotation_src"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.annotation_src">[docs]</a><span class="k">def</span> <span class="nf">annotation_src</span><span class="p">(</span><span class="n">aid</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
@@ -1375,6 +1431,11 @@
                        <span class="n">app_name</span><span class="o">=</span><span class="n">controller_inject</span><span class="o">.</span><span class="n">GLOBAL_APP_NAME</span><span class="p">,</span>
                        <span class="n">app_secret</span><span class="o">=</span><span class="n">controller_inject</span><span class="o">.</span><span class="n">GLOBAL_APP_SECRET</span><span class="p">,</span>
                        <span class="n">rule_list</span><span class="o">=</span><span class="n">rule_dict</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/upload&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="upload"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.upload">[docs]</a><span class="k">def</span> <span class="nf">upload</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">ap</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;upload&#39;</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/404&#39;</span><span class="p">)</span>
