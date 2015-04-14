@@ -233,6 +233,10 @@ def build_affine_lstsqrs_Mx6(xy1_man, xy2_man):
         assert not np.allclose(U.dot(S_).dot(Vt.T), Mx6)
 
     # Inefficient, but I think the math works
+    # We want to solve Ax=b (where A is the Mx6 in this case)
+    # Ax = b
+    # (U S V.T) x = b
+    # x = (U.T inv(S) V) b
     Sinv = np.zeros((len(Vt), len(U)))
     Sinv[np.diag_indices(len(s))] = 1 / s
     a = Vt.T.dot(Sinv).dot(U.T).dot(b).T[0]
