@@ -33,6 +33,7 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
     """
     import cv2
     import numpy as np
+    print('begining impaint mask. c=circle, r=rect')
 
     globals_ = dict(
         drawing=False,  # true if mouse is pressed

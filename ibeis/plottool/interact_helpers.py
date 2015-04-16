@@ -68,6 +68,22 @@ def disconnect_callback(fig, callback_type, **kwargs):
 def connect_callback(fig, callback_type, callback_fn):
     """
     wrapper around fig.canvas.mpl_connect
+
+    References:
+        http://matplotlib.org/users/event_handling.html
+        button_press_event
+        button_release_event
+        draw_event
+        key_press_event
+        key_release_event
+        motion_notify_event
+        pick_event
+        resize_event
+        scroll_event
+        figure_enter_event
+        figure_leave_event
+        axes_enter_event
+        axes_leave_event
     """
     #printDBG('[ih] register %r callback' % callback_type)
     if callback_fn is None:
