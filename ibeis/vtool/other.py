@@ -312,6 +312,9 @@ def intersect2d_flags(A, B):
     CommandLine:
         python -m vtool.other --test-intersect2d_flags
 
+    SeeAlso:
+        np.in1d - the one dimensional version
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.other import *  # NOQA
