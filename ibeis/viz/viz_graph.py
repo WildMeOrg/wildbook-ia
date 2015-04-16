@@ -112,20 +112,20 @@ def netx_draw_images_at_positions(img_list, pos_list):
     # Thumb stack
     ax  = pt.gca()
     fig = pt.gcf()
-    trans_data_to_figure = ax.transData.transform
+    trans_data_to_axes = ax.transData.transform
     trans_figure_to_axes = fig.transFigure.inverted().transform
-    def trans_data_to_axes(pt_data):
-        pt_fig = trans_data_to_figure(pt_data)
-        pt_ax = trans_figure_to_axes(pt_fig)
-        return pt_ax
+    def trans_data_to_figure(pt_data):
+        pt_ax = trans_data_to_axes(pt_data)
+        pt_fig = trans_figure_to_axes(pt_ax)
+        return pt_fig
     #for pos, img in ut.ProgressIter(zip(pos_list, img_list),  lbl='drawing img'):
     artist_list = []
     offset_img_list = []
     for pos, img in zip(pos_list, img_list):
         FIG_COORDS = False
         if FIG_COORDS:
-            x, y = trans_data_to_axes(pos)
-            height, width = trans_data_to_axes(img.shape[0:2])
+            x, y = trans_data_to_figure(pos)
+            height, width = trans_data_to_figure(img.shape[0:2])
             # Hack to get the sizes correct
             height *= .17
             width *= .17
