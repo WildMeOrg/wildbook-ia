@@ -752,6 +752,19 @@ class QueryResult(__OBJECT_BASE__):
             ut.printex(ex, 'failed in qres.show_matches', keys=['aid', 'qreq_'])
             raise
 
+    def show_name_matches(qres, ibs, aid, qreq_=None, *args, **kwargs):
+        from ibeis.model.hots import chip_match
+        #from ibeis.viz import viz_matches
+        assert qreq_ is not None, 'must pass in qreq'
+        cm = chip_match.ChipMatch2.from_qres(qres)
+        cm.score_nsum(qreq_)
+        cm.show_single_namematch(qreq_, ibs.get_annot_nids(aid), **kwargs)
+        #try:
+        #    return viz_matches.show_matches(ibs, qres, aid, *args, qreq_=qreq_, **kwargs)
+        #except Exception as ex:
+        #    ut.printex(ex, 'failed in qres.show_matches', keys=['aid', 'qreq_'])
+        #    raise
+
     def dump_top_match(qres, ibs, qreq_=None, fnum=None, *args, **kwargs):
         """
         CommandLine:

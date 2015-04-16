@@ -1201,9 +1201,14 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                             return
                         export_subset.export_names(ibs, nid_list)
 
+                    def create_new_encounter_from_names_(ibs, nid_list):
+                        ibs.create_new_encounter_from_names(nid_list)
+                        ibswgt.update_tables([gh.ENCOUNTER_TABLE], clear_view_selection=False)
+
                     context_options += [
                         ('Check for splits', lambda: run_splits(ibs, nid_list)),
                         ('Export names', lambda: export_nids(ibs, nid_list)),
+                        ('Create Encounter From Name(s)', lambda: create_new_encounter_from_names_(ibs, nid_list)),
                     ]
                 else:
                     print('nutin')

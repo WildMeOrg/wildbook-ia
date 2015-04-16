@@ -156,7 +156,7 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids, verbose=VERBOSE
             print('[qreq]  * len(unique_species) = %r' % len(unique_species))
         else:
             print('[qreq]  * unique_species = %r' % (unique_species,))
-        print('[qreq]  * valid species = %r' % (ibs.get_species_with_detectors(),))
+        #print('[qreq]  * valid species = %r' % (ibs.get_species_with_detectors(),))
         #cfg._featweight_cfg.featweight_enabled = 'ERR'
         cfgdict['featweight_enabled'] = 'ERR'
         cfgdict['fg_on'] = False

@@ -14,10 +14,10 @@ import six
 import types
 from six.moves import zip, range, map
 from os.path import split, join, exists
-import vtool.image as gtool
+#import vtool.image as gtool
 import numpy as np
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
-from vtool import linalg, geometry, image
+#from vtool import linalg, geometry, image
 import vtool as vt
 import utool as ut
 import ibeis
@@ -121,7 +121,7 @@ def export_to_xml(ibs, offset=2829, enforce_yaw=True):
             out_img = out_name + ".jpg"
             folder = "IBEIS"
 
-            _image = image.imread(image_path)
+            _image = vt.imread(image_path)
             height, width, channels = _image.shape
             if width > height:
                 ratio = height / width
@@ -135,17 +135,17 @@ def export_to_xml(ibs, offset=2829, enforce_yaw=True):
                 width = int(target_size * ratio)
 
             dst_img = imagedir + out_img
-            _image = image.resize(_image, (width, height))
-            image.imwrite(dst_img, _image)
+            _image = vt.resize(_image, (width, height))
+            vt.imwrite(dst_img, _image)
 
             annotation = PascalVOC_Markup_Annotation(dst_img, folder, out_img, source=image_uri, **information)
             bbox_list = ibs.get_annot_bboxes(aid_list)
             theta_list = ibs.get_annot_thetas(aid_list)
             for aid, bbox, theta in zip(aid_list, bbox_list, theta_list):
                 # Transformation matrix
-                R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
+                R = vt.rotation_around_bbox_mat3x3(theta, bbox)
                 # Get verticies of the annotation polygon
-                verts = geometry.verts_from_bbox(bbox, close=True)
+                verts = vt.verts_from_bbox(bbox, close=True)
                 # Rotate and transform vertices
                 xyz_pts = vt.add_homogenous_coordinate(np.array(verts).T)
                 trans_pts = vt.remove_homogenous_coordinate(R.dot(xyz_pts))
@@ -2199,20 +2199,20 @@ def hack(ibs):
 
 def draw_thumb_helper(tup):
     thumb_path, thumbsize, gpath, bbox_list, theta_list = tup
-    img = gtool.imread(gpath)  # time consuming
+    img = vt.imread(gpath)  # time consuming
     (gh, gw) = img.shape[0:2]
     img_size = (gw, gh)
     max_dsize = (thumbsize, thumbsize)
-    dsize, sx, sy = gtool.resized_clamped_thumb_dims(img_size, max_dsize)
-    new_verts_list = list(gtool.scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
-    #thumb = gtool.resize_thumb(img, max_dsize)
+    dsize, sx, sy = vt.resized_clamped_thumb_dims(img_size, max_dsize)
+    new_verts_list = list(vt.scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy))
+    #thumb = vt.resize_thumb(img, max_dsize)
     # -----------------
     # Actual computation
-    thumb = gtool.resize(img, dsize)
+    thumb = vt.resize(img, dsize)
     orange_bgr = (0, 128, 255)
     for new_verts in new_verts_list:
-        thumb = geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
-    gtool.imwrite(thumb_path, thumb)
+        thumb = vt.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
+    vt.imwrite(thumb_path, thumb)
     return True
     #return (thumb_path, thumb)
 
@@ -2264,7 +2264,7 @@ def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8,
     gen = ut.generate(draw_thumb_helper, args_list, nTasks=len(args_list), **genkw)
     #for output in gen:
     #    #with ut.Timer('gentime'):
-    #    gtool.imwrite(output[0], output[1])
+    #    vt.imwrite(output[0], output[1])
     try:
         while True:
             six.next(gen)
@@ -4136,6 +4136,252 @@ def export_nnp_master3_subset(ibs):
     from ibeis import dbio
     gid_list = sorted(list(set(ibs.get_annot_gids(aid_list))))
     dbio.export_subset.export_images(ibs, gid_list, new_dbpath=join(ibs.get_workdir(), 'testdb3'))
+
+
+@__injectable
+def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False, on_nontrivial_merge=None):
+    """
+    TODO: ELEVATE THIS FUNCTION
+    Change into make_task_mark_annot_pair_as_positive_match and it returns what
+    needs to be done.
+
+    Need to test several cases:
+        uknown, unknown
+        knownA, knownA
+        knownB, knownA
+        unknown, knownA
+        knownA, unknown
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1 (int):  query annotation id
+        aid2 (int):  matching annotation id
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_positive_match
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
+        >>> dryrun = True
+        >>> status = mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun)
+        >>> # verify results
+        >>> print(status)
+    """
+    def _set_annot_name_rowids(aid_list, nid_list):
+        if not ut.QUIET:
+            print('... _set_annot_name_rowids(aids=%r, nids=%r)' % (aid_list, nid_list))
+            print('... names = %r' % (ibs.get_name_texts(nid_list)))
+        assert len(aid_list) == len(nid_list), 'list must correspond'
+        if not dryrun:
+            ibs.set_annot_name_rowids(aid_list, nid_list)
+            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
+            #ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_MATCH, [1.0])
+        # Return the new annots in this name
+        _aids_list = ibs.get_name_aids(nid_list)
+        _combo_aids_list = [_aids + [aid] for _aids, aid, in zip(_aids_list, aid_list)]
+        status = _combo_aids_list
+        return status
+    print('[marking_match] aid1 = %r, aid2 = %r' % (aid1, aid2))
+
+    nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
+    if nid1 == nid2:
+        print('...images already matched')
+        status = None
+        ibs.mark_annot_pair_as_reviewed(aid1, aid2)
+    else:
+        isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
+        if isunknown1 and isunknown2:
+            print('...match unknown1 to unknown2 into 1 new name')
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid1, aid2], next_nids * 2)
+        elif not isunknown1 and not isunknown2:
+            print('...merge known1 into known2')
+            aid1_and_groundtruth = ibs.get_annot_groundtruth(aid1, noself=False)
+            aid2_and_groundtruth = ibs.get_annot_groundtruth(aid2, noself=False)
+            trivial_merge = len(aid1_and_groundtruth) == 1 and len(aid2_and_groundtruth) == 1
+            if not trivial_merge:
+                if on_nontrivial_merge is None:
+                    raise Exception('no function is set up to handle nontrivial merges!')
+                else:
+                    on_nontrivial_merge(ibs, aid1, aid2)
+            status =  _set_annot_name_rowids(aid1_and_groundtruth, [nid2] * len(aid1_and_groundtruth))
+        elif isunknown2 and not isunknown1:
+            print('...match unknown2 into known1')
+            status =  _set_annot_name_rowids([aid2], [nid1])
+        elif isunknown1 and not isunknown2:
+            print('...match unknown1 into known2')
+            status =  _set_annot_name_rowids([aid1], [nid2])
+        else:
+            raise AssertionError('impossible state')
+    return status
+
+
+@__injectable
+def mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False, on_nontrivial_split=None):
+    """
+    TODO: ELEVATE THIS FUNCTION
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1 (int):  annotation id
+        aid2 (int):  annotation id
+        dryrun (bool):
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_negative_match
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
+        >>> dryrun = True
+        >>> # execute function
+        >>> result = mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun)
+        >>> # verify results
+        >>> print(result)
+    """
+    def _set_annot_name_rowids(aid_list, nid_list):
+        print('... _set_annot_name_rowids(%r, %r)' % (aid_list, nid_list))
+        if not dryrun:
+            ibs.set_annot_name_rowids(aid_list, nid_list)
+            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
+            #ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_NOT_MATCH, [1.0])
+    nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
+    if nid1 == nid2:
+        print('images are marked as having the same name... we must tread carefully')
+        aid1_groundtruth = ibs.get_annot_groundtruth(aid1, noself=True)
+        if len(aid1_groundtruth) == 1 and aid1_groundtruth == [aid2]:
+            # this is the only safe case for same name split
+            # Change so the names are not the same
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid1], next_nids)
+        else:
+            if on_nontrivial_split is None:
+                raise Exception('no function is set up to handle nontrivial splits!')
+            else:
+                on_nontrivial_split(ibs, aid1, aid2)
+    else:
+        isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
+        if isunknown1 and isunknown2:
+            print('...nonmatch unknown1 and unknown2 into 2 new names')
+            next_nids = ibs.make_next_nids(num=2)
+            status =  _set_annot_name_rowids([aid1, aid2], next_nids)
+        elif not isunknown1 and not isunknown2:
+            print('...nonmatch known1 and known2... nothing to do (yet)')
+            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
+            status = None
+        elif isunknown2 and not isunknown1:
+            print('...nonmatch unknown2 -> newname and known1')
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid2], next_nids)
+        elif isunknown1 and not isunknown2:
+            print('...nonmatch unknown1 -> newname and known2')
+            next_nids = ibs.make_next_nids(num=1)
+            status =  _set_annot_name_rowids([aid1], next_nids)
+        else:
+            raise AssertionError('impossible state')
+    return status
+
+
+@__injectable
+def make_next_encounter_text(ibs):
+    """
+    Creates what the next encounter name would be but does not add it to the database
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-make_next_encounter_text
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> new_enctext = make_next_encounter_text(ibs)
+        >>> result = new_enctext
+        >>> print(result)
+        New Encounter 0
+    """
+    eid_list = ibs.get_valid_eids()
+    old_enctext_list = ibs.get_encounter_text(eid_list)
+    new_enctext = ut.get_nonconflicting_string('New Encounter %d', old_enctext_list)
+    return new_enctext
+
+
+@__injectable
+def add_next_encounter(ibs):
+    """
+    Adds a new encounter to the database
+    """
+    new_enctext = ibs.make_next_encounter_text()
+    (new_eid,) = ibs.add_encounters([new_enctext])
+    return new_eid
+
+
+@__injectable
+def create_new_encounter_from_images(ibs, gid_list):
+    r"""
+    Args:
+        gid_list (list):
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-create_new_encounter_from_images
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()[::2]
+        >>> # execute function
+        >>> new_eid = create_new_encounter_from_images(ibs, gid_list)
+        >>> # verify results
+        >>> result = new_eid
+        >>> print(result)
+    """
+    new_eid = ibs.add_next_encounter()
+    ibs.set_image_eids(gid_list, [new_eid] * len(gid_list))
+    return new_eid
+
+
+@__injectable
+def create_new_encounter_from_names(ibs, nid_list):
+    r"""
+    Args:
+        nid_list (list):
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-create_new_encounter_from_names
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid_list = ibs._get_all_known_nids()[0:2]
+        >>> # execute function
+        >>> new_eid = ibs.create_new_encounter_from_names(nid_list)
+        >>> # clean up
+        >>> ibs.delete_encounters(new_eid)
+        >>> # verify results
+        >>> result = new_eid
+        >>> print(result)
+        1
+    """
+    aids_list = ibs.get_name_aids(nid_list)
+    gids_list = ibs.unflat_map(ibs.get_annot_gids, aids_list)
+    gid_list = ut.flatten(gids_list)
+    new_eid = ibs.create_new_encounter_from_images(gid_list)
+    return new_eid
 
 
 if __name__ == '__main__':

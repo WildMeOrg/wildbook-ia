@@ -233,8 +233,11 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, qreq_=None, **kwarg
             for (lbls, name) in zip(lbls_list, name_list):
                 lbls.append(repr(str(name)))
         if kwargs.get('show_nid', True):
-            for (lbls, nid) in zip(lbls_list, nid_list):
-                lbls.append(vh.get_nidstrs(nid))
+            for count, (lbls, nid) in enumerate(zip(lbls_list, nid_list)):
+                # only label the first two images with nids
+                LABEL_ALL_NIDS = False
+                if count <= 1 or LABEL_ALL_NIDS:
+                    lbls.append(vh.get_nidstrs(nid))
         if kwargs.get('show_annot_score', True) and name_annot_scores is not None:
             for (lbls, score) in zip(lbls_list[1:], name_annot_scores):
                 lbls.append(ut.num_fmt(score))

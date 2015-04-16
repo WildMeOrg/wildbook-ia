@@ -444,8 +444,8 @@ class MatchInteraction(object):
         viz.draw()
 
     def show_each_fgweight_chip(self):
-        viz_chip.show_chip(self.ibs, self.qaid, fnum=pt.next_fnum())
-        viz_chip.show_chip(self.ibs, self.daid, fnum=pt.next_fnum())
+        viz_chip.show_chip(self.ibs, self.qaid, fnum=pt.next_fnum(), weight_label='fg_weights')
+        viz_chip.show_chip(self.ibs, self.daid, fnum=pt.next_fnum(), weight_label='fg_weights')
         viz.draw()
 
     def show_each_dstncvs_chip(self, dodraw=True):

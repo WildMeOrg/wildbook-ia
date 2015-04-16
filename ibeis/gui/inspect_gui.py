@@ -194,9 +194,9 @@ class QueryResultsWidget(APIItemWidget):
         colname = model.get_header_name(col)
 
         if colname == MATCHED_STATUS_TEXT:
-            #qres_callback = partial(show_match_at, qres_wgt, qtindex)
-            #review_match_at(qres_wgt, qtindex, qres_callback=qres_callback)
-            review_match_at(qres_wgt, qtindex)
+            #qres_callback = partial(show_match_at_qtindex, qres_wgt, qtindex)
+            #review_match_at_qtindex(qres_wgt, qtindex, qres_callback=qres_callback)
+            review_match_at_qtindex(qres_wgt, qtindex)
 
     @guitool.slot_(QtCore.QModelIndex)
     def _on_doubleclick(qres_wgt, qtindex):
@@ -209,7 +209,7 @@ class QueryResultsWidget(APIItemWidget):
         model = qtindex.model()
         colname = model.get_header_name(col)
         if colname != MATCHED_STATUS_TEXT:
-            return show_match_at(qres_wgt, qtindex)
+            return show_match_at_qtindex(qres_wgt, qtindex)
         pass
 
     @guitool.slot_(QtCore.QModelIndex)
@@ -252,35 +252,27 @@ class QueryResultsWidget(APIItemWidget):
     def on_special_key_pressed(qres_wgt, view, event):
         selected_qtindex_list = view.selectedIndexes()
 
-        def get_qtindex_annotmatch_rowid(ibs, qtindex):
-            model = qtindex.model()
-            qaid  = model.get_header_data('qaid', qtindex)
-            daid  = model.get_header_data('aid', qtindex)
-            annotmatch_rowid_list = ibs.add_annotmatch([qaid], [daid])
-            return annotmatch_rowid_list
-
         if len(selected_qtindex_list) == 1:
             print('event = %r ' % (event,))
             print('event.key() = %r ' % (event.key(),))
             qtindex = selected_qtindex_list[0]
+            ibs = qres_wgt.ibs
+            aid1, aid2 = get_aidpair_from_qtindex(qres_wgt, qtindex)
+            ibs, qres, qreq_, update_callback, backend_callback = get_widget_review_vars(qres_wgt, aid1)
+            options = get_aidpair_context_menue_options(ibs, aid1, aid2, qres, qreq_=qreq_, update_callback=update_callback, backend_callback=backend_callback)
+            option_dict = {key[key.find('&') + 1]: val for key, val in options if key.find('&') > -1}
+
             event_key = event.key()
             if event_key == QtCore.Qt.Key_T:
-                #print('T')
-                mark_pair_as_positive_match(qres_wgt, qtindex)
+                option_dict['T']()
             elif event_key == QtCore.Qt.Key_R:
-                #print('R')
-                mark_pair_as_reviewed(qres_wgt, qtindex)
+                option_dict['R']()
             elif event_key == QtCore.Qt.Key_F:
-                #print('F')
-                mark_pair_as_negative_match(qres_wgt, qtindex)
+                option_dict['F']()
             elif event_key == QtCore.Qt.Key_S:
-                ibs = qres_wgt.ibs
-                annotmatch_rowid_list = get_qtindex_annotmatch_rowid(ibs, qtindex)
-                ibs.set_annotmatch_is_scenerymatch(annotmatch_rowid_list, [True])
+                option_dict['S']()
             elif event_key == QtCore.Qt.Key_P:
-                ibs = qres_wgt.ibs
-                annotmatch_rowid_list = get_qtindex_annotmatch_rowid(ibs, qtindex)
-                ibs.set_annotmatch_is_photobomb(annotmatch_rowid_list, [True])
+                option_dict['P']()
             print('emiting data changed')
             # This may not work with PyQt5
             # http://stackoverflow.com/questions/22560296/pyqt-list-view-not-responding-to-datachanged-signal
@@ -294,261 +286,173 @@ class QueryResultsWidget(APIItemWidget):
             #ut.embed()
 
     @guitool.slot_(QtCore.QModelIndex, QtCore.QPoint)
-    def on_contextMenuRequested(qres_wgt, qtindex, qpos):
+    def on_contextMenuRequested(qres_wgt, qtindex, qpoint):
         printDBG('[newgui] contextmenu')
-        guitool.popup_menu(qres_wgt, qpos, [
-            ('Show feature matches', lambda: show_match_at(qres_wgt, qtindex)),
-            ('Inspect Match Candidates', lambda: review_match_at(qres_wgt, qtindex)),
-            ('Mark as &Reviewed', lambda: mark_pair_as_reviewed(qres_wgt, qtindex)),
-            ('Mark as &True Match.', lambda: mark_pair_as_positive_match(qres_wgt, qtindex)),
-            ('Mark as &False Match.', lambda: mark_pair_as_negative_match(qres_wgt, qtindex)),
-        ])
+        qwin = qres_wgt
+        aid1, aid2 = get_aidpair_from_qtindex(qres_wgt, qtindex)
+        ibs, qres, qreq_, update_callback, backend_callback = get_widget_review_vars(qres_wgt, aid1)
+        show_aidpair_context_menu(ibs, qwin, qpoint, aid1, aid2, qres,
+                                     qreq_=qreq_,
+                                     update_callback=update_callback,
+                                     backend_callback=backend_callback)
+
+
+def get_widget_review_vars(qres_wgt, qaid):
+    ibs   = qres_wgt.ibs
+    qreq_ = qres_wgt.qreq_
+    qres  = qres_wgt.qaid2_qres[qaid]
+    update_callback = None  # hack (checking if necessary)
+    backend_callback = qres_wgt.callback
+    return ibs, qres, qreq_, update_callback, backend_callback
+
+
+def get_aidpair_from_qtindex(qres_wgt, qtindex):
+    model = qtindex.model()
+    qaid  = model.get_header_data('qaid', qtindex)
+    daid  = model.get_header_data('aid', qtindex)
+    return qaid, daid
+
+
+def get_annotmatch_rowid_from_qtindex(qres_wgt, qtindex):
+    qaid, daid = get_aidpair_from_qtindex(qres_wgt, qtindex)
+    ibs = qres_wgt.ibs
+    annotmatch_rowid_list = ibs.add_annotmatch([qaid], [daid])
+    return annotmatch_rowid_list
 
 
 def mark_pair_as_reviewed(qres_wgt, qtindex):
     """
     Sets the reviewed flag to whatever the current truth status is
     """
-    model = qtindex.model()
-    qaid  = model.get_header_data('qaid', qtindex)
-    daid  = model.get_header_data('aid', qtindex)
+    qaid, daid = get_aidpair_from_qtindex(qres_wgt, qtindex)
     ibs = qres_wgt.ibs
     ibs.mark_annot_pair_as_reviewed(qaid, daid)
 
 
 def mark_pair_as_positive_match(qres_wgt, qtindex):
-    model = qtindex.model()
-    qaid  = model.get_header_data('qaid', qtindex)
-    daid  = model.get_header_data('aid', qtindex)
+    qaid, daid = get_aidpair_from_qtindex(qres_wgt, qtindex)
     ibs = qres_wgt.ibs
     try:
-        status = mark_annot_pair_as_positive_match(ibs, qaid, daid)
+        status = mark_annot_pair_as_positive_match_(ibs, qaid, daid)
         print('status = %r' % (status,))
     except guiexcept.NeedsUserInput:
-        review_match_at(qres_wgt, qtindex)
+        review_match_at_qtindex(qres_wgt, qtindex)
     except guiexcept.UserCancel:
         print('user canceled positive match')
 
 
 def mark_pair_as_negative_match(qres_wgt, qtindex):
-    model = qtindex.model()
-    qaid  = model.get_header_data('qaid', qtindex)
-    daid  = model.get_header_data('aid', qtindex)
+    qaid, daid = get_aidpair_from_qtindex(qres_wgt, qtindex)
     ibs = qres_wgt.ibs
-    try:
-        status = mark_annot_pair_as_negative_match(ibs, qaid, daid)
-        print('status = %r' % (status,))
-    except guiexcept.NeedsUserInput:
-        review_match_at(qres_wgt, qtindex)
-    except guiexcept.UserCancel:
-        print('user canceled negative match')
+    return mark_annot_pair_as_negative_match_(ibs, qaid, daid)
 
 
-def mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False):
-    """
-    TODO: ELEVATE THIS FUNCTION
-    Change into make_task_mark_annot_pair_as_positive_match and it returns what
-    needs to be done.
-
-    Need to test several cases:
-        uknown, unknown
-        knownA, knownA
-        knownB, knownA
-        unknown, knownA
-        knownA, unknown
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid1 (int):  query annotation id
-        aid2 (int):  matching annotation id
-
-    CommandLine:
-        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_positive_match
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.gui.inspect_gui import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
-        >>> dryrun = True
-        >>> status = mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun)
-        >>> # verify results
-        >>> print(status)
-    """
-    def _set_annot_name_rowids(aid_list, nid_list):
-        if not ut.QUIET:
-            print('... _set_annot_name_rowids(aids=%r, nids=%r)' % (aid_list, nid_list))
-            print('... names = %r' % (ibs.get_name_texts(nid_list)))
-        assert len(aid_list) == len(nid_list), 'list must correspond'
-        if not dryrun:
-            ibs.set_annot_name_rowids(aid_list, nid_list)
-            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
-            #ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_MATCH, [1.0])
-        # Return the new annots in this name
-        _aids_list = ibs.get_name_aids(nid_list)
-        _combo_aids_list = [_aids + [aid] for _aids, aid, in zip(_aids_list, aid_list)]
-        status = _combo_aids_list
-        return status
-    print('[marking_match] aid1 = %r, aid2 = %r' % (aid1, aid2))
-
-    nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
-    if nid1 == nid2:
-        print('...images already matched')
-        status = None
-        ibs.mark_annot_pair_as_reviewed(aid1, aid2)
-    else:
-        isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
-        if isunknown1 and isunknown2:
-            print('...match unknown1 to unknown2 into 1 new name')
-            next_nids = ibs.make_next_nids(num=1)
-            status =  _set_annot_name_rowids([aid1, aid2], next_nids * 2)
-        elif not isunknown1 and not isunknown2:
-            print('...merge known1 into known2')
-            MERGE_NEEDS_INTERACTION  = False
-            MERGE_NEEDS_VERIFICATION = True
-            aid1_and_groundtruth = ibs.get_annot_groundtruth(aid1, noself=False)
-            aid2_and_groundtruth = ibs.get_annot_groundtruth(aid2, noself=False)
-            trivial_merge = len(aid1_and_groundtruth) == 1 and len(aid2_and_groundtruth) == 1
-            if not trivial_merge:
-                if MERGE_NEEDS_INTERACTION:
-                    raise guiexcept.NeedsUserInput('confirm merge')
-                elif MERGE_NEEDS_VERIFICATION:
-                    name1, name2 = ibs.get_annot_names([aid1, aid2])
-                    msgfmt = ut.codeblock('''
-                       Confirm merge of animal {name1} and {name2}
-                       {name1} has {num_gt1} annotations
-                       {name2} has {num_gt2} annotations
-                       ''')
-                    msg = msgfmt.format(name1=name1, name2=name2,
-                                        num_gt1=len(aid1_and_groundtruth),
-                                        num_gt2=len(aid2_and_groundtruth),)
-                    if not guitool.are_you_sure(parent=None, msg=msg, default='Yes'):
-                        raise guiexcept.UserCancel('canceled merge')
-            status =  _set_annot_name_rowids(aid1_and_groundtruth, [nid2] * len(aid1_and_groundtruth))
-        elif isunknown2 and not isunknown1:
-            print('...match unknown2 into known1')
-            status =  _set_annot_name_rowids([aid2], [nid1])
-        elif isunknown1 and not isunknown2:
-            print('...match unknown1 into known2')
-            status =  _set_annot_name_rowids([aid1], [nid2])
-        else:
-            raise AssertionError('impossible state')
-    return status
-
-
-def mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False):
-    """
-    TODO: ELEVATE THIS FUNCTION
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid1 (int):  annotation id
-        aid2 (int):  annotation id
-        dryrun (bool):
-
-    Returns:
-        ?:
-
-    CommandLine:
-        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_negative_match
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.gui.inspect_gui import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
-        >>> dryrun = True
-        >>> # execute function
-        >>> result = mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun)
-        >>> # verify results
-        >>> print(result)
-    """
-    def _set_annot_name_rowids(aid_list, nid_list):
-        print('... _set_annot_name_rowids(%r, %r)' % (aid_list, nid_list))
-        if not dryrun:
-            ibs.set_annot_name_rowids(aid_list, nid_list)
-            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
-            #ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_NOT_MATCH, [1.0])
-    nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
-    if nid1 == nid2:
-        print('images are marked as having the same name... we must tread carefully')
-        aid1_groundtruth = ibs.get_annot_groundtruth(aid1, noself=True)
-        if len(aid1_groundtruth) == 1 and aid1_groundtruth == [aid2]:
-            # this is the only safe case for same name split
-            # Change so the names are not the same
-            next_nids = ibs.make_next_nids(num=1)
-            status =  _set_annot_name_rowids([aid1], next_nids)
-        else:
-            status = 'error'
-            print('There are %d annots in this name. Need more sophisticated split' % (len(aid1_groundtruth)))
-            raise guiexcept.NeedsUserInput('non-trivial split')
-    else:
-        isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
-        if isunknown1 and isunknown2:
-            print('...nonmatch unknown1 and unknown2 into 2 new names')
-            next_nids = ibs.make_next_nids(num=2)
-            status =  _set_annot_name_rowids([aid1, aid2], next_nids)
-        elif not isunknown1 and not isunknown2:
-            print('...nonmatch known1 and known2... nothing to do (yet)')
-            ibs.mark_annot_pair_as_reviewed(aid1, aid2)
-            status = None
-        elif isunknown2 and not isunknown1:
-            print('...nonmatch unknown2 -> newname and known1')
-            next_nids = ibs.make_next_nids(num=1)
-            status =  _set_annot_name_rowids([aid2], next_nids)
-        elif isunknown1 and not isunknown2:
-            print('...nonmatch unknown1 -> newname and known2')
-            next_nids = ibs.make_next_nids(num=1)
-            status =  _set_annot_name_rowids([aid1], next_nids)
-        else:
-            raise AssertionError('impossible state')
-    return status
-
-
-def show_match_at(qres_wgt, qtindex):
+def show_match_at_qtindex(qres_wgt, qtindex):
     print('interact')
-    model = qtindex.model()
-    aid  = model.get_header_data('aid', qtindex)
-    qaid = model.get_header_data('qaid', qtindex)
+    qaid, daid = get_aidpair_from_qtindex(qres_wgt, qtindex)
     qreq_ = qres_wgt.qreq_
     #fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid, mode=1)
     #match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs, aid, mode=1, qreq_=qreq_)
-    match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs, aid, mode=0, qreq_=qreq_)
+    match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs, daid, mode=0, qreq_=qreq_)
     fig = match_interaction.fig
     fig_presenter.bring_to_front(fig)
 
 
-def review_match_at(qres_wgt, qtindex, **kwargs):
+def review_match_at_qtindex(qres_wgt, qtindex):
     print('review')
-    ibs = qres_wgt.ibs
-    qreq_ = qres_wgt.qreq_
-    model = qtindex.model()
-    aid1 = model.get_header_data('qaid', qtindex)
-    aid2 = model.get_header_data('aid', qtindex)
+    #qres_callback = partial(show_match_at_qtindex, qres_wgt, qtindex)
     #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
-    model = qtindex.model()
     #update_callback = model._update
-    update_callback = None  # hack (checking if necessary)
-    backend_callback = qres_wgt.callback
-    #qres_callback = partial(show_match_at, qres_wgt, qtindex)
-    qres = qres_wgt.qaid2_qres[aid1]
-    review_match(ibs, aid1, aid2, update_callback=update_callback,
-                 backend_callback=backend_callback,
-                 qres=qres,
-                 qreq_=qreq_,
-                 #qres_callback=qres_callback,
-                 **kwargs)
+    #ibs   = qres_wgt.ibs
+    #qreq_ = qres_wgt.qreq_
+    #qres  = qres_wgt.qaid2_qres[qaid]
+    #update_callback = None  # hack (checking if necessary)
+    #backend_callback = qres_wgt.callback
+    qaid, daid = get_aidpair_from_qtindex(qres_wgt, qtindex)
+    ibs, qres, qreq_, update_callback, backend_callback = get_widget_review_vars(qres_wgt, qaid)
+    review_match(ibs, qaid, daid, update_callback=update_callback,
+                 backend_callback=backend_callback, qres=qres, qreq_=qreq_)
 
 
-def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None, qreq_=None, **kwargs):
+# ______
+
+
+def get_aidpair_context_menue_options(ibs, aid1, aid2, qres, qreq_=None, **kwargs):
+    """ assert that the ampersand cannot have duplicate keys """
+    assert qreq_ is not None, 'must specify qreq_'
+    options = [
+        ('Show chip feature matches', lambda: qres.ishow_matches(ibs, aid2, mode=0, qreq_=qreq_)),
+        ('Show name feature matches', lambda: qres.show_name_matches(ibs, aid2, mode=0, qreq_=qreq_)),
+        ('Inspect Match Candidates', lambda: review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)),
+        ('Mark as &Reviewed', lambda: ibs.mark_annot_pair_as_reviewed(aid1, aid2)),
+        ('Mark as &True Match.', lambda: mark_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
+        ('Mark as &False Match.', lambda:  mark_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs)),
+        ('Flag &Scenery Case', lambda:  ibs.set_annotmatch_is_scenerymatch(ibs.add_annotmatch([aid1], [aid2]), [True])),
+        ('Flag &Photobomb Case', lambda:  ibs.set_annotmatch_is_photobomb(ibs.add_annotmatch([aid1], [aid2]), [True])),
+        ('Flag &Hard Case', lambda:  ibs.set_annotmatch_is_hard(ibs.add_annotmatch([aid1], [aid2]), [True])),
+        ('Flag &NonDistinct Case', lambda:  ibs.set_annotmatch_is_nondistinct(ibs.add_annotmatch([aid1], [aid2]), [True])),
+    ]
+    return options
+
+
+def show_aidpair_context_menu(ibs, qwin, qpoint, aid1, aid2, qres, qreq_=None, **kwargs):
+    """
+    kwargs are used for callbacks like qres_callback and query_callback
+    """
+    options = get_aidpair_context_menue_options(ibs, aid1, aid2, qres, qreq_=qreq_, **kwargs)
+    guitool.popup_menu(qwin, qpoint, options)
+
+
+def mark_annot_pair_as_positive_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
+    def on_nontrivial_merge(ibs, aid1, aid2):
+        MERGE_NEEDS_INTERACTION  = False
+        MERGE_NEEDS_VERIFICATION = True
+        if MERGE_NEEDS_INTERACTION:
+            raise guiexcept.NeedsUserInput('confirm merge')
+        elif MERGE_NEEDS_VERIFICATION:
+            name1, name2 = ibs.get_annot_names([aid1, aid2])
+            aid1_and_groundtruth = ibs.get_annot_groundtruth(aid1, noself=False)
+            aid2_and_groundtruth = ibs.get_annot_groundtruth(aid2, noself=False)
+            msgfmt = ut.codeblock('''
+               Confirm merge of animal {name1} and {name2}
+               {name1} has {num_gt1} annotations
+               {name2} has {num_gt2} annotations
+               ''')
+            msg = msgfmt.format(name1=name1, name2=name2,
+                                num_gt1=len(aid1_and_groundtruth),
+                                num_gt2=len(aid2_and_groundtruth),)
+            if not guitool.are_you_sure(parent=None, msg=msg, default='Yes'):
+                raise guiexcept.UserCancel('canceled merge')
+    try:
+        status = ibs.mark_annot_pair_as_positive_match(aid1, aid2, on_nontrivial_merge=on_nontrivial_merge)
+        print('status = %r' % (status,))
+    except guiexcept.NeedsUserInput:
+        review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)
+    except guiexcept.UserCancel:
+        print('user canceled positive match')
+
+
+def mark_annot_pair_as_negative_match_(ibs, aid1, aid2, qres, qreq_, **kwargs):
+    def on_nontrivial_split(ibs, aid1, aid2):
+        aid1_groundtruth = ibs.get_annot_groundtruth(aid1, noself=True)
+        print('There are %d annots in this name. Need more sophisticated split' % (len(aid1_groundtruth)))
+        raise guiexcept.NeedsUserInput('non-trivial split')
+    try:
+        status = ibs.mark_annot_pair_as_negative_match(aid1, aid2, on_nontrivial_split=on_nontrivial_split)
+        print('status = %r' % (status,))
+    except guiexcept.NeedsUserInput:
+        review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)
+    except guiexcept.UserCancel:
+        print('user canceled negative match')
+
+
+def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None, qreq_=None, qres=None, **kwargs):
     print('Review match: ' + ibsfuncs.vsstr(aid1, aid2))
     from ibeis.viz.interact import interact_name
     #ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])
     mvinteract = interact_name.MatchVerificationInteraction(
         ibs, aid1, aid2, fnum=64, update_callback=update_callback,
+        qres=qres,
         qreq_=qreq_,
         backend_callback=backend_callback, **kwargs)
     return mvinteract

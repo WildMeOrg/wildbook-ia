@@ -105,11 +105,15 @@ def get_test_qaids(ibs, default_qaids=None):
     if available_qaids is None:
         available_qaids = [1]
 
+    #print('available_qaids = %r' % available_qaids)
+    available_qaids = ut.unique_keep_order2(available_qaids)
+
     if not ut.get_argflag('--junk'):
         available_qaids = ibs.filter_junk_annotations(available_qaids)
 
-    #print('available_qaids = %r' % available_qaids)
-    available_qaids = ut.unique_keep_order2(available_qaids)
+    if ut.get_argflag('--unreviewed'):
+        isreviewed_list = ibs.get_annot_has_reviewed_matching_aids(available_qaids)
+        available_qaids = ut.filterfalse_items(available_qaids, isreviewed_list)
     return available_qaids
 
 

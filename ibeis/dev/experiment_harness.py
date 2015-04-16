@@ -171,6 +171,12 @@ def test_configurations(ibs, qaids, daids, test_cfg_name_list):
         >>> test_cfg_name_list = ['custom']
         >>> test_configurations(ibs, qaids, daids, test_cfg_name_list)
     """
+    if len(qaids) == 0:
+        print('[harness] No query annotations specified')
+        return None
+    if len(daids) == 0:
+        print('[harness] No query annotations specified')
+        return None
     test_result = run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
     if test_result is None:
         return
@@ -202,10 +208,10 @@ class TestResult(object):
 
     @ut.memoize
     def get_new_hard_qx_list(test_result):
-        new_hard_qx_list = []
+        """ Mark any query as hard if it didnt get everything correct """
         rank_mat = test_result.get_rank_mat()
-        # Mark examples as hard
-        [qx for qx, ranks in enumerate(rank_mat) if ranks.max() > 0]
+        is_new_hard_list = rank_mat.max(axis=1) > 0
+        new_hard_qx_list = np.where(is_new_hard_list)[0]
         return new_hard_qx_list
 
 
@@ -217,15 +223,16 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
     lbl = '[harn] TEST_CFG ' + str(test_cfg_name_list)
     # Test Each configuration
     if not utool.QUIET:
-        print(textwrap.dedent("""
+        ut.colorprint(textwrap.dedent("""
+
         [harn]================
-        [harn] experiment_harness.test_configurations()""").strip())
+        [harn] experiment_harness.test_configurations()""").strip(), 'white')
 
     orig_query_cfg = ibs.cfg.query_cfg  # Remember original query config
     cfgx2_lbl = np.array(cfgx2_lbl)
     if not utool.QUIET:
-        print('[harn] Testing %d different parameters' % len(cfg_list))
-        print('[harn]         %d query annotations' % len(qaids))
+        ut.colorprint('[harn] Testing %d different parameters' % len(cfg_list), 'white')
+        ut.colorprint('[harn]         %d query annotations' % len(qaids), 'white')
 
     nCfg     = len(cfg_list)   # number of configurations (cols)
     dbname = ibs.get_dbname()
@@ -238,7 +245,7 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
         # Query Config / Col Loop
         #for cfgx, query_cfg in enumerate(cfg_list):
         for cfgx, query_cfg in cfgiter:
-            print('+----')
+            print('+--- REQUESTING CONFIG ---')
             print(query_cfg.get_cfgstr())
             print('L____')
             # Set data to the current config
@@ -252,7 +259,8 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
                 cfgx2_cfgresinfo.append(cfgres_info)
                 cfgx2_qreq_.append(qreq_)
     if not utool.QUIET:
-        print('[harn] Finished testing parameters')
+        ut.colorprint('[harn] Completed running test configurations', 'white')
+        #print(msg)
     if NOMEMORY:
         print('ran tests in memory savings mode. Cannot Print. exiting')
         return

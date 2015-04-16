@@ -246,11 +246,14 @@ def draw_results(ibs, test_result):
                 query_lbl = query_lbl.replace(' ', '').replace('\'', '')
                 #qres.show(ibs, 'analysis', figtitle=query_lbl, fnum=fnum, **show_kwargs)
                 if SHOW:
-                    show_kwargs['show_query'] = False
+                    #show_kwargs['show_query'] = False
+                    show_kwargs['viz_name_score'] = True
                     qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
                     #qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
                 else:
                     show_kwargs['show_query'] = False
+                    #show_kwargs['viz_name_score'] = False
+                    show_kwargs['viz_name_score'] = True
                     qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
 
                 # Adjust subplots
@@ -511,7 +514,6 @@ def print_results(ibs, test_result):
         print('[harn] Row/Query Labels: %s' % testnameid)
         print('=====================')
         print('[harn] queries:\n%s' % '\n'.join(qx2_lbl))
-        print('--- /Row/Query Labels ---')
     print_rowlbl()
     #------------
 
@@ -523,7 +525,6 @@ def print_results(ibs, test_result):
         enum_cfgx2_lbl = ['%2d) %s' % (count, cfglbl)
                             for count, cfglbl in enumerate(cfgx2_lbl)]
         print('[harn] cfglbl:\n%s' % '\n'.join(enum_cfgx2_lbl))
-        print('--- /Col/Config Labels ---')
     print_collbl()
 
     #------------
@@ -537,7 +538,6 @@ def print_results(ibs, test_result):
         enum_cfgstr_list = ['%2d) %s' % (count, cfgstr)
                             for count, cfgstr in enumerate(cfgstr_list)]
         print('\n[harn] cfgstr:\n%s' % '\n'.join(enum_cfgstr_list))
-        print('--- /Config Strings ---')
     print_cfgstr()
 
     #------------
@@ -578,7 +578,6 @@ def print_results(ibs, test_result):
 
     @ut.argv_flag_dec
     def print_hardcase():
-        print('===')
         print('--- hard new_hardtup_list (w.r.t these configs): %s' % testnameid)
         print('\n'.join(map(repr, new_hardtup_list)))
         print('There are %d hard cases ' % len(new_hardtup_list))
@@ -587,7 +586,6 @@ def print_results(ibs, test_result):
         name_set = set(name_list)
         print(sorted(aid_list))
         print('Names: %r' % (name_set,))
-        print('--- /Print Hardcase ---')
     print_hardcase()
     #default=not ut.get_argflag('--allhard'))
 
@@ -595,7 +593,6 @@ def print_results(ibs, test_result):
 
     @ut.argv_flag_dec_true
     def echo_hardcase():
-        print('====')
         print('--- hardcase commandline: %s' % testnameid)
         # Show index for current query where hardids reside
         #print('--index ' + (' '.join(map(str, new_hard_qx_list))))
@@ -603,7 +600,6 @@ def print_results(ibs, test_result):
         #hardaids_str = ' '.join(map(str, ['    ', '--qaid'] + new_hard_qaids))
         hardaids_str = ' '.join(map(str, ['    ', '--set-aids-as-hard'] + new_hard_qaids))
         print(hardaids_str)
-        print('--- /Echo Hardcase ---')
     echo_hardcase(default=not ut.get_argflag('--allhard'))
 
     #------------
@@ -617,7 +613,7 @@ def print_results(ibs, test_result):
         sortx = cfgx2_mAP.argsort()
         for cfgx in sortx:
             print('[mAP] cfgx=%r) mAP=%.3f -- %s' % (cfgx, cfgx2_mAP[cfgx], cfgx2_lbl[cfgx]))
-        #print('--- /Scores per Config ---')
+        #print('L___ Scores per Config ___')
     print_colmap()
     #------------
 
@@ -639,7 +635,6 @@ def print_results(ibs, test_result):
                 nLessX_ = nLessX_dict[int(X)][cfgx]
                 rankstr = eh.rankscore_str(X, nLessX_, nQuery, withlbl=False)
                 print('[score] %s --- %s' % (rankstr, cfgx2_lbl[cfgx]))
-        print('--- /Scores per Config ---')
     print_colscore()
 
     #------------
@@ -665,7 +660,6 @@ def print_results(ibs, test_result):
                                                           **tabular_kwargs)
         #latex_formater.render(tabular_str)
         print(tabular_str)
-        print('--- /LaTeX ---')
     #print_latexsum()
 
     #------------
@@ -703,8 +697,6 @@ def print_results(ibs, test_result):
             print(best_rankcfg)
         print('[cfg*]  %d cfg(s) are the best of %d total cfgs' % (len(intersected), nConfig))
         print(eh.format_cfgstr_list(intersected))
-
-        print('--- /Best Configurations ---')
     print_bestcfg()
 
     #------------
@@ -712,7 +704,6 @@ def print_results(ibs, test_result):
     @ut.argv_flag_dec
     def print_gtscore():
         # Prints best ranks
-        print('-------------')
         print('gtscore_mat: %s' % testnameid)
         print(' nRows=%r, nCols=%r' % lbld_mat.shape)
         header = (' labled rank matrix: rows=queries, cols=cfgs:')
@@ -724,7 +715,6 @@ def print_results(ibs, test_result):
                                 column_lbls=column_lbls, header=header,
                                 transpose=False,
                                 use_lbl_width=len(cfgx2_lbl) < 5))
-        print('[harn]-------------')
     print_gtscore()
 
     #------------
@@ -747,7 +737,6 @@ def print_results(ibs, test_result):
         #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
         #with ut.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
         #print(lbld_mat)
-        print('[harn]-------------')
     print_best_rankmat()
 
     #------------
@@ -769,7 +758,6 @@ def print_results(ibs, test_result):
         #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
         #with ut.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
         #print(lbld_mat)
-        print('[harn]-------------')
     print_next_rankmat()
 
     #------------
@@ -794,7 +782,6 @@ def print_results(ibs, test_result):
         #np.set_printoptions(threshold=5000, linewidth=5000, precision=5)
         #with ut.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):
         #print(lbld_mat)
-        print('[harn]-------------')
     print_scorediff_mat(alias_flags=['--sdm'])
 
     #------------
@@ -866,7 +853,6 @@ def print_results(ibs, test_result):
         #print(scorediff_selstr)
         #print(pos_scorediff_selstr)
         #print(neg_scorediff_selstr)
-        print('[harn]-------------')
     print_scorediff_mat_stats(alias_flags=['--sdms'])
 
     @ut.argv_flag_dec
@@ -906,7 +892,6 @@ def print_results(ibs, test_result):
         print(tn_rawscore_statstr)
         print(fn_rawscore_statstr)
 
-        print('[harn]-------------')
     print_confusion_stats(alias_flags=['--cs'])
 
     @ut.argv_flag_dec
@@ -916,12 +901,11 @@ def print_results(ibs, test_result):
         print('Diffmat: %s' % testnameid)
         diff_matstr = get_diffmat_str(rank_mat, qaids, nConfig)
         print(diff_matstr)
-        print('[harn]-------------')
     print_diffmat()
 
     #------------
     # Print summary
-    print(' --- SUMMARY ---')
+    #print(' --- SUMMARY ---')
     sumstrs = []
     sumstrs.append('')
     sumstrs.append('||===========================')
@@ -929,7 +913,9 @@ def print_results(ibs, test_result):
     sumstrs.append('||---------------------------')
     sumstrs.append(ut.joins('\n|| ', best_rankscore_summary))
     sumstrs.append('||===========================')
-    print('\n' + '\n'.join(sumstrs) + '\n')
+    summary_str = '\n' + '\n'.join(sumstrs) + '\n'
+    #print(summary_str)
+    ut.colorprint(summary_str, 'blue')
 
     print('To enable all printouts add --print-all to the commandline')
 

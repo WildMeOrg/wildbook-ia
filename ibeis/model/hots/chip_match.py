@@ -501,6 +501,12 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         top_aids = ut.listclip(_top_aids, ntop)
         return top_aids
 
+    def get_annot_scores(cm, daids):
+        #ut.dict_take(cm.daid2_idx, daids)
+        idx_list = [cm.daid2_idx.get(daid, None) for daid in daids]
+        score_list = [None if idx is None else cm.score_list[idx] for idx in idx_list]
+        return score_list
+
     #------------------
     # String Functions
     #------------------
@@ -627,6 +633,13 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         assert cm.score_list is None or len(cm.score_list) == len(cm.daid_list), 'incompatable data'
         assert cm.dnid_list is None or len(cm.dnid_list) == len(cm.daid_list), 'incompatable data'
 
+        if cm.score_list is not None:
+            daids = cm.get_top_aids()
+            scores = cm.get_top_scores()
+            scores_ = cm.get_annot_scores(daids)
+            assert np.all(scores == scores_), 'bad score mapping'
+            print('[cm] score mappings are ok')
+
         if strict or cm.unique_nids is not None:
             assert np.all(cm.unique_nids[ut.dict_take(cm.nid2_nidx, cm.unique_nids)] == cm.unique_nids)
             print('[cm] unique nid alignment is ok')
@@ -728,8 +741,11 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         # get the info for this name
         name_fm_list  = ut.list_take(cm.fm_list, sorted_groupxs)
         REMOVE_EMPTY_MATCHES = len(sorted_groupxs) > 3
+        REMOVE_EMPTY_MATCHES = True
         if REMOVE_EMPTY_MATCHES:
-            isvalid_list = [len(fm) > 0 for fm in name_fm_list]
+            isvalid_list = np.array([len(fm) > 0 for fm in name_fm_list])
+            MAX_MATCHES = 3
+            isvalid_list = ut.make_at_least_n_items_valid(isvalid_list, MAX_MATCHES)
             name_fm_list = ut.list_compress(name_fm_list, isvalid_list)
             sorted_groupxs = sorted_groupxs.compress(isvalid_list)
 

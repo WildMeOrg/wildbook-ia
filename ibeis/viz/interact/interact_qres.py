@@ -46,6 +46,7 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
     """
     Displays query chip, groundtruth matches, and top matches
     TODO: make this a class
+    TODO; dodraw should be false by default
 
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -59,31 +60,37 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.viz.interact.interact_qres import *  # NOQA
         >>> import ibeis
-        >>> qreq_ = None
         >>> ibs = ibeis.opendb('testdb1')
-        >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]
+        >>> qreq_ = ibs.new_query_request([1], [2, 3, 4, 5], cfgdict=dict())
+        >>> qres = ibs.query_chips(qreq_=qreq_)[0]
         >>> analysis = False
         >>> fig = ishow_qres(ibs, qres, analysis, dodraw=False, qreq_=qreq_)
         >>> pt.show_if_requested()
     """
+
     fnum = df2.ensure_fnum(kwargs.get('fnum', None))
     kwargs['fnum'] = fnum
 
     fig = ih.begin_interaction('qres', fnum)
     # Result Interaction
-    printDBG('[ishow_qres] starting interaction')
+    #printDBG('[ishow_qres] starting interaction')
 
-    def _ctrlclicked_aid(aid2):
+    # Start the transformation into a class
+    self = ut.DynStruct()
+    self.qreq_ = qreq_
+    self.ibs = ibs
+
+    def show_sver_process_to_aid(aid2):
         printDBG('ctrl+clicked aid2=%r' % aid2)
         fnum_ = df2.next_fnum()
-        ishow_sver(ibs, qres.qaid, aid2, qreq_=qreq_, fnum=fnum_)
+        ishow_sver(ibs, qres.qaid, aid2, qreq_=self.qreq_, fnum=fnum_)
         fig.canvas.draw()
         pt.bring_to_front(fig)
 
-    def _clicked_aid(aid2):
+    def show_matches_to_aid(aid2):
         printDBG('clicked aid2=%r' % aid2)
         fnum_ = df2.next_fnum()
-        qres.ishow_matches(ibs, aid2, qreq_=qreq_, fnum=fnum_)
+        qres.ishow_matches(ibs, aid2, qreq_=self.qreq_, fnum=fnum_)
         fig = df2.gcf()
         fig.canvas.draw()
         pt.bring_to_front(fig)
@@ -92,42 +99,80 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
         # Toggle if the click is not in any axis
         printDBG('clicked none')
         kwargs['annot_mode'] = kwargs.get('annot_mode', 0) + toggle
-        fig = viz.show_qres(ibs, qres, qreq_=qreq_, **kwargs)
+        fig = viz.show_qres(ibs, qres, qreq_=self.qreq_, **kwargs)
         return fig
 
     def _analysis_view(toggle=0):
         # Toggle if the click is not in any axis
         printDBG('clicked none')
         kwargs['annot_mode'] = kwargs.get('annot_mode', 0) + toggle
-        fig = qres.show_analysis(ibs, qreq_=qreq_, **kwargs)
+        fig = qres.show_analysis(ibs, qreq_=self.qreq_, **kwargs)
         return fig
+
+    def _refresh():
+        if analysis:
+            _analysis_view(toggle=1)
+        else:
+            _top_matches_view(toggle=1)
 
     def _on_match_click(event):
         """ result interaction mpl event callback slot """
         print('[viz] clicked result')
         if ih.clicked_outside_axis(event):
-            if analysis:
-                _analysis_view(toggle=1)
-            else:
-                _top_matches_view(toggle=1)
+            _refresh()
         else:
             ax = event.inaxes
             viztype = ph.get_plotdat(ax, 'viztype', '')
             #printDBG(str(event.__dict__))
-            printDBG('viztype=%r' % viztype)
+            print('viztype=%r' % viztype)
             # Clicked a specific matches
-            if viztype.startswith('matches'):
+            print('plodat_dict = ' + ut.dict_str(ph.get_plotdat_dict(ax)))
+            if viztype.startswith('chip'):
+                import guitool
+                from ibeis.viz.interact import interact_chip
+                height = fig.canvas.geometry().height()
+                qpoint = guitool.newQPoint(event.x, height - event.y)
+                refresh_func = _analysis_view
+                interact_chip.show_annot_context_menu(
+                    ibs, qres.qaid, fig.canvas, qpoint, refresh_func=refresh_func,
+                    with_interact_chip=False)
+            if viztype.startswith('matches') or viztype == 'multi_match':  # why startswith?
                 aid2 = ph.get_plotdat(ax, 'aid2', None)
-                # Ctrl-Click
-                key = '' if event.key is None else event.key
-                print('key = %r' % key)
-                if key.find('control') == 0:
-                    print('[viz] result control clicked')
-                    _ctrlclicked_aid(aid2)
-                # Left-Click
+                if event.button == 3:   # right-click
+                    print('right click')
+                    height = fig.canvas.geometry().height()
+                    import guitool
+                    qpoint = guitool.newQPoint(event.x, height - event.y)
+                    qwin = fig.canvas
+                    # TODO; this functionality should be in viz.interact
+                    from ibeis.gui import inspect_gui
+                    update_callback = _refresh
+                    backend_callback = None
+                    print('qreq_ = %r' % (self.qreq_,))
+                    inspect_gui.show_aidpair_context_menu(
+                        ibs, qwin, qpoint, qres.qaid, aid2, qres, qreq_=self.qreq_,
+                        update_callback=update_callback,
+                        backend_callback=backend_callback)
+                    #callback_list = [
+                    #]
+                    #guitool.popup_menu(qwin, qpoint, callback_list)
                 else:
-                    print('[viz] result clicked')
-                    _clicked_aid(aid2)
+                    # Ctrl-Click
+                    key = '' if event.key is None else event.key
+                    print('key = %r' % key)
+                    if key.find('control') == 0:
+                        print('[viz] result control clicked')
+                        show_sver_process_to_aid(aid2)
+                    # Left-Click
+                    else:
+                        print('[viz] result clicked')
+                        show_matches_to_aid(aid2)
+                    #print('multimatches')
+                    #aid2 = ph.get_plotdat(ax, 'aid2', None)
+                    #key = '' if event.key is None else event.key
+                    #print('key = %r' % key)
+                    #if key == '':
+                    #    show_matches_to_aid(aid2)
         ph.draw()
 
     if analysis:
@@ -137,7 +182,7 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
     if dodraw:
         ph.draw()
     ih.connect_callback(fig, 'button_press_event', _on_match_click)
-    printDBG('[ishow_qres] Finished')
+    #printDBG('[ishow_qres] Finished')
     return fig
 
 

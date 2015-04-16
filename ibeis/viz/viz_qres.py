@@ -50,7 +50,8 @@ def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
     show_query = kwargs.pop('show_query', True)
     aid_list   = kwargs.pop('aid_list', None)
     figtitle   = kwargs.pop('figtitle', None)
-    viz_name_score  = kwargs.get('viz_name_score', qreq_ is not None)
+    #viz_name_score  = kwargs.get('viz_name_score', qreq_ is not None)
+    viz_name_score  = kwargs.get('viz_name_score', False)
 
     # Debug printing
     #print('[analysis] noshow_gt  = %r' % noshow_gt)
@@ -83,6 +84,12 @@ def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
         #matchable_aids = ibs.get_recognition_database_aids()
         #matchable_aids = list(qres.aid2_fm.keys())
         _gtaids = ibs.get_annot_groundtruth(qres.qaid, daid_list=matchable_aids)
+
+        if viz_name_score:
+            # Only look at the groundtruth if a name isnt in the top list
+            _valids = ~np.in1d(ibs.get_annot_name_rowids(_gtaids), ibs.get_annot_name_rowids(top_aids))
+            _gtaids = ut.list_compress(_gtaids, _valids)
+
         # No need to display highly ranked groundtruth. It will already show up
         _gtaids = np.setdiff1d(_gtaids, top_aids)
         # Sort missed grountruth by score

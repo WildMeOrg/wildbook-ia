@@ -85,6 +85,12 @@ def add_encounters(ibs, enctext_list, encounter_uuid_list=None, config_rowid_lis
     r"""
     Adds a list of encounters.
 
+    Args:
+        enctext_list (list):
+        encounter_uuid_list (list):
+        config_rowid_list (list):
+        notes_list (list):
+
     Returns:
         eid_list (list): added encounter rowids
 

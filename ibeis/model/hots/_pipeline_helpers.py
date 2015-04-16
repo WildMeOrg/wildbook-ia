@@ -145,6 +145,17 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
 
     ibs = ibeis.opendb(dbname)
 
+    if qaid_list == 'all':
+        qaid_list = ibs.get_valid_aids()
+    if daid_list is None:
+        daid_list = ibs.get_valid_aids()
+        if dbname == 'testdb1':
+            daid_list = daid_list[0:min(5, len(daid_list))]
+    elif daid_list == 'all':
+        daid_list = ibs.get_valid_aids()
+    elif daid_list == 'gt':
+        daid_list = ut.flatten(ibs.get_annot_groundtruth(qaid_list))
+
     if qaid_list is None:
         if dbname == 'testdb1':
             default_qaid_list = [1]
@@ -176,15 +187,6 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
             print('[plh] cfgdict_ = ' + ut.dict_str(cfgdict_))
     else:
         cfgdict_ = cfgdict
-
-    if daid_list is None:
-        daid_list = ibs.get_valid_aids()
-        if dbname == 'testdb1':
-            daid_list = daid_list[0:min(5, len(daid_list))]
-    elif daid_list == 'all':
-        daid_list = ibs.get_valid_aids()
-    elif daid_list == 'gt':
-        daid_list = ut.flatten(ibs.get_annot_groundtruth(qaid_list))
     ibs = ibeis.test_main(db=dbname)
 
     if 'with_metadata' not in cfgdict:

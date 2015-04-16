@@ -725,6 +725,11 @@ def get_annot_gids(ibs, aid_list):
 
 
 @register_ibs_method
+def get_annot_image_rowids(ibs, aid_list):
+    return ibs.get_annot_gids(aid_list)
+
+
+@register_ibs_method
 @ut.accepts_numpy
 @accessor_decors.getter_1to1
 #@cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
@@ -1055,7 +1060,7 @@ def get_annot_has_groundtruth(ibs, aid_list, is_exemplar=None, noself=True, daid
 @register_api('/api/annot/hashid_uuid/', methods=['GET'])
 def get_annot_hashid_uuid(ibs, aid_list, prefix=''):
     r"""
-    Auto-docstr for 'get_annot_hashid_uuid'
+    builds an aggregate random hash id for a list of aids
 
     RESTful:
         Method: GET
@@ -1071,7 +1076,7 @@ def get_annot_hashid_uuid(ibs, aid_list, prefix=''):
 @register_api('/api/annot/hashid_visual_uuid/', methods=['GET'])
 def get_annot_hashid_visual_uuid(ibs, aid_list, prefix=''):
     r"""
-    Auto-docstr for 'get_annot_hashid_visual_uuid'
+    builds an aggregate visual hash id for a list of aids
 
     RESTful:
         Method: GET
@@ -1087,7 +1092,7 @@ def get_annot_hashid_visual_uuid(ibs, aid_list, prefix=''):
 @register_api('/api/annot/hashid_semantic_uuid/', methods=['GET'])
 def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix=''):
     r"""
-    Auto-docstr for 'get_annot_hashid_semantic_uuid'
+    builds an aggregate semantic hash id for a list of aids
 
     RESTful:
         Method: GET
@@ -2311,7 +2316,8 @@ def get_annot_isjunk(ibs, aid_list):
         URL:    /api/annot/isjunk/
     """
     qual_list = ibs.get_annot_qualities(aid_list)
-    isjunk_list = [qual == const.QUALITY_TEXT_TO_INT['junk'] for qual in qual_list]
+    #isjunk_list = [qual == const.QUALITY_TEXT_TO_INT['junk'] for qual in qual_list]
+    isjunk_list = [qual in const.QUALITY_TEXT_TO_INTS['junk'] for qual in qual_list]
     return isjunk_list
 
 

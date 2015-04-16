@@ -716,13 +716,14 @@ class MainWindowBackend(QtCore.QObject):
         assert len(gid_list) > 0, "Cannot create a new encounter with no images"
         print('\n\n[back] send_to_new_encounter')
         ibs = back.ibs
-        enctext = const.NEW_ENCOUNTER_ENCTEXT
-        enctext_list = [enctext] * len(gid_list)
-        ibs.set_image_enctext(gid_list, enctext_list)
+        #enctext = const.NEW_ENCOUNTER_ENCTEXT
+        #enctext_list = [enctext] * len(gid_list)
+        #ibs.set_image_enctext(gid_list, enctext_list)
+        ibs.create_new_encounter_from_images(gid_list)
         eid = back.get_selected_eid()
         eid_list = [eid] * len(gid_list)
         if mode == 'move':
-            ibs.unrelate_images_and_encounters(gid_list, eid_list)
+            ibs.create_new_encounter_from_images(gid_list, eid_list)
         elif mode == 'copy':
             pass
         else:
