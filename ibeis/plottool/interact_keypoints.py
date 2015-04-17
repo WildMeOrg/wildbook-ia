@@ -53,9 +53,10 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
                     _select_ith_kpt(fx)
             elif viztype == 'warped':
                 hs_fx = ph.get_plotdat(ax, 'fx', None)
+                #kpts = ph.get_plotdat(ax, 'kpts', [])
                 if hs_fx is not None:
                     # Ugly. Interactions should be changed to classes.
-                    kp = kpts[hs_fx]
+                    kp = kpts[hs_fx]  # FIXME
                     sift = desc[hs_fx]
                     df2.draw_keypoint_gradient_orientations(chip, kp, sift=sift, mode='vec',
                                                             fnum=df2.next_fnum())

@@ -1362,7 +1362,8 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
     #else:
         #pts_color = [pts_color for _ in range(len(kpts))]
     if ell_color == 'distinct':
-        ell_color = distinct_colors(len(kpts))
+        ell_color = distinct_colors(len(kpts))  # , randomize=True)
+        #print(len(kpts))
 
     _kwargs = kwargs.copy()
     _kwargs.update({

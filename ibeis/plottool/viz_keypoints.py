@@ -45,6 +45,9 @@ def _annotate_kpts(kpts_, sel_fx=None, **kwargs):
         print('len(kpts_) == 0...')
         return
     color = kwargs.get('color', 'distinct' if sel_fx is None else df2.ORANGE)
+    if color == 'distinct':
+        # hack for distinct colors
+        color = df2.distinct_colors(len(kpts_))  # , randomize=True)
     # Keypoint drawing kwargs
     drawkpts_kw = {
         'ell': True,
@@ -63,12 +66,17 @@ def _annotate_kpts(kpts_, sel_fx=None, **kwargs):
         nonsel_kpts_ = np.vstack((kpts_[0:sel_fx], kpts_[sel_fx + 1:]))
         # Draw selected keypoint
         sel_kpts = kpts_[sel_fx:sel_fx + 1]
-        drawkpts2_kw = drawkpts_kw.copy()
-        drawkpts2_kw.update({
+        import utool as ut
+        if ut.isiterable(color) and ut.isiterable(color[0]):
+            # hack for distinct colors
+            drawkpts_kw['ell_color'] = color[0:sel_fx] + color[sel_fx + 1:]
+        drawkpts_kw
+        drawkpts_kw2 = drawkpts_kw.copy()
+        drawkpts_kw2.update({
             'ell_color': df2.BLUE,
             'eig':  True,
             'rect': True,
             'ori':  True,
         })
         df2.draw_kpts2(nonsel_kpts_, **drawkpts_kw)
-        df2.draw_kpts2(sel_kpts, **drawkpts2_kw)
+        df2.draw_kpts2(sel_kpts, **drawkpts_kw2)
