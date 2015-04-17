@@ -1,17 +1,21 @@
 from __future__ import absolute_import, division, print_function
-import utool
+import utool as ut
 from plottool import draw_func2 as df2
 from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih
 from plottool.viz_featrow import draw_feat_row
 from plottool.viz_keypoints import show_keypoints
 
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[interact_kpts]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[interact_kpts]', DEBUG=False)
 
 
 def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwargs):
     fig = ih.begin_interaction('keypoint', fnum)
     annote_ptr = [1]
+
+    self = ut.DynStruct()  # MOVE TO A CLASS INTERACTION
+    self.kpts = kpts
+    self.desc = desc
 
     def _select_ith_kpt(fx):
         print_('[interact] viewing ith=%r keypoint' % fx)
@@ -49,15 +53,15 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
                 else:
                     print('...nearest')
                     x, y = event.xdata, event.ydata
-                    fx = utool.nearest_point(x, y, kpts)[0]
+                    fx = ut.nearest_point(x, y, kpts)[0]
                     _select_ith_kpt(fx)
             elif viztype == 'warped':
                 hs_fx = ph.get_plotdat(ax, 'fx', None)
                 #kpts = ph.get_plotdat(ax, 'kpts', [])
                 if hs_fx is not None:
                     # Ugly. Interactions should be changed to classes.
-                    kp = kpts[hs_fx]  # FIXME
-                    sift = desc[hs_fx]
+                    kp = self.kpts[hs_fx]  # FIXME
+                    sift = self.desc[hs_fx]
                     df2.draw_keypoint_gradient_orientations(chip, kp, sift=sift, mode='vec',
                                                             fnum=df2.next_fnum())
             else:
