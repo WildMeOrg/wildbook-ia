@@ -130,6 +130,12 @@ def get_signature(key, message):
     return str(hmac.new(key, message, sha1).digest().encode("base64").rstrip('\n'))
 
 
+def get_url_authorization(url):
+    hash_ = get_signature(GLOBAL_APP_SECRET, url)
+    hash_challenge = '%s:%s' % (GLOBAL_APP_NAME, hash_, )
+    return hash_challenge
+
+
 def authentication_hash_validate():
     """
     This function is called to check if a username /
@@ -141,14 +147,12 @@ def authentication_hash_validate():
     hash_challenge_list = []
     # Check normal url
     url = str(request.url)
-    hash_ = get_signature(GLOBAL_APP_SECRET, url)
-    hash_challenge = '%s:%s' % (GLOBAL_APP_NAME, hash_, )
+    hash_challenge = get_url_authorization(url)
     hash_challenge_list.append(hash_challenge)
     # If hash at the end of the url, try alternate hash as well
     if '/' == url[-1]:
         url = url[:-1]
-        hash_ = get_signature(GLOBAL_APP_SECRET, url)
-        hash_challenge = '%s:%s' % (GLOBAL_APP_NAME, hash_, )
+        hash_challenge = get_url_authorization(url)
         hash_challenge_list.append(hash_challenge)
     return hash_response in hash_challenge_list
 

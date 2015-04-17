@@ -77,9 +77,9 @@ Request:
     Name:    IBEIS
     Secret:  CB73808F-A6F6-094B-5FCD-385EBAFF8FC0
     Method:  GET
-    URL:     http://127.0.0.1:5000/api/core/dbname    * NOTE: The URL sent to the server includes the protocol and port.
+    URL:     {{ app_url }}    * NOTE: The URL sent to the server includes the protocol and port.
     Headers: {
-        'Authorization': 'IBEIS:Ai6ufDt7ctX3uJ+CJZMJYISPLPY='
+        'Authorization': '{{ app_auth }}'
     }
 
 Response: {

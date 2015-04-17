@@ -303,6 +303,8 @@ def view():
     valid_gids = ibs.get_valid_gids()
     valid_aids_ = ibs.filter_aids_custom(valid_aids)
     valid_gids_ = ibs.filter_gids_custom(valid_gids)
+    used_gids = list(set( ibs.get_annot_gids(valid_aids) ))
+    used_contrib_tags = list(set( ibs.get_image_contributor_tag(used_gids) ))
 
     # Get Age and sex (By Annot)
     # annot_sex_list = ibs.get_annot_sex(valid_aids_)
@@ -396,7 +398,11 @@ def view():
                        num_nids=len(nid_list),
                        nid_list_count=nid_list_count,
                        nid_list_count_str=','.join(map(str, nid_list_count)),
-                       num_nids_count=len(nid_list_count))
+                       num_nids_count=len(nid_list_count),
+                       used_gids=used_gids,
+                       num_used_gids=len(used_gids),
+                       used_contribs=used_contrib_tags,
+                       num_used_contribs=len(used_contrib_tags))
 
 
 @register_route('/view/encounters')
@@ -1319,9 +1325,13 @@ def api():
             rule_dict[method].append((method, url, ))
     for method in rule_dict.keys():
         rule_dict[method].sort()
+    url = '%s/api/core/dbname/' % (current_app.server_url, )
+    app_auth = controller_inject.get_url_authorization(url)
     return ap.template(None, 'api',
+                       app_url=url,
                        app_name=controller_inject.GLOBAL_APP_NAME,
                        app_secret=controller_inject.GLOBAL_APP_SECRET,
+                       app_auth=app_auth,
                        rule_list=rule_dict)
 
 
@@ -1349,29 +1359,33 @@ def start_tornado(ibs, port=None, browser=BROWSER):
         Initialize the web server
     '''
     def _start_tornado(ibs_, port_):
+        # Get Flask app
         app = controller_inject.get_flask_app()
         app.ibs = ibs_
+        # Try to ascertain the socket's domain name
+        try:
+            app.server_domain = socket.gethostbyname(socket.gethostname())
+        except socket.gaierror:
+            app.server_domain = '127.0.0.1'
+        app.server_port = port_
+        # URL for the web instance
+        app.server_url = 'http://%s:%s' % (app.server_domain, app.server_port)
+        print('[web] Tornado server starting at %s' % (app.server_url,))
+        # Launch the web browser to view the web interface and API
+        if browser:
+            import webbrowser
+            webbrowser.open(app.server_url)
+        # Start the tornado web handler
         http_server = tornado.httpserver.HTTPServer(
             tornado.wsgi.WSGIContainer(app))
-        http_server.listen(port_)
+        http_server.listen(app.server_port)
         tornado.ioloop.IOLoop.instance().start()
 
-    # Try to ascertain the socket's domain name
+    # Set logging level
     logging.getLogger().setLevel(logging.INFO)
-    try:
-        server_ip_address = socket.gethostbyname(socket.gethostname())
-    except socket.gaierror:
-        server_ip_address = '127.0.0.1'
     # Get the port if unspecified
     if port is None:
         port = DEFAULT_WEB_API_PORT
-    # URL for the web instance
-    url = 'http://%s:%s' % (server_ip_address, port)
-    print('[web] Tornado server starting at %s' % (url,))
-    # Launch the web browser to view the web interface and API
-    if browser:
-        import webbrowser
-        webbrowser.open(url)
     # Launch the web handler
     _start_tornado(ibs, port)
 
