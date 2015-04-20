@@ -385,8 +385,76 @@ def resized_clamped_thumb_dims(img_size, max_dsize):
     return dsize, sx, sy
 
 
+def padded_resize(img, target_size=(64, 64)):
+    r"""
+    makes the image resize to the target size and pads the rest of the area with a fill value
+
+    Args:
+        img (ndarray[uint8_t, ndim=2]):  image data
+        target_size (tuple):
+
+    CommandLine:
+        python -m vtool.image --test-padded_resize --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> imgA = vt.imread(ut.grab_test_imgpath('carl.jpg'))
+        >>> imgB = vt.imread(ut.grab_test_imgpath('ada.jpg'))
+        >>> imgC = vt.imread(ut.grab_test_imgpath('carl.jpg'), grayscale=True)
+        >>> target_size = (64, 64)
+        >>> img3_list = [padded_resize(img, target_size) for img in [imgA, imgB, imgC]]
+        >>> # verify results
+        >>> assert ut.list_allsame([vt.get_size(img3) for img3 in img3_list])
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pnum_ = pt.make_pnum_nextgen(1, 3)
+        >>> pt.imshow(img3_list[0], pnum=pnum_())
+        >>> pt.imshow(img3_list[1], pnum=pnum_())
+        >>> pt.imshow(img3_list[2], pnum=pnum_())
+        >>> ut.show_if_requested()
+    """
+    img2 = resize_thumb(img, target_size)
+    dsize2 = get_size(img2)
+    if dsize2 != target_size:
+        target_shape = target_size[::-1] if get_num_channels(img2) == 1 else target_size[::-1] + (3,)
+        rc_diff = (np.array(target_shape[0:2]) - np.array(img2.shape[0:2]))
+        rc_start = np.floor(rc_diff / 2)
+        rc_end  =  [None if e == 0 else e for e in (rc_start - rc_diff)]
+        rc_slice = [slice(b, e) for (b, e) in zip(rc_start, rc_end)]
+        img3 = np.zeros(target_shape, dtype=img2.dtype)
+        img3[rc_slice[0], rc_slice[1]] = img2
+    else:
+        img3 = img2
+    return img3
+
+
 def resize_thumb(img, max_dsize=(64, 64)):
-    """ Resize an image such that its max width or height is: """
+    """
+    Resize an image such that its max width or height is:
+
+    CommandLine:
+        python -m vtool.image --test-resize_thumb --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
+        >>> img = vt.imread(img_fpath)
+        >>> max_dsize = (64, 64)
+        >>> # execute function
+        >>> img2 = resize_thumb(img, max_dsize)
+        >>> print('img.shape = %r' % (img.shape,))
+        >>> print('img2.shape = %r' % (img2.shape,))
+        >>> # verify results
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(img2)
+        >>> ut.show_if_requested()
+    """
     height, width = img.shape[0:2]
     img_size = (width, height)
     dsize, ratio = resized_dims_and_ratio(img_size, max_dsize)
