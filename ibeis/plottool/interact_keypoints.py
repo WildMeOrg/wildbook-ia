@@ -10,6 +10,24 @@ from plottool.viz_keypoints import show_keypoints
 
 
 def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwargs):
+    """
+
+    CommandLine:
+        python -m plottool.interact_keypoints --test-ishow_keypoints --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.interact_keypoints import *  # NOQA
+        >>> import numpy as np
+        >>> import plottool as pt
+        >>> import utool as ut
+        >>> import pyhesaff
+        >>> import vtool as vt
+        >>> kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()
+        >>> ut.quit_if_noshow()
+        >>> pt.interact_keypoints.ishow_keypoints(imgBGR, kpts, vecs, ori=True, ell_alpha=.4, color='distinct')
+        >>> pt.show_if_requested()
+    """
     fig = ih.begin_interaction('keypoint', fnum)
     annote_ptr = [1]
 
@@ -73,3 +91,16 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
     ih.connect_callback(fig, 'button_press_event', _on_keypoints_click)
     if not nodraw:
         ph.draw()
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m plottool.interact_keypoints
+        python -m plottool.interact_keypoints --allexamples
+        python -m plottool.interact_keypoints --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

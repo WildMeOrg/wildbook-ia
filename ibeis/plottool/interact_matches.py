@@ -1,6 +1,9 @@
 """
 Unfinished non-ibeis dependent version of interact matches
 """
+import utool as ut
+import six
+import numpy as np
 
 
 # TODO: move to plottool and decouple with IBEIS

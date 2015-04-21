@@ -1423,7 +1423,7 @@ def draw_keypoint_gradient_orientations(rchip, kpt, sift=None, mode='vec',
 #@ut.indent_func('[df2.dkp]')
 def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwargs):
     #print('--------------------')
-    printDBG('[df2] draw_keypoint_patch()')
+    #printDBG('[df2] draw_keypoint_patch()')
     kpts = np.array([kp])
     if warped:
         patches, subkpts = ptool.get_warped_patches(rchip, kpts)
@@ -1437,11 +1437,12 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
     patch_dict_ = {
         'sifts': np.array([sift]),
         'ell_color':  (0, 0, 1),
-        'pts': True,
-        'ori': True,
+        'pts': kwargs.get('pts', True),
+        'ori': kwargs.get('ori', True),
         'ell': True,
         'eig': False,
-        'rect': True,
+        'rect': kwargs.get('rect', True),
+        'multicolored_arms': kwargs.get('multicolored_arms', False),
     }
     patch_dict_.update(patch_dict)
     # Draw patch with keypoint overlay

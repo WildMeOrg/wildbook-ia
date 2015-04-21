@@ -67,7 +67,7 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> import vtool as vt
         >>> imgBGR = vt.get_star_patch(jitter=True)
         >>> H = np.array([[1, 0, 0], [.5, 2, 0], [0, 0, 1]])
-        >>> #H = None
+        >>> H = None
         >>> TAU = 2 * np.pi
         >>> kpts_ = vt.make_test_image_keypoints(imgBGR, scale=.5, skew=2, theta=TAU / 8.0)
         >>> scale_factor=1.0
@@ -78,7 +78,8 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> rect=True
         >>> eig=True
         >>> ori=True
-        >>> sifts=None
+        >>> # make random sifts
+        >>> sifts = mpl_sift.testdata_sifts()
         >>> siftkw = {}
         >>> kwargs = dict(ori_color=[0, 1, 0], rect_color=[0, 0, 1], eig_color=[1, 1, 0], pts_size=.1)
         >>> w, h = imgBGR.shape[0:2][::-1]
@@ -119,7 +120,7 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         if sifts is not None:
             # SIFT descriptors
             pass_props(kwargs, siftkw, 'bin_color', 'arm1_color', 'arm2_color',
-                       'arm1_lw', 'arm2_lw', 'arm_alpha', 'arm_alpha')
+                       'arm1_lw', 'arm2_lw', 'arm_alpha', 'arm_alpha', 'multicolored_arms')
             mpl_sift.draw_sifts(ax, sifts, invVR_aff2Ds, **siftkw)
         if rect:
             # Bounding Rectangles

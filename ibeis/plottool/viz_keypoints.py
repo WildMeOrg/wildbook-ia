@@ -7,6 +7,17 @@ from plottool import plot_helpers as ph
 utool.noinject(__name__, '[viz_keypoints]')
 
 
+def testdata_kpts():
+    import utool as ut
+    import vtool as vt
+    import pyhesaff
+    img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='star.png'))
+    kwargs = ut.parse_dict_from_argv(pyhesaff.get_hesaff_default_params())
+    (kpts, vecs) = pyhesaff.detect_kpts(img_fpath, **kwargs)
+    imgBGR = vt.imread(img_fpath)
+    return kpts, vecs, imgBGR
+
+
 def show_keypoints(chip, kpts, fnum=0, pnum=None, **kwargs):
     #printDBG('[df2.show_kpts] %r' % (kwargs.keys(),))
     fig, ax = df2.imshow(chip, fnum=fnum, pnum=pnum, **kwargs)
