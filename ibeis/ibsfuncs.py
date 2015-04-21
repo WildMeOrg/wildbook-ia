@@ -2801,6 +2801,44 @@ def get_match_truth(ibs, aid1, aid2):
     return truth
 
 
+@__injectable
+def get_aidpair_truths(ibs, aid1_list, aid2_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1_list (list):
+        aid2_list (list):
+
+    Returns:
+        ?: truth
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_aidpair_truths
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid1_list = ibs.get_valid_aids()
+        >>> aid2_list = ut.list_rotate(ibs.get_valid_aids(), 1)
+        >>> # execute function
+        >>> truth = get_aidpair_truths(ibs, aid1_list, aid2_list)
+        >>> # verify results
+        >>> result = str(truth)
+        >>> print(result)
+    """
+    nid1_list = np.array(ibs.get_annot_name_rowids(aid1_list))
+    nid2_list = np.array(ibs.get_annot_name_rowids(aid2_list))
+    isunknown1_list = np.array(ibs.is_nid_unknown(nid1_list))
+    isunknown2_list = np.array(ibs.is_nid_unknown(nid2_list))
+    any_unknown = np.logical_or(isunknown1_list, isunknown2_list)
+    truth_list = np.array((nid1_list == nid2_list), dtype=np.int32)
+    truth_list[any_unknown] = const.TRUTH_UNKNOWN
+    return truth_list
+
+
 def get_title(ibs):
     if ibs is None:
         title = 'IBEIS - No Database Directory Open'

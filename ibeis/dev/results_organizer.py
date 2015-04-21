@@ -428,28 +428,13 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         score_arr = score_arr.compress(is_unreviewed)
         rank_arr  = rank_arr.compress(is_unreviewed)
 
-    def find_best_undirected_edge_indexes(directed_edges, score_arr):
-        #flipped = qaid_arr < daid_arr
-        flipped = directed_edges.T[0] < directed_edges.T[1]
-        # standardize edge order
-        edges_dupl = directed_edges.copy()
-        edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
-        edgeid_list = vt.compute_unique_data_ids(edges_dupl)
-        unique_edgeids, groupxs = vt.group_indices(edgeid_list)
-        # if there is more than one edge in a group take the one with the highest score
-        score_groups = vt.apply_grouping(score_arr, groupxs)
-        unique_edge_xs = np.array(sorted([
-            groupx[score_group.argmax()] for groupx, score_group in zip(groupxs, score_groups)
-        ]), dtype=np.int32)
-        return unique_edge_xs
-
     # Remove directed edges
     if not directed:
         #nodes = np.unique(directed_edges.flatten())
         directed_edges = np.vstack((qaid_arr, daid_arr)).T
         #idx1, idx2 = vt.intersect2d_indices(directed_edges, directed_edges[:, ::-1])
 
-        unique_rowx = find_best_undirected_edge_indexes(directed_edges, score_arr)
+        unique_rowx = vt.find_best_undirected_edge_indexes(directed_edges, score_arr)
 
         qaid_arr  = qaid_arr.take(unique_rowx)
         daid_arr  = daid_arr.take(unique_rowx)
@@ -462,7 +447,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         dnid_arr = ibs.get_annot_nids(daid_arr)
         if not directed:
             directed_name_edges = np.vstack((qnid_arr, dnid_arr)).T
-            unique_rowx2 = find_best_undirected_edge_indexes(directed_name_edges, score_arr)
+            unique_rowx2 = vt.find_best_undirected_edge_indexes(directed_name_edges, score_arr)
         else:
             namepair_id_list = np.array(vt.compute_unique_data_ids_(list(zip(qnid_arr, dnid_arr))))
             unique_namepair_ids, namepair_groupxs = vt.group_indices(namepair_id_list)
