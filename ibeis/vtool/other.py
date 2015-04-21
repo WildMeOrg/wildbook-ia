@@ -8,6 +8,61 @@ from six.moves import zip, range  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[other]', DEBUG=False)
 
 
+def find_best_undirected_edge_indexes(directed_edges, score_arr=None):
+    r"""
+    Args:
+        directed_edges (?):
+        score_arr (?):
+
+    Returns:
+        ?: unique_edge_xs
+
+    CommandLine:
+        python -m vtool.other --test-find_best_undirected_edge_indexes
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> directed_edges = np.array([[1, 2], [2, 1], [2, 3], [3, 1], [1, 1], [2, 3], [3, 2]])
+        >>> score_arr = np.array([1, 1, 1, 1, 1, 1, 2])
+        >>> unique_edge_xs = find_best_undirected_edge_indexes(directed_edges, score_arr)
+        >>> result = str(unique_edge_xs)
+        >>> print(result)
+        [0 3 4 6]
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> directed_edges = np.array([[1, 2], [2, 1], [2, 3], [3, 1], [1, 1], [2, 3], [3, 2]])
+        >>> score_arr = None
+        >>> unique_edge_xs = find_best_undirected_edge_indexes(directed_edges, score_arr)
+        >>> result = str(unique_edge_xs)
+        >>> print(result)
+        [0 2 3 4]
+    """
+    import vtool as vt
+    assert len(directed_edges.shape) == 2 and directed_edges.shape[1] == 2
+    #flipped = qaid_arr < daid_arr
+    flipped = directed_edges.T[0] < directed_edges.T[1]
+    # standardize edge order
+    edges_dupl = directed_edges.copy()
+    edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
+    edgeid_list = vt.compute_unique_data_ids(edges_dupl)
+    unique_edgeids, groupxs = vt.group_indices(edgeid_list)
+    # if there is more than one edge in a group take the one with the highest score
+    if score_arr is None:
+        unique_edge_xs_list = [groupx[0] for groupx in groupxs]
+    else:
+        assert len(score_arr) == len(directed_edges)
+        score_groups = vt.apply_grouping(score_arr, groupxs)
+        score_argmaxs = [score_group.argmax() for score_group in score_groups]
+        unique_edge_xs_list = [
+            groupx[argmax] for groupx, argmax in zip(groupxs, score_argmaxs)
+        ]
+    unique_edge_xs = np.array(sorted(unique_edge_xs_list), dtype=np.int32)
+    return unique_edge_xs
+
+
 def argsort_multiarray(arrays, reverse=False):
     sorting_records = np.rec.fromarrays(arrays)
     sort_stride = (-reverse * 2) + 1

@@ -385,7 +385,7 @@ def resized_clamped_thumb_dims(img_size, max_dsize):
     return dsize, sx, sy
 
 
-def padded_resize(img, target_size=(64, 64)):
+def padded_resize(img, target_size=(64, 64), interpolation=cv2.INTER_LANCZOS4):
     r"""
     makes the image resize to the target size and pads the rest of the area with a fill value
 
@@ -403,7 +403,8 @@ def padded_resize(img, target_size=(64, 64)):
         >>> imgA = vt.imread(ut.grab_test_imgpath('carl.jpg'))
         >>> imgB = vt.imread(ut.grab_test_imgpath('ada.jpg'))
         >>> imgC = vt.imread(ut.grab_test_imgpath('carl.jpg'), grayscale=True)
-        >>> target_size = (64, 64)
+        >>> #target_size = (64, 64)
+        >>> target_size = (1024, 1024)
         >>> img3_list = [padded_resize(img, target_size) for img in [imgA, imgB, imgC]]
         >>> # verify results
         >>> assert ut.list_allsame([vt.get_size(img3) for img3 in img3_list])
@@ -415,7 +416,7 @@ def padded_resize(img, target_size=(64, 64)):
         >>> pt.imshow(img3_list[2], pnum=pnum_())
         >>> ut.show_if_requested()
     """
-    img2 = resize_thumb(img, target_size)
+    img2 = resize_to_maxdims(img, target_size, interpolation=interpolation)
     dsize2 = get_size(img2)
     if dsize2 != target_size:
         target_shape = target_size[::-1] if get_num_channels(img2) == 1 else target_size[::-1] + (3,)
@@ -428,6 +429,40 @@ def padded_resize(img, target_size=(64, 64)):
     else:
         img3 = img2
     return img3
+
+
+def resize_to_maxdims(img, max_dsize=(64, 64), interpolation=cv2.INTER_LANCZOS4):
+    r"""
+    Args:
+        img (ndarray[uint8_t, ndim=2]):  image data
+        max_dsize (tuple):
+        interpolation (long):
+
+    CommandLine:
+        python -m vtool.image --test-resize_to_maxdims --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> # build test data
+        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
+        >>> img = vt.imread(img_fpath)
+        >>> max_dsize = (1024, 1024)
+        >>> # execute function
+        >>> img2 = resize_to_maxdims(img, max_dsize)
+        >>> print('img.shape = %r' % (img.shape,))
+        >>> print('img2.shape = %r' % (img2.shape,))
+        >>> # verify results
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(img2)
+        >>> ut.show_if_requested()
+    """
+    height, width = img.shape[0:2]
+    img_size = (width, height)
+    dsize, ratio = resized_dims_and_ratio(img_size, max_dsize)
+    return cv2.resize(img, dsize, interpolation=cv2.INTER_LANCZOS4)
 
 
 def resize_thumb(img, max_dsize=(64, 64)):
@@ -461,7 +496,7 @@ def resize_thumb(img, max_dsize=(64, 64)):
     if ratio > 1:
         return cvt_BGR2RGB(img)
     else:
-        return resize(img, dsize)
+        return cv2.resize(img, dsize, interpolation=cv2.INTER_LANCZOS4)
 
 
 def scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy):
