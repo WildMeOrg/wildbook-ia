@@ -419,16 +419,21 @@ def padded_resize(img, target_size=(64, 64), interpolation=cv2.INTER_LANCZOS4):
     img2 = resize_to_maxdims(img, target_size, interpolation=interpolation)
     dsize2 = get_size(img2)
     if dsize2 != target_size:
-        target_shape = target_size[::-1] if get_num_channels(img2) == 1 else target_size[::-1] + (3,)
-        rc_diff = (np.array(target_shape[0:2]) - np.array(img2.shape[0:2]))
-        rc_start = np.floor(rc_diff / 2)
-        rc_end  =  [None if e == 0 else e for e in (rc_start - rc_diff)]
-        rc_slice = [slice(b, e) for (b, e) in zip(rc_start, rc_end)]
-        img3 = np.zeros(target_shape, dtype=img2.dtype)
-        img3[rc_slice[0], rc_slice[1]] = img2
+        img3 = embed_in_square_image(img2, target_size)
     else:
         img3 = img2
     return img3
+
+
+def embed_in_square_image(img, target_size):
+    target_shape = target_size[::-1] if get_num_channels(img) == 1 else target_size[::-1] + (3,)
+    rc_diff = (np.array(target_shape[0:2]) - np.array(img.shape[0:2]))
+    rc_start = np.floor(rc_diff / 2)
+    rc_end  =  [None if e == 0 else e for e in (rc_start - rc_diff)]
+    rc_slice = [slice(b, e) for (b, e) in zip(rc_start, rc_end)]
+    img_sqare = np.zeros(target_shape, dtype=img.dtype)
+    img_sqare[rc_slice[0], rc_slice[1]] = img
+    return img_sqare
 
 
 def resize_to_maxdims(img, max_dsize=(64, 64), interpolation=cv2.INTER_LANCZOS4):
@@ -459,8 +464,7 @@ def resize_to_maxdims(img, max_dsize=(64, 64), interpolation=cv2.INTER_LANCZOS4)
         >>> pt.imshow(img2)
         >>> ut.show_if_requested()
     """
-    height, width = img.shape[0:2]
-    img_size = (width, height)
+    img_size = get_size(img)
     dsize, ratio = resized_dims_and_ratio(img_size, max_dsize)
     return cv2.resize(img, dsize, interpolation=cv2.INTER_LANCZOS4)
 

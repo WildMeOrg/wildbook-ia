@@ -8,6 +8,7 @@ from vtool import linalg as ltool
 from vtool import image as gtool
 from vtool import image_filters as gfilt_tool
 import utool as ut
+import cv2
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[chip]', DEBUG=False)
 
 
@@ -52,7 +53,28 @@ def _get_chip_to_image_transform(bbox, chipsz, theta):
 
 
 @profile
-def extract_chip(gfpath, bbox, theta, new_size):
+def extract_chip_from_gpath(gfpath, bbox, theta, new_size):
+    imgBGR = gtool.imread(gfpath)  # Read parent image
+    chipBGR = extract_chip_from_img(imgBGR, bbox, theta, new_size)
+    return chipBGR
+
+
+def extract_chip_into_square(imgBGR, bbox, theta, target_size):
+    bbox_size = bbox[2:4]
+    unpadded_dsize, ratio = gtool.resized_dims_and_ratio(bbox_size, target_size)
+    chipBGR = extract_chip_from_img(imgBGR, bbox, theta, unpadded_dsize)
+    chipBGR_square = gtool.embed_in_square_image(chipBGR, target_size)
+    return chipBGR_square
+
+
+def extract_chip_from_gpath_into_square(args):
+    gfpath, bbox, theta, target_size = args
+    imgBGR = gtool.imread(gfpath)  # Read parent image
+    return extract_chip_into_square(imgBGR, bbox, theta, target_size)
+
+
+@profile
+def extract_chip_from_img(imgBGR, bbox, theta, new_size):
     """ Crops chip from image ; Rotates and scales;
 
     ibs.show_annot_image(aid)[0].pt_save_and_view()
@@ -67,19 +89,19 @@ def extract_chip(gfpath, bbox, theta, new_size):
         ndarray: chipBGR
 
     CommandLine:
-        python -m vtool.chip --test-extract_chip
-        python -m vtool.chip --test-extract_chip --show
+        python -m vtool.chip --test-extract_chip_from_img
+        python -m vtool.chip --test-extract_chip_from_img --show
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.chip import *  # NOQA
         >>> # build test data
-        >>> gfpath = ut.grab_test_imgpath('carl.jpg')
+        >>> imgBGR = gtool.imread(ut.grab_test_imgpath('carl.jpg'))
         >>> bbox = (100, 3, 100, 100)
         >>> theta = 0.0
         >>> new_size = (58, 34)
         >>> # execute function
-        >>> chipBGR = extract_chip(gfpath, bbox, theta, new_size)
+        >>> chipBGR = extract_chip_from_img(imgBGR, bbox, theta, new_size)
         >>> # verify results
         >>> assert chipBGR.shape[0:2] == new_size[::-1], 'did not resize correctly'
         >>> ut.quit_if_noshow()
@@ -87,9 +109,9 @@ def extract_chip(gfpath, bbox, theta, new_size):
         >>> pt.imshow(chipBGR)
         >>> pt.show_if_requested()
     """
-    imgBGR = gtool.imread(gfpath)  # Read parent image
     M = _get_image_to_chip_transform(bbox, new_size, theta)  # Build transformation
-    chipBGR = gtool.warpAffine(imgBGR, M, new_size)  # Rotate and scale
+    chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
+    #chipBGR = gtool.warpAffine(imgBGR, M, new_size)  # Rotate and scale
     return chipBGR
 
 
@@ -183,7 +205,7 @@ def compute_chip(gfpath, bbox, theta, new_size, filter_list=[]):
         >>> pt.imshow(chipBGR, pnum=(1, 2, 2))
         >>> pt.show_if_requested()
     """
-    chipBGR = extract_chip(gfpath, bbox, theta, new_size)
+    chipBGR = extract_chip_from_gpath(gfpath, bbox, theta, new_size)
     chipBGR = _filter_chip(chipBGR, filter_list)
     return chipBGR
 
