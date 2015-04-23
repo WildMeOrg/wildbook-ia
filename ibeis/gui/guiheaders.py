@@ -5,6 +5,9 @@ and potentially setters (hopefully if guitool ever gets off the ground the
 delters as well)
 
 Different columns can be hidden / shown by modifying this file
+
+TODO: need to cache the total number of annotations or something about
+encounters on disk to help startuptime.
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
@@ -81,11 +84,11 @@ TABLE_COLNAMES = {
         'name',
         'exemplar',
         'species',  # <put back in
-        #'yaw',
-        #'quality_text'
+        'yaw_text',
+        'quality_text',
         #'rdconf',
         #'nGt',  # ## <put back in
-        #'annotnotes',  # ## <put back in
+        'annotnotes',  # ## <put back in
         #'annot_visual_uuid',
         #'annot_semantic_uuid',
         #'nFeats',
@@ -152,11 +155,6 @@ TABLE_COLNAMES = {
 
 }
 
-# Quality / Viewpoint Columns
-if True:
-    TABLE_COLNAMES[ANNOTATION_TABLE].append('yaw_text')
-    TABLE_COLNAMES[ANNOTATION_TABLE].append('quality_text')
-
 #THUMB_TABLE     : ['thumb' 'thumb' 'thumb' 'thumb'],
 #NAMES_TREE      : {('name' 'nid' 'nAids') : ['aid' 'bbox' 'thumb']}
 
@@ -198,7 +196,7 @@ TABLE_HIDDEN_LIST = {
 }
 
 TABLE_STRIPE_LIST = {
-    IMAGE_GRID : 3,
+    IMAGE_GRID : 9,
 }
 
 # Define the valid columns a table could have

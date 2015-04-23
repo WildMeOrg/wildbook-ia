@@ -7,6 +7,45 @@ from ibeis.viz import viz_image
                                                        DEBUG=False)
 
 
+def testdata_showchip():
+    import ibeis
+    ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+    aid_list = ut.get_argval('--aids', type_=list, default=None)
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()[0:4]
+    weight_label = ut.get_argval('--weight_label', type_=str, default='fg_weights')
+    annote = not ut.get_argflag('--no-annote')
+    kwargs = dict(ori=False, weight_label=weight_label, annote=annote)
+    ut.print_dict(kwargs)
+    print(aid_list)
+    return ibs, aid_list, kwargs
+
+
+def show_many_chips(ibs, aid_list):
+    r"""
+    CommandLine:
+        python -m ibeis.viz.viz_chip --test-show_many_chips
+        python -m ibeis.viz.viz_chip --test-show_many_chips --show --db NNP_Master3 --aids=13276,14047,14489,14906,10194,10201,12656,10150,11002,15315,7191,13127,15591,12838,13970,14123,14167 --no-annote --dpath figures --save ~/latex/crall-candidacy-2015/figures/challengechips.jpg '--caption=challenging images'
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.viz.viz_chip import *  # NOQA
+        >>> import numpy as np
+        >>> in_image = False
+        >>> ibs, aid_list, kwargs = testdata_showchip()
+        >>> # execute function
+        >>> show_many_chips(ibs, aid_list)
+        >>> ut.show_if_requested()
+    """
+    if ut.VERBOSE:
+        print('[viz] show_many_chips')
+    config2_ = None
+    in_image = False
+    chip_list = vh.get_chips(ibs, aid_list, in_image=in_image, config2_=config2_)
+    stacked_chips = pt.stack_image_recurse(chip_list, modifysize=True)
+    pt.imshow(stacked_chips)
+
+
 #@ut.indent_func
 def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
                 weight_label=None, weights=None, config2_=None, **kwargs):
@@ -25,23 +64,17 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     CommandLine:
         python -m ibeis.viz.viz_chip --test-show_chip --show
         python -c "import utool as ut; ut.print_auto_docstr('ibeis.viz.viz_chip', 'show_chip')"
+        python -m ibeis.viz.viz_chip --test-show_chip --show --db NNP_Master3 --aids 14047 --no-annote
 
     Example:
         >>> # VIZ_TEST
         >>> from ibeis.viz.viz_chip import *  # NOQA
-        >>> import ibeis
         >>> import numpy as np
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> aid = ibs.get_valid_aids()[0]
         >>> in_image = False
-        >>> annote = True
+        >>> ibs, aid_list, kwargs = testdata_showchip()
+        >>> aid = aid_list[0]
         >>> config2_ = None
-        >>> #kpts = ibs.get_annot_kpts(aid, config2_=config2_)[::100]
-        >>> #kpts = None
-        >>> #color = np.array([pt.ORANGE] * len(kpts))
-        >>> #kwargs = dict(kpts=kpts, color=color)
-        >>> kwargs = dict(ori=False, weight_label='fg_weights')
-        >>> show_chip(ibs, aid, in_image=in_image, annote=annote, **kwargs)
+        >>> show_chip(ibs, aid, in_image=in_image, **kwargs)
         >>> pt.show_if_requested()
     """
     if ut.VERBOSE:
