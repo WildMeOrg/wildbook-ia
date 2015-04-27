@@ -167,6 +167,12 @@ def show_if_requested():
 
     fpath = ut.get_argval('--save', type_=str, default=None)
     if fpath is not None:
+        arg_dict = ut.get_arg_dict()
+        import sys
+
+        print(sys.argv)
+        ut.print_dict(arg_dict)
+        fpath = fpath.format(**arg_dict)
         dpath = ut.get_argval('--dpath', type_=str, default=None)
         from os.path import basename, splitext
         import plottool as pt
@@ -184,8 +190,11 @@ def show_if_requested():
             fpath_ = ut.unixjoin(dpath, basename(absfpath_))
         fpath_list = [fpath_]
 
-        caption_str = ut.get_argval('--caption', type_=str, default=basename(fpath).replace('_', ' '))
-        label_str   = ut.get_argval('--label', type_=str, default=splitext(basename(fpath))[0])
+        default_label = splitext(basename(fpath))[0].replace('_', '')
+        caption_list = ut.get_argval('--caption', type_=list, default=basename(fpath).replace('_', ' '))
+        caption_str = ' '.join(caption_list)
+        #caption_str = ut.get_argval('--caption', type_=str, default=basename(fpath).replace('_', ' '))
+        label_str   = ut.get_argval('--label', type_=str, default=default_label)
         width_str = ut.get_argval('--width', type_=str, default=r'\textwidth')
         height_str  = ut.get_argval('--height', type_=str, default=None)
         figure_str  = ut.util_latex.get_latex_figure_str(fpath_list, label_str=label_str, caption_str=caption_str, width_str=width_str, height_str=height_str)
@@ -211,7 +220,13 @@ def show_if_requested():
             ) % (cmdline_str,) + '\n' + latex_block
         except OSError:
             pass
-        print(ut.indent(latex_block, ' ' * (4 * 4)))
+
+        latex_block_ = (ut.indent(latex_block, ' ' * (4 * 2)))
+        print(latex_block_)
+
+        if 'append' in arg_dict:
+            append_fpath = arg_dict['append']
+            ut.write_to(append_fpath, '\n\n' + latex_block_, mode='a')
 
         if ut.get_argflag('--diskshow'):
             # show what we wrote
