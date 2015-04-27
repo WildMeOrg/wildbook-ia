@@ -980,6 +980,14 @@ def get_image_unixtime(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+def get_image_datetime(ibs, gid_list):
+    unixtime_list = ibs.get_image_unixtime(gid_list)
+    datetime_list = list(map(ut.unixtime_to_datetime, unixtime_list))
+    return datetime_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/image/gps/', methods=['GET'])
 def get_image_gps(ibs, gid_list):
     r"""

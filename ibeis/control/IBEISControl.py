@@ -38,6 +38,9 @@ import xml.etree.ElementTree as ET
 from ibeis import ibsfuncs
 from ibeis.model.hots import pipeline
 
+# NOTE: new plugin code needs to be hacked in here currently
+# this is not a long term solution.
+
 # Pyinstaller hacks
 from ibeis.control import _autogen_featweight_funcs  # NOQA
 from ibeis.control import _autogen_party_funcs  # NOQA
@@ -213,6 +216,14 @@ class IBEISController(object):
 
     def reset_table_cache(ibs):
         ibs.table_cache = accessor_decors.init_tablecache()
+
+    #def inject_module_plugin(ibs, module):
+    #    global INJECTED_MODULES
+    #    if module not in INJECTED_MODULES:
+    #        INJECTED_MODULES.append(module)
+    #    ut.inject_instance(
+    #        ibs, classtype=module.CLASS_INJECT_KEY,
+    #        allow_override=ibs.allow_override, strict=False)
 
     def _initialize_self(ibs):
         """

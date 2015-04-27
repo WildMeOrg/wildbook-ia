@@ -136,10 +136,12 @@ TABLE_COLNAMES = {
         'nExAids',
         'aid',
         #'annot_gname',
-        #'namenotes',
         'yaw_text',
         'quality_text',
-        'max_speed'
+        'datetime',
+        'max_hourdiff',
+        'max_speed',
+        'namenotes',
     ],
 
     IMAGE_GRID     : [
@@ -172,6 +174,8 @@ TABLE_TREE_LEVELS = {
         'yaw_text': 1,
         'quality_text': 1,
         'aid': 1,
+        'datetime': 1,
+        'max_hourdiff': 0,
         'max_speed': 0,
     },
 }
@@ -252,6 +256,7 @@ COL_DEF = dict([
     ('num_annotmatch_reviewed', (str, '#Matches Reviewed')),
     ('percent_names_with_exemplar_str', (str, '%Names with Exemplar')),
     ('max_speed', (float, 'Max Speed km/h')),
+    ('max_hourdiff', (float, 'Max Hour Diff')),
 ])
 
 #----
@@ -335,7 +340,7 @@ def make_ibeis_headers_dict(ibs):
         'img_gname'  : ibs.get_image_gnames,
         'nAids'      : ibs.get_image_num_annotations,
         'unixtime'   : ibs.get_image_unixtime,
-        'datetime'   : partial_imap_1to1(ut.unixtime_to_datetime, ibs.get_image_unixtime),
+        'datetime'   : ibs.get_image_datetime,
         'gdconf'     : ibs.get_image_detect_confidence,
         'imgnotes'   : ibs.get_image_notes,
         'image_uuid' : ibs.get_image_uuids,
@@ -381,6 +386,7 @@ def make_ibeis_headers_dict(ibs):
         'exemplar'            : ibs.get_annot_exemplar_flags,
         'annot_visual_uuid'   : ibs.get_annot_visual_uuids,
         'annot_semantic_uuid' : ibs.get_annot_semantic_uuids,
+        'datetime'            : ibs.get_annot_image_datetime,
     }
     setters[ANNOTATION_TABLE] = {
         'name'       : ibs.set_annot_names,
@@ -419,6 +425,7 @@ def make_ibeis_headers_dict(ibs):
         'annot_gname'  : ibs.get_annot_image_names,
         'yaw_text'     : getters[ANNOTATION_TABLE]['yaw_text'],
         'quality_text' : getters[ANNOTATION_TABLE]['quality_text'],
+        'datetime'     : getters[ANNOTATION_TABLE]['datetime'],
     }
     setters[NAMES_TREE] = {
         'name'       : ibs.set_name_texts,

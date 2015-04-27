@@ -3937,6 +3937,37 @@ def get_name_speeds(ibs, nid_list):
 
 @__injectable
 @accessor_decors.getter
+def get_name_hourdiffs(ibs, nid_list):
+    """
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_name_hourdiffs
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> ibs = testdata_ibs('NNP_Master3')
+        >>> nid_list = ibs.filter_nids_custom(ibs._get_all_known_nids())
+        >>> hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
+        >>> result = hourdiffs_list
+        >>> print(hourdiffs_list)
+    """
+    aids_list_ = ibs.get_name_aids(nid_list)
+    #ibs.check_name_mapping_consistency(aids_list_)
+    aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
+    hourdiffs_list = ibs.get_unflat_annots_hourdists_list(aids_list)
+    return hourdiffs_list
+
+
+@__injectable
+@accessor_decors.getter
+def get_name_max_hourdiff(ibs, nid_list):
+    hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
+    maxhourdiff_list = np.array(list(map(ut.safe_max, hourdiffs_list)))
+    return maxhourdiff_list
+
+
+@__injectable
+@accessor_decors.getter
 def get_name_max_speed(ibs, nid_list):
     """
     CommandLine:
