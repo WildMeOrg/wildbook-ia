@@ -179,7 +179,7 @@ def show_if_requested():
         figsize = ut.get_argval('--figsize', type_=list, default=None)
         dpi = ut.get_argval('--dpi', type_=int, default=custom_constants.DPI)
 
-        absfpath_ = pt.save_figure(fig=fig, fpath=fpath, figsize=figsize, dpi=dpi)
+        absfpath_ = pt.save_figure(fig=fig, fpath=ut.truepath(fpath), figsize=figsize, dpi=dpi)
         if dpath is not None:
             fpath_ = ut.unixjoin(dpath, basename(absfpath_))
         fpath_list = [fpath_]
