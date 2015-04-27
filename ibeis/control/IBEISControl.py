@@ -63,37 +63,44 @@ from ibeis.control import manual_feat_funcs  # NOQA
 
 # Shiny new way to inject external functions
 autogenmodname_list = [
-    '_autogen_featweight_funcs',
-    '_autogen_party_funcs',
-    '_autogen_annotmatch_funcs',
-    #'_autogen_annot_funcs',
-    'manual_ibeiscontrol_funcs',
-    'manual_meta_funcs',
-    'manual_lbltype_funcs',   # DEPRICATE
-    'manual_lblannot_funcs',  # DEPRICATE
-    'manual_lblimage_funcs',  # DEPRICATE
-    'manual_image_funcs',
-    'manual_encounter_funcs',
-    'manual_egrelate_funcs',
-    'manual_annot_funcs',
-    'manual_name_funcs',
-    'manual_species_funcs',
-    #'manual_dependant_funcs',
-    'manual_chip_funcs',
-    'manual_feat_funcs',
+    ('ibeis.control', '_autogen_featweight_funcs'),
+    ('ibeis.control', '_autogen_party_funcs'),
+    ('ibeis.control', '_autogen_annotmatch_funcs'),
+    # ('ibeis.control', '_autogen_annot_funcs'),
+    ('ibeis.control', 'manual_ibeiscontrol_funcs'),
+    ('ibeis.control', 'manual_meta_funcs'),
+    ('ibeis.control', 'manual_lbltype_funcs'),   # DEPRICATE
+    ('ibeis.control', 'manual_lblannot_funcs'),  # DEPRICATE
+    ('ibeis.control', 'manual_lblimage_funcs'),  # DEPRICATE
+    ('ibeis.control', 'manual_image_funcs'),
+    ('ibeis.control', 'manual_encounter_funcs'),
+    ('ibeis.control', 'manual_egrelate_funcs'),
+    ('ibeis.control', 'manual_annot_funcs'),
+    ('ibeis.control', 'manual_name_funcs'),
+    ('ibeis.control', 'manual_species_funcs'),
+    # ('ibeis.control', 'manual_dependant_funcs'),
+    ('ibeis.control', 'manual_chip_funcs'),
+    ('ibeis.control', 'manual_feat_funcs'),
+]
+
+pluginmodname_list = [
+    ('ibeis_cnn', '_plugin'),
 ]
 
 
 def make_explicit_imports_for_pyinstaller():
     #making actual imports pyinstaller
-    print('\n'.join(['from ibeis.control import %s  # NOQA' % modname for modname  in autogenmodname_list]))
+    print('\n'.join(['from %s import %s  # NOQA' % pkgtup for pkgtup in autogenmodname_list]))
 
 INJECTED_MODULES = []
 
-for modname in autogenmodname_list:
-    exec('from ibeis.control import ' + modname, globals(), locals())
-    module = eval(modname)
-    INJECTED_MODULES.append(module)
+for pkgname, modname in autogenmodname_list + pluginmodname_list:
+    try:
+        exec('from %s import %s' % (pkgname, modname, ), globals(), locals())
+        module = eval(modname)
+        INJECTED_MODULES.append(module)
+    except ImportError as ex:
+        ut.printex(ex, 'Cannot load package=%r, module=%r' % (pkgname, modname, ))
 
 # Inject utool functions
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[ibs]')
