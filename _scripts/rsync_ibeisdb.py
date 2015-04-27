@@ -82,22 +82,7 @@ def sync_ibeisdb(remote_uri, dbname, mode='pull'):
 #    sync_ibeisdb(remote_uri, dbname, mode)
 
 
-if __name__ == '__main__':
-    """
-    CommandLine:
-        ib
-        python _scripts/rsync_ibeisdb.py push
-        python _scripts/rsync_ibeisdb.py pull --db MUGU_Master
-        python _scripts/rsync_ibeisdb.py pull --db GIRM_MUGU_20
-        python _scripts/rsync_ibeisdb.py pull --db PZ_MUGU_ALL
-        python _scripts/rsync_ibeisdb.py push --db MUGU_Master  --user joncrall --dryrun
-
-        mv "NNP_Master3_nids=arr((3)wjybfvpk)_1" NNP_Master3_nids=arr__3_wjybfvpk__1
-
-        python _scripts/rsync_ibeisdb.py pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy --dryrun
-        python _scripts/rsync_ibeisdb.py pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy
-        python _scripts/rsync_ibeisdb.py pull --db NNP_Master3 --user jonc --remote pachy
-    """
+def rsync_ibsdb_main():
     import sys
     default_user = ut.get_user_name()
     default_db = 'MUGU_Master'
@@ -114,6 +99,26 @@ if __name__ == '__main__':
         'hyrule': '@hyrule.cs.rpi.edu:/raid/work',
         'pachy': '@pachy.cs.uic.edu:/home/shared_ibeis/data/work',
     }
-    remote = remote_map[remote_key]
+    remote = remote_map.get(remote_key, remote_key)
     remote_uri = user + remote
     sync_ibeisdb(remote_uri, dbname, mode)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        ib
+        python _scripts/rsync_ibeisdb.py push
+        python _scripts/rsync_ibeisdb.py pull --db MUGU_Master
+        python _scripts/rsync_ibeisdb.py pull --db GIRM_MUGU_20
+        python _scripts/rsync_ibeisdb.py pull --db PZ_MUGU_ALL
+        python _scripts/rsync_ibeisdb.py push --db MUGU_Master  --user joncrall --dryrun
+
+        mv "NNP_Master3_nids=arr((3)wjybfvpk)_1" NNP_Master3_nids=arr__3_wjybfvpk__1
+
+        python _scripts/rsync_ibeisdb.py pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy --dryrun
+        python _scripts/rsync_ibeisdb.py pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy
+        python _scripts/rsync_ibeisdb.py pull --db NNP_Master3 --user jonc --remote pachy
+        python _scripts/rsync_ibeisdb.py pull --db testdb3 --user joncrall --remote hyrule
+    """
+    rsync_ibsdb_main()

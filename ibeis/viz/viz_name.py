@@ -1,11 +1,11 @@
 from __future__ import absolute_import, division, print_function
-import utool
 import plottool.draw_func2 as df2
 import numpy as np
 from ibeis import ibsfuncs
 from plottool import plot_helpers as ph
-from .viz_chip import show_chip
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[viz]', DEBUG=False)
+import utool as ut
+from . import viz_chip
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz]', DEBUG=False)
 
 
 def show_name_of(ibs, aid, **kwargs):
@@ -13,7 +13,16 @@ def show_name_of(ibs, aid, **kwargs):
     show_name(ibs, nid, sel_aids=[aid], **kwargs)
 
 
-@utool.indent_func
+def testdata_showname():
+    import ibeis
+    ibs = ibeis.opendb(defaultdb='testdb1')
+    name_text = ut.get_argval('--name', type_=str, default='easy')
+    nid = ibs.get_name_rowids_from_text(name_text)
+    in_image = not ut.get_argflag('--no-inimage')
+    return ibs, nid, in_image
+
+
+#@ut.indent_func
 def show_name(ibs, nid, nid2_aids=None, in_image=True, fnum=0, sel_aids=[], subtitle='',
               annote=False, **kwargs):
     r"""
@@ -28,25 +37,34 @@ def show_name(ibs, nid, nid2_aids=None, in_image=True, fnum=0, sel_aids=[], subt
         annote (bool):
 
     CommandLine:
-        python -m ibeis.viz.viz_name --test-show_name
+        python -m ibeis.viz.viz_name --test-show_name --show
+
+        python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_1348" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1348.jpg --dpath figures --caption='viewpoint issue different and viewing conditions' --figsize=11,3 --no-figtitle --notitle
+
+        python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_1421" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1421.jpg --dpath figures --caption='Pose issues where the zebras are fighting'
+
+        python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_1366" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1366.jpg --dpath figures --caption='Occlusion from another animal, blurry photo'
+
+        python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_1288" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1288.jpg --dpath figures --caption='Occlusion from another animal, blurry photo'
+
+        python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_0370" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0370.jpg --dpath figures --caption='viewpoint'
+
+        python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_0453" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0453.jpg --dpath figures --caption='Viewpoint minor occlusion'
+
+        python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_0303" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg --dpath figures --caption='Shadowed'
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_name import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> nid = 1
+        >>> ibs, nid, in_image = testdata_showname()
         >>> nid2_aids = None
-        >>> in_image = True
         >>> fnum = 0
         >>> sel_aids = []
         >>> subtitle = ''
         >>> annote = False
         >>> # execute function
-        >>> result = show_name(ibs, nid, nid2_aids, in_image, fnum, sel_aids, subtitle, annote)
-        >>> # verify results
-        >>> print(result)
+        >>> show_name(ibs, nid, nid2_aids, in_image, fnum, sel_aids, subtitle, annote)
+        >>> ut.show_if_requested()
     """
     print('[viz] show_name nid=%r' % nid)
     aid_list = ibs.get_name_aids(nid)
@@ -63,7 +81,9 @@ def show_name(ibs, nid, nid2_aids=None, in_image=True, fnum=0, sel_aids=[], subt
         fig.clf()
         # Trigger computation of all chips in parallel
         for px, aid in enumerate(aid_list):
-            show_chip(ibs, aid=aid, pnum=pnum_(px), annote=annote, in_image=in_image)
+            notitle = ut.get_argflag('--notitle')
+            show_chip_kw = dict(annote=annote, in_image=in_image, notitle=notitle)
+            viz_chip.show_chip(ibs, aid=aid, pnum=pnum_(px), **show_chip_kw)
             if aid in sel_aids:
                 ax = df2.gca()
                 df2.draw_border(ax, df2.GREEN, 4)
@@ -75,8 +95,11 @@ def show_name(ibs, nid, nid2_aids=None, in_image=True, fnum=0, sel_aids=[], subt
     else:
         df2.imshow_null(fnum=fnum, **kwargs)
 
-    figtitle = 'Name View nid=%r name=%r' % (nid, name)
-    df2.set_figtitle(figtitle)
+    use_figtitle = not ut.get_argflag('--no-figtitle')
+
+    if use_figtitle:
+        figtitle = 'Name View nid=%r name=%r' % (nid, name)
+        df2.set_figtitle(figtitle)
     #if not annote:
     #    title += ' noannote'
     #gs2.tight_layout(fig)

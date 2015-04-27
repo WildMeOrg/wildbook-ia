@@ -79,8 +79,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     """
     if ut.VERBOSE:
         print('[viz] show_chip(aid=%r)' % (aid,))
-    ibs.assert_valid_aids((aid,))
-    #ut.embed()
+    #ibs.assert_valid_aids((aid,))
     # Get chip
     chip = vh.get_chips(ibs, aid, in_image=in_image, config2_=config2_)
     # Create chip title
@@ -122,7 +121,8 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
             pass
         pt.viz_keypoints._annotate_kpts(kpts_, **kwargs)
         pt.upperleft_text(chip_text, color=kwargs.get('text_color', None))
-    if not kwargs.get('ntitle', False):
+    use_title = not kwargs.get('notitle', False)
+    if use_title:
         pt.set_title(chip_title_text)
     if in_image:
         gid = ibs.get_annot_gids(aid)
