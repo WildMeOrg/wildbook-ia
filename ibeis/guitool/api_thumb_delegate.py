@@ -179,6 +179,23 @@ class APIThumbDelegate(DELEGATE_BASE):
         #(thumb_path, img_path, bbox_list) = thumbtup
         return thumbtup
 
+    def spawn_thumb_creation_thread(dgt, thumb_path, img_path, img_size, qtindex, view, offset, bbox_list, theta_list):
+        if VERBOSE_THUMB:
+            print('[ThumbDelegate] Spawning thumbnail creation thread')
+        thumbsize = dgt.get_thumb_size()
+        thumb_creation_thread = ThumbnailCreationThread(
+            thumb_path, img_path, img_size, thumbsize,
+            qtindex, view, offset, bbox_list, theta_list
+        )
+        #register_thread(thumb_path, thumb_creation_thread)
+        # Initialize threadcount
+        if dgt.pool is None:
+            #dgt.pool = QtCore.QThreadPool()
+            #dgt.pool.setMaxThreadCount(MAX_NUM_THUMB_THREADS)
+            dgt.pool = QtCore.QThreadPool.globalInstance()
+        dgt.pool.start(thumb_creation_thread)
+        # print('[ThumbDelegate] Waiting to compute')
+
     def get_thumb_path_if_exists(dgt, view, offset, qtindex):
         """
         Checks if the thumbnail is ready to paint
@@ -216,22 +233,9 @@ class APIThumbDelegate(DELEGATE_BASE):
                 if VERBOSE_THUMB:
                     print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED: %r' % (img_path,))
                 return None
-            # Start computation of thumb if needed
-            #qtindex.model()._update()  # should probably be deleted
-            # where you are when you request the run
-            if VERBOSE_THUMB:
-                print('[ThumbDelegate] Spawning thumbnail creation thread')
-            thumbsize = dgt.get_thumb_size()
-            thumb_creation_thread = ThumbnailCreationThread(
-                thumb_path, img_path, img_size, thumbsize,
-                qtindex, view, offset, bbox_list, theta_list
-            )
-            #register_thread(thumb_path, thumb_creation_thread)
-            # Initialize threadcount
-            dgt.pool = QtCore.QThreadPool()
-            dgt.pool.setMaxThreadCount(MAX_NUM_THUMB_THREADS)
-            dgt.pool.start(thumb_creation_thread)
-            # print('[ThumbDelegate] Waiting to compute')
+            dgt.spawn_thumb_creation_thread(
+                thumb_path, img_path, img_size, qtindex, view, offset,
+                bbox_list, theta_list)
             return None
         else:
             # thumb is computed return the path
@@ -371,8 +375,47 @@ def get_thread_thumb_info(bbox_list, theta_list, thumbsize, img_size):
 
 
 def make_thread_thumb(img_path, dsize, new_verts_list):
+    r"""
+    Args:
+        img_path (?):
+        dsize (tuple):  width, height
+        new_verts_list (list):
+
+    Returns:
+        ?: thumb
+
+    CommandLine:
+        python -m guitool.api_thumb_delegate --test-make_thread_thumb --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.api_thumb_delegate import *  # NOQA
+        >>> import plottool as pt
+        >>> # build test data
+        >>> img_path = ut.grab_test_imgpath('carl.jpg')
+        >>> dsize = (32, 32)
+        >>> new_verts_list = []
+        >>> # execute function
+        >>> thumb = make_thread_thumb(img_path, dsize, new_verts_list)
+        >>> ut.quit_if_noshow()
+        >>> pt.imshow(thumb)
+        >>> pt.show_if_requested()
+    """
     orange_bgr = (0, 128, 255)
+    # imread causes a MEMORY LEAK most likely!
     img = gtool.imread(img_path)  # Read Image (.0424s) <- Takes most time!
+    #if False:
+    #    #http://stackoverflow.com/questions/9794019/convert-numpy-array-to-pyside-qpixmap
+    #    # http://kogs-www.informatik.uni-hamburg.de/~meine/software/vigraqt/qimage2ndarray.py
+    #    #import numpy as np
+    #    #qimg = QtGui.QImage(img_path, str(QtGui.QImage.Format_RGB32))
+    #    #temp_shape = (qimg.height(), qimg.bytesPerLine() * 8 // qimg.depth(), 4)
+    #    #result_shape = (qimg.height(), qimg.width())
+    #    #buf = qimg.bits().asstring(qimg.numBytes())
+    #    #result  = np.frombuffer(buf, np.uint8).reshape(temp_shape)
+    #    #result = result[:, :result_shape[1]]
+    #    #result = result[..., :3]
+    #    #img = result
     thumb = gtool.resize(img, dsize)  # Resize to thumb dims (.0015s)
     del img
     # Draw bboxes on thumb (not image)
@@ -388,6 +431,10 @@ RUNNABLE_BASE = QtCore.QRunnable
 class ThumbnailCreationThread(RUNNABLE_BASE):
     """
     Helper to compute thumbnails concurrently
+
+    References:
+        TODO:
+        http://stackoverflow.com/questions/6783194/background-thread-with-qthread-in-pyqt
     """
 
     def __init__(thread, thumb_path, img_path, img_size, thumbsize, qtindex, view, offset, bbox_list, theta_list):
