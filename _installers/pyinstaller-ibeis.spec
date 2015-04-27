@@ -294,7 +294,9 @@ a = Analysis(  # NOQA
         'mpl_toolkits.axes_grid1',
     ],
     hookspath=None,
-    runtime_hooks=None
+    runtime_hooks=[
+        '_installers/rthook_pyqt4.py'
+    ]
 )
 
 print('[installer] Adding %d Datatups' % (len(DATATUP_LIST,)))

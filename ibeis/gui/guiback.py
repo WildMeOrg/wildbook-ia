@@ -719,15 +719,16 @@ class MainWindowBackend(QtCore.QObject):
         #enctext = const.NEW_ENCOUNTER_ENCTEXT
         #enctext_list = [enctext] * len(gid_list)
         #ibs.set_image_enctext(gid_list, enctext_list)
-        ibs.create_new_encounter_from_images(gid_list)
-        eid = back.get_selected_eid()
-        eid_list = [eid] * len(gid_list)
+        new_eid = ibs.create_new_encounter_from_images(gid_list)  # NOQA
         if mode == 'move':
-            ibs.create_new_encounter_from_images(gid_list, eid_list)
+            eid = back.get_selected_eid()
+            eid_list = [eid] * len(gid_list)
+            ibs.unrelate_images_and_encounters(gid_list, eid_list)
         elif mode == 'copy':
             pass
         else:
             raise AssertionError('invalid mode=%r' % (mode,))
+        back.ibs.update_special_encounters()
         back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE], clear_view_selection=True)
 
     @blocking_slot()
