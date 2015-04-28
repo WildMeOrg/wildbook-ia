@@ -764,13 +764,25 @@ def turk_viewpoint():
     ibs = current_app.ibs
     eid = request.args.get('eid', '')
     eid = None if eid == 'None' or eid == '' else int(eid)
-
-    gid_list = ibs.get_valid_gids(eid=eid)
-    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-    reviewed_list = encounter_annot_viewpoint_processed(ibs, aid_list)
-    progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
-
     enctext = None if eid is None else ibs.get_encounter_text(eid)
+    src_ag = request.args.get('src_ag', '')
+    src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
+    dst_ag = request.args.get('dst_ag', '')
+    dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
+
+    if src_ag is None or dst_ag is None:
+        gid_list = ibs.get_valid_gids(eid=eid)
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        reviewed_list = encounter_annot_viewpoint_processed(ibs, aid_list)
+    else:
+        src_gar_rowid_list = ibs.get_annotgroup_gar_rowids(src_ag)
+        dst_gar_rowid_list = ibs.get_annotgroup_gar_rowids(dst_ag)
+        src_aid_list = ibs.get_gar_aid(src_gar_rowid_list)
+        dst_aid_list = ibs.get_gar_aid(dst_gar_rowid_list)
+        aid_list = src_aid_list
+        reviewed_list = [ src_aid in dst_aid_list for src_aid in src_aid_list ]
+
+    progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
     aid = request.args.get('aid', '')
     if len(aid) > 0:
         aid = int(aid)
@@ -797,6 +809,8 @@ def turk_viewpoint():
         image_src = None
     return ap.template('turk', 'viewpoint',
                        eid=eid,
+                       src_ag=src_ag,
+                       dst_ag=dst_ag,
                        gid=gid,
                        aid=aid,
                        value=value,
@@ -1034,6 +1048,12 @@ def submit_viewpoint():
     method = request.form.get('viewpoint-submit', '')
     eid = request.args.get('eid', '')
     eid = None if eid == 'None' or eid == '' else int(eid)
+
+    src_ag = request.args.get('src_ag', '')
+    src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
+    dst_ag = request.args.get('dst_ag', '')
+    dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
+
     aid = int(request.form['viewpoint-aid'])
     turk_id = request.cookies.get('turk_id', -1)
     if method.lower() == 'delete':
@@ -1077,6 +1097,15 @@ def submit_viewpoint():
                 redirection = '%s?aid=%d' % (redirection, aid, )
         return redirect(redirection)
     else:
+        if src_ag is not None and dst_ag is not None:
+            gar_rowid_list = ibs.get_annot_gar_rowids(aid)
+            annotgroup_rowid_list = ibs.get_gar_annotgroup_rowid(gar_rowid_list)
+            src_index = annotgroup_rowid_list.index(src_ag)
+            src_gar_rowid = gar_rowid_list[src_index]
+            vals = (aid, src_ag, src_gar_rowid, dst_ag)
+            print('Moving aid: %s from src_ag: %s (%s) to dst_ag: %s' % vals)
+            # ibs.delete_gar([src_gar_rowid])
+            ibs.add_gar([dst_ag], [aid])
         value = int(request.form['viewpoint-value'])
         yaw = convert_old_viewpoint_to_yaw(value)
         ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
@@ -1086,7 +1115,8 @@ def submit_viewpoint():
     if len(refer) > 0:
         return redirect(ap.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_viewpoint', eid=eid, previous=aid))
+        return redirect(url_for('turk_viewpoint', eid=eid, src_ag=src_ag,
+                                dst_ag=dst_ag, previous=aid))
 
 
 @register_route('/submit/quality', methods=['POST'])

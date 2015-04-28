@@ -170,6 +170,8 @@ BASE_DATABASE_VERSION = '0.0.0'
 # depricated tablename structure with the relevant versions suffixed
 #################################################################
 AL_RELATION_TABLE    = 'annotation_lblannot_relationship'
+GA_RELATION_TABLE    = 'annotgroup_annotation_relationship'
+ANNOTGROUP_TABLE     = 'annotgroups'
 ANNOTATION_TABLE     = 'annotations'
 CHIP_TABLE           = 'chips'
 CONFIG_TABLE         = 'configs'

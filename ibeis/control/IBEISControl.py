@@ -53,9 +53,11 @@ from ibeis.control import manual_lblimage_funcs  # NOQA  # DEPRICATE
 from ibeis.control import manual_image_funcs  # NOQA
 from ibeis.control import manual_encounter_funcs  # NOQA
 from ibeis.control import manual_egrelate_funcs  # NOQA
+from ibeis.control import manual_garelate_funcs  # NOQA
 from ibeis.control import manual_annot_funcs  # NOQA
 from ibeis.control import manual_name_funcs  # NOQA
 from ibeis.control import manual_species_funcs  # NOQA
+from ibeis.control import manual_annotgroup_funcs  # NOQA
 #from ibeis.control import manual_dependant_funcs  # NOQA
 from ibeis.control import manual_chip_funcs  # NOQA
 from ibeis.control import manual_feat_funcs  # NOQA
@@ -75,9 +77,11 @@ autogenmodname_list = [
     ('ibeis.control', 'manual_image_funcs'),
     ('ibeis.control', 'manual_encounter_funcs'),
     ('ibeis.control', 'manual_egrelate_funcs'),
+    ('ibeis.control', 'manual_garelate_funcs'),
     ('ibeis.control', 'manual_annot_funcs'),
     ('ibeis.control', 'manual_name_funcs'),
     ('ibeis.control', 'manual_species_funcs'),
+    ('ibeis.control', 'manual_annotgroup_funcs'),
     # ('ibeis.control', 'manual_dependant_funcs'),
     ('ibeis.control', 'manual_chip_funcs'),
     ('ibeis.control', 'manual_feat_funcs'),
@@ -377,11 +381,11 @@ class IBEISController(object):
         _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
-        ibs.db_version_expected = '1.4.3'
+        ibs.db_version_expected = '1.4.4'
         # TODO: add this functionality to SQLController
         new_version, new_fname = sqldbc.dev_test_new_schema_version(
             ibs.get_dbname(), ibs.get_ibsdir(),
-            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.4.3')
+            ibs.sqldb_fname, ibs.db_version_expected, version_next='1.4.4')
         ibs.db_version_expected = new_version
         ibs.sqldb_fname = new_fname
         ibs.db = sqldbc.SQLDatabaseController(ibs.get_ibsdir(), ibs.sqldb_fname,

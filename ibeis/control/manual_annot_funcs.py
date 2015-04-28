@@ -43,6 +43,7 @@ SPECIES_ROWID            = 'species_rowid'
 ANNOT_EXEMPLAR_FLAG      = 'annot_exemplar_flag'
 ANNOT_QUALITY            = 'annot_quality'
 ANNOT_ROWIDS             = 'annot_rowids'
+GAR_ROWID                = 'gar_rowid'
 
 ANNOT_IS_BLURY           = 'annot_is_blury'
 ANNOT_IS_COMMONPOSE      = 'annot_is_commonpose'
@@ -779,6 +780,23 @@ def get_annot_otherimage_aids(ibs, aid_list):
     other_aids_list = [list(set(aids) - {aid})
                        for aids, aid in zip(image_aids_list, aid_list)]
     return other_aids_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1toM
+@register_api('/api/annot/gar_rowids/', methods=['GET'])
+def get_annot_gar_rowids(ibs, aid_list):
+    r"""
+    Auto-docstr for 'get_annot_otherimage_aids'
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/gar_rowids/
+    """
+    colnames = (GAR_ROWID,)
+    gar_rowid_list = ibs.db.get(const.GA_RELATION_TABLE, colnames, aid_list,
+                                id_colname=ANNOT_ROWID, unpack_scalars=False)
+    return gar_rowid_list
 
 
 @register_ibs_method

@@ -38,6 +38,7 @@ SPECIES_ROWID       = 'species_rowid'
 IMAGE_ROWID         = 'image_rowid'
 ANNOT_ROWID         = 'annot_rowid'
 ANNOT_PARENT_ROWID  = 'annot_parent_rowid'
+ANNOTGROUP_ROWID    = 'annotgroup_rowid'
 NAME_TEXT           = 'name_text'
 SPECIES_TEXT        = 'species_text'
 ANNOT_ROWID1        = 'annot_rowid1'
@@ -1078,8 +1079,8 @@ def update_1_4_3(db, ibs=None):
             (None, 'annot_is_shadowed',    'INTEGER', None),
             (None, 'annot_is_washedout',   'INTEGER', None),
             (None, 'annot_is_blury',       'INTEGER', None),
-            (None, 'annot_is_novelpose',  'INTEGER', None),
-            (None, 'annot_is_commonpose', 'INTEGER', None),
+            (None, 'annot_is_novelpose',   'INTEGER', None),
+            (None, 'annot_is_commonpose',  'INTEGER', None),
         ]
     )
 
@@ -1094,6 +1095,29 @@ def update_1_4_3(db, ibs=None):
 
 
 def update_1_4_4(db, ibs=None):
+    db.add_table(const.ANNOTGROUP_TABLE, (
+        (ANNOTGROUP_ROWID,               'INTEGER PRIMARY KEY'),
+        ('annotgroup_uuid',              'UUID NOT NULL'),
+        ('annotgroup_text',              'TEXT NOT NULL'),
+        ('annotgroup_note',              'TEXT NOT NULL'),
+    ),
+        superkeys=[('annotgroup_text',)],
+        docstr='''
+        List of all annotation groups (annotgroups)''')
+
+    db.add_table(const.GA_RELATION_TABLE, (
+        ('gar_rowid',                    'INTEGER PRIMARY KEY'),
+        (ANNOTGROUP_ROWID,               'INTEGER NOT NULL'),
+        (ANNOT_ROWID,                    'INTEGER'),
+    ),
+        superkeys=[(ANNOT_ROWID, ANNOTGROUP_ROWID,)],
+        docstr='''
+        Relationship between annotgroups and annots (many to many mapping) the
+        many-to-many relationship between annots and annotgroups is encoded here
+        annotgroup_annotation_relationship stands for annotgroup-annotation-pairs.''')
+
+
+def update_1_4_5(db, ibs=None):
     #db.modify_table(
     #    const.ANNOTMATCH_TABLE, [
     #        (None, 'annotmatch_is_interesting',      'INTEGER', None),
@@ -1132,16 +1156,17 @@ VALID_VERSIONS = ut.odict([
     ('1.3.2',    (None,                 update_1_3_2,       None                )),
     ('1.3.3',    (None,                 update_1_3_3,       None                )),
     ('1.3.4',    (None,                 update_1_3_4,       post_1_3_4          )),
-    ('1.3.5',    (None,                 update_1_3_5,       None          )),
-    ('1.3.6',    (None,                 update_1_3_6,       None          )),
-    ('1.3.7',    (None,                 update_1_3_7,       None          )),
-    ('1.3.8',    (None,                 update_1_3_8,       None          )),
-    ('1.3.9',    (None,                 update_1_3_9,       None          )),
-    ('1.4.0',    (None,                 update_1_4_0,       None          )),
-    ('1.4.1',    (None,                 update_1_4_1,       None          )),
-    ('1.4.2',    (None,                 update_1_4_2,       None          )),
-    ('1.4.3',    (None,                 update_1_4_3,       None          )),
-    #('1.4.4',    (None,                 update_1_4_4,       None          )),
+    ('1.3.5',    (None,                 update_1_3_5,       None                )),
+    ('1.3.6',    (None,                 update_1_3_6,       None                )),
+    ('1.3.7',    (None,                 update_1_3_7,       None                )),
+    ('1.3.8',    (None,                 update_1_3_8,       None                )),
+    ('1.3.9',    (None,                 update_1_3_9,       None                )),
+    ('1.4.0',    (None,                 update_1_4_0,       None                )),
+    ('1.4.1',    (None,                 update_1_4_1,       None                )),
+    ('1.4.2',    (None,                 update_1_4_2,       None                )),
+    ('1.4.3',    (None,                 update_1_4_3,       None                )),
+    ('1.4.4',    (None,                 update_1_4_4,       None                )),
+    #('1.4.5',    (None,                 update_1_4_5,       None                )),
 ])
 
 
