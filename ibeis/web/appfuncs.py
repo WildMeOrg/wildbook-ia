@@ -16,6 +16,7 @@ class NavbarClass(object):
             ('view', 'View'),
             ('turk', 'Turk'),
             ('api',  'API'),
+            ('group_review',  'Group Review'),
         ]
 
     def __iter__(nav):

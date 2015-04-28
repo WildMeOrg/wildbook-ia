@@ -1289,6 +1289,26 @@ def image_upload(**kwargs):
     return gid_list
 
 
+@register_route('/group_review/')
+def group_review():
+    return ap.template(None, 'group_review')
+
+
+@register_route('/group_review/submit/', methods=['POST'])
+def group_review_submit():
+    ibs = current_app.ibs
+    aid_list = request.form.get('aid_list', '')
+    if len(aid_list) > 0:
+        aid_list = aid_list.replace('[', '')
+        aid_list = aid_list.replace(']', '')
+        aid_list = aid_list.strip().split(',')
+        aid_list = [ int(aid_.strip()) for aid_ in aid_list ]
+    else:
+        aid_list = []
+    src_ag, dst_ag = ibs.prepare_annotgroup_review(aid_list)
+    return redirect(url_for('turk_viewpoint', src_ag=src_ag, dst_ag=dst_ag))
+
+
 @register_route('/ajax/annotation/src/<aid>')
 def annotation_src(aid=None):
     ibs = current_app.ibs
