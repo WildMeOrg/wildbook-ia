@@ -11,6 +11,7 @@ import simplejson as json
 from ibeis.control import controller_inject
 from ibeis.control.SQLDatabaseControl import (SQLDatabaseController,  # NOQA
                                               SQLAtomicContext)
+import ibeis.constants as const
 from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, Species, DEFAULT_WEB_API_PORT, PI, TAU
 import utool as ut
 # Web Internal
@@ -1063,6 +1064,17 @@ def submit_viewpoint():
         ibs.delete_annots(aid)
         print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
         aid = None  # Reset AID to prevent previous
+    if method.lower() == 'make junk':
+        ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
+        print('[web] (SET AS JUNK) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        redirection = request.referrer
+        if 'aid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&aid=%d' % (redirection, aid, )
+            else:
+                redirection = '%s?aid=%d' % (redirection, aid, )
+        return redirect(redirection)
     if method.lower() == 'rotate left':
         theta = ibs.get_annot_thetas(aid)
         theta = (theta + PI / 2) % TAU
