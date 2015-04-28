@@ -87,7 +87,7 @@ def add_annotgroup(ibs, annotgroup_uuid_list, annotgroup_text_list, annotgroup_n
     )
     get_rowid_from_superkey = ibs.get_annotgroup_rowid_from_superkey
     # FIXME: encode superkey paramx
-    superkey_paramx = (0, 1)
+    superkey_paramx = (1,)
     annotgroup_rowid_list = ibs.db.add_cleanly(
         const.ANNOTGROUP_TABLE, colnames, params_iter, get_rowid_from_superkey, superkey_paramx)
     return annotgroup_rowid_list

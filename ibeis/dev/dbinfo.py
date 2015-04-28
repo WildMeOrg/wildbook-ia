@@ -139,7 +139,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         L============================
 
     Example1:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.dev.dbinfo import *  # NOQA
         >>> import ibeis
         >>> verbose = True

@@ -1110,7 +1110,7 @@ def update_1_4_4(db, ibs=None):
         (ANNOTGROUP_ROWID,               'INTEGER NOT NULL'),
         (ANNOT_ROWID,                    'INTEGER'),
     ),
-        superkeys=[(ANNOT_ROWID, ANNOTGROUP_ROWID,)],
+        superkeys=[(ANNOTGROUP_ROWID, ANNOT_ROWID)],
         docstr='''
         Relationship between annotgroups and annots (many to many mapping) the
         many-to-many relationship between annots and annotgroups is encoded here
@@ -1126,6 +1126,9 @@ def update_1_4_5(db, ibs=None):
     #        (None, 'config_rowid',  'INTEGER', None),
     #    ]
     #)
+    # Maybe we want the notation of each annotation having having a set of
+    # classes with probabilities (c, p). Or an annotation label with a
+    # confidence.
     db.modify_table(
         const.ANNOTATION_TABLE, [
             (None, 'annot_mask_uri',    'TEXT', None),

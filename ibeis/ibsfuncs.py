@@ -4447,13 +4447,55 @@ def create_new_encounter_from_names(ibs, nid_list):
         >>> # verify results
         >>> result = new_eid
         >>> print(result)
-        1
     """
     aids_list = ibs.get_name_aids(nid_list)
     gids_list = ibs.unflat_map(ibs.get_annot_gids, aids_list)
     gid_list = ut.flatten(gids_list)
     new_eid = ibs.create_new_encounter_from_images(gid_list)
     return new_eid
+
+
+@__injectable
+def prepare_annotgroup_review(ibs, aid_list):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+
+    Returns:
+        tuple: (src_ag_rowid, dst_ag_rowid) - source and dest annot groups
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-prepare_annotgroup_review
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> # execute function
+        >>> result = prepare_annotgroup_review(ibs, aid_list)
+        >>> # verify results
+        >>> print(result)
+    """
+    # Build new names for source and dest annot groups
+    all_annotgroup_rowid_list = ibs._get_all_annotgroup_rowids()
+    all_annotgroup_text_list = ibs.get_annotgroup_text(all_annotgroup_rowid_list)
+    new_grouptext_src = ut.get_nonconflicting_string('Source Group %d', all_annotgroup_text_list)
+    all_annotgroup_text_list += [new_grouptext_src]
+    new_grouptext_dst = ut.get_nonconflicting_string('Dest Group %d', all_annotgroup_text_list)
+    # Add new empty groups
+    annotgroup_text_list = [new_grouptext_src, new_grouptext_dst]
+    annotgroup_uuid_list = list(map(ut.hashable_to_uuid, annotgroup_text_list))
+    annotgroup_note_list = ['', '']
+    src_ag_rowid, dst_ag_rowid = ibs.add_annotgroup(annotgroup_uuid_list,
+                                                    annotgroup_text_list,
+                                                    annotgroup_note_list)
+    # Relate the annotations with the source group
+    ibs.add_gar([src_ag_rowid] * len(aid_list), aid_list)
+    return src_ag_rowid, dst_ag_rowid
 
 
 if __name__ == '__main__':

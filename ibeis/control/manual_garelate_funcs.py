@@ -66,7 +66,7 @@ def _get_all_gar_rowids(ibs):
 
 @register_ibs_method
 @register_api('/api/gar/', methods=['POST'])
-def add_gar(ibs, annotgroup_rowid_list, aid_list=None):
+def add_gar(ibs, annotgroup_rowid_list, aid_list):
     """
     Returns:
         returns gar_rowid_list of added (or already existing gars)
@@ -77,8 +77,8 @@ def add_gar(ibs, annotgroup_rowid_list, aid_list=None):
     """
     # WORK IN PROGRESS
     colnames = (ANNOTGROUP_ROWID, ANNOT_ROWID,)
-    if aid_list is None:
-        aid_list = [None] * len(annotgroup_rowid_list)
+    #if aid_list is None:
+    #    aid_list = [None] * len(annotgroup_rowid_list)
     params_iter = (
         (annotgroup_rowid, aid,)
         for (annotgroup_rowid, aid,) in
@@ -204,11 +204,11 @@ def get_gar_annotgroup_rowid(ibs, gar_rowid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-def get_gar_rowid_from_superkey(ibs, aid_list, annotgroup_rowid_list, eager=True, nInput=None):
-    """ gar_rowid_list <- gar[aid_list, annotgroup_rowid_list]
+def get_gar_rowid_from_superkey(ibs, annotgroup_rowid_list, aid_list, eager=True, nInput=None):
+    """ gar_rowid_list <- gar[annotgroup_rowid_list, aid_list]
 
     Args:
-        superkey lists: aid_list, annotgroup_rowid_list
+        superkey lists: annotgroup_rowid_list, aid_list
 
     Returns:
         gar_rowid_list
@@ -219,8 +219,8 @@ def get_gar_rowid_from_superkey(ibs, aid_list, annotgroup_rowid_list, eager=True
     """
     colnames = (GAR_ROWID,)
     # FIXME: col_rowid is not correct
-    params_iter = zip(aid_list, annotgroup_rowid_list)
-    andwhere_colnames = [ANNOT_ROWID, ANNOTGROUP_ROWID]
+    params_iter = zip(annotgroup_rowid_list, aid_list)
+    andwhere_colnames = [ANNOTGROUP_ROWID, ANNOT_ROWID]
     gar_rowid_list = ibs.db.get_where2(
         const.GA_RELATION_TABLE, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
     return gar_rowid_list
