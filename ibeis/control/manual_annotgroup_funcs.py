@@ -58,7 +58,7 @@ def _get_all_annotgroup_rowids(ibs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotgroup_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotgroup_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> ibs._get_all_annotgroup_rowids()
     """
@@ -112,7 +112,7 @@ def delete_annotgroup(ibs, annotgroup_rowid_list, config2_=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotgroup_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotgroup_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> annotgroup_rowid_list = ibs._get_all_annotgroup_rowids()[:2]
         >>> num_deleted = ibs.delete_annotgroup(annotgroup_rowid_list)
@@ -169,7 +169,7 @@ def get_annotgroup_note(ibs, annotgroup_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotgroup_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotgroup_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> annotgroup_rowid_list = ibs._get_all_annotgroup_rowids()
         >>> eager = True
@@ -227,7 +227,7 @@ def get_annotgroup_text(ibs, annotgroup_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotgroup_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotgroup_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> annotgroup_rowid_list = ibs._get_all_annotgroup_rowids()
         >>> eager = True
@@ -262,7 +262,7 @@ def get_annotgroup_uuid(ibs, annotgroup_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotgroup_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotgroup_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> annotgroup_rowid_list = ibs._get_all_annotgroup_rowids()
         >>> eager = True
@@ -321,8 +321,8 @@ def set_annotgroup_uuid(ibs, annotgroup_rowid_list, annotgroup_uuid_list, duplic
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control._autogen_annotgroup_funcs
-        python -m ibeis.control._autogen_annotgroup_funcs --allexamples
+        python -m ibeis.control.manual_annotgroup_funcs
+        python -m ibeis.control.manual_annotgroup_funcs --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()

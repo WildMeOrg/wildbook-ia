@@ -55,7 +55,7 @@ def _get_all_gar_rowids(ibs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_gar_funcs import *  # NOQA
+        >>> from ibeis.control.manual_garelate_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> ibs._get_all_gar_rowids()
     """
@@ -111,7 +111,7 @@ def delete_gar(ibs, gar_rowid_list, config2_=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control._autogen_gar_funcs import *  # NOQA
+        >>> from ibeis.control.manual_garelate_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> gar_rowid_list = ibs._get_all_gar_rowids()[:2]
         >>> num_deleted = ibs.delete_gar(gar_rowid_list)
@@ -154,7 +154,7 @@ def get_gar_aid(ibs, gar_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_gar_funcs import *  # NOQA
+        >>> from ibeis.control.manual_garelate_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> gar_rowid_list = ibs._get_all_gar_rowids()
         >>> eager = True
@@ -189,7 +189,7 @@ def get_gar_annotgroup_rowid(ibs, gar_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_gar_funcs import *  # NOQA
+        >>> from ibeis.control.manual_garelate_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
         >>> gar_rowid_list = ibs._get_all_gar_rowids()
         >>> eager = True
@@ -229,8 +229,8 @@ def get_gar_rowid_from_superkey(ibs, aid_list, annotgroup_rowid_list, eager=True
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.control._autogen_gar_funcs
-        python -m ibeis.control._autogen_gar_funcs --allexamples
+        python -m ibeis.control.manual_garelate_funcs
+        python -m ibeis.control.manual_garelate_funcs --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()
