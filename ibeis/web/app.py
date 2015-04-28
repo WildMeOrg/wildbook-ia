@@ -770,7 +770,8 @@ def turk_viewpoint():
     dst_ag = request.args.get('dst_ag', '')
     dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
 
-    if src_ag is None or dst_ag is None:
+    group_review = src_ag is not None and dst_ag is not None
+    if not group_review:
         gid_list = ibs.get_valid_gids(eid=eid)
         aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         reviewed_list = encounter_annot_viewpoint_processed(ibs, aid_list)
@@ -791,8 +792,10 @@ def turk_viewpoint():
         if len(aid_list_) == 0:
             aid = None
         else:
-            # aid = aid_list_[0]
-            aid = random.choice(aid_list_)
+            if group_review:
+                aid = aid_list_[0]
+            else:
+                aid = random.choice(aid_list_)
     previous = request.args.get('previous', None)
     value = convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
     review = 'review' in request.args.keys()
