@@ -11,6 +11,7 @@ import simplejson as json
 from ibeis.control import controller_inject
 from ibeis.control.SQLDatabaseControl import (SQLDatabaseController,  # NOQA
                                               SQLAtomicContext)
+import ibeis.constants as const
 from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY, Species, DEFAULT_WEB_API_PORT, PI, TAU
 import utool as ut
 # Web Internal
@@ -1063,6 +1064,17 @@ def submit_viewpoint():
         ibs.delete_annots(aid)
         print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
         aid = None  # Reset AID to prevent previous
+    if method.lower() == 'make junk':
+        ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
+        print('[web] (SET AS JUNK) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        redirection = request.referrer
+        if 'aid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&aid=%d' % (redirection, aid, )
+            else:
+                redirection = '%s?aid=%d' % (redirection, aid, )
+        return redirect(redirection)
     if method.lower() == 'rotate left':
         theta = ibs.get_annot_thetas(aid)
         theta = (theta + PI / 2) % TAU
@@ -1294,12 +1306,30 @@ def image_upload(**kwargs):
 
 @register_route('/group_review/')
 def group_review():
-    return ap.template(None, 'group_review')
+    prefill = request.args.get('prefill', '')
+    if len(prefill) > 0:
+        ibs = current_app.ibs
+        aid_list = ibs.get_valid_aids()
+        bad_species_list, bad_viewpoint_list = ibs.validate_annot_species_viewpoint_cnn(aid_list)
+        candidate_aid_list = [ bad_viewpoint[0] for bad_viewpoint in bad_viewpoint_list]
+    else:
+        candidate_aid_list = ''
+    return ap.template(None, 'group_review', candidate_aid_list=candidate_aid_list)
 
 
 @register_route('/group_review/submit/', methods=['POST'])
 def group_review_submit():
     ibs = current_app.ibs
+    method = request.form.get('group-review-submit', '')
+    if method.lower() == 'populate':
+        redirection = request.referrer
+        if 'prefill' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&prefill=true' % (redirection, )
+            else:
+                redirection = '%s?prefill=true' % (redirection, )
+        return redirect(redirection)
     aid_list = request.form.get('aid_list', '')
     if len(aid_list) > 0:
         aid_list = aid_list.replace('[', '')

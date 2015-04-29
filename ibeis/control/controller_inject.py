@@ -5,7 +5,9 @@ import flask
 from flask import current_app, request, make_response
 from functools import wraps
 from os.path import abspath, join
-import simplejson as json
+# import simplejson as json
+import json
+import pickle
 import traceback
 from hashlib import sha1
 import os
@@ -23,6 +25,7 @@ GLOBAL_APP_TEMPALTE_PATH = abspath(join('ibeis', 'web', 'templates'))
 GLOBAL_APP_STATIC_PATH = abspath(join('ibeis', 'web', 'static'))
 
 GLOBAL_APP = None
+JSON_PYTHON_OBJECT_TAG = '__PYTHON_OBJECT__'
 
 
 def get_flask_app():
@@ -30,6 +33,18 @@ def get_flask_app():
     if GLOBAL_APP is None:
         GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME, template_folder=GLOBAL_APP_TEMPALTE_PATH, static_folder=GLOBAL_APP_STATIC_PATH)
     return GLOBAL_APP
+
+
+class JSONPythonObjectEncoder(json.JSONEncoder):
+    """
+        Reference: http://stackoverflow.com/questions/8230315/python-sets-are-not-json-serializable
+        Reference: https://github.com/jsonpickle/jsonpickle
+    """
+    def default(self, obj):
+        if isinstance(obj, (list, dict, str, unicode, int, float, bool, type(None))):
+            return json.JSONEncoder.default(self, obj)
+        pickled_obj = pickle.dumps(obj)
+        return {JSON_PYTHON_OBJECT_TAG: pickled_obj}
 
 
 class WebException(Exception):
@@ -41,8 +56,15 @@ class WebException(Exception):
         return repr('%r: %r' % (self.code, self.message, ))
 
 
+def _as_python_object(value, **kwargs):
+    print('PYTHONIZE: %r' % (value, ))
+    if JSON_PYTHON_OBJECT_TAG in value:
+        pickled_obj = str(value[JSON_PYTHON_OBJECT_TAG])
+        return pickle.loads(pickled_obj)
+    return value
+
+
 def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None, cache=None):
-    import simplejson as json
     if code is None:
         code = ''
     if message is None:
@@ -58,10 +80,11 @@ def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None, 
         },
         'response' : rawreturn
     }
-    return json.dumps(template)
+    return json.dumps(template, cls=JSONPythonObjectEncoder)
 
 
 def translate_ibeis_webcall(func, *args, **kwargs):
+    print('processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     def _process_input(multidict):
         for (arg, value) in multidict.iterlists():
             if len(value) > 1:
@@ -69,10 +92,19 @@ def translate_ibeis_webcall(func, *args, **kwargs):
             value = str(value[0])
             if ',' in value and '[' not in value and ']' not in value:
                 value = '[%s]' % (value, )
-            kwargs[arg] = json.loads(value)
+            if value in ['True', 'False']:
+                value = value.lower()
+            try:
+                converted = json.loads(value, object_hook=_as_python_object)
+            except Exception:
+                # try making string and try again...
+                value = '"%s"' % (value, )
+                converted = json.loads(value, object_hook=_as_python_object)
+            kwargs[arg] = converted
     # Pipe web input into Python web call
     _process_input(request.args)
     _process_input(request.form)
+    print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     ibs = current_app.ibs
     try:
         output = func(*args, **kwargs)
@@ -205,6 +237,8 @@ def get_ibeis_flask_api(__name__):
                         success = False
                         code = 500
                         message = 'API error, Python Exception thrown: %r' % (str(ex))
+                        if "'int' object is not iterable" in message:
+                            rawreturn = 'HINT: the input for this call is most likely expected to be a list.  Try adding a comma at the end of the input (to cast the conversion into a list) or encapsualte the input with [].'  # NOQA
                     webreturn = translate_ibeis_webreturn(rawreturn, success, code, message)
                     return flask.make_response(webreturn, code)
                 # return the original unmodified function
