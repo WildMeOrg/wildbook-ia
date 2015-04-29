@@ -7,10 +7,10 @@
         <div class="form-group">
             <label for="aid_list">AIDs (comma separated)</label>
             <br/>
-            <textarea rows="10" cols="10" name="aid_list" id="aid_list" style="width: 100%; height: 200px;">
-    {% autoescape false %}{{ candidate_aid_list }}{% endautoescape %}</textarea>
+            <textarea rows="10" cols="10" name="aid_list" id="aid_list" style="width: 100%; height: 200px;">{% autoescape false %}{{ candidate_aid_list }}{% endautoescape %}</textarea>
         </div>
-        <button type="submit" class="btn btn-default">Begin Review</button>
+        <input type="submit" name="group-review-submit" id="turk-submit-review"   class="btn btn-default pull-left" value="Begin Review"/>
+        <input type="submit" name="group-review-submit" id="turk-submit-populate" class="btn btn-default pull-right" value="Populate"/>
     </form>
   </div>
 {% endblock %}
