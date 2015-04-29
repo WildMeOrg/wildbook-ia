@@ -256,6 +256,7 @@ def ingest_snails_drop1(dbname):
     return Ingestable(dbname,
                       ingest_type='named_images',
                       fmtkey=FMT_KEYS.snails_fmt,
+                      species=const.Species.SNAILS,
                       #img_dir='/raid/raw/snails_drop1_59MB',
                       adjust_percent=.20)
 
@@ -276,6 +277,7 @@ def ingest_seals_drop2(dbname):
 def ingest_JAG_Kieryn(dbname):
     return Ingestable(dbname,
                       ingest_type='unknown',
+                      species=const.Species.JAG,
                       adjust_percent=0.00)
 
 
@@ -284,6 +286,17 @@ def ingest_Giraffes1(dbname):
     return Ingestable(dbname,
                       ingest_type='named_images',
                       fmtkey=FMT_KEYS.giraffe1_fmt,
+                      species=const.Species.GIRAFFE,
+                      adjust_percent=0.00)
+
+
+@__standard('Elephants_drop1')
+def ingest_Elephants_drop1(dbname):
+    return Ingestable(dbname,
+                      zipfile='../raw_unprocessed/ID photo front_Elephants_4-29-2015-PeterGranli.zip',
+                      ingest_type='unknown',
+                      fmtkey=FMT_KEYS.giraffe1_fmt,
+                      species=const.Species.ELEPHANT_SAV,
                       adjust_percent=0.00)
 
 
@@ -381,6 +394,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     ingest_type     = ingestable.ingest_type
     fmtkey          = ingestable.fmtkey
     adjust_percent  = ingestable.adjust_percent
+    species_text    = ingestable.species
     postingest_func = ingestable.postingest_func
     print('[ingest] ingesting rawdata: img_dir=%r, injest_type=%r' % (img_dir, ingest_type))
     # Get images in the image directory
@@ -402,7 +416,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     if ingest_type == 'named_images':
         name_list = get_name_texts_from_gnames(gpath_list, img_dir, fmtkey)
     if ingest_type == 'unknown':
-        name_list = [const.INDIVIDUAL_KEY for _ in range(len(gpath_list))]
+        name_list = [const.UNKNOWN for _ in range(len(gpath_list))]
 
     # Add Images
     gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
@@ -425,6 +439,8 @@ def ingest_rawdata(ibs, ingestable, localize=False):
                                              name_list=unique_names,
                                              notes_list=unique_notes,
                                              adjust_percent=adjust_percent)
+    if species_text is not None:
+        ibs.set_annot_species(aid_list, [species_text] * len(aid_list))
     if localize:
         ibs.localize_images()
     if postingest_func is not None:
@@ -622,6 +638,7 @@ if __name__ == '__main__':
         python ibeis/dbio/ingest_database.py --db polar_bears --force_delete
         python ibeis/dbio/ingest_database.py --db snails_drop1
         python ibeis/dbio/ingest_database.py --db testdb1
+        python ibeis/dbio/ingest_database.py --db Elephants_drop1
     """
     import multiprocessing
     multiprocessing.freeze_support()  # win32
