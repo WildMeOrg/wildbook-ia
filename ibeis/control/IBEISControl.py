@@ -1175,7 +1175,7 @@ class IBEISController(object):
     def get_recognition_query_aids(ibs, is_known, species=None):
         """
         RESTful:
-            Method: PUT
+            Method: GET
             URL:    /api/core/recognition_query_aids/
         """
         qaid_list = ibs.get_valid_aids(is_known=is_known, species=species)
