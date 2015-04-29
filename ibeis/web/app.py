@@ -1306,7 +1306,11 @@ def image_upload(**kwargs):
 
 @register_route('/group_review/')
 def group_review():
-    return ap.template(None, 'group_review')
+    ibs = current_app.ibs
+    aid_list = ibs.get_valid_aids()
+    bad_species_list, bad_viewpoint_list = ibs.validate_annot_species_viewpoint_cnn(aid_list)
+    candidate_aid_list = [ bad_viewpoint[0] for bad_viewpoint in bad_viewpoint_list]
+    return ap.template(None, 'group_review', candidate_aid_list=candidate_aid_list)
 
 
 @register_route('/group_review/submit/', methods=['POST'])
