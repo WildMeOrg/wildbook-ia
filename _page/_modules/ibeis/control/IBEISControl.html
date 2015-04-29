@@ -148,6 +148,9 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">pipeline</span>
 
+<span class="c"># NOTE: new plugin code needs to be hacked in here currently</span>
+<span class="c"># this is not a long term solution.</span>
+
 <span class="c"># Pyinstaller hacks</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_autogen_featweight_funcs</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_autogen_party_funcs</span>  <span class="c"># NOQA</span>
@@ -160,9 +163,11 @@
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">manual_image_funcs</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">manual_encounter_funcs</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">manual_egrelate_funcs</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">manual_garelate_funcs</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">manual_annot_funcs</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">manual_name_funcs</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">manual_species_funcs</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">manual_annotgroup_funcs</span>  <span class="c"># NOQA</span>
 <span class="c">#from ibeis.control import manual_dependant_funcs  # NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">manual_chip_funcs</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">manual_feat_funcs</span>  <span class="c"># NOQA</span>
@@ -170,37 +175,46 @@
 
 <span class="c"># Shiny new way to inject external functions</span>
 <span class="n">autogenmodname_list</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s">&#39;_autogen_featweight_funcs&#39;</span><span class="p">,</span>
-    <span class="s">&#39;_autogen_party_funcs&#39;</span><span class="p">,</span>
-    <span class="s">&#39;_autogen_annotmatch_funcs&#39;</span><span class="p">,</span>
-    <span class="c">#&#39;_autogen_annot_funcs&#39;,</span>
-    <span class="s">&#39;manual_ibeiscontrol_funcs&#39;</span><span class="p">,</span>
-    <span class="s">&#39;manual_meta_funcs&#39;</span><span class="p">,</span>
-    <span class="s">&#39;manual_lbltype_funcs&#39;</span><span class="p">,</span>   <span class="c"># DEPRICATE</span>
-    <span class="s">&#39;manual_lblannot_funcs&#39;</span><span class="p">,</span>  <span class="c"># DEPRICATE</span>
-    <span class="s">&#39;manual_lblimage_funcs&#39;</span><span class="p">,</span>  <span class="c"># DEPRICATE</span>
-    <span class="s">&#39;manual_image_funcs&#39;</span><span class="p">,</span>
-    <span class="s">&#39;manual_encounter_funcs&#39;</span><span class="p">,</span>
-    <span class="s">&#39;manual_egrelate_funcs&#39;</span><span class="p">,</span>
-    <span class="s">&#39;manual_annot_funcs&#39;</span><span class="p">,</span>
-    <span class="s">&#39;manual_name_funcs&#39;</span><span class="p">,</span>
-    <span class="s">&#39;manual_species_funcs&#39;</span><span class="p">,</span>
-    <span class="c">#&#39;manual_dependant_funcs&#39;,</span>
-    <span class="s">&#39;manual_chip_funcs&#39;</span><span class="p">,</span>
-    <span class="s">&#39;manual_feat_funcs&#39;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;_autogen_featweight_funcs&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;_autogen_party_funcs&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;_autogen_annotmatch_funcs&#39;</span><span class="p">),</span>
+    <span class="c"># (&#39;ibeis.control&#39;, &#39;_autogen_annot_funcs&#39;),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_ibeiscontrol_funcs&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_meta_funcs&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_lbltype_funcs&#39;</span><span class="p">),</span>   <span class="c"># DEPRICATE</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_lblannot_funcs&#39;</span><span class="p">),</span>  <span class="c"># DEPRICATE</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_lblimage_funcs&#39;</span><span class="p">),</span>  <span class="c"># DEPRICATE</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_image_funcs&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_encounter_funcs&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_egrelate_funcs&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_garelate_funcs&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_annot_funcs&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_name_funcs&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_species_funcs&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_annotgroup_funcs&#39;</span><span class="p">),</span>
+    <span class="c"># (&#39;ibeis.control&#39;, &#39;manual_dependant_funcs&#39;),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_chip_funcs&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;ibeis.control&#39;</span><span class="p">,</span> <span class="s">&#39;manual_feat_funcs&#39;</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="n">pluginmodname_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s">&#39;ibeis_cnn&#39;</span><span class="p">,</span> <span class="s">&#39;_plugin&#39;</span><span class="p">),</span>
 <span class="p">]</span>
 
 
 <div class="viewcode-block" id="make_explicit_imports_for_pyinstaller"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.make_explicit_imports_for_pyinstaller">[docs]</a><span class="k">def</span> <span class="nf">make_explicit_imports_for_pyinstaller</span><span class="p">():</span>
     <span class="c">#making actual imports pyinstaller</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;from ibeis.control import </span><span class="si">%s</span><span class="s">  # NOQA&#39;</span> <span class="o">%</span> <span class="n">modname</span> <span class="k">for</span> <span class="n">modname</span>  <span class="ow">in</span> <span class="n">autogenmodname_list</span><span class="p">]))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;from </span><span class="si">%s</span><span class="s"> import </span><span class="si">%s</span><span class="s">  # NOQA&#39;</span> <span class="o">%</span> <span class="n">pkgtup</span> <span class="k">for</span> <span class="n">pkgtup</span> <span class="ow">in</span> <span class="n">autogenmodname_list</span><span class="p">]))</span>
 </div>
 <span class="n">INJECTED_MODULES</span> <span class="o">=</span> <span class="p">[]</span>
 
-<span class="k">for</span> <span class="n">modname</span> <span class="ow">in</span> <span class="n">autogenmodname_list</span><span class="p">:</span>
-    <span class="k">exec</span><span class="p">(</span><span class="s">&#39;from ibeis.control import &#39;</span> <span class="o">+</span> <span class="n">modname</span><span class="p">,</span> <span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">())</span>
-    <span class="n">module</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
-    <span class="n">INJECTED_MODULES</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">pkgname</span><span class="p">,</span> <span class="n">modname</span> <span class="ow">in</span> <span class="n">autogenmodname_list</span> <span class="o">+</span> <span class="n">pluginmodname_list</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">exec</span><span class="p">(</span><span class="s">&#39;from </span><span class="si">%s</span><span class="s"> import </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pkgname</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="p">),</span> <span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">())</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
+        <span class="n">INJECTED_MODULES</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Cannot load package=</span><span class="si">%r</span><span class="s">, module=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pkgname</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="p">))</span>
 
 <span class="c"># Inject utool functions</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibs]&#39;</span><span class="p">)</span>
@@ -323,6 +337,14 @@
 
 <div class="viewcode-block" id="IBEISController.reset_table_cache"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.IBEISControl.IBEISController.reset_table_cache">[docs]</a>    <span class="k">def</span> <span class="nf">reset_table_cache</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">table_cache</span> <span class="o">=</span> <span class="n">accessor_decors</span><span class="o">.</span><span class="n">init_tablecache</span><span class="p">()</span>
+
+    <span class="c">#def inject_module_plugin(ibs, module):</span>
+    <span class="c">#    global INJECTED_MODULES</span>
+    <span class="c">#    if module not in INJECTED_MODULES:</span>
+    <span class="c">#        INJECTED_MODULES.append(module)</span>
+    <span class="c">#    ut.inject_instance(</span>
+    <span class="c">#        ibs, classtype=module.CLASS_INJECT_KEY,</span>
+    <span class="c">#        allow_override=ibs.allow_override, strict=False)</span>
 </div>
     <span class="k">def</span> <span class="nf">_initialize_self</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -469,11 +491,11 @@
         <span class="n">_sql_helpers</span><span class="o">.</span><span class="n">ensure_daily_database_backup</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span><span class="p">)</span>
         <span class="c"># IBEIS SQL State Database</span>
         <span class="c">#ibs.db_version_expected = &#39;1.1.1&#39;</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span> <span class="o">=</span> <span class="s">&#39;1.4.3&#39;</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span> <span class="o">=</span> <span class="s">&#39;1.4.4&#39;</span>
         <span class="c"># TODO: add this functionality to SQLController</span>
         <span class="n">new_version</span><span class="p">,</span> <span class="n">new_fname</span> <span class="o">=</span> <span class="n">sqldbc</span><span class="o">.</span><span class="n">dev_test_new_schema_version</span><span class="p">(</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span><span class="p">,</span> <span class="n">version_next</span><span class="o">=</span><span class="s">&#39;1.4.3&#39;</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span><span class="p">,</span> <span class="n">version_next</span><span class="o">=</span><span class="s">&#39;1.4.4&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db_version_expected</span> <span class="o">=</span> <span class="n">new_version</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span> <span class="o">=</span> <span class="n">new_fname</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">sqldbc</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">,</span>

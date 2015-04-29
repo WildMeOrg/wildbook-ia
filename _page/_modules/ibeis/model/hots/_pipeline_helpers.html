@@ -257,6 +257,17 @@
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="n">qaid_list</span> <span class="o">==</span> <span class="s">&#39;all&#39;</span><span class="p">:</span>
+        <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;testdb1&#39;</span><span class="p">:</span>
+            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">daid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">min</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">))]</span>
+    <span class="k">elif</span> <span class="n">daid_list</span> <span class="o">==</span> <span class="s">&#39;all&#39;</span><span class="p">:</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">daid_list</span> <span class="o">==</span> <span class="s">&#39;gt&#39;</span><span class="p">:</span>
+        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">))</span>
+
     <span class="k">if</span> <span class="n">qaid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;testdb1&#39;</span><span class="p">:</span>
             <span class="n">default_qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -288,15 +299,6 @@
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[plh] cfgdict_ = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">cfgdict_</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">cfgdict_</span> <span class="o">=</span> <span class="n">cfgdict</span>
-
-    <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;testdb1&#39;</span><span class="p">:</span>
-            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">daid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">min</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">))]</span>
-    <span class="k">elif</span> <span class="n">daid_list</span> <span class="o">==</span> <span class="s">&#39;all&#39;</span><span class="p">:</span>
-        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-    <span class="k">elif</span> <span class="n">daid_list</span> <span class="o">==</span> <span class="s">&#39;gt&#39;</span><span class="p">:</span>
-        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">))</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">test_main</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">dbname</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="s">&#39;with_metadata&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfgdict</span><span class="p">:</span>

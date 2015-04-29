@@ -1006,6 +1006,8 @@ guitool. Each different type of model/view has to register its iders, getters,
 and potentially setters (hopefully if guitool ever gets off the ground the
 delters as well)</p>
 <p>Different columns can be hidden / shown by modifying this file</p>
+<p>TODO: need to cache the total number of annotations or something about
+encounters on disk to help startuptime.</p>
 <dl class="function">
 <dt id="ibeis.gui.guiheaders.get_redirects">
 <tt class="descclassname">ibeis.gui.guiheaders.</tt><tt class="descname">get_redirects</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/guiheaders.html#get_redirects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiheaders.get_redirects" title="Permalink to this definition">¶</a></dt>
@@ -1213,6 +1215,22 @@ specified (row might be a row_pair)</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="ibeis.gui.inspect_gui.get_aidpair_context_menue_options">
+<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">get_aidpair_context_menue_options</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em>, <em>qres</em>, <em>qreq_=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#get_aidpair_context_menue_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.get_aidpair_context_menue_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>assert that the ampersand cannot have duplicate keys</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.gui.inspect_gui.get_aidpair_from_qtindex">
+<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">get_aidpair_from_qtindex</tt><big>(</big><em>qres_wgt</em>, <em>qtindex</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#get_aidpair_from_qtindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.get_aidpair_from_qtindex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.gui.inspect_gui.get_annotmatch_rowid_from_qtindex">
+<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">get_annotmatch_rowid_from_qtindex</tt><big>(</big><em>qres_wgt</em>, <em>qtindex</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#get_annotmatch_rowid_from_qtindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.get_annotmatch_rowid_from_qtindex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.gui.inspect_gui.get_match_status">
 <tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">get_match_status</tt><big>(</big><em>ibs</em>, <em>aid_pair</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#get_match_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.get_match_status" title="Permalink to this definition">¶</a></dt>
 <dd><p>Data role for status column
@@ -1269,6 +1287,11 @@ should follow the same paradigm, but CustomAPI will have to change.</p>
 <tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">get_reviewed_status_bgrole</tt><big>(</big><em>ibs</em>, <em>aid_pair</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#get_reviewed_status_bgrole"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.get_reviewed_status_bgrole" title="Permalink to this definition">¶</a></dt>
 <dd><p>Background role for status column</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.gui.inspect_gui.get_widget_review_vars">
+<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">get_widget_review_vars</tt><big>(</big><em>qres_wgt</em>, <em>qaid</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#get_widget_review_vars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.get_widget_review_vars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.gui.inspect_gui.inspect_orphaned_qres_bigcache">
@@ -1330,89 +1353,14 @@ python -m ibeis.gui.inspect_gui &#8211;test-make_qres_api</dd>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.gui.inspect_gui.mark_annot_pair_as_negative_match">
-<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">mark_annot_pair_as_negative_match</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em>, <em>dryrun=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#mark_annot_pair_as_negative_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.mark_annot_pair_as_negative_match" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO: ELEVATE THIS FUNCTION</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</li>
-<li><strong>aid1</strong> (<em>int</em>) &#8211; annotation id</li>
-<li><strong>aid2</strong> (<em>int</em>) &#8211; annotation id</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">?:</p>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m ibeis.gui.inspect_gui &#8211;test-mark_annot_pair_as_negative_match</dd>
-</dl>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dryrun</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">mark_annot_pair_as_negative_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">dryrun</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
+<dt id="ibeis.gui.inspect_gui.mark_annot_pair_as_negative_match_">
+<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">mark_annot_pair_as_negative_match_</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em>, <em>qres</em>, <em>qreq_</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#mark_annot_pair_as_negative_match_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.mark_annot_pair_as_negative_match_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
-<dt id="ibeis.gui.inspect_gui.mark_annot_pair_as_positive_match">
-<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">mark_annot_pair_as_positive_match</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em>, <em>dryrun=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#mark_annot_pair_as_positive_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.mark_annot_pair_as_positive_match" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO: ELEVATE THIS FUNCTION
-Change into make_task_mark_annot_pair_as_positive_match and it returns what
-needs to be done.</p>
-<dl class="docutils">
-<dt>Need to test several cases:</dt>
-<dd>uknown, unknown
-knownA, knownA
-knownB, knownA
-unknown, knownA
-knownA, unknown</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</li>
-<li><strong>aid1</strong> (<em>int</em>) &#8211; query annotation id</li>
-<li><strong>aid2</strong> (<em>int</em>) &#8211; matching annotation id</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>CommandLine:</dt>
-<dd>python -m ibeis.gui.inspect_gui &#8211;test-mark_annot_pair_as_positive_match</dd>
-</dl>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dryrun</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">status</span> <span class="o">=</span> <span class="n">mark_annot_pair_as_positive_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">dryrun</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
+<dt id="ibeis.gui.inspect_gui.mark_annot_pair_as_positive_match_">
+<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">mark_annot_pair_as_positive_match_</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em>, <em>qres</em>, <em>qreq_</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#mark_annot_pair_as_positive_match_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.mark_annot_pair_as_positive_match_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.gui.inspect_gui.mark_pair_as_negative_match">
@@ -1432,17 +1380,23 @@ knownA, unknown</dd>
 
 <dl class="function">
 <dt id="ibeis.gui.inspect_gui.review_match">
-<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">review_match</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em>, <em>update_callback=None</em>, <em>backend_callback=None</em>, <em>qreq_=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#review_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.review_match" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">review_match</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em>, <em>update_callback=None</em>, <em>backend_callback=None</em>, <em>qreq_=None</em>, <em>qres=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#review_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.review_match" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="ibeis.gui.inspect_gui.review_match_at">
-<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">review_match_at</tt><big>(</big><em>qres_wgt</em>, <em>qtindex</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#review_match_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.review_match_at" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.inspect_gui.review_match_at_qtindex">
+<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">review_match_at_qtindex</tt><big>(</big><em>qres_wgt</em>, <em>qtindex</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#review_match_at_qtindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.review_match_at_qtindex" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="ibeis.gui.inspect_gui.show_match_at">
-<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">show_match_at</tt><big>(</big><em>qres_wgt</em>, <em>qtindex</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#show_match_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.show_match_at" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.inspect_gui.show_aidpair_context_menu">
+<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">show_aidpair_context_menu</tt><big>(</big><em>ibs</em>, <em>qwin</em>, <em>qpoint</em>, <em>aid1</em>, <em>aid2</em>, <em>qres</em>, <em>qreq_=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#show_aidpair_context_menu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.show_aidpair_context_menu" title="Permalink to this definition">¶</a></dt>
+<dd><p>kwargs are used for callbacks like qres_callback and query_callback</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.gui.inspect_gui.show_match_at_qtindex">
+<tt class="descclassname">ibeis.gui.inspect_gui.</tt><tt class="descname">show_match_at_qtindex</tt><big>(</big><em>qres_wgt</em>, <em>qtindex</em><big>)</big><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#show_match_at_qtindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.show_match_at_qtindex" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">

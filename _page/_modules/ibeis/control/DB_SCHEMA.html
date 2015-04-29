@@ -148,6 +148,7 @@
 <span class="n">IMAGE_ROWID</span>         <span class="o">=</span> <span class="s">&#39;image_rowid&#39;</span>
 <span class="n">ANNOT_ROWID</span>         <span class="o">=</span> <span class="s">&#39;annot_rowid&#39;</span>
 <span class="n">ANNOT_PARENT_ROWID</span>  <span class="o">=</span> <span class="s">&#39;annot_parent_rowid&#39;</span>
+<span class="n">ANNOTGROUP_ROWID</span>    <span class="o">=</span> <span class="s">&#39;annotgroup_rowid&#39;</span>
 <span class="n">NAME_TEXT</span>           <span class="o">=</span> <span class="s">&#39;name_text&#39;</span>
 <span class="n">SPECIES_TEXT</span>        <span class="o">=</span> <span class="s">&#39;species_text&#39;</span>
 <span class="n">ANNOT_ROWID1</span>        <span class="o">=</span> <span class="s">&#39;annot_rowid1&#39;</span>
@@ -1188,8 +1189,8 @@
             <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annot_is_shadowed&#39;</span><span class="p">,</span>    <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
             <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annot_is_washedout&#39;</span><span class="p">,</span>   <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
             <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annot_is_blury&#39;</span><span class="p">,</span>       <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-            <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annot_is_novelpose&#39;</span><span class="p">,</span>  <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-            <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annot_is_commonpose&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annot_is_novelpose&#39;</span><span class="p">,</span>   <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annot_is_commonpose&#39;</span><span class="p">,</span>  <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
         <span class="p">]</span>
     <span class="p">)</span>
 
@@ -1204,14 +1205,46 @@
 
 </div>
 <div class="viewcode-block" id="update_1_4_4"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_4_4">[docs]</a><span class="k">def</span> <span class="nf">update_1_4_4</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTGROUP_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">ANNOTGROUP_ROWID</span><span class="p">,</span>               <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annotgroup_uuid&#39;</span><span class="p">,</span>              <span class="s">&#39;UUID NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annotgroup_text&#39;</span><span class="p">,</span>              <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;annotgroup_note&#39;</span><span class="p">,</span>              <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;annotgroup_text&#39;</span><span class="p">,)],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        List of all annotation groups (annotgroups)&#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">GA_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;gar_rowid&#39;</span><span class="p">,</span>                    <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">ANNOTGROUP_ROWID</span><span class="p">,</span>               <span class="s">&#39;INTEGER NOT NULL&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,</span>                    <span class="s">&#39;INTEGER&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+        <span class="n">superkeys</span><span class="o">=</span><span class="p">[(</span><span class="n">ANNOTGROUP_ROWID</span><span class="p">,</span> <span class="n">ANNOT_ROWID</span><span class="p">)],</span>
+        <span class="n">docstr</span><span class="o">=</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">        Relationship between annotgroups and annots (many to many mapping) the</span>
+<span class="s">        many-to-many relationship between annots and annotgroups is encoded here</span>
+<span class="s">        annotgroup_annotation_relationship stands for annotgroup-annotation-pairs.&#39;&#39;&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="update_1_4_5"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.DB_SCHEMA.update_1_4_5">[docs]</a><span class="k">def</span> <span class="nf">update_1_4_5</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c">#db.modify_table(</span>
+    <span class="c">#    const.ANNOTMATCH_TABLE, [</span>
+    <span class="c">#        (None, &#39;annotmatch_is_interesting&#39;,      &#39;INTEGER&#39;, None),</span>
+    <span class="c">#        (None, &#39;annotmatch_posixtime_modified&#39;,  &#39;INTEGER&#39;, None),</span>
+    <span class="c">#        (None, &#39;annotmatch_score&#39;,  &#39;REAL&#39;, None),</span>
+    <span class="c">#        (None, &#39;config_rowid&#39;,  &#39;INTEGER&#39;, None),</span>
+    <span class="c">#    ]</span>
+    <span class="c">#)</span>
+    <span class="c"># Maybe we want the notation of each annotation having having a set of</span>
+    <span class="c"># classes with probabilities (c, p). Or an annotation label with a</span>
+    <span class="c"># confidence.</span>
     <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span> <span class="p">[</span>
-            <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annotmatch_is_interesting&#39;</span><span class="p">,</span>      <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-            <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annotmatch_posixtime_modified&#39;</span><span class="p">,</span>  <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-            <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annotmatch_score&#39;</span><span class="p">,</span>  <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-            <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,</span>  <span class="s">&#39;INTEGER&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annot_mask_uri&#39;</span><span class="p">,</span>    <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
         <span class="p">]</span>
     <span class="p">)</span>
+
 
 <span class="c"># ========================</span>
 <span class="c"># Valid Versions &amp; Mapping</span>
@@ -1236,16 +1269,17 @@
     <span class="p">(</span><span class="s">&#39;1.3.2&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_3_2</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
     <span class="p">(</span><span class="s">&#39;1.3.3&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_3_3</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
     <span class="p">(</span><span class="s">&#39;1.3.4&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_3_4</span><span class="p">,</span>       <span class="n">post_1_3_4</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;1.3.5&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_3_5</span><span class="p">,</span>       <span class="bp">None</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;1.3.6&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_3_6</span><span class="p">,</span>       <span class="bp">None</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;1.3.7&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_3_7</span><span class="p">,</span>       <span class="bp">None</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;1.3.8&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_3_8</span><span class="p">,</span>       <span class="bp">None</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;1.3.9&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_3_9</span><span class="p">,</span>       <span class="bp">None</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;1.4.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_0</span><span class="p">,</span>       <span class="bp">None</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;1.4.1&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_1</span><span class="p">,</span>       <span class="bp">None</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;1.4.2&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_2</span><span class="p">,</span>       <span class="bp">None</span>          <span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;1.4.3&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_3</span><span class="p">,</span>       <span class="bp">None</span>          <span class="p">)),</span>
-    <span class="c">#(&#39;1.4.4&#39;,    (None,                 update_1_4_4,       None          )),</span>
+    <span class="p">(</span><span class="s">&#39;1.3.5&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_3_5</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;1.3.6&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_3_6</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;1.3.7&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_3_7</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;1.3.8&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_3_8</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;1.3.9&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_3_9</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;1.4.0&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_0</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;1.4.1&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_1</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;1.4.2&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_2</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;1.4.3&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_3</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
+    <span class="p">(</span><span class="s">&#39;1.4.4&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="bp">None</span><span class="p">,</span>                 <span class="n">update_1_4_4</span><span class="p">,</span>       <span class="bp">None</span>                <span class="p">)),</span>
+    <span class="c">#(&#39;1.4.5&#39;,    (None,                 update_1_4_5,       None                )),</span>
 <span class="p">])</span>
 
 

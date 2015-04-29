@@ -240,6 +240,12 @@
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">sha1</span><span class="p">)</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;base64&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">))</span>
 
 </div>
+<div class="viewcode-block" id="get_url_authorization"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.get_url_authorization">[docs]</a><span class="k">def</span> <span class="nf">get_url_authorization</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="n">hash_</span> <span class="o">=</span> <span class="n">get_signature</span><span class="p">(</span><span class="n">GLOBAL_APP_SECRET</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+    <span class="n">hash_challenge</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">GLOBAL_APP_NAME</span><span class="p">,</span> <span class="n">hash_</span><span class="p">,</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">hash_challenge</span>
+
+</div>
 <div class="viewcode-block" id="authentication_hash_validate"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.controller_inject.authentication_hash_validate">[docs]</a><span class="k">def</span> <span class="nf">authentication_hash_validate</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This function is called to check if a username /</span>
@@ -251,14 +257,12 @@
     <span class="n">hash_challenge_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c"># Check normal url</span>
     <span class="n">url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
-    <span class="n">hash_</span> <span class="o">=</span> <span class="n">get_signature</span><span class="p">(</span><span class="n">GLOBAL_APP_SECRET</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
-    <span class="n">hash_challenge</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">GLOBAL_APP_NAME</span><span class="p">,</span> <span class="n">hash_</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">hash_challenge</span> <span class="o">=</span> <span class="n">get_url_authorization</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
     <span class="n">hash_challenge_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hash_challenge</span><span class="p">)</span>
     <span class="c"># If hash at the end of the url, try alternate hash as well</span>
     <span class="k">if</span> <span class="s">&#39;/&#39;</span> <span class="o">==</span> <span class="n">url</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
         <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">hash_</span> <span class="o">=</span> <span class="n">get_signature</span><span class="p">(</span><span class="n">GLOBAL_APP_SECRET</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
-        <span class="n">hash_challenge</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">GLOBAL_APP_NAME</span><span class="p">,</span> <span class="n">hash_</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">hash_challenge</span> <span class="o">=</span> <span class="n">get_url_authorization</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
         <span class="n">hash_challenge_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hash_challenge</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">hash_response</span> <span class="ow">in</span> <span class="n">hash_challenge_list</span>
 

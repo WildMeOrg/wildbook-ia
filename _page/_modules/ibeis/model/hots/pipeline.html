@@ -254,14 +254,13 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">[hs] +--- STARTING HOTSPOTTER PIPELINE ---&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">(),</span> <span class="s">&#39;[hs] &#39;</span><span class="p">))</span>
 
-    <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_load</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-
     <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;smk&#39;</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_match</span>
         <span class="c"># Alternative to naive bayes matching:</span>
         <span class="c"># Selective match kernel</span>
         <span class="n">qaid2_scores</span><span class="p">,</span> <span class="n">qaid2_chipmatch_FILT_</span> <span class="o">=</span> <span class="n">smk_match</span><span class="o">.</span><span class="n">execute_smk_L5</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">]:</span>
+        <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_load</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="n">impossible_daids_list</span><span class="p">,</span> <span class="n">Kpad_list</span> <span class="o">=</span> <span class="n">build_impossible_daids_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
 
         <span class="c"># Nearest neighbors (nns_list)</span>
@@ -390,11 +389,15 @@
         <span class="c"># Faster way</span>
         <span class="n">internal_data_gids</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">internal_daids</span><span class="p">)</span>
         <span class="n">internal_query_gids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">embed_on_exception_context</span><span class="p">:</span>
+        <span class="c">#with ut.embed_on_exception_context:</span>
+        <span class="k">try</span><span class="p">:</span>
             <span class="n">contact_aids_list</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">internal_daids</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">internal_data_gids</span> <span class="o">==</span> <span class="n">gid</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">internal_query_gids</span>
             <span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;internal_qaids&#39;</span><span class="p">,</span> <span class="s">&#39;internal_daids&#39;</span><span class="p">])</span>
+            <span class="k">raise</span>
         <span class="n">_impossible_daid_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contact_aids_list</span><span class="p">)</span>
         <span class="n">EXTEND_TO_OTHER_CONTACT_GT</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="c"># Also cannot match any aids with a name of an annotation in this image</span>
@@ -444,6 +447,70 @@
 <span class="c"># 1) Nearest Neighbors</span>
 <span class="c">#============================</span>
 
+</div>
+<div class="viewcode-block" id="nearest_neighbor_cacheid"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.nearest_neighbor_cacheid">[docs]</a><span class="k">def</span> <span class="nf">nearest_neighbor_cacheid</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">num_neighbors_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; cache-id for nearest_neighbors function &quot;&quot;&quot;</span>
+    <span class="n">internal_daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">()</span>
+    <span class="n">internal_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
+    <span class="n">query_hashid</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;Q&#39;</span><span class="p">)</span>
+    <span class="n">data_hashid</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">internal_daids</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;D&#39;</span><span class="p">)</span>
+    <span class="n">nn_cfgstr</span>      <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nn_cfgstr</span>
+    <span class="n">num_neigbors_list_hashid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr</span><span class="p">(</span><span class="n">num_neighbors_list</span><span class="p">,</span> <span class="n">hashlen</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;neighblist&#39;</span><span class="p">)</span>
+    <span class="n">nn_mid_cacheid</span> <span class="o">=</span> <span class="s">&#39;nn_mid&#39;</span> <span class="o">+</span> <span class="n">query_hashid</span> <span class="o">+</span> <span class="n">data_hashid</span> <span class="o">+</span> <span class="n">nn_cfgstr</span> <span class="o">+</span> <span class="n">num_neigbors_list_hashid</span>
+    <span class="n">nn_mid_cacheid</span> <span class="o">+=</span> <span class="s">&#39;aug_quryside&#39;</span> <span class="k">if</span>  <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">augment_queryside_hack</span> <span class="k">else</span> <span class="s">&#39;&#39;</span>
+    <span class="n">neighbor_cachedir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s">&#39;neighborcache&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">neighbor_cachedir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">neighbor_cachedir</span><span class="p">,</span> <span class="n">nn_mid_cacheid</span>
+</div>
+<span class="n">USE_NN_MID_CACHE</span> <span class="o">=</span> <span class="bp">True</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="nearest_neighbor_cacheid2"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.nearest_neighbor_cacheid2">[docs]</a><span class="k">def</span> <span class="nf">nearest_neighbor_cacheid2</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">):</span>
+    <span class="n">internal_daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">()</span>
+    <span class="n">internal_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
+    <span class="n">data_hashid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">internal_daids</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;D&#39;</span><span class="p">)</span>
+
+    <span class="n">nn_cfgstr</span>      <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nn_cfgstr</span>
+    <span class="n">nn_mid_cacheid</span> <span class="o">=</span> <span class="n">data_hashid</span> <span class="o">+</span> <span class="n">nn_cfgstr</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39;aug_quryside&#39;</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">augment_queryside_hack</span> <span class="k">else</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">query_hashid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">)</span>
+
+    <span class="n">nn_mid_cacheid_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">query_hashid</span><span class="p">)</span> <span class="o">+</span> <span class="n">nn_mid_cacheid</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">Kpad</span><span class="p">)</span> <span class="k">for</span> <span class="n">query_hashid</span><span class="p">,</span> <span class="n">Kpad</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">query_hashid_list</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">)]</span>
+
+    <span class="n">neighbor_cachedir2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_cachedir</span><span class="p">(),</span> <span class="s">&#39;neighborcache2&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">neighbor_cachedir2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nn_mid_cacheid_list</span><span class="p">,</span> <span class="n">neighbor_cachedir2</span>
+
+</div>
+<div class="viewcode-block" id="nearest_neighbors_withcache"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.pipeline.nearest_neighbors_withcache">[docs]</a><span class="k">def</span> <span class="nf">nearest_neighbors_withcache</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
+    <span class="n">K</span>      <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
+    <span class="n">Knorm</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
+    <span class="c">#checks = qreq_.qparams.checks</span>
+    <span class="c"># Get both match neighbors (including padding) and normalizing neighbors</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 1) Assign nearest neighbors: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
+              <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nn_cfgstr</span><span class="p">,))</span>
+    <span class="c"># For each internal query annotation</span>
+    <span class="c"># Find the nearest neighbors of each descriptor vector</span>
+    <span class="c">#USE_NN_MID_CACHE = ut.is_developer()</span>
+    <span class="n">nn_mid_cacheid_list</span><span class="p">,</span> <span class="n">neighbor_cachedir2</span> <span class="o">=</span> <span class="n">nearest_neighbor_cacheid2</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">compute_fn</span><span class="p">(</span><span class="n">flags_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">):</span>
+        <span class="n">internal_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
+        <span class="c"># Get only the data that needs to be computed</span>
+        <span class="n">internal_qaids</span> <span class="o">=</span> <span class="n">internal_qaids</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">flags_list</span><span class="p">)</span>
+        <span class="n">Kpad_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">Kpad_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">)</span>
+        <span class="c"># do computation</span>
+        <span class="n">num_neighbors_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">K</span> <span class="o">+</span> <span class="n">Kpad</span> <span class="o">+</span> <span class="n">Knorm</span> <span class="k">for</span> <span class="n">Kpad</span> <span class="ow">in</span> <span class="n">Kpad_list</span><span class="p">]</span>
+        <span class="n">qvecs_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_query_config2</span><span class="p">())</span>
+        <span class="c"># Mark progress ane execute nearest indexer nearest neighbor code</span>
+        <span class="n">qvec_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">NN_LBL</span><span class="p">,</span> <span class="o">**</span><span class="n">PROGKW</span><span class="p">)</span>
+        <span class="n">nns_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">knn</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">num_neighbors</span><span class="p">)</span> <span class="k">for</span> <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">num_neighbors</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qvec_iter</span><span class="p">,</span> <span class="n">num_neighbors_list</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">nns_list</span>
+
+    <span class="n">nns_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">tryload_cache_list_with_compute</span><span class="p">(</span><span class="n">neighbor_cachedir2</span><span class="p">,</span> <span class="s">&#39;neighbs&#39;</span><span class="p">,</span> <span class="n">nn_mid_cacheid_list</span><span class="p">,</span> <span class="n">compute_fn</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nns_list</span>
+
 
 <span class="c">#@ut.indent_func(&#39;[nn]&#39;)</span></div>
 <span class="nd">@profile</span>
@@ -458,7 +525,7 @@
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.pipeline import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; verbose = True</span>
-<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(dbname=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(dbname=&#39;testdb1&#39;, qaid_list=[1, 2, 3])</span>
 <span class="sd">        &gt;&gt;&gt; locals_ = plh.testrun_pipeline_upto(qreq_, &#39;nearest_neighbors&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; Kpad_list, = ut.dict_take(locals_, [&#39;Kpad_list&#39;])</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
@@ -470,6 +537,8 @@
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(qfx2_idx.shape[1], num_neighbors)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(qfx2_idx.shape[0], 1000, 2000)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">USE_NN_MID_CACHE</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">nearest_neighbors_withcache</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
     <span class="c"># Neareset neighbor configuration</span>
     <span class="n">K</span>      <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
     <span class="n">Knorm</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
@@ -480,27 +549,25 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 1) Assign nearest neighbors: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
               <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nn_cfgstr</span><span class="p">,))</span>
     <span class="c"># For each internal query annotation</span>
-    <span class="n">internal_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
     <span class="c"># Find the nearest neighbors of each descriptor vector</span>
-    <span class="c">#USE_NN_MID_CACHE = ut.is_developer()</span>
-    <span class="n">USE_NN_MID_CACHE</span> <span class="o">=</span> <span class="bp">False</span>
-    <span class="k">if</span> <span class="n">USE_NN_MID_CACHE</span><span class="p">:</span>
-        <span class="n">internal_daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">()</span>
-        <span class="n">query_hashid</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;Q&#39;</span><span class="p">)</span>
-        <span class="n">data_hashid</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">internal_daids</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;D&#39;</span><span class="p">)</span>
-        <span class="n">nn_cfgstr</span>      <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nn_cfgstr</span>
-        <span class="n">num_neigbors_list_hashid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr</span><span class="p">(</span><span class="n">num_neighbors_list</span><span class="p">)</span>
-        <span class="n">nn_mid_cacheid</span> <span class="o">=</span> <span class="s">&#39;nn_mid&#39;</span> <span class="o">+</span> <span class="n">query_hashid</span> <span class="o">+</span> <span class="n">data_hashid</span> <span class="o">+</span> <span class="n">nn_cfgstr</span> <span class="o">+</span> <span class="n">num_neigbors_list_hashid</span>
-        <span class="n">nn_mid_cacheid</span> <span class="o">+=</span> <span class="s">&#39;aug_quryside&#39;</span> <span class="k">if</span>  <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">augment_queryside_hack</span> <span class="k">else</span> <span class="s">&#39;&#39;</span>
-
+    <span class="c">##USE_NN_MID_CACHE = ut.is_developer()</span>
+    <span class="c">#    #neighbor_cachedir, nn_mid_cacheid = nearest_neighbor_cacheid(qreq_, num_neighbors_list)</span>
+    <span class="c">#    #try:</span>
+    <span class="c">#    #    nns_list = ut.load_cache(neighbor_cachedir, &#39;neighbs&#39;, nn_mid_cacheid)</span>
+    <span class="c">#    #except IOError:</span>
+    <span class="c">#    #    print(&#39;neighbs cache miss&#39;)</span>
+    <span class="c">#    #else:</span>
+    <span class="c">#    #    return nns_list</span>
+    <span class="n">internal_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
     <span class="n">qvecs_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_query_config2</span><span class="p">())</span>
     <span class="c"># Mark progress ane execute nearest indexer nearest neighbor code</span>
     <span class="n">qvec_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">NN_LBL</span><span class="p">,</span> <span class="o">**</span><span class="n">PROGKW</span><span class="p">)</span>
-    <span class="n">nns_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">knn</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">num_neighbors</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">num_neighbors</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qvec_iter</span><span class="p">,</span> <span class="n">num_neighbors_list</span><span class="p">)]</span>
+    <span class="n">nns_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">knn</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">num_neighbors</span><span class="p">)</span> <span class="k">for</span> <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">num_neighbors</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qvec_iter</span><span class="p">,</span> <span class="n">num_neighbors_list</span><span class="p">)]</span>
     <span class="c"># Verbose statistics reporting</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">plh</span><span class="o">.</span><span class="n">print_nearest_neighbor_assignments</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">)</span>
+    <span class="c">#if USE_NN_MID_CACHE:</span>
+    <span class="c">#    ut.save_cache(neighbor_cachedir, &#39;neighbs&#39;, nn_mid_cacheid, nns_list)</span>
     <span class="c">#if qreq_.qparams.with_metadata:</span>
     <span class="c">#    qreq_.metadata[&#39;nns&#39;] = nns_list</span>
     <span class="k">return</span> <span class="n">nns_list</span>

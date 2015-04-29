@@ -356,11 +356,14 @@
                 <span class="n">query_lbl</span> <span class="o">=</span> <span class="n">query_lbl</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
                 <span class="c">#qres.show(ibs, &#39;analysis&#39;, figtitle=query_lbl, fnum=fnum, **show_kwargs)</span>
                 <span class="k">if</span> <span class="n">SHOW</span><span class="p">:</span>
-                    <span class="n">show_kwargs</span><span class="p">[</span><span class="s">&#39;show_query&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="c">#show_kwargs[&#39;show_query&#39;] = False</span>
+                    <span class="n">show_kwargs</span><span class="p">[</span><span class="s">&#39;viz_name_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
                     <span class="n">qres</span><span class="o">.</span><span class="n">ishow_analysis</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="n">query_lbl</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">annot_mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">show_kwargs</span><span class="p">)</span>
                     <span class="c">#qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">show_kwargs</span><span class="p">[</span><span class="s">&#39;show_query&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="c">#show_kwargs[&#39;viz_name_score&#39;] = False</span>
+                    <span class="n">show_kwargs</span><span class="p">[</span><span class="s">&#39;viz_name_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
                     <span class="n">qres</span><span class="o">.</span><span class="n">show_analysis</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="n">query_lbl</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">annot_mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">show_kwargs</span><span class="p">)</span>
 
                 <span class="c"># Adjust subplots</span>
@@ -621,7 +624,6 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn] Row/Query Labels: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testnameid</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;=====================&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn] queries:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">qx2_lbl</span><span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- /Row/Query Labels ---&#39;</span><span class="p">)</span>
     <span class="n">print_rowlbl</span><span class="p">()</span>
     <span class="c">#------------</span>
 
@@ -633,7 +635,6 @@
         <span class="n">enum_cfgx2_lbl</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;</span><span class="si">%2d</span><span class="s">) </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">cfglbl</span><span class="p">)</span>
                             <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">cfglbl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cfgx2_lbl</span><span class="p">)]</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn] cfglbl:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">enum_cfgx2_lbl</span><span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- /Col/Config Labels ---&#39;</span><span class="p">)</span>
     <span class="n">print_collbl</span><span class="p">()</span>
 
     <span class="c">#------------</span>
@@ -647,7 +648,6 @@
         <span class="n">enum_cfgstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;</span><span class="si">%2d</span><span class="s">) </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">)</span>
                             <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">cfgstr</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">)]</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[harn] cfgstr:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">enum_cfgstr_list</span><span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- /Config Strings ---&#39;</span><span class="p">)</span>
     <span class="n">print_cfgstr</span><span class="p">()</span>
 
     <span class="c">#------------</span>
@@ -688,7 +688,6 @@
 
     <span class="nd">@ut.argv_flag_dec</span>
     <span class="k">def</span> <span class="nf">print_hardcase</span><span class="p">():</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;===&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- hard new_hardtup_list (w.r.t these configs): </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testnameid</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">repr</span><span class="p">,</span> <span class="n">new_hardtup_list</span><span class="p">)))</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;There are </span><span class="si">%d</span><span class="s"> hard cases &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_hardtup_list</span><span class="p">))</span>
@@ -697,7 +696,6 @@
         <span class="n">name_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">name_list</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;Names: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_set</span><span class="p">,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- /Print Hardcase ---&#39;</span><span class="p">)</span>
     <span class="n">print_hardcase</span><span class="p">()</span>
     <span class="c">#default=not ut.get_argflag(&#39;--allhard&#39;))</span>
 
@@ -705,7 +703,6 @@
 
     <span class="nd">@ut.argv_flag_dec_true</span>
     <span class="k">def</span> <span class="nf">echo_hardcase</span><span class="p">():</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;====&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- hardcase commandline: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testnameid</span><span class="p">)</span>
         <span class="c"># Show index for current query where hardids reside</span>
         <span class="c">#print(&#39;--index &#39; + (&#39; &#39;.join(map(str, new_hard_qx_list))))</span>
@@ -713,7 +710,6 @@
         <span class="c">#hardaids_str = &#39; &#39;.join(map(str, [&#39;    &#39;, &#39;--qaid&#39;] + new_hard_qaids))</span>
         <span class="n">hardaids_str</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;    &#39;</span><span class="p">,</span> <span class="s">&#39;--set-aids-as-hard&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">new_hard_qaids</span><span class="p">))</span>
         <span class="k">print</span><span class="p">(</span><span class="n">hardaids_str</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- /Echo Hardcase ---&#39;</span><span class="p">)</span>
     <span class="n">echo_hardcase</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--allhard&#39;</span><span class="p">))</span>
 
     <span class="c">#------------</span>
@@ -727,7 +723,7 @@
         <span class="n">sortx</span> <span class="o">=</span> <span class="n">cfgx2_mAP</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">cfgx</span> <span class="ow">in</span> <span class="n">sortx</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[mAP] cfgx=</span><span class="si">%r</span><span class="s">) mAP=</span><span class="si">%.3f</span><span class="s"> -- </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgx</span><span class="p">,</span> <span class="n">cfgx2_mAP</span><span class="p">[</span><span class="n">cfgx</span><span class="p">],</span> <span class="n">cfgx2_lbl</span><span class="p">[</span><span class="n">cfgx</span><span class="p">]))</span>
-        <span class="c">#print(&#39;--- /Scores per Config ---&#39;)</span>
+        <span class="c">#print(&#39;L___ Scores per Config ___&#39;)</span>
     <span class="n">print_colmap</span><span class="p">()</span>
     <span class="c">#------------</span>
 
@@ -749,7 +745,6 @@
                 <span class="n">nLessX_</span> <span class="o">=</span> <span class="n">nLessX_dict</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">X</span><span class="p">)][</span><span class="n">cfgx</span><span class="p">]</span>
                 <span class="n">rankstr</span> <span class="o">=</span> <span class="n">eh</span><span class="o">.</span><span class="n">rankscore_str</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">nLessX_</span><span class="p">,</span> <span class="n">nQuery</span><span class="p">,</span> <span class="n">withlbl</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[score] </span><span class="si">%s</span><span class="s"> --- </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rankstr</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">[</span><span class="n">cfgx</span><span class="p">]))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- /Scores per Config ---&#39;</span><span class="p">)</span>
     <span class="n">print_colscore</span><span class="p">()</span>
 
     <span class="c">#------------</span>
@@ -775,7 +770,6 @@
                                                           <span class="o">**</span><span class="n">tabular_kwargs</span><span class="p">)</span>
         <span class="c">#latex_formater.render(tabular_str)</span>
         <span class="k">print</span><span class="p">(</span><span class="n">tabular_str</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- /LaTeX ---&#39;</span><span class="p">)</span>
     <span class="c">#print_latexsum()</span>
 
     <span class="c">#------------</span>
@@ -813,8 +807,6 @@
             <span class="k">print</span><span class="p">(</span><span class="n">best_rankcfg</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cfg*]  </span><span class="si">%d</span><span class="s"> cfg(s) are the best of </span><span class="si">%d</span><span class="s"> total cfgs&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intersected</span><span class="p">),</span> <span class="n">nConfig</span><span class="p">))</span>
         <span class="k">print</span><span class="p">(</span><span class="n">eh</span><span class="o">.</span><span class="n">format_cfgstr_list</span><span class="p">(</span><span class="n">intersected</span><span class="p">))</span>
-
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- /Best Configurations ---&#39;</span><span class="p">)</span>
     <span class="n">print_bestcfg</span><span class="p">()</span>
 
     <span class="c">#------------</span>
@@ -822,7 +814,6 @@
     <span class="nd">@ut.argv_flag_dec</span>
     <span class="k">def</span> <span class="nf">print_gtscore</span><span class="p">():</span>
         <span class="c"># Prints best ranks</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;-------------&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;gtscore_mat: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testnameid</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39; nRows=</span><span class="si">%r</span><span class="s">, nCols=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">lbld_mat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
         <span class="n">header</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39; labled rank matrix: rows=queries, cols=cfgs:&#39;</span><span class="p">)</span>
@@ -834,7 +825,6 @@
                                 <span class="n">column_lbls</span><span class="o">=</span><span class="n">column_lbls</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">,</span>
                                 <span class="n">transpose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                                 <span class="n">use_lbl_width</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">cfgx2_lbl</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn]-------------&#39;</span><span class="p">)</span>
     <span class="n">print_gtscore</span><span class="p">()</span>
 
     <span class="c">#------------</span>
@@ -857,7 +847,6 @@
         <span class="c">#np.set_printoptions(threshold=5000, linewidth=5000, precision=5)</span>
         <span class="c">#with ut.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):</span>
         <span class="c">#print(lbld_mat)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn]-------------&#39;</span><span class="p">)</span>
     <span class="n">print_best_rankmat</span><span class="p">()</span>
 
     <span class="c">#------------</span>
@@ -879,7 +868,6 @@
         <span class="c">#np.set_printoptions(threshold=5000, linewidth=5000, precision=5)</span>
         <span class="c">#with ut.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):</span>
         <span class="c">#print(lbld_mat)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn]-------------&#39;</span><span class="p">)</span>
     <span class="n">print_next_rankmat</span><span class="p">()</span>
 
     <span class="c">#------------</span>
@@ -904,7 +892,6 @@
         <span class="c">#np.set_printoptions(threshold=5000, linewidth=5000, precision=5)</span>
         <span class="c">#with ut.NpPrintOpts(threshold=5000, linewidth=5000, precision=5):</span>
         <span class="c">#print(lbld_mat)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn]-------------&#39;</span><span class="p">)</span>
     <span class="n">print_scorediff_mat</span><span class="p">(</span><span class="n">alias_flags</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;--sdm&#39;</span><span class="p">])</span>
 
     <span class="c">#------------</span>
@@ -976,7 +963,6 @@
         <span class="c">#print(scorediff_selstr)</span>
         <span class="c">#print(pos_scorediff_selstr)</span>
         <span class="c">#print(neg_scorediff_selstr)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn]-------------&#39;</span><span class="p">)</span>
     <span class="n">print_scorediff_mat_stats</span><span class="p">(</span><span class="n">alias_flags</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;--sdms&#39;</span><span class="p">])</span>
 
     <span class="nd">@ut.argv_flag_dec</span>
@@ -1016,7 +1002,6 @@
         <span class="k">print</span><span class="p">(</span><span class="n">tn_rawscore_statstr</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="n">fn_rawscore_statstr</span><span class="p">)</span>
 
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn]-------------&#39;</span><span class="p">)</span>
     <span class="n">print_confusion_stats</span><span class="p">(</span><span class="n">alias_flags</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;--cs&#39;</span><span class="p">])</span>
 
     <span class="nd">@ut.argv_flag_dec</span>
@@ -1026,12 +1011,11 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;Diffmat: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testnameid</span><span class="p">)</span>
         <span class="n">diff_matstr</span> <span class="o">=</span> <span class="n">get_diffmat_str</span><span class="p">(</span><span class="n">rank_mat</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">nConfig</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="n">diff_matstr</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn]-------------&#39;</span><span class="p">)</span>
     <span class="n">print_diffmat</span><span class="p">()</span>
 
     <span class="c">#------------</span>
     <span class="c"># Print summary</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39; --- SUMMARY ---&#39;</span><span class="p">)</span>
+    <span class="c">#print(&#39; --- SUMMARY ---&#39;)</span>
     <span class="n">sumstrs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">sumstrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
     <span class="n">sumstrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;||===========================&#39;</span><span class="p">)</span>
@@ -1039,7 +1023,9 @@
     <span class="n">sumstrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;||---------------------------&#39;</span><span class="p">)</span>
     <span class="n">sumstrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">joins</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">|| &#39;</span><span class="p">,</span> <span class="n">best_rankscore_summary</span><span class="p">))</span>
     <span class="n">sumstrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;||===========================&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sumstrs</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+    <span class="n">summary_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sumstrs</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="c">#print(summary_str)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="n">summary_str</span><span class="p">,</span> <span class="s">&#39;blue&#39;</span><span class="p">)</span>
 
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;To enable all printouts add --print-all to the commandline&#39;</span><span class="p">)</span>
 

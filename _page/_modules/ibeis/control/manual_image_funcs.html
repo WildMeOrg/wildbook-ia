@@ -1090,6 +1090,14 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
+<div class="viewcode-block" id="get_image_datetime"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_datetime">[docs]</a><span class="k">def</span> <span class="nf">get_image_datetime</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
+    <span class="n">unixtime_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">datetime_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unixtime_to_datetime</span><span class="p">,</span> <span class="n">unixtime_list</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">datetime_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/gps/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_image_gps"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_gps">[docs]</a><span class="k">def</span> <span class="nf">get_image_gps</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>

@@ -109,13 +109,13 @@
             
   <h1>Source code for ibeis.viz.viz_name</h1><div class="highlight"><pre>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">plottool.draw_func2</span> <span class="kn">as</span> <span class="nn">df2</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
-<span class="kn">from</span> <span class="nn">.viz_chip</span> <span class="kn">import</span> <span class="n">show_chip</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">viz_chip</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="show_name_of"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_name.show_name_of">[docs]</a><span class="k">def</span> <span class="nf">show_name_of</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -123,7 +123,16 @@
     <span class="n">show_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[</span><span class="n">aid</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 </div>
-<span class="nd">@utool.indent_func</span>
+<div class="viewcode-block" id="testdata_showname"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_name.testdata_showname">[docs]</a><span class="k">def</span> <span class="nf">testdata_showname</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">name_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--name&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;easy&#39;</span><span class="p">)</span>
+    <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text</span><span class="p">(</span><span class="n">name_text</span><span class="p">)</span>
+    <span class="n">in_image</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-inimage&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">in_image</span>
+
+
+<span class="c">#@ut.indent_func</span></div>
 <div class="viewcode-block" id="show_name"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_name.show_name">[docs]</a><span class="k">def</span> <span class="nf">show_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">nid2_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[],</span> <span class="n">subtitle</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span>
               <span class="n">annote</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
@@ -138,25 +147,34 @@
 <span class="sd">        annote (bool):</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.viz.viz_name --test-show_name</span>
+<span class="sd">        python -m ibeis.viz.viz_name --test-show_name --show</span>
+
+<span class="sd">        python -m ibeis.viz.viz_name --test-show_name --name=&quot;IBEIS_PZ_1348&quot; --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1348.jpg --dpath figures --caption=&#39;viewpoint issue different and viewing conditions&#39; --figsize=11,3 --no-figtitle --notitle</span>
+
+<span class="sd">        python -m ibeis.viz.viz_name --test-show_name --name=&quot;IBEIS_PZ_1421&quot; --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1421.jpg --dpath figures --caption=&#39;Pose issues where the zebras are fighting&#39;</span>
+
+<span class="sd">        python -m ibeis.viz.viz_name --test-show_name --name=&quot;IBEIS_PZ_1366&quot; --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1366.jpg --dpath figures --caption=&#39;Occlusion from another animal, blurry photo&#39;</span>
+
+<span class="sd">        python -m ibeis.viz.viz_name --test-show_name --name=&quot;IBEIS_PZ_1288&quot; --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1288.jpg --dpath figures --caption=&#39;Occlusion from another animal, blurry photo&#39;</span>
+
+<span class="sd">        python -m ibeis.viz.viz_name --test-show_name --name=&quot;IBEIS_PZ_0370&quot; --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0370.jpg --dpath figures --caption=&#39;viewpoint&#39;</span>
+
+<span class="sd">        python -m ibeis.viz.viz_name --test-show_name --name=&quot;IBEIS_PZ_0453&quot; --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0453.jpg --dpath figures --caption=&#39;Viewpoint minor occlusion&#39;</span>
+
+<span class="sd">        python -m ibeis.viz.viz_name --test-show_name --name=&quot;IBEIS_PZ_0303&quot; --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg --dpath figures --caption=&#39;Shadowed&#39;</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_name import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; # build test data</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; nid = 1</span>
+<span class="sd">        &gt;&gt;&gt; ibs, nid, in_image = testdata_showname()</span>
 <span class="sd">        &gt;&gt;&gt; nid2_aids = None</span>
-<span class="sd">        &gt;&gt;&gt; in_image = True</span>
 <span class="sd">        &gt;&gt;&gt; fnum = 0</span>
 <span class="sd">        &gt;&gt;&gt; sel_aids = []</span>
 <span class="sd">        &gt;&gt;&gt; subtitle = &#39;&#39;</span>
 <span class="sd">        &gt;&gt;&gt; annote = False</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
-<span class="sd">        &gt;&gt;&gt; result = show_name(ibs, nid, nid2_aids, in_image, fnum, sel_aids, subtitle, annote)</span>
-<span class="sd">        &gt;&gt;&gt; # verify results</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; show_name(ibs, nid, nid2_aids, in_image, fnum, sel_aids, subtitle, annote)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] show_name nid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">nid</span><span class="p">)</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
@@ -173,7 +191,9 @@
         <span class="n">fig</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
         <span class="c"># Trigger computation of all chips in parallel</span>
         <span class="k">for</span> <span class="n">px</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aid_list</span><span class="p">):</span>
-            <span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(</span><span class="n">px</span><span class="p">),</span> <span class="n">annote</span><span class="o">=</span><span class="n">annote</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="n">in_image</span><span class="p">)</span>
+            <span class="n">notitle</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--notitle&#39;</span><span class="p">)</span>
+            <span class="n">show_chip_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">annote</span><span class="o">=</span><span class="n">annote</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="n">in_image</span><span class="p">,</span> <span class="n">notitle</span><span class="o">=</span><span class="n">notitle</span><span class="p">)</span>
+            <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(</span><span class="n">px</span><span class="p">),</span> <span class="o">**</span><span class="n">show_chip_kw</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">sel_aids</span><span class="p">:</span>
                 <span class="n">ax</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
                 <span class="n">df2</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">GREEN</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
@@ -185,8 +205,11 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">df2</span><span class="o">.</span><span class="n">imshow_null</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="n">figtitle</span> <span class="o">=</span> <span class="s">&#39;Name View nid=</span><span class="si">%r</span><span class="s"> name=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-    <span class="n">df2</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
+    <span class="n">use_figtitle</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-figtitle&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">use_figtitle</span><span class="p">:</span>
+        <span class="n">figtitle</span> <span class="o">=</span> <span class="s">&#39;Name View nid=</span><span class="si">%r</span><span class="s"> name=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">df2</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
     <span class="c">#if not annote:</span>
     <span class="c">#    title += &#39; noannote&#39;</span>
     <span class="c">#gs2.tight_layout(fig)</span>

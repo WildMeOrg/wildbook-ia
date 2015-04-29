@@ -1393,6 +1393,11 @@ completely replace the old structure</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="ibeis.model.hots.chip_match.ChipMatch2.get_annot_scores">
+<tt class="descname">get_annot_scores</tt><big>(</big><em>cm</em>, <em>daids</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/chip_match.html#ChipMatch2.get_annot_scores"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.chip_match.ChipMatch2.get_annot_scores" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="ibeis.model.hots.chip_match.ChipMatch2.get_chip_shortlist_aids">
 <tt class="descname">get_chip_shortlist_aids</tt><big>(</big><em>cm</em>, <em>num_shortlist</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/chip_match.html#ChipMatch2.get_chip_shortlist_aids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.chip_match.ChipMatch2.get_chip_shortlist_aids" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">Example</p>
@@ -2671,6 +2676,11 @@ this query</p>
 <dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.show_matches">
 <tt class="descname">show_matches</tt><big>(</big><em>qres</em>, <em>ibs</em>, <em>aid</em>, <em>qreq_=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.show_matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.show_matches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.hots.hots_query_result.QueryResult.show_name_matches">
+<tt class="descname">show_name_matches</tt><big>(</big><em>qres</em>, <em>ibs</em>, <em>aid</em>, <em>qreq_=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.show_name_matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.show_name_matches" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -5344,6 +5354,17 @@ utprof.py -m ibeis.model.hots.pipeline &#8211;test-get_sparse_matchinfo_nonagg</
 </dd></dl>
 
 <dl class="function">
+<dt id="ibeis.model.hots.pipeline.nearest_neighbor_cacheid">
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">nearest_neighbor_cacheid</tt><big>(</big><em>qreq_</em>, <em>num_neighbors_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#nearest_neighbor_cacheid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.nearest_neighbor_cacheid" title="Permalink to this definition">¶</a></dt>
+<dd><p>cache-id for nearest_neighbors function</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.pipeline.nearest_neighbor_cacheid2">
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">nearest_neighbor_cacheid2</tt><big>(</big><em>qreq_</em>, <em>Kpad_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#nearest_neighbor_cacheid2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.nearest_neighbor_cacheid2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.model.hots.pipeline.nearest_neighbors">
 <tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">nearest_neighbors</tt><big>(</big><em>qreq_</em>, <em>Kpad_list</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#nearest_neighbors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.nearest_neighbors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plain Nearest Neighbors</p>
@@ -5355,7 +5376,7 @@ utprof.py -m ibeis.model.hots.pipeline &#8211;test-get_sparse_matchinfo_nonagg</
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.pipeline</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">locals_</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="s">&#39;nearest_neighbors&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Kpad_list</span><span class="p">,</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">locals_</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;Kpad_list&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
@@ -5369,6 +5390,11 @@ utprof.py -m ibeis.model.hots.pipeline &#8211;test-get_sparse_matchinfo_nonagg</
 </pre></div>
 </div>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.pipeline.nearest_neighbors_withcache">
+<tt class="descclassname">ibeis.model.hots.pipeline.</tt><tt class="descname">nearest_neighbors_withcache</tt><big>(</big><em>qreq_</em>, <em>Kpad_list</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/pipeline.html#nearest_neighbors_withcache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.pipeline.nearest_neighbors_withcache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.model.hots.pipeline.request_ibeis_query_L0">

@@ -170,6 +170,8 @@
 <span class="n">QUALITY_TEXT_TO_INT</span>       <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="p">)</span>
 <span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>    <span class="o">=</span> <span class="n">QUAL_JUNK</span>
 <span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="c">#QUALITY_TEXT_TO_INTS      = ut.invert_dict(QUALITY_INT_TO_TEXT)</span>
+<span class="n">QUALITY_TEXT_TO_INTS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="nb">list</span><span class="p">(</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
 
 
 <span class="n">SEX_INT_TO_TEXT</span> <span class="o">=</span> <span class="p">{</span>
@@ -276,6 +278,8 @@
 <span class="c"># depricated tablename structure with the relevant versions suffixed</span>
 <span class="c">#################################################################</span>
 <span class="n">AL_RELATION_TABLE</span>    <span class="o">=</span> <span class="s">&#39;annotation_lblannot_relationship&#39;</span>
+<span class="n">GA_RELATION_TABLE</span>    <span class="o">=</span> <span class="s">&#39;annotgroup_annotation_relationship&#39;</span>
+<span class="n">ANNOTGROUP_TABLE</span>     <span class="o">=</span> <span class="s">&#39;annotgroups&#39;</span>
 <span class="n">ANNOTATION_TABLE</span>     <span class="o">=</span> <span class="s">&#39;annotations&#39;</span>
 <span class="n">CHIP_TABLE</span>           <span class="o">=</span> <span class="s">&#39;chips&#39;</span>
 <span class="n">CONFIG_TABLE</span>         <span class="o">=</span> <span class="s">&#39;configs&#39;</span>

@@ -1,0 +1,397 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.viz.viz_graph &mdash; ibeis 1.4.3 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.viz" href="../viz.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../viz.html">ibeis.viz</a> &raquo;</li>
+      
+    <li>ibeis.viz.viz_graph</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for ibeis.viz.viz_graph</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">netx</span>
+<span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="c">#import itertools</span>
+
+
+<div class="viewcode-block" id="show_chipmatch_graph"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_graph.show_chipmatch_graph">[docs]</a><span class="k">def</span> <span class="nf">show_chipmatch_graph</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_graph --test-show_chipmatch_graph:0 --show</span>
+<span class="sd">        python -m ibeis.viz.viz_graph --test-show_chipmatch_graph:1 --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.chip_match import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_post_sver(&#39;PZ_MTEST&#39;, qaid_list=[1, 2, 3, 4, 5, 6, 7, 18])</span>
+<span class="sd">        &gt;&gt;&gt; [cm.score_nsum(qreq_) for cm in cm_list]</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; daid = cm.get_groundtruth_daids()[0]</span>
+<span class="sd">        &gt;&gt;&gt; show_chipmatch_graph(ibs, cm_list, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; #cm.show_single_annotmatch(qreq_, daid)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.chip_match import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_post_sver(&#39;PZ_MTEST&#39;, qaid_list=&#39;all&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; [cm.score_nsum(qreq_) for cm in cm_list]</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; daid = cm.get_groundtruth_daids()[0]</span>
+<span class="sd">        &gt;&gt;&gt; show_chipmatch_graph(ibs, cm_list, qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; #cm.show_single_annotmatch(qreq_, daid)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+    <span class="c"># breaking</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">qaid_list</span>   <span class="o">=</span> <span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">]</span>
+    <span class="n">daids_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">num</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">]</span>
+    <span class="n">scores_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">get_annot_scores</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="k">for</span> <span class="n">cm</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">)]</span>
+    <span class="c">#graph = netx.Graph()</span>
+    <span class="c">#node = graph.add_node(img)</span>
+    <span class="c"># FDSFDS!!!</span>
+    <span class="n">netx_graph</span> <span class="o">=</span> <span class="n">make_ibeis_matching_graph</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">,</span> <span class="n">scores_list</span><span class="p">)</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">viz_netx_chipgraph</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">netx_graph</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">with_images</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="make_ibeis_matching_graph"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_graph.make_ibeis_matching_graph">[docs]</a><span class="k">def</span> <span class="nf">make_ibeis_matching_graph</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">,</span> <span class="n">scores_list</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;make_ibeis_matching_graph&#39;</span><span class="p">)</span>
+    <span class="n">aid1_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">)])</span>
+    <span class="n">aid2_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">daids_list</span><span class="p">)</span>
+    <span class="n">unique_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aid2_list</span> <span class="o">+</span> <span class="n">qaid_list</span><span class="p">))</span>
+    <span class="n">score_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">scores_list</span><span class="p">)</span>
+
+    <span class="c"># Make a graph between the chips</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_aids</span><span class="p">))</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid1_list</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">))</span>
+    <span class="n">node_lbls</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="s">&#39;int&#39;</span><span class="p">)]</span>
+    <span class="n">edge_lbls</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;weight&#39;</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)]</span>
+    <span class="n">netx_graph</span> <span class="o">=</span> <span class="n">make_netx_graph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">node_lbls</span><span class="p">,</span> <span class="n">edge_lbls</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">netx_graph</span>
+
+</div>
+<div class="viewcode-block" id="make_netx_graph"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_graph.make_netx_graph">[docs]</a><span class="k">def</span> <span class="nf">make_netx_graph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">node_lbls</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_lbls</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;make_netx_graph&#39;</span><span class="p">)</span>
+    <span class="c"># Make a graph between the chips</span>
+    <span class="n">netx_nodes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">ntup</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">{</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">val</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">node_lbls</span><span class="p">,</span> <span class="n">ntup</span><span class="p">[</span><span class="mi">1</span><span class="p">:])})</span>
+                  <span class="k">for</span> <span class="n">ntup</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">nodes</span><span class="p">)]</span>
+    <span class="n">netx_edges</span> <span class="o">=</span> <span class="p">[(</span><span class="n">etup</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">etup</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">{</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">val</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">edge_lbls</span><span class="p">,</span> <span class="n">etup</span><span class="p">[</span><span class="mi">2</span><span class="p">:])})</span>
+                  <span class="k">for</span> <span class="n">etup</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">edges</span><span class="p">)]</span>
+    <span class="n">netx_graph</span> <span class="o">=</span> <span class="n">netx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+    <span class="n">netx_graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">netx_nodes</span><span class="p">)</span>
+    <span class="n">netx_graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">netx_edges</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">netx_graph</span>
+
+</div>
+<div class="viewcode-block" id="viz_netx_chipgraph"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_graph.viz_netx_chipgraph">[docs]</a><span class="k">def</span> <span class="nf">viz_netx_chipgraph</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">netx_graph</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">with_images</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[encounter] drawing chip graph&#39;</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="c">#pos = netx.spring_layout(graph)</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">netx</span><span class="o">.</span><span class="n">graphviz_layout</span><span class="p">(</span><span class="n">netx_graph</span><span class="p">)</span>
+    <span class="c">#pos = netx.fruchterman_reingold_layout(netx_graph)</span>
+    <span class="c">#pos = netx.spring_layout(netx_graph)</span>
+    <span class="n">netx</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">netx_graph</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">with_images</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">cv2</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">netx_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()</span>
+        <span class="n">pos_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
+        <span class="n">img_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">img_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">resize_thumb</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="mi">220</span><span class="p">,</span> <span class="mi">220</span><span class="p">))</span> <span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="n">img_list</span><span class="p">]</span>
+        <span class="n">img_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2RGB</span><span class="p">)</span> <span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="n">img_list</span><span class="p">]</span>
+        <span class="n">netx_draw_images_at_positions</span><span class="p">(</span><span class="n">img_list</span><span class="p">,</span> <span class="n">pos_list</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="netx_draw_images_at_positions"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_graph.netx_draw_images_at_positions">[docs]</a><span class="k">def</span> <span class="nf">netx_draw_images_at_positions</span><span class="p">(</span><span class="n">img_list</span><span class="p">,</span> <span class="n">pos_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    References:</span>
+<span class="sd">        https://gist.github.com/shobhit/3236373</span>
+<span class="sd">        http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">matplotlib.offsetbox</span> <span class="kn">import</span> <span class="n">OffsetImage</span><span class="p">,</span> <span class="n">AnnotationBbox</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[encounter] drawing </span><span class="si">%d</span><span class="s"> images&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">img_list</span><span class="p">))</span>
+    <span class="c"># Thumb stack</span>
+    <span class="n">ax</span>  <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+    <span class="n">trans_data_to_axes</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">transData</span><span class="o">.</span><span class="n">transform</span>
+    <span class="n">trans_figure_to_axes</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">transFigure</span><span class="o">.</span><span class="n">inverted</span><span class="p">()</span><span class="o">.</span><span class="n">transform</span>
+    <span class="k">def</span> <span class="nf">trans_data_to_figure</span><span class="p">(</span><span class="n">pt_data</span><span class="p">):</span>
+        <span class="n">pt_ax</span> <span class="o">=</span> <span class="n">trans_data_to_axes</span><span class="p">(</span><span class="n">pt_data</span><span class="p">)</span>
+        <span class="n">pt_fig</span> <span class="o">=</span> <span class="n">trans_figure_to_axes</span><span class="p">(</span><span class="n">pt_ax</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pt_fig</span>
+    <span class="c">#for pos, img in ut.ProgressIter(zip(pos_list, img_list),  lbl=&#39;drawing img&#39;):</span>
+    <span class="n">artist_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">offset_img_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">img</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pos_list</span><span class="p">,</span> <span class="n">img_list</span><span class="p">):</span>
+        <span class="n">FIG_COORDS</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">FIG_COORDS</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">trans_data_to_figure</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+            <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">trans_data_to_figure</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+            <span class="c"># Hack to get the sizes correct</span>
+            <span class="n">height</span> <span class="o">*=</span> <span class="o">.</span><span class="mi">17</span>
+            <span class="n">width</span> <span class="o">*=</span> <span class="o">.</span><span class="mi">17</span>
+            <span class="n">tlx</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
+            <span class="n">tly</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
+            <span class="n">img_bbox</span> <span class="o">=</span> <span class="p">[</span><span class="n">tlx</span><span class="p">,</span> <span class="n">tly</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">]</span>
+            <span class="c"># Make new axis for the image</span>
+            <span class="n">img_ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">img_bbox</span><span class="p">)</span>
+            <span class="n">img_ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">draw_border</span><span class="p">(</span><span class="n">img_ax</span><span class="p">)</span>
+            <span class="n">img_ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s">&#39;equal&#39;</span><span class="p">)</span>
+            <span class="n">img_ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">&#39;off&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">pos</span>
+            <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">offset_img</span> <span class="o">=</span> <span class="n">OffsetImage</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=.</span><span class="mi">4</span><span class="p">)</span>
+            <span class="n">artist</span> <span class="o">=</span> <span class="n">AnnotationBbox</span><span class="p">(</span>
+                <span class="n">offset_img</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span>
+                <span class="n">xybox</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span>
+                <span class="n">xycoords</span><span class="o">=</span><span class="s">&#39;data&#39;</span><span class="p">,</span>
+                <span class="n">boxcoords</span><span class="o">=</span><span class="s">&quot;offset points&quot;</span><span class="p">,</span>
+                <span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>  <span class="c"># ,arrowprops=dict(arrowstyle=&quot;-&gt;&quot;))</span>
+            <span class="n">offset_img_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">offset_img</span><span class="p">)</span>
+            <span class="n">artist_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">artist</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">artist</span> <span class="ow">in</span> <span class="n">artist_list</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">add_artist</span><span class="p">(</span><span class="n">artist</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_onresize</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;foo&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">zoom_factory</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">base_scale</span><span class="o">=</span><span class="mf">1.1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        References:</span>
+<span class="sd">            https://gist.github.com/tacaswell/3144287</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">zoom_fun</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;zooming&#39;</span><span class="p">)</span>
+            <span class="c"># get the current x and y limits</span>
+            <span class="n">cur_xlim</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">()</span>
+            <span class="n">cur_ylim</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
+            <span class="c"># set the range</span>
+            <span class="c">#cur_xrange = (cur_xlim[1] - cur_xlim[0]) * .5</span>
+            <span class="c">#cur_yrange = (cur_ylim[1] - cur_ylim[0]) * .5</span>
+            <span class="n">xdata</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span>  <span class="c"># get event x location</span>
+            <span class="n">ydata</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">ydata</span>  <span class="c"># get event y location</span>
+            <span class="k">if</span> <span class="n">xdata</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">ydata</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span>
+            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="s">&#39;up&#39;</span><span class="p">:</span>
+                <span class="c"># deal with zoom in</span>
+                <span class="n">scale_factor</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">base_scale</span>
+            <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="s">&#39;down&#39;</span><span class="p">:</span>
+                <span class="c"># deal with zoom out</span>
+                <span class="n">scale_factor</span> <span class="o">=</span> <span class="n">base_scale</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;event.button=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="p">,))</span>
+                <span class="c"># deal with something that should never happen</span>
+                <span class="n">scale_factor</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="p">)</span>
+            <span class="c"># set new limits</span>
+            <span class="c">#ax.set_xlim([xdata - cur_xrange * scale_factor,</span>
+            <span class="c">#             xdata + cur_xrange * scale_factor])</span>
+            <span class="c">#ax.set_ylim([ydata - cur_yrange * scale_factor,</span>
+            <span class="c">#             ydata + cur_yrange * scale_factor])</span>
+            <span class="c"># ----</span>
+            <span class="k">for</span> <span class="n">offset_img</span> <span class="ow">in</span> <span class="n">offset_img_list</span><span class="p">:</span>
+                <span class="n">zoom</span> <span class="o">=</span> <span class="n">offset_img</span><span class="o">.</span><span class="n">get_zoom</span><span class="p">()</span>
+                <span class="n">offset_img</span><span class="o">.</span><span class="n">set_zoom</span><span class="p">(</span><span class="n">zoom</span> <span class="o">/</span> <span class="p">(</span><span class="n">scale_factor</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.2</span><span class="p">)))</span>
+            <span class="c"># Get distance from the cursor to the edge of the figure frame</span>
+            <span class="n">x_left</span> <span class="o">=</span> <span class="n">xdata</span> <span class="o">-</span> <span class="n">cur_xlim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">x_right</span> <span class="o">=</span> <span class="n">cur_xlim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">xdata</span>
+            <span class="n">y_top</span> <span class="o">=</span> <span class="n">ydata</span> <span class="o">-</span> <span class="n">cur_ylim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">y_bottom</span> <span class="o">=</span> <span class="n">cur_ylim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ydata</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="n">xdata</span> <span class="o">-</span> <span class="n">x_left</span> <span class="o">*</span> <span class="n">scale_factor</span><span class="p">,</span> <span class="n">xdata</span> <span class="o">+</span> <span class="n">x_right</span> <span class="o">*</span> <span class="n">scale_factor</span><span class="p">])</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="n">ydata</span> <span class="o">-</span> <span class="n">y_top</span> <span class="o">*</span> <span class="n">scale_factor</span><span class="p">,</span> <span class="n">ydata</span> <span class="o">+</span> <span class="n">y_bottom</span> <span class="o">*</span> <span class="n">scale_factor</span><span class="p">])</span>
+
+            <span class="c"># ----</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>  <span class="c"># force re-draw</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>  <span class="c"># get the figure of interest</span>
+        <span class="c"># attach the call back</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span><span class="s">&#39;scroll_event&#39;</span><span class="p">,</span> <span class="n">zoom_fun</span><span class="p">)</span>
+
+        <span class="c">#return the function</span>
+        <span class="k">return</span> <span class="n">zoom_fun</span>
+    <span class="c">#pt.interact_helpers.connect_callback(fig, &#39;resize_event&#39;, _onresize)</span>
+    <span class="n">zoom_factory</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_graph</span>
+<span class="sd">        python -m ibeis.viz.viz_graph --allexamples</span>
+<span class="sd">        python -m ibeis.viz.viz_graph --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.3',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

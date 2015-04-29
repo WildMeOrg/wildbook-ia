@@ -122,10 +122,10 @@
 <span class="kn">import</span> <span class="nn">types</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
-<span class="kn">import</span> <span class="nn">vtool.image</span> <span class="kn">as</span> <span class="nn">gtool</span>
+<span class="c">#import vtool.image as gtool</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span><span class="p">,</span> <span class="n">get_imfunc</span><span class="p">,</span> <span class="n">set_funcname</span>
-<span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">linalg</span><span class="p">,</span> <span class="n">geometry</span><span class="p">,</span> <span class="n">image</span>
+<span class="c">#from vtool import linalg, geometry, image</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">ibeis</span>
@@ -229,7 +229,7 @@
             <span class="n">out_img</span> <span class="o">=</span> <span class="n">out_name</span> <span class="o">+</span> <span class="s">&quot;.jpg&quot;</span>
             <span class="n">folder</span> <span class="o">=</span> <span class="s">&quot;IBEIS&quot;</span>
 
-            <span class="n">_image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+            <span class="n">_image</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
             <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">channels</span> <span class="o">=</span> <span class="n">_image</span><span class="o">.</span><span class="n">shape</span>
             <span class="k">if</span> <span class="n">width</span> <span class="o">&gt;</span> <span class="n">height</span><span class="p">:</span>
                 <span class="n">ratio</span> <span class="o">=</span> <span class="n">height</span> <span class="o">/</span> <span class="n">width</span>
@@ -243,17 +243,17 @@
                 <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">target_size</span> <span class="o">*</span> <span class="n">ratio</span><span class="p">)</span>
 
             <span class="n">dst_img</span> <span class="o">=</span> <span class="n">imagedir</span> <span class="o">+</span> <span class="n">out_img</span>
-            <span class="n">_image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">_image</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
-            <span class="n">image</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">dst_img</span><span class="p">,</span> <span class="n">_image</span><span class="p">)</span>
+            <span class="n">_image</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">_image</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+            <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">dst_img</span><span class="p">,</span> <span class="n">_image</span><span class="p">)</span>
 
             <span class="n">annotation</span> <span class="o">=</span> <span class="n">PascalVOC_Markup_Annotation</span><span class="p">(</span><span class="n">dst_img</span><span class="p">,</span> <span class="n">folder</span><span class="p">,</span> <span class="n">out_img</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">image_uri</span><span class="p">,</span> <span class="o">**</span><span class="n">information</span><span class="p">)</span>
             <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
             <span class="n">theta_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">):</span>
                 <span class="c"># Transformation matrix</span>
-                <span class="n">R</span> <span class="o">=</span> <span class="n">linalg</span><span class="o">.</span><span class="n">rotation_around_bbox_mat3x3</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">bbox</span><span class="p">)</span>
+                <span class="n">R</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">rotation_around_bbox_mat3x3</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">bbox</span><span class="p">)</span>
                 <span class="c"># Get verticies of the annotation polygon</span>
-                <span class="n">verts</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">verts_from_bbox</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">close</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">verts</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">verts_from_bbox</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">close</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
                 <span class="c"># Rotate and transform vertices</span>
                 <span class="n">xyz_pts</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">add_homogenous_coordinate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
                 <span class="n">trans_pts</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">remove_homogenous_coordinate</span><span class="p">(</span><span class="n">R</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">xyz_pts</span><span class="p">))</span>
@@ -2307,20 +2307,20 @@
 </div>
 <div class="viewcode-block" id="draw_thumb_helper"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.draw_thumb_helper">[docs]</a><span class="k">def</span> <span class="nf">draw_thumb_helper</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
     <span class="n">thumb_path</span><span class="p">,</span> <span class="n">thumbsize</span><span class="p">,</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span> <span class="o">=</span> <span class="n">tup</span>
-    <span class="n">img</span> <span class="o">=</span> <span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>  <span class="c"># time consuming</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>  <span class="c"># time consuming</span>
     <span class="p">(</span><span class="n">gh</span><span class="p">,</span> <span class="n">gw</span><span class="p">)</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
     <span class="n">img_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">gw</span><span class="p">,</span> <span class="n">gh</span><span class="p">)</span>
     <span class="n">max_dsize</span> <span class="o">=</span> <span class="p">(</span><span class="n">thumbsize</span><span class="p">,</span> <span class="n">thumbsize</span><span class="p">)</span>
-    <span class="n">dsize</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">gtool</span><span class="o">.</span><span class="n">resized_clamped_thumb_dims</span><span class="p">(</span><span class="n">img_size</span><span class="p">,</span> <span class="n">max_dsize</span><span class="p">)</span>
-    <span class="n">new_verts_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">gtool</span><span class="o">.</span><span class="n">scaled_verts_from_bbox_gen</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">))</span>
-    <span class="c">#thumb = gtool.resize_thumb(img, max_dsize)</span>
+    <span class="n">dsize</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">resized_clamped_thumb_dims</span><span class="p">(</span><span class="n">img_size</span><span class="p">,</span> <span class="n">max_dsize</span><span class="p">)</span>
+    <span class="n">new_verts_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">scaled_verts_from_bbox_gen</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">))</span>
+    <span class="c">#thumb = vt.resize_thumb(img, max_dsize)</span>
     <span class="c"># -----------------</span>
     <span class="c"># Actual computation</span>
-    <span class="n">thumb</span> <span class="o">=</span> <span class="n">gtool</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">dsize</span><span class="p">)</span>
+    <span class="n">thumb</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">dsize</span><span class="p">)</span>
     <span class="n">orange_bgr</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">new_verts</span> <span class="ow">in</span> <span class="n">new_verts_list</span><span class="p">:</span>
-        <span class="n">thumb</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">draw_verts</span><span class="p">(</span><span class="n">thumb</span><span class="p">,</span> <span class="n">new_verts</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">orange_bgr</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-    <span class="n">gtool</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">thumb_path</span><span class="p">,</span> <span class="n">thumb</span><span class="p">)</span>
+        <span class="n">thumb</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">draw_verts</span><span class="p">(</span><span class="n">thumb</span><span class="p">,</span> <span class="n">new_verts</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">orange_bgr</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">thumb_path</span><span class="p">,</span> <span class="n">thumb</span><span class="p">)</span>
     <span class="k">return</span> <span class="bp">True</span>
     <span class="c">#return (thumb_path, thumb)</span>
 
@@ -2372,7 +2372,7 @@
     <span class="n">gen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">draw_thumb_helper</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">),</span> <span class="o">**</span><span class="n">genkw</span><span class="p">)</span>
     <span class="c">#for output in gen:</span>
     <span class="c">#    #with ut.Timer(&#39;gentime&#39;):</span>
-    <span class="c">#    gtool.imwrite(output[0], output[1])</span>
+    <span class="c">#    vt.imwrite(output[0], output[1])</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
             <span class="n">six</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
@@ -2907,6 +2907,44 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;invalid_unknown_truth_state&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">truth</span>
+
+</div>
+<span class="nd">@__injectable</span>
+<div class="viewcode-block" id="get_aidpair_truths"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.get_aidpair_truths">[docs]</a><span class="k">def</span> <span class="nf">get_aidpair_truths</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1_list</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        aid1_list (list):</span>
+<span class="sd">        aid2_list (list):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: truth</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.ibsfuncs --test-get_aidpair_truths</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.ibsfuncs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid1_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; aid2_list = ut.list_rotate(ibs.get_valid_aids(), 1)</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; truth = get_aidpair_truths(ibs, aid1_list, aid2_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(truth)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nid1_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid1_list</span><span class="p">))</span>
+    <span class="n">nid2_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid2_list</span><span class="p">))</span>
+    <span class="n">isunknown1_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">(</span><span class="n">nid1_list</span><span class="p">))</span>
+    <span class="n">isunknown2_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">is_nid_unknown</span><span class="p">(</span><span class="n">nid2_list</span><span class="p">))</span>
+    <span class="n">any_unknown</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">isunknown1_list</span><span class="p">,</span> <span class="n">isunknown2_list</span><span class="p">)</span>
+    <span class="n">truth_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">nid1_list</span> <span class="o">==</span> <span class="n">nid2_list</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">truth_list</span><span class="p">[</span><span class="n">any_unknown</span><span class="p">]</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">TRUTH_UNKNOWN</span>
+    <span class="k">return</span> <span class="n">truth_list</span>
 
 </div>
 <div class="viewcode-block" id="get_title"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.get_title">[docs]</a><span class="k">def</span> <span class="nf">get_title</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -4007,6 +4045,37 @@
 </div>
 <span class="nd">@__injectable</span>
 <span class="nd">@accessor_decors.getter</span>
+<div class="viewcode-block" id="get_name_hourdiffs"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.get_name_hourdiffs">[docs]</a><span class="k">def</span> <span class="nf">get_name_hourdiffs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.ibsfuncs --test-get_name_hourdiffs</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.ibsfuncs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ibs = testdata_ibs(&#39;NNP_Master3&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = ibs.filter_nids_custom(ibs._get_all_known_nids())</span>
+<span class="sd">        &gt;&gt;&gt; hourdiffs_list = ibs.get_name_hourdiffs(nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = hourdiffs_list</span>
+<span class="sd">        &gt;&gt;&gt; print(hourdiffs_list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="c">#ibs.check_name_mapping_consistency(aids_list_)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">filter_aids_custom</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list_</span><span class="p">]</span>
+    <span class="n">hourdiffs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_unflat_annots_hourdists_list</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hourdiffs_list</span>
+
+</div>
+<span class="nd">@__injectable</span>
+<span class="nd">@accessor_decors.getter</span>
+<div class="viewcode-block" id="get_name_max_hourdiff"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.get_name_max_hourdiff">[docs]</a><span class="k">def</span> <span class="nf">get_name_max_hourdiff</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="n">hourdiffs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_hourdiffs</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">maxhourdiff_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">safe_max</span><span class="p">,</span> <span class="n">hourdiffs_list</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">maxhourdiff_list</span>
+
+</div>
+<span class="nd">@__injectable</span>
+<span class="nd">@accessor_decors.getter</span>
 <div class="viewcode-block" id="get_name_max_speed"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.get_name_max_speed">[docs]</a><span class="k">def</span> <span class="nf">get_name_max_speed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
@@ -4244,6 +4313,297 @@
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">dbio</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))))</span>
     <span class="n">dbio</span><span class="o">.</span><span class="n">export_subset</span><span class="o">.</span><span class="n">export_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">new_dbpath</span><span class="o">=</span><span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="s">&#39;testdb3&#39;</span><span class="p">))</span>
+
+</div>
+<span class="nd">@__injectable</span>
+<div class="viewcode-block" id="mark_annot_pair_as_positive_match"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.mark_annot_pair_as_positive_match">[docs]</a><span class="k">def</span> <span class="nf">mark_annot_pair_as_positive_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">on_nontrivial_merge</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO: ELEVATE THIS FUNCTION</span>
+<span class="sd">    Change into make_task_mark_annot_pair_as_positive_match and it returns what</span>
+<span class="sd">    needs to be done.</span>
+
+<span class="sd">    Need to test several cases:</span>
+<span class="sd">        uknown, unknown</span>
+<span class="sd">        knownA, knownA</span>
+<span class="sd">        knownB, knownA</span>
+<span class="sd">        unknown, knownA</span>
+<span class="sd">        knownA, unknown</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        aid1 (int):  query annotation id</span>
+<span class="sd">        aid2 (int):  matching annotation id</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_positive_match</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.gui.inspect_gui import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid1, aid2 = ibs.get_valid_aids()[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; dryrun = True</span>
+<span class="sd">        &gt;&gt;&gt; status = mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(status)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... _set_annot_name_rowids(aids=</span><span class="si">%r</span><span class="s">, nids=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... names = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)))</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span> <span class="s">&#39;list must correspond&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">mark_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+            <span class="c">#ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_MATCH, [1.0])</span>
+        <span class="c"># Return the new annots in this name</span>
+        <span class="n">_aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+        <span class="n">_combo_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_aids</span> <span class="o">+</span> <span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="k">for</span> <span class="n">_aids</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_aids_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)]</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">_combo_aids_list</span>
+        <span class="k">return</span> <span class="n">status</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[marking_match] aid1 = </span><span class="si">%r</span><span class="s">, aid2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+
+    <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">nid1</span> <span class="o">==</span> <span class="n">nid2</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;...images already matched&#39;</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">mark_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">isunknown1</span><span class="p">,</span> <span class="n">isunknown2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="n">isunknown2</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...match unknown1 to unknown2 into 1 new name&#39;</span><span class="p">)</span>
+            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="n">next_nids</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...merge known1 into known2&#39;</span><span class="p">)</span>
+            <span class="n">aid1_and_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">aid2_and_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid2</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">trivial_merge</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid1_and_groundtruth</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid2_and_groundtruth</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">trivial_merge</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">on_nontrivial_merge</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;no function is set up to handle nontrivial merges!&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">on_nontrivial_merge</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">(</span><span class="n">aid1_and_groundtruth</span><span class="p">,</span> <span class="p">[</span><span class="n">nid2</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid1_and_groundtruth</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">isunknown2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown1</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...match unknown2 into known1&#39;</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="p">[</span><span class="n">nid1</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...match unknown1 into known2&#39;</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">nid2</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;impossible state&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">status</span>
+
+</div>
+<span class="nd">@__injectable</span>
+<div class="viewcode-block" id="mark_annot_pair_as_negative_match"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.mark_annot_pair_as_negative_match">[docs]</a><span class="k">def</span> <span class="nf">mark_annot_pair_as_negative_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">on_nontrivial_split</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO: ELEVATE THIS FUNCTION</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        aid1 (int):  annotation id</span>
+<span class="sd">        aid2 (int):  annotation id</span>
+<span class="sd">        dryrun (bool):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_negative_match</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.gui.inspect_gui import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid1, aid2 = ibs.get_valid_aids()[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; dryrun = True</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;... _set_annot_name_rowids(</span><span class="si">%r</span><span class="s">, </span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">mark_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+            <span class="c">#ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_NOT_MATCH, [1.0])</span>
+    <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">nid1</span> <span class="o">==</span> <span class="n">nid2</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;images are marked as having the same name... we must tread carefully&#39;</span><span class="p">)</span>
+        <span class="n">aid1_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid1_groundtruth</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">aid1_groundtruth</span> <span class="o">==</span> <span class="p">[</span><span class="n">aid2</span><span class="p">]:</span>
+            <span class="c"># this is the only safe case for same name split</span>
+            <span class="c"># Change so the names are not the same</span>
+            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">on_nontrivial_split</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;no function is set up to handle nontrivial splits!&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">on_nontrivial_split</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">isunknown1</span><span class="p">,</span> <span class="n">isunknown2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="n">isunknown2</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...nonmatch unknown1 and unknown2 into 2 new names&#39;</span><span class="p">)</span>
+            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...nonmatch known1 and known2... nothing to do (yet)&#39;</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">mark_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">elif</span> <span class="n">isunknown2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown1</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...nonmatch unknown2 -&gt; newname and known1&#39;</span><span class="p">)</span>
+            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...nonmatch unknown1 -&gt; newname and known2&#39;</span><span class="p">)</span>
+            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;impossible state&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">status</span>
+
+</div>
+<span class="nd">@__injectable</span>
+<div class="viewcode-block" id="make_next_encounter_text"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.make_next_encounter_text">[docs]</a><span class="k">def</span> <span class="nf">make_next_encounter_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates what the next encounter name would be but does not add it to the database</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.ibsfuncs --test-make_next_encounter_text</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.ibsfuncs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; new_enctext = make_next_encounter_text(ibs)</span>
+<span class="sd">        &gt;&gt;&gt; result = new_enctext</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        New Encounter 0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
+    <span class="n">old_enctext_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid_list</span><span class="p">)</span>
+    <span class="n">new_enctext</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_nonconflicting_string</span><span class="p">(</span><span class="s">&#39;New Encounter </span><span class="si">%d</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">old_enctext_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_enctext</span>
+
+</div>
+<span class="nd">@__injectable</span>
+<div class="viewcode-block" id="add_next_encounter"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.add_next_encounter">[docs]</a><span class="k">def</span> <span class="nf">add_next_encounter</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds a new encounter to the database</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_enctext</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_encounter_text</span><span class="p">()</span>
+    <span class="p">(</span><span class="n">new_eid</span><span class="p">,)</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_encounters</span><span class="p">([</span><span class="n">new_enctext</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">new_eid</span>
+
+</div>
+<span class="nd">@__injectable</span>
+<div class="viewcode-block" id="create_new_encounter_from_images"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.create_new_encounter_from_images">[docs]</a><span class="k">def</span> <span class="nf">create_new_encounter_from_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        gid_list (list):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.ibsfuncs --test-create_new_encounter_from_images</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.ibsfuncs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[::2]</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; new_eid = create_new_encounter_from_images(ibs, gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = new_eid</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_eid</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">eid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">new_eid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_next_encounter</span><span class="p">()</span>
+        <span class="n">eid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">new_eid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_eids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_eid</span>
+
+</div>
+<span class="nd">@__injectable</span>
+<div class="viewcode-block" id="create_new_encounter_from_names"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.create_new_encounter_from_names">[docs]</a><span class="k">def</span> <span class="nf">create_new_encounter_from_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        nid_list (list):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.ibsfuncs --test-create_new_encounter_from_names</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.ibsfuncs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = ibs._get_all_known_nids()[0:2]</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; new_eid = ibs.create_new_encounter_from_names(nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # clean up</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_encounters(new_eid)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = new_eid</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">gids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">gids_list</span><span class="p">)</span>
+    <span class="n">new_eid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">create_new_encounter_from_images</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_eid</span>
+
+</div>
+<span class="nd">@__injectable</span>
+<div class="viewcode-block" id="prepare_annotgroup_review"><a class="viewcode-back" href="../../ibeis.html#ibeis.ibsfuncs.prepare_annotgroup_review">[docs]</a><span class="k">def</span> <span class="nf">prepare_annotgroup_review</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        aid_list (int):  list of annotation ids</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (src_ag_rowid, dst_ag_rowid) - source and dest annot groups</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.ibsfuncs --test-prepare_annotgroup_review</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.ibsfuncs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = prepare_annotgroup_review(ibs, aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Build new names for source and dest annot groups</span>
+    <span class="n">all_annotgroup_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_annotgroup_rowids</span><span class="p">()</span>
+    <span class="n">all_annotgroup_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotgroup_text</span><span class="p">(</span><span class="n">all_annotgroup_rowid_list</span><span class="p">)</span>
+    <span class="n">new_grouptext_src</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_nonconflicting_string</span><span class="p">(</span><span class="s">&#39;Source Group </span><span class="si">%d</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">all_annotgroup_text_list</span><span class="p">)</span>
+    <span class="n">all_annotgroup_text_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">new_grouptext_src</span><span class="p">]</span>
+    <span class="n">new_grouptext_dst</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_nonconflicting_string</span><span class="p">(</span><span class="s">&#39;Dest Group </span><span class="si">%d</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">all_annotgroup_text_list</span><span class="p">)</span>
+    <span class="c"># Add new empty groups</span>
+    <span class="n">annotgroup_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">new_grouptext_src</span><span class="p">,</span> <span class="n">new_grouptext_dst</span><span class="p">]</span>
+    <span class="n">annotgroup_uuid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hashable_to_uuid</span><span class="p">,</span> <span class="n">annotgroup_text_list</span><span class="p">))</span>
+    <span class="n">annotgroup_note_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">]</span>
+    <span class="n">src_ag_rowid</span><span class="p">,</span> <span class="n">dst_ag_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annotgroup</span><span class="p">(</span><span class="n">annotgroup_uuid_list</span><span class="p">,</span>
+                                                    <span class="n">annotgroup_text_list</span><span class="p">,</span>
+                                                    <span class="n">annotgroup_note_list</span><span class="p">)</span>
+    <span class="c"># Relate the annotations with the source group</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">add_gar</span><span class="p">([</span><span class="n">src_ag_rowid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">src_ag_rowid</span><span class="p">,</span> <span class="n">dst_ag_rowid</span>
 
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>

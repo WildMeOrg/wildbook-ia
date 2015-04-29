@@ -281,6 +281,12 @@
 <span class="sd">        &gt;&gt;&gt; test_cfg_name_list = [&#39;custom&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; test_configurations(ibs, qaids, daids, test_cfg_name_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harness] No query annotations specified&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harness] No query annotations specified&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span>
     <span class="n">test_result</span> <span class="o">=</span> <span class="n">run_test_configurations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">test_result</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">return</span>
@@ -312,10 +318,10 @@
 </div>
     <span class="nd">@ut.memoize</span>
 <div class="viewcode-block" id="TestResult.get_new_hard_qx_list"><a class="viewcode-back" href="../../../ibeis.dev.html#ibeis.dev.experiment_harness.TestResult.get_new_hard_qx_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_new_hard_qx_list</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
-        <span class="n">new_hard_qx_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="sd">&quot;&quot;&quot; Mark any query as hard if it didnt get everything correct &quot;&quot;&quot;</span>
         <span class="n">rank_mat</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_mat</span><span class="p">()</span>
-        <span class="c"># Mark examples as hard</span>
-        <span class="p">[</span><span class="n">qx</span> <span class="k">for</span> <span class="n">qx</span><span class="p">,</span> <span class="n">ranks</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rank_mat</span><span class="p">)</span> <span class="k">if</span> <span class="n">ranks</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">is_new_hard_list</span> <span class="o">=</span> <span class="n">rank_mat</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">new_hard_qx_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">is_new_hard_list</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">new_hard_qx_list</span>
 
 </div></div>
@@ -327,15 +333,16 @@
     <span class="n">lbl</span> <span class="o">=</span> <span class="s">&#39;[harn] TEST_CFG &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)</span>
     <span class="c"># Test Each configuration</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+
 <span class="s">        [harn]================</span>
-<span class="s">        [harn] experiment_harness.test_configurations()&quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+<span class="s">        [harn] experiment_harness.test_configurations()&quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="s">&#39;white&#39;</span><span class="p">)</span>
 
     <span class="n">orig_query_cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span>  <span class="c"># Remember original query config</span>
     <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cfgx2_lbl</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn] Testing </span><span class="si">%d</span><span class="s"> different parameters&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn]         </span><span class="si">%d</span><span class="s"> query annotations&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;[harn] Testing </span><span class="si">%d</span><span class="s"> different parameters&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">),</span> <span class="s">&#39;white&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;[harn]         </span><span class="si">%d</span><span class="s"> query annotations&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">),</span> <span class="s">&#39;white&#39;</span><span class="p">)</span>
 
     <span class="n">nCfg</span>     <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">)</span>   <span class="c"># number of configurations (cols)</span>
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
@@ -348,7 +355,7 @@
         <span class="c"># Query Config / Col Loop</span>
         <span class="c">#for cfgx, query_cfg in enumerate(cfg_list):</span>
         <span class="k">for</span> <span class="n">cfgx</span><span class="p">,</span> <span class="n">query_cfg</span> <span class="ow">in</span> <span class="n">cfgiter</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;+----&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;+--- REQUESTING CONFIG ---&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;L____&#39;</span><span class="p">)</span>
             <span class="c"># Set data to the current config</span>
@@ -362,7 +369,8 @@
                 <span class="n">cfgx2_cfgresinfo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cfgres_info</span><span class="p">)</span>
                 <span class="n">cfgx2_qreq_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn] Finished testing parameters&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;[harn] Completed running test configurations&#39;</span><span class="p">,</span> <span class="s">&#39;white&#39;</span><span class="p">)</span>
+        <span class="c">#print(msg)</span>
     <span class="k">if</span> <span class="n">NOMEMORY</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;ran tests in memory savings mode. Cannot Print. exiting&#39;</span><span class="p">)</span>
         <span class="k">return</span>

@@ -158,28 +158,110 @@
 <dd>color (3/4-tuple, ndarray, or str): colors for keypoints</dd>
 <dt>CommandLine:</dt>
 <dd>python -m ibeis.viz.viz_chip &#8211;test-show_chip &#8211;show
-python -c &#8220;import utool as ut; ut.print_auto_docstr(&#8216;ibeis.viz.viz_chip&#8217;, &#8216;show_chip&#8217;)&#8221;</dd>
+python -c &#8220;import utool as ut; ut.print_auto_docstr(&#8216;ibeis.viz.viz_chip&#8217;, &#8216;show_chip&#8217;)&#8221;
+python -m ibeis.viz.viz_chip &#8211;test-show_chip &#8211;show &#8211;db NNP_Master3 &#8211;aids 14047 &#8211;no-annote</dd>
 </dl>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># VIZ_TEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">in_image</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">annote</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">testdata_showchip</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#kpts = ibs.get_annot_kpts(aid, config2_=config2_)[::100]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#kpts = None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#color = np.array([pt.ORANGE] * len(kpts))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#kwargs = dict(kpts=kpts, color=color)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ori</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">weight_label</span><span class="o">=</span><span class="s">&#39;fg_weights&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="n">in_image</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="n">annote</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="n">in_image</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
 </pre></div>
 </div>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.viz.viz_chip.show_many_chips">
+<tt class="descclassname">ibeis.viz.viz_chip.</tt><tt class="descname">show_many_chips</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_chip.html#show_many_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_chip.show_many_chips" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.viz.viz_chip &#8211;test-show_many_chips
+python -m ibeis.viz.viz_chip &#8211;test-show_many_chips &#8211;show &#8211;db NNP_Master3 &#8211;aids=13276,14047,14489,14906,10194,10201,12656,10150,11002,15315,7191,13127,15591,12838,13970,14123,14167 &#8211;no-annote &#8211;dpath figures &#8211;save ~/latex/crall-candidacy-2015/figures/challengechips.jpg &#8216;&#8211;caption=challenging images&#8217;</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">in_image</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">testdata_showchip</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">show_many_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.viz.viz_chip.testdata_showchip">
+<tt class="descclassname">ibeis.viz.viz_chip.</tt><tt class="descname">testdata_showchip</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_chip.html#testdata_showchip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_chip.testdata_showchip" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.viz.viz_graph">
+<span id="ibeis-viz-viz-graph-module"></span><h2>ibeis.viz.viz_graph module<a class="headerlink" href="#module-ibeis.viz.viz_graph" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.viz.viz_graph.make_ibeis_matching_graph">
+<tt class="descclassname">ibeis.viz.viz_graph.</tt><tt class="descname">make_ibeis_matching_graph</tt><big>(</big><em>ibs</em>, <em>qaid_list</em>, <em>daids_list</em>, <em>scores_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_graph.html#make_ibeis_matching_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_graph.make_ibeis_matching_graph" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.viz.viz_graph.make_netx_graph">
+<tt class="descclassname">ibeis.viz.viz_graph.</tt><tt class="descname">make_netx_graph</tt><big>(</big><em>nodes</em>, <em>edges</em>, <em>node_lbls=[]</em>, <em>edge_lbls=[]</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_graph.html#make_netx_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_graph.make_netx_graph" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.viz.viz_graph.netx_draw_images_at_positions">
+<tt class="descclassname">ibeis.viz.viz_graph.</tt><tt class="descname">netx_draw_images_at_positions</tt><big>(</big><em>img_list</em>, <em>pos_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_graph.html#netx_draw_images_at_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_graph.netx_draw_images_at_positions" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">References</p>
+<p><a class="reference external" href="https://gist.github.com/shobhit/3236373">https://gist.github.com/shobhit/3236373</a>
+<a class="reference external" href="http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html">http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.viz.viz_graph.show_chipmatch_graph">
+<tt class="descclassname">ibeis.viz.viz_graph.</tt><tt class="descname">show_chipmatch_graph</tt><big>(</big><em>ibs</em>, <em>cm_list</em>, <em>qreq_</em>, <em>fnum=None</em>, <em>pnum=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_graph.html#show_chipmatch_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_graph.show_chipmatch_graph" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.viz.viz_graph &#8211;test-show_chipmatch_graph:0 &#8211;show
+python -m ibeis.viz.viz_graph &#8211;test-show_chipmatch_graph:1 &#8211;show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_graph</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.chip_match</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testdata_post_sver</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">18</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">score_nsum</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_groundtruth_daids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">show_chipmatch_graph</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#cm.show_single_annotmatch(qreq_, daid)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_graph</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.chip_match</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testdata_post_sver</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="s">&#39;all&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">score_nsum</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_groundtruth_daids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">show_chipmatch_graph</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#cm.show_single_annotmatch(qreq_, daid)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.viz.viz_graph.viz_netx_chipgraph">
+<tt class="descclassname">ibeis.viz.viz_graph.</tt><tt class="descname">viz_netx_chipgraph</tt><big>(</big><em>ibs</em>, <em>netx_graph</em>, <em>fnum=None</em>, <em>with_images=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_graph.html#viz_netx_chipgraph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_graph.viz_netx_chipgraph" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-ibeis.viz.viz_helpers">
@@ -665,25 +747,28 @@ draw_fmatches = True</p>
 </table>
 <dl class="docutils">
 <dt>CommandLine:</dt>
-<dd>python -m ibeis.viz.viz_name &#8211;test-show_name</dd>
+<dd><p class="first">python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;show</p>
+<p>python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;name=&#8221;IBEIS_PZ_1348&#8221; &#8211;db testdb3 &#8211;save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1348.jpg &#8211;dpath figures &#8211;caption=&#8217;viewpoint issue different and viewing conditions&#8217; &#8211;figsize=11,3 &#8211;no-figtitle &#8211;notitle</p>
+<p>python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;name=&#8221;IBEIS_PZ_1421&#8221; &#8211;db testdb3 &#8211;save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1421.jpg &#8211;dpath figures &#8211;caption=&#8217;Pose issues where the zebras are fighting&#8217;</p>
+<p>python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;name=&#8221;IBEIS_PZ_1366&#8221; &#8211;db testdb3 &#8211;save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1366.jpg &#8211;dpath figures &#8211;caption=&#8217;Occlusion from another animal, blurry photo&#8217;</p>
+<p>python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;name=&#8221;IBEIS_PZ_1288&#8221; &#8211;db testdb3 &#8211;save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1288.jpg &#8211;dpath figures &#8211;caption=&#8217;Occlusion from another animal, blurry photo&#8217;</p>
+<p>python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;name=&#8221;IBEIS_PZ_0370&#8221; &#8211;db testdb3 &#8211;save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0370.jpg &#8211;dpath figures &#8211;caption=&#8217;viewpoint&#8217;</p>
+<p>python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;name=&#8221;IBEIS_PZ_0453&#8221; &#8211;db testdb3 &#8211;save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0453.jpg &#8211;dpath figures &#8211;caption=&#8217;Viewpoint minor occlusion&#8217;</p>
+<p class="last">python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;name=&#8221;IBEIS_PZ_0303&#8221; &#8211;db testdb3 &#8211;save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg &#8211;dpath figures &#8211;caption=&#8217;Shadowed&#8217;</p>
+</dd>
 </dl>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_name</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nid</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">in_image</span> <span class="o">=</span> <span class="n">testdata_showname</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nid2_aids</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">in_image</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fnum</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sel_aids</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subtitle</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">annote</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">show_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">nid2_aids</span><span class="p">,</span> <span class="n">in_image</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">sel_aids</span><span class="p">,</span> <span class="n">subtitle</span><span class="p">,</span> <span class="n">annote</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">show_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">nid2_aids</span><span class="p">,</span> <span class="n">in_image</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">sel_aids</span><span class="p">,</span> <span class="n">subtitle</span><span class="p">,</span> <span class="n">annote</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -691,6 +776,11 @@ draw_fmatches = True</p>
 <dl class="function">
 <dt id="ibeis.viz.viz_name.show_name_of">
 <tt class="descclassname">ibeis.viz.viz_name.</tt><tt class="descname">show_name_of</tt><big>(</big><em>ibs</em>, <em>aid</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_name.html#show_name_of"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_name.show_name_of" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.viz.viz_name.testdata_showname">
+<tt class="descclassname">ibeis.viz.viz_name.</tt><tt class="descname">testdata_showname</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_name.html#testdata_showname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_name.testdata_showname" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>

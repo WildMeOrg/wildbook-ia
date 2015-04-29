@@ -158,6 +158,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Displays query chip, groundtruth matches, and top matches</span>
 <span class="sd">    TODO: make this a class</span>
+<span class="sd">    TODO; dodraw should be false by default</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  ibeis controller object</span>
@@ -171,31 +172,37 @@
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.viz.interact.interact_qres import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; qreq_ = None</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict())[1]</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request([1], [2, 3, 4, 5], cfgdict=dict())</span>
+<span class="sd">        &gt;&gt;&gt; qres = ibs.query_chips(qreq_=qreq_)[0]</span>
 <span class="sd">        &gt;&gt;&gt; analysis = False</span>
 <span class="sd">        &gt;&gt;&gt; fig = ishow_qres(ibs, qres, analysis, dodraw=False, qreq_=qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">fnum</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;fnum&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;fnum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fnum</span>
 
     <span class="n">fig</span> <span class="o">=</span> <span class="n">ih</span><span class="o">.</span><span class="n">begin_interaction</span><span class="p">(</span><span class="s">&#39;qres&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="p">)</span>
     <span class="c"># Result Interaction</span>
-    <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[ishow_qres] starting interaction&#39;</span><span class="p">)</span>
+    <span class="c">#printDBG(&#39;[ishow_qres] starting interaction&#39;)</span>
 
-    <span class="k">def</span> <span class="nf">_ctrlclicked_aid</span><span class="p">(</span><span class="n">aid2</span><span class="p">):</span>
+    <span class="c"># Start the transformation into a class</span>
+    <span class="bp">self</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">qreq_</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+
+    <span class="k">def</span> <span class="nf">show_sver_process_to_aid</span><span class="p">(</span><span class="n">aid2</span><span class="p">):</span>
         <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;ctrl+clicked aid2=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid2</span><span class="p">)</span>
         <span class="n">fnum_</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
-        <span class="n">ishow_sver</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum_</span><span class="p">)</span>
+        <span class="n">ishow_sver</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum_</span><span class="p">)</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">bring_to_front</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_clicked_aid</span><span class="p">(</span><span class="n">aid2</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">show_matches_to_aid</span><span class="p">(</span><span class="n">aid2</span><span class="p">):</span>
         <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;clicked aid2=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid2</span><span class="p">)</span>
         <span class="n">fnum_</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
-        <span class="n">qres</span><span class="o">.</span><span class="n">ishow_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum_</span><span class="p">)</span>
+        <span class="n">qres</span><span class="o">.</span><span class="n">ishow_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum_</span><span class="p">)</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">bring_to_front</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
@@ -204,42 +211,80 @@
         <span class="c"># Toggle if the click is not in any axis</span>
         <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;clicked none&#39;</span><span class="p">)</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;annot_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;annot_mode&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">toggle</span>
-        <span class="n">fig</span> <span class="o">=</span> <span class="n">viz</span><span class="o">.</span><span class="n">show_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">viz</span><span class="o">.</span><span class="n">show_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span>
 
     <span class="k">def</span> <span class="nf">_analysis_view</span><span class="p">(</span><span class="n">toggle</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="c"># Toggle if the click is not in any axis</span>
         <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;clicked none&#39;</span><span class="p">)</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;annot_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;annot_mode&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">toggle</span>
-        <span class="n">fig</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">show_analysis</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">show_analysis</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span>
+
+    <span class="k">def</span> <span class="nf">_refresh</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">analysis</span><span class="p">:</span>
+            <span class="n">_analysis_view</span><span class="p">(</span><span class="n">toggle</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_top_matches_view</span><span class="p">(</span><span class="n">toggle</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_on_match_click</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; result interaction mpl event callback slot &quot;&quot;&quot;</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] clicked result&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ih</span><span class="o">.</span><span class="n">clicked_outside_axis</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">analysis</span><span class="p">:</span>
-                <span class="n">_analysis_view</span><span class="p">(</span><span class="n">toggle</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">_top_matches_view</span><span class="p">(</span><span class="n">toggle</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">_refresh</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ax</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span>
             <span class="n">viztype</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;viztype&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
             <span class="c">#printDBG(str(event.__dict__))</span>
-            <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;viztype=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;viztype=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
             <span class="c"># Clicked a specific matches</span>
-            <span class="k">if</span> <span class="n">viztype</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;matches&#39;</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;plodat_dict = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat_dict</span><span class="p">(</span><span class="n">ax</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">viztype</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;chip&#39;</span><span class="p">):</span>
+                <span class="kn">import</span> <span class="nn">guitool</span>
+                <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_chip</span>
+                <span class="n">height</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+                <span class="n">qpoint</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newQPoint</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">height</span> <span class="o">-</span> <span class="n">event</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+                <span class="n">refresh_func</span> <span class="o">=</span> <span class="n">_analysis_view</span>
+                <span class="n">interact_chip</span><span class="o">.</span><span class="n">show_annot_context_menu</span><span class="p">(</span>
+                    <span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">refresh_func</span><span class="o">=</span><span class="n">refresh_func</span><span class="p">,</span>
+                    <span class="n">with_interact_chip</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">viztype</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;matches&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s">&#39;multi_match&#39;</span><span class="p">:</span>  <span class="c"># why startswith?</span>
                 <span class="n">aid2</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid2&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-                <span class="c"># Ctrl-Click</span>
-                <span class="n">key</span> <span class="o">=</span> <span class="s">&#39;&#39;</span> <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;key = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;control&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] result control clicked&#39;</span><span class="p">)</span>
-                    <span class="n">_ctrlclicked_aid</span><span class="p">(</span><span class="n">aid2</span><span class="p">)</span>
-                <span class="c"># Left-Click</span>
+                <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>   <span class="c"># right-click</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;right click&#39;</span><span class="p">)</span>
+                    <span class="n">height</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+                    <span class="kn">import</span> <span class="nn">guitool</span>
+                    <span class="n">qpoint</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newQPoint</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">height</span> <span class="o">-</span> <span class="n">event</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+                    <span class="n">qwin</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span>
+                    <span class="c"># TODO; this functionality should be in viz.interact</span>
+                    <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
+                    <span class="n">update_callback</span> <span class="o">=</span> <span class="n">_refresh</span>
+                    <span class="n">backend_callback</span> <span class="o">=</span> <span class="bp">None</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;qreq_ = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,))</span>
+                    <span class="n">inspect_gui</span><span class="o">.</span><span class="n">show_aidpair_context_menu</span><span class="p">(</span>
+                        <span class="n">ibs</span><span class="p">,</span> <span class="n">qwin</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span>
+                        <span class="n">update_callback</span><span class="o">=</span><span class="n">update_callback</span><span class="p">,</span>
+                        <span class="n">backend_callback</span><span class="o">=</span><span class="n">backend_callback</span><span class="p">)</span>
+                    <span class="c">#callback_list = [</span>
+                    <span class="c">#]</span>
+                    <span class="c">#guitool.popup_menu(qwin, qpoint, callback_list)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] result clicked&#39;</span><span class="p">)</span>
-                    <span class="n">_clicked_aid</span><span class="p">(</span><span class="n">aid2</span><span class="p">)</span>
+                    <span class="c"># Ctrl-Click</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="s">&#39;&#39;</span> <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;key = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;control&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] result control clicked&#39;</span><span class="p">)</span>
+                        <span class="n">show_sver_process_to_aid</span><span class="p">(</span><span class="n">aid2</span><span class="p">)</span>
+                    <span class="c"># Left-Click</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] result clicked&#39;</span><span class="p">)</span>
+                        <span class="n">show_matches_to_aid</span><span class="p">(</span><span class="n">aid2</span><span class="p">)</span>
+                    <span class="c">#print(&#39;multimatches&#39;)</span>
+                    <span class="c">#aid2 = ph.get_plotdat(ax, &#39;aid2&#39;, None)</span>
+                    <span class="c">#key = &#39;&#39; if event.key is None else event.key</span>
+                    <span class="c">#print(&#39;key = %r&#39; % key)</span>
+                    <span class="c">#if key == &#39;&#39;:</span>
+                    <span class="c">#    show_matches_to_aid(aid2)</span>
         <span class="n">ph</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">analysis</span><span class="p">:</span>
@@ -249,7 +294,7 @@
     <span class="k">if</span> <span class="n">dodraw</span><span class="p">:</span>
         <span class="n">ph</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
     <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="s">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="n">_on_match_click</span><span class="p">)</span>
-    <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[ishow_qres] Finished&#39;</span><span class="p">)</span>
+    <span class="c">#printDBG(&#39;[ishow_qres] Finished&#39;)</span>
     <span class="k">return</span> <span class="n">fig</span>
 
 </div>

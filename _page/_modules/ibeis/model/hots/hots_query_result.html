@@ -864,6 +864,19 @@
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;failed in qres.show_matches&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="s">&#39;qreq_&#39;</span><span class="p">])</span>
             <span class="k">raise</span>
 </div>
+<div class="viewcode-block" id="QueryResult.show_name_matches"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.show_name_matches">[docs]</a>    <span class="k">def</span> <span class="nf">show_name_matches</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
+        <span class="c">#from ibeis.viz import viz_matches</span>
+        <span class="k">assert</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must pass in qreq&#39;</span>
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch2</span><span class="o">.</span><span class="n">from_qres</span><span class="p">(</span><span class="n">qres</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">score_nsum</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">show_single_namematch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c">#try:</span>
+        <span class="c">#    return viz_matches.show_matches(ibs, qres, aid, *args, qreq_=qreq_, **kwargs)</span>
+        <span class="c">#except Exception as ex:</span>
+        <span class="c">#    ut.printex(ex, &#39;failed in qres.show_matches&#39;, keys=[&#39;aid&#39;, &#39;qreq_&#39;])</span>
+        <span class="c">#    raise</span>
+</div>
 <div class="viewcode-block" id="QueryResult.dump_top_match"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.dump_top_match">[docs]</a>    <span class="k">def</span> <span class="nf">dump_top_match</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        CommandLine:</span>

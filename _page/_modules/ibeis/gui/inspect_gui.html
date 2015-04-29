@@ -302,9 +302,9 @@
         <span class="n">colname</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_name</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">colname</span> <span class="o">==</span> <span class="n">MATCHED_STATUS_TEXT</span><span class="p">:</span>
-            <span class="c">#qres_callback = partial(show_match_at, qres_wgt, qtindex)</span>
-            <span class="c">#review_match_at(qres_wgt, qtindex, qres_callback=qres_callback)</span>
-            <span class="n">review_match_at</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+            <span class="c">#qres_callback = partial(show_match_at_qtindex, qres_wgt, qtindex)</span>
+            <span class="c">#review_match_at_qtindex(qres_wgt, qtindex, qres_callback=qres_callback)</span>
+            <span class="n">review_match_at_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
 
     <span class="nd">@guitool.slot_</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_on_doubleclick</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
@@ -317,7 +317,7 @@
         <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
         <span class="n">colname</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_name</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">colname</span> <span class="o">!=</span> <span class="n">MATCHED_STATUS_TEXT</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">show_match_at</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">show_match_at_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
         <span class="k">pass</span>
 
     <span class="nd">@guitool.slot_</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">)</span>
@@ -360,35 +360,27 @@
 <div class="viewcode-block" id="QueryResultsWidget.on_special_key_pressed"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.QueryResultsWidget.on_special_key_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">on_special_key_pressed</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="n">selected_qtindex_list</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">selectedIndexes</span><span class="p">()</span>
 
-        <span class="k">def</span> <span class="nf">get_qtindex_annotmatch_rowid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
-            <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
-            <span class="n">qaid</span>  <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s">&#39;qaid&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
-            <span class="n">daid</span>  <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
-            <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annotmatch</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="p">[</span><span class="n">daid</span><span class="p">])</span>
-            <span class="k">return</span> <span class="n">annotmatch_rowid_list</span>
-
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">selected_qtindex_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;event = </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="p">,))</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;event.key() = </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">(),))</span>
             <span class="n">qtindex</span> <span class="o">=</span> <span class="n">selected_qtindex_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ibs</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">ibs</span>
+            <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="n">get_aidpair_from_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">update_callback</span><span class="p">,</span> <span class="n">backend_callback</span> <span class="o">=</span> <span class="n">get_widget_review_vars</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">aid1</span><span class="p">)</span>
+            <span class="n">options</span> <span class="o">=</span> <span class="n">get_aidpair_context_menue_options</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">update_callback</span><span class="o">=</span><span class="n">update_callback</span><span class="p">,</span> <span class="n">backend_callback</span><span class="o">=</span><span class="n">backend_callback</span><span class="p">)</span>
+            <span class="n">option_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;&amp;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">options</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;&amp;&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">}</span>
+
             <span class="n">event_key</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">event_key</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_T</span><span class="p">:</span>
-                <span class="c">#print(&#39;T&#39;)</span>
-                <span class="n">mark_pair_as_positive_match</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+                <span class="n">option_dict</span><span class="p">[</span><span class="s">&#39;T&#39;</span><span class="p">]()</span>
             <span class="k">elif</span> <span class="n">event_key</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_R</span><span class="p">:</span>
-                <span class="c">#print(&#39;R&#39;)</span>
-                <span class="n">mark_pair_as_reviewed</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+                <span class="n">option_dict</span><span class="p">[</span><span class="s">&#39;R&#39;</span><span class="p">]()</span>
             <span class="k">elif</span> <span class="n">event_key</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_F</span><span class="p">:</span>
-                <span class="c">#print(&#39;F&#39;)</span>
-                <span class="n">mark_pair_as_negative_match</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+                <span class="n">option_dict</span><span class="p">[</span><span class="s">&#39;F&#39;</span><span class="p">]()</span>
             <span class="k">elif</span> <span class="n">event_key</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_S</span><span class="p">:</span>
-                <span class="n">ibs</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">ibs</span>
-                <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="n">get_qtindex_annotmatch_rowid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
-                <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_is_scenerymatch</span><span class="p">(</span><span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="p">[</span><span class="bp">True</span><span class="p">])</span>
+                <span class="n">option_dict</span><span class="p">[</span><span class="s">&#39;S&#39;</span><span class="p">]()</span>
             <span class="k">elif</span> <span class="n">event_key</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_P</span><span class="p">:</span>
-                <span class="n">ibs</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">ibs</span>
-                <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="n">get_qtindex_annotmatch_rowid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
-                <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_is_photobomb</span><span class="p">(</span><span class="n">annotmatch_rowid_list</span><span class="p">,</span> <span class="p">[</span><span class="bp">True</span><span class="p">])</span>
+                <span class="n">option_dict</span><span class="p">[</span><span class="s">&#39;P&#39;</span><span class="p">]()</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;emiting data changed&#39;</span><span class="p">)</span>
             <span class="c"># This may not work with PyQt5</span>
             <span class="c"># http://stackoverflow.com/questions/22560296/pyqt-list-view-not-responding-to-datachanged-signal</span>
@@ -402,261 +394,173 @@
             <span class="c">#ut.embed()</span>
 </div>
     <span class="nd">@guitool.slot_</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">,</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QPoint</span><span class="p">)</span>
-<div class="viewcode-block" id="QueryResultsWidget.on_contextMenuRequested"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.QueryResultsWidget.on_contextMenuRequested">[docs]</a>    <span class="k">def</span> <span class="nf">on_contextMenuRequested</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">,</span> <span class="n">qpos</span><span class="p">):</span>
+<div class="viewcode-block" id="QueryResultsWidget.on_contextMenuRequested"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.QueryResultsWidget.on_contextMenuRequested">[docs]</a>    <span class="k">def</span> <span class="nf">on_contextMenuRequested</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">):</span>
         <span class="n">printDBG</span><span class="p">(</span><span class="s">&#39;[newgui] contextmenu&#39;</span><span class="p">)</span>
-        <span class="n">guitool</span><span class="o">.</span><span class="n">popup_menu</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qpos</span><span class="p">,</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s">&#39;Show feature matches&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">show_match_at</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s">&#39;Inspect Match Candidates&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">review_match_at</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s">&#39;Mark as &amp;Reviewed&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">mark_pair_as_reviewed</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s">&#39;Mark as &amp;True Match.&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">mark_pair_as_positive_match</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s">&#39;Mark as &amp;False Match.&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">mark_pair_as_negative_match</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)),</span>
-        <span class="p">])</span>
+        <span class="n">qwin</span> <span class="o">=</span> <span class="n">qres_wgt</span>
+        <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="n">get_aidpair_from_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">update_callback</span><span class="p">,</span> <span class="n">backend_callback</span> <span class="o">=</span> <span class="n">get_widget_review_vars</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">aid1</span><span class="p">)</span>
+        <span class="n">show_aidpair_context_menu</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qwin</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span>
+                                     <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span>
+                                     <span class="n">update_callback</span><span class="o">=</span><span class="n">update_callback</span><span class="p">,</span>
+                                     <span class="n">backend_callback</span><span class="o">=</span><span class="n">backend_callback</span><span class="p">)</span>
 
 </div></div>
+<div class="viewcode-block" id="get_widget_review_vars"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.get_widget_review_vars">[docs]</a><span class="k">def</span> <span class="nf">get_widget_review_vars</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qaid</span><span class="p">):</span>
+    <span class="n">ibs</span>   <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">qreq_</span>
+    <span class="n">qres</span>  <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
+    <span class="n">update_callback</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># hack (checking if necessary)</span>
+    <span class="n">backend_callback</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">callback</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">update_callback</span><span class="p">,</span> <span class="n">backend_callback</span>
+
+</div>
+<div class="viewcode-block" id="get_aidpair_from_qtindex"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.get_aidpair_from_qtindex">[docs]</a><span class="k">def</span> <span class="nf">get_aidpair_from_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+    <span class="n">qaid</span>  <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s">&#39;qaid&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+    <span class="n">daid</span>  <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span>
+
+</div>
+<div class="viewcode-block" id="get_annotmatch_rowid_from_qtindex"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.get_annotmatch_rowid_from_qtindex">[docs]</a><span class="k">def</span> <span class="nf">get_annotmatch_rowid_from_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
+    <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span> <span class="o">=</span> <span class="n">get_aidpair_from_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annotmatch</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="p">[</span><span class="n">daid</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">annotmatch_rowid_list</span>
+
+</div>
 <div class="viewcode-block" id="mark_pair_as_reviewed"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.mark_pair_as_reviewed">[docs]</a><span class="k">def</span> <span class="nf">mark_pair_as_reviewed</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sets the reviewed flag to whatever the current truth status is</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
-    <span class="n">qaid</span>  <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s">&#39;qaid&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
-    <span class="n">daid</span>  <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+    <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span> <span class="o">=</span> <span class="n">get_aidpair_from_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">mark_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="mark_pair_as_positive_match"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.mark_pair_as_positive_match">[docs]</a><span class="k">def</span> <span class="nf">mark_pair_as_positive_match</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
-    <span class="n">qaid</span>  <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s">&#39;qaid&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
-    <span class="n">daid</span>  <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+    <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span> <span class="o">=</span> <span class="n">get_aidpair_from_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">ibs</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">status</span> <span class="o">=</span> <span class="n">mark_annot_pair_as_positive_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">mark_annot_pair_as_positive_match_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;status = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status</span><span class="p">,))</span>
     <span class="k">except</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">NeedsUserInput</span><span class="p">:</span>
-        <span class="n">review_match_at</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+        <span class="n">review_match_at_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">UserCancel</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;user canceled positive match&#39;</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="mark_pair_as_negative_match"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.mark_pair_as_negative_match">[docs]</a><span class="k">def</span> <span class="nf">mark_pair_as_negative_match</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
-    <span class="n">qaid</span>  <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s">&#39;qaid&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
-    <span class="n">daid</span>  <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+    <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span> <span class="o">=</span> <span class="n">get_aidpair_from_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">ibs</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">status</span> <span class="o">=</span> <span class="n">mark_annot_pair_as_negative_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;status = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status</span><span class="p">,))</span>
-    <span class="k">except</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">NeedsUserInput</span><span class="p">:</span>
-        <span class="n">review_match_at</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">UserCancel</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;user canceled negative match&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mark_annot_pair_as_negative_match_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="mark_annot_pair_as_positive_match"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.mark_annot_pair_as_positive_match">[docs]</a><span class="k">def</span> <span class="nf">mark_annot_pair_as_positive_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TODO: ELEVATE THIS FUNCTION</span>
-<span class="sd">    Change into make_task_mark_annot_pair_as_positive_match and it returns what</span>
-<span class="sd">    needs to be done.</span>
-
-<span class="sd">    Need to test several cases:</span>
-<span class="sd">        uknown, unknown</span>
-<span class="sd">        knownA, knownA</span>
-<span class="sd">        knownB, knownA</span>
-<span class="sd">        unknown, knownA</span>
-<span class="sd">        knownA, unknown</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
-<span class="sd">        aid1 (int):  query annotation id</span>
-<span class="sd">        aid2 (int):  matching annotation id</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_positive_match</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.gui.inspect_gui import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; aid1, aid2 = ibs.get_valid_aids()[0:2]</span>
-<span class="sd">        &gt;&gt;&gt; dryrun = True</span>
-<span class="sd">        &gt;&gt;&gt; status = mark_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun)</span>
-<span class="sd">        &gt;&gt;&gt; # verify results</span>
-<span class="sd">        &gt;&gt;&gt; print(status)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">_set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... _set_annot_name_rowids(aids=</span><span class="si">%r</span><span class="s">, nids=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... names = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)))</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span> <span class="s">&#39;list must correspond&#39;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">mark_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
-            <span class="c">#ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_MATCH, [1.0])</span>
-        <span class="c"># Return the new annots in this name</span>
-        <span class="n">_aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
-        <span class="n">_combo_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_aids</span> <span class="o">+</span> <span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="k">for</span> <span class="n">_aids</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_aids_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)]</span>
-        <span class="n">status</span> <span class="o">=</span> <span class="n">_combo_aids_list</span>
-        <span class="k">return</span> <span class="n">status</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[marking_match] aid1 = </span><span class="si">%r</span><span class="s">, aid2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
-
-    <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">nid1</span> <span class="o">==</span> <span class="n">nid2</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;...images already matched&#39;</span><span class="p">)</span>
-        <span class="n">status</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">mark_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">isunknown1</span><span class="p">,</span> <span class="n">isunknown2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="n">isunknown2</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...match unknown1 to unknown2 into 1 new name&#39;</span><span class="p">)</span>
-            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="n">next_nids</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...merge known1 into known2&#39;</span><span class="p">)</span>
-            <span class="n">MERGE_NEEDS_INTERACTION</span>  <span class="o">=</span> <span class="bp">False</span>
-            <span class="n">MERGE_NEEDS_VERIFICATION</span> <span class="o">=</span> <span class="bp">True</span>
-            <span class="n">aid1_and_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-            <span class="n">aid2_and_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid2</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-            <span class="n">trivial_merge</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid1_and_groundtruth</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid2_and_groundtruth</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">trivial_merge</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">MERGE_NEEDS_INTERACTION</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">NeedsUserInput</span><span class="p">(</span><span class="s">&#39;confirm merge&#39;</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">MERGE_NEEDS_VERIFICATION</span><span class="p">:</span>
-                    <span class="n">name1</span><span class="p">,</span> <span class="n">name2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
-                    <span class="n">msgfmt</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
-<span class="s">                       Confirm merge of animal {name1} and {name2}</span>
-<span class="s">                       {name1} has {num_gt1} annotations</span>
-<span class="s">                       {name2} has {num_gt2} annotations</span>
-<span class="s">                       &#39;&#39;&#39;</span><span class="p">)</span>
-                    <span class="n">msg</span> <span class="o">=</span> <span class="n">msgfmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name1</span><span class="o">=</span><span class="n">name1</span><span class="p">,</span> <span class="n">name2</span><span class="o">=</span><span class="n">name2</span><span class="p">,</span>
-                                        <span class="n">num_gt1</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">aid1_and_groundtruth</span><span class="p">),</span>
-                                        <span class="n">num_gt2</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">aid2_and_groundtruth</span><span class="p">),)</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">guitool</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;Yes&#39;</span><span class="p">):</span>
-                        <span class="k">raise</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">UserCancel</span><span class="p">(</span><span class="s">&#39;canceled merge&#39;</span><span class="p">)</span>
-            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">(</span><span class="n">aid1_and_groundtruth</span><span class="p">,</span> <span class="p">[</span><span class="n">nid2</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid1_and_groundtruth</span><span class="p">))</span>
-        <span class="k">elif</span> <span class="n">isunknown2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown1</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...match unknown2 into known1&#39;</span><span class="p">)</span>
-            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="p">[</span><span class="n">nid1</span><span class="p">])</span>
-        <span class="k">elif</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...match unknown1 into known2&#39;</span><span class="p">)</span>
-            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">nid2</span><span class="p">])</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;impossible state&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">status</span>
-
-</div>
-<div class="viewcode-block" id="mark_annot_pair_as_negative_match"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.mark_annot_pair_as_negative_match">[docs]</a><span class="k">def</span> <span class="nf">mark_annot_pair_as_negative_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TODO: ELEVATE THIS FUNCTION</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
-<span class="sd">        aid1 (int):  annotation id</span>
-<span class="sd">        aid2 (int):  annotation id</span>
-<span class="sd">        dryrun (bool):</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        ?:</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.gui.inspect_gui --test-mark_annot_pair_as_negative_match</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.gui.inspect_gui import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; # build test data</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; aid1, aid2 = ibs.get_valid_aids()[0:2]</span>
-<span class="sd">        &gt;&gt;&gt; dryrun = True</span>
-<span class="sd">        &gt;&gt;&gt; # execute function</span>
-<span class="sd">        &gt;&gt;&gt; result = mark_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun)</span>
-<span class="sd">        &gt;&gt;&gt; # verify results</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">_set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;... _set_annot_name_rowids(</span><span class="si">%r</span><span class="s">, </span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">mark_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
-            <span class="c">#ibs.add_or_update_annotmatch(aid1, aid2, const.TRUTH_NOT_MATCH, [1.0])</span>
-    <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">nid1</span> <span class="o">==</span> <span class="n">nid2</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;images are marked as having the same name... we must tread carefully&#39;</span><span class="p">)</span>
-        <span class="n">aid1_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid1_groundtruth</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">aid1_groundtruth</span> <span class="o">==</span> <span class="p">[</span><span class="n">aid2</span><span class="p">]:</span>
-            <span class="c"># this is the only safe case for same name split</span>
-            <span class="c"># Change so the names are not the same</span>
-            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">status</span> <span class="o">=</span> <span class="s">&#39;error&#39;</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;There are </span><span class="si">%d</span><span class="s"> annots in this name. Need more sophisticated split&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid1_groundtruth</span><span class="p">)))</span>
-            <span class="k">raise</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">NeedsUserInput</span><span class="p">(</span><span class="s">&#39;non-trivial split&#39;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">isunknown1</span><span class="p">,</span> <span class="n">isunknown2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="n">isunknown2</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...nonmatch unknown1 and unknown2 into 2 new names&#39;</span><span class="p">)</span>
-            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...nonmatch known1 and known2... nothing to do (yet)&#39;</span><span class="p">)</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">mark_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
-            <span class="n">status</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">elif</span> <span class="n">isunknown2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown1</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...nonmatch unknown2 -&gt; newname and known1&#39;</span><span class="p">)</span>
-            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...nonmatch unknown1 -&gt; newname and known2&#39;</span><span class="p">)</span>
-            <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;impossible state&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">status</span>
-
-</div>
-<div class="viewcode-block" id="show_match_at"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.show_match_at">[docs]</a><span class="k">def</span> <span class="nf">show_match_at</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
+<div class="viewcode-block" id="show_match_at_qtindex"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.show_match_at_qtindex">[docs]</a><span class="k">def</span> <span class="nf">show_match_at_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;interact&#39;</span><span class="p">)</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
-    <span class="n">aid</span>  <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
-    <span class="n">qaid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s">&#39;qaid&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+    <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span> <span class="o">=</span> <span class="n">get_aidpair_from_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">qreq_</span>
     <span class="c">#fig = interact.ishow_matches(qres_wgt.ibs, qres_wgt.qaid2_qres[qaid], aid, mode=1)</span>
     <span class="c">#match_interaction = qres_wgt.qaid2_qres[qaid].ishow_matches(qres_wgt.ibs, aid, mode=1, qreq_=qreq_)</span>
-    <span class="n">match_interaction</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span><span class="o">.</span><span class="n">ishow_matches</span><span class="p">(</span><span class="n">qres_wgt</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+    <span class="n">match_interaction</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span><span class="o">.</span><span class="n">ishow_matches</span><span class="p">(</span><span class="n">qres_wgt</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
     <span class="n">fig</span> <span class="o">=</span> <span class="n">match_interaction</span><span class="o">.</span><span class="n">fig</span>
     <span class="n">fig_presenter</span><span class="o">.</span><span class="n">bring_to_front</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="review_match_at"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.review_match_at">[docs]</a><span class="k">def</span> <span class="nf">review_match_at</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="review_match_at_qtindex"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.review_match_at_qtindex">[docs]</a><span class="k">def</span> <span class="nf">review_match_at_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;review&#39;</span><span class="p">)</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">ibs</span>
-    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">qreq_</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
-    <span class="n">aid1</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s">&#39;qaid&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
-    <span class="n">aid2</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+    <span class="c">#qres_callback = partial(show_match_at_qtindex, qres_wgt, qtindex)</span>
     <span class="c">#ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
     <span class="c">#update_callback = model._update</span>
-    <span class="n">update_callback</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># hack (checking if necessary)</span>
-    <span class="n">backend_callback</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">callback</span>
-    <span class="c">#qres_callback = partial(show_match_at, qres_wgt, qtindex)</span>
-    <span class="n">qres</span> <span class="o">=</span> <span class="n">qres_wgt</span><span class="o">.</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
-    <span class="n">review_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">update_callback</span><span class="o">=</span><span class="n">update_callback</span><span class="p">,</span>
-                 <span class="n">backend_callback</span><span class="o">=</span><span class="n">backend_callback</span><span class="p">,</span>
-                 <span class="n">qres</span><span class="o">=</span><span class="n">qres</span><span class="p">,</span>
-                 <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span>
-                 <span class="c">#qres_callback=qres_callback,</span>
-                 <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c">#ibs   = qres_wgt.ibs</span>
+    <span class="c">#qreq_ = qres_wgt.qreq_</span>
+    <span class="c">#qres  = qres_wgt.qaid2_qres[qaid]</span>
+    <span class="c">#update_callback = None  # hack (checking if necessary)</span>
+    <span class="c">#backend_callback = qres_wgt.callback</span>
+    <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span> <span class="o">=</span> <span class="n">get_aidpair_from_qtindex</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">update_callback</span><span class="p">,</span> <span class="n">backend_callback</span> <span class="o">=</span> <span class="n">get_widget_review_vars</span><span class="p">(</span><span class="n">qres_wgt</span><span class="p">,</span> <span class="n">qaid</span><span class="p">)</span>
+    <span class="n">review_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">update_callback</span><span class="o">=</span><span class="n">update_callback</span><span class="p">,</span>
+                 <span class="n">backend_callback</span><span class="o">=</span><span class="n">backend_callback</span><span class="p">,</span> <span class="n">qres</span><span class="o">=</span><span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+
+
+<span class="c"># ______</span>
 
 </div>
-<div class="viewcode-block" id="review_match"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.review_match">[docs]</a><span class="k">def</span> <span class="nf">review_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">update_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">backend_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="get_aidpair_context_menue_options"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.get_aidpair_context_menue_options">[docs]</a><span class="k">def</span> <span class="nf">get_aidpair_context_menue_options</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; assert that the ampersand cannot have duplicate keys &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify qreq_&#39;</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s">&#39;Show chip feature matches&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">qres</span><span class="o">.</span><span class="n">ishow_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;Show name feature matches&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">qres</span><span class="o">.</span><span class="n">show_name_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;Inspect Match Candidates&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">review_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qres</span><span class="o">=</span><span class="n">qres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;Mark as &amp;Reviewed&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">mark_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;Mark as &amp;True Match.&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">mark_annot_pair_as_positive_match_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;Mark as &amp;False Match.&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span>  <span class="n">mark_annot_pair_as_negative_match_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;Flag &amp;Scenery Case&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_is_scenerymatch</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">add_annotmatch</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">aid2</span><span class="p">]),</span> <span class="p">[</span><span class="bp">True</span><span class="p">])),</span>
+        <span class="p">(</span><span class="s">&#39;Flag &amp;Photobomb Case&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_is_photobomb</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">add_annotmatch</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">aid2</span><span class="p">]),</span> <span class="p">[</span><span class="bp">True</span><span class="p">])),</span>
+        <span class="p">(</span><span class="s">&#39;Flag &amp;Hard Case&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_is_hard</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">add_annotmatch</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">aid2</span><span class="p">]),</span> <span class="p">[</span><span class="bp">True</span><span class="p">])),</span>
+        <span class="p">(</span><span class="s">&#39;Flag &amp;NonDistinct Case&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_is_nondistinct</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">add_annotmatch</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">aid2</span><span class="p">]),</span> <span class="p">[</span><span class="bp">True</span><span class="p">])),</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">options</span>
+
+</div>
+<div class="viewcode-block" id="show_aidpair_context_menu"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.show_aidpair_context_menu">[docs]</a><span class="k">def</span> <span class="nf">show_aidpair_context_menu</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qwin</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    kwargs are used for callbacks like qres_callback and query_callback</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">get_aidpair_context_menue_options</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">guitool</span><span class="o">.</span><span class="n">popup_menu</span><span class="p">(</span><span class="n">qwin</span><span class="p">,</span> <span class="n">qpoint</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="mark_annot_pair_as_positive_match_"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.mark_annot_pair_as_positive_match_">[docs]</a><span class="k">def</span> <span class="nf">mark_annot_pair_as_positive_match_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">on_nontrivial_merge</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
+        <span class="n">MERGE_NEEDS_INTERACTION</span>  <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">MERGE_NEEDS_VERIFICATION</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">MERGE_NEEDS_INTERACTION</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">NeedsUserInput</span><span class="p">(</span><span class="s">&#39;confirm merge&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">MERGE_NEEDS_VERIFICATION</span><span class="p">:</span>
+            <span class="n">name1</span><span class="p">,</span> <span class="n">name2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+            <span class="n">aid1_and_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">aid2_and_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid2</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="n">msgfmt</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">               Confirm merge of animal {name1} and {name2}</span>
+<span class="s">               {name1} has {num_gt1} annotations</span>
+<span class="s">               {name2} has {num_gt2} annotations</span>
+<span class="s">               &#39;&#39;&#39;</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">msgfmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name1</span><span class="o">=</span><span class="n">name1</span><span class="p">,</span> <span class="n">name2</span><span class="o">=</span><span class="n">name2</span><span class="p">,</span>
+                                <span class="n">num_gt1</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">aid1_and_groundtruth</span><span class="p">),</span>
+                                <span class="n">num_gt2</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">aid2_and_groundtruth</span><span class="p">),)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">guitool</span><span class="o">.</span><span class="n">are_you_sure</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;Yes&#39;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">UserCancel</span><span class="p">(</span><span class="s">&#39;canceled merge&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">mark_annot_pair_as_positive_match</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">on_nontrivial_merge</span><span class="o">=</span><span class="n">on_nontrivial_merge</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;status = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status</span><span class="p">,))</span>
+    <span class="k">except</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">NeedsUserInput</span><span class="p">:</span>
+        <span class="n">review_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qres</span><span class="o">=</span><span class="n">qres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">UserCancel</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;user canceled positive match&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="mark_annot_pair_as_negative_match_"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.mark_annot_pair_as_negative_match_">[docs]</a><span class="k">def</span> <span class="nf">mark_annot_pair_as_negative_match_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">on_nontrivial_split</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
+        <span class="n">aid1_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;There are </span><span class="si">%d</span><span class="s"> annots in this name. Need more sophisticated split&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid1_groundtruth</span><span class="p">)))</span>
+        <span class="k">raise</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">NeedsUserInput</span><span class="p">(</span><span class="s">&#39;non-trivial split&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">mark_annot_pair_as_negative_match</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">on_nontrivial_split</span><span class="o">=</span><span class="n">on_nontrivial_split</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;status = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">status</span><span class="p">,))</span>
+    <span class="k">except</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">NeedsUserInput</span><span class="p">:</span>
+        <span class="n">review_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qres</span><span class="o">=</span><span class="n">qres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">guiexcept</span><span class="o">.</span><span class="n">UserCancel</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;user canceled negative match&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="review_match"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.inspect_gui.review_match">[docs]</a><span class="k">def</span> <span class="nf">review_match</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">update_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">backend_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qres</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;Review match: &#39;</span> <span class="o">+</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">vsstr</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
     <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_name</span>
     <span class="c">#ibsfuncs.assert_valid_aids(ibs, [aid1, aid2])</span>
     <span class="n">mvinteract</span> <span class="o">=</span> <span class="n">interact_name</span><span class="o">.</span><span class="n">MatchVerificationInteraction</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">update_callback</span><span class="o">=</span><span class="n">update_callback</span><span class="p">,</span>
+        <span class="n">qres</span><span class="o">=</span><span class="n">qres</span><span class="p">,</span>
         <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span>
         <span class="n">backend_callback</span><span class="o">=</span><span class="n">backend_callback</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">mvinteract</span>

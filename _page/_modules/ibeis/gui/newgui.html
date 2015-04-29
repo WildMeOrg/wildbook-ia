@@ -1309,9 +1309,14 @@
                             <span class="k">return</span>
                         <span class="n">export_subset</span><span class="o">.</span><span class="n">export_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
 
+                    <span class="k">def</span> <span class="nf">create_new_encounter_from_names_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
+                        <span class="n">ibs</span><span class="o">.</span><span class="n">create_new_encounter_from_names</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+                        <span class="n">ibswgt</span><span class="o">.</span><span class="n">update_tables</span><span class="p">([</span><span class="n">gh</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">],</span> <span class="n">clear_view_selection</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
                     <span class="n">context_options</span> <span class="o">+=</span> <span class="p">[</span>
                         <span class="p">(</span><span class="s">&#39;Check for splits&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">run_splits</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)),</span>
                         <span class="p">(</span><span class="s">&#39;Export names&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">export_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)),</span>
+                        <span class="p">(</span><span class="s">&#39;Create Encounter From Name(s)&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">create_new_encounter_from_names_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)),</span>
                     <span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;nutin&#39;</span><span class="p">)</span>

@@ -411,6 +411,8 @@
     <span class="n">valid_gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
     <span class="n">valid_aids_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_aids_custom</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
     <span class="n">valid_gids_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_gids_custom</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span>
+    <span class="n">used_gids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span> <span class="p">))</span>
+    <span class="n">used_contrib_tags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_contributor_tag</span><span class="p">(</span><span class="n">used_gids</span><span class="p">)</span> <span class="p">))</span>
 
     <span class="c"># Get Age and sex (By Annot)</span>
     <span class="c"># annot_sex_list = ibs.get_annot_sex(valid_aids_)</span>
@@ -504,7 +506,11 @@
                        <span class="n">num_nids</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span>
                        <span class="n">nid_list_count</span><span class="o">=</span><span class="n">nid_list_count</span><span class="p">,</span>
                        <span class="n">nid_list_count_str</span><span class="o">=</span><span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">nid_list_count</span><span class="p">)),</span>
-                       <span class="n">num_nids_count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">nid_list_count</span><span class="p">))</span>
+                       <span class="n">num_nids_count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">nid_list_count</span><span class="p">),</span>
+                       <span class="n">used_gids</span><span class="o">=</span><span class="n">used_gids</span><span class="p">,</span>
+                       <span class="n">num_used_gids</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">used_gids</span><span class="p">),</span>
+                       <span class="n">used_contribs</span><span class="o">=</span><span class="n">used_contrib_tags</span><span class="p">,</span>
+                       <span class="n">num_used_contribs</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">used_contrib_tags</span><span class="p">))</span>
 
 </div>
 <span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/view/encounters&#39;</span><span class="p">)</span>
@@ -866,13 +872,26 @@
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">eid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;eid&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
     <span class="n">eid</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">eid</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">eid</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
-
-    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">)</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
-    <span class="n">reviewed_list</span> <span class="o">=</span> <span class="n">encounter_annot_viewpoint_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">progress</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%0.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">)</span>
-
     <span class="n">enctext</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">eid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+    <span class="n">src_ag</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;src_ag&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">src_ag</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">src_ag</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">src_ag</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">src_ag</span><span class="p">)</span>
+    <span class="n">dst_ag</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dst_ag&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">dst_ag</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">dst_ag</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">dst_ag</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">dst_ag</span><span class="p">)</span>
+
+    <span class="n">group_review</span> <span class="o">=</span> <span class="n">src_ag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">dst_ag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">group_review</span><span class="p">:</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+        <span class="n">reviewed_list</span> <span class="o">=</span> <span class="n">encounter_annot_viewpoint_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">src_gar_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotgroup_gar_rowids</span><span class="p">(</span><span class="n">src_ag</span><span class="p">)</span>
+        <span class="n">dst_gar_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotgroup_gar_rowids</span><span class="p">(</span><span class="n">dst_ag</span><span class="p">)</span>
+        <span class="n">src_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_gar_aid</span><span class="p">(</span><span class="n">src_gar_rowid_list</span><span class="p">)</span>
+        <span class="n">dst_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_gar_aid</span><span class="p">(</span><span class="n">dst_gar_rowid_list</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">src_aid_list</span>
+        <span class="n">reviewed_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">src_aid</span> <span class="ow">in</span> <span class="n">dst_aid_list</span> <span class="k">for</span> <span class="n">src_aid</span> <span class="ow">in</span> <span class="n">src_aid_list</span> <span class="p">]</span>
+
+    <span class="n">progress</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%0.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">)</span>
     <span class="n">aid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">aid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
@@ -881,8 +900,10 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">aid</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c"># aid = aid_list_[0]</span>
-            <span class="n">aid</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">group_review</span><span class="p">:</span>
+                <span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">aid</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span>
     <span class="n">previous</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;previous&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="n">value</span> <span class="o">=</span> <span class="n">convert_yaw_to_old_viewpoint</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_yaws</span><span class="p">(</span><span class="n">aid</span><span class="p">))</span>
     <span class="n">review</span> <span class="o">=</span> <span class="s">&#39;review&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
@@ -899,6 +920,8 @@
         <span class="n">image_src</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">return</span> <span class="n">ap</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="s">&#39;turk&#39;</span><span class="p">,</span> <span class="s">&#39;viewpoint&#39;</span><span class="p">,</span>
                        <span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">,</span>
+                       <span class="n">src_ag</span><span class="o">=</span><span class="n">src_ag</span><span class="p">,</span>
+                       <span class="n">dst_ag</span><span class="o">=</span><span class="n">dst_ag</span><span class="p">,</span>
                        <span class="n">gid</span><span class="o">=</span><span class="n">gid</span><span class="p">,</span>
                        <span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span>
                        <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
@@ -1136,6 +1159,12 @@
     <span class="n">method</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;viewpoint-submit&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
     <span class="n">eid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;eid&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
     <span class="n">eid</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">eid</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">eid</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
+
+    <span class="n">src_ag</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;src_ag&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">src_ag</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">src_ag</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">src_ag</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">src_ag</span><span class="p">)</span>
+    <span class="n">dst_ag</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dst_ag&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">dst_ag</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">dst_ag</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">dst_ag</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">dst_ag</span><span class="p">)</span>
+
     <span class="n">aid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;viewpoint-aid&#39;</span><span class="p">])</span>
     <span class="n">turk_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;turk_id&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;delete&#39;</span><span class="p">:</span>
@@ -1179,6 +1208,15 @@
                 <span class="n">redirection</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">?aid=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">redirection</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="p">)</span>
         <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">redirection</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">src_ag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">dst_ag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">gar_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gar_rowids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="n">annotgroup_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_gar_annotgroup_rowid</span><span class="p">(</span><span class="n">gar_rowid_list</span><span class="p">)</span>
+            <span class="n">src_index</span> <span class="o">=</span> <span class="n">annotgroup_rowid_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">src_ag</span><span class="p">)</span>
+            <span class="n">src_gar_rowid</span> <span class="o">=</span> <span class="n">gar_rowid_list</span><span class="p">[</span><span class="n">src_index</span><span class="p">]</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">src_ag</span><span class="p">,</span> <span class="n">src_gar_rowid</span><span class="p">,</span> <span class="n">dst_ag</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Moving aid: </span><span class="si">%s</span><span class="s"> from src_ag: </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">) to dst_ag: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">vals</span><span class="p">)</span>
+            <span class="c"># ibs.delete_gar([src_gar_rowid])</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">add_gar</span><span class="p">([</span><span class="n">dst_ag</span><span class="p">],</span> <span class="p">[</span><span class="n">aid</span><span class="p">])</span>
         <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;viewpoint-value&#39;</span><span class="p">])</span>
         <span class="n">yaw</span> <span class="o">=</span> <span class="n">convert_old_viewpoint_to_yaw</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_yaws</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">yaw</span><span class="p">],</span> <span class="n">input_is_degrees</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -1188,7 +1226,8 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">refer</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">ap</span><span class="o">.</span><span class="n">decode_refer_url</span><span class="p">(</span><span class="n">refer</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;turk_viewpoint&#39;</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">,</span> <span class="n">previous</span><span class="o">=</span><span class="n">aid</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;turk_viewpoint&#39;</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">,</span> <span class="n">src_ag</span><span class="o">=</span><span class="n">src_ag</span><span class="p">,</span>
+                                <span class="n">dst_ag</span><span class="o">=</span><span class="n">dst_ag</span><span class="p">,</span> <span class="n">previous</span><span class="o">=</span><span class="n">aid</span><span class="p">))</span>
 
 </div>
 <span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/submit/quality&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
@@ -1304,7 +1343,7 @@
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
-<span class="sd">        URL:    /api/image/&lt;aid&gt;/</span>
+<span class="sd">        URL:    /api/image/&lt;gid&gt;/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">image_src</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
 
@@ -1359,6 +1398,26 @@
     <span class="n">gpath_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">gid_list</span>
+
+</div>
+<span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/group_review/&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="group_review"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.group_review">[docs]</a><span class="k">def</span> <span class="nf">group_review</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">ap</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;group_review&#39;</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/group_review/submit/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="group_review_submit"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.group_review_submit">[docs]</a><span class="k">def</span> <span class="nf">group_review_submit</span><span class="p">():</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;aid_list&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">aid_list</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;[&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">aid_list</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;]&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">aid_list</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="nb">int</span><span class="p">(</span><span class="n">aid_</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">aid_</span> <span class="ow">in</span> <span class="n">aid_list</span> <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">src_ag</span><span class="p">,</span> <span class="n">dst_ag</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">prepare_annotgroup_review</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;turk_viewpoint&#39;</span><span class="p">,</span> <span class="n">src_ag</span><span class="o">=</span><span class="n">src_ag</span><span class="p">,</span> <span class="n">dst_ag</span><span class="o">=</span><span class="n">dst_ag</span><span class="p">))</span>
 
 </div>
 <span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/ajax/annotation/src/&lt;aid&gt;&#39;</span><span class="p">)</span>
@@ -1427,9 +1486,13 @@
             <span class="n">rule_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">method</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="p">))</span>
     <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">rule_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="n">rule_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">/api/core/dbname/&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_app</span><span class="o">.</span><span class="n">server_url</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">app_auth</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_url_authorization</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ap</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;api&#39;</span><span class="p">,</span>
+                       <span class="n">app_url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
                        <span class="n">app_name</span><span class="o">=</span><span class="n">controller_inject</span><span class="o">.</span><span class="n">GLOBAL_APP_NAME</span><span class="p">,</span>
                        <span class="n">app_secret</span><span class="o">=</span><span class="n">controller_inject</span><span class="o">.</span><span class="n">GLOBAL_APP_SECRET</span><span class="p">,</span>
+                       <span class="n">app_auth</span><span class="o">=</span><span class="n">app_auth</span><span class="p">,</span>
                        <span class="n">rule_list</span><span class="o">=</span><span class="n">rule_dict</span><span class="p">)</span>
 
 </div>
@@ -1457,29 +1520,33 @@
 <span class="sd">        Initialize the web server</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="nf">_start_tornado</span><span class="p">(</span><span class="n">ibs_</span><span class="p">,</span> <span class="n">port_</span><span class="p">):</span>
+        <span class="c"># Get Flask app</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_flask_app</span><span class="p">()</span>
         <span class="n">app</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs_</span>
+        <span class="c"># Try to ascertain the socket&#39;s domain name</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">server_domain</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostbyname</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">())</span>
+        <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">gaierror</span><span class="p">:</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">server_domain</span> <span class="o">=</span> <span class="s">&#39;127.0.0.1&#39;</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">server_port</span> <span class="o">=</span> <span class="n">port_</span>
+        <span class="c"># URL for the web instance</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">server_url</span> <span class="o">=</span> <span class="s">&#39;http://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_domain</span><span class="p">,</span> <span class="n">app</span><span class="o">.</span><span class="n">server_port</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] Tornado server starting at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_url</span><span class="p">,))</span>
+        <span class="c"># Launch the web browser to view the web interface and API</span>
+        <span class="k">if</span> <span class="n">browser</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">webbrowser</span>
+            <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_url</span><span class="p">)</span>
+        <span class="c"># Start the tornado web handler</span>
         <span class="n">http_server</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpserver</span><span class="o">.</span><span class="n">HTTPServer</span><span class="p">(</span>
             <span class="n">tornado</span><span class="o">.</span><span class="n">wsgi</span><span class="o">.</span><span class="n">WSGIContainer</span><span class="p">(</span><span class="n">app</span><span class="p">))</span>
-        <span class="n">http_server</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">port_</span><span class="p">)</span>
+        <span class="n">http_server</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_port</span><span class="p">)</span>
         <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
-    <span class="c"># Try to ascertain the socket&#39;s domain name</span>
+    <span class="c"># Set logging level</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">server_ip_address</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostbyname</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">())</span>
-    <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">gaierror</span><span class="p">:</span>
-        <span class="n">server_ip_address</span> <span class="o">=</span> <span class="s">&#39;127.0.0.1&#39;</span>
     <span class="c"># Get the port if unspecified</span>
     <span class="k">if</span> <span class="n">port</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">port</span> <span class="o">=</span> <span class="n">DEFAULT_WEB_API_PORT</span>
-    <span class="c"># URL for the web instance</span>
-    <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;http://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">server_ip_address</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] Tornado server starting at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
-    <span class="c"># Launch the web browser to view the web interface and API</span>
-    <span class="k">if</span> <span class="n">browser</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">webbrowser</span>
-        <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
     <span class="c"># Launch the web handler</span>
     <span class="n">_start_tornado</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
 

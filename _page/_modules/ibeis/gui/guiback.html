@@ -824,17 +824,19 @@
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;Cannot create a new encounter with no images&quot;</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">[back] send_to_new_encounter&#39;</span><span class="p">)</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>
-        <span class="n">enctext</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">NEW_ENCOUNTER_ENCTEXT</span>
-        <span class="n">enctext_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">enctext</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_enctext</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">enctext_list</span><span class="p">)</span>
-        <span class="n">eid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_selected_eid</span><span class="p">()</span>
-        <span class="n">eid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">eid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+        <span class="c">#enctext = const.NEW_ENCOUNTER_ENCTEXT</span>
+        <span class="c">#enctext_list = [enctext] * len(gid_list)</span>
+        <span class="c">#ibs.set_image_enctext(gid_list, enctext_list)</span>
+        <span class="n">new_eid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">create_new_encounter_from_images</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>  <span class="c"># NOQA</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;move&#39;</span><span class="p">:</span>
+            <span class="n">eid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">get_selected_eid</span><span class="p">()</span>
+            <span class="n">eid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">eid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">unrelate_images_and_encounters</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;copy&#39;</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;invalid mode=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mode</span><span class="p">,))</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">update_special_encounters</span><span class="p">()</span>
         <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span><span class="p">([</span><span class="n">gh</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">gh</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">],</span> <span class="n">clear_view_selection</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </div>
     <span class="nd">@blocking_slot</span><span class="p">()</span>

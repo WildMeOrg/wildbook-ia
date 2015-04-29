@@ -215,11 +215,15 @@
     <span class="k">if</span> <span class="n">available_qaids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">available_qaids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
+    <span class="c">#print(&#39;available_qaids = %r&#39; % available_qaids)</span>
+    <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order2</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--junk&#39;</span><span class="p">):</span>
         <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_junk_annotations</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)</span>
 
-    <span class="c">#print(&#39;available_qaids = %r&#39; % available_qaids)</span>
-    <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order2</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--unreviewed&#39;</span><span class="p">):</span>
+        <span class="n">isreviewed_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_has_reviewed_matching_aids</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">)</span>
+        <span class="n">available_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">,</span> <span class="n">isreviewed_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">available_qaids</span>
 
 </div>
