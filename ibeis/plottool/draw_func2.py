@@ -695,6 +695,22 @@ def draw_text(text_str, rgb_textFG=(0, 0, 0), rgb_textBG=(1, 1, 1)):
 
 
 def show_histogram(data, bins=None, **kwargs):
+    """
+    CommandLine:
+        python -m plottool.draw_func2 --test-show_histogram --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> # build test data
+        >>> data = np.array([1, 24, 0, 0, 3, 4, 5, 9, 3, 0, 0, 0, 0, 2, 2, 2, 0, 0, 1, 1, 0, 0, 0, 3,])
+        >>> bins = None
+        >>> # execute function
+        >>> result = show_histogram(data, bins)
+        >>> # verify results
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
     print('[df2] show_histogram()')
     dmin = int(np.floor(data.min()))
     dmax = int(np.ceil(data.max()))
@@ -703,8 +719,9 @@ def show_histogram(data, bins=None, **kwargs):
     fig = figure(**kwargs)
     ax  = gca()
     ax.hist(data, bins=bins, range=(dmin, dmax))
+    return fig
     #help(np.bincount)
-    fig.show()
+    #fig.show()
 
 
 def show_signature(sig, **kwargs):
