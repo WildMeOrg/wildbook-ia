@@ -94,8 +94,9 @@ def compute_unique_data_ids(data):
     return dataid_list
 
 
-def compute_unique_data_ids_(hashable_rows):
-    iddict_ = {}
+def compute_unique_data_ids_(hashable_rows, iddict_=None):
+    if iddict_ is None:
+        iddict_ = {}
     for row in hashable_rows:
         if row not in iddict_:
             iddict_[row] = len(iddict_)
