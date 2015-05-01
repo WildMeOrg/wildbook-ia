@@ -236,7 +236,7 @@ def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/annot_chip/', methods=['GET'])
-def get_annot_chips(ibs, aid_list, ensure=True, config2_=None):
+def get_annot_chips(ibs, aid_list, ensure=True, config2_=None, verbose=False):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -269,7 +269,7 @@ def get_annot_chips(ibs, aid_list, ensure=True, config2_=None):
     """
     ut.assert_all_not_None(aid_list, 'aid_list')
     cid_list = ibs.get_annot_chip_rowids(aid_list, ensure=ensure, config2_=config2_)
-    chip_list = ibs.get_chips(cid_list, ensure=ensure)
+    chip_list = ibs.get_chips(cid_list, ensure=ensure, verbose=verbose)
     return chip_list
 
 
@@ -654,7 +654,7 @@ def get_chip_sizes(ibs, cid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_chips(ibs, cid_list, ensure=True):
+def get_chips(ibs, cid_list, ensure=True, verbose=False):
     r"""
     Returns:
         chip_list (list): a list cropped images in numpy array form by their cid
@@ -680,7 +680,7 @@ def get_chips(ibs, cid_list, ensure=True):
                 'ensure', 'cid_list'])
             raise
     aid_list = ibs.get_chip_aids(cid_list)
-    chip_list = preproc_chip.compute_or_read_annotation_chips(ibs, aid_list, ensure=ensure)
+    chip_list = preproc_chip.compute_or_read_annotation_chips(ibs, aid_list, ensure=ensure, verbose=verbose)
     return chip_list
 
 

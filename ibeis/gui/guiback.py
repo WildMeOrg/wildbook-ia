@@ -855,7 +855,7 @@ class MainWindowBackend(QtCore.QObject):
         """ Batch -> Precompute Thumbs"""
         print('[back] compute_thumbs')
         eid = back._eidfromkw(kwargs)
-        ibsfuncs.compute_all_thumbs(back.ibs, eid=eid)
+        back.ibs.preprocess_image_thumbs(eid=eid)
         if refresh:
             back.front.update_tables()
 

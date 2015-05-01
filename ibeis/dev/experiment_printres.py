@@ -2,7 +2,6 @@
 displays results from experiment_harness
 """
 from __future__ import absolute_import, division, print_function
-import itertools
 import numpy as np
 import six
 import utool as ut
@@ -23,8 +22,6 @@ SKIP_TO = ut.get_argval(('--skip-to', '--skipto'), type_=int, default=None)
 #SAVE_FIGURES = ut.get_argflag(('--save-figures', '--sf'))
 SAVE_FIGURES = not ut.get_argflag(('--nosave-figures', '--nosf'))
 
-VIEW_FIG_DIR         = ut.get_argflag(('--view-fig-dir', '--vf'))
-QUERY_ANALYSIS_DNAME = ut.get_argval('--fig-dname', str, 'query_analysis')
 DUMP_EXTRA           = ut.get_argflag('--dump-extra')
 QUALITY              = ut.get_argflag('--quality')
 SHOW                 = ut.get_argflag('--show')
@@ -149,75 +146,98 @@ def draw_results(ibs, test_result):
     _viewkw = {}
     sel_rows, sel_cols = get_sel_rows_and_cols(qaids, cfg_list, new_hard_qx_list, interesting_qx_list, **_viewkw)
 
-    skip_list = []
-    cp_src_list = []
-    cp_dst_list = []
-
-    figdir = join(ibs.get_fig_dir(), QUERY_ANALYSIS_DNAME)
-    ut.ensuredir(ibs.get_fig_dir())
+    figdir = ibs.get_fig_dir()
     ut.ensuredir(figdir)
+    figdir_suffix = ut.get_argval('--fig-dname', type_=str, default=None)
+    if figdir_suffix is not None:
+        figdir = join(figdir, figdir_suffix)
+        ut.ensuredir(figdir)
 
+    individual_results_figdir = join(figdir, 'individual_results')
+    aggregate_results_figdir  = join(figdir, 'aggregate_results')
+    ut.ensuredir(individual_results_figdir)
+    ut.ensuredir(aggregate_results_figdir)
+
+    VIEW_FIG_DIR = ut.get_argflag(('--view-fig-dir', '--vf', '--vfd'))
     if VIEW_FIG_DIR:
         ut.view_directory(figdir, verbose=True)
 
-    def append_copy_task(fpath_orig):
-        """ helper which copies a summary figure to root dir """
-        fname_orig, ext = splitext(basename(fpath_orig))
-        outdir = dirname(fpath_orig)
-        fdir_clean, cfgdir = split(outdir)
-        #aug = cfgdir[0:min(len(cfgdir), 10)]
-        aug = cfgdir
-        fname_fmt = '{aug}_{fname_orig}{ext}'
-        fmt_dict = {'aug': aug, 'fname_orig': fname_orig, 'ext': ext}
-        fname_clean = ut.long_fname_format(fname_fmt, fmt_dict, ['fname_orig'], max_len=128)
-        fdst_clean = join(fdir_clean, fname_clean)
-        cp_src_list.append(fpath_orig)
-        cp_dst_list.append(fdst_clean)
+    VIZ_AGGREGATE_RESULTS = True
+    if VIZ_AGGREGATE_RESULTS:
+        for cfglbl, ranks in zip(cfgx2_lbl, rank_mat.T):
+            import plottool as pt
+            fig = pt.show_histogram(ranks, title='Groundtruth ranks\n' + cfglbl)  # NOQA
+            ax = pt.gca()
+            ax.set_xlabel('Ranks of correct result')
+            ax.set_ylabel('Frequency')
+            pt.dark_background()
+            fpath_orig = ph.dump_figure(aggregate_results_figdir, reset=not SHOW)
+            #pt.plt.show()
+            #pt.update()
+            #ut.embed()
 
-    def flush_copy_tasks():
-        # Execute all copy tasks and empty the lists
-        print('[DRAW_RESULT] copying %r summaries' % (len(cp_src_list)))
-        for src, dst in zip(cp_src_list, cp_dst_list):
-            ut.copy(src, dst, verbose=False)
-        del cp_dst_list[:]
-        del cp_src_list[:]
+    VIZ_INDIVIDUAL_RESULTS = True
+    if VIZ_INDIVIDUAL_RESULTS:
+        cp_src_list = []
+        cp_dst_list = []
 
-    def load_qres(ibs, qaid, daids, qreq_):
-        # Load / Execute the query w/ correct config
-        qreq_.set_external_qaids([qaid])
-        qres = ibs._query_chips4(
-            [qaid], daids, use_cache=True, use_bigcache=False,
-            qreq_=qreq_)[qaid]
-        return qres
+        def append_copy_task(fpath_orig):
+            """ helper which copies a summary figure to root dir """
+            fname_orig, ext = splitext(basename(fpath_orig))
+            outdir = dirname(fpath_orig)
+            fdir_clean, cfgdir = split(outdir)
+            #aug = cfgdir[0:min(len(cfgdir), 10)]
+            aug = cfgdir
+            fname_fmt = '{aug}_{fname_orig}{ext}'
+            fmt_dict = {'aug': aug, 'fname_orig': fname_orig, 'ext': ext}
+            fname_clean = ut.long_fname_format(fname_fmt, fmt_dict, ['fname_orig'], max_len=128)
+            fdst_clean = join(fdir_clean, fname_clean)
+            cp_src_list.append(fpath_orig)
+            cp_dst_list.append(fdst_clean)
 
-    def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), config2_=None, **dumpkw):
-        print('[PRINT_RESULTS] show_chip(aid=%r) prefix=%r' % (aid, prefix))
-        from ibeis import viz
-        # only dump a chip that hasn't been dumped yet
-        if aid in seen:
-            print('[PRINT_RESULTS] SEEN SKIPPING')
-            return
-        fulldir = join(figdir, dumpkw['subdir'])
-        if DUMP_PROBCHIP:
-            # just copy it
-            probchip_fpath = ibs.get_annot_probchip_fpath([aid], config2_=config2_)[0]
-            ut.copy(probchip_fpath, fulldir, overwrite=False)
-        if DUMP_REGCHIP:
-            chip_fpath = ibs.get_annot_chip_fpath([aid], config2_=config2_)[0]
-            ut.copy(chip_fpath, fulldir, overwrite=False)
+        def flush_copy_tasks():
+            # Execute all copy tasks and empty the lists
+            print('[DRAW_RESULT] copying %r summaries' % (len(cp_src_list)))
+            for src, dst in zip(cp_src_list, cp_dst_list):
+                ut.copy(src, dst, verbose=False)
+            del cp_dst_list[:]
+            del cp_src_list[:]
 
-        viz.show_chip(ibs, aid, in_image=in_image, config2_=config2_)
-        if rank is not None:
-            prefix += 'rank%d_' % rank
-        df2.set_figtitle(prefix + ibs.annotstr(aid))
-        seen.add(aid)
-        if ut.VERBOSE:
-            print('[expt] dumping fig to %s' % figdir)
+        def load_qres(ibs, qaid, daids, qreq_):
+            # Load / Execute the query w/ correct config
+            qreq_.set_external_qaids([qaid])
+            qres = ibs._query_chips4(
+                [qaid], daids, use_cache=True, use_bigcache=False,
+                qreq_=qreq_)[qaid]
+            return qres
 
-        fpath_clean = ph.dump_figure(figdir, **dumpkw)
-        return fpath_clean
+        def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), config2_=None, **dumpkw):
+            print('[PRINT_RESULTS] show_chip(aid=%r) prefix=%r' % (aid, prefix))
+            from ibeis import viz
+            # only dump a chip that hasn't been dumped yet
+            if aid in seen:
+                print('[PRINT_RESULTS] SEEN SKIPPING')
+                return
+            fulldir = join(individual_results_figdir, dumpkw['subdir'])
+            if DUMP_PROBCHIP:
+                # just copy it
+                probchip_fpath = ibs.get_annot_probchip_fpath([aid], config2_=config2_)[0]
+                ut.copy(probchip_fpath, fulldir, overwrite=False)
+            if DUMP_REGCHIP:
+                chip_fpath = ibs.get_annot_chip_fpath([aid], config2_=config2_)[0]
+                ut.copy(chip_fpath, fulldir, overwrite=False)
 
-    if True:
+            viz.show_chip(ibs, aid, in_image=in_image, config2_=config2_)
+            if rank is not None:
+                prefix += 'rank%d_' % rank
+            df2.set_figtitle(prefix + ibs.annotstr(aid))
+            seen.add(aid)
+            if ut.VERBOSE:
+                print('[expt] dumping fig to individual_results_figdir=%s' % individual_results_figdir)
+
+            fpath_clean = ph.dump_figure(individual_results_figdir, **dumpkw)
+            return fpath_clean
+
         for count, r in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW)):
             qreq_list = ut.list_take(cfgx2_qreq_, sel_cols)
             qres_list = [load_qres(ibs, qaids[r], daids, qreq_) for qreq_ in qreq_list]
@@ -258,118 +278,13 @@ def draw_results(ibs, test_result):
 
                 # Adjust subplots
                 #df2.adjust_subplots_safe()
-                fpath_orig = ph.dump_figure(figdir, reset=not SHOW, **dumpkw)
+                fpath_orig = ph.dump_figure(individual_results_figdir, reset=not SHOW, **dumpkw)
                 append_copy_task(fpath_orig)
 
             # if some condition of of batch sizes
             flush_freq = 1
             if count % flush_freq == (flush_freq - 1):
                 flush_copy_tasks()
-        flush_copy_tasks()
-    else:
-        chunksize = 4
-        # <FOR RCITER_CHUNK>
-        #with ut.EmbedOnException():
-        def is_skipped(count):
-            return (count in skip_list) or (SKIP_TO and count < SKIP_TO)
-
-        total = len(sel_cols) * len(sel_rows)
-        rciter = list(itertools.product(sel_rows, sel_cols))
-        for rciter_chunk in ut.ichunks(enumerate(rciter), chunksize):
-            # First load a chunk of query results
-            # <FOR RCITER>
-            qreq_list = [cfgx2_qreq_[c] for count, (r, c) in rciter_chunk if not is_skipped(count)]
-            qres_list = [load_qres(ibs, qaids[r], daids, cfgx2_qreq_[c])
-                         for count, (r, c) in rciter_chunk if not is_skipped(count)]
-
-            # Iterate over chunks a second time, but
-            # with loaded query results
-            for (count, rctup), qres, qreq_ in zip(rciter_chunk, qres_list, qreq_list):
-                if (count in skip_list) or (SKIP_TO and count < SKIP_TO):
-                    continue
-                (r, c) = rctup
-                fnum = c if SHOW else 1
-                # Get row and column index
-                query_lbl = cfgx2_lbl[c]
-                print(ut.unindent('''
-                __________________________________
-                --- VIEW %d / %d --- (r=%r, c=%r)
-                ----------------------------------
-                ''')  % (count + 1, total, r, c))
-                qres_cfg = qres.get_fname(ext='')
-                subdir = qres_cfg
-                # Draw Result
-                dumpkw = {
-                    'subdir'    : subdir,
-                    'quality'   : QUALITY,
-                    'overwrite' : True,
-                    'verbose'   : 0,
-                }
-                show_kwargs = {
-                    'N': 3,
-                    'ori': True,
-                    'ell_alpha': .9,
-                }
-
-                #if not SAVE_FIGURES:
-                #    continue
-
-                #if USE_FIGCACHE and ut.checkpath(join(figdir, subdir)):
-                #    pass
-
-                print('[harn] drawing analysis plot')
-
-                # Show Figure
-                # try to shorten query labels a bit
-                query_lbl = query_lbl.replace(' ', '').replace('\'', '')
-                #qres.show(ibs, 'analysis', figtitle=query_lbl, fnum=fnum, **show_kwargs)
-                if SHOW:
-                    qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
-                    #qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
-                else:
-                    qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
-
-                # Adjust subplots
-                #df2.adjust_subplots_safe()
-
-                if SHOW:
-                    print('[DRAW_RESULT] df2.present()')
-                    # Draw only once we finish drawing all configs (columns) for
-                    # this row (query)
-                    if c == len(sel_cols) - 1:
-                        #execstr = df2.present()  # NOQA
-                        ans = input('press to continue...')
-                        if ans == 'cmd':
-                            ut.embed()
-                        #six.exec_(execstr, globals(), locals())
-                        #exec(df2.present(), globals(), locals())
-                    #print(execstr)
-                # Saving will close the figure
-                fpath_orig = ph.dump_figure(figdir, reset=not SHOW, **dumpkw)
-                append_copy_task(fpath_orig)
-
-                print('[harn] drawing extra plots')
-
-                DUMP_QANNOT         = DUMP_EXTRA
-                if DUMP_QANNOT:
-                    _show_chip(qres.qaid, 'QUERY_', config2_=qreq_.qparams, **dumpkw)
-                    _show_chip(qres.qaid, 'QUERY_CXT_', in_image=True, config2_=qreq_.get_external_query_config2(), **dumpkw)
-
-                DUMP_QANNOT_DUMP_GT = DUMP_EXTRA
-                if DUMP_QANNOT_DUMP_GT:
-                    gtaids = ibs.get_annot_groundtruth(qres.qaid)
-                    for aid in gtaids:
-                        rank = qres.get_aid_ranks(aid)
-                        _show_chip(aid, 'GT_CXT_', rank=rank, in_image=True, config2_=qreq_.get_external_data_config2(), **dumpkw)
-
-                DUMP_TOP_CONTEXT    = DUMP_EXTRA
-                if DUMP_TOP_CONTEXT:
-                    topids = qres.get_top_aids(num=3)
-                    for aid in topids:
-                        rank = qres.get_aid_ranks(aid)
-                        _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, config2_=qreq_.get_external_data_config2(), **dumpkw)
-            flush_copy_tasks()
-        # </FOR RCITER>
 
         # Copy summary images to query_analysis folder
         flush_copy_tasks()
@@ -502,7 +417,7 @@ def print_results(ibs, test_result):
 
     #------------
     # Build Colscore
-    # Build a dictionary mapping X (as in #ranks < X) to a list of cfg scores
+    # Build a (histogram) dictionary mapping X (as in #ranks < X) to a list of cfg scores
     nLessX_dict = {int(X): np.zeros(nConfig) for X in X_LIST}
     for X in X_LIST:
         lessX_ = np.logical_and(np.less(rank_mat, X), np.greater_equal(rank_mat, 0))

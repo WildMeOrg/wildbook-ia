@@ -55,8 +55,10 @@ def read_chip_fpath(ibs, cid_list, **kwargs):
 # OLD FUNCTIONALITY TO DEPRICATE
 #--------------------------
 
-def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None):
+def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None, verbose=False):
     r"""
+    SUPER HACY FUNCTION. NEED TO DEPRICATE
+
     ----------------------
     Found 1 line(s) in 'ibeis/model/preproc/preproc_chip.py':
     preproc_chip.py :  25 |def compute_or_read_annotation_chips(ibs, aid_list, ensure=True):
@@ -71,25 +73,30 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None):
         except AssertionError as ex:
             ut.printex(ex, key_list=['aid_list'])
             raise
+    nTotal = len(aid_list)
     cfpath_list = make_annot_chip_fpath_list(ibs, aid_list, config2_=config2_)
     try:
         if ensure:
-            chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
+            cfpath_iter = ut.ProgressIter(cfpath_list, nTotal=nTotal, lbl='reading chips')
+            chip_list = [gtool.imread(cfpath) for cfpath in cfpath_iter]
         else:
-            chip_list = [None if cfpath is None else gtool.imread(cfpath) for cfpath in cfpath_list]
+            cfpath_iter = ut.ProgressIter(cfpath_list, nTotal=nTotal, lbl='reading existing chips')
+            chip_list = [None if cfpath is None else gtool.imread(cfpath) for cfpath in cfpath_iter]
     except IOError as ex:
         if not ut.QUIET:
             ut.printex(ex, '[preproc_chip] Handing Exception: ', iswarning=True)
         ibs.add_annot_chips(aid_list)
         try:
-            chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
+            cfpath_iter = ut.ProgressIter(cfpath_list, nTotal=nTotal, lbl='reading fallback1 chips')
+            chip_list = [gtool.imread(cfpath) for cfpath in cfpath_iter]
         except IOError:
             print('[preproc_chip] cache must have been deleted from disk')
             # TODO: WE CAN SEARCH FOR NON EXISTANT PATHS HERE AND CALL
             # ibs.delete_annot_chips
             compute_and_write_chips_lazy(ibs, aid_list)
             # Try just one more time
-            chip_list = [gtool.imread(cfpath) for cfpath in cfpath_list]
+            cfpath_iter = ut.ProgressIter(cfpath_list, nTotal=nTotal, lbl='reading fallback2 chips')
+            chip_list = [gtool.imread(cfpath) for cfpath in cfpath_iter]
 
     return chip_list
 

@@ -2221,19 +2221,15 @@ def draw_thumb_helper(tup):
 def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8,
                             draw_annots=True, thumbsize=None, **kwargs):
     """ Computes thumbs of images in parallel based on kwargs """
-    print('[ibsfuncs] preprocess_image_thumbs')
     if gid_list is None:
         gid_list = ibs.get_valid_gids(**kwargs)
-    if thumbsize is None:
-        if draw_annots:
-            thumbsize = ibs.cfg.other_cfg.thumb_size
-        else:
-            thumbsize = ibs.cfg.other_cfg.thumb_bare_size
-    thumbpath_list = ibs.get_image_thumbpath(gid_list, ensure_paths=False,
-                                             draw_annots=draw_annots,
-                                             thumbsize=thumbsize)
-    #use_cache = False
+    thumbsize = ibs.get_image_thumbsize(thumbsize, draw_annots)
+    print('[ibsfuncs] preprocess_image_thumbs(use_cache=%r, thumbsize=%r)' % (use_cache, thumbsize))
+    thumbpath_list = ibs.get_image_thumbpath_(gid_list,
+                                              draw_annots=draw_annots,
+                                              thumbsize=thumbsize)
     if use_cache:
+        # Filter out paths gids that already have existing thumb paths
         exists_list = list(map(exists, thumbpath_list))
         gid_list_ = ut.filterfalse_items(gid_list, exists_list)
         thumbpath_list_ = ut.filterfalse_items(thumbpath_list, exists_list)
@@ -2241,15 +2237,23 @@ def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8,
         gid_list_ = gid_list
         thumbpath_list_ = thumbpath_list
 
-    gpath_list = ibs.get_image_paths(gid_list_)
+    compute_image_thumbs(ibs, gid_list_, thumbpath_list_, chunksize, draw_annots, thumbsize)
+    return thumbpath_list
 
+
+def compute_image_thumbs(ibs, gid_list_, thumbpath_list_, chunksize, draw_annots, thumbsize):
+    """
+    Parallel work function. Computes image thumbnails. Overwrites anything that exists.
+    Does not use any caching
+    """
+    gpath_list = ibs.get_image_paths(gid_list_)
     aids_list = ibs.get_image_aids(gid_list_)
     if draw_annots:
         bboxes_list = unflat_map(ibs.get_annot_bboxes, aids_list)
         thetas_list = unflat_map(ibs.get_annot_thetas, aids_list)
     else:
-        bboxes_list = [ [] for aid_list in aids_list ]
-        thetas_list = [ [] for aid_list in aids_list ]
+        bboxes_list = [ [] for aids in aids_list ]
+        thetas_list = [ [] for aids in aids_list ]
     args_list = [(thumb_path, thumbsize, gpath, bbox_list, theta_list)
                  for thumb_path, gpath, bbox_list, theta_list in
                  zip(thumbpath_list_, gpath_list, bboxes_list, thetas_list)]
@@ -2262,12 +2266,6 @@ def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8,
     }
     gen = ut.generate(draw_thumb_helper, args_list, nTasks=len(args_list), **genkw)
     ut.evaluate_generator(gen)
-    return thumbpath_list
-
-
-@__injectable
-def compute_all_thumbs(ibs, **kwargs):
-    preprocess_image_thumbs(ibs, **kwargs)
 
 
 @__injectable

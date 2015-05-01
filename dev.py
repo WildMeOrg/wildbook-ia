@@ -842,6 +842,8 @@ python dev.py --db seals2 --setdb
 
 ### DATABASE INFORMATION ###
 python dev.py -t dbinfo
+
+### EXPERIMENTS ###
 python dev.py --allgt -t best
 python dev.py --allgt -t vsone
 python dev.py --allgt -t vsmany

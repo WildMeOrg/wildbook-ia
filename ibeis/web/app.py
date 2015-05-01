@@ -1479,9 +1479,9 @@ def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=True):
     '''
     if precache:
         print('[web] Pre-computing all image thumbnails (with annots)...')
-        ibs.compute_all_thumbs()
+        ibs.preprocess_image_thumbs()
         print('[web] Pre-computing all image thumbnails (without annots)...')
-        ibs.compute_all_thumbs(draw_annots=False)
+        ibs.preprocess_image_thumbs(draw_annots=False)
         print('[web] Pre-computing all annotation chips...')
         ibs.check_chip_existence()
         ibs.compute_all_chips()
