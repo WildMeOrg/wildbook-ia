@@ -605,8 +605,8 @@ def get_image_thumbtup(ibs, gid_list, draw_annots=True, thumbsize=None):
     aids_list = ibs.get_image_aids(gid_list)
     bboxes_list = ibs.unflat_map(ibs.get_annot_bboxes, aids_list)
     thetas_list = ibs.unflat_map(ibs.get_annot_thetas, aids_list)
-    thumb_gpaths = ibs.get_image_thumbpath(gid_list, draw_annots=draw_annots,
-                                           thumbsize=thumbsize)
+    thumb_gpaths = ibs.get_image_thumbpath_(gid_list, draw_annots=draw_annots,
+                                            thumbsize=thumbsize)
     image_paths = ibs.get_image_paths(gid_list)
     gsize_list = ibs.get_image_sizes(gid_list)
     thumbtup_list = [
@@ -630,15 +630,25 @@ def get_image_thumbpath(ibs, gid_list, ensure_paths=False, draw_annots=True,
         Method: GET
         URL:    /api/image/thumbpath/
     """
+    if ensure_paths:
+        thumbpath_list = ibs.preprocess_image_thumbs(gid_list,
+                                                     draw_annots=draw_annots,
+                                                     thumbsize=thumbsize)
+    else:
+        thumbpath_list = get_image_thumbpath_(ibs, gid_list, draw_annots=True, thumbsize=thumbsize)
+    return thumbpath_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+def get_image_thumbpath_(ibs, gid_list, draw_annots=True, thumbsize=None):
+    """ get_image_thumbpath, but never will ensure existence """
     if thumbsize is None:
         if draw_annots:
             thumbsize = ibs.cfg.other_cfg.thumb_size
         else:
             thumbsize = ibs.cfg.other_cfg.thumb_bare_size
-    if ensure_paths:
-        ibs.preprocess_image_thumbs(gid_list, draw_annots=draw_annots,
-                                    thumbsize=thumbsize)
-    thumb_dpath = ibs.thumb_dpath
+    thumb_dpath = ibs.get_thumbdir()
     img_uuid_list = ibs.get_image_uuids(gid_list)
     if draw_annots:
         thumb_suffix = '_' + str(thumbsize) + const.IMAGE_THUMB_SUFFIX

@@ -2240,6 +2240,7 @@ def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8,
     else:
         gid_list_ = gid_list
         thumbpath_list_ = thumbpath_list
+
     gpath_list = ibs.get_image_paths(gid_list_)
 
     aids_list = ibs.get_image_aids(gid_list_)
@@ -2259,17 +2260,9 @@ def preprocess_image_thumbs(ibs, gid_list=None, use_cache=True, chunksize=8,
         'chunksize': chunksize,
         #'force_serial': True,
     }
-    #genkw['force_serial'] = True
-    #genkw['chunksize'] = max(len(gid_list_) // 16, 1)
     gen = ut.generate(draw_thumb_helper, args_list, nTasks=len(args_list), **genkw)
-    #for output in gen:
-    #    #with ut.Timer('gentime'):
-    #    vt.imwrite(output[0], output[1])
-    try:
-        while True:
-            six.next(gen)
-    except StopIteration:
-        pass
+    ut.evaluate_generator(gen)
+    return thumbpath_list
 
 
 @__injectable
