@@ -106,7 +106,7 @@ def export_to_xml(ibs, offset=0, enforce_yaw=False):
     ut.ensuredir(datadir)
     ut.ensuredir(imagedir)
     ut.ensuredir(annotdir)
-    gid_list = ibs.get_valid_gids(reviewed=0)
+    gid_list = ibs.get_valid_gids()
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
         yawed = True
