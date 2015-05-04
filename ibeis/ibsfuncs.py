@@ -95,7 +95,7 @@ def refresh(ibs):
     ibs.rrr()
 
 
-def export_to_xml(ibs, offset=2829, enforce_yaw=True):
+def export_to_xml(ibs, offset=0, enforce_yaw=False):
     target_size = 900
     information = {
         'database_name' : ibs.get_dbname()
@@ -106,7 +106,7 @@ def export_to_xml(ibs, offset=2829, enforce_yaw=True):
     ut.ensuredir(datadir)
     ut.ensuredir(imagedir)
     ut.ensuredir(annotdir)
-    gid_list = ibs.get_valid_gids(reviewed=1)
+    gid_list = ibs.get_valid_gids(reviewed=0)
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
         yawed = True
@@ -117,7 +117,7 @@ def export_to_xml(ibs, offset=2829, enforce_yaw=True):
             fulldir = image_path.split('/')
             filename = fulldir.pop()
             extension = filename.split('.')[-1]  # NOQA
-            out_name = "2014_%06d" % offset
+            out_name = "2015_%06d" % offset
             out_img = out_name + ".jpg"
             folder = "IBEIS"
 

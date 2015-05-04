@@ -1403,6 +1403,7 @@ class MainWindowBackend(QtCore.QObject):
         ut.view_directory(back.ibs._ibsdb)
         back.ibs.db.dump_tables_to_csv()
 
+    @slot_()
     @backreport
     def dev_export_annotations(back):
         ibs = back.ibs
