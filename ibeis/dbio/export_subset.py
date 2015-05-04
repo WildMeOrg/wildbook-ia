@@ -1407,6 +1407,80 @@ def test_merge():
     #ibs_dst.print_annotation_table()
 
 
+def check_database_overlap(ibs1, ibs2):
+    """
+    Example:
+        >>> import ibeis
+        >>> ibs1 = ibeis.opendb(db='PZ_Master0')
+        >>> ibs2 = ibeis.opendb(dbdir='/raid/work2/Turk/PZ_Master')
+    """
+
+    def print_intersection(uuids1, uuids2, lbl=''):
+        uuids1_ = set(uuids1)
+        uuids2_ = set(uuids2)
+        uuids_isect = uuids1_.intersection(uuids2_)
+        print('Intersection {lbl}'.format(lbl=lbl))
+        print('  * Num {lbl} 1: {num}'.format(lbl=lbl, num=len(uuids1_)))
+        print('  * Num {lbl} 2: {num}'.format(lbl=lbl, num=len(uuids2_)))
+        print('  * Num {lbl} isect: {num}'.format(lbl=lbl, num=len(uuids_isect)))
+
+    gids1 = ibs1.get_valid_gids()
+    gids2 = ibs2.get_valid_gids()
+    image_uuids1      = ibs1.get_image_uuids(gids1)
+    image_uuids2      = ibs2.get_image_uuids(gids2)
+    print_intersection(image_uuids1, image_uuids2, 'images')
+
+    aids1 = ibs1.get_valid_aids()
+    aids2 = ibs2.get_valid_aids()
+    if False:
+        ibs1.update_annot_visual_uuids(aids1)
+        ibs2.update_annot_visual_uuids(aids2)
+        ibs1.update_annot_semantic_uuids(aids1)
+        ibs2.update_annot_semantic_uuids(aids2)
+    #
+    annot_vuuids1 = ibs1.get_annot_visual_uuids(aids1)
+    annot_vuuids2 = ibs2.get_annot_visual_uuids(aids2)
+    print_intersection(annot_vuuids1, annot_vuuids2, 'vuuids')
+    #
+    annot_suuids1 = ibs1.get_annot_semantic_uuids(aids1)
+    annot_suuids2 = ibs2.get_annot_semantic_uuids(aids2)
+    print_intersection(annot_suuids1, annot_suuids2, 'suuids')
+    #
+    import numpy as np
+    nAnnots_per_image1 = np.array(ibs1.get_image_num_annotations(gids1))
+    nAnnots_per_image2 = np.array(ibs2.get_image_num_annotations(gids2))
+    #
+    images_without_annots1 = sum(nAnnots_per_image1 == 0)
+    images_without_annots2 = sum(nAnnots_per_image2 == 0)
+    print('images_without_annots1 = %r' % (images_without_annots1,))
+    print('images_without_annots2 = %r' % (images_without_annots2,))
+
+    nAnnots_per_image1
+    import vtool as vt
+    class AlignedIndex(object):
+        def __init__(self):
+            self.iddict_ = {}
+
+        def make_aligned_arrays(id_lists, data_lists):
+            idx_lists = [vt.compute_unique_data_ids_(id_list, iddict_=self.iddict_) for id_list in id_lists]
+            aligned_data = []
+            for idx_list, data_array in zip(idx_lists, data_lists):
+                array = np.full(len(self.iddict_), None)
+                array[idx_list] = data_array
+                aligned_data.append(array)
+
+    # Try to figure out the conflicts
+    # TODO: finishme
+
+    self = AlignedIndex()
+    id_lists = (image_uuids1, image_uuids2)
+    data_lists = (nAnnots_per_image1, nAnnots_per_image2)
+    aligned_data = self.make_aligned_arrays(id_lists, data_lists)
+    nAnnots1_aligned, nAnnots2_aligned = aligned_data
+
+    print('images_with_different_num_annnots = %r' % (len(np.nonzero(nAnnots_per_image1 - nAnnots_per_image2)[0]),))
+
+
 """
 def MERGE_NNP_MASTER_SCRIPT():
     print(ut.truncate_str(ibs_dst.db.get_table_csv(ibeis.const.ANNOTATION_TABLE,

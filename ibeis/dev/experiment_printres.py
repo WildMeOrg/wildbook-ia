@@ -164,17 +164,20 @@ def draw_results(ibs, test_result):
 
     VIZ_AGGREGATE_RESULTS = True
     if VIZ_AGGREGATE_RESULTS:
-        for cfglbl, ranks in zip(cfgx2_lbl, rank_mat.T):
-            import plottool as pt
-            fig = pt.show_histogram(ranks, title='Groundtruth ranks\n' + cfglbl)  # NOQA
+        import plottool as pt
+        for cfgx, ranks in enumerate(rank_mat.T):
+            full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
+            fig = pt.show_histogram(ranks, title='Groundtruth ranks\n' + full_cfgstr)  # NOQA
             ax = pt.gca()
             ax.set_xlabel('Ranks of correct result')
             ax.set_ylabel('Frequency')
-            pt.dark_background()
+            #pt.dark_background()
+            #ut.embed()
+            ut.print_dict(ut.dict_hist(ranks), 'rank histogram')
             fpath_orig = ph.dump_figure(aggregate_results_figdir, reset=not SHOW)
             #pt.plt.show()
             #pt.update()
-            #ut.embed()
+            ut.embed()
 
     VIZ_INDIVIDUAL_RESULTS = True
     if VIZ_INDIVIDUAL_RESULTS:

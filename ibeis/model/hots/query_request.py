@@ -550,16 +550,33 @@ class QueryRequest(object):
 
     @profile
     def get_query_cfgstr(qreq_):
+        """
+        FIXME: name
+        params only """
         query_cfgstr = qreq_.qparams.query_cfgstr
         return query_cfgstr
 
     @profile
     def get_cfgstr(qreq_):
-        """ main cfgstring used to identify the 'querytype' """
+        """ main cfgstring used to identify the 'querytype'
+        FIXME: name
+        params + data
+        """
         data_hashid = qreq_.get_data_hashid()
         query_cfgstr = qreq_.get_query_cfgstr()
         cfgstr = data_hashid + query_cfgstr
         return cfgstr
+
+    def get_full_cfgstr(qreq_):
+        """ main cfgstring used to identify the 'querytype'
+        FIXME: name
+        params + data + query
+        """
+        query_hashid = qreq_.get_query_hashid()
+        data_hashid = qreq_.get_data_hashid()
+        query_cfgstr = qreq_.get_query_cfgstr()
+        full_cfgstr = query_hashid + data_hashid + query_cfgstr
+        return full_cfgstr
 
     def get_qresdir(qreq_):
         return qreq_.qresdir

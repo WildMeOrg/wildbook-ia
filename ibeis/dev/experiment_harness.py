@@ -202,7 +202,8 @@ class TestResult(object):
         cfgx2_bestranks = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_bestranks')
         rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
         # Set invalid ranks to the worse possible rank
-        worst_possible_rank = max(9001, len(test_result.daids) + 1)
+        #worst_possible_rank = max(9001, len(test_result.daids) + 1)
+        worst_possible_rank = len(test_result.daids) + 1
         rank_mat[rank_mat == -1] =  worst_possible_rank
         return rank_mat
 
@@ -213,6 +214,10 @@ class TestResult(object):
         is_new_hard_list = rank_mat.max(axis=1) > 0
         new_hard_qx_list = np.where(is_new_hard_list)[0]
         return new_hard_qx_list
+
+    #def get_full_cfgstr(test_result, cfgx):
+    #    full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
+    #    return full_cfgstr
 
 
 @profile

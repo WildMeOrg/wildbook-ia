@@ -234,6 +234,7 @@ CHIP_THUMB_SUFFIX  = '_chip_thumb.jpg'
 class Species(object):
     ZEB_PLAIN     = 'zebra_plains'
     ZEB_GREVY     = 'zebra_grevys'
+    ZEB_HYBRID    = 'zebra_hybrid'
     # TODO change to giraffe_reticulated
     GIRAFFE       = 'giraffe'
     GIRAFFE_MASAI = 'giraffe_masai'
@@ -268,6 +269,7 @@ SpeciesTuple = namedtuple('SpeciesTuple', SpeciesTupleProperties)
 SPECIES_TUPS = [
     SpeciesTuple(Species.ZEB_PLAIN,          'PZ', 'Zebra (Plains)'),
     SpeciesTuple(Species.ZEB_GREVY,          'GZ', 'Zebra (Grevy\'s)'),
+    SpeciesTuple(Species.ZEB_HYBRID,         'HZ', 'Zebra (Hybrid)'),
     SpeciesTuple(Species.GIRAFFE,           'GIR', 'Giraffes (Reticulated)'),
     SpeciesTuple(Species.GIRAFFE_MASAI,    'GIRM', 'Giraffes (Masai)'),
     SpeciesTuple(Species.ELEPHANT_SAV,     'ELEP', 'Elephant (savanna)'),

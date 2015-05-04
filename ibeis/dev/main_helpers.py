@@ -114,6 +114,13 @@ def get_test_qaids(ibs, default_qaids=None):
     if ut.get_argflag('--unreviewed'):
         isreviewed_list = ibs.get_annot_has_reviewed_matching_aids(available_qaids)
         available_qaids = ut.filterfalse_items(available_qaids, isreviewed_list)
+
+    species = ut.get_argval('--species')
+
+    if species is not None:
+        import numpy as np
+        isvalid_list = np.array(ibs.get_annot_species(available_qaids)) == species
+        available_qaids = ut.filter_items(available_qaids, isvalid_list)
     return available_qaids
 
 
@@ -147,5 +154,12 @@ def get_test_daids(ibs, qaid_list=None):
         _test_daids = [available_daids[dx] for dx in dindexes if dx < len(available_daids)]
         available_daids = _test_daids
         #printDBG('available_daids = %r' % available_daids)
+
+    species = ut.get_argval('--species')
+
+    if species is not None:
+        import numpy as np
+        isvalid_list = np.array(ibs.get_annot_species(available_daids)) == species
+        available_daids = ut.filter_items(available_daids, isvalid_list)
 
     return available_daids
