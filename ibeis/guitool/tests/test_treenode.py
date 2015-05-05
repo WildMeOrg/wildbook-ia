@@ -10,6 +10,16 @@ from guitool import api_tree_node
 
 
 def test_build_internal_structure():
+    """
+
+    CommandLine:
+        python -m guitool.tests.test_treenode --test-test_build_internal_structure
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.tests.test_treenode import *  # NOQA
+        >>> test_build_internal_structure()
+    """
     if 'api_tree_node_cython' in globals():
         print('test cython ON')
         _test_build_internal_structure(api_tree_node_cython, 'cython')
@@ -21,7 +31,7 @@ def test_build_internal_structure():
 
 
 def _test_build_internal_structure(_module, lang):
-    import utool
+    import utool as ut
     # Test data
     N = 6
     #N = 2000
@@ -42,7 +52,7 @@ def _test_build_internal_structure(_module, lang):
     num_levels = len(ider_list)
     # TEST RECURSIVE
     print('================')
-    with utool.Timer(lang + ' recursive:'):
+    with ut.Timer(lang + ' recursive:'):
         if num_levels == 0:
             root_id_list = []
         else:
@@ -53,9 +63,9 @@ def _test_build_internal_structure(_module, lang):
             root_node1, root_id_list, num_levels, ider_list, level)
     if N < 10:
         print('')
-        print(api_tree_node.tree_node_string(root_node1, indent=' *  ', id_dict={}, last=['A']))
+        print(api_tree_node.tree_node_string(root_node1, indent=' *  '))
     print('================')
-    #with utool.Timer(lang + ' iterative:'):
+    #with ut.Timer(lang + ' iterative:'):
     #    # TEST ITERATIVE
     #    # TODO: Vet this code a bit more.
     #    root_node2 = _module.TreeNode(-1, None, -1)
@@ -69,5 +79,13 @@ def _test_build_internal_structure(_module, lang):
 
 
 if __name__ == '__main__':
-    import utool
-    test_locals = utool.run_test(test_build_internal_structure)
+    """
+    CommandLine:
+        python -m guitool.tests.test_treenode
+        python -m guitool.tests.test_treenode --allexamples
+        python -m guitool.tests.test_treenode --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

@@ -157,9 +157,9 @@ def tree_node_string(self, indent='', charids=True, id_dict=None, last=None):
             last[0] = last[0] + 1
         id_self = id_dict[id_self]
         id_parent = id_dict[id_parent]
-    if charids is True:
-        if ord(last[0]) < 255:
-            last[0] = [0]
+    elif charids is True:
+        #if ord(last[0]) < 255:
+        #    last[0] = [0]
         if id_parent not in id_dict:
             id_dict[id_parent] = last[0]
             last[0] = chr(ord(last[0]) + 1)
