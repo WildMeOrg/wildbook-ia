@@ -2,10 +2,66 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
+import six
 import functools  # NOQA
 from six import next
 from six.moves import zip, range  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[other]', DEBUG=False)
+
+
+def crop_out_imgfill(img, fillval=None, thresh=0):
+    if fillval is None:
+        fillval = [255, 255, 255]
+    # for colored images
+    if thresh == 0:
+        isfill = np.all((img[:, :] == fillval), axis=2)
+    else:
+        threshdist = np.sum(np.abs(img - fillval), axis=2)
+        isfill = threshdist <= thresh
+    rowslice, colslice = get_crop_slices(isfill)
+    cropped_img = img[rowslice, colslice]
+    return cropped_img
+
+
+def get_consec_endpoint(consec_index_list, endpoint):
+    """
+    consec_index_list = consec_cols_list
+    endpoint = 0
+    """
+    for consec_index in consec_index_list:
+        if np.any(np.array(consec_index) == endpoint):
+            return consec_index
+
+
+def get_crop_slices(isfill):
+    fill_colxs = [np.where(row)[0] for row in isfill]
+    fill_rowxs = [np.where(col)[0] for col in isfill.T]
+    nRows, nCols = isfill.shape[0:2]
+
+    filled_columns = intersect1d_reduce(fill_colxs)
+    filled_rows = intersect1d_reduce(fill_rowxs)
+    consec_rows_list = ut.group_consecutives(filled_rows)
+    consec_cols_list = ut.group_consecutives(filled_columns)
+
+    def get_min_consec_endpoint(consec_rows_list, endpoint):
+        consec_index = get_consec_endpoint(consec_rows_list, endpoint)
+        if consec_index is None:
+            return endpoint
+        return max(consec_index)
+
+    def get_max_consec_endpoint(consec_rows_list, endpoint):
+        consec_index = get_consec_endpoint(consec_rows_list, endpoint)
+        if consec_index is None:
+            return endpoint + 1
+        return min(consec_index)
+
+    consec_rows_top    = get_min_consec_endpoint(consec_rows_list, 0)
+    consec_rows_bottom = get_max_consec_endpoint(consec_rows_list, nRows - 1)
+    remove_cols_left   = get_min_consec_endpoint(consec_cols_list, 0)
+    remove_cols_right  = get_max_consec_endpoint(consec_cols_list, nCols - 1)
+    rowslice = slice(consec_rows_top, consec_rows_bottom)
+    colslice = slice(remove_cols_left, remove_cols_right)
+    return rowslice, colslice
 
 
 def find_best_undirected_edge_indexes(directed_edges, score_arr=None):
@@ -295,6 +351,14 @@ def clipnorm(arr, min_, max_, out=None):
     arr_ = np.divide(arr_, max_ - min_, *out_args)
     arr_ = np.clip(arr_, 0.0, 1.0, *out_args)
     return arr_
+
+
+def intersect1d_reduce(arr_list, assume_unique=False):
+    arr_iter = iter(arr_list)
+    out = six.next(arr_iter)
+    for arr in arr_iter:
+        out = np.intersect1d(out, arr, assume_unique=assume_unique)
+    return out
 
 
 def componentwise_dot(arr1, arr2):
