@@ -127,30 +127,33 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
 
 
 def prepare_figure_for_save(fnum, dpi=None, figsize=None, fig=None):
+    """ so bad """
     if fig is not None:
         # HACK; doesnt set DPI this might cause issues
         if dpi is not None:
             fig.set_dpi(dpi)
-        if figsize is not None:
+        if figsize is not None and figsize is not False:
             # Enforce inches and DPI
             figw, figh = figsize[0], figsize[1]
             print('fig w,h (inches) = %r, %r' % (figw, figh))
             fig.set_size_inches(figw, figh)
         return fig, fig.number
-    if dpi is None:
-        dpi = custom_constants.DPI
-    if figsize is None:
-        figsize = custom_constants.FIGSIZE
-    # Resizes the figure for quality saving
-    if fnum is None:
-        fig = gcf()
     else:
-        fig = plt.figure(fnum, figsize=figsize, dpi=dpi)
-    # Enforce inches and DPI
-    figw, figh = figsize[0], figsize[1]
-    fig.set_size_inches(figw, figh)
-    fnum = fig.number
-    return fig, fnum
+        if dpi is None:
+            dpi = custom_constants.DPI
+        if figsize is None and figsize is not False:
+            figsize = custom_constants.FIGSIZE
+        # Resizes the figure for quality saving
+        if fnum is None:
+            fig = gcf()
+        else:
+            fig = plt.figure(fnum, figsize=figsize, dpi=dpi)
+        # Enforce inches and DPI
+        if figsize is not False:
+            figw, figh = figsize[0], figsize[1]
+            fig.set_size_inches(figw, figh)
+        fnum = fig.number
+        return fig, fnum
 
 
 def sanitize_img_fname(fname):
@@ -205,6 +208,23 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose):
     # Normalize extension
     fpath_clean = join(dpath, fname_clean)
     return fpath_clean
+
+
+def get_image_from_figure(fig):
+    """
+    saves figure data to an ndarray
+
+    References:
+        http://stackoverflow.com/questions/7821518/matplotlib-save-plot-to-numpy-array
+    """
+    import numpy as np
+    import cv2
+    fig.canvas.draw()
+    shape = fig.canvas.get_width_height()[::-1] + (3,)
+    imgRGB = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+    imgRGB = imgRGB.reshape(shape)
+    imgBGR = cv2.cvtColor(imgRGB, cv2.COLOR_RGB2BGR)
+    return imgBGR
 
 
 def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwrite=True,
