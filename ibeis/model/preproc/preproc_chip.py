@@ -13,10 +13,10 @@ DONE:
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range, filter  # NOQA
 from os.path import exists, join, relpath
-#import os
 import utool as ut  # NOQA
 import vtool.chip as ctool
 import vtool.image as gtool
+import functools
 (print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[preproc_chip]', DEBUG=False)
 
@@ -75,19 +75,20 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None, 
             raise
     nTotal = len(aid_list)
     cfpath_list = make_annot_chip_fpath_list(ibs, aid_list, config2_=config2_)
+    mk_cpath_iter = functools.partial(ut.ProgressIter, cfpath_list, nTotal=nTotal, enabled=verbose)
     try:
         if ensure:
-            cfpath_iter = ut.ProgressIter(cfpath_list, nTotal=nTotal, lbl='reading chips')
+            cfpath_iter = mk_cpath_iter(lbl='reading ensured chips')
             chip_list = [gtool.imread(cfpath) for cfpath in cfpath_iter]
         else:
-            cfpath_iter = ut.ProgressIter(cfpath_list, nTotal=nTotal, lbl='reading existing chips')
+            cfpath_iter = mk_cpath_iter(lbl='reading existing chips')
             chip_list = [None if cfpath is None else gtool.imread(cfpath) for cfpath in cfpath_iter]
     except IOError as ex:
         if not ut.QUIET:
             ut.printex(ex, '[preproc_chip] Handing Exception: ', iswarning=True)
         ibs.add_annot_chips(aid_list)
         try:
-            cfpath_iter = ut.ProgressIter(cfpath_list, nTotal=nTotal, lbl='reading fallback1 chips')
+            cfpath_iter = mk_cpath_iter(lbl='reading fallback1 chips')
             chip_list = [gtool.imread(cfpath) for cfpath in cfpath_iter]
         except IOError:
             print('[preproc_chip] cache must have been deleted from disk')
@@ -95,7 +96,7 @@ def compute_or_read_annotation_chips(ibs, aid_list, ensure=True, config2_=None, 
             # ibs.delete_annot_chips
             compute_and_write_chips_lazy(ibs, aid_list)
             # Try just one more time
-            cfpath_iter = ut.ProgressIter(cfpath_list, nTotal=nTotal, lbl='reading fallback2 chips')
+            cfpath_iter = mk_cpath_iter(lbl='reading fallback2 chips')
             chip_list = [gtool.imread(cfpath) for cfpath in cfpath_iter]
 
     return chip_list

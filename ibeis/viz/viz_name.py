@@ -19,17 +19,17 @@ def testdata_showname():
     name_text = ut.get_argval('--name', type_=str, default='easy')
     nid = ibs.get_name_rowids_from_text(name_text)
     in_image = not ut.get_argflag('--no-inimage')
-    return ibs, nid, in_image
+    index_list = ut.get_argval('--index_list', type_=list, default=None)
+    return ibs, nid, in_image, index_list
 
 
 #@ut.indent_func
-def show_name(ibs, nid, nid2_aids=None, in_image=True, fnum=0, sel_aids=[], subtitle='',
-              annote=False, **kwargs):
+def show_name(ibs, nid, in_image=True, fnum=0, sel_aids=[], subtitle='',
+              annote=False, aid_list=None, index_list=None,  **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
         nid (?):
-        nid2_aids (dict):
         in_image (bool):
         fnum (int):  figure number
         sel_aids (list):
@@ -53,28 +53,42 @@ def show_name(ibs, nid, nid2_aids=None, in_image=True, fnum=0, sel_aids=[], subt
 
         python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_0303" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg --dpath figures --caption='Shadowed'
 
+        python -m ibeis.viz.viz_name --test-show_name --name=IBEIS_PZ_0884 --show --db NNP_Master3 --adjust=[.02,.02,.02] --notitle --index_list=[1,4,5,6] --rc=1,4
+
+        --left=.02 --right=.98 --top=.98 --bottom=.02 --wspace=.05 --hspace=.05
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_name import *  # NOQA
-        >>> ibs, nid, in_image = testdata_showname()
-        >>> nid2_aids = None
+        >>> ibs, nid, in_image, index_list = testdata_showname()
         >>> fnum = 0
         >>> sel_aids = []
         >>> subtitle = ''
         >>> annote = False
         >>> # execute function
-        >>> show_name(ibs, nid, nid2_aids, in_image, fnum, sel_aids, subtitle, annote)
+        >>> show_name(ibs, nid, in_image, fnum, sel_aids, subtitle, annote, index_list=index_list)
         >>> ut.show_if_requested()
     """
-    print('[viz] show_name nid=%r' % nid)
-    aid_list = ibs.get_name_aids(nid)
+    print('[viz_name] show_name nid=%r, index_list=%r, aid_list=%r' % (nid, index_list, aid_list))
+    if aid_list is None:
+        aid_list = ibs.get_name_aids(nid)
+    else:
+        assert ut.list_all_eq_to(ibs.get_annot_nids(aid_list), nid)
+
+    if index_list is not None:
+        aid_list = ut.list_take(aid_list, index_list)
+
     name = ibs.get_name_texts((nid,))
     ibsfuncs.ensure_annotation_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)
-    print('[viz] show_name=%r aid_list=%r' % (name, aid_list))
+    print('[viz_name] * name=%r aid_list=%r' % (name, aid_list))
     nAids = len(aid_list)
     if nAids > 0:
-        nRows, nCols = ph.get_square_row_cols(nAids)
-        print('[viz*] r=%r, c=%r' % (nRows, nCols))
+        rc = ut.get_argval('--rc', type_=list, default=None)
+        if rc is None:
+            nRows, nCols = ph.get_square_row_cols(nAids)
+        else:
+            nRows, nCols = rc
+        #print('[viz_name] * r=%r, c=%r' % (nRows, nCols))
         #gs2 = gridspec.GridSpec(nRows, nCols)
         pnum_ = df2.get_pnum_func(nRows, nCols)
         fig = df2.figure(fnum=fnum, pnum=pnum_(0), **kwargs)

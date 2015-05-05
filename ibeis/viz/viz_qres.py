@@ -109,6 +109,27 @@ def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
                      figtitle=figtitle, show_query=show_query, qreq_=qreq_, **kwargs)
 
 
+def testdata_show_qres():
+    import ibeis
+    # build test data
+    ibs = ibeis.opendb(defaultdb='testdb1')
+    qaids = ut.get_argval('--qaids', type_=list, default=None)
+    if qaids is None:
+        qaids = ibs.get_valid_aids()[0:1]
+    daids = ibs.get_valid_aids()
+    qreq_ = ibs.new_query_request(qaids, daids)
+    qres = ibs.query_chips(qreq_=qreq_)[0]
+    #
+    kwargs = dict(
+        top_aids=ut.get_argval('--top-aids', type_=int, default=3),
+        sidebyside=not ut.get_argflag('--no-sidebyside'),
+        annot_mode=ut.get_argval('--annot_mode', type_=int, default=1),
+        viz_name_score=not ut.get_argflag('--no-viz_name_score'),
+        max_nCols=ut.get_argval('--max_nCols', type_=int, default=None)
+    )
+    return ibs, qres, qreq_, kwargs
+
+
 @ut.indent_func
 def show_qres(ibs, qres, qreq_=None, **kwargs):
     """
@@ -139,36 +160,36 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
 
         python -m ibeis.viz.viz_qres --test-show_qres --show
 
+        python -m ibeis.viz.viz_qres --test-show_qres --show --top-aids=10 --db=PZ_MTEST --sidebyside --annot_mode=0 --notitle --no-viz_name_score --qaids=5 --max_nCols=2 --adjust=.01,.01,.01
+
+        python -m ibeis.viz.viz_qres --test-show_qres --show --top-aids=10 --db=PZ_MTEST --sidebyside --annot_mode=0 --notitle --no-viz_name_score --qaids=5 --max_nCols=2 --adjust=.01,.01,.01
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_qres import *  # NOQA
         >>> import plottool as pt
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> qaids = ibs.get_valid_aids()[0:1]
-        >>> daids = ibs.get_valid_aids()
-        >>> qreq_ = ibs.new_query_request(qaids, daids)
-        >>> qres = ibs.query_chips(qreq_=qreq_)[0]
+        >>> ibs, qres, qreq_, kwargs = testdata_show_qres()
         >>> # execute function
-        >>> fig = show_qres(ibs, qres, sidebyside=True, show_query=False, qreq_=qreq_, top_aids=3)
+        >>> fig = show_qres(ibs, qres, show_query=False, qreq_=qreq_, **kwargs)
         >>> # verify results
         >>> #fig.show()
         >>> pt.show_if_requested()
 
     """
-    annot_mode    = kwargs.get('annot_mode', 1) % 3  # this is toggled
-    figtitle      = kwargs.get('figtitle', '')
-    make_figtitle = kwargs.get('make_figtitle', False)
-    aug           = kwargs.get('aug', '')
-    top_aids      = kwargs.get('top_aids', DEFAULT_NTOP)
-    gt_aids       = kwargs.get('gt_aids',   [])
-    all_kpts      = kwargs.get('all_kpts', False)
-    show_query    = kwargs.get('show_query', False)
-    in_image      = kwargs.get('in_image', False)
-    sidebyside    = kwargs.get('sidebyside', True)
-    name_scoring  = kwargs.get('name_scoring', False)
-    viz_name_score  = kwargs.get('viz_name_score', qreq_ is not None)
+    ut.print_dict(kwargs)
+    annot_mode     = kwargs.get('annot_mode', 1) % 3  # this is toggled
+    figtitle       = kwargs.get('figtitle', '')
+    make_figtitle  = kwargs.get('make_figtitle', False)
+    aug            = kwargs.get('aug', '')
+    top_aids       = kwargs.get('top_aids', DEFAULT_NTOP)
+    gt_aids        = kwargs.get('gt_aids',   [])
+    all_kpts       = kwargs.get('all_kpts', False)
+    show_query     = kwargs.get('show_query', False)
+    in_image       = kwargs.get('in_image', False)
+    sidebyside     = kwargs.get('sidebyside', True)
+    name_scoring   = kwargs.get('name_scoring', False)
+    viz_name_score = kwargs.get('viz_name_score', qreq_ is not None)
+    max_nCols      = kwargs.get('max_nCols', None)
 
     fnum = df2.ensure_fnum(kwargs.get('fnum', None))
 
@@ -182,12 +203,12 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
 
     nTop   = len(top_aids)
 
-    #max_nCols = 5
-    max_nCols = 5
-    if nTop in [6, 7]:
-        max_nCols = 3
-    if nTop in [8]:
-        max_nCols = 4
+    if max_nCols is None:
+        max_nCols = 5
+        if nTop in [6, 7]:
+            max_nCols = 3
+        if nTop in [8]:
+            max_nCols = 4
 
     try:
         assert len(list(set(top_aids).intersection(set(gt_aids)))) == 0, 'gts should be missed.  not in top'
@@ -295,12 +316,18 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
                     cm.score_nsum(qreq_)
                     cm.show_single_namematch(qreq_, ibs.get_annot_nids(aid), **_kwshow)
                 else:
+                    _kwshow['draw_border'] = False
+                    _kwshow['draw_lbl'] = False
+                    _kwshow['notitle'] = True
+                    _kwshow['vert'] = False
                     viz_matches.show_matches(ibs, qres, aid, qreq_=qreq_, **_kwshow)
             else:
                 # Draw each match by themselves
                 data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
-                viz_chip.show_chip(ibs, aid, annote=False, data_config2_=data_config2_, **_kwshow)
-                viz_matches.annotate_matches(ibs, qres, aid, qreq_=qreq_, **_kwshow)
+                #_kwshow['draw_border'] = kwargs.get('draw_border', True)
+                #_kwshow['notitle'] = ut.get_argflag(('--no-title', '--notitle'))
+                viz_chip.show_chip(ibs, aid, annote=False, notitle=True, data_config2_=data_config2_, **_kwshow)
+                #viz_matches.annotate_matches(ibs, qres, aid, qreq_=qreq_, **_kwshow)
 
         if DEBUG_SHOW_QRES:
             print('[show_qres()] Plotting Chips %s:' % vh.get_aidstrs(aid_list))

@@ -359,6 +359,7 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
     show_query  = kwargs.get('show_query', True)
     draw_border = kwargs.get('draw_border', True)
     draw_lbl    = kwargs.get('draw_lbl', True)
+    notitle     = kwargs.get('notitle', False)
 
     #printDBG('[viz] annotate_matches2()')
     truth = ibs.get_match_truth(aid1, aid2)
@@ -398,7 +399,8 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
         lbl1, lbl2 = None, None
     if vh.NO_LBL_OVERRIDE:
         title = ''
-    pt.set_title(title, ax)
+    if not notitle:
+        pt.set_title(title, ax)
     # Plot annotations over images
     if in_image:
         bbox1, bbox2 = vh.get_bboxes(ibs, [aid1, aid2], [offset1, offset2])
