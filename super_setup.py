@@ -8,8 +8,13 @@ mkdir $CODE_DIR
 cd $CODE_DIR
 git clone https://github.com/Erotemic/ibeis.git
 cd ibeis
+
+python super_setup.py --bootstrap
+OR
 ./_scripts/bootstrap.py
+THEN
 ./_scripts/__install_prereqs__.sh
+THEN
 ./super_setup.py --build --develop
 ./super_setup.py --build --develop
 
