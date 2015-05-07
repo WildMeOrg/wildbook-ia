@@ -165,6 +165,8 @@ def show_if_requested():
     if VERBOSE:
         print('[pt] show_if_requested()')
 
+    # Process figures adjustments from command line before a show or a save
+
     adjust_list = ut.get_argval('--adjust', type_=list, default=None)
     if adjust_list is not None:
         # --adjust=[.02,.02,.05]
@@ -185,6 +187,8 @@ def show_if_requested():
         #print('fig w,h (inches) = %r, %r' % (figw, figh))
         fig.set_size_inches(figw, figh)
         #print('get_size_inches = %r' % (fig.get_size_inches(),))
+
+    dpi = ut.get_argval('--dpi', type_=int, default=custom_constants.DPI)
 
     fpath_ = ut.get_argval('--save', type_=str, default=None)
 
