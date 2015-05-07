@@ -267,6 +267,7 @@ for nametup, repo_url in TPL_MODULES_AND_REPOS:
     'https://github.com/bluemellophone/pyrf.git',
     'https://github.com/Erotemic/hesaff.git',
     'https://github.com/bluemellophone/ibeis_cnn',
+    #'https://github.com/bluemellophone/pybing.git',
     'https://github.com/Erotemic/ibeis.git',
     #'https://github.com/aweinstock314/cyth.git',
     #'https://github.com/hjweide/pygist',
