@@ -1028,11 +1028,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             if len(gid_list) == 1:
                 gid = gid_list[0]
                 eid = model.eid
+                view_aid_options = [
+                    ('View aid=%r' % (aid,), lambda: ibswgt.back.show_annotation(aid))
+                    for aid in ibs.get_image_aids(gid)
+                ]
                 context_options += [
                     ('View image',
                         lambda: ibswgt.back.select_gid(gid, eid, show=True)),
                     ('View detection image (Hough) [dev]',
                         lambda: ibswgt.back.show_hough_image(gid)),
+                    ('View annotation:',
+                       view_aid_options),
                     ('Add annotation from entire image',
                         lambda: ibswgt.back.add_annotation_from_image([gid])),
                     ('Run detection on image (can cause duplicates)',
@@ -1142,9 +1148,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, eid)),
                     ('----', lambda: None),
                     ('View annotation',
-                        lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                        #lambda: ibswgt.back.select_aid(aid, eid, show=True)),
+                        lambda: ibswgt.back.show_annotation(aid)),
                     ('View image',
                         lambda: ibswgt.back.select_gid_from_aid(aid, eid, show=True)),
+                    #back.show_image(gid, sel_aids=sel_aids)
                     ('View detection chip (probability) [dev]',
                         lambda: ibswgt.back.show_probability_chip(aid)),
                     ('----', lambda: None),

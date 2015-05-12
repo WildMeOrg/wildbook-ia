@@ -47,3 +47,5 @@ python dev.py --db PZ_Master0 --allgt -t custom:scale_max=200 custom:affine_inva
 
 python dev.py --db PZ_MTEST --allgt -t pyrscale
 
+
+python dev.py --db Elephants_drop1 --allgt -t custom:affine_invariance=False

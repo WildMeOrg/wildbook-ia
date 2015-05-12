@@ -569,6 +569,12 @@ class QueryResult(__OBJECT_BASE__):
             best_rank = best_ranks[0]
         return best_rank
 
+    def get_top_groundtruth_aid(qres, ibs=None):
+        gt_ranks, gt_aids = qres.get_gt_ranks(ibs=ibs, return_gtaids=True)
+        bestx = np.array(gt_ranks).argsort()[0]
+        best_aid = gt_aids[bestx]
+        return best_aid
+
     # ----------------------------------------
 
     def get_average_percision(qres, ibs=None, gt_aids=None):

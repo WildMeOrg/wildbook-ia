@@ -146,13 +146,14 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
     Knorm = qreq_.qparams.Knorm
     fgvotes_list = []
     qaid_list = qreq_.get_internal_qaids()
+    config2_ = qreq_.get_internal_query_config2()
     # Database feature index to chip index
     for qaid, nns in zip(qaid_list, nns_list):
         (qfx2_idx, qfx2_dist) = nns
         # database forground weights
         qfx2_dfgw = qreq_.indexer.get_nn_fgws(qfx2_idx.T[0:-Knorm].T)
         # query forground weights
-        qfx2_qfgw = qreq_.ibs.get_annot_fgweights([qaid], ensure=False, config2_=qreq_.get_internal_query_config2())[0]
+        qfx2_qfgw = qreq_.ibs.get_annot_fgweights([qaid], ensure=False, config2_=config2_)[0]
         # feature match forground weight
         qfx2_fgvote_weight = np.sqrt(qfx2_qfgw[:, None] * qfx2_dfgw)
         fgvotes_list.append(qfx2_fgvote_weight)

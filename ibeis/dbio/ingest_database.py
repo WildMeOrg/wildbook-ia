@@ -45,13 +45,36 @@ class FMT_KEYS:
     snails_fmt  = '{name:*dd}{id:dd}.{ext}'
     giraffe1_fmt = '{name:*}_{id:d}.{ext}'
     seal2_fmt = '{name:Phsd*}{id:[A-Z]}.{ext}'
+    elephant_fmt = '{prefix?}{name}_{view}_{id?}.{ext}'
 
 
 def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext}'):
     """
     Input: gpath_list
     Output: names based on the parent folder of each image
+
+    CommandLine:
+        python -m ibeis.dbio.ingest_database --test-get_name_texts_from_gnames
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.dbio.ingest_database import *  # NOQA
+        >>> gpath_list = ['e_f0273_f.jpg', 'f0001_f.jpg', 'f0259_l_3.jpg', 'f0259_f_1.jpg',  'f0259_f (1).jpg', 'f0058_u16_f.jpg']
+        >>> img_dir = ''
+        >>> fmtkey = FMT_KEYS.elephant_fmt
+        >>> result = get_name_texts_from_gnames(gpath_list, img_dir, fmtkey)
+        >>> print(result)
+
+    Ignore:
+        print(ut.get_match_text(re.match('e_', 'e_foobar')))
+        print(ut.get_match_text(re.match('(e_)?fo', 'e_foobar')))
+        # YAY
+        print(ut.get_match_text(re.match('(e_)?fo', 'foobar')))
+
+
     """
+    # These define regexes that attempt to parse the insane and contradicting
+    # naming schemes of the image sets that we get.
     INGEST_FORMATS = {
         FMT_KEYS.name_fmt: ut.named_field_regex([
             ('name', r'[a-zA-Z]+'),  # all alpha characters
@@ -81,10 +104,38 @@ def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext
             ( None,   r'\.'),
             ('ext',   r'\w+'),
         ]),
+
+        # this one defines multiple possible regex types. yay standards
+        FMT_KEYS.elephant_fmt: [
+            ut.named_field_regex([
+                ('prefix',  r'(e_)?'),
+                ('name', r'[a-zA-Z0-9]+'),
+                ('view', r'_[rflo]'),
+                ('id',    r'([ _][^.]+)?'),
+                ( None,   r'\.'),
+                ('ext',   r'\w+'),
+            ]),
+            ut.named_field_regex([
+                ('prefix',  r'(e_)?'),
+                ('name', r'[a-zA-Z0-9]+'),
+                ('id',    r'([ _][^.]+)?'),
+                ('view', r'_[rflo]'),
+                ( None,   r'\.'),
+                ('ext',   r'\w+'),
+            ])],
     }
-    regex = INGEST_FORMATS.get(fmtkey, fmtkey)
+    regex_list = INGEST_FORMATS.get(fmtkey, fmtkey)
     gname_list = ut.fpaths_to_fnames(gpath_list)
-    parsed_list = [ut.regex_parse(regex, gname) for gname in gname_list]
+    def parse_format(regex_list, gname):
+        if not isinstance(regex_list, list):
+            regex_list = [regex_list]
+        for regex in regex_list:
+            result = ut.regex_parse(regex, gname)
+            if result is not None:
+                return result
+        return None
+
+    parsed_list = [parse_format(regex_list, gname) for gname in gname_list]
 
     anyfailed = False
     for gpath, parsed in zip(gpath_list, parsed_list):
@@ -92,7 +143,7 @@ def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext
             print('FAILED TO PARSE: %r' % gpath)
             anyfailed = True
     if anyfailed:
-        msg = ('FAILED REGEX: %r' % regex)
+        msg = ('FAILED REGEX: %r' % regex_list)
         raise Exception(msg)
 
     _name_list = [parsed['name'] for parsed in parsed_list]
@@ -101,7 +152,7 @@ def get_name_texts_from_gnames(gpath_list, img_dir, fmtkey='{name:*}[aid:d].{ext
 
 
 def resolve_name_conflicts(gid_list, name_list):
-    # Build conflict map
+    # Build conflict map (values are lists of members)
     conflict_gid_to_names = ut.build_conflict_dict(gid_list, name_list)
 
     # Check to see which gid has more than one name
@@ -294,8 +345,8 @@ def ingest_Giraffes1(dbname):
 def ingest_Elephants_drop1(dbname):
     return Ingestable(dbname,
                       zipfile='../raw_unprocessed/ID photo front_Elephants_4-29-2015-PeterGranli.zip',
-                      ingest_type='unknown',
-                      fmtkey=FMT_KEYS.giraffe1_fmt,
+                      ingest_type='named_images',
+                      fmtkey=FMT_KEYS.elephant_fmt,
                       species=const.Species.ELEPHANT_SAV,
                       adjust_percent=0.00)
 
@@ -413,10 +464,12 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     if ingest_type == 'named_folders':
         name_list = get_name_texts_from_parent_folder(gpath_list, img_dir, fmtkey)
         pass
-    if ingest_type == 'named_images':
+    elif ingest_type == 'named_images':
         name_list = get_name_texts_from_gnames(gpath_list, img_dir, fmtkey)
-    if ingest_type == 'unknown':
+    elif ingest_type == 'unknown':
         name_list = [const.UNKNOWN for _ in range(len(gpath_list))]
+    else:
+        raise NotImplementedError('unknwon ingest_type=%r' % (ingest_type,))
 
     # Add Images
     gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
@@ -436,9 +489,9 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         gid_list, name_list)
     # Add ANNOTATIONs with names and notes
     aid_list = ibs.use_images_as_annotations(unique_gids,
-                                             name_list=unique_names,
-                                             notes_list=unique_notes,
                                              adjust_percent=adjust_percent)
+    ibs.set_annot_names(aid_list, unique_names)
+    ibs.set_annot_notes(aid_list, unique_notes)
     if species_text is not None:
         ibs.set_annot_species(aid_list, [species_text] * len(aid_list))
     if localize:
@@ -627,6 +680,24 @@ def ingest_oxford_style_db(dbdir):
     print('Added %d distractor annototations' % len(uaid_list))
 
 
+def injest_main():
+    print('__main__ = ingest_database.py')
+    print(ut.unindent(
+        '''
+        usage:
+        python ibeis/ingest/ingest_database.py --db [dbname]
+
+        Valid dbnames:''') + ut.indentjoin(STANDARD_INGEST_FUNCS.keys(), '\n  * '))
+    dbname = ut.get_argval('--db', str, None)
+    force_delete = ut.get_argflag(('--force_delete', '--force-delete'))
+    ibs = ingest_standard_database(dbname, force_delete)  # NOQA
+    print('finished db injest')
+    #img_dir = join(ibeis.sysres.get_workdir(), 'polar_bears')
+    #main_locals = ibeis.main(dbdir=img_dir, gui=False)
+    #ibs = main_locals['ibs']
+    #ingest_rawdata(ibs, img_dir)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
@@ -640,20 +711,9 @@ if __name__ == '__main__':
         python ibeis/dbio/ingest_database.py --db testdb1
         python ibeis/dbio/ingest_database.py --db Elephants_drop1
     """
+    if ut.doctest_was_requested():
+        ut.doctest_funcs()
+    else:
+        injest_main()
     import multiprocessing
     multiprocessing.freeze_support()  # win32
-    print('__main__ = ingest_database.py')
-    print(ut.unindent(
-        '''
-        usage:
-        python ibeis/ingest/ingest_database.py --db [dbname]
-
-        Valid dbnames:''') + ut.indentjoin(STANDARD_INGEST_FUNCS.keys(), '\n  * '))
-    dbname = ut.get_argval('--db', str, None)
-    force_delete = ut.get_argflag('--force_delete')
-    ibs = ingest_standard_database(dbname, force_delete)
-    print('finished db injest')
-    #img_dir = join(ibeis.sysres.get_workdir(), 'polar_bears')
-    #main_locals = ibeis.main(dbdir=img_dir, gui=False)
-    #ibs = main_locals['ibs']
-    #ingest_rawdata(ibs, img_dir)

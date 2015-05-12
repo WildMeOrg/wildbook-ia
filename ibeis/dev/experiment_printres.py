@@ -22,7 +22,6 @@ SKIP_TO = ut.get_argval(('--skip-to', '--skipto'), type_=int, default=None)
 #SAVE_FIGURES = ut.get_argflag(('--save-figures', '--sf'))
 SAVE_FIGURES = not ut.get_argflag(('--nosave-figures', '--nosf'))
 
-DUMP_EXTRA           = ut.get_argflag('--dump-extra')
 QUALITY              = ut.get_argflag('--quality')
 SHOW                 = ut.get_argflag('--show')
 
@@ -80,6 +79,61 @@ def get_diffmat_str(rank_mat, qaids, nConfig):
     return diff_matstr
 
 
+def _show_chip(ibs, aid, individual_results_figdir, prefix, rank=None, in_image=False, seen=set([]), config2_=None, **dumpkw):
+    print('[PRINT_RESULTS] show_chip(aid=%r) prefix=%r' % (aid, prefix))
+    from ibeis import viz
+    # only dump a chip that hasn't been dumped yet
+    if aid in seen:
+        print('[PRINT_RESULTS] SEEN SKIPPING')
+        return
+    fulldir = join(individual_results_figdir, dumpkw['subdir'])
+    if DUMP_PROBCHIP:
+        # just copy it
+        probchip_fpath = ibs.get_annot_probchip_fpath([aid], config2_=config2_)[0]
+        ut.copy(probchip_fpath, fulldir, overwrite=False)
+    if DUMP_REGCHIP:
+        chip_fpath = ibs.get_annot_chip_fpath([aid], config2_=config2_)[0]
+        ut.copy(chip_fpath, fulldir, overwrite=False)
+
+    viz.show_chip(ibs, aid, in_image=in_image, config2_=config2_)
+    if rank is not None:
+        prefix += 'rank%d_' % rank
+    df2.set_figtitle(prefix + ibs.annotstr(aid))
+    seen.add(aid)
+    if ut.VERBOSE:
+        print('[expt] dumping fig to individual_results_figdir=%s' % individual_results_figdir)
+
+    fpath_clean = ph.dump_figure(individual_results_figdir, **dumpkw)
+    return fpath_clean
+
+
+class IndividualResultsCopyTaskQueue(object):
+    def __init__(self):
+        self.cp_task_list = []
+
+    def append_copy_task(self, fpath_orig, dstdir=None):
+        """ helper which copies a summary figure to root dir """
+        fname_orig, ext = splitext(basename(fpath_orig))
+        outdir = dirname(fpath_orig)
+        fdir_clean, cfgdir = split(outdir)
+        if dstdir is None:
+            dstdir = fdir_clean
+        #aug = cfgdir[0:min(len(cfgdir), 10)]
+        aug = cfgdir
+        fname_fmt = '{aug}_{fname_orig}{ext}'
+        fmt_dict = {'aug': aug, 'fname_orig': fname_orig, 'ext': ext}
+        fname_clean = ut.long_fname_format(fname_fmt, fmt_dict, ['fname_orig'], max_len=128)
+        fdst_clean = join(dstdir, fname_clean)
+        self.cp_task_list.append((fpath_orig, fdst_clean))
+
+    def flush_copy_tasks(self):
+        # Execute all copy tasks and empty the lists
+        print('[DRAW_RESULT] copying %r summaries' % (len(self.cp_task_list)))
+        for src, dst in self.cp_task_list:
+            ut.copy(src, dst, verbose=False)
+        del self.cp_task_list[:]
+
+
 @profile
 def draw_results(ibs, test_result):
     """
@@ -135,16 +189,11 @@ def draw_results(ibs, test_result):
 
     qaids = test_result.qaids
     daids = test_result.daids
-    new_hard_qx_list = test_result.get_new_hard_qx_list()
     rank_mat = test_result.get_rank_mat()
     interesting_qx_list = get_interesting_ranks(rank_mat, qaids)
 
     (cfg_list, cfgx2_lbl, cfgx2_qreq_) = ut.dict_take(
         test_result.__dict__, ['cfg_list', 'cfgx2_lbl', 'cfgx2_qreq_'])
-
-    #_viewkw = dict(view_interesting=True)
-    _viewkw = {}
-    sel_rows, sel_cols = get_sel_rows_and_cols(qaids, cfg_list, new_hard_qx_list, interesting_qx_list, **_viewkw)
 
     figdir = ibs.get_fig_dir()
     ut.ensuredir(figdir)
@@ -155,8 +204,12 @@ def draw_results(ibs, test_result):
 
     individual_results_figdir = join(figdir, 'individual_results')
     aggregate_results_figdir  = join(figdir, 'aggregate_results')
+    blind_results_figdir  = join(figdir, 'blind_results')
+    top_rank_analysis_dir = join(figdir, 'top_rank_analysis')
     ut.ensuredir(individual_results_figdir)
     ut.ensuredir(aggregate_results_figdir)
+    ut.ensuredir(top_rank_analysis_dir)
+    ut.ensuredir(blind_results_figdir)
 
     VIEW_FIG_DIR = ut.get_argflag(('--view-fig-dir', '--vf', '--vfd'))
     if VIEW_FIG_DIR:
@@ -165,46 +218,84 @@ def draw_results(ibs, test_result):
     VIZ_AGGREGATE_RESULTS = True
     if VIZ_AGGREGATE_RESULTS:
         import plottool as pt
-        for cfgx, ranks in enumerate(rank_mat.T):
-            full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
-            fig = pt.show_histogram(ranks, title='Groundtruth ranks\n' + full_cfgstr)  # NOQA
-            ax = pt.gca()
-            ax.set_xlabel('Ranks of correct result')
-            ax.set_ylabel('Frequency')
-            #pt.dark_background()
+        agg_hist_dict = test_result.get_rank_histograms()
+
+        config_gt_aids = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_gt_aid')
+        config_rand_bin_qxs = test_result.get_rank_histogram_qx_binxs()
+
+        for cfgx, (ranks, agg_hist_dict, qx2_gt_aid, config_binxs) in enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs)):
+            #full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
+            ut.print_dict(ut.dict_hist(ranks), 'rank histogram', sorted_=True)
+            # find the qxs that belong to each bin
+            test_result.qaids
+            test_result.qaids
+
+            def get_annotpair_timdelta(ibs, aid_list1, aid_list2):
+                unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)
+                unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)
+                unixtime_list1[unixtime_list1 == -1] = np.nan
+                unixtime_list2[unixtime_list2 == -1] = np.nan
+                timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
+                return timedelta_list
+
+            #def get_annotpair_timdelta_strs(ibs, aid_list1, aid_list2):
+            #    timedelta_list = get_annotpair_timdelta(ibs, aid_list1, aid_list2)
+            #    timedelta_str_list = [ut.get_posix_timedelta_str(delta) if not np.isnan(delta) else 'None'
+            #                          for delta in timedelta_list]
+            #    return timedelta_str_list
+
+            aid_list1 = test_result.qaids
+            aid_list2 = qx2_gt_aid
+            timedelta_list = get_annotpair_timdelta(ibs, aid_list1, aid_list2)
+            #timedelta_str_list = [ut.get_posix_timedelta_str2(delta)
+            #                      for delta in timedelta_list]
+
+            bin_edges = test_result.get_rank_histogram_bin_edges()
+            timedelta_groups = ut.dict_take(ut.group_items(timedelta_list, config_binxs), np.arange(len(bin_edges)), [])
+
+            timedelta_stats = [ut.get_stats(deltas, use_nan=True, datacast=ut.get_posix_timedelta_str2) for deltas in timedelta_groups]
+            print('bin time stats')
+            print(ut.dict_str(dict(zip(bin_edges, timedelta_stats)), sorted_=True))
+
+            #timedelta_str_list = get_annotpair_timdelta_strs(ibs, aid_list1, aid_list2)
+
+            ut.print_dict(agg_hist_dict, 'agg rank histogram', sorted_=True)
             #ut.embed()
-            ut.print_dict(ut.dict_hist(ranks), 'rank histogram')
-            fpath_orig = ph.dump_figure(aggregate_results_figdir, reset=not SHOW)
+            #bin_itemstr_list = ['%r: %d' % tup for tup in  zip(bin_keys, bin_values)]
+            #hist_str = '\n'.join(ut.align_lines(bin_itemstr_list, ':'))
+            #print('rank histogram = {\n' + ut.indent(hist_str) + '\n}')
+
+            #fig = pt.show_histogram(ranks, title='Groundtruth ranks\n' + full_cfgstr)  # NOQA
+            #ax = pt.gca()
+            #ax.set_xlabel('Ranks of correct result')
+            #ax.set_ylabel('Frequency')
+            ##pt.dark_background()
+            #fpath_orig = ph.dump_figure(aggregate_results_figdir, reset=not SHOW)
             #pt.plt.show()
             #pt.update()
-            ut.embed()
+            #ut.embed()
 
     VIZ_INDIVIDUAL_RESULTS = True
     if VIZ_INDIVIDUAL_RESULTS:
-        cp_src_list = []
-        cp_dst_list = []
+        #_viewkw = dict(view_interesting=True)
+        _viewkw = {}
+        # Get selected rows and columns for individual rank investigation
+        new_hard_qx_list = test_result.get_new_hard_qx_list()
+        sel_rows, sel_cols = get_sel_rows_and_cols(
+            qaids, cfg_list, new_hard_qx_list, interesting_qx_list, test_result, **_viewkw)
 
-        def append_copy_task(fpath_orig):
-            """ helper which copies a summary figure to root dir """
-            fname_orig, ext = splitext(basename(fpath_orig))
-            outdir = dirname(fpath_orig)
-            fdir_clean, cfgdir = split(outdir)
-            #aug = cfgdir[0:min(len(cfgdir), 10)]
-            aug = cfgdir
-            fname_fmt = '{aug}_{fname_orig}{ext}'
-            fmt_dict = {'aug': aug, 'fname_orig': fname_orig, 'ext': ext}
-            fname_clean = ut.long_fname_format(fname_fmt, fmt_dict, ['fname_orig'], max_len=128)
-            fdst_clean = join(fdir_clean, fname_clean)
-            cp_src_list.append(fpath_orig)
-            cp_dst_list.append(fdst_clean)
+        show_kwargs = {
+            'N': 3,
+            'ori': True,
+            'ell_alpha': .9,
+        }
+        dumpkw = {
+            'quality'   : QUALITY,
+            'overwrite' : True,
+            'verbose'   : 0,
+        }
 
-        def flush_copy_tasks():
-            # Execute all copy tasks and empty the lists
-            print('[DRAW_RESULT] copying %r summaries' % (len(cp_src_list)))
-            for src, dst in zip(cp_src_list, cp_dst_list):
-                ut.copy(src, dst, verbose=False)
-            del cp_dst_list[:]
-            del cp_src_list[:]
+        cpq = IndividualResultsCopyTaskQueue()
 
         def load_qres(ibs, qaid, daids, qreq_):
             # Load / Execute the query w/ correct config
@@ -213,33 +304,6 @@ def draw_results(ibs, test_result):
                 [qaid], daids, use_cache=True, use_bigcache=False,
                 qreq_=qreq_)[qaid]
             return qres
-
-        def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), config2_=None, **dumpkw):
-            print('[PRINT_RESULTS] show_chip(aid=%r) prefix=%r' % (aid, prefix))
-            from ibeis import viz
-            # only dump a chip that hasn't been dumped yet
-            if aid in seen:
-                print('[PRINT_RESULTS] SEEN SKIPPING')
-                return
-            fulldir = join(individual_results_figdir, dumpkw['subdir'])
-            if DUMP_PROBCHIP:
-                # just copy it
-                probchip_fpath = ibs.get_annot_probchip_fpath([aid], config2_=config2_)[0]
-                ut.copy(probchip_fpath, fulldir, overwrite=False)
-            if DUMP_REGCHIP:
-                chip_fpath = ibs.get_annot_chip_fpath([aid], config2_=config2_)[0]
-                ut.copy(chip_fpath, fulldir, overwrite=False)
-
-            viz.show_chip(ibs, aid, in_image=in_image, config2_=config2_)
-            if rank is not None:
-                prefix += 'rank%d_' % rank
-            df2.set_figtitle(prefix + ibs.annotstr(aid))
-            seen.add(aid)
-            if ut.VERBOSE:
-                print('[expt] dumping fig to individual_results_figdir=%s' % individual_results_figdir)
-
-            fpath_clean = ph.dump_figure(individual_results_figdir, **dumpkw)
-            return fpath_clean
 
         for count, r in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW)):
             qreq_list = ut.list_take(cfgx2_qreq_, sel_cols)
@@ -252,45 +316,70 @@ def draw_results(ibs, test_result):
                 qres_cfg = qres.get_fname(ext='')
                 subdir = qres_cfg
                 # Draw Result
-                dumpkw = {
-                    'subdir'    : subdir,
-                    'quality'   : QUALITY,
-                    'overwrite' : True,
-                    'verbose'   : 0,
-                }
-                show_kwargs = {
-                    'N': 3,
-                    'ori': True,
-                    'ell_alpha': .9,
-                }
-
-                # Show Figure
                 # try to shorten query labels a bit
                 query_lbl = query_lbl.replace(' ', '').replace('\'', '')
                 #qres.show(ibs, 'analysis', figtitle=query_lbl, fnum=fnum, **show_kwargs)
-                if SHOW:
-                    #show_kwargs['show_query'] = False
-                    show_kwargs['viz_name_score'] = True
-                    qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
-                    #qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
-                else:
-                    show_kwargs['show_query'] = False
-                    #show_kwargs['viz_name_score'] = False
-                    show_kwargs['viz_name_score'] = True
-                    qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
 
-                # Adjust subplots
-                #df2.adjust_subplots_safe()
-                fpath_orig = ph.dump_figure(individual_results_figdir, reset=not SHOW, **dumpkw)
-                append_copy_task(fpath_orig)
+                # SHOW ANALYSIS
+                DRAW_ANALYSIS = True
+                if DRAW_ANALYSIS:
+                    if SHOW:
+                        #show_kwargs['show_query'] = False
+                        show_kwargs['viz_name_score'] = True
+                        show_kwargs['show_timedelta'] = True
+                        qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
+                    else:
+                        show_kwargs['show_query'] = False
+                        #show_kwargs['viz_name_score'] = False
+                        show_kwargs['viz_name_score'] = True
+                        show_kwargs['show_timedelta'] = True
+                        qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
+                    fpath_orig = ph.dump_figure(individual_results_figdir, reset=not SHOW, subdir=subdir, **dumpkw)
+                    cpq.append_copy_task(fpath_orig, top_rank_analysis_dir)
+
+                # BLIND CASES
+                DRAW_BLIND = True
+                if DRAW_BLIND:
+                    best_gt_aid = qres.get_top_groundtruth_aid(ibs=ibs)
+                    qres.show_name_matches(ibs, best_gt_aid,
+                                           show_matches=False,
+                                           show_name_score=False,
+                                           show_name_rank=False,
+                                           show_annot_score=False, fnum=fnum,
+                                           qreq_=qreq_, **show_kwargs)
+                    pt.set_figtitle('BLIND ' + query_lbl)
+                    fpath_orig = ph.dump_figure(individual_results_figdir, reset=not SHOW, subdir=subdir, **dumpkw)
+                    cpq.append_copy_task(fpath_orig, blind_results_figdir)
+                    #cpq.append_copy_task(fpath_orig)
+
+                DUMP_EXTRA  = ut.get_argflag('--dump-extra')
+                DRAW_QUERY_CHIP  = DUMP_EXTRA
+                extra_kw = dict(config2_=qreq_.get_external_query_config2(), subdir=subdir, **dumpkw)
+                if DRAW_QUERY_CHIP:
+                    _show_chip(ibs, qres.qaid, individual_results_figdir, 'QUERY_', **extra_kw)
+                    _show_chip(ibs, qres.qaid, individual_results_figdir, 'QUERY_CXT_', in_image=True, **extra_kw)
+
+                DRAW_QUERY_GROUNDTRUTH = DUMP_EXTRA
+                if DRAW_QUERY_GROUNDTRUTH:
+                    gtaids = ibs.get_annot_groundtruth(qres.qaid)
+                    for aid in gtaids:
+                        rank = qres.get_aid_ranks(aid)
+                        _show_chip(ibs, aid, individual_results_figdir, 'GT_CXT_', rank=rank, in_image=True, **extra_kw)
+
+                DRAW_QUERY_RESULT_CONTEXT  = DUMP_EXTRA
+                if DRAW_QUERY_RESULT_CONTEXT:
+                    topids = qres.get_top_aids(num=3)
+                    for aid in topids:
+                        rank = qres.get_aid_ranks(aid)
+                        _show_chip(ibs, aid, individual_results_figdir, 'TOP_CXT_', rank=rank, in_image=True, **extra_kw)
 
             # if some condition of of batch sizes
-            flush_freq = 1
+            flush_freq = 4
             if count % flush_freq == (flush_freq - 1):
-                flush_copy_tasks()
+                cpq.flush_copy_tasks()
 
         # Copy summary images to query_analysis folder
-        flush_copy_tasks()
+        cpq.flush_copy_tasks()
 
     if ut.NOT_QUIET:
         print('[DRAW_RESULT] EXIT EXPERIMENT HARNESS')
@@ -838,12 +927,16 @@ def print_results(ibs, test_result):
     print('To enable all printouts add --print-all to the commandline')
 
 
-def get_sel_rows_and_cols(qaids, cfg_list, new_hard_qx_list, interesting_qx_list,
+def get_sel_rows_and_cols(qaids, cfg_list, new_hard_qx_list, interesting_qx_list, test_result,
                           view_all=ut.get_argflag(('--view-all', '--va')),
                           view_hard=ut.get_argflag(('--view-hard', '--vh')),
                           view_easy=ut.get_argflag(('--view-easy', '--vz')),
                           view_interesting=ut.get_argflag(('--view-interesting', '--vn')),
-                          ):
+                          **kwargs):
+    """
+    The selected rows are the query annotation you are interested in viewing
+    The selected cols are the parameter configuration you are interested in viewing
+    """
     sel_cols = params.args.sel_cols  # FIXME
     sel_rows = params.args.sel_rows  # FIXME
     sel_cols = [] if sel_cols is None else sel_cols
@@ -851,13 +944,14 @@ def get_sel_rows_and_cols(qaids, cfg_list, new_hard_qx_list, interesting_qx_list
     #sel_rows = []
     #sel_cols = []
     if ut.NOT_QUIET:
-        print('remember to inspect with --sel-rows (-r) and --sel-cols (-c) ')
+        print('remember to inspect with --show --sel-rows (-r) and --sel-cols (-c) ')
         print('other options:')
         print('   --vf - view figure dir')
         print('   --va - view all')
         print('   --vh - view hard')
         print('   --ve - view easy')
         print('   --vn - view iNteresting')
+        print('   --hs - hist sample')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
         sel_cols = list(range(len(cfg_list)))
     if len(sel_cols) > 0 and len(sel_rows) == 0:
@@ -874,6 +968,13 @@ def get_sel_rows_and_cols(qaids, cfg_list, new_hard_qx_list, interesting_qx_list
         sel_cols.extend(list(range(len(cfg_list))))
     if view_interesting:
         sel_rows.extend(interesting_qx_list)
+        # TODO: grab the best scoring and most interesting configs
+        if len(sel_cols) == 0:
+            sel_cols.extend(list(range(len(cfg_list))))
+    if kwargs.get('hist_sample', ut.get_argflag(('--hs', '--hist-sample'))):
+        # Careful if there is more than one config
+        config_rand_bin_qxs = test_result.get_rank_histogram_qx_sample(size=10)
+        sel_rows = np.hstack(ut.flatten(config_rand_bin_qxs))
         # TODO: grab the best scoring and most interesting configs
         if len(sel_cols) == 0:
             sel_cols.extend(list(range(len(cfg_list))))

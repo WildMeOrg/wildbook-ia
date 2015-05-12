@@ -359,11 +359,13 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     data_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(internal_daids, prefix='D')
 
     nn_cfgstr      = qreq_.qparams.nn_cfgstr
-    nn_mid_cacheid = data_hashid + nn_cfgstr + ('aug_quryside' if qreq_.qparams.augment_queryside_hack else '')
+    feat_cfgstr    = qreq_.qparams.feat_cfgstr
+    nn_mid_cacheid = data_hashid + nn_cfgstr + feat_cfgstr + ('aug_quryside' if qreq_.qparams.augment_queryside_hack else '')
 
     query_hashid_list = qreq_.ibs.get_annot_visual_uuids(internal_qaids)
 
-    nn_mid_cacheid_list = [str(query_hashid) + nn_mid_cacheid + '_' + str(Kpad) for query_hashid, Kpad in zip(query_hashid_list, Kpad_list)]
+    nn_mid_cacheid_list = [str(query_hashid) + nn_mid_cacheid + '_' + str(Kpad)
+                           for query_hashid, Kpad in zip(query_hashid_list, Kpad_list)]
 
     neighbor_cachedir2 = ut.unixjoin(qreq_.ibs.get_cachedir(), 'neighborcache2')
     ut.ensuredir(neighbor_cachedir2)
@@ -391,6 +393,9 @@ def nearest_neighbors_withcache(qreq_, Kpad_list, verbose=VERB_PIPELINE):
         # do computation
         num_neighbors_list = [K + Kpad + Knorm for Kpad in Kpad_list]
         qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids, config2_=qreq_.get_internal_query_config2())
+        if verbose:
+            if len(internal_qaids) == 1:
+                print('[hs] depth(qvecs_list) = %r' % (ut.depth_profile(qvecs_list),))
         # Mark progress ane execute nearest indexer nearest neighbor code
         qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, **PROGKW)
         nns_list = [qreq_.indexer.knn(qfx2_vec, num_neighbors) for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
@@ -565,6 +570,8 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     """
     if verbose:
         print('[hs] Step 3) Weight neighbors: ' + qreq_.qparams.nnweight_cfgstr)
+        if len(nns_list) == 1:
+            print('[hs] depth(nns_list) ' + str(ut.depth_profile(nns_list)))
 
     print(WEIGHT_LBL)
     #intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL, **PROGKW)

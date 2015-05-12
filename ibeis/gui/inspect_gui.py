@@ -781,6 +781,7 @@ def get_match_thumb_fname(qres, daid):
         >>> daid = daid_list[0]
         >>> match_thumb_fname = get_match_thumb_fname(qres, daid)
         >>> result = match_thumb_fname
+        >>> print(result)
         match_aids=1,1_cfgstr=ubpzwu5k54h6xbnr.jpg
     """
     # Make thumbnail name

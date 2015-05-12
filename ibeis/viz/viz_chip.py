@@ -127,7 +127,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
     if in_image:
         gid = ibs.get_annot_gids(aid)
         aid_list = ibs.get_image_aids(gid)
-        annotekw = viz_image.get_annot_annotations(ibs, aid_list, sel_aids=[aid])
+        annotekw = viz_image.get_annot_annotations(ibs, aid_list, sel_aids=[aid], draw_lbls=kwargs.get('draw_lbls', True))
         pt.viz_image2.draw_image_overlay(ax, **annotekw)
 
     #if 'featweights' in vars() and 'color' in kwargs:

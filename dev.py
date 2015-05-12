@@ -963,3 +963,38 @@ if __name__ == '__main__':
         utool.memory_profile()
 
     print('exiting dev')
+
+
+"""
+CurrentExperiments:
+    # Full best settings run
+    ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains
+    # Full best settings run without spatial verification
+    ./dev.py -t custom:sv_on=False --db PZ_Master0 --allgt --species=zebra_plains
+
+    ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains --hs
+
+
+Without SV:
+agg rank histogram = {
+    (0, 1): 2276,
+    (1, 5): 126,
+    (5, 50): 99,
+    (50, 8624): 108,
+    (8624, 8625): 28,
+}
+With SV:
+agg rank histogram = {
+    (0, 1): 2300,
+    (1, 5): 106,
+    (5, 50): 16,
+    (50, 8624): 0,
+    (8624, 8625): 215,
+}
+
+Guesses:
+    0 2 2 2 4 4 4 4 0 0
+    0 0 4 2 2 4 4 4 2 2
+    2 4 4 4 1 1 1 2 2 2
+    0 0 1 1 1 2 0 0 1
+"""
