@@ -8,8 +8,8 @@ import numpy as np
 #import six
 import utool
 import utool as ut
-from ibeis.dev import experiment_helpers as eh
-from ibeis.dev import experiment_printres
+from ibeis.experiments import experiment_helpers as eh
+from ibeis.experiments import experiment_printres
 
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[expt_harn]')
@@ -99,7 +99,7 @@ def get_config_result_info(ibs, qaids, daids):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dev.experiment_harness import *  # NOQA
+        >>> from ibeis.experiments.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaids = ibs.get_valid_aids()[0:3]
@@ -108,7 +108,7 @@ def get_config_result_info(ibs, qaids, daids):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dev.experiment_harness import *  # NOQA
+        >>> from ibeis.experiments.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> cfgdict = dict(codename='vsone')
@@ -158,11 +158,11 @@ def test_configurations(ibs, qaids, daids, test_cfg_name_list):
     Test harness driver function
 
     CommandLine:
-        python -m ibeis.dev.experiment_harness --test-test_configurations
+        python -m ibeis.experiments.experiment_harness --test-test_configurations
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.dev.experiment_harness import *  # NOQA
+        >>> from ibeis.experiments.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaids = ibs.get_valid_aids()[::40]
@@ -343,10 +343,10 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, ibeis.dev.experiment_harness; utool.doctest_funcs(ibeis.dev.experiment_harness, allexamples=True)"
-        python -c "import utool, ibeis.dev.experiment_harness; utool.doctest_funcs(ibeis.dev.experiment_harness)"
-        python -m ibeis.dev.experiment_harness
-        python -m ibeis.dev.experiment_harness --allexamples
+        python -c "import utool, ibeis.experiments.experiment_harness; utool.doctest_funcs(ibeis.experiments.experiment_harness, allexamples=True)"
+        python -c "import utool, ibeis.experiments.experiment_harness; utool.doctest_funcs(ibeis.experiments.experiment_harness)"
+        python -m ibeis.experiments.experiment_harness
+        python -m ibeis.experiments.experiment_harness --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

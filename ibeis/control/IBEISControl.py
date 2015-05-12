@@ -27,7 +27,7 @@ from os.path import join, exists, split
 import utool as ut  # NOQA
 # IBEIS
 import ibeis  # NOQA
-from ibeis.dev import sysres
+from ibeis.init import sysres
 from ibeis import constants as const
 from ibeis import params
 from ibeis.control import accessor_decors, controller_inject

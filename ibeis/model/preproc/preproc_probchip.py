@@ -415,7 +415,7 @@ def get_extramargin_detectchip_info(ibs, aid_list, config2_=None, species=None, 
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_probchip import *  # NOQA
         >>> import ibeis
-        >>> from ibeis.dev import main_helpers
+        >>> from ibeis.init import main_helpers
         >>> # build test data
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = main_helpers.get_test_qaids(ibs)

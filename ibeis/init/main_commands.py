@@ -7,7 +7,7 @@ import sys
 from ibeis import constants
 from ibeis import params
 from ibeis import ibsfuncs
-from ibeis.dev import sysres
+from ibeis.init import sysres
 from os.path import join
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[commands]')
 

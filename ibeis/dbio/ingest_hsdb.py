@@ -8,7 +8,7 @@ from os.path import join, exists
 #import ibeis
 from ibeis import constants
 from ibeis import ibsfuncs
-from ibeis.dev import sysres
+from ibeis.init import sysres
 from six.moves import zip, map
 import utool
 import re

@@ -397,7 +397,7 @@ def list_available_score_normalizers(with_global=True, with_local=True):
         >>> print(list(map(ut.get_file_nBytes_str, global_normalizers_fpaths)))
 
     """
-    from ibeis.dev import sysres
+    from ibeis.init import sysres
     from ibeis import constants
     #from os.path import join
     pattern = '*' + ScoreNormalizer.prefix2 + '*' + ScoreNormalizer.ext

@@ -227,8 +227,8 @@ def main(gui=True, dbdir=None, defaultdb='cache',
         dict: main_locals
     """
     set_newfile_permissions()
-    from ibeis.dev import main_commands
-    from ibeis.dev import sysres
+    from ibeis.init import main_commands
+    from ibeis.init import sysres
     # Display a visible intro message
     msg1 = '''
     _____ ....... _______ _____ _______
@@ -304,7 +304,7 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
         >>> result = str(ibs)
         >>> print(result)
     """
-    from ibeis.dev import sysres
+    from ibeis.init import sysres
     from ibeis import ibsfuncs
     dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)
     if delete_ibsdir is True:
@@ -322,7 +322,7 @@ def start(*args, **kwargs):
 def test_main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False,
               db=None):
     """ alias for main() """  # + main.__doc__
-    from ibeis.dev import sysres
+    from ibeis.init import sysres
     _preload()
     dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)
     ibs = _init_ibeis(dbdir)
@@ -333,7 +333,7 @@ def test_main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False,
 def _preload(mpl=True, par=True, logging=True):
     """ Sets up python environment """
     import utool
-    from ibeis.dev import main_helpers
+    from ibeis.init import main_helpers
     from ibeis import params
     if  multiprocessing.current_process().name != 'MainProcess':
         return

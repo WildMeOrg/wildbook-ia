@@ -48,11 +48,11 @@ from _devcmds_ibeis import *  # NOQA
 # Tools
 from plottool import draw_func2 as df2
 # IBEIS
-from ibeis.dev import main_helpers
+from ibeis.init import main_helpers
 from ibeis.dev import dbinfo
-from ibeis.dev import experiment_configs
-from ibeis.dev import experiment_harness
-from ibeis.dev import results_all
+from ibeis.experiments import experiment_configs
+from ibeis.experiments import experiment_harness
+from ibeis.experiments import results_all
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 
 
@@ -657,7 +657,7 @@ def test_feats(ibs, qaid_list, daid_list=None):
     """
     from ibeis import viz
     from plottool import df2
-    from ibeis.dev import experiment_configs
+    from ibeis.experiments import experiment_configs
     import utool as ut
 
     NUM_PASSES = 1 if not utool.get_argflag('--show') else 2
@@ -716,7 +716,7 @@ def devfunc(ibs, qaid_list):
     kpts = ibs.get_annot_kpts(aid)
     print('len(kpts) = %r' % len(kpts))
     from plottool import df2
-    from ibeis.dev import experiment_configs
+    from ibeis.experiments import experiment_configs
     #varyparams_list = [
     #    #{
     #    #    'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0

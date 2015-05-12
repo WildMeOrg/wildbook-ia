@@ -6,7 +6,7 @@ import numpy as np
 import six
 import utool as ut
 from ibeis import ibsfuncs
-from ibeis.dev import experiment_helpers as eh
+from ibeis.experiments import experiment_helpers as eh
 from ibeis.model.hots import match_chips4 as mc4
 from itertools import chain
 from os.path import join, dirname, split, basename, splitext
@@ -158,13 +158,13 @@ def draw_results(ibs, test_result):
         python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf --quality
 
 
-        python -m ibeis.dev.experiment_printres --test-draw_results --show --vn
-        python -m ibeis.dev.experiment_printres --test-draw_results --show --vn --db PZ_MTEST
+        python -m ibeis.experiments.experiment_printres --test-draw_results --show --vn
+        python -m ibeis.experiments.experiment_printres --test-draw_results --show --vn --db PZ_MTEST
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.dev.experiment_printres import *  # NOQA
-        >>> from ibeis.dev import experiment_harness
+        >>> from ibeis.experiments.experiment_printres import *  # NOQA
+        >>> from ibeis.experiments import experiment_harness
         >>> import ibeis
         >>> # build test data
         >>> species = ibeis.const.Species.ZEB_PLAIN
@@ -405,13 +405,13 @@ def print_results(ibs, test_result):
         python dev.py --db PZ_MTEST --allgt --noqcache --qaid4 -t custom:rrvsone_on=True --print-confusion-stats
 
     CommandLine:
-        python -m ibeis.dev.experiment_printres --test-print_results
-        utprof.py -m ibeis.dev.experiment_printres --test-print_results
+        python -m ibeis.experiments.experiment_printres --test-print_results
+        utprof.py -m ibeis.experiments.experiment_printres --test-print_results
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.dev.experiment_printres import *  # NOQA
-        >>> from ibeis.dev import experiment_harness
+        >>> from ibeis.experiments.experiment_printres import *  # NOQA
+        >>> from ibeis.experiments import experiment_harness
         >>> import ibeis
         >>> # build test data
         >>> species = ibeis.const.Species.ZEB_PLAIN
@@ -989,9 +989,9 @@ def get_sel_rows_and_cols(qaids, cfg_list, new_hard_qx_list, interesting_qx_list
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.dev.experiment_printres
-        python -m ibeis.dev.experiment_printres --allexamples
-        python -m ibeis.dev.experiment_printres --allexamples --noface --nosrc
+        python -m ibeis.experiments.experiment_printres
+        python -m ibeis.experiments.experiment_printres --allexamples
+        python -m ibeis.experiments.experiment_printres --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

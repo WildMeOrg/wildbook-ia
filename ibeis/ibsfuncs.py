@@ -2704,7 +2704,7 @@ def get_yaw_viewtexts(yaw_list):
 
 
 def get_species_dbs(species_prefix):
-    from ibeis.dev import sysres
+    from ibeis.init import sysres
     ibs_dblist = sysres.get_ibsdb_list()
     isvalid_list = [split(path)[1].startswith(species_prefix) for path in ibs_dblist]
     return ut.filter_items(ibs_dblist, isvalid_list)

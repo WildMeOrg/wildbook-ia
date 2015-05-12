@@ -41,7 +41,7 @@ def test_openworkdirs():
         '/raid/work/NAUT_test',
     ]
     import ibeis
-    from ibeis.dev import sysres
+    from ibeis.init import sysres
     import os
     import utool as ut  # NOQA
     from os.path import join

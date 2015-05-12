@@ -4,7 +4,7 @@ downloads standard test datasets. can delete them as well
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
-from ibeis.dev import sysres
+from ibeis.init import sysres
 from ibeis.dbio import ingest_database
 from os.path import join
 import ibeis

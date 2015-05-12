@@ -7,7 +7,7 @@ import utool as ut  # NOQA
 import six
 from six.moves import zip, map
 import re
-from ibeis.dev import experiment_configs
+from ibeis.experiments import experiment_configs
 from ibeis.model import Config
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[expt_helpers]', DEBUG=False)
@@ -21,7 +21,7 @@ def get_vary_dicts(test_cfg_name_list):
     recomputes test_cfg_name_list_out in case there are any nested lists specified in it
 
     Example:
-        >>> from ibeis.dev.experiment_helpers import *  # NOQA
+        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
         >>> test_cfg_name_list = ['lnbnn2']
         >>> vary_dicts, test_cfg_name_list_out = get_vary_dicts(test_cfg_name_list)
         >>> print(utool.list_str(vary_dicts))
@@ -117,7 +117,7 @@ def get_varied_params_list(test_cfg_name_list):
     builds all combinations from dicts defined in experiment_configs
 
     Example:
-        >>> from ibeis.dev.experiment_helpers import *  # NOQA
+        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
         >>> test_cfg_name_list = ['lnbnn2']
         >>> varied_params_list, varied_param_lbls = get_varied_params_list(test_cfg_name_list)
         #>>> print(varied_params_list)
@@ -141,7 +141,7 @@ def get_cfg_list_helper(test_cfg_name_list):
     """
 
     Example:
-        >>> from ibeis.dev.experiment_helpers import *  # NOQA
+        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
         >>> test_cfg_name_list = ['lnbnn2']
         >>> cfg_list, cfgx2_lbl = get_cfg_list_helper(test_cfg_name_list)
         >>> cfgstr_list = [cfg.get_cfgstr() for cfg in cfg_list]
@@ -193,11 +193,11 @@ def get_cfg_list(test_cfg_name_list, ibs=None):
         tuple: (cfg_list, cfgx2_lbl)
 
     CommandLine:
-        python -m ibeis.dev.experiment_helpers --test-get_cfg_list
+        python -m ibeis.experiments.experiment_helpers --test-get_cfg_list
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dev.experiment_helpers import *  # NOQA
+        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> test_cfg_name_list = ['best', 'custom', 'custom:sv_on=False']
@@ -268,8 +268,8 @@ def get_cfg_list_and_lbls(test_cfg_name_list, ibs=None):
         tuple : (cfg_list, cfgx2_lbl)
 
     Example:
-        >>> from ibeis.dev.experiment_helpers import *  # NOQA
-        >>> from ibeis.dev import experiment_helpers as eh
+        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
+        >>> from ibeis.experiments import experiment_helpers as eh
         >>> test_cfg_name_list = ['lnbnn2']
         >>> ibs = None
     """
@@ -283,9 +283,9 @@ def get_cfg_list_and_lbls(test_cfg_name_list, ibs=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.dev.experiment_helpers
-        python -m ibeis.dev.experiment_helpers --allexamples
-        python -m ibeis.dev.experiment_helpers --allexamples --noface --nosrc
+        python -m ibeis.experiments.experiment_helpers
+        python -m ibeis.experiments.experiment_helpers --allexamples
+        python -m ibeis.experiments.experiment_helpers --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
