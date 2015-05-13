@@ -897,6 +897,7 @@ class IBEISController(object):
     #------------------
 
     @default_decorator
+    @accessor_decors.getter_1to1
     @register_api('/api/core/detect_random_forest/', methods=['PUT'])
     def detect_random_forest(ibs, gid_list, species, **kwargs):
         """

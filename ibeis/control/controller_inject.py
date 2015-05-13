@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 #import sys
 import flask
-from hashlib import sha1
 from flask import current_app, request, make_response
 from functools import wraps
 from os.path import abspath, join
@@ -10,6 +9,7 @@ from os.path import abspath, join
 import json
 import pickle
 import traceback
+from hashlib import sha1
 import os
 import hmac
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[controller_inject]')
