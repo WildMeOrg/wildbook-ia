@@ -194,7 +194,8 @@ class APIItemModel(API_MODEL_BASE):
         col_setter_list  = headers.get('col_setter_list', None)
         col_getter_list  = headers.get('col_getter_list', None)
         col_level_list   = headers.get('col_level_list', None)
-        col_sort_index   = headers.get('col_sort_index', -1)
+        #col_sort_index   = headers.get('col_sort_index', -1)
+        col_sort_index   = headers.get('col_sort_index', 0)
         col_sort_reverse = headers.get('col_sort_reverse', False)
         # New for dynamically getting non-data roles for each row
         col_bgrole_getter_list  = headers.get('col_bgrole_getter_list', None)
@@ -432,7 +433,8 @@ class APIItemModel(API_MODEL_BASE):
     @updater
     def _set_sort(model, col_sort_index, col_sort_reverse=False, rebuild_structure=False):
         if VERBOSE:
-            print('[APIItemModel] _set_sort')
+            print('[APIItemModel] _set_sort, index=%r reverse=%r, rebuild=%r' %
+                  (col_sort_index, col_sort_reverse, rebuild_structure,))
         #with ut.Timer('set_sort'):
         #printDBG('SET SORT')
         if len(model.col_name_list) > 0:

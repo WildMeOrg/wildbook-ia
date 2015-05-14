@@ -16,6 +16,21 @@ WITH_GUILOG = utool.get_argflag('--guilog')
 #WITH_GUILOG = not utool.get_argflag('--noguilog')
 
 
+class BlockContext(object):
+    def __init__(self, widget):
+        self.widget = widget
+        self.was_blocked = None
+
+    def __enter__(self):
+        self.was_blocked = self.widget.blockSignals(True)
+
+    def __exit__(self, type_, value, trace):
+        if trace is not None:
+            print('[BlockContext] Error in context manager!: ' + str(value))
+            return False  # return a falsey value on error
+        self.widget.blockSignals(self.was_blocked)
+
+
 # Qt object that will send messages (as signals) to the frontend gui_write slot
 class GUILoggingSender(QtCore.QObject):
     write_ = QtCore.pyqtSignal(str)
