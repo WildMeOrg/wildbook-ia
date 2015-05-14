@@ -12,6 +12,7 @@ TODO: need to split up into sub modules:
 from __future__ import absolute_import, division, print_function
 import six
 import types
+import re
 from six.moves import zip, range, map
 from os.path import split, join, exists
 #import vtool.image as gtool
@@ -4463,12 +4464,9 @@ def prepare_annotgroup_review(ibs, aid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> # execute function
         >>> result = prepare_annotgroup_review(ibs, aid_list)
-        >>> # verify results
         >>> print(result)
     """
     # Build new names for source and dest annot groups
@@ -4487,6 +4485,54 @@ def prepare_annotgroup_review(ibs, aid_list):
     # Relate the annotations with the source group
     ibs.add_gar([src_ag_rowid] * len(aid_list), aid_list)
     return src_ag_rowid, dst_ag_rowid
+
+
+@__injectable
+def search_annot_notes(ibs, pattern, aid_list=None):
+    """
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_Master0')
+        >>> pattern = ['gash', 'injury', 'scar', 'wound']
+        >>> valid_aid_list = ibs.search_annot_notes(pattern)
+        >>> print(valid_aid_list)
+        >>> print(ibs.get_annot_notes(valid_aid_list))
+    """
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+    notes_list = ibs.get_annot_notes(aid_list)
+    # convert a list of patterns into an or statement
+    if isinstance(pattern, (list, tuple)):
+        pattern = '|'.join(['(%s)' % pat for pat in pattern])
+    valid_index_list, valid_match_list = search_list(notes_list, pattern, flags=re.IGNORECASE)
+    #[match.group() for match in valid_match_list]
+    valid_aid_list = ut.list_take(aid_list, valid_index_list)
+    return valid_aid_list
+
+
+def search_list(text_list, pattern, flags=0):
+    """
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-search_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> text_list = ['ham', 'jam', 'eggs', 'spam']
+        >>> pattern = '.am'
+        >>> flags = 0
+        >>> (valid_index_list, valid_match_list) = search_list(text_list, pattern, flags)
+        >>> result = str(valid_index_list)
+        >>> print(result)
+        [0, 1, 3]
+    """
+    match_list = [re.search(pattern, text, flags=flags) for text in text_list]
+    valid_index_list = [index for index, match in enumerate(match_list) if match is not None]
+    valid_match_list = ut.list_take(match_list, valid_index_list)
+    return valid_index_list, valid_match_list
 
 
 if __name__ == '__main__':

@@ -390,7 +390,16 @@ class MainWindowBackend(QtCore.QObject):
         setattr(back, attr, new_id_list)
 
     def _set_selection3(back, tablename, id_list, mode='set'):
+        """
+           text = '51e10019-968b-5f2e-2287-8432464d7547 '
+        """
+        def ensure_uuids_are_ids(id_list, uuid_to_id_fn):
+            import uuid
+            if len(id_list) > 0 and isinstance(id_list[0], uuid.UUID):
+                id_list = uuid_to_id_fn(id_list)
+            return id_list
         if tablename == const.ANNOTATION_TABLE:
+            id_list = ensure_uuids_are_ids(id_list, back.ibs.get_annot_aids_from_visual_uuid)
             aid_list = ut.ensure_iterable(id_list)
             nid_list = back.ibs.get_annot_nids(aid_list)
             gid_list = back.ibs.get_annot_gids(aid_list)
@@ -399,6 +408,7 @@ class MainWindowBackend(QtCore.QObject):
             gid_list = ut.filterfalse_items(gid_list, flag_list)
             aid_list = ut.filterfalse_items(aid_list, flag_list)
         elif tablename == const.IMAGE_TABLE:
+            id_list = ensure_uuids_are_ids(id_list, back.ibs.get_image_gids_from_uuid)
             gid_list = ut.ensure_iterable(id_list)
             aid_list = ut.flatten(back.ibs.get_image_aids(gid_list))
             nid_list = back.ibs.get_annot_nids(aid_list)
@@ -415,6 +425,7 @@ class MainWindowBackend(QtCore.QObject):
         back._set_selection2(const.ANNOTATION_TABLE, aid_list, mode)
         back._set_selection2(const.NAME_TABLE, nid_list, mode)
         back._set_selection2(const.IMAGE_TABLE, gid_list, mode)
+        return id_list
 
     def _clear_selection(back):
         back.sel_aids = []

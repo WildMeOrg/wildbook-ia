@@ -120,6 +120,6 @@ if __name__ == '__main__':
         python _scripts/rsync_ibeisdb.py pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy
         python _scripts/rsync_ibeisdb.py pull --db NNP_Master3 --user jonc --remote pachy
         python _scripts/rsync_ibeisdb.py pull --db testdb3 --user joncrall --remote hyrule
-        python _scripts/rsync_ibeisdb.py pull --db NNP_MasterGIRM_core --user joncrall --remote hyrule
+        python _scripts/rsync_ibeisdb.py pull --db NNP_MasterGIRM_core --user jonc --remote pachy
     """
     rsync_ibsdb_main()

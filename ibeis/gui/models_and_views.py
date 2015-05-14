@@ -3,10 +3,10 @@ This provides concrete classes which inherit from abstract
 api_item_models/api_table_models/api_tree_models in guitool.
 """
 from __future__ import absolute_import, division, print_function
-import utool
+import utool as ut
 from guitool import (APIItemModel, APITableView, APITreeView, APIItemWidget,
                      StripeProxyModel, ChangeLayoutContext)
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui_models]')
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[newgui_models]')
 
 #---------------------
 # --- IBEIS Tables ---
@@ -45,7 +45,8 @@ class IBEISStripeModel(IBEISSTRIPEMODEL_BASE):
         if IBEISSTRIPEMODEL_BASE == StripeProxyModel:
             model.sourcemodel = APIItemModel(parent=parent)
             model.setSourceModel(model.sourcemodel)
-            print('[ibs_model] just set the sourcemodel')
+            if ut.VERBOSE:
+                print('[ibs_model] just set the sourcemodel')
 
     def _update_headers(model, **headers):
         def _null_ider(**kwargs):

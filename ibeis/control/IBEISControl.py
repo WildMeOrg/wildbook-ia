@@ -1213,7 +1213,7 @@ class IBEISController(object):
             verbose (bool): default=False, turns on verbose printing
 
         Returns:
-            list: a list of QueryResult objects
+            list: a list of QueryResult objects containing the matching annotations, scores, and feature matches
 
         Returns(2):
             tuple: (qres_list, qreq_) - a list of query results and optionally the QueryRequest object used

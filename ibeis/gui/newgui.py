@@ -18,7 +18,7 @@ import functools
 from guitool.__PYQT__ import QtGui, QtCore
 from guitool.__PYQT__.QtCore import Qt
 from guitool.__PYQT__.QtGui import QSizePolicy
-from guitool import signal_, slot_, checks_qt_error, ChangeLayoutContext  # NOQA
+from guitool import signal_, slot_, checks_qt_error, ChangeLayoutContext, BlockContext  # NOQA
 from ibeis import ibsfuncs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
@@ -39,7 +39,7 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[newgui]')
 
 IBEIS_WIDGET_BASE = QtGui.QWidget
 
-VERBOSE_GUI = ut.VERBOSE or ut.get_argflag('--verbose-gui')
+VERBOSE_GUI = ut.VERBOSE or ut.get_argflag(('--verbose-gui', '--verbgui'))
 WITH_GUILOG = ut.get_argflag('--guilog')
 #WITH_GUILOG = not ut.get_argflag('--noguilog')
 
@@ -151,6 +151,8 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         # if enctext == const.ALL_IMAGE_ENCTEXT:
         #     eid = None
         # </HACK>
+        #with ut.Indenter('[_ADD_ENC_TAB]'):
+        print('[_add_enc_tab] eid=%r, enctext=%r' % (eid, enctext))
         if eid not in enc_tabwgt.eid_list:
             # tab_name = str(eid) + ' - ' + str(enctext)
             tab_name = str(enctext)
@@ -161,7 +163,10 @@ class EncoutnerTabWidget(QtGui.QTabWidget):
         else:
             index = enc_tabwgt.eid_list.index(eid)
 
+        #with BlockContext(enc_tabwgt):
+        #print('SET CURRENT INDEX')
         enc_tabwgt.setCurrentIndex(index)
+        #print('DONE SETTING CURRENT INDEX')
         enc_tabwgt._on_enctab_change(index)
 
     def _update_enc_tab_name(enc_tabwgt, eid, enctext):
@@ -332,8 +337,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         table_key2_selected_rowids   = dict(ut.group_items(select_rowid_list, select_table_key_list))
         table_key2_deselected_rowids = dict(ut.group_items(deselect_rowid_list, deselect_table_key_list))
 
-        table_key2_selected_rowids   = {key: set(val) for key, val in six.iteritems(table_key2_selected_rowids)}
-        table_key2_deselected_rowids = {key: set(val) for key, val in six.iteritems(table_key2_deselected_rowids)}
+        table_key2_selected_rowids   = {key: list(set(val)) for key, val in six.iteritems(table_key2_selected_rowids)}
+        table_key2_deselected_rowids = {key: list(set(val)) for key, val in six.iteritems(table_key2_deselected_rowids)}
         if ut.VERBOSE:
             print('table_key2_selected_rowids = ' + ut.dict_str(table_key2_selected_rowids))
             print('table_key2_deselected_rowids = ' + ut.dict_str(table_key2_deselected_rowids))
@@ -592,6 +597,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt.setWindowTitle(title)
         else:
             print('[newgui] Connecting valid ibs=%r' % ibs.get_dbname())
+            #with ut.Indenter('[CONNECTING]'):
             # Give the frontend the new control
             ibswgt.ibs = ibs
             with ut.Timer('update special'):
@@ -606,6 +612,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             if ut.VERBOSE:
                 print('[newgui] Calling model _update_headers')
             #block_wgt_flag = ibswgt._tab_table_wgt.blockSignals(True)
+
             with ut.Timer('[newgui] update models'):
                 #for tblname in ibswgt.changing_models_gen(ibswgt.super_tblname_list):
                 for tblname in ibswgt.super_tblname_list:
@@ -632,10 +639,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     #    continue
                     view.hide_cols()
             #ibswgt._tab_table_wgt.blockSignals(block_wgt_flag)
-            ibswgt._change_enc(-1)
 
+            # FIXME: bad code
+            # TODO: load previously loaded encounter or nothing
             LOAD_ENCOUNTER_ON_START = True
             if LOAD_ENCOUNTER_ON_START:
+                #with ut.Indenter('[LOAD_ENC]'):
                 eid_list = ibs.get_valid_eids(shipped=False)
                 if len(eid_list) > 0:
                     DEFAULT_LARGEST_ENCOUNTER = False
@@ -647,6 +656,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         eid = eid_list[0]
                     #ibswgt._change_enc(eid)
                     ibswgt.select_encounter_tab(eid)
+                else:
+                    #with ut.Indenter('[SET NEG1 ENC]'):
+                    ibswgt._change_enc(-1)
 
     def setWindowTitle(ibswgt, title):
         parent_ = ibswgt.parent()
@@ -892,6 +904,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.select_table_indicies_from_text(tablename, text)
 
     def select_table_indicies_from_text(ibswgt, tblname, text):
+        """
+        text = '[1, 2,  3,]'
+           text = '51e10019-968b-5f2e-2287-8432464d7547 '
+        """
         if not ut.QUIET:
             print('[newgui] select_table_indicies_from_text')
             print('[newgui]  * gh.tblname = %r' % (tblname,))
@@ -907,14 +923,26 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if text == '':
             text = '[]'
         try:
-            id_list = ut.ensure_iterable(eval(text))  # NOQA
+            MODE1 = True
+            if MODE1:
+                id_list_ = text.lstrip('[').rstrip(']').split(',')
+                id_list = [id_.strip() for id_ in id_list_]
+                id_list = [id_ for id_ in id_list if len(id_) > 0]
+                try:
+                    id_list = list(map(int, id_list))
+                except ValueError:
+                    import uuid
+                    id_list = list(map(uuid.UUID, id_list))
+            else:
+                id_list_ = eval(text, globals(), locals())
+                id_list = ut.ensure_iterable(id_list_)  # NOQA
         except Exception as ex:
-            ut.printex(ex, iswarning=True)
+            ut.printex(ex, iswarning=True, keys=['text'])
         else:
             if not ut.QUIET:
                 print('[newgui]  * id_list = %r' % (id_list,))
             #print(id_list)
-            ibswgt.back._set_selection3(backend_tablename, id_list, mode='set')
+            id_list = ibswgt.back._set_selection3(backend_tablename, id_list, mode='set')
 
         # Select the index if we are in the right table tab
         if len(id_list) == 1 and ibswgt._tab_table_wgt.current_tblname == tblname:
