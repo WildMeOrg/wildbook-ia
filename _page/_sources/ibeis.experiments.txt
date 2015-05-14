@@ -1,0 +1,70 @@
+ibeis.experiments package
+=========================
+
+Submodules
+----------
+
+ibeis.experiments.experiment_configs module
+-------------------------------------------
+
+.. automodule:: ibeis.experiments.experiment_configs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.experiments.experiment_harness module
+-------------------------------------------
+
+.. automodule:: ibeis.experiments.experiment_harness
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.experiments.experiment_helpers module
+-------------------------------------------
+
+.. automodule:: ibeis.experiments.experiment_helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.experiments.experiment_printres module
+--------------------------------------------
+
+.. automodule:: ibeis.experiments.experiment_printres
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.experiments.results_all module
+------------------------------------
+
+.. automodule:: ibeis.experiments.results_all
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.experiments.results_analyzer module
+-----------------------------------------
+
+.. automodule:: ibeis.experiments.results_analyzer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.experiments.results_organizer module
+------------------------------------------
+
+.. automodule:: ibeis.experiments.results_organizer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.experiments
+    :members:
+    :undoc-members:
+    :show-inheritance:

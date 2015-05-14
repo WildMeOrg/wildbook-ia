@@ -335,8 +335,8 @@
 <span class="sd">        dict: main_locals</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">set_newfile_permissions</span><span class="p">()</span>
-    <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">main_commands</span>
-    <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
+    <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">main_commands</span>
+    <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
     <span class="c"># Display a visible intro message</span>
     <span class="n">msg1</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
 <span class="s">    _____ ....... _______ _____ _______</span>
@@ -412,7 +412,7 @@
 <span class="sd">        &gt;&gt;&gt; result = str(ibs)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
+    <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
     <span class="n">dbdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_args_dbdir</span><span class="p">(</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">dbdir</span><span class="p">,</span> <span class="n">cache_priority</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">delete_ibsdir</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
@@ -430,7 +430,7 @@
 <div class="viewcode-block" id="test_main"><a class="viewcode-back" href="../../ibeis.html#ibeis.main_module.test_main">[docs]</a><span class="k">def</span> <span class="nf">test_main</span><span class="p">(</span><span class="n">gui</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;cache&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
               <span class="n">db</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; alias for main() &quot;&quot;&quot;</span>  <span class="c"># + main.__doc__</span>
-    <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">sysres</span>
+    <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
     <span class="n">_preload</span><span class="p">()</span>
     <span class="n">dbdir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_args_dbdir</span><span class="p">(</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">dbdir</span><span class="p">,</span> <span class="n">cache_priority</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">_init_ibeis</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
@@ -441,7 +441,7 @@
 <span class="k">def</span> <span class="nf">_preload</span><span class="p">(</span><span class="n">mpl</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">par</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">logging</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Sets up python environment &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span>
-    <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">main_helpers</span>
+    <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">main_helpers</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
     <span class="k">if</span>  <span class="n">multiprocessing</span><span class="o">.</span><span class="n">current_process</span><span class="p">()</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s">&#39;MainProcess&#39;</span><span class="p">:</span>
         <span class="k">return</span>

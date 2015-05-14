@@ -375,7 +375,46 @@ python -m ibeis.viz.viz_graph &#8211;test-show_chipmatch_graph:1 &#8211;show</dd
 <dl class="function">
 <dt id="ibeis.viz.viz_helpers.get_timedelta_str">
 <tt class="descclassname">ibeis.viz.viz_helpers.</tt><tt class="descname">get_timedelta_str</tt><big>(</big><em>ibs</em>, <em>aid1</em>, <em>aid2</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_helpers.html#get_timedelta_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_helpers.get_timedelta_str" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</li>
+<li><strong>aid1</strong> (<em>int</em>) &#8211; annotation id</li>
+<li><strong>aid2</strong> (<em>int</em>) &#8211; annotation id</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">timedelta_str</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.viz.viz_helpers &#8211;test-get_timedelta_str</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid1</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid2</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">timedelta_str</span> <span class="o">=</span> <span class="n">get_timedelta_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">timedelta_str</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">td(02:28:22)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="function">
 <dt id="ibeis.viz.viz_helpers.get_truth_color">
@@ -657,10 +696,6 @@ Integrate ChipMatch2</p>
 rchip = rchip1
 H = H1 = None
 target_wh = None</p>
-<dl class="docutils">
-<dt>TODO:</dt>
-<dd>color the features so the scores are comparabile within the multichip match</dd>
-</dl>
 </dd></dl>
 
 <dl class="function">
@@ -731,8 +766,34 @@ draw_fmatches = True</p>
 <div class="section" id="module-ibeis.viz.viz_name">
 <span id="ibeis-viz-viz-name-module"></span><h2>ibeis.viz.viz_name module<a class="headerlink" href="#module-ibeis.viz.viz_name" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
+<dt id="ibeis.viz.viz_name.show_multiple_chips">
+<tt class="descclassname">ibeis.viz.viz_name.</tt><tt class="descname">show_multiple_chips</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>in_image=True</em>, <em>fnum=0</em>, <em>sel_aids=[]</em>, <em>subtitle=''</em>, <em>annote=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_name.html#show_multiple_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_name.show_multiple_chips" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.viz.viz_name &#8211;test-show_multiple_chips &#8211;show &#8211;no-inimage
+python -m ibeis.viz.viz_name &#8211;test-show_multiple_chips &#8211;show &#8211;db NNP_Master3 &#8211;aids=6435,9861,137,6563,9167,12547,9332,12598,13285 &#8211;no-inimage &#8211;notitle
+python -m ibeis.viz.viz_name &#8211;test-show_multiple_chips &#8211;show &#8211;db NNP_Master3 &#8211;aids=137,6563,12547,9332,12598,13285 &#8211;no-inimage &#8211;notitle &#8211;adjust=.05
+python -m ibeis.viz.viz_name &#8211;test-show_multiple_chips &#8211;show &#8211;db NNP_Master3 &#8211;aids=6563,9332,13285,12598 &#8211;no-inimage &#8211;notitle &#8211;adjust=.05 &#8211;rc=1,4</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_name</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">in_image</span> <span class="o">=</span> <span class="n">testdata_multichips</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fnum</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sel_aids</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subtitle</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">annote</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">show_multiple_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">in_image</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">sel_aids</span><span class="p">,</span> <span class="n">subtitle</span><span class="p">,</span> <span class="n">annote</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.viz.viz_name.show_name">
-<tt class="descclassname">ibeis.viz.viz_name.</tt><tt class="descname">show_name</tt><big>(</big><em>ibs</em>, <em>nid</em>, <em>nid2_aids=None</em>, <em>in_image=True</em>, <em>fnum=0</em>, <em>sel_aids=[]</em>, <em>subtitle=''</em>, <em>annote=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_name.html#show_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_name.show_name" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.viz.viz_name.</tt><tt class="descname">show_name</tt><big>(</big><em>ibs</em>, <em>nid</em>, <em>in_image=True</em>, <em>fnum=0</em>, <em>sel_aids=[]</em>, <em>subtitle=''</em>, <em>annote=False</em>, <em>aid_list=None</em>, <em>index_list=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_name.html#show_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_name.show_name" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -747,27 +808,18 @@ draw_fmatches = True</p>
 </table>
 <dl class="docutils">
 <dt>CommandLine:</dt>
-<dd><p class="first">python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;show</p>
-<p>python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;name=&#8221;IBEIS_PZ_1348&#8221; &#8211;db testdb3 &#8211;save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1348.jpg &#8211;dpath figures &#8211;caption=&#8217;viewpoint issue different and viewing conditions&#8217; &#8211;figsize=11,3 &#8211;no-figtitle &#8211;notitle</p>
-<p>python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;name=&#8221;IBEIS_PZ_1421&#8221; &#8211;db testdb3 &#8211;save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1421.jpg &#8211;dpath figures &#8211;caption=&#8217;Pose issues where the zebras are fighting&#8217;</p>
-<p>python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;name=&#8221;IBEIS_PZ_1366&#8221; &#8211;db testdb3 &#8211;save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1366.jpg &#8211;dpath figures &#8211;caption=&#8217;Occlusion from another animal, blurry photo&#8217;</p>
-<p>python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;name=&#8221;IBEIS_PZ_1288&#8221; &#8211;db testdb3 &#8211;save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1288.jpg &#8211;dpath figures &#8211;caption=&#8217;Occlusion from another animal, blurry photo&#8217;</p>
-<p>python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;name=&#8221;IBEIS_PZ_0370&#8221; &#8211;db testdb3 &#8211;save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0370.jpg &#8211;dpath figures &#8211;caption=&#8217;viewpoint&#8217;</p>
-<p>python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;name=&#8221;IBEIS_PZ_0453&#8221; &#8211;db testdb3 &#8211;save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0453.jpg &#8211;dpath figures &#8211;caption=&#8217;Viewpoint minor occlusion&#8217;</p>
-<p class="last">python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;name=&#8221;IBEIS_PZ_0303&#8221; &#8211;db testdb3 &#8211;save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg &#8211;dpath figures &#8211;caption=&#8217;Shadowed&#8217;</p>
-</dd>
+<dd>python -m ibeis.viz.viz_name &#8211;test-show_name &#8211;show</dd>
 </dl>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_name</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">in_image</span> <span class="o">=</span> <span class="n">testdata_showname</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nid2_aids</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">in_image</span><span class="p">,</span> <span class="n">index_list</span> <span class="o">=</span> <span class="n">testdata_showname</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fnum</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sel_aids</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subtitle</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">annote</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">show_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">nid2_aids</span><span class="p">,</span> <span class="n">in_image</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">sel_aids</span><span class="p">,</span> <span class="n">subtitle</span><span class="p">,</span> <span class="n">annote</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">show_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid</span><span class="p">,</span> <span class="n">in_image</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">sel_aids</span><span class="p">,</span> <span class="n">subtitle</span><span class="p">,</span> <span class="n">annote</span><span class="p">,</span> <span class="n">index_list</span><span class="o">=</span><span class="n">index_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -776,6 +828,11 @@ draw_fmatches = True</p>
 <dl class="function">
 <dt id="ibeis.viz.viz_name.show_name_of">
 <tt class="descclassname">ibeis.viz.viz_name.</tt><tt class="descname">show_name_of</tt><big>(</big><em>ibs</em>, <em>aid</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_name.html#show_name_of"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_name.show_name_of" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.viz.viz_name.testdata_multichips">
+<tt class="descclassname">ibeis.viz.viz_name.</tt><tt class="descname">testdata_multichips</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_name.html#testdata_multichips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_name.testdata_multichips" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -877,22 +934,18 @@ elif annot_mode == 2, then draw only lines</dd>
 <dl class="docutils">
 <dt>CommandLine:</dt>
 <dd><p class="first">./main.py &#8211;query 1 -y &#8211;db PZ_MTEST &#8211;noshow-qtres</p>
-<p class="last">python -m ibeis.viz.viz_qres &#8211;test-show_qres &#8211;show</p>
+<p>python -m ibeis.viz.viz_qres &#8211;test-show_qres &#8211;show</p>
+<p>python -m ibeis.viz.viz_qres &#8211;test-show_qres &#8211;show &#8211;top-aids=10 &#8211;db=PZ_MTEST &#8211;sidebyside &#8211;annot_mode=0 &#8211;notitle &#8211;no-viz_name_score &#8211;qaids=5 &#8211;max_nCols=2 &#8211;adjust=.01,.01,.01</p>
+<p class="last">python -m ibeis.viz.viz_qres &#8211;test-show_qres &#8211;show &#8211;top-aids=10 &#8211;db=PZ_MTEST &#8211;sidebyside &#8211;annot_mode=0 &#8211;notitle &#8211;no-viz_name_score &#8211;qaids=5 &#8211;max_nCols=2 &#8211;adjust=.01,.01,.01</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.viz_qres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">testdata_show_qres</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">show_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">sidebyside</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">show_query</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">top_aids</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">show_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">show_query</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c">#fig.show()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
@@ -915,6 +968,11 @@ elif annot_mode == 2, then draw only lines</dd>
 <tt class="descclassname">ibeis.viz.viz_qres.</tt><tt class="descname">show_qres_top</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>qreq_=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_qres.html#show_qres_top"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_qres.show_qres_top" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapper around show_qres.</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.viz.viz_qres.testdata_show_qres">
+<tt class="descclassname">ibeis.viz.viz_qres.</tt><tt class="descname">testdata_show_qres</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/viz/viz_qres.html#testdata_show_qres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.viz_qres.testdata_show_qres" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-ibeis.viz.viz_sver">

@@ -836,9 +836,10 @@ database directory where query results are stored</td>
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_recognition_query_aids">
 <tt class="descname">get_recognition_query_aids</tt><big>(</big><em>ibs</em>, <em>is_known</em>, <em>species=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_recognition_query_aids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_recognition_query_aids" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
+<dd><p>DEPCIRATE</p>
+<dl class="docutils">
 <dt>RESTful:</dt>
-<dd>Method: PUT
+<dd>Method: GET
 URL:    /api/core/recognition_query_aids/</dd>
 </dl>
 </dd></dl>
@@ -971,7 +972,8 @@ URL:    /api/core/has_species_detector/</dd>
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.query_all">
 <tt class="descname">query_all</tt><big>(</big><em>ibs</em>, <em>qaid_list</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.query_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.query_all" title="Permalink to this definition">¶</a></dt>
-<dd><p>Queries vs the exemplars</p>
+<dd><p>DEPRICATED</p>
+<p>Queries vs all valid chip ~~the exemplars~~</p>
 <dl class="docutils">
 <dt>RESTful:</dt>
 <dd>Method: PUT
@@ -982,19 +984,38 @@ URL:    /api/core/query_all/</dd>
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.query_chips">
 <tt class="descname">query_chips</tt><big>(</big><em>ibs</em>, <em>qaid_list=None</em>, <em>daid_list=None</em>, <em>cfgdict=None</em>, <em>use_cache=None</em>, <em>use_bigcache=None</em>, <em>qreq_=None</em>, <em>return_request=False</em>, <em>verbose=False</em>, <em>save_qcache=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.query_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.query_chips" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>Submits a query request to the hotspotter recognition pipeline. Returns
+a list of QueryResult objects.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In the future the QueryResult objects will be replaced by ChipMatch
+objects</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>qreq</strong> (<em>QueryRequest</em>) &#8211; hyper-parameters</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>qaid_list</strong> (<em>list</em>) &#8211; a list of annotation ids to be submitted as queries</li>
+<li><strong>daid_list</strong> (<em>list</em>) &#8211; a list of annotation ids used as the database that will be searched</li>
+<li><strong>cfgdict</strong> (<em>dict</em>) &#8211; dictionary of configuration options used to create a new QueryRequest if not already specified</li>
+<li><strong>qreq</strong> (<em>QueryRequest</em>) &#8211; optional, a QueryRequest object that overrides all previous settings</li>
+<li><strong>return_request</strong> (<em>bool</em>) &#8211; returns the request which will be created if one is not already specified</li>
+<li><strong>verbose</strong> (<em>bool</em>) &#8211; default=False, turns on verbose printing</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(qres_list, <a href="#id1"><span class="problematic" id="id2">qreq_</span></a>)</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a list of QueryResult objects</p>
+</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
 </tr>
 </tbody>
 </table>
 <dl class="docutils">
+<dt>Returns(2):</dt>
+<dd>tuple: (qres_list, <a href="#id1"><span class="problematic" id="id2">qreq_</span></a>) - a list of query results and optionally the QueryRequest object used</dd>
 <dt>CommandLine:</dt>
 <dd>python -m ibeis.control.IBEISControl &#8211;test-query_chips</dd>
 <dt>RESTful:</dt>
@@ -1004,7 +1025,7 @@ URL:    /api/core/query_chips/</dd>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.IBEISControl</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaids</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
@@ -3318,6 +3339,19 @@ list and returns a homogenous list of values</p>
 </div>
 <div class="section" id="module-ibeis.control.controller_inject">
 <span id="ibeis-control-controller-inject-module"></span><h2>ibeis.control.controller_inject module<a class="headerlink" href="#module-ibeis.control.controller_inject" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ibeis.control.controller_inject.JSONPythonObjectEncoder">
+<em class="property">class </em><tt class="descclassname">ibeis.control.controller_inject.</tt><tt class="descname">JSONPythonObjectEncoder</tt><big>(</big><em>skipkeys=False</em>, <em>ensure_ascii=True</em>, <em>check_circular=True</em>, <em>allow_nan=True</em>, <em>sort_keys=False</em>, <em>indent=None</em>, <em>separators=None</em>, <em>encoding='utf-8'</em>, <em>default=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/controller_inject.html#JSONPythonObjectEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.controller_inject.JSONPythonObjectEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">json.encoder.JSONEncoder</span></tt></p>
+<p>Reference: <a class="reference external" href="http://stackoverflow.com/questions/8230315/python-sets-are-not-json-serializable">http://stackoverflow.com/questions/8230315/python-sets-are-not-json-serializable</a>
+Reference: <a class="reference external" href="https://github.com/jsonpickle/jsonpickle">https://github.com/jsonpickle/jsonpickle</a></p>
+<dl class="method">
+<dt id="ibeis.control.controller_inject.JSONPythonObjectEncoder.default">
+<tt class="descname">default</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/controller_inject.html#JSONPythonObjectEncoder.default"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.controller_inject.JSONPythonObjectEncoder.default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="exception">
 <dt id="ibeis.control.controller_inject.WebException">
 <em class="property">exception </em><tt class="descclassname">ibeis.control.controller_inject.</tt><tt class="descname">WebException</tt><big>(</big><em>message</em>, <em>code=400</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/controller_inject.html#WebException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.controller_inject.WebException" title="Permalink to this definition">¶</a></dt>
@@ -6380,7 +6414,7 @@ URL:    /api/annot_chip/thumbtup/</dd>
 
 <dl class="function">
 <dt id="ibeis.control.manual_chip_funcs.get_annot_chips">
-<tt class="descclassname">ibeis.control.manual_chip_funcs.</tt><tt class="descname">get_annot_chips</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>ensure=True</em>, <em>config2_=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_chip_funcs.html#get_annot_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_chip_funcs.get_annot_chips" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.control.manual_chip_funcs.</tt><tt class="descname">get_annot_chips</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>ensure=True</em>, <em>config2_=None</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_chip_funcs.html#get_annot_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_chip_funcs.get_annot_chips" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -6525,7 +6559,7 @@ URL:    /api/chip/uris/</dd>
 
 <dl class="function">
 <dt id="ibeis.control.manual_chip_funcs.get_chips">
-<tt class="descclassname">ibeis.control.manual_chip_funcs.</tt><tt class="descname">get_chips</tt><big>(</big><em>ibs</em>, <em>cid_list</em>, <em>ensure=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_chip_funcs.html#get_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_chip_funcs.get_chips" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.control.manual_chip_funcs.</tt><tt class="descname">get_chips</tt><big>(</big><em>ibs</em>, <em>cid_list</em>, <em>ensure=True</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_chip_funcs.html#get_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_chip_funcs.get_chips" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -9155,6 +9189,17 @@ the thumbnail path of each gid</td>
 URL:    /api/image/thumbpath/</dd>
 </dl>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_image_funcs.get_image_thumbpath_">
+<tt class="descclassname">ibeis.control.manual_image_funcs.</tt><tt class="descname">get_image_thumbpath_</tt><big>(</big><em>ibs</em>, <em>gid_list</em>, <em>draw_annots=True</em>, <em>thumbsize=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_image_funcs.html#get_image_thumbpath_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_image_funcs.get_image_thumbpath_" title="Permalink to this definition">¶</a></dt>
+<dd><p>get_image_thumbpath, but never will ensure existence</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_image_funcs.get_image_thumbsize">
+<tt class="descclassname">ibeis.control.manual_image_funcs.</tt><tt class="descname">get_image_thumbsize</tt><big>(</big><em>ibs</em>, <em>thumbsize=None</em>, <em>draw_annots=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_image_funcs.html#get_image_thumbsize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_image_funcs.get_image_thumbsize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.control.manual_image_funcs.get_image_thumbtup">

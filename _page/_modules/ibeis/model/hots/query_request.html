@@ -662,16 +662,33 @@
 </div>
     <span class="nd">@profile</span>
 <div class="viewcode-block" id="QueryRequest.get_query_cfgstr"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_query_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_query_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        FIXME: name</span>
+<span class="sd">        params only &quot;&quot;&quot;</span>
         <span class="n">query_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">query_cfgstr</span>
         <span class="k">return</span> <span class="n">query_cfgstr</span>
 </div>
     <span class="nd">@profile</span>
 <div class="viewcode-block" id="QueryRequest.get_cfgstr"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; main cfgstring used to identify the &#39;querytype&#39; &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; main cfgstring used to identify the &#39;querytype&#39;</span>
+<span class="sd">        FIXME: name</span>
+<span class="sd">        params + data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data_hashid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_data_hashid</span><span class="p">()</span>
         <span class="n">query_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_query_cfgstr</span><span class="p">()</span>
         <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">data_hashid</span> <span class="o">+</span> <span class="n">query_cfgstr</span>
         <span class="k">return</span> <span class="n">cfgstr</span>
+</div>
+<div class="viewcode-block" id="QueryRequest.get_full_cfgstr"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_full_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_full_cfgstr</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; main cfgstring used to identify the &#39;querytype&#39;</span>
+<span class="sd">        FIXME: name</span>
+<span class="sd">        params + data + query</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">query_hashid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_query_hashid</span><span class="p">()</span>
+        <span class="n">data_hashid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_data_hashid</span><span class="p">()</span>
+        <span class="n">query_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_query_cfgstr</span><span class="p">()</span>
+        <span class="n">full_cfgstr</span> <span class="o">=</span> <span class="n">query_hashid</span> <span class="o">+</span> <span class="n">data_hashid</span> <span class="o">+</span> <span class="n">query_cfgstr</span>
+        <span class="k">return</span> <span class="n">full_cfgstr</span>
 </div>
 <div class="viewcode-block" id="QueryRequest.get_qresdir"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_request.QueryRequest.get_qresdir">[docs]</a>    <span class="k">def</span> <span class="nf">get_qresdir</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qresdir</span>

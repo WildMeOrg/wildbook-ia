@@ -122,7 +122,7 @@
 <span class="n">DEFAULT_NTOP</span> <span class="o">=</span> <span class="mi">3</span>
 
 
-<span class="nd">@ut.indent_func</span>
+<span class="c">#@ut.indent_func</span>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="show_qres_top"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_qres.show_qres_top">[docs]</a><span class="k">def</span> <span class="nf">show_qres_top</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -143,8 +143,8 @@
                      <span class="c">#all_kpts=False,</span>
                      <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-</div>
-<span class="nd">@ut.indent_func</span>
+
+<span class="c">#@ut.indent_func</span></div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="show_qres_analysis"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_qres.show_qres_analysis">[docs]</a><span class="k">def</span> <span class="nf">show_qres_analysis</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -219,7 +219,28 @@
                      <span class="n">figtitle</span><span class="o">=</span><span class="n">figtitle</span><span class="p">,</span> <span class="n">show_query</span><span class="o">=</span><span class="n">show_query</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 </div>
-<span class="nd">@ut.indent_func</span>
+<div class="viewcode-block" id="testdata_show_qres"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_qres.testdata_show_qres">[docs]</a><span class="k">def</span> <span class="nf">testdata_show_qres</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="c"># build test data</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--qaids&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">qaids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+    <span class="n">qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c">#</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">top_aids</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--top-aids&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+        <span class="n">sidebyside</span><span class="o">=</span><span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-sidebyside&#39;</span><span class="p">),</span>
+        <span class="n">annot_mode</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--annot_mode&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">viz_name_score</span><span class="o">=</span><span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-viz_name_score&#39;</span><span class="p">),</span>
+        <span class="n">max_nCols</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--max_nCols&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">kwargs</span>
+
+
+<span class="c">#@ut.indent_func</span></div>
 <div class="viewcode-block" id="show_qres"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_qres.show_qres">[docs]</a><span class="k">def</span> <span class="nf">show_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Display Query Result Logic</span>
@@ -249,36 +270,36 @@
 
 <span class="sd">        python -m ibeis.viz.viz_qres --test-show_qres --show</span>
 
+<span class="sd">        python -m ibeis.viz.viz_qres --test-show_qres --show --top-aids=10 --db=PZ_MTEST --sidebyside --annot_mode=0 --notitle --no-viz_name_score --qaids=5 --max_nCols=2 --adjust=.01,.01,.01</span>
+
+<span class="sd">        python -m ibeis.viz.viz_qres --test-show_qres --show --top-aids=10 --db=PZ_MTEST --sidebyside --annot_mode=0 --notitle --no-viz_name_score --qaids=5 --max_nCols=2 --adjust=.01,.01,.01</span>
+
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_qres import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
-<span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; # build test data</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids()[0:1]</span>
-<span class="sd">        &gt;&gt;&gt; daids = ibs.get_valid_aids()</span>
-<span class="sd">        &gt;&gt;&gt; qreq_ = ibs.new_query_request(qaids, daids)</span>
-<span class="sd">        &gt;&gt;&gt; qres = ibs.query_chips(qreq_=qreq_)[0]</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qres, qreq_, kwargs = testdata_show_qres()</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
-<span class="sd">        &gt;&gt;&gt; fig = show_qres(ibs, qres, sidebyside=True, show_query=False, qreq_=qreq_, top_aids=3)</span>
+<span class="sd">        &gt;&gt;&gt; fig = show_qres(ibs, qres, show_query=False, qreq_=qreq_, **kwargs)</span>
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; #fig.show()</span>
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">annot_mode</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;annot_mode&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span>  <span class="c"># this is toggled</span>
-    <span class="n">figtitle</span>      <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;figtitle&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-    <span class="n">make_figtitle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;make_figtitle&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-    <span class="n">aug</span>           <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;aug&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-    <span class="n">top_aids</span>      <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;top_aids&#39;</span><span class="p">,</span> <span class="n">DEFAULT_NTOP</span><span class="p">)</span>
-    <span class="n">gt_aids</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;gt_aids&#39;</span><span class="p">,</span>   <span class="p">[])</span>
-    <span class="n">all_kpts</span>      <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;all_kpts&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-    <span class="n">show_query</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_query&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-    <span class="n">in_image</span>      <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;in_image&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-    <span class="n">sidebyside</span>    <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sidebyside&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-    <span class="n">name_scoring</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name_scoring&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-    <span class="n">viz_name_score</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;viz_name_score&#39;</span><span class="p">,</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="c">#ut.print_dict(kwargs)</span>
+    <span class="n">annot_mode</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;annot_mode&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span>  <span class="c"># this is toggled</span>
+    <span class="n">figtitle</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;figtitle&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">make_figtitle</span>  <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;make_figtitle&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">aug</span>            <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;aug&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">top_aids</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;top_aids&#39;</span><span class="p">,</span> <span class="n">DEFAULT_NTOP</span><span class="p">)</span>
+    <span class="n">gt_aids</span>        <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;gt_aids&#39;</span><span class="p">,</span>   <span class="p">[])</span>
+    <span class="n">all_kpts</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;all_kpts&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">show_query</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_query&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">in_image</span>       <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;in_image&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">sidebyside</span>     <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sidebyside&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">name_scoring</span>   <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name_scoring&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">viz_name_score</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;viz_name_score&#39;</span><span class="p">,</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">max_nCols</span>      <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;max_nCols&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 
     <span class="n">fnum</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;fnum&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
 
@@ -292,12 +313,12 @@
 
     <span class="n">nTop</span>   <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span>
 
-    <span class="c">#max_nCols = 5</span>
-    <span class="n">max_nCols</span> <span class="o">=</span> <span class="mi">5</span>
-    <span class="k">if</span> <span class="n">nTop</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]:</span>
-        <span class="n">max_nCols</span> <span class="o">=</span> <span class="mi">3</span>
-    <span class="k">if</span> <span class="n">nTop</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span>
-        <span class="n">max_nCols</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="k">if</span> <span class="n">max_nCols</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">max_nCols</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="k">if</span> <span class="n">nTop</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]:</span>
+            <span class="n">max_nCols</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="k">if</span> <span class="n">nTop</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span>
+            <span class="n">max_nCols</span> <span class="o">=</span> <span class="mi">4</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">top_aids</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">))))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;gts should be missed.  not in top&#39;</span>
@@ -305,7 +326,9 @@
         <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;top_aids&#39;</span><span class="p">,</span> <span class="s">&#39;gt_aids&#39;</span><span class="p">])</span>
         <span class="k">raise</span>
 
-    <span class="n">printDBG</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">get_inspect_str</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">get_inspect_str</span><span class="p">())</span>
+
     <span class="n">ranked_aids</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()</span>
     <span class="c">#--------------------------------------------------</span>
     <span class="c"># Get grid / cell information to build subplot grid</span>
@@ -405,12 +428,18 @@
                     <span class="n">cm</span><span class="o">.</span><span class="n">score_nsum</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
                     <span class="n">cm</span><span class="o">.</span><span class="n">show_single_namematch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span> <span class="o">**</span><span class="n">_kwshow</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_kwshow</span><span class="p">[</span><span class="s">&#39;draw_border&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="n">_kwshow</span><span class="p">[</span><span class="s">&#39;draw_lbl&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="n">_kwshow</span><span class="p">[</span><span class="s">&#39;notitle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="n">_kwshow</span><span class="p">[</span><span class="s">&#39;vert&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
                     <span class="n">viz_matches</span><span class="o">.</span><span class="n">show_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwshow</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c"># Draw each match by themselves</span>
                 <span class="n">data_config2_</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_data_config2</span><span class="p">()</span>
-                <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">data_config2_</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwshow</span><span class="p">)</span>
-                <span class="n">viz_matches</span><span class="o">.</span><span class="n">annotate_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwshow</span><span class="p">)</span>
+                <span class="c">#_kwshow[&#39;draw_border&#39;] = kwargs.get(&#39;draw_border&#39;, True)</span>
+                <span class="c">#_kwshow[&#39;notitle&#39;] = ut.get_argflag((&#39;--no-title&#39;, &#39;--notitle&#39;))</span>
+                <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">notitle</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">data_config2_</span><span class="o">=</span><span class="n">data_config2_</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwshow</span><span class="p">)</span>
+                <span class="c">#viz_matches.annotate_matches(ibs, qres, aid, qreq_=qreq_, **_kwshow)</span>
 
         <span class="k">if</span> <span class="n">DEBUG_SHOW_QRES</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[show_qres()] Plotting Chips </span><span class="si">%s</span><span class="s">:&#39;</span> <span class="o">%</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>

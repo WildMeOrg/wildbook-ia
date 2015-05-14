@@ -158,11 +158,12 @@
 <span class="sd">        words</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
 <span class="sd">        &gt;&gt;&gt; ibs, annots_df, taids, daids, qaids, qreq_, nWords = smk_debug.testdata_dataframe()</span>
 <span class="sd">        &gt;&gt;&gt; use_cache = True</span>
-<span class="sd">        &gt;&gt;&gt; words = learn_visual_words(annots_df, taids, nWords)</span>
+<span class="sd">        &gt;&gt;&gt; words = learn_visual_words(annots_df, qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; print(words.shape)</span>
 <span class="sd">        (8000, 128)</span>
 
@@ -229,6 +230,7 @@
 <span class="sd">            * idf2_wxs - vector index -&gt; assigned word indexes</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
 <span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_raw_internals0()</span>
@@ -239,7 +241,7 @@
 <span class="sd">        &gt;&gt;&gt; massign_alpha = qreq_.qparams.massign_alpha</span>
 <span class="sd">        &gt;&gt;&gt; massign_sigma = qreq_.qparams.massign_sigma</span>
 <span class="sd">        &gt;&gt;&gt; massign_equal_weights = qreq_.qparams.massign_equal_weights</span>
-<span class="sd">        &gt;&gt;&gt; _dbargs = wordflann, words, idx2_vec, nAssign, massign_alpha, massign_sigma, massign_equal_weights)</span>
+<span class="sd">        &gt;&gt;&gt; _dbargs = (wordflann, words, idx2_vec, nAssign, massign_alpha, massign_sigma, massign_equal_weights)</span>
 <span class="sd">        &gt;&gt;&gt; wx2_idxs, wx2_maws, idx2_wxs = assign_to_words_(*_dbargs)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
@@ -391,6 +393,7 @@
 <span class="sd">        wx2_idf</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
 <span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams = smk_debug.testdata_raw_internals1()</span>
@@ -398,8 +401,9 @@
 <span class="sd">        &gt;&gt;&gt; idx2_aid = invindex.idx2_daid</span>
 <span class="sd">        &gt;&gt;&gt; daid2_label = invindex.daid2_label</span>
 <span class="sd">        &gt;&gt;&gt; wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)</span>
-<span class="sd">        &gt;&gt;&gt; print(wx2_idf.shape)</span>
-<span class="sd">        (8000,)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(len(wx2_idf))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        8000</span>
 
 <span class="sd">    Ignore:</span>
 <span class="sd">        #&gt;&gt;&gt; wx2_idxs = invindex.wx2_idxs</span>
@@ -479,6 +483,7 @@
 <span class="sd">        negentropy_list (ndarray[float32]): idf-like weighting for each word based on the negative entropy</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
 <span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams = smk_debug.testdata_raw_internals1()</span>
@@ -584,7 +589,7 @@
 <span class="sd">        &gt;&gt;&gt; daid2_label = invindex.daid2_label</span>
 <span class="sd">        &gt;&gt;&gt; _ = helper_idf_wordgroup(wx2_idxs, idx2_aid, wx_series)</span>
 <span class="sd">        &gt;&gt;&gt; idxs_list, aids_list = _</span>
-<span class="sd">        &gt;&gt;&gt; wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)</span>
+<span class="sd">        &gt;&gt;&gt; wx2_idf = compute_idf_label1(wx_series, wx2_idxs, idx2_aid, daids)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">nWords</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
     <span class="c"># Computes our novel label idf weight</span>
@@ -647,6 +652,7 @@
 <span class="sd">                * list of parent fxs, if aggregate is True: assert len(fxs) == 1</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
 <span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams = smk_debug.testdata_raw_internals1()</span>
@@ -740,11 +746,12 @@
 <span class="sd">        daid2_sccw</span>
 
 <span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_index import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_index</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
 <span class="sd">        &gt;&gt;&gt; #tup = smk_debug.testdata_compute_data_sccw(db=&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; tup = smk_debug.testdata_compute_data_sccw(db=&#39;GZ_ALL&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; tup = smk_debug.testdata_compute_data_sccw(db=&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ibs, annots_df, invindex, wx2_idxs, wx2_idf, wx2_drvecs, wx2_aids, qparams = tup</span>
 <span class="sd">        &gt;&gt;&gt; wx2_dflags = invindex.wx2_dflags</span>
 <span class="sd">        &gt;&gt;&gt; ws2_idxs = invindex.wx2_idxs</span>

@@ -119,6 +119,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_core">ibeis.model.hots.smk.smk_core module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_debug">ibeis.model.hots.smk.smk_debug module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_hamming">ibeis.model.hots.smk.smk_hamming module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_index">ibeis.model.hots.smk.smk_index module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_match">ibeis.model.hots.smk.smk_match module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.model.hots.smk.html#module-ibeis.model.hots.smk.smk_plots">ibeis.model.hots.smk.smk_plots module</a></li>
@@ -2595,6 +2596,11 @@ this query</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="ibeis.model.hots.hots_query_result.QueryResult.get_top_groundtruth_aid">
+<tt class="descname">get_top_groundtruth_aid</tt><big>(</big><em>qres</em>, <em>ibs=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.get_top_groundtruth_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.get_top_groundtruth_aid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="ibeis.model.hots.hots_query_result.QueryResult.get_worse_possible_rank">
 <tt class="descname">get_worse_possible_rank</tt><big>(</big><em>qres</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/hots_query_result.html#QueryResult.get_worse_possible_rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.hots_query_result.QueryResult.get_worse_possible_rank" title="Permalink to this definition">¶</a></dt>
 <dd><p>DEPRICATE</p>
@@ -3691,7 +3697,7 @@ Over multiple annotations finds keypoints best match and uses that score.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.name_scoring</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">results_all</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments</span> <span class="kn">import</span> <span class="n">results_all</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">daid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
@@ -6013,7 +6019,9 @@ done between query pipeline runs</p>
 <dl class="method">
 <dt id="ibeis.model.hots.query_request.QueryRequest.get_cfgstr">
 <tt class="descname">get_cfgstr</tt><big>(</big><em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/query_request.html#QueryRequest.get_cfgstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.query_request.QueryRequest.get_cfgstr" title="Permalink to this definition">¶</a></dt>
-<dd><p>main cfgstring used to identify the &#8216;querytype&#8217;</p>
+<dd><p>main cfgstring used to identify the &#8216;querytype&#8217;
+FIXME: name
+params + data</p>
 </dd></dl>
 
 <dl class="method">
@@ -6059,6 +6067,14 @@ done between query pipeline runs</p>
 <dt id="ibeis.model.hots.query_request.QueryRequest.get_external_quuids">
 <tt class="descname">get_external_quuids</tt><big>(</big><em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/query_request.html#QueryRequest.get_external_quuids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.query_request.QueryRequest.get_external_quuids" title="Permalink to this definition">¶</a></dt>
 <dd><p>These are the users qauuids in vsone mode</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.model.hots.query_request.QueryRequest.get_full_cfgstr">
+<tt class="descname">get_full_cfgstr</tt><big>(</big><em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/query_request.html#QueryRequest.get_full_cfgstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.query_request.QueryRequest.get_full_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>main cfgstring used to identify the &#8216;querytype&#8217;
+FIXME: name
+params + data + query</p>
 </dd></dl>
 
 <dl class="method">
@@ -6114,7 +6130,9 @@ done between query pipeline runs</p>
 <dl class="method">
 <dt id="ibeis.model.hots.query_request.QueryRequest.get_query_cfgstr">
 <tt class="descname">get_query_cfgstr</tt><big>(</big><em>qreq_</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/query_request.html#QueryRequest.get_query_cfgstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.query_request.QueryRequest.get_query_cfgstr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>FIXME: name
+params only</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="ibeis.model.hots.query_request.QueryRequest.get_query_hashid">

@@ -125,10 +125,10 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">filter</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">relpath</span>
-<span class="c">#import os</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
 <span class="kn">import</span> <span class="nn">vtool.chip</span> <span class="kn">as</span> <span class="nn">ctool</span>
 <span class="kn">import</span> <span class="nn">vtool.image</span> <span class="kn">as</span> <span class="nn">gtool</span>
+<span class="kn">import</span> <span class="nn">functools</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
     <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[preproc_chip]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
@@ -167,8 +167,10 @@
 <span class="c"># OLD FUNCTIONALITY TO DEPRICATE</span>
 <span class="c">#--------------------------</span>
 </div>
-<div class="viewcode-block" id="compute_or_read_annotation_chips"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.compute_or_read_annotation_chips">[docs]</a><span class="k">def</span> <span class="nf">compute_or_read_annotation_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_or_read_annotation_chips"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_chip.compute_or_read_annotation_chips">[docs]</a><span class="k">def</span> <span class="nf">compute_or_read_annotation_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    SUPER HACY FUNCTION. NEED TO DEPRICATE</span>
+
 <span class="sd">    ----------------------</span>
 <span class="sd">    Found 1 line(s) in &#39;ibeis/model/preproc/preproc_chip.py&#39;:</span>
 <span class="sd">    preproc_chip.py :  25 |def compute_or_read_annotation_chips(ibs, aid_list, ensure=True):</span>
@@ -183,25 +185,31 @@
         <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;aid_list&#39;</span><span class="p">])</span>
             <span class="k">raise</span>
+    <span class="n">nTotal</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">cfpath_list</span> <span class="o">=</span> <span class="n">make_annot_chip_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="n">mk_cpath_iter</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">,</span> <span class="n">cfpath_list</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="n">nTotal</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
-            <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_list</span><span class="p">]</span>
+            <span class="n">cfpath_iter</span> <span class="o">=</span> <span class="n">mk_cpath_iter</span><span class="p">(</span><span class="n">lbl</span><span class="o">=</span><span class="s">&#39;reading ensured chips&#39;</span><span class="p">)</span>
+            <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_iter</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">if</span> <span class="n">cfpath</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_list</span><span class="p">]</span>
+            <span class="n">cfpath_iter</span> <span class="o">=</span> <span class="n">mk_cpath_iter</span><span class="p">(</span><span class="n">lbl</span><span class="o">=</span><span class="s">&#39;reading existing chips&#39;</span><span class="p">)</span>
+            <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">if</span> <span class="n">cfpath</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_iter</span><span class="p">]</span>
     <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;[preproc_chip] Handing Exception: &#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">add_annot_chips</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_list</span><span class="p">]</span>
+            <span class="n">cfpath_iter</span> <span class="o">=</span> <span class="n">mk_cpath_iter</span><span class="p">(</span><span class="n">lbl</span><span class="o">=</span><span class="s">&#39;reading fallback1 chips&#39;</span><span class="p">)</span>
+            <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_iter</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_chip] cache must have been deleted from disk&#39;</span><span class="p">)</span>
             <span class="c"># TODO: WE CAN SEARCH FOR NON EXISTANT PATHS HERE AND CALL</span>
             <span class="c"># ibs.delete_annot_chips</span>
             <span class="n">compute_and_write_chips_lazy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
             <span class="c"># Try just one more time</span>
-            <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_list</span><span class="p">]</span>
+            <span class="n">cfpath_iter</span> <span class="o">=</span> <span class="n">mk_cpath_iter</span><span class="p">(</span><span class="n">lbl</span><span class="o">=</span><span class="s">&#39;reading fallback2 chips&#39;</span><span class="p">)</span>
+            <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">cfpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">cfpath</span> <span class="ow">in</span> <span class="n">cfpath_iter</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">chip_list</span>
 

@@ -251,14 +251,42 @@
 
 </div>
 <div class="viewcode-block" id="get_timedelta_str"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_helpers.get_timedelta_str">[docs]</a><span class="k">def</span> <span class="nf">get_timedelta_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        aid1 (int):  annotation id</span>
+<span class="sd">        aid2 (int):  annotation id</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: timedelta_str</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_helpers --test-get_timedelta_str</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid1 = 1</span>
+<span class="sd">        &gt;&gt;&gt; aid2 = 8</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; timedelta_str = get_timedelta_str(ibs, aid1, aid2)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; result = str(timedelta_str)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        td(02:28:22)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">gid1</span><span class="p">,</span> <span class="n">gid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
     <span class="n">unixtime1</span><span class="p">,</span> <span class="n">unixtime2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">([</span><span class="n">gid1</span><span class="p">,</span> <span class="n">gid2</span><span class="p">])</span>
     <span class="k">if</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">in</span> <span class="p">[</span><span class="n">unixtime1</span><span class="p">,</span> <span class="n">unixtime2</span><span class="p">]:</span>
         <span class="n">timedelta_str_</span> <span class="o">=</span> <span class="s">&#39;NA&#39;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">unixtime_diff</span> <span class="o">=</span> <span class="n">unixtime2</span> <span class="o">-</span> <span class="n">unixtime1</span>
-        <span class="n">timedelta_str_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_unix_timedelta_str</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">)</span>
-    <span class="n">timedelta_str</span> <span class="o">=</span> <span class="s">&#39;timedelta(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timedelta_str_</span><span class="p">)</span>
+        <span class="n">timedelta_str_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_posix_timedelta_str</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">)</span>
+    <span class="c">#timedelta_str = &#39;timedelta(%s)&#39; % (timedelta_str_)</span>
+    <span class="n">timedelta_str</span> <span class="o">=</span> <span class="s">&#39;td(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timedelta_str_</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">timedelta_str</span>
 
 </div>
@@ -404,15 +432,24 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">score_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">score_str</span>
         <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score_str</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_timedelta&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
-        <span class="n">timedelta_str</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">get_timedelta_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
-        <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">timedelta_str</span><span class="p">)</span>
     <span class="n">name_score</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name_score&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="n">name_rank</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name_rank&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">name_score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;name_score=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">num_fmt</span><span class="p">(</span><span class="n">name_score</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">name_rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;name_rank=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">name_rank</span><span class="p">),))</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_name_score&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name_score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;name_score=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">num_fmt</span><span class="p">(</span><span class="n">name_score</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_name_rank&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name_rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;name_rank=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">name_rank</span><span class="p">),))</span>
+    <span class="c">#with ut.embed_on_exception_context:</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_timedelta&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">qaid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;qaid cannot be None&#39;</span>
+        <span class="c"># TODO: fixme</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aid2</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">aid2_</span> <span class="o">=</span> <span class="n">aid2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">aid2_</span> <span class="o">=</span> <span class="n">aid2</span>
+        <span class="n">timedelta_str</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">get_timedelta_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">aid2_</span><span class="p">))</span>
+        <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">timedelta_str</span><span class="p">)</span>
     <span class="n">query_text</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">text_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">query_text</span>
 

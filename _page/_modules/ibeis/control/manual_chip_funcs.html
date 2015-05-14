@@ -346,7 +346,7 @@
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot_chip/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="get_annot_chips"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_chip_funcs.get_annot_chips">[docs]</a><span class="k">def</span> <span class="nf">get_annot_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_annot_chips"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_chip_funcs.get_annot_chips">[docs]</a><span class="k">def</span> <span class="nf">get_annot_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  ibeis controller object</span>
@@ -379,7 +379,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;aid_list&#39;</span><span class="p">)</span>
     <span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
-    <span class="n">chip_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
+    <span class="n">chip_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chips</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">chip_list</span>
 
 </div>
@@ -764,7 +764,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<div class="viewcode-block" id="get_chips"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_chip_funcs.get_chips">[docs]</a><span class="k">def</span> <span class="nf">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="get_chips"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_chip_funcs.get_chips">[docs]</a><span class="k">def</span> <span class="nf">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        chip_list (list): a list cropped images in numpy array form by their cid</span>
@@ -790,7 +790,7 @@
                 <span class="s">&#39;ensure&#39;</span><span class="p">,</span> <span class="s">&#39;cid_list&#39;</span><span class="p">])</span>
             <span class="k">raise</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_aids</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
-    <span class="n">chip_list</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">compute_or_read_annotation_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
+    <span class="n">chip_list</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">compute_or_read_annotation_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">chip_list</span>
 
 </div>

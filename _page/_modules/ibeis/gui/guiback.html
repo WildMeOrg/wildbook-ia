@@ -963,7 +963,7 @@
         <span class="sd">&quot;&quot;&quot; Batch -&gt; Precompute Thumbs&quot;&quot;&quot;</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[back] compute_thumbs&#39;</span><span class="p">)</span>
         <span class="n">eid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">_eidfromkw</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">compute_all_thumbs</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">)</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">preprocess_image_thumbs</span><span class="p">(</span><span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">refresh</span><span class="p">:</span>
             <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">update_tables</span><span class="p">()</span>
 </div>
@@ -1511,6 +1511,7 @@
         <span class="n">ut</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">_ibsdb</span><span class="p">)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">dump_tables_to_csv</span><span class="p">()</span>
 </div>
+    <span class="nd">@slot_</span><span class="p">()</span>
     <span class="nd">@backreport</span>
 <div class="viewcode-block" id="MainWindowBackend.dev_export_annotations"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiback.MainWindowBackend.dev_export_annotations">[docs]</a>    <span class="k">def</span> <span class="nf">dev_export_annotations</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>

@@ -20,6 +20,14 @@ ibeis.model.hots.smk.smk_debug module
     :undoc-members:
     :show-inheritance:
 
+ibeis.model.hots.smk.smk_hamming module
+---------------------------------------
+
+.. automodule:: ibeis.model.hots.smk.smk_hamming
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.model.hots.smk.smk_index module
 -------------------------------------
 
