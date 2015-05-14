@@ -898,7 +898,7 @@ class IBEISController(object):
 
     @default_decorator
     @accessor_decors.getter_1to1
-    @register_api('/api/core/detect_random_forest/', methods=['PUT'])
+    @register_api('/api/core/detect_random_forest/', methods=['PUT', 'GET'])
     def detect_random_forest(ibs, gid_list, species, **kwargs):
         """
         Runs animal detection in each image. Adds annotations to the database as
@@ -941,6 +941,10 @@ class IBEISController(object):
         # TODO: Return confidence here as well
         print('[ibs] detecting using random forests')
         from ibeis.model.detect import randomforest  # NOQA
+        if isinstance(gid_list, int):
+            gid_list = [gid_list]
+        print("TYPE:", type(gid_list))
+        print("GID_LIST:", gid_list)
         detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, species, **kwargs)
         # ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
         # ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
