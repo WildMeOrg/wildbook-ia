@@ -101,7 +101,10 @@ def translate_ibeis_webcall(func, *args, **kwargs):
                 value = '"%s"' % (value, )
                 converted = json.loads(value, object_hook=_as_python_object)
             if arg.endswith('_list') and not isinstance(converted, (list, tuple)):
-                converted = [converted]
+                if isinstance(converted, str) and ',' in converted:
+                    converted = converted.strip().split(',')
+                else:
+                    converted = [converted]
             kwargs[arg] = converted
     # Pipe web input into Python web call
     _process_input(request.args)
