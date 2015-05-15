@@ -84,7 +84,7 @@ def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None, 
 
 
 def translate_ibeis_webcall(func, *args, **kwargs):
-    print('processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
+    print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     def _process_input(multidict):
         for (arg, value) in multidict.iterlists():
             if len(value) > 1:
@@ -100,6 +100,8 @@ def translate_ibeis_webcall(func, *args, **kwargs):
                 # try making string and try again...
                 value = '"%s"' % (value, )
                 converted = json.loads(value, object_hook=_as_python_object)
+            if arg.endswith('_list') and not isinstance(converted, (list, tuple)):
+                converted = [converted]
             kwargs[arg] = converted
     # Pipe web input into Python web call
     _process_input(request.args)
@@ -227,12 +229,14 @@ def get_ibeis_flask_api(__name__):
                         rawreturn, success, code, message = translate_ibeis_webcall(func, *args, **kwargs)
                     except WebException as webex:
                         rawreturn = ''
+                        print(traceback.format_exc())
                         # rawreturn = str(traceback.format_exc())
                         success = False
                         code = webex.code
                         message = webex.message
                     except Exception as ex:
                         rawreturn = ''
+                        print(traceback.format_exc())
                         # rawreturn = str(traceback.format_exc())
                         success = False
                         code = 500
