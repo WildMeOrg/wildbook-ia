@@ -463,20 +463,23 @@ def get_unwarped_patches(img, kpts):
 @profile
 def get_warped_patches(img, kpts,
                        flags=cv2.INTER_LANCZOS4,
-                       borderMode=cv2.BORDER_REPLICATE):
+                       borderMode=cv2.BORDER_REPLICATE,
+                       patch_size=41):
     """ Returns warped (into a unit circle) patch around a keypoint
 
     Args:
         img (ndarray): array representing an image
         kpts (ndarrays): keypoint ndarrays in [x, y, a, c, d, theta] format
+
     Returns:
         tuple : (warped_patches, warped_subkpts) the normalized 41x41 patches from the img corresonding to the keypoint
 
     Args:
         img (ndarray[uint8_t, ndim=2]):  image data
         kpts (ndarray[float32_t, ndim=2]):  keypoints
-        flags (long):
-        borderMode (long):
+        flags (long): cv2 interpolation flags
+        borderMode (long): cv2 border flags
+        patch_size (int): resolution of resulting image patch
 
     Returns:
         tuple: (warped_patches, warped_subkpts)
@@ -513,7 +516,7 @@ def get_warped_patches(img, kpts,
     invV_mats = ktool.get_invV_mats(kpts, with_trans=False, ashomog=True)
     V_mats = ktool.invert_invV_mats(invV_mats)
     kpts_iter = zip(xs, ys, V_mats, oris)
-    patchSize = 41  # sf
+    #patch_size = 41  # sf
     #cv2_warp_kwargs = {
     #    #'flags': cv2.INTER_LINEAR,
     #    #'flags': cv2.INTER_NEAREST,
@@ -524,18 +527,18 @@ def get_warped_patches(img, kpts,
     #borderMode = cv2.BORDER_REPLICATE,
     for x, y, V, ori in kpts_iter:
         warped_patch, wkp = intern_warp_single_patch(img, x, y, ori, V,
-                                                     patchSize,
+                                                     patch_size,
                                                      flags=flags,
                                                      borderMode=borderMode)
         ## Build warped keypoints
-        #wkp = np.array((patchSize / 2, patchSize / 2, ss, 0., ss, 0))
+        #wkp = np.array((patch_size / 2, patch_size / 2, ss, 0., ss, 0))
         warped_patches.append(warped_patch)
         warped_subkpts.append(wkp)
     return warped_patches, warped_subkpts
 
 
 def intern_warp_single_patch(img, x, y, ori, V,
-                             patchSize,
+                             patch_size,
                              flags=cv2.INTER_CUBIC,
                              borderMode=cv2.BORDER_REPLICATE):
     cv2_warp_kwargs = {
@@ -551,12 +554,12 @@ def intern_warp_single_patch(img, x, y, ori, V,
     # FIXME: this works only because of add-hoc reasons.
     # need to more closely follow code in affine.cpp
 
-    half_patchSize = patchSize / 2.0
+    half_patch_size = patch_size / 2.0
 
     OLDWAY = True
     #OLDWAY = True
     if OLDWAY:
-        ss = np.sqrt(patchSize) * 3.0
+        ss = np.sqrt(patch_size) * 3.0
     else:
         # This seems to not work correctly
         mrSize = 3.0 * np.sqrt(3.0)
@@ -564,7 +567,7 @@ def intern_warp_single_patch(img, x, y, ori, V,
         s = sc / mrSize
         mrScale = np.ceil(s * mrSize)
         patchImageSize = 2 * mrScale + 1
-        imageToPatchScale = patchImageSize / patchSize
+        imageToPatchScale = patchImageSize / patch_size
         ss = sc
 
     (h, w) = img.shape[0:2]
@@ -573,15 +576,15 @@ def intern_warp_single_patch(img, x, y, ori, V,
     # V - reshape and scale the centered patch to the unit circle
     R = ltool.rotation_mat3x3(-ori)  # Rotate the centered unit circle patch
     S = ltool.scale_mat3x3(ss)  # scale from unit circle to the patch size
-    X = ltool.translation_mat3x3(half_patchSize, half_patchSize)  # Translate back to patch-image coordinates
+    X = ltool.translation_mat3x3(half_patch_size, half_patch_size)  # Translate back to patch-image coordinates
     M = X.dot(S).dot(R).dot(V).dot(T)
     # Prepare to warp
-    dsize = np.array(np.ceil(np.array([patchSize, patchSize])), dtype=int)
+    dsize = np.array(np.ceil(np.array([patch_size, patch_size])), dtype=int)
     # Warp
     #warped_patch = gtool.warpAffine(img, M, dsize)
     warped_patch = cv2.warpAffine(img, M[0:2], tuple(dsize), **cv2_warp_kwargs)
     # Build warped keypoints
-    wkp = np.array((half_patchSize, half_patchSize, ss, 0., ss, 0))
+    wkp = np.array((half_patch_size, half_patch_size, ss, 0., ss, 0))
 
     if not OLDWAY:
         # FIXME: this is still not what is done in affine.cpp
