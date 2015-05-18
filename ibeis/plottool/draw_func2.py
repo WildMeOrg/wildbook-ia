@@ -249,6 +249,13 @@ def show_if_requested():
         #import sys
         #print(sys.argv)
         latex_block = figure_str
+        latex_block = ut.codeblock(
+            r'''
+            \newcommand{\%s}{
+            %s
+            }
+            '''
+        ) % (label_str, latex_block,)
         try:
             import os
             import psutil
@@ -269,7 +276,10 @@ def show_if_requested():
         except OSError:
             pass
 
-        latex_block_ = (ut.indent(latex_block, ' ' * (4 * 2)))
+        #latex_indent = ' ' * (4 * 2)
+        latex_indent = ' ' * (0)
+
+        latex_block_ = (ut.indent(latex_block, latex_indent))
         print(latex_block_)
 
         if 'append' in arg_dict:
