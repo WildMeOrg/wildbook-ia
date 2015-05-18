@@ -39,6 +39,7 @@ def postprocess_dev():
 
     CommandLine:
         python -m ibeis.model.preproc.preproc_probchip --test-postprocess_dev
+        python -m ibeis.model.preproc.preproc_probchip --test-postprocess_dev --db Elephants_drop1_ears
 
     CommandLine:
         python -m ibeis.model.preproc.preproc_probchip --test-postprocess_dev
@@ -58,7 +59,7 @@ def postprocess_dev():
 
     #fpath = '/media/raid/work/GZ_ALL/_ibsdb/figures/nsum_hard/qaid=420_res_5ujbs8h&%vw1olnx_quuid=31cfdc3e/probchip_aid=478_auuid=5c327c5d-4bcc-22e4-764e-535e5874f1c7_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP()_zebra_grevys.png.png'
     import ibeis
-    ibs = ibeis.opendb('PZ_MTEST')
+    ibs = ibeis.opendb(defaultdb='PZ_MTEST')
     aid_list = ibs.get_valid_aids()
 
     def test_grabcut_on_aid(aid):

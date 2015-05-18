@@ -377,11 +377,24 @@ def review_match_at_qtindex(qres_wgt, qtindex):
 # ______
 
 
-def get_aidpair_context_menue_options(ibs, aid1, aid2, qres, qreq_=None, **kwargs):
+def get_aidpair_context_menue_options(ibs, aid1, aid2, qres, qreq_=None, aid_list=None, **kwargs):
     """ assert that the ampersand cannot have duplicate keys """
     assert qreq_ is not None, 'must specify qreq_'
+    show_chip_match_features_option = ('Show chip feature matches', lambda: qres.ishow_matches(ibs, aid2, mode=0, qreq_=qreq_))
+    if aid_list is not None:
+        # Give a subcontext menu for multiple options
+        def partial_show_chip_matches_to(aid_):
+            return lambda: qres.ishow_matches(ibs, aid_, mode=0, qreq_=qreq_)
+        show_chip_match_features_option = (
+            'Show chip feature matches',
+            [
+                ('to aid=%r' % (aid_,), partial_show_chip_matches_to(aid_))
+                for aid_ in aid_list
+            ]
+        )
+
     options = [
-        ('Show chip feature matches', lambda: qres.ishow_matches(ibs, aid2, mode=0, qreq_=qreq_)),
+        show_chip_match_features_option,
         ('Show name feature matches', lambda: qres.show_name_matches(ibs, aid2, mode=0, qreq_=qreq_)),
         ('Inspect Match Candidates', lambda: review_match(ibs, aid1, aid2, qreq_=qreq_, qres=qres, **kwargs)),
         ('Mark as &Reviewed', lambda: ibs.mark_annot_pair_as_reviewed(aid1, aid2)),

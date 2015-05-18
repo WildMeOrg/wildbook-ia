@@ -217,6 +217,8 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, qreq_=None, **kwarg
     ax = pt.gca()
     ph.set_plotdat(ax, 'viztype', 'multi_match')
     ph.set_plotdat(ax, 'qaid', aid_list[0])
+    ph.set_plotdat(ax, 'num_matches', len(aid_list) - 1)
+    ph.set_plotdat(ax, 'aid_list', aid_list[1:])
     for count, aid in enumerate(aid_list, start=1):
         ph.set_plotdat(ax, 'aid%d' % (count,), aid)
 

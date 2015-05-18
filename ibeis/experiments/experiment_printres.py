@@ -225,11 +225,8 @@ def draw_results(ibs, test_result):
 
         for cfgx, (ranks, agg_hist_dict, qx2_gt_aid, config_binxs) in enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs)):
             #full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
-            ut.print_dict(ut.dict_hist(ranks), 'rank histogram', sorted_=True)
+            #ut.print_dict(ut.dict_hist(ranks), 'rank histogram', sorted_=True)
             # find the qxs that belong to each bin
-            test_result.qaids
-            test_result.qaids
-
             def get_annotpair_timdelta(ibs, aid_list1, aid_list2):
                 unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)
                 unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)
@@ -244,22 +241,22 @@ def draw_results(ibs, test_result):
             #                          for delta in timedelta_list]
             #    return timedelta_str_list
 
-            aid_list1 = test_result.qaids
-            aid_list2 = qx2_gt_aid
-            timedelta_list = get_annotpair_timdelta(ibs, aid_list1, aid_list2)
+            #aid_list1 = test_result.qaids
+            #aid_list2 = qx2_gt_aid
+            #timedelta_list = get_annotpair_timdelta(ibs, aid_list1, aid_list2)
             #timedelta_str_list = [ut.get_posix_timedelta_str2(delta)
             #                      for delta in timedelta_list]
 
-            bin_edges = test_result.get_rank_histogram_bin_edges()
-            timedelta_groups = ut.dict_take(ut.group_items(timedelta_list, config_binxs), np.arange(len(bin_edges)), [])
+            #bin_edges = test_result.get_rank_histogram_bin_edges()
+            #timedelta_groups = ut.dict_take(ut.group_items(timedelta_list, config_binxs), np.arange(len(bin_edges)), [])
 
-            timedelta_stats = [ut.get_stats(deltas, use_nan=True, datacast=ut.get_posix_timedelta_str2) for deltas in timedelta_groups]
-            print('bin time stats')
-            print(ut.dict_str(dict(zip(bin_edges, timedelta_stats)), sorted_=True))
+            #timedelta_stats = [ut.get_stats(deltas, use_nan=True, datacast=ut.get_posix_timedelta_str2) for deltas in timedelta_groups]
+            #print('bin time stats')
+            #print(ut.dict_str(dict(zip(bin_edges, timedelta_stats)), sorted_=True))
 
             #timedelta_str_list = get_annotpair_timdelta_strs(ibs, aid_list1, aid_list2)
 
-            ut.print_dict(agg_hist_dict, 'agg rank histogram', sorted_=True)
+            #ut.print_dict(agg_hist_dict, 'agg rank histogram', sorted_=True)
             #ut.embed()
             #bin_itemstr_list = ['%r: %d' % tup for tup in  zip(bin_keys, bin_values)]
             #hist_str = '\n'.join(ut.align_lines(bin_itemstr_list, ':'))
@@ -337,9 +334,10 @@ def draw_results(ibs, test_result):
                     fpath_orig = ph.dump_figure(individual_results_figdir, reset=not SHOW, subdir=subdir, **dumpkw)
                     cpq.append_copy_task(fpath_orig, top_rank_analysis_dir)
 
-                # BLIND CASES
-                DRAW_BLIND = True
+                # BLIND CASES - draws results without labels to see if we can determine what happened using doubleblind methods
+                DRAW_BLIND = not SHOW
                 if DRAW_BLIND:
+                    pt.clf()
                     best_gt_aid = qres.get_top_groundtruth_aid(ibs=ibs)
                     qres.show_name_matches(ibs, best_gt_aid,
                                            show_matches=False,
@@ -909,6 +907,54 @@ def print_results(ibs, test_result):
         diff_matstr = get_diffmat_str(rank_mat, qaids, nConfig)
         print(diff_matstr)
     print_diffmat()
+
+    @ut.argv_flag_dec
+    def print_rankhist():
+        # TODO: rectify this code with other hist code
+        agg_hist_dict = test_result.get_rank_histograms()
+
+        config_gt_aids = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_gt_aid')
+        config_rand_bin_qxs = test_result.get_rank_histogram_qx_binxs()
+
+        _iter = enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs))
+        for cfgx, (ranks, agg_hist_dict, qx2_gt_aid, config_binxs) in _iter:
+            #full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
+            #ut.print_dict(ut.dict_hist(ranks), 'rank histogram', sorted_=True)
+            # find the qxs that belong to each bin
+            test_result.qaids
+            test_result.qaids
+
+            def get_annotpair_timdelta(ibs, aid_list1, aid_list2):
+                unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)
+                unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)
+                unixtime_list1[unixtime_list1 == -1] = np.nan
+                unixtime_list2[unixtime_list2 == -1] = np.nan
+                timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
+                return timedelta_list
+
+            #def get_annotpair_timdelta_strs(ibs, aid_list1, aid_list2):
+            #    timedelta_list = get_annotpair_timdelta(ibs, aid_list1, aid_list2)
+            #    timedelta_str_list = [ut.get_posix_timedelta_str(delta) if not np.isnan(delta) else 'None'
+            #                          for delta in timedelta_list]
+            #    return timedelta_str_list
+
+            aid_list1 = test_result.qaids
+            aid_list2 = qx2_gt_aid
+            timedelta_list = get_annotpair_timdelta(ibs, aid_list1, aid_list2)
+            #timedelta_str_list = [ut.get_posix_timedelta_str2(delta)
+            #                      for delta in timedelta_list]
+
+            bin_edges = test_result.get_rank_histogram_bin_edges()
+            timedelta_groups = ut.dict_take(ut.group_items(timedelta_list, config_binxs), np.arange(len(bin_edges)), [])
+
+            timedelta_stats = [ut.get_stats(deltas, use_nan=True, datacast=ut.get_posix_timedelta_str2) for deltas in timedelta_groups]
+            print('bin time stats')
+            print(ut.dict_str(dict(zip(bin_edges, timedelta_stats)), sorted_=True))
+
+            #timedelta_str_list = get_annotpair_timdelta_strs(ibs, aid_list1, aid_list2)
+
+            ut.print_dict(agg_hist_dict, 'agg rank histogram', sorted_=True)
+    print_rankhist()
 
     #------------
     # Print summary

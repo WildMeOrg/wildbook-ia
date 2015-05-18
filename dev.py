@@ -946,6 +946,12 @@ if __name__ == '__main__':
         dev_execstr = utool.execstr_dict(dev_locals, 'dev_locals')
         exec(dev_execstr)
 
+    command = ut.get_argval('--eval', type_=str, default=None)
+    if command is not None:
+        result = eval(command, globals(), locals())
+        print('result = %r' % (result,))
+        #ibs.search_annot_notes('360')
+
     #
     #
     # Main Loop (IPython interaction, or some exec loop)
@@ -973,6 +979,21 @@ CurrentExperiments:
     ./dev.py -t custom:sv_on=False --db PZ_Master0 --allgt --species=zebra_plains
 
     ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains --hs
+
+
+ElephantEarExperiments
+    --show --vh
+    ./dev.py -t custom:affine_invariance=True --db Elephants_drop1_ears --allgt --print-rankhist
+    ./dev.py -t custom:affine_invariance=False --db Elephants_drop1_ears --allgt --print-rankhist
+    ./dev.py -t custom:affine_invariance=False,histeq=True --db Elephants_drop1_ears --allgt --print-rankhist
+    ./dev.py -t custom:affine_invariance=False,adapteq=True --db Elephants_drop1_ears --allgt --print-rankhist
+
+    ./dev.py -t custom:affine_invariance=False,fg_on=False --db Elephants_drop1_ears --allgt
+    ./dev.py -t custom:affine_invariance=False,histeq=True,fg_on=False --db Elephants_drop1_ears --allgt
+    ./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt
+
+    ./dev.py -t elph --db Elephants_drop1_ears --allgt
+
 
 
 Without SV:
