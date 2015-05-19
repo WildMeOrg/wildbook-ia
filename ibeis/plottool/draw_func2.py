@@ -1912,15 +1912,16 @@ def draw_boxedX(xywh=None, color=RED, lw=2, alpha=.5, theta=0):
     ax.add_collection(line_group)
 
 
-def color_orimag(gori, gweights=None, gmag_is_01=None, encoding='rgb', p=.5):
+def color_orimag(gori, gmag=None, gmag_is_01=None, encoding='rgb', p=.5):
     r"""
     Args:
-        gori (?):
-        gweights (None): TODO should be gweights
-        p (float): power to raise normalized weights to
+        gori (ndarray): orientation values at pixels between 0 and tau
+        gmag (ndarray): orientation magnitude
+        gmag_is_01 (bool): True if gmag is in the 0 and 1 range. if None we try to guess
+        p (float): power to raise normalized weights to for visualization purposes
 
     Returns:
-        ndarray: bgr_ori
+        ndarray: rgb_ori or bgr_ori
 
     CommandLine:
         python -m plottool.draw_func2 --test-color_orimag --show
@@ -1935,17 +1936,17 @@ def color_orimag(gori, gweights=None, gmag_is_01=None, encoding='rgb', p=.5):
         ...                  [ 4.71238898,  6.15139659,  0.76764078,  1.75632531,  1.57079633],
         ...                  [ 4.71238898,  4.51993581,  6.12565345,  3.87978382,  1.57079633],
         ...                  [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ]])
-        >>> gweights = np.array([[ 0.        ,  0.02160321,  0.00336692,  0.06290751,  0.        ],
+        >>> gmag = np.array([[ 0.        ,  0.02160321,  0.00336692,  0.06290751,  0.        ],
         ...                      [ 0.02363726,  0.04195344,  0.29969492,  0.53007415,  0.0426679 ],
         ...                      [ 0.00459386,  0.32086307,  0.02844123,  0.24623816,  0.27344167],
         ...                      [ 0.04204251,  0.52165989,  0.25800464,  0.14568752,  0.023614  ],
         ...                      [ 0.        ,  0.05143869,  0.2744546 ,  0.01582246,  0.        ]])
         >>> # execute function
         >>> p = 1
-        >>> bgr_ori1 = color_orimag(gori, gweights, encoding='bgr', p=p)
+        >>> bgr_ori1 = color_orimag(gori, gmag, encoding='bgr', p=p)
         >>> bgr_ori2 = color_orimag(gori, None, encoding='bgr')
         >>> legendimg = pt.make_ori_legend_img().astype(np.float32) / 255.0
-        >>> gweights_color = np.dstack([gweights] * 3).astype(np.float32)
+        >>> gweights_color = np.dstack([gmag] * 3).astype(np.float32)
         >>> img, _, _ = pt.stack_images(bgr_ori2, gweights_color, vert=False)
         >>> img, _, _ = pt.stack_images(img, bgr_ori1, vert=False)
         >>> img, _, _ = pt.stack_images(img, legendimg, vert=True, modifysize=True)
@@ -1962,24 +1963,26 @@ def color_orimag(gori, gweights=None, gmag_is_01=None, encoding='rgb', p=.5):
     """
     # Turn a 0 to 1 orienation map into hsv colors
     #gori_01 = (gori - gori.min()) / (gori.max() - gori.min())
+    if gori.max() > TAU or gori.min() < 0:
+        print('WARNING: [color_orimag] gori might not be in radians')
     flat_rgb = get_orientation_color(gori.flatten())
     #flat_rgb = np.array(cmap_(), dtype=np.float32)
     rgb_ori_alpha = flat_rgb.reshape(np.hstack((gori.shape, [4])))
     rgb_ori = cv2.cvtColor(rgb_ori_alpha, cv2.COLOR_RGBA2RGB)
     hsv_ori = cv2.cvtColor(rgb_ori,       cv2.COLOR_RGB2HSV)
     # Darken colors based on magnitude
-    if gweights is not None:
+    if gmag is not None:
         # Hueristic hack
-        if (gmag_is_01 is not None and (gmag_is_01 is not False and gweights.max() > 1.0)):
-            gweights_ = gweights / 255.0
-        else:
-            gweights_ = gweights
+        if gmag_is_01 is None:
+            gmag_is_01 = gmag.max() <= 1.0
+        gmag_ = gmag if gmag_is_01 else gmag / max(255.0, gmag.max())
         # Weights modify just value
-        gweights_ = gweights_ ** p
+        gmag_ = gmag_ ** p
+        #ut.embed()
         #SAT_CHANNEL = 1
         VAL_CHANNEL = 2
-        #hsv_ori[:, :, SAT_CHANNEL] = gweights_
-        hsv_ori[:, :, VAL_CHANNEL] = gweights_
+        #hsv_ori[:, :, SAT_CHANNEL] = gmag_
+        hsv_ori[:, :, VAL_CHANNEL] = gmag_
     # Convert back to bgr
     #bgr_ori = cv2.cvtColor(hsv_ori, cv2.COLOR_HSV2BGR)
     if encoding == 'rgb':

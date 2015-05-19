@@ -37,7 +37,13 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
         ~/code/ibeis/ibeis/viz/viz_nearest_descriptors.py
 
     CommandLine:
+
+        # Use this to find the fx you want to visualize
+        python -m plottool.interact_keypoints --test-ishow_keypoints --show --fname zebra.png
+
+        # Use this to visualize the featrow
         python -m plottool.viz_featrow --test-draw_feat_row --show
+        python -m plottool.viz_featrow --test-draw_feat_row --show --fname zebra.png --fx=121
         python -m plottool.viz_featrow --test-draw_feat_row --dpath figures --save ~/latex/crall-candidacy-2015/figures/viz_featrow.jpg
 
     Example:
@@ -47,7 +53,8 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
         >>> # build test data
         >>> kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()
         >>> chip = imgBGR
-        >>> fx = 0
+        >>> print('There are %d features' % (len(vecs)))
+        >>> fx = ut.get_argval('--fx', type_=int, default=0)
         >>> kp = kpts[fx]
         >>> sift = vecs[fx]
         >>> fnum = 1

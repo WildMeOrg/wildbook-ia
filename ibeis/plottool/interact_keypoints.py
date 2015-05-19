@@ -14,6 +14,7 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
 
     CommandLine:
         python -m plottool.interact_keypoints --test-ishow_keypoints --show
+        python -m plottool.interact_keypoints --test-ishow_keypoints --show --fname zebra.png
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -36,7 +37,7 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
     self.desc = desc
 
     def _select_ith_kpt(fx):
-        print_('[interact] viewing ith=%r keypoint' % fx)
+        print('[interact] viewing ith=%r keypoint' % fx)
         # Get the fx-th keypiont
         kp, sift = kpts[fx], desc[fx]
         # Draw the image with keypoint fx highlighted
@@ -52,7 +53,7 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
             df2.set_figtitle(figtitle)
 
     def _on_keypoints_click(event):
-        print_('[viz] clicked keypoint view')
+        print('[viz] clicked keypoint view')
         if event is None  or event.xdata is None or event.inaxes is None:
             annote_ptr[0] = (annote_ptr[0] + 1) % 3
             mode = annote_ptr[0]
@@ -63,7 +64,7 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
         else:
             ax = event.inaxes
             viztype = ph.get_plotdat(ax, 'viztype', None)
-            print_('[ik] viztype=%r' % viztype)
+            print('[ik] viztype=%r' % viztype)
             if viztype == 'keypoints':
                 kpts = ph.get_plotdat(ax, 'kpts', [])
                 if len(kpts) == 0:
