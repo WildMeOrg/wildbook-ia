@@ -715,7 +715,9 @@ def test_find_kp_direction():
         python -m vtool.patch --test-test_find_kp_direction --show --interact
         python -m vtool.patch --test-test_find_kp_direction --save ~/latex/crall-candidacy-2015/figures/test_fint_kp_direction.jpg --dpath figures '--caption=visualization of the steps in the computation of the dominant gradient orientations.' --figsize=14,9 --dpi=160 --height=2.65  --left=.04 --right=.96 --top=.95 --bottom=.05 --wspace=.1 --hspace=.1
 
-        python -m vtool.patch --test-test_find_kp_direction --save ~/latex/crall-candidacy-2015/figures/test_fint_kp_direction.jpg --dpath figures --diskshow --quality --figsize=14,9 --dpi=160
+        python -m vtool.patch --test-test_find_kp_direction --dpath ~/latex/crall-candidacy-2015/ --save figures/test_find_kp_direction.jpg  --figsize=14,9 --dpi=180 --height=2.65 --left=.04 --right=.96 --top=.95 --bottom=.05 --wspace=.1 --hspace=.1 --diskshow
+
+        python -m vtool.patch --test-test_find_kp_direction --dpath ~/latex/crall-candidacy-2015/ --save figures/test_find_kp_direction.jpg  --figsize=14,9 --dpi=180  --djust=.04,.05,.1 --diskshow --fname=zebra.png --fx=121
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -733,24 +735,31 @@ def test_find_kp_direction():
     import vtool as vt
     #import vtool as vt
     np.random.seed(0)
-    USE_EXTERN_STAR = False
-    if USE_EXTERN_STAR:
-        img_fpath = ut.grab_test_imgpath('star.png')
-        imgBGR = vt.imread(img_fpath)
-        kpts, vecs = vt.extract_features(img_fpath)
-        kp = np.array([  3.14742985e+01,   2.95660381e+01,   1.96057682e+01, -5.11199608e-03,   2.05653343e+01,   0.00000000e+00],
-                      dtype=np.float32)
+    USE_COMMANLINE = True
+    if USE_COMMANLINE:
+        kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()
+        fx = ut.get_argval('--fx', type_=int, default=0)
+        kp = kpts[fx]
     else:
-        imgBGR = get_test_patch('stripe', jitter=True)
-        #imgBGR = get_test_patch('star', jitter=True)
-        imgBGR = get_test_patch('star2', jitter=True)
-        #imgBGR = get_test_patch('cross', jitter=False)
-        #imgBGR = cv2.resize(imgBGR, (41, 41), interpolation=cv2.INTER_LANCZOS4)
-        imgBGR = cv2.resize(imgBGR, (41, 41), interpolation=cv2.INTER_CUBIC)
-        theta = 0  # 3.4  # TAU / 16
-        #kpts = make_test_image_keypoints(imgBGR, scale=.9, theta=theta)
-        kpts = make_test_image_keypoints(imgBGR, scale=.3, theta=theta, shift=(.3, .1))
-        kp = kpts[0]
+        fx = 0
+        USE_EXTERN_STAR = False
+        if USE_EXTERN_STAR:
+            img_fpath = ut.grab_test_imgpath('star.png')
+            imgBGR = vt.imread(img_fpath)
+            kpts, vecs = vt.extract_features(img_fpath)
+            kp = np.array([  3.14742985e+01,   2.95660381e+01,   1.96057682e+01, -5.11199608e-03,   2.05653343e+01,   0.00000000e+00],
+                          dtype=np.float32)
+        else:
+            #imgBGR = get_test_patch('stripe', jitter=True)
+            #imgBGR = get_test_patch('star', jitter=True)
+            imgBGR = get_test_patch('star2', jitter=True)
+            #imgBGR = get_test_patch('cross', jitter=False)
+            #imgBGR = cv2.resize(imgBGR, (41, 41), interpolation=cv2.INTER_LANCZOS4)
+            imgBGR = cv2.resize(imgBGR, (41, 41), interpolation=cv2.INTER_CUBIC)
+            theta = 0  # 3.4  # TAU / 16
+            #kpts = make_test_image_keypoints(imgBGR, scale=.9, theta=theta)
+            kpts = make_test_image_keypoints(imgBGR, scale=.3, theta=theta, shift=(.3, .1))
+            kp = kpts[0]
     bins = 36
     maxima_thresh = .8
     converge_lists = []
@@ -800,7 +809,7 @@ def test_find_kp_direction():
 
             kp[-1] = new_oris[0]
 
-            show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, gori, hist, centers, gori_weights)
+            show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, gori, hist, centers, gori_weights, fx=fx)
             pt.figure(fnum=2, doclf=True)
             colors = pt.distinct_colors(len(converge_lists))
             print(len(converge_lists))
@@ -812,28 +821,34 @@ def test_find_kp_direction():
             #pt.update()
             input('next')
         else:
-            show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, gori, hist, centers, gori_weights)
+            show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, gori, hist, centers, gori_weights, fx=fx)
             pt.present()
             print('no interaction')
             break
 
 
-def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, gori, hist, centers, gori_weights):
+def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, gori, hist, centers, gori_weights, fx=None):
     import plottool as pt
     import vtool as vt
     # DRAW TEST INFO
     fnum = 1
     pt.figure(fnum=1, doclf=True, docla=True)
     #gorimag = pt.color_orimag(gori, None, False)
-    gorimag = pt.color_orimag(gori, gmag, False)
+    gorimag = pt.color_orimag(gori, gmag=gmag, gmag_is_01=False)
     nRows, nCols = pt.get_square_row_cols(8)
     nRows += 1
     next_pnum = pt.make_pnum_nextgen(nRows, nCols)
-    pt.imshow(255 * imgBGR, update=True, fnum=fnum, pnum=next_pnum(), title='input image')
+    # hack
+    imgBGR_ = imgBGR if imgBGR.max() > 1 else imgBGR * 255
+    patch_ = patch if patch.max() > 1 else patch * 255
+    pt.imshow(imgBGR_, update=True, fnum=fnum, pnum=next_pnum(), title='input image')
     colors = pt.distinct_colors(len(kpts))
-    print(colors)
-    pt.draw_kpts2(kpts, rect=True, ori=True, ell_color=colors)
-    pt.imshow(patch * 255, fnum=fnum, pnum=next_pnum(), title='sampled patch')
+    #print(colors)
+    if fx is None:
+        pt.draw_kpts2(kpts, rect=True, ori=True, ell_color=colors)
+    else:
+        pt.draw_kpts2(kpts[fx:fx + 1], rect=True, ori=True, colors=[pt.ORANGE])
+    pt.imshow(patch_, fnum=fnum, pnum=next_pnum(), title='sampled patch')
     def normalize_grad_img(grad_):
         #return np.abs(grad_) * 255
         return vt.norm01(np.abs(grad_)) * 255
@@ -845,7 +860,10 @@ def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, g
     #pt.imshow(ut.norm_zero_one(gori) * 255, fnum=fnum, pnum=next_pnum(), title='ori')
     pt.draw_vector_field(gradx, grady, pnum=next_pnum(), fnum=fnum, title='gori (vec)')
     pt.imshow(gorimag, fnum=fnum, pnum=next_pnum(), title='ori-color')
-    pt.color_orimag_colorbar(gori)
+    if not ut.get_argflag('--noweighted-gori'):
+        pt.color_orimag_colorbar(gori * gori_weights)
+    else:
+        pt.color_orimag_colorbar(gori)
     pt.figure(fnum=fnum, pnum=(nRows, 1, nRows))
     #ut.embed()
     bin_colors = pt.get_orientation_color(centers)

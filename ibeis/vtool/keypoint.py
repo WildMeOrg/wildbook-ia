@@ -36,7 +36,7 @@ Efficiency Notes:
 
     fancy indexing with __getitem__ is very slow
     using np.take is a better idea, but its a bit harder
-    to use with multidimensional arrays
+    to use with multidimensional arrays (nope use axis=x)
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range, reduce
