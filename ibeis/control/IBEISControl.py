@@ -206,6 +206,7 @@ class IBEISController(object):
         if verbose and ut.VERBOSE:
             print('[ibs.__init__] new IBEISController')
         # an dict to hack in temporary state
+        ibs.const = const
         ibs.temporary_state = {}
         ibs.allow_override = 'override+warn'
         # observer_weakref_list keeps track of the guibacks connected to this controller
@@ -227,6 +228,25 @@ class IBEISController(object):
 
     def reset_table_cache(ibs):
         ibs.table_cache = accessor_decors.init_tablecache()
+
+    def clear_table_cache(ibs, tablename):
+        print('[ibs] clearing table_cache[%r]' % (tablename,))
+        del ibs.table_cache[tablename]
+
+    def get_cachestats_str(ibs):
+        """
+        Returns info about the underlying SQL cache memory
+        """
+        total_size_str = ut.get_object_size_str(ibs.table_cache, lbl='size(table_cache): ')
+        table_size_str_list = [ut.get_object_size_str(val, lbl='size(table_cache[%s]): ' % (key,))
+                               for key, val in six.iteritems(ibs.table_cache)]
+        cachestats_str = total_size_str + ut.indentjoin(table_size_str_list, '\n  * ')
+        return cachestats_str
+
+    def print_cachestats_str(ibs):
+        cachestats_str = ibs.get_cachestats_str()
+        print(cachestats_str)
+        return cachestats_str
 
     #def inject_module_plugin(ibs, module):
     #    global INJECTED_MODULES

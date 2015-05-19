@@ -2062,6 +2062,7 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
     ibs.db.set(const.ANNOTATION_TABLE, colnames, name_rowid_list, id_iter)
     # postset nids
     ibs.update_annot_semantic_uuids(aid_list)
+    # TODO: flag name rowid update
 
 
 @register_ibs_method
@@ -2171,7 +2172,8 @@ def set_annot_notes(ibs, aid_list, notes_list):
 @register_api('/api/annot/parent_rowid/', methods=['PUT'])
 def set_annot_parent_rowid(ibs, aid_list, parent_aid_list):
     r"""
-    Sets the annotation's parent aid
+    Sets the annotation's parent aid.
+    TODO DEPRICATE IN FAVOR OF SEPARATE PARTS TABLE
 
     RESTful:
         Method: PUT
@@ -2283,7 +2285,7 @@ def get_annot_qualities(ibs, aid_list, eager=True):
         col = annot_quality
         tbl = annot
 
-    SeeALso:
+    SeeAlso:
         ibeis.const.QUALITY_INT_TO_TEXT
 
     RESTful:

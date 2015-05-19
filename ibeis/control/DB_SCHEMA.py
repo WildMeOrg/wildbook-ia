@@ -1134,6 +1134,11 @@ def update_1_4_5(db, ibs=None):
             (None, 'annot_mask_uri',    'TEXT', None),
         ]
     )
+    db.modify_table(
+        const.NAME_TABLE, [
+            (None, 'name_nickname_text',    'TEXT', None),
+        ]
+    )
 
 
 # ========================
