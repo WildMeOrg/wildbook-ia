@@ -681,6 +681,15 @@ def ingest_oxford_style_db(dbdir):
 
 
 def injest_main():
+    r"""
+    CommandLine:
+        python -m ibeis.dbio.ingest_database --test-injest_main
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.dbio.ingest_database import *  # NOQA
+        >>> injest_main()
+    """
     print('__main__ = ingest_database.py')
     print(ut.unindent(
         '''
@@ -709,7 +718,7 @@ if __name__ == '__main__':
         python ibeis/dbio/ingest_database.py --db polar_bears --force_delete
         python ibeis/dbio/ingest_database.py --db snails_drop1
         python ibeis/dbio/ingest_database.py --db testdb1
-        python ibeis/dbio/ingest_database.py --db Elephants_drop1
+        python -m ibeis.dbio.ingest_database --test-injest_main --db Elephants_drop1
     """
     if ut.doctest_was_requested():
         ut.doctest_funcs()
