@@ -1,15 +1,22 @@
+"""
+  This module contains functions and clases to get data visualized fast (in
+terms of development time)
+"""
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtGui, QtCore
 from guitool.api_item_model import APIItemModel
 from guitool.api_table_view import APITableView
 #from guitool import guitool_components as comp
 from functools import partial
+from six.moves import range
 import utool as ut
 import six
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[APIItemWidget]', DEBUG=False)
 
 
 WIDGET_BASE = QtGui.QWidget
+
+VERBOSE_ITEM_WIDGET = ut.get_argflag(('--verbose-item-widget', '--verbiw')) or ut.VERBOSE
 
 
 def simple_api_item_widget():
@@ -24,33 +31,33 @@ def simple_api_item_widget():
         >>> # ENABLE_DOCTEST
         >>> from guitool.api_item_widget import *  # NOQA
         >>> import guitool
-        >>> guitool.ensure_qapp()
+        >>> guitool.ensure_qapp()  # must be ensured before any embeding
         >>> wgt = simple_api_item_widget()
         >>> ut.quit_if_noshow()
         >>> wgt.show()
-        >>> guitool.qtapp_loop(frequency=100)
+        >>> guitool.qtapp_loop(wgt, frequency=100)
     """
     import guitool
     guitool.ensure_qapp()
-    col_name_list = ['id_', 'prop1']
+    col_name_list = ['col1', 'col2']
     col_types_dict = {}
     col_getter_dict = {
-        'id_':   [1, 2, 3],
-        'prop1': ['a', 'b', 'c'],
+        'col1': [1, 2, 3],
+        'col2': ['a', 'b', 'c'],
     }
     col_ider_dict = {}
     col_setter_dict = {}
     editable_colnames = []
-    sortby = 'id_'
+    sortby = 'col1'
     get_thumb_size = lambda: 128
     col_width_dict = {}
     col_bgrole_dict = {}
 
-    custom_api = guitool.CustomAPI(
+    api = guitool.CustomAPI(
         col_name_list, col_types_dict, col_getter_dict,
         col_bgrole_dict, col_ider_dict, col_setter_dict,
         editable_colnames, sortby, get_thumb_size, True, col_width_dict)
-    headers = custom_api.make_headers(tblnice='results')
+    headers = api.make_headers(tblnice='results')
 
     wgt = guitool.APIItemWidget()
     wgt.change_headers(headers)
@@ -69,8 +76,8 @@ class CustomAPI(object):
     def __init__(self, col_name_list, col_types_dict, col_getter_dict,
                  col_bgrole_dict, col_ider_dict, col_setter_dict,
                  editable_colnames, sortby, get_thumb_size=None,
-                 sort_reverse=True, col_width_dict={}):
-        if ut.VERBOSE:
+                 sort_reverse=True, col_width_dict={}, strict=False):
+        if VERBOSE_ITEM_WIDGET:
             print('[CustomAPI] <__init__>')
         self.col_width_dict = col_width_dict
         self.col_name_list = []
@@ -84,11 +91,28 @@ class CustomAPI(object):
         else:
             self.get_thumb_size = get_thumb_size
 
+        # Hack, maintain the original data
+        # FIXME: make more ellegant
+        self.orig_data_tup = (col_types_dict, col_getter_dict,
+                              col_bgrole_dict, col_ider_dict, col_setter_dict,
+                              editable_colnames, sortby, sort_reverse, strict)
+
         self.parse_column_tuples(col_name_list, col_types_dict, col_getter_dict,
                                  col_bgrole_dict, col_ider_dict, col_setter_dict,
-                                 editable_colnames, sortby, sort_reverse)
-        if ut.VERBOSE:
+                                 editable_colnames, sortby, sort_reverse, strict)
+        if VERBOSE_ITEM_WIDGET:
             print('[CustomAPI] </__init__>')
+
+    def get_available_colnames(self):
+        col_getter_dict = self.orig_data_tup[1]
+        return list(col_getter_dict.keys())
+
+    def update_column_names(self, col_name_list):
+        self.parse_column_tuples(col_name_list, *self.orig_data_tup)
+
+    def add_column_names(self, new_colnames):
+        col_name_list = ut.unique_keep_order2(self.col_name_list + new_colnames)
+        self.update_column_names(col_name_list)
 
     def parse_column_tuples(self,
                             col_name_list,
@@ -99,11 +123,50 @@ class CustomAPI(object):
                             col_setter_dict,
                             editable_colnames,
                             sortby,
-                            sort_reverse=True):
+                            sort_reverse=True,
+                            strict=False):
         """
         parses simple lists into information suitable for making guitool headers
         """
         # Unpack the column tuples into names, getters, and types
+        if not strict:
+            # slopply colname definitions
+            flag_list = [colname in col_getter_dict for colname in col_name_list]
+            if not all(flag_list):
+                invalid_colnames = ut.list_compress(col_name_list, ut.not_list(flag_list))
+                print('[api_item_widget] Warning: colnames=%r have no getters' % (invalid_colnames,))
+                col_name_list = ut.list_compress(col_name_list, flag_list)
+            # sloppy type inference
+            try:
+                import numpy as np
+                HAVE_NUMPY = True
+            except ImportError:
+                pass
+            def get_homogenous_list_type(list_):
+                # TODO move to utool
+                if HAVE_NUMPY and isinstance(list_, np.ndarray):
+                    item = list_
+                elif isinstance(list_, list) and len(list_) > 0:
+                    item = list_[0]
+                else:
+                    item = None
+                if item is None:
+                    type_ = None
+                else:
+                    if ut.is_float(item):
+                        type_ = float
+                    elif ut.is_int(item):
+                        type_ = int
+                    else:
+                        type_ = None
+                return type_
+            for colname in col_name_list:
+                getter_ = col_getter_dict[colname]
+                if colname not in col_types_dict:
+                    type_ = get_homogenous_list_type(getter_)
+                    if type_ is not None:
+                        col_types_dict[colname] = type_
+
         self.col_name_list = col_name_list
         self.col_type_list = [col_types_dict.get(colname, str) for colname in col_name_list]
         self.col_getter_list = [col_getter_dict.get(colname, str) for colname in col_name_list]  # First col is always a getter
@@ -188,7 +251,7 @@ class CustomAPI(object):
     def ider(self):
         return list(range(self.nRows))
 
-    def make_headers(self, tblname='qres_api', tblnice='Query Results'):
+    def make_headers(self, tblname='custom_api', tblnice='Custom API'):
         """
         Builds headers for APIItemModel
         """
@@ -243,6 +306,14 @@ class APIItemWidget(WIDGET_BASE):
             # Make sure we don't call a subclass method
             APIItemWidget.change_headers(widget, headers)
         widget.connect_signals()
+        widget.api = None
+
+    def connect_api(widget, api, autopopulate=True):
+        widget.api = api
+        if autopopulate:
+            headers = api.make_headers()
+            widget.change_headers(headers)
+            #print(ut.dict_str(headers))
 
     def change_headers(widget, headers):
         parent = widget.parent()
@@ -258,13 +329,19 @@ class APIItemWidget(WIDGET_BASE):
         widget.view.contextMenuClicked.connect(widget.on_contextMenuRequested)
 
     def on_rows_updated(widget, name, num):
-        if ut.VERBOSE:
+        if VERBOSE_ITEM_WIDGET:
             print('rows updated')
         pass
 
     @QtCore.pyqtSlot(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuRequested(widget, index, pos):
-        if ut.VERBOSE:
+        print('context request')
+        if widget.api is not None:
+            print(ut.list_str(widget.api.get_available_colnames()))
+            # HACK test
+            widget.api.add_column_names(['qx2_gt_rank', 'qx2_gf_rank', 'qx2_gt_raw_score', 'qx2_gf_raw_score'])
+            widget.change_headers(widget.api.make_headers())
+        if VERBOSE_ITEM_WIDGET:
             print('context request')
         pass
 

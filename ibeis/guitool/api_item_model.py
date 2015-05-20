@@ -280,7 +280,7 @@ class APIItemModel(API_MODEL_BASE):
             #ut.embed()
             # <NUMPY MULTIARRAY SORT>
             with ut.embed_on_exception_context:
-                #values = np.array(values)
+                values = np.array(values)
                 if type_ is float:
                     values[np.isnan(values)] = -np.inf  # Force nan to be the smallest number
                 sortx = vt.argsort_multiarray([values, id_list], reverse=reverse)
