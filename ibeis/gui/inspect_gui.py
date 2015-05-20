@@ -16,7 +16,6 @@ from ibeis.experiments import results_organizer
 from ibeis.viz import viz_helpers as vh
 from plottool import fig_presenter
 #from plottool import interact_helpers as ih
-from six.moves import range
 #import functools
 import guitool
 import numpy as np
@@ -164,7 +163,7 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.qres_api = make_qres_api(ibs, qaid2_qres, name_scoring=name_scoring, qreq_=qreq_, **kwargs)
         qres_wgt.update_checkboxes()
 
-        headers = qres_wgt.qres_api.make_headers(tblnice=tblnice)
+        headers = qres_wgt.qres_api.make_headers(tblname='qres_api', tblnice=tblnice)
 
         # HACK IN ROW SIZE
         vertical_header = qres_wgt.view.verticalHeader()

@@ -30,6 +30,48 @@ DUMP_PROBCHIP = False
 DUMP_REGCHIP = False
 
 
+def make_metadata_custom_api(ibs, test_result):
+    import guitool
+    guitool.ensure_qapp()
+    cfgx = 0
+    cfgres_info = test_result.cfgx2_cfgresinfo[cfgx]
+    qaids = test_result.qaids
+    gt_aids = cfgres_info['qx2_gt_aid']
+    gf_aids = cfgres_info['qx2_gf_aid']
+    qx2_gt_timedelta = ibs.get_annot_pair_timdelta(qaids, gt_aids)
+    qx2_gf_timedelta = ibs.get_annot_pair_timdelta(qaids, gf_aids)
+    col_name_list = [
+        'qaids',
+        'qx2_gt_aid',
+        'qx2_gf_aid',
+        'qx2_gt_timedelta',
+        'qx2_gf_timedelta',
+    ]
+    col_types_dict = {}
+    col_getter_dict = {}
+    col_getter_dict.update(**cfgres_info)
+    col_getter_dict['qaids'] = test_result.qaids
+    col_getter_dict['qx2_gt_timedelta'] = qx2_gt_timedelta
+    col_getter_dict['qx2_gf_timedelta'] = qx2_gf_timedelta
+    col_bgrole_dict = {}
+    col_ider_dict = {}
+    col_setter_dict = {}
+    editable_colnames = []
+    sortby = 'qaids'
+    get_thumb_size = lambda: 128
+    col_width_dict = {}
+
+    custom_api = guitool.CustomAPI(
+        col_name_list, col_types_dict, col_getter_dict,
+        col_bgrole_dict, col_ider_dict, col_setter_dict,
+        editable_colnames, sortby, get_thumb_size, True, col_width_dict)
+    #headers = custom_api.make_headers(tblnice='results')
+    #print(ut.dict_str(headers))
+    wgt = guitool.APIItemWidget()
+    wgt.connect_api(custom_api)
+    return wgt
+
+
 def get_diffranks(rank_mat, qaids):
     """ Find rows which scored differently over the various configs """
     isdiff_flags = [not np.all(row == row[0]) for row in rank_mat]
@@ -215,7 +257,6 @@ def draw_results(ibs, test_result):
     if VIEW_FIG_DIR:
         ut.view_directory(figdir, verbose=True)
 
-
     #class ResultMetadata(object):
     #    # TODO keep track of metadata
     #    # Metadata is defined on a per-query-config basis
@@ -236,49 +277,25 @@ def draw_results(ibs, test_result):
     #        dict_[key] = val
     #    return dict_[key]
 
-    for cfgx, qreq_ in enumerate(test_result.cfgx2_qreq_):
-        # get cfgstr for daids + config
-        #cfgstr = qreq_.get_cfgstr()
-        #cfg_metadata = ensure_item(metadata, cfgstr, {})
-        #avuuids = ibs.get_annot_visual_uuids(qaids)
-        #avuuid2_ax = ensure_item(cfg_metadata, 'avuuid2_ax', {})
-        #cfg_columns = ensure_item(cfg_metadata, 'columns', {})
-        cfgres_info = test_result.cfgx2_cfgresinfo[cfgx]
-
-        gt_aids = cfgres_info['qx2_gt_aid']
-        gf_aids = cfgres_info['qx2_gf_aid']
-        qx2_gt_timedelta = ibs.get_annot_pair_timdelta(qaids, gt_aids)
-        qx2_gf_timedelta = ibs.get_annot_pair_timdelta(qaids, gf_aids)
-        qaids
-
-    ut.embed()
-
-    def make_metadata_custom_api():
-        import guitool
-        from ibeis.gui import inspect_gui
+    #for cfgx, qreq_ in enumerate(test_result.cfgx2_qreq_):
+    #    # get cfgstr for daids + config
+    #    #cfgstr = qreq_.get_cfgstr()
+    #    #cfg_metadata = ensure_item(metadata, cfgstr, {})
+    #    #avuuids = ibs.get_annot_visual_uuids(qaids)
+    #    #avuuid2_ax = ensure_item(cfg_metadata, 'avuuid2_ax', {})
+    #    #cfg_columns = ensure_item(cfg_metadata, 'columns', {})
+    import guitool
+    """
+    ./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10
+    """
+    if ut.is_developer():
         guitool.ensure_qapp()
-        col_name_list = ['qaids', 'qx2_gt_aid', 'qx2_gf_aid', 'qx2_gt_timedelta', 'qx2_gf_timedelta']
-        col_types_dict = {}
-        col_getter_dict = cfgres_info.copy()
-        col_getter_dict['qaids'] = qaids
-        col_getter_dict['qx2_gt_timedelta'] = qx2_gt_timedelta
-        col_getter_dict['qx2_gf_timedelta'] = qx2_gf_timedelta
-        col_bgrole_dict = {}
-        col_ider_dict = {}
-        col_setter_dict = {}
-        editable_colnames = []
-        sortby = 'qaids'
-        get_thumb_size = lambda: ibs.cfg.other_cfg.thumb_size
-        col_width_dict = {}
+        wgt = make_metadata_custom_api(ibs, test_result)
+        wgt.show()
+        wgt.raise_()
+        guitool.qtapp_loop(wgt, frequency=100)
 
-        custom_api = inspect_gui.CustomAPI(
-            col_name_list, col_types_dict, col_getter_dict,
-            col_bgrole_dict, col_ider_dict, col_setter_dict,
-            editable_colnames, sortby, get_thumb_size, True, col_width_dict)
-        headers = custom_api.make_headers(tblnice='results')
-
-        wgt = guitool.APIItemWidget()
-        wgt.change_headers(headers)
+    #ut.embed()
 
     VIZ_AGGREGATE_RESULTS = True
     if VIZ_AGGREGATE_RESULTS:
