@@ -37,7 +37,7 @@ class CustomFilterModel(FilterProxyModel):
     def __init__(model, headers=None, parent=None, *args):
         FilterProxyModel.__init__(model, parent=parent, *args)
         model.ibswin = parent
-        model.eid = -1  # negative one is an invalid eid
+        model.eid = -1  # negative one is an invalid eid  # seems unused
         model.original_ider = None
         model.sourcemodel = APIItemModel(parent=parent)
         model.setSourceModel(model.sourcemodel)
@@ -59,6 +59,7 @@ class CustomFilterModel(FilterProxyModel):
 
     def _change_enc(model, eid):
         model.eid = eid
+        # seems unused
         with ChangeLayoutContext([model]):
             FilterProxyModel._update_rows(model)
 
@@ -171,6 +172,7 @@ class QueryResultsWidget(APIItemWidget):
 
         # super call
         APIItemWidget.change_headers(qres_wgt, headers)
+        #qres_wgt.change_headers(headers)
 
         # HACK IN COL SIZE
         horizontal_header = qres_wgt.view.horizontalHeader()
@@ -472,166 +474,166 @@ def review_match(ibs, aid1, aid2, update_callback=None, backend_callback=None, q
     #ih.register_interaction(mvinteract)
 
 
-class CustomAPI(object):
-    """
-    Allows list of lists to be represented as an abstract api table
+#class CustomAPI(object):
+#    """
+#    Allows list of lists to be represented as an abstract api table
 
-    # TODO: Rename CustomAPI
-    API wrapper around a list of lists, each containing column data
-    Defines a single table
-    """
-    def __init__(self, col_name_list, col_types_dict, col_getter_dict,
-                 col_bgrole_dict, col_ider_dict, col_setter_dict,
-                 editable_colnames, sortby, get_thumb_size=None,
-                 sort_reverse=True, col_width_dict={}):
-        if ut.VERBOSE:
-            print('[CustomAPI] <__init__>')
-        self.col_width_dict = col_width_dict
-        self.col_name_list = []
-        self.col_type_list = []
-        self.col_getter_list = []
-        self.col_setter_list = []
-        self.nCols = 0
-        self.nRows = 0
-        if get_thumb_size is None:
-            self.get_thumb_size = lambda: 128
-        else:
-            self.get_thumb_size = get_thumb_size
+#    # TODO: Rename CustomAPI
+#    API wrapper around a list of lists, each containing column data
+#    Defines a single table
+#    """
+#    def __init__(self, col_name_list, col_types_dict, col_getter_dict,
+#                 col_bgrole_dict, col_ider_dict, col_setter_dict,
+#                 editable_colnames, sortby, get_thumb_size=None,
+#                 sort_reverse=True, col_width_dict={}):
+#        if ut.VERBOSE:
+#            print('[CustomAPI] <__init__>')
+#        self.col_width_dict = col_width_dict
+#        self.col_name_list = []
+#        self.col_type_list = []
+#        self.col_getter_list = []
+#        self.col_setter_list = []
+#        self.nCols = 0
+#        self.nRows = 0
+#        if get_thumb_size is None:
+#            self.get_thumb_size = lambda: 128
+#        else:
+#            self.get_thumb_size = get_thumb_size
 
-        self.parse_column_tuples(col_name_list, col_types_dict, col_getter_dict,
-                                 col_bgrole_dict, col_ider_dict, col_setter_dict,
-                                 editable_colnames, sortby, sort_reverse)
-        if ut.VERBOSE:
-            print('[CustomAPI] </__init__>')
+#        self.parse_column_tuples(col_name_list, col_types_dict, col_getter_dict,
+#                                 col_bgrole_dict, col_ider_dict, col_setter_dict,
+#                                 editable_colnames, sortby, sort_reverse)
+#        if ut.VERBOSE:
+#            print('[CustomAPI] </__init__>')
 
-    def parse_column_tuples(self,
-                            col_name_list,
-                            col_types_dict,
-                            col_getter_dict,
-                            col_bgrole_dict,
-                            col_ider_dict,
-                            col_setter_dict,
-                            editable_colnames,
-                            sortby,
-                            sort_reverse=True):
-        """
-        parses simple lists into information suitable for making guitool headers
-        """
-        # Unpack the column tuples into names, getters, and types
-        self.col_name_list = col_name_list
-        self.col_type_list = [col_types_dict.get(colname, str) for colname in col_name_list]
-        self.col_getter_list = [col_getter_dict.get(colname, str) for colname in col_name_list]  # First col is always a getter
-        # Get number of rows / columns
-        self.nCols = len(self.col_getter_list)
-        self.nRows = 0 if self.nCols == 0 else len(self.col_getter_list[0])  # FIXME
-        # Init iders to default and then overwite based on dict inputs
-        self.col_ider_list = utool.alloc_nones(self.nCols)
-        for colname, ider_colnames in six.iteritems(col_ider_dict):
-            try:
-                col = self.col_name_list.index(colname)
-                # Col iders might have tuple input
-                ider_cols = utool.uinput_1to1(self.col_name_list.index, ider_colnames)
-                col_ider  = utool.uinput_1to1(lambda c: partial(self.get, c), ider_cols)
-                self.col_ider_list[col] = col_ider
-                del col_ider
-                del ider_cols
-                del col
-                del colname
-            except Exception as ex:
-                ut.printex(ex, keys=['colname', 'ider_colnames', 'col', 'col_ider', 'ider_cols'])
-                raise
-        # Init setters to data, and then overwrite based on dict inputs
-        self.col_setter_list = list(self.col_getter_list)
-        for colname, col_setter in six.iteritems(col_setter_dict):
-            col = self.col_name_list.index(colname)
-            self.col_setter_list[col] = col_setter
-        # Init bgrole_getters to None, and then overwrite based on dict inputs
-        self.col_bgrole_getter_list = [col_bgrole_dict.get(colname, None) for colname in self.col_name_list]
-        # Mark edtiable columns
-        self.col_edit_list = [name in editable_colnames for name in col_name_list]
-        # Mark the sort column index
-        if utool.is_str(sortby):
-            self.col_sort_index = self.col_name_list.index(sortby)
-        else:
-            self.col_sort_index = sortby
-        self.col_sort_reverse = sort_reverse
+#    def parse_column_tuples(self,
+#                            col_name_list,
+#                            col_types_dict,
+#                            col_getter_dict,
+#                            col_bgrole_dict,
+#                            col_ider_dict,
+#                            col_setter_dict,
+#                            editable_colnames,
+#                            sortby,
+#                            sort_reverse=True):
+#        """
+#        parses simple lists into information suitable for making guitool headers
+#        """
+#        # Unpack the column tuples into names, getters, and types
+#        self.col_name_list = col_name_list
+#        self.col_type_list = [col_types_dict.get(colname, str) for colname in col_name_list]
+#        self.col_getter_list = [col_getter_dict.get(colname, str) for colname in col_name_list]  # First col is always a getter
+#        # Get number of rows / columns
+#        self.nCols = len(self.col_getter_list)
+#        self.nRows = 0 if self.nCols == 0 else len(self.col_getter_list[0])  # FIXME
+#        # Init iders to default and then overwite based on dict inputs
+#        self.col_ider_list = utool.alloc_nones(self.nCols)
+#        for colname, ider_colnames in six.iteritems(col_ider_dict):
+#            try:
+#                col = self.col_name_list.index(colname)
+#                # Col iders might have tuple input
+#                ider_cols = utool.uinput_1to1(self.col_name_list.index, ider_colnames)
+#                col_ider  = utool.uinput_1to1(lambda c: partial(self.get, c), ider_cols)
+#                self.col_ider_list[col] = col_ider
+#                del col_ider
+#                del ider_cols
+#                del col
+#                del colname
+#            except Exception as ex:
+#                ut.printex(ex, keys=['colname', 'ider_colnames', 'col', 'col_ider', 'ider_cols'])
+#                raise
+#        # Init setters to data, and then overwrite based on dict inputs
+#        self.col_setter_list = list(self.col_getter_list)
+#        for colname, col_setter in six.iteritems(col_setter_dict):
+#            col = self.col_name_list.index(colname)
+#            self.col_setter_list[col] = col_setter
+#        # Init bgrole_getters to None, and then overwrite based on dict inputs
+#        self.col_bgrole_getter_list = [col_bgrole_dict.get(colname, None) for colname in self.col_name_list]
+#        # Mark edtiable columns
+#        self.col_edit_list = [name in editable_colnames for name in col_name_list]
+#        # Mark the sort column index
+#        if utool.is_str(sortby):
+#            self.col_sort_index = self.col_name_list.index(sortby)
+#        else:
+#            self.col_sort_index = sortby
+#        self.col_sort_reverse = sort_reverse
 
-    def _infer_index(self, column, row):
-        """
-        returns the row based on the columns iders.
-        This is the identity for the default ider
-        """
-        ider_ = self.col_ider_list[column]
-        if ider_ is None:
-            return row
-        iderfunc = lambda func_: func_(row)
-        return utool.uinput_1to1(iderfunc, ider_)
+#    def _infer_index(self, column, row):
+#        """
+#        returns the row based on the columns iders.
+#        This is the identity for the default ider
+#        """
+#        ider_ = self.col_ider_list[column]
+#        if ider_ is None:
+#            return row
+#        iderfunc = lambda func_: func_(row)
+#        return utool.uinput_1to1(iderfunc, ider_)
 
-    def get(self, column, row, **kwargs):
-        """
-        getters always receive primary rowids, rectify if col_ider is
-        specified (row might be a row_pair)
-        """
-        index = self._infer_index(column, row)
-        column_getter = self.col_getter_list[column]
-        # Columns might be getter funcs indexable read/write arrays
-        try:
-            return utool.general_get(column_getter, index, **kwargs)
-        except Exception:
-            # FIXME: There may be an issue on tuple-key getters when row input is
-            # vectorized. Hack it away
-            if utool.isiterable(row):
-                row_list = row
-                return [self.get(column, row_, **kwargs) for row_ in row_list]
-            else:
-                raise
+#    def get(self, column, row, **kwargs):
+#        """
+#        getters always receive primary rowids, rectify if col_ider is
+#        specified (row might be a row_pair)
+#        """
+#        index = self._infer_index(column, row)
+#        column_getter = self.col_getter_list[column]
+#        # Columns might be getter funcs indexable read/write arrays
+#        try:
+#            return utool.general_get(column_getter, index, **kwargs)
+#        except Exception:
+#            # FIXME: There may be an issue on tuple-key getters when row input is
+#            # vectorized. Hack it away
+#            if utool.isiterable(row):
+#                row_list = row
+#                return [self.get(column, row_, **kwargs) for row_ in row_list]
+#            else:
+#                raise
 
-    def set(self, column, row, val):
-        index = self._infer_index(column, row)
-        column_setter = self.col_setter_list[column]
-        # Columns might be setter funcs or indexable read/write arrays
-        utool.general_set(column_setter, index, val)
+#    def set(self, column, row, val):
+#        index = self._infer_index(column, row)
+#        column_setter = self.col_setter_list[column]
+#        # Columns might be setter funcs or indexable read/write arrays
+#        utool.general_set(column_setter, index, val)
 
-    def get_bgrole(self, column, row):
-        bgrole_getter = self.col_bgrole_getter_list[column]
-        if bgrole_getter is None:
-            return None
-        index = self._infer_index(column, row)
-        return utool.general_get(bgrole_getter, index)
+#    def get_bgrole(self, column, row):
+#        bgrole_getter = self.col_bgrole_getter_list[column]
+#        if bgrole_getter is None:
+#            return None
+#        index = self._infer_index(column, row)
+#        return utool.general_get(bgrole_getter, index)
 
-    def ider(self):
-        return list(range(self.nRows))
+#    def ider(self):
+#        return list(range(self.nRows))
 
-    def make_headers(self, tblname='qres_api', tblnice='Query Results'):
-        """
-        Builds headers for APIItemModel
-        """
-        headers = {
-            'name': tblname,
-            'nice': tblname if tblnice is None else tblnice,
-            'iders': [self.ider],
-            'col_name_list'    : self.col_name_list,
-            'col_type_list'    : self.col_type_list,
-            'col_nice_list'    : self.col_name_list,
-            'col_edit_list'    : self.col_edit_list,
-            'col_sort_index'   : self.col_sort_index,
-            'col_sort_reverse' : self.col_sort_reverse,
-            'col_getter_list'  : self._make_getter_list(),
-            'col_setter_list'  : self._make_setter_list(),
-            'col_setter_list'  : self._make_setter_list(),
-            'col_bgrole_getter_list' : self._make_bgrole_getter_list(),
-            'get_thumb_size'   : self.get_thumb_size,
-        }
-        return headers
+#    def make_headers(self, tblname='qres_api', tblnice='Query Results'):
+#        """
+#        Builds headers for APIItemModel
+#        """
+#        headers = {
+#            'name': tblname,
+#            'nice': tblname if tblnice is None else tblnice,
+#            'iders': [self.ider],
+#            'col_name_list'    : self.col_name_list,
+#            'col_type_list'    : self.col_type_list,
+#            'col_nice_list'    : self.col_name_list,
+#            'col_edit_list'    : self.col_edit_list,
+#            'col_sort_index'   : self.col_sort_index,
+#            'col_sort_reverse' : self.col_sort_reverse,
+#            'col_getter_list'  : self._make_getter_list(),
+#            'col_setter_list'  : self._make_setter_list(),
+#            'col_setter_list'  : self._make_setter_list(),
+#            'col_bgrole_getter_list' : self._make_bgrole_getter_list(),
+#            'get_thumb_size'   : self.get_thumb_size,
+#        }
+#        return headers
 
-    def _make_bgrole_getter_list(self):
-        return [partial(self.get_bgrole, column) for column in range(self.nCols)]
+#    def _make_bgrole_getter_list(self):
+#        return [partial(self.get_bgrole, column) for column in range(self.nCols)]
 
-    def _make_getter_list(self):
-        return [partial(self.get, column) for column in range(self.nCols)]
+#    def _make_getter_list(self):
+#        return [partial(self.get, column) for column in range(self.nCols)]
 
-    def _make_setter_list(self):
-        return [partial(self.set, column) for column in range(self.nCols)]
+#    def _make_setter_list(self):
+#        return [partial(self.set, column) for column in range(self.nCols)]
 
 
 def get_match_status(ibs, aid_pair):
@@ -737,9 +739,9 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         >>>     ibs.delete_annotmatch(ibs._get_all_annotmatch_rowids())
         >>> main_locals = test_inspect_matches(ibs, qaid_list, daid_list)
         >>> main_execstr = ibeis.main_loop(main_locals)
-        >>> if ut.show_was_requested():
-        >>>     # TODO: add in qwin to main loop
-        >>>     guitool.qtapp_loop()
+        >>> ut.quit_if_noshow()
+        >>> # TODO: add in qwin to main loop
+        >>> guitool.qtapp_loop()
         >>> print(main_execstr)
         >>> exec(main_execstr)
     """
@@ -1076,9 +1078,9 @@ def make_qres_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False,
     sortby = 'score'
     get_thumb_size = lambda: ibs.cfg.other_cfg.thumb_size
     # Insert info into dict
-    qres_api = CustomAPI(col_name_list, col_types_dict, col_getter_dict,
-                         col_bgrole_dict, col_ider_dict, col_setter_dict,
-                         editable_colnames, sortby, get_thumb_size, True, col_width_dict)
+    qres_api = guitool.CustomAPI(col_name_list, col_types_dict, col_getter_dict,
+                                 col_bgrole_dict, col_ider_dict, col_setter_dict,
+                                 editable_colnames, sortby, get_thumb_size, True, col_width_dict)
     return qres_api
 
 

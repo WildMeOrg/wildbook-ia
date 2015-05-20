@@ -280,6 +280,7 @@ class TestResult(object):
         return config_rand_bin_qxs
 
     #def get_full_cfgstr(test_result, cfgx):
+    #    both query and database included
     #    full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
     #    return full_cfgstr
 

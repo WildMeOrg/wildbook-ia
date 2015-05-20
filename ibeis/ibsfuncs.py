@@ -4535,6 +4535,16 @@ def search_list(text_list, pattern, flags=0):
     return valid_index_list, valid_match_list
 
 
+@__injectable
+def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
+    unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)
+    unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)
+    unixtime_list1[unixtime_list1 == -1] = np.nan
+    unixtime_list2[unixtime_list2 == -1] = np.nan
+    timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
+    return timedelta_list
+
+
 if __name__ == '__main__':
     """
     CommandLine:

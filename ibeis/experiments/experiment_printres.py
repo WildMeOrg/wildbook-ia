@@ -215,6 +215,71 @@ def draw_results(ibs, test_result):
     if VIEW_FIG_DIR:
         ut.view_directory(figdir, verbose=True)
 
+
+    #class ResultMetadata(object):
+    #    # TODO keep track of metadata
+    #    # Metadata is defined on a per-query-config basis
+    #    # keys are aids, columns point to the relevant images
+    #    def __init__(self, test_result):
+    #        """
+    #        self = ResultMetadata(test_result)
+    #        """
+    #        self.test_result = test_result
+    #        pass
+
+    #metadata_fpath = join(figdir, 'result_metadata.shelf')
+    #import shelve
+    #metadata = shelve.open(metadata_fpath)
+
+    #def ensure_item(dict_, key, val):
+    #    if key not in dict_:
+    #        dict_[key] = val
+    #    return dict_[key]
+
+    for cfgx, qreq_ in enumerate(test_result.cfgx2_qreq_):
+        # get cfgstr for daids + config
+        #cfgstr = qreq_.get_cfgstr()
+        #cfg_metadata = ensure_item(metadata, cfgstr, {})
+        #avuuids = ibs.get_annot_visual_uuids(qaids)
+        #avuuid2_ax = ensure_item(cfg_metadata, 'avuuid2_ax', {})
+        #cfg_columns = ensure_item(cfg_metadata, 'columns', {})
+        cfgres_info = test_result.cfgx2_cfgresinfo[cfgx]
+
+        gt_aids = cfgres_info['qx2_gt_aid']
+        gf_aids = cfgres_info['qx2_gf_aid']
+        qx2_gt_timedelta = ibs.get_annot_pair_timdelta(qaids, gt_aids)
+        qx2_gf_timedelta = ibs.get_annot_pair_timdelta(qaids, gf_aids)
+        qaids
+
+    ut.embed()
+
+    def make_metadata_custom_api():
+        import guitool
+        from ibeis.gui import inspect_gui
+        guitool.ensure_qapp()
+        col_name_list = ['qaids', 'qx2_gt_aid', 'qx2_gf_aid', 'qx2_gt_timedelta', 'qx2_gf_timedelta']
+        col_types_dict = {}
+        col_getter_dict = cfgres_info.copy()
+        col_getter_dict['qaids'] = qaids
+        col_getter_dict['qx2_gt_timedelta'] = qx2_gt_timedelta
+        col_getter_dict['qx2_gf_timedelta'] = qx2_gf_timedelta
+        col_bgrole_dict = {}
+        col_ider_dict = {}
+        col_setter_dict = {}
+        editable_colnames = []
+        sortby = 'qaids'
+        get_thumb_size = lambda: ibs.cfg.other_cfg.thumb_size
+        col_width_dict = {}
+
+        custom_api = inspect_gui.CustomAPI(
+            col_name_list, col_types_dict, col_getter_dict,
+            col_bgrole_dict, col_ider_dict, col_setter_dict,
+            editable_colnames, sortby, get_thumb_size, True, col_width_dict)
+        headers = custom_api.make_headers(tblnice='results')
+
+        wgt = guitool.APIItemWidget()
+        wgt.change_headers(headers)
+
     VIZ_AGGREGATE_RESULTS = True
     if VIZ_AGGREGATE_RESULTS:
         import plottool as pt
@@ -224,16 +289,17 @@ def draw_results(ibs, test_result):
         config_rand_bin_qxs = test_result.get_rank_histogram_qx_binxs()
 
         for cfgx, (ranks, agg_hist_dict, qx2_gt_aid, config_binxs) in enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs)):
+            pass
             #full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
             #ut.print_dict(ut.dict_hist(ranks), 'rank histogram', sorted_=True)
             # find the qxs that belong to each bin
-            def get_annotpair_timdelta(ibs, aid_list1, aid_list2):
-                unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)
-                unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)
-                unixtime_list1[unixtime_list1 == -1] = np.nan
-                unixtime_list2[unixtime_list2 == -1] = np.nan
-                timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
-                return timedelta_list
+            #def get_annotpair_timdelta(ibs, aid_list1, aid_list2):
+            #    unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)
+            #    unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)
+            #    unixtime_list1[unixtime_list1 == -1] = np.nan
+            #    unixtime_list2[unixtime_list2 == -1] = np.nan
+            #    timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
+            #    return timedelta_list
 
             #def get_annotpair_timdelta_strs(ibs, aid_list1, aid_list2):
             #    timedelta_list = get_annotpair_timdelta(ibs, aid_list1, aid_list2)
@@ -924,23 +990,9 @@ def print_results(ibs, test_result):
             test_result.qaids
             test_result.qaids
 
-            def get_annotpair_timdelta(ibs, aid_list1, aid_list2):
-                unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)
-                unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)
-                unixtime_list1[unixtime_list1 == -1] = np.nan
-                unixtime_list2[unixtime_list2 == -1] = np.nan
-                timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
-                return timedelta_list
-
-            #def get_annotpair_timdelta_strs(ibs, aid_list1, aid_list2):
-            #    timedelta_list = get_annotpair_timdelta(ibs, aid_list1, aid_list2)
-            #    timedelta_str_list = [ut.get_posix_timedelta_str(delta) if not np.isnan(delta) else 'None'
-            #                          for delta in timedelta_list]
-            #    return timedelta_str_list
-
             aid_list1 = test_result.qaids
             aid_list2 = qx2_gt_aid
-            timedelta_list = get_annotpair_timdelta(ibs, aid_list1, aid_list2)
+            timedelta_list = ibs.get_annotpair_timdelta(ibs, aid_list1, aid_list2)
             #timedelta_str_list = [ut.get_posix_timedelta_str2(delta)
             #                      for delta in timedelta_list]
 
