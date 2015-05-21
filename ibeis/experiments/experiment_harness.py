@@ -10,7 +10,8 @@ import utool
 import utool as ut
 from ibeis.experiments import experiment_helpers as eh
 from ibeis.experiments import experiment_printres
-
+from ibeis.experiments import experiment_drawing
+from ibeis.experiments import experiment_storage
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[expt_harn]')
 
@@ -182,107 +183,7 @@ def test_configurations(ibs, qaids, daids, test_cfg_name_list):
         return
     else:
         experiment_printres.print_results(ibs, test_result)
-        experiment_printres.draw_results(ibs, test_result)
-
-import six
-
-
-@six.add_metaclass(ut.ReloadingMetaclass)
-class TestResult(object):
-    def __init__(test_result, cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, daids, qaids):
-        test_result.qaids = qaids
-        test_result.daids = daids
-        test_result.cfg_list         = cfg_list
-        test_result.cfgx2_lbl        = cfgx2_lbl
-        test_result.lbl              = lbl
-        test_result.testnameid       = testnameid
-        test_result.cfgx2_cfgresinfo = cfgx2_cfgresinfo
-        test_result.cfgx2_qreq_      = cfgx2_qreq_
-
-    @ut.memoize
-    def get_rank_mat(test_result):
-        # Ranks of Best Results
-        cfgx2_bestranks = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_bestranks')
-        rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
-        # Set invalid ranks to the worse possible rank
-        worst_possible_rank = test_result.get_worst_possible_rank()
-        rank_mat[rank_mat == -1] =  worst_possible_rank
-        return rank_mat
-
-    def get_worst_possible_rank(test_result):
-        #worst_possible_rank = max(9001, len(test_result.daids) + 1)
-        worst_possible_rank = len(test_result.daids) + 1
-        return worst_possible_rank
-
-    @ut.memoize
-    def get_new_hard_qx_list(test_result):
-        """ Mark any query as hard if it didnt get everything correct """
-        rank_mat = test_result.get_rank_mat()
-        is_new_hard_list = rank_mat.max(axis=1) > 0
-        new_hard_qx_list = np.where(is_new_hard_list)[0]
-        return new_hard_qx_list
-
-    def get_rank_histograms(test_result):
-        rank_mat = test_result.get_rank_mat()
-        bins = test_result.get_rank_histogram_bins()
-        config_hists = []
-        for ranks in rank_mat.T:
-            bin_values, bin_edges  = np.histogram(ranks, bins=bins)
-            bin_keys = list(zip(bin_edges[:-1], bin_edges[1:]))
-            hist_dict = dict(zip(bin_keys, bin_values))
-            config_hists.append(hist_dict)
-        return config_hists
-
-    def get_rank_histogram_bins(test_result):
-        worst_possible_rank = test_result.get_worst_possible_rank()
-        if worst_possible_rank > 50:
-            bins = [0, 1, 5, 50, worst_possible_rank, worst_possible_rank + 1]
-        elif worst_possible_rank > 5:
-            bins = [0, 1, 5, worst_possible_rank, worst_possible_rank + 1]
-        else:
-            bins = [0, 1, 5]
-        return bins
-
-    def get_rank_histogram_bin_edges(test_result):
-        bins = test_result.get_rank_histogram_bins()
-        bin_keys = list(zip(bins[:-1], bins[1:]))
-        return bin_keys
-
-    def get_rank_histogram_qx_binxs(test_result):
-        rank_mat = test_result.get_rank_mat()
-        config_hists = test_result.get_rank_histograms()
-        config_binxs = []
-        bin_keys = test_result.get_rank_histogram_bin_edges()
-        for hist_dict, ranks in zip(config_hists, rank_mat.T):
-            bin_qxs = [np.where(np.logical_and(low <= ranks, ranks < high))[0]
-                       for low, high in bin_keys]
-            qx2_binx = -np.ones(len(ranks))
-            for binx, qxs in enumerate(bin_qxs):
-                qx2_binx[qxs] = binx
-            config_binxs.append(qx2_binx)
-        return config_binxs
-
-    def get_rank_histogram_qx_sample(test_result, size=10):
-        size = 10
-        rank_mat = test_result.get_rank_mat()
-        config_hists = test_result.get_rank_histograms()
-        config_rand_bin_qxs = []
-        bins = test_result.get_rank_histogram_bins()
-        bin_keys = list(zip(bins[:-1], bins[1:]))
-        randstate = np.random.RandomState(seed=0)
-        for hist_dict, ranks in zip(config_hists, rank_mat.T):
-            bin_qxs = [np.where(np.logical_and(low <= ranks, ranks < high))[0]
-                       for low, high in bin_keys]
-            rand_bin_qxs = [qxs if len(qxs) <= size else
-                            randstate.choice(qxs, size=size, replace=False)
-                            for qxs in bin_qxs]
-            config_rand_bin_qxs.append(rand_bin_qxs)
-        return config_rand_bin_qxs
-
-    #def get_full_cfgstr(test_result, cfgx):
-    #    both query and database included
-    #    full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
-    #    return full_cfgstr
+        experiment_drawing.draw_results(ibs, test_result)
 
 
 @profile
@@ -338,7 +239,7 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
     # TODO: should probably just use a cfgdict to build a list of QueryRequest
     # objects. That would avoid the entire problem
     ibs.set_query_cfg(orig_query_cfg)
-    test_result = TestResult(cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, daids, qaids)
+    test_result = experiment_storage.TestResult(cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, daids, qaids)
     return test_result
 
 if __name__ == '__main__':
