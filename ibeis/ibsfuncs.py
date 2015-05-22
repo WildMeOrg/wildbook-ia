@@ -4545,6 +4545,36 @@ def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
     return timedelta_list
 
 
+@__injectable
+def dans_lists(ibs, positives=10, negatives=10):
+    from random import shuffle
+
+    aid_list = ibs.get_valid_aids()
+    yaw_list = ibs.get_annot_yaw_texts(aid_list)
+    sex_list = ibs.get_annot_sex_texts(aid_list)
+    age_list = ibs.get_annot_age_months_est(aid_list)
+
+    positive_list = [
+        aid
+        for aid, yaw, sex, (start, end) in zip(aid_list, yaw_list, sex_list, age_list)
+        if yaw.upper() == 'LEFT' and sex.upper() in ['MALE', 'FEMALE'] and start != -1 and end != -1
+    ]
+
+    negative_list = [
+        aid
+        for aid, yaw, sex, (start, end) in zip(aid_list, yaw_list, sex_list, age_list)
+        if yaw.upper() == 'LEFT' and sex.upper() == 'UNKNOWN SEX' and start == -1 and end == -1
+    ]
+
+    shuffle(positive_list)
+    shuffle(negative_list)
+
+    positive_list = sorted(positive_list[:10])
+    negative_list = sorted(negative_list[:10])
+
+    return positive_list, negative_list
+
+
 if __name__ == '__main__':
     """
     CommandLine:
