@@ -4550,6 +4550,7 @@ def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
     return timedelta_list
 
 
+<<<<<<< HEAD
 def make_temporally_distinct_blind_test(ibs, challenge_num=None):
 
     r"""
@@ -4844,6 +4845,72 @@ def make_temporally_distinct_blind_test(ibs, challenge_num=None):
 
     #
     #scipy.optimize.linprog
+
+
+@__injectable
+def dans_lists(ibs, positives=10, negatives=10, verbose=False):
+    from random import shuffle
+
+    aid_list = ibs.get_valid_aids()
+    yaw_list = ibs.get_annot_yaw_texts(aid_list)
+    qua_list = ibs.get_annot_quality_texts(aid_list)
+    sex_list = ibs.get_annot_sex_texts(aid_list)
+    age_list = ibs.get_annot_age_months_est(aid_list)
+
+    positive_list = [
+        aid
+        for aid, yaw, qua, sex, (start, end) in zip(aid_list, yaw_list, qua_list, sex_list, age_list)
+        if yaw.upper() == 'LEFT' and qua.upper() in ['OK', 'GOOD', 'EXCELLENT'] and sex.upper() in ['MALE', 'FEMALE'] and start != -1 and end != -1
+    ]
+
+    negative_list = [
+        aid
+        for aid, yaw, qua, sex, (start, end) in zip(aid_list, yaw_list, qua_list, sex_list, age_list)
+        if yaw.upper() == 'LEFT' and qua.upper() in ['OK', 'GOOD', 'EXCELLENT'] and sex.upper() == 'UNKNOWN SEX' and start == -1 and end == -1
+    ]
+
+    shuffle(positive_list)
+    shuffle(negative_list)
+
+    positive_list = sorted(positive_list[:10])
+    negative_list = sorted(negative_list[:10])
+
+    if verbose:
+        pos_yaw_list = ibs.get_annot_yaw_texts(positive_list)
+        pos_qua_list = ibs.get_annot_quality_texts(positive_list)
+        pos_sex_list = ibs.get_annot_sex_texts(positive_list)
+        pos_age_list = ibs.get_annot_age_months_est(positive_list)
+        pos_chip_list = ibs.get_annot_chip_fpath(positive_list)
+
+        neg_yaw_list = ibs.get_annot_yaw_texts(negative_list)
+        neg_qua_list = ibs.get_annot_quality_texts(negative_list)
+        neg_sex_list = ibs.get_annot_sex_texts(negative_list)
+        neg_age_list = ibs.get_annot_age_months_est(negative_list)
+        neg_chip_list = ibs.get_annot_chip_fpath(negative_list)
+
+        print('positive_aid_list = %s\n' % (positive_list, ))
+        print('positive_yaw_list = %s\n' % (pos_yaw_list, ))
+        print('positive_qua_list = %s\n' % (pos_qua_list, ))
+        print('positive_sex_list = %s\n' % (pos_sex_list, ))
+        print('positive_age_list = %s\n' % (pos_age_list, ))
+        print('positive_chip_list = %s\n' % (pos_chip_list, ))
+
+        print('-' * 90, '\n')
+
+        print('negative_aid_list = %s\n' % (negative_list, ))
+        print('negative_yaw_list = %s\n' % (neg_yaw_list, ))
+        print('negative_qua_list = %s\n' % (neg_qua_list, ))
+        print('negative_sex_list = %s\n' % (neg_sex_list, ))
+        print('negative_age_list = %s\n' % (neg_age_list, ))
+        print('negative_chip_list = %s\n' % (neg_chip_list, ))
+
+        print('mkdir ~/Desktop/chips')
+        for pos_chip in pos_chip_list:
+            print('cp "%s" ~/Desktop/chips/' % (pos_chip, ))
+        for neg_chip in neg_chip_list:
+            print('cp "%s" ~/Desktop/chips/' % (neg_chip, ))
+
+    return positive_list, negative_list
 
 
 if __name__ == '__main__':
