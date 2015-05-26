@@ -33,6 +33,15 @@ def get_consec_endpoint(consec_index_list, endpoint):
             return consec_index
 
 
+def index_to_boolmask(index_list, maxval=None):
+    #assert index_list.min() >= 0
+    if maxval is None:
+        maxval = index_list.max()
+    mask = np.zeros(maxval, dtype=np.bool)
+    mask[index_list] = True
+    return mask
+
+
 def get_crop_slices(isfill):
     fill_colxs = [np.where(row)[0] for row in isfill]
     fill_rowxs = [np.where(col)[0] for col in isfill.T]

@@ -289,6 +289,18 @@ def pad_image_on_disk(img_fpath, pad_, out_fpath=None, value=0, borderType=cv2.B
     return out_fpath_
 
 
+def clipwhite_ondisk(fpath_in, fpath_out=None):
+    import vtool as vt
+    if fpath_out is None:
+        fpath_out = ut.augpath(fpath_in, '_clipwhite')
+    img = vt.imread(fpath_in)
+    thresh = 128
+    fillval = [255, 255, 255]
+    cropped_img = vt.crop_out_imgfill(img, fillval=fillval, thresh=thresh)
+    vt.imwrite(fpath_out, cropped_img)
+    return fpath_out
+
+
 def rotate_image_on_disk(img_fpath, theta, out_fpath=None, **kwargs):
     r"""
     Args:
