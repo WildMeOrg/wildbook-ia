@@ -57,7 +57,7 @@ def simple_api_item_widget():
         col_name_list, col_types_dict, col_getter_dict,
         col_bgrole_dict, col_ider_dict, col_setter_dict,
         editable_colnames, sortby, get_thumb_size, True, col_width_dict)
-    headers = api.make_headers(tblnice='results')
+    headers = api.make_headers(tblnice='Simple Example')
 
     wgt = guitool.APIItemWidget()
     wgt.change_headers(headers)
@@ -76,7 +76,7 @@ class CustomAPI(object):
     def __init__(self, col_name_list, col_types_dict, col_getter_dict,
                  col_bgrole_dict, col_ider_dict, col_setter_dict,
                  editable_colnames, sortby, get_thumb_size=None,
-                 sort_reverse=True, col_width_dict={}, strict=False):
+                 sort_reverse=True, col_width_dict={}, strict=False, **kwargs):
         if VERBOSE_ITEM_WIDGET:
             print('[CustomAPI] <__init__>')
         self.col_width_dict = col_width_dict
@@ -96,23 +96,25 @@ class CustomAPI(object):
         self.orig_data_tup = (col_types_dict, col_getter_dict,
                               col_bgrole_dict, col_ider_dict, col_setter_dict,
                               editable_colnames, sortby, sort_reverse, strict)
+        self.orig_kwargs = kwargs
+        self.update_column_names(col_name_list)
 
-        self.parse_column_tuples(col_name_list, col_types_dict, col_getter_dict,
-                                 col_bgrole_dict, col_ider_dict, col_setter_dict,
-                                 editable_colnames, sortby, sort_reverse, strict)
+        #self.parse_column_tuples(col_name_list, col_types_dict, col_getter_dict,
+        #                         col_bgrole_dict, col_ider_dict, col_setter_dict,
+        #                         editable_colnames, sortby, sort_reverse, strict, **kwargs)
         if VERBOSE_ITEM_WIDGET:
             print('[CustomAPI] </__init__>')
 
-    def get_available_colnames(self):
-        col_getter_dict = self.orig_data_tup[1]
-        return list(col_getter_dict.keys())
-
     def update_column_names(self, col_name_list):
-        self.parse_column_tuples(col_name_list, *self.orig_data_tup)
+        self.parse_column_tuples(col_name_list, *self.orig_data_tup, **self.orig_kwargs)
 
     def add_column_names(self, new_colnames):
         col_name_list = ut.unique_keep_order2(self.col_name_list + new_colnames)
         self.update_column_names(col_name_list)
+
+    def get_available_colnames(self):
+        col_getter_dict = self.orig_data_tup[1]
+        return list(col_getter_dict.keys())
 
     def parse_column_tuples(self,
                             col_name_list,
@@ -124,7 +126,8 @@ class CustomAPI(object):
                             editable_colnames,
                             sortby,
                             sort_reverse=True,
-                            strict=False):
+                            strict=False,
+                            **kwargs):
         """
         parses simple lists into information suitable for making guitool headers
         """
@@ -137,35 +140,16 @@ class CustomAPI(object):
                 print('[api_item_widget] Warning: colnames=%r have no getters' % (invalid_colnames,))
                 col_name_list = ut.list_compress(col_name_list, flag_list)
             # sloppy type inference
-            try:
-                import numpy as np
-                HAVE_NUMPY = True
-            except ImportError:
-                pass
-            def get_homogenous_list_type(list_):
-                # TODO move to utool
-                if HAVE_NUMPY and isinstance(list_, np.ndarray):
-                    item = list_
-                elif isinstance(list_, list) and len(list_) > 0:
-                    item = list_[0]
-                else:
-                    item = None
-                if item is None:
-                    type_ = None
-                else:
-                    if ut.is_float(item):
-                        type_ = float
-                    elif ut.is_int(item):
-                        type_ = int
-                    else:
-                        type_ = None
-                return type_
             for colname in col_name_list:
                 getter_ = col_getter_dict[colname]
                 if colname not in col_types_dict:
-                    type_ = get_homogenous_list_type(getter_)
+                    type_ = ut.get_homogenous_list_type(getter_)
                     if type_ is not None:
                         col_types_dict[colname] = type_
+        # sloppy kwargs.
+        # FIXME: explicitly list col_nice_dict
+        col_nice_dict = kwargs.get('col_nice_dict', {})
+        self.col_nice_list = [col_nice_dict.get(name, name) for name in col_name_list]
 
         self.col_name_list = col_name_list
         self.col_type_list = [col_types_dict.get(colname, str) for colname in col_name_list]
@@ -261,7 +245,7 @@ class CustomAPI(object):
             'iders': [self.ider],
             'col_name_list'    : self.col_name_list,
             'col_type_list'    : self.col_type_list,
-            'col_nice_list'    : self.col_name_list,
+            'col_nice_list'    : self.col_nice_list,
             'col_edit_list'    : self.col_edit_list,
             'col_sort_index'   : self.col_sort_index,
             'col_sort_reverse' : self.col_sort_reverse,
@@ -290,7 +274,8 @@ class APIItemWidget(WIDGET_BASE):
 
     def __init__(widget, headers=None, parent=None,
                  model_class=APIItemModel,
-                 view_class=APITableView):
+                 view_class=APITableView,
+                 tblnice='APIItemWidget'):
         WIDGET_BASE.__init__(widget, parent)
         # Create vertical layout for the table to go into
         widget.vert_layout = QtGui.QVBoxLayout(widget)
@@ -302,6 +287,7 @@ class APIItemWidget(WIDGET_BASE):
         widget.model = model_class(parent=widget.view)
         widget.view.setModel(widget.model)
         widget.vert_layout.addWidget(widget.view)
+        widget.tblnice = tblnice
         if headers is not None:
             # Make sure we don't call a subclass method
             APIItemWidget.change_headers(widget, headers)
@@ -311,8 +297,9 @@ class APIItemWidget(WIDGET_BASE):
     def connect_api(widget, api, autopopulate=True):
         widget.api = api
         if autopopulate:
-            headers = api.make_headers()
-            widget.change_headers(headers)
+            widget.refresh_headers()
+            #headers = api.make_headers(tblnice=widget.tblnice)
+            #widget.change_headers(headers)
             #print(ut.dict_str(headers))
 
     def change_headers(widget, headers):
@@ -333,14 +320,20 @@ class APIItemWidget(WIDGET_BASE):
             print('rows updated')
         pass
 
+    def refresh_headers(widget):
+        headers = widget.api.make_headers(tblnice=widget.tblnice)
+        widget.change_headers(headers)
+        #print(ut.dict_str(headers))
+
     @QtCore.pyqtSlot(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuRequested(widget, index, pos):
         print('context request')
         if widget.api is not None:
             print(ut.list_str(widget.api.get_available_colnames()))
             # HACK test
-            widget.api.add_column_names(['qx2_gt_rank', 'qx2_gf_rank', 'qx2_gt_raw_score', 'qx2_gf_raw_score'])
-            widget.change_headers(widget.api.make_headers())
+            #widget.api.add_column_names(['qx2_gt_rank', 'qx2_gf_rank', 'qx2_gt_raw_score', 'qx2_gf_raw_score'])
+            widget.refresh_headers()
+            #widget.change_headers(widget.api.make_headers())
         if VERBOSE_ITEM_WIDGET:
             print('context request')
         pass

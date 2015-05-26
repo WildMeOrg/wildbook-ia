@@ -8,6 +8,7 @@ import functools
 from guitool import qtype
 from guitool import api_button_delegate
 from guitool import api_thumb_delegate
+#from guitool import api_timestamp_delegate
 from guitool import guitool_main
 from guitool import guitool_misc
 from six.moves import range, reduce  # NOQA
