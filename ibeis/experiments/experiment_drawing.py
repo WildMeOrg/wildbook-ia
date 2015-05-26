@@ -1,3 +1,6 @@
+"""
+./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10 --guiview
+"""
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from ibeis import params
@@ -44,8 +47,8 @@ def make_metadata_custom_api(metadata):
     from guitool.__PYQT__ import QtCore
 
     class MetadataViewer(guitool.APIItemWidget):
-        def __init__(wgt, parent=None):
-            guitool.APIItemWidget.__init__(wgt, parent=parent)
+        def __init__(wgt, parent=None, tblnice='Result Metadata Viewer', **kwargs):
+            guitool.APIItemWidget.__init__(wgt, parent=parent, tblnice=tblnice, **kwargs)
             wgt.connect_signals_and_slots()
 
         @guitool.slot_(QtCore.QModelIndex)
@@ -71,6 +74,14 @@ def make_metadata_custom_api(metadata):
     guitool.ensure_qapp()
     #cfgstr_list = metadata
     col_name_list, column_list = metadata.get_square_data()
+
+    # Priority of column names
+    colname_priority = ['qaids', 'qx2_gt_rank', 'qx2_gt_timedelta', 'qx2_gf_timedelta',  'analysis_fpath', 'qx2_gt_raw_score', 'qx2_gf_raw_score']
+    colname_priority += sorted(ut.setdiff_ordered(col_name_list, colname_priority))
+    sortx = ut.priority_argsort(col_name_list, colname_priority)
+    col_name_list = ut.list_take(col_name_list, sortx)
+    column_list = ut.list_take(column_list, sortx)
+
     col_lens = list(map(len, column_list))
     print('col_name_list = %r' % (col_name_list,))
     print('col_lens = %r' % (col_lens,))
@@ -82,6 +93,12 @@ def make_metadata_custom_api(metadata):
     col_bgrole_dict = {}
     col_ider_dict = {}
     col_setter_dict = {}
+    col_nice_dict = {name: name.replace('qx2_', '') for name in col_name_list}
+    col_nice_dict.update({
+        'qx2_gt_timedelta': 'GT TimeDelta',
+        'qx2_gf_timedelta': 'GF TimeDelta',
+        'qx2_gt_rank': 'GT Rank',
+    })
     editable_colnames = []
     sortby = 'qaids'
     get_thumb_size = lambda: 128
@@ -89,7 +106,11 @@ def make_metadata_custom_api(metadata):
     custom_api = guitool.CustomAPI(
         col_name_list, col_types_dict, col_getter_dict,
         col_bgrole_dict, col_ider_dict, col_setter_dict,
-        editable_colnames, sortby, get_thumb_size, True, col_width_dict)
+        editable_colnames, sortby, get_thumb_size,
+        sort_reverse=True,
+        col_width_dict=col_width_dict,
+        col_nice_dict=col_nice_dict
+    )
     #headers = custom_api.make_headers(tblnice='results')
     #print(ut.dict_str(headers))
     wgt = MetadataViewer()
@@ -307,22 +328,8 @@ def draw_results(ibs, test_result):
     ut.ensuredir(individual_results_figdir)
     ut.ensuredir(aggregate_results_figdir)
     ut.ensuredir(top_rank_analysis_dir)
-    ut.ensuredir(blind_results_figdir)
-
-    VIEW_FIG_DIR = ut.get_argflag(('--view-fig-dir', '--vf', '--vfd'))
-    if VIEW_FIG_DIR:
-        ut.view_directory(figdir, verbose=True)
-
-    # Add some extra info before syncing to metadata
-
-    for cfgx in range(len(test_result.cfgx2_cfgresinfo)):
-        cfgres_info = test_result.cfgx2_cfgresinfo[cfgx]
-        gt_aids = cfgres_info['qx2_gt_aid']
-        gf_aids = cfgres_info['qx2_gf_aid']
-        qx2_gt_timedelta = ibs.get_annot_pair_timdelta(qaids, gt_aids)
-        qx2_gf_timedelta = ibs.get_annot_pair_timdelta(qaids, gf_aids)
-        cfgres_info['qx2_gt_timedelta'] = qx2_gt_timedelta
-        cfgres_info['qx2_gt_timedelta'] = qx2_gf_timedelta
+    #gx2_gt_timedelta
+    #    cfgres_info['qx2_gf_timedelta'] = qx2_gf_timedelta
 
     metadata_fpath = join(figdir, 'result_metadata.shelf')
     metadata = experiment_storage.ResultMetadata(metadata_fpath)
@@ -335,9 +342,6 @@ def draw_results(ibs, test_result):
     #avuuid2_ax = ensure_item(cfg_metadata, 'avuuid2_ax', {})
     #cfg_columns = ensure_item(cfg_metadata, 'columns', {})
     #import guitool
-    """
-    ./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10
-    """
 
     VIZ_INDIVIDUAL_RESULTS = True
     if VIZ_INDIVIDUAL_RESULTS:
@@ -493,6 +497,7 @@ def get_sel_rows_and_cols(qaids, cfg_list, new_hard_qx_list, interesting_qx_list
         print('   --ve - view easy')
         print('   --vn - view iNteresting')
         print('   --hs - hist sample')
+        print('   --guiview - gui result inspection')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
         sel_cols = list(range(len(cfg_list)))
     if len(sel_cols) > 0 and len(sel_rows) == 0:

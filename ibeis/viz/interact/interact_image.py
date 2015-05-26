@@ -1,27 +1,36 @@
 from __future__ import absolute_import, division, print_function
-import utool
+import utool as ut
 from ibeis import viz
 from ibeis.viz import viz_helpers as vh
 from plottool import draw_func2 as df2
 from plottool import interact_helpers as ih
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__,
                                                        '[interact_img]',
                                                        DEBUG=False)
 
 
-@utool.indent_func
-def ishow_image(ibs, gid, sel_aids=[], fnum=1, select_callback=None,
+#@ut.indent_func
+def ishow_image(ibs, gid, sel_aids=[], fnum=None, select_callback=None,
                 **kwargs):
+    if ut.VERBOSE:
+        print(ut.get_caller_name(range(9)))
+        print('[interact_image] gid=%r fnum=%r' % (gid, fnum,))
+    if fnum is None:
+        fnum = df2.next_fnum()
+    # TODO: change to class based structure
+    self = ut.DynStruct()
+    self.fnum = fnum
+
     fig = ih.begin_interaction('image', fnum)
     #printDBG(utool.func_str(interact_image, [], locals()))
     kwargs['draw_lbls'] = kwargs.get('draw_lbls', True)
 
     def _image_view(sel_aids=sel_aids, **_kwargs):
         try:
-            viz.show_image(ibs, gid, sel_aids=sel_aids, fnum=fnum, **_kwargs)
+            viz.show_image(ibs, gid, sel_aids=sel_aids, fnum=self.fnum, **_kwargs)
             df2.set_figtitle('Image View')
         except TypeError as ex:
-            utool.printex(ex, utool.dict_str(_kwargs))
+            ut.printex(ex, ut.dict_str(_kwargs))
             raise
 
     # Create callback wrapper
@@ -43,11 +52,12 @@ def ishow_image(ibs, gid, sel_aids=[], fnum=1, select_callback=None,
             x, y = event.xdata, event.ydata
             # Find ANNOTATION center nearest to the clicked point
             aid_list = vh.get_ibsdat(ax, 'aid_list', default=[])
-            centx, _dist = utool.nearest_point(x, y, annotation_centers)
+            centx, _dist = ut.nearest_point(x, y, annotation_centers)
             aid = aid_list[centx]
             print(' ...clicked aid=%r' % aid)
             if select_callback is not None:
-                select_callback(gid, sel_aids=[aid])
+                # HACK, should just implement this correctly here
+                select_callback(gid, sel_aids=[aid], fnum=self.fnum)
             else:
                 _image_view(sel_aids=[aid])
 

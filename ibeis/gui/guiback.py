@@ -496,7 +496,7 @@ class MainWindowBackend(QtCore.QObject):
         back._set_selection(sel_eids=eid, **kwargs)
 
     #@backblock
-    def select_gid(back, gid, eid=None, show=True, sel_aids=None, **kwargs):
+    def select_gid(back, gid, eid=None, show=True, sel_aids=None, fnum=None, **kwargs):
         """ Table Click -> Image Table """
         # Select the first ANNOTATION in the image if unspecified
         if sel_aids is None:
@@ -508,7 +508,7 @@ class MainWindowBackend(QtCore.QObject):
         print('[back] select_gid(gid=%r, eid=%r, sel_aids=%r)' % (gid, eid, sel_aids))
         back._set_selection(sel_gids=gid, sel_aids=sel_aids, sel_eids=eid, **kwargs)
         if show:
-            back.show_image(gid, sel_aids=sel_aids)
+            back.show_image(gid, sel_aids=sel_aids, fnum=fnum)
 
     #@backblock
     def select_gid_from_aid(back, aid, eid=None, show=True):

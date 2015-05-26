@@ -174,7 +174,8 @@ def get_timedelta_str(ibs, aid1, aid2):
         timedelta_str_ = 'NA'
     else:
         unixtime_diff = unixtime2 - unixtime1
-        timedelta_str_ = ut.get_posix_timedelta_str(unixtime_diff)
+        #timedelta_str_ = ut.get_posix_timedelta_str(unixtime_diff)
+        timedelta_str_ = ut.get_unix_timedelta_str(unixtime_diff)
     #timedelta_str = 'timedelta(%s)' % (timedelta_str_)
     timedelta_str = 'td(%s)' % (timedelta_str_)
     return timedelta_str
