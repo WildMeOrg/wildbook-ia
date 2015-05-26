@@ -1,10 +1,10 @@
 from __future__ import absolute_import, division, print_function
 from plottool import custom_figure
-import utool
+import utool as ut
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
 #                                                       '[interact_helpers]',
 #                                                       DEBUG=False)
-utool.noinject(__name__, '[interact_helpers]')
+ut.noinject(__name__, '[interact_helpers]')
 
 #==========================
 # HELPERS
@@ -40,8 +40,9 @@ def clicked_outside_axis(event):
 
 
 def begin_interaction(type_, fnum):
-    #printDBG('\n<<<<  BEGIN %s INTERACTION >>>>' % (str(type_).upper()))
-    #printDBG('[inter] starting %s interaction' % type_)
+    if ut.VERBOSE:
+        print('\n<<<<  BEGIN %s INTERACTION >>>>' % (str(type_).upper()))
+        print('[inter] starting %s interaction, fnum=%r' % (type_, fnum))
     fig = custom_figure.figure(fnum=fnum, docla=True, doclf=True)
     ax = custom_figure.gca()
     disconnect_callback(fig, 'button_press_event', axes=[ax])
