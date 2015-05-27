@@ -403,7 +403,7 @@ def testdata_matching_affine_inliers_normalized():
     kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
     kpts1_ma = kpts1.take(fm.T[0].take(aff_inliers), axis=0)
     kpts2_ma = kpts2.take(fm.T[1].take(aff_inliers), axis=0)
-    kpts1_ma, kpts2_ma, rchip1, rchip2 = testdata_matching_affine_inliers()
+    #kpts1_ma, kpts2_ma, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
     # Matching affine inliers
     xy1_ma = ktool.get_xys(kpts1_ma)
     xy2_ma = ktool.get_xys(kpts2_ma)
