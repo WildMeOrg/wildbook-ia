@@ -4566,10 +4566,10 @@ def make_temporally_distinct_blind_test(ibs, challenge_num=None):
         python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=7
 
     Ignore:
-        ut.glob('.', 'pair_*_compressed.pdf', recursive=True)
+        challenge_pdfs = ut.glob('.', 'pair_*_compressed.pdf', recursive=True)
         dname = 'all_challenges'
         ut.ensuredir(dname)
-
+        ut.copy(challenge_pdfs, dname)
 
     Example:
         >>> # ENABLE_DOCTEST
