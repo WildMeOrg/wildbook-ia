@@ -40,6 +40,42 @@ def bbox_from_verts(verts, castint=False):
         return (x, y, w, h)
 
 
+def draw_border(img_in, color=(0, 128, 255), thickness=2, out=None):
+    r"""
+    Args:
+        img_in (ndarray[uint8_t, ndim=2]):  image data
+        color (tuple):
+        thickness (int):
+        out (None):
+
+    CommandLine:
+        python -m vtool.geometry --test-draw_border --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.geometry import *  # NOQA
+        >>> import vtool as vt
+        >>> img_in = vt.imread(ut.grab_test_imgpath('carl.jpg'))
+        >>> color = (0, 128, 255)
+        >>> thickness = 20
+        >>> out = None
+        >>> img = draw_border(img_in, color, thickness, out)
+        >>> # verify results
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(img)
+        >>> pt.show_if_requested()
+    """
+    h, w = img_in.shape[0:2]
+    #verts = verts_from_bbox((0, 0, w, h))
+    #verts = verts_from_bbox((0, 0, w - 1, h - 1))
+    half_thickness = thickness // 2
+    verts = verts_from_bbox((half_thickness, half_thickness, w - thickness, h - thickness))
+    # FIXME: adjust verts and draw lines here to fill in the corners correctly
+    img = draw_verts(img_in, verts, color=color, thickness=thickness, out=out)
+    return img
+
+
 def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
     r"""
     Args:
@@ -55,6 +91,9 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
         python -m vtool.geometry --test-draw_verts --show
         python -m vtool.geometry --test-draw_verts:0 --show
         python -m vtool.geometry --test-draw_verts:1 --show
+
+    References:
+        http://docs.opencv.org/modules/core/doc/drawing_functions.html#line
 
     Example:
         >>> # ENABLE_DOCTEST
