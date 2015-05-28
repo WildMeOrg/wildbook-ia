@@ -1374,6 +1374,27 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
     #plt.hexbin(x,y, cmap=plt.cm.YlOrRd_r)
 
 
+def draw_line_segments(segments_list, **kwargs):
+    """
+    segments_list - list of [xs,ys,...] defining the segments
+    """
+    import plottool as pt
+    marker = '.-'
+    for data in segments_list:
+        pt.plot(data.T[0], data.T[1], marker, **kwargs)
+
+    #from matplotlib.collections import LineCollection
+    #points_list = [np.array([pts[0], pts[1]]).T.reshape(-1, 1, 2) for pts in segments_list]
+    #segments_list = [np.concatenate([points[:-1], points[1:]], axis=1) for points in points_list]
+    #linewidth = 2
+    #alpha = 1.0
+    #lc_list = [LineCollection(segments, linewidth=linewidth, alpha=alpha)
+    #           for segments in segments_list]
+    #ax = plt.gca()
+    #for lc in lc_list:
+    #    ax.add_collection(lc)
+
+
 def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
                ell=True, pts=False, rect=False, eig=False, ori=False,
                pts_size=2, ell_alpha=.6, ell_linewidth=1.5,

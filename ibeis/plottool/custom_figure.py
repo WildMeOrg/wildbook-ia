@@ -259,7 +259,7 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwr
             defaultext = '.pdf'
         else:
             defaultext = '.jpg'
-    print('figsize = %r' % (figsize,))
+    #print('figsize = %r' % (figsize,))
     fig, fnum = prepare_figure_for_save(fnum, dpi, figsize, fig)
     if fpath_strict is None:
         fpath_clean = prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose)
