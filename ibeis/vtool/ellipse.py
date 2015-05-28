@@ -1,23 +1,24 @@
-'This module should handle all things elliptical'
+"""
+OLD MODULE, needs reimplemenetation of select features and deprication
+
+This module should handle all things elliptical
+"""
 from __future__ import absolute_import, division, print_function
-# Python
 from six.moves import zip, range
-# Scientific
-from numpy import array, zeros, ones
-from scipy.signal import argrelextrema
+from numpy.core.umath_tests import matrix_multiply
+import scipy.signal as spsignal
 import cv2
 import numpy as np
-# VTool
-from vtool import keypoint as vtkeypoint
-from vtool import image as vtimage
-from utool.util_inject import inject
-(print, print_, printDBG, rrr, profile) = inject(__name__, '[ellipse]', DEBUG=False)
+from vtool import keypoint as ktool
+from vtool import image as gtool
+import utool as ut
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[ellipse]', DEBUG=False)
 
 
 @profile
 def adaptive_scale(img_fpath, kpts, nScales=4, low=-.5, high=.5, nSamples=16):
     #imgBGR = cv2.imread(img_fpath, flags=cv2.CV_LOAD_IMAGE_COLOR)
-    imgBGR = vtimage.imread(img_fpath)
+    imgBGR = gtool.imread(img_fpath)
 
     nKp = len(kpts)
     dtype_ = kpts.dtype
@@ -50,7 +51,8 @@ def check_kpts_in_bounds(kpts_, width, height):
                           (-1,  1, 1),
                           ( 1, -1, 1),
                           ( 1,  1, 1)]).T
-    invV = kpts_to_invV(kpts_)
+    #invV = kpts_to_invV(kpts_)
+    invV = ktool.get_invV_mats3x3(kpts_)
     bbox_pts = [v.dot(unit_bbox)[0:2] for v in invV]
     maxx = np.array([pts[0].max() for pts in bbox_pts]) < width
     minx = np.array([pts[0].min() for pts in bbox_pts]) > 0
@@ -89,7 +91,7 @@ def sample_ell_border_vals(imgBGR, expanded_kpts, nKp, nScales, nSamples):
     imgLAB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2LAB)
     imgL = imgLAB[:, :, 0]
     imgMag = gradient_magnitude(imgL)
-    border_vals = vtimage.subpixel_values(imgMag, ell_border_pts)
+    border_vals = gtool.subpixel_values(imgMag, ell_border_pts)
     #assert len(border_vals) == (nKp * nScales * nSamples)
     border_vals.shape = (nKp, nScales, nSamples, 1)
     border_vals_sum = border_vals.sum(3).sum(2)
@@ -133,7 +135,7 @@ def expand_subscales(kpts, subscale_list):
 
 
 def find_maxima(y_list):
-    maxima_list = [argrelextrema(y, np.greater)[0] for y in y_list]
+    maxima_list = [spsignal.argrelextrema(y, np.greater)[0] for y in y_list]
     return maxima_list
 
 
@@ -192,16 +194,28 @@ def interpolate_peaks(x_data_list, y_data_list):
 
 @profile
 def sample_uniform(kpts, nSamples=128):
+    """
+    SeeAlso:
+        python -m pyhesaff.tests.test_ellipse --test-in_depth_ellipse --show
+
+    """
     nKp = len(kpts)
-    invV, V, Z = kpts_matrices(kpts)
+    # Get keypoint matrix forms
+    invV_mats3x3 = ktool.get_invV_mats3x3(kpts)
+    V_mats3x3 = ktool.invert_invV_mats(invV_mats3x3)
+    #-------------------------------
+    # Get uniform points on a circle
     circle_pts = homogenous_circle_pts(nSamples + 1)[0:-1]
     assert circle_pts.shape == (nSamples, 3)
-    polygon1_list = array([v.dot(circle_pts.T).T for v in invV])
+    #-------------------------------
+    # Get uneven points sample (get_uneven_point_sample)
+    polygon1_list = matrix_multiply(invV_mats3x3, circle_pts.T).transpose(0, 2, 1)
     assert polygon1_list.shape == (nKp, nSamples, 3)
+    # -------------------------------
     # The transformed points are not sampled uniformly... Bummer
     # We will sample points evenly across the sampled polygon
     # then we will project them onto the ellipse
-    dists = array([circular_distance(arr) for arr in polygon1_list])
+    dists = np.array([circular_distance(arr) for arr in polygon1_list])
     assert dists.shape == (nKp, nSamples)
     # perimeter of the polygon
     perimeter = dists.sum(1)
@@ -213,8 +227,8 @@ def sample_uniform(kpts, nSamples=128):
     # Walk along edge
     num_steps_list = []
     offset_list = []
-    total_dist = zeros(step_size.shape)  # step_size.copy()
-    dist_walked = zeros(step_size.shape)
+    total_dist = np.zeros(step_size.shape)  # step_size.copy()
+    dist_walked = np.zeros(step_size.shape)
     assert dist_walked.shape == (nKp,)
     assert total_dist.shape == (nKp,)
     distsT = dists.T
@@ -235,7 +249,7 @@ def sample_uniform(kpts, nSamples=128):
     # Check for floating point errors
     # take an extra step if you need to
     num_steps_list[-1] += np.round((perimeter - dist_walked) / step_size)
-    assert np.all(array(num_steps_list).sum(0) == nSamples)
+    assert np.all(np.array(num_steps_list).sum(0) == nSamples)
 
     """
     #offset_iter1 = zip(num_steps_list, distsT, offset_list)
@@ -263,9 +277,9 @@ def sample_uniform(kpts, nSamples=128):
         offset2 = ((num * step_size) - offset) / dist
         cut_locs = [np.linspace(off1, off2, n, endpoint=True) for (off1, off2, n) in zip(offset1, offset2, num)]
         # post check for divide by 0
-        cut_locs = [array([0 if np.isinf(c) else c for c in cut]) for cut in cut_locs]
+        cut_locs = [np.array([0 if np.isinf(c) else c for c in cut]) for cut in cut_locs]
         cut_list.append(cut_locs)
-    cut_list = array(cut_list).T
+    cut_list = np.array(cut_list).T
     assert cut_list.shape == (nKp, nSamples)
 
     # =================
@@ -277,12 +291,12 @@ def sample_uniform(kpts, nSamples=128):
         return ((1 - percent) * pt1) + ((percent) * pt2)
 
     def polygon_points(polygon_pts, dist_list):
-        return array([interpolate(polygon_pts[count], polygon_pts[(count + 1) % nSamples], loc)
-                      for count, locs in enumerate(dist_list)
-                      for loc in iter(locs)])
+        return np.array([interpolate(polygon_pts[count], polygon_pts[(count + 1) % nSamples], loc)
+                         for count, locs in enumerate(dist_list)
+                         for loc in iter(locs)])
 
-    new_locations = array([polygon_points(polygon_pts, cuts) for polygon_pts,
-                           cuts in zip(polygon1_list, cut_list)])
+    new_locations = np.array([polygon_points(polygon_pts, cuts) for polygon_pts,
+                              cuts in zip(polygon1_list, cut_list)])
     # =================
     # =================
     # METHOD 2
@@ -304,13 +318,13 @@ def sample_uniform(kpts, nSamples=128):
     # assert new_locations.shape == (nKp, nSamples, 3)
     # Warp new_locations to the unit circle
     #new_unit = V.dot(new_locations.T).T
-    new_unit = array([v.dot(newloc.T).T for v, newloc in zip(V, new_locations)])
+    new_unit = np.array([v.dot(newloc.T).T for v, newloc in zip(V_mats3x3, new_locations)])
     # normalize new_unit
     new_mag = np.sqrt((new_unit ** 2).sum(-1))
     new_unorm_unit = new_unit / np.dstack([new_mag] * 3)
     new_norm_unit = new_unorm_unit / np.dstack([new_unorm_unit[:, :, 2]] * 3)
     # Get angle (might not be necessary)
-    #x_axis = array([1, 0, 0])
+    #x_axis = np.array([1, 0, 0])
     #arccos_list = x_axis.dot(new_norm_unit.T)
     #uniform_theta_list = np.arccos(arccos_list)
     # Maybe this?
@@ -318,11 +332,11 @@ def sample_uniform(kpts, nSamples=128):
     theta_list2 = np.arctan2(new_norm_unit[:, :, 1], new_norm_unit[:, :, 0])
     # assert uniform_theta_list.shape = (nKp, nSample)
     # Use this angle to unevenly sample the perimeter of the circle
-    uneven_cicrle_pts = np.dstack([np.cos(theta_list2), np.sin(theta_list2), ones(theta_list2.shape)])
+    uneven_cicrle_pts = np.dstack([np.cos(theta_list2), np.sin(theta_list2), np.ones(theta_list2.shape)])
     # The uneven circle points were sampled in such a way that when they are
     # transformeed they will be approximately uniform along the boundary of the
     # ellipse.
-    uniform_ell_hpts = [v.dot(pts.T).T for (v, pts) in zip(invV, uneven_cicrle_pts)]
+    uniform_ell_hpts = [v.dot(pts.T).T for (v, pts) in zip(invV_mats3x3, uneven_cicrle_pts)]
     # Remove the homogenous coordinate and we're done
     ell_border_pts_list = [pts[:, 0:2] for pts in uniform_ell_hpts]
     return ell_border_pts_list
@@ -344,27 +358,28 @@ def gradient_magnitude(img):
 # Numeric Helpers
 #----------------
 
-def kpts_to_invV(kpts):
-    invV = vtkeypoint.get_invV_mats(kpts, ashomog=True,
-                                    with_trans=True, ascontiguous=True)
-    return invV
-    #nKp = len(kpts)
-    #(iv13, iv23, iv11, iv21, iv22) = np.array(kpts).T
-    #iv12 = zeros(nKp)
-    #iv31 = zeros(nKp)
-    #iv32 = zeros(nKp)
-    #iv33 = ones(nKp)
-    ## np.dot operates over the -1 and -2 axis of arrays
-    ## Start with
-    ##     invV.shape = (3, 3, nKp)
-    #invV = array([[iv11, iv12, iv13],
-    #              [iv21, iv22, iv23],
-    #              [iv31, iv32, iv33]])
-    ## And roll into
-    #invV = np.rollaxis(invV, 2)
-    #invV = np.ascontiguousarray(invV)
-    #assert invV.shape == (nKp, 3, 3)
-    #return invV
+#def kpts_to_invV(kpts):
+#    invV = ktool.get_invV_mats3x3(kpts)
+#    #invV = ktool.get_invV_mats(kpts, ashomog=True,
+#    #                                with_trans=True, ascontiguous=True)
+#    return invV
+#    #nKp = len(kpts)
+#    #(iv13, iv23, iv11, iv21, iv22) = np.array(kpts).T
+#    #iv12 = zeros(nKp)
+#    #iv31 = zeros(nKp)
+#    #iv32 = zeros(nKp)
+#    #iv33 = ones(nKp)
+#    ## np.dot operates over the -1 and -2 axis of arrays
+#    ## Start with
+#    ##     invV.shape = (3, 3, nKp)
+#    #invV = np.array([[iv11, iv12, iv13],
+#    #              [iv21, iv22, iv23],
+#    #              [iv31, iv32, iv33]])
+#    ## And roll into
+#    #invV = np.rollaxis(invV, 2)
+#    #invV = np.ascontiguousarray(invV)
+#    #assert invV.shape == (nKp, 3, 3)
+#    #return invV
 
 
 @profile
@@ -374,19 +389,20 @@ def kpts_matrices(kpts):
     #    V = perdoch.A
     #    Z = perdoch.E
     # invert into V
-    invV = kpts_to_invV(kpts)
-    V = vtkeypoint.invert_invV_mats(invV)
-    Z = vtkeypoint.get_Z_mats(V)
+    #invV = kpts_to_invV(kpts)
+    invV = ktool.get_invV_mats3x3(kpts)
+    V = ktool.invert_invV_mats(invV)
+    Z = ktool.get_Z_mats(V)
     return invV, V, Z
 
 
 @profile
 def homogenous_circle_pts(nSamples):
-    # Make a list of homogenous circle points
+    """  Make a list of homogenous circle points """
     tau = 2 * np.pi
     theta_list = np.linspace(0, tau, nSamples)
-    cicrle_pts = array([(np.cos(t_), np.sin(t_), 1) for t_ in theta_list])
-    return cicrle_pts
+    circle_pts = np.array([(np.cos(t_), np.sin(t_), 1) for t_ in theta_list])
+    return circle_pts
 
 
 @profile

@@ -1139,8 +1139,9 @@ def get_invV_xy_axis_extents(invV_mats):
 
 #@profile
 def get_xy_axis_extents(kpts):
-    """ gets the scales of the major and minor elliptical axis
-        from kpts (slower due to conversion to invV_mats)
+    """
+    gets the scales of the major and minor elliptical axis from kpts
+    (slower due to conversion to invV_mats)
 
     Args:
         kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
@@ -1459,6 +1460,73 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
     bcast_xy1_t = xy1_t.T[fx2_to_fx1]
     fx2_to_xyerr_sqrd = dtool.L2_sqrd(bcast_xy2, bcast_xy1_t)
     return fx2_to_xyerr_sqrd
+
+
+def get_uneven_point_sample(kpts):
+    """
+    for each keypoint returns an uneven sample of points along the ellipical
+      boundries.
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
+
+    CommandLine:
+        python -m vtool.keypoint --test-get_uneven_point_sample --show
+
+    SeeAlso:
+        pyhesaff.tests.test_ellipse
+        python -m pyhesaff.tests.test_ellipse --test-in_depth_ellipse --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> kpts = vt.dummy.get_dummy_kpts()[0:2]
+        >>> ellipse_pts1 = get_uneven_point_sample(kpts)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.draw_line_segments(ellipse_pts1)
+        >>> pt.set_title('uneven sample points')
+        >>> pt.show_if_requested()
+    """
+    # Define points on a unit circle
+    nSamples = 32
+    invV_mats = get_invVR_mats3x3(kpts)
+    theta_list = np.linspace(0, TAU, nSamples)
+    circle_pts = np.array([(np.cos(t_), np.sin(t_), 1) for t_ in theta_list])
+    # Transform those points to the ellipse using invV
+    #ellipse_pts1 = [invV.dot(cicrle_pts) for invV in invV_mats]
+    ellipse_pts1 = matrix_multiply(invV_mats, circle_pts.T).transpose(0, 2, 1)
+    return ellipse_pts1
+
+
+def get_even_point_sample(kpts):
+    """
+    gets even points sample along the boundary of the ellipse
+
+    SeeAlso:
+        pyhesaff.tests.test_ellipse
+
+    CommandLine:
+        python -m vtool.keypoint --test-get_even_point_sample --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> kpts = vt.dummy.get_dummy_kpts()[0:2]
+        >>> ell_border_pts_list = get_even_point_sample(kpts)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.draw_line_segments(ell_border_pts_list)
+        >>> pt.set_title('even sample points')
+        >>> pt.show_if_requested()
+    """
+    # BROKEN
+    from vtool import ellipse
+    nSamples = 32
+    ell_border_pts_list = ellipse.sample_uniform(kpts, nSamples)
+    return ell_border_pts_list
 
 
 #try:

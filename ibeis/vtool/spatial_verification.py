@@ -17,6 +17,7 @@ FIXME:
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import range
+import six  # NOQA
 import utool as ut
 import numpy as np
 import numpy.linalg as npl
@@ -391,12 +392,16 @@ def compute_homog(xy1_mn, xy2_mn):
 
 def testdata_matching_affine_inliers():
     import vtool.tests.dummy as dummy
+    import vtool as vt
     scale_thresh = 2.0
-    xy_thresh = .01
+    xy_thresh = ut.get_argval('--xy-thresh', type_=float, default=.01)
     dlen_sqrd2 = 447271.015
     ori_thresh = 1.57
     xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
-    (kpts1, kpts2, fm, fs, rchip1, rchip2) = dummy.testdata_ratio_matches()
+    featkw = ut.argparse_dict(vt.get_extract_features_default_params())
+    fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
+    fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
+    (kpts1, kpts2, fm, fs, rchip1, rchip2) = dummy.testdata_ratio_matches(fname1, fname2, **featkw)
     aff_inliers, aff_errors, Aff = get_best_affine_inliers_(
         kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh)
     return kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd
@@ -710,6 +715,105 @@ def unnormalize_transform(M_prime, T1, T2):
 
 
 def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh, full_homog_checks=True):
+    r"""
+    Test to see which keypoints the homography correctly maps
+
+    Args:
+        H (ndarray[float64_t, ndim=2]):  homography/perspective matrix
+        kpts1 (ndarray[float32_t, ndim=2]):  keypoints
+        kpts2 (ndarray[float32_t, ndim=2]):  keypoints
+        fm (list):  list of feature matches as tuples (qfx, dfx)
+        xy_thresh_sqrd (float):
+        scale_thresh (float):
+        ori_thresh (float):  angle in radians
+        full_homog_checks (bool):
+
+    Returns:
+        tuple: homog_tup1
+
+    CommandLine:
+        python -m vtool.spatial_verification --test-test_homog_errors:0 --show
+        python -m vtool.spatial_verification --test-test_homog_errors:0 --show --rotation_invariance
+        python -m vtool.spatial_verification --test-test_homog_errors:0 --show --rotation_invariance --no-affine-invariance --xy-thresh=.001
+        python -m vtool.spatial_verification --test-test_homog_errors:0 --show --rotation_invariance --no-affine-invariance --xy-thresh=.001 --no-full-homog-checks
+        python -m vtool.spatial_verification --test-test_homog_errors:0 --show --no-full-homog-checks
+        # --------------
+        # Shows (sorta) how inliers are computed
+        python -m vtool.spatial_verification --test-test_homog_errors:1 --show
+        python -m vtool.spatial_verification --test-test_homog_errors:1 --show --rotation_invariance
+        python -m vtool.spatial_verification --test-test_homog_errors:1 --show --rotation_invariance --no-affine-invariance --xy-thresh=.001
+        python -m vtool.spatial_verification --test-test_homog_errors:1 --show --rotation_invariance --xy-thresh=.001
+        python -m vtool.spatial_verification --test-test_homog_errors:0 --show --rotation_invariance --xy-thresh=.001
+
+    Example0:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.spatial_verification import *  # NOQA
+        >>> import plottool as pt
+        >>> kpts1, kpts2, fm, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
+        >>> H = estimate_final_transform(kpts1, kpts2, fm, aff_inliers)
+        >>> scale_thresh, ori_thresh = 2.0, 1.57
+        >>> full_homog_checks = not ut.get_argflag('--no-full-homog-checks')
+        >>> homog_tup1 = test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh, full_homog_checks)
+        >>> homog_tup = (homog_tup1[0], homog_tup1[2])
+        >>> ut.quit_if_noshow()
+        >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, homog_tup=homog_tup)
+        >>> ut.show_if_requested()
+
+    Example1:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.spatial_verification import *  # NOQA
+        >>> import plottool as pt
+        >>> kpts1, kpts2, fm_, aff_inliers, rchip1, rchip2, xy_thresh_sqrd = testdata_matching_affine_inliers()
+        >>> H = estimate_final_transform(kpts1, kpts2, fm_, aff_inliers)
+        >>> scale_thresh, ori_thresh = 2.0, 1.57
+        >>> full_homog_checks = not ut.get_argflag('--no-full-homog-checks')
+        >>> # ----------------
+        >>> # Take subset of feature matches
+        >>> fm = fm_
+        >>> scale_err, xy_err, ori_err = \
+        ...     ut.exec_func_sourcecode(test_homog_errors, globals(), locals(),
+        ...     'scale_err, xy_err, ori_err'.split(', '))
+        >>> # we only care about checking out scale and orientation here. ignore bad xy points
+        >>> xy_inliers_flag = np.less(xy_err, xy_thresh_sqrd)
+        >>> scale_err[~xy_inliers_flag] = 0
+        >>> # filter
+        >>> fm = fm_[np.array(scale_err).argsort()[::-1][:10]]
+        >>> fm = fm_[np.array(scale_err).argsort()[::-1][:10]]
+        >>> # Exec sourcecode
+        >>> kpts1_m, kpts2_m, off_xy1_m, off_xy1_mt, dxy1_m, dxy1_mt, xy2_m, xy1_m, xy1_mt, scale_err, xy_err, ori_err = \
+        ...     ut.exec_func_sourcecode(test_homog_errors, globals(), locals(),
+        ...     'kpts1_m, kpts2_m, off_xy1_m, off_xy1_mt, dxy1_m, dxy1_mt, xy2_m, xy1_m, xy1_mt, scale_err, xy_err, ori_err'.split(', '))
+        >>> #---------------
+        >>> ut.quit_if_noshow()
+        >>> pt.figure(fnum=1, pnum=(1, 2, 1), title='orig points and offset point')
+        >>> segments_list1 = np.array(list(zip(xy1_m.T.tolist(), off_xy1_m.T.tolist())))
+        >>> pt.draw_line_segments(segments_list1, color=pt.LIGHT_BLUE)
+        >>> pt.dark_background()
+        >>> #---------------
+        >>> pt.figure(fnum=1, pnum=(1, 2, 2), title='transformed points and matching points')
+        >>> #---------------
+        >>> # first have to make corresponding offset points
+        >>> # Use reference point for scale and orientation tests
+        >>> oris2_m   = ktool.get_oris(kpts2_m)
+        >>> scales2_m = ktool.get_scales(kpts2_m)
+        >>> dxy2_m    = np.vstack((np.sin(oris2_m), -np.cos(oris2_m)))
+        >>> scaled_dxy2_m = dxy2_m * scales2_m[None, :]
+        >>> off_xy2_m = xy2_m + scaled_dxy2_m
+        >>> # Draw transformed semgents
+        >>> segments_list2 = np.array(list(zip(xy2_m.T.tolist(), off_xy2_m.T.tolist())))
+        >>> pt.draw_line_segments(segments_list2, color=pt.GREEN)
+        >>> # Draw corresponding matches semgents
+        >>> segments_list3 = np.array(list(zip(xy1_mt.T.tolist(), off_xy1_mt.T.tolist())))
+        >>> pt.draw_line_segments(segments_list3, color=pt.RED)
+        >>> # Draw matches between correspondences
+        >>> segments_list4 = np.array(list(zip(xy1_mt.T.tolist(), xy2_m.T.tolist())))
+        >>> pt.draw_line_segments(segments_list4, color=pt.ORANGE)
+        >>> pt.dark_background()
+        >>> #---------------
+        >>> #vt.get_xy_axis_extents(kpts1_m)
+        >>> #pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, homog_tup=homog_tup)
+        >>> ut.show_if_requested()
+    """
     kpts1_m = kpts1.take(fm.T[0], axis=0)
     kpts2_m = kpts2.take(fm.T[1], axis=0)
     # Transform all xy1 matches to xy2 space
@@ -725,6 +829,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thr
     # Estimate final inliers
     #ut.embed()
     if full_homog_checks:
+        # TODO: may need to use more than one reference point
         # Use reference point for scale and orientation tests
         oris1_m   = ktool.get_oris(kpts1_m)
         scales1_m = ktool.get_scales(kpts1_m)
