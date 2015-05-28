@@ -195,6 +195,7 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.scale_thresh = 2.0
         sv_cfg.ori_thresh   = tau / 4.0
         sv_cfg.min_nInliers = 4
+        sv_cfg.full_homog_checks = True
         sv_cfg.nNameShortlistSVER = 50
         sv_cfg.nAnnotPerNameSVER = 6
         #sv_cfg.prescore_method = 'csum'
@@ -219,6 +220,7 @@ class SpatialVerifyConfig(ConfigBase):
             'cdl,' * sv_cfg.use_chip_extent,  # chip diag len
             '+ow,' * sv_cfg.sver_output_weighting,  # chip diag len
             '+wi,' * sv_cfg.weight_inliers,  # chip diag len
+            '+fc,' * sv_cfg.full_homog_checks,
             ')',
         ]
         return sv_cfgstr

@@ -963,3 +963,30 @@ if __name__ == '__main__':
         utool.memory_profile()
 
     print('exiting dev')
+
+
+class DecisionMachine(object):
+    def __init__(self, index=0):
+        # List of callable "state" functions
+        self.state_list = []
+        # Rules of transition
+        self.transition_rule_list = []
+        self.index = index
+
+    def loop(self, count):
+        print(count)
+        state = self.state_list[self.index]
+        rule  = self.transition_rule_list[self.index]
+        state.run()
+        rule.run()
+
+    def run(self):
+        if len(self.state_list) == 0:
+            print('Warning: cannot run')
+            return
+        iter_ = enumerate(range(100))
+        for count in iter_:
+            self.loop(count)
+
+self = DecisionMachine()
+self.run()

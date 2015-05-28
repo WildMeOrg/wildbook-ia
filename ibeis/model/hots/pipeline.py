@@ -872,6 +872,7 @@ def sver_single_chipmatch(qreq_, cm):
     scale_thresh    = qreq_.qparams.scale_thresh
     ori_thresh      = qreq_.qparams.ori_thresh
     min_nInliers    = qreq_.qparams.min_nInliers
+    full_homog_checks = qreq_.qparams.full_homog_checks
     sver_output_weighting  = qreq_.qparams.sver_output_weighting
     # Precompute sver cmtup_old
     #daid2_svtup = {} if qreq_.qparams.with_metadata else None
@@ -904,7 +905,8 @@ def sver_single_chipmatch(qreq_, cm):
                 # image1 is a query chip and image2 is a database chip
                 sv_tup = sver.spatially_verify_kpts(
                     kpts1, kpts2, fm, xy_thresh, scale_thresh, ori_thresh,
-                    dlen_sqrd2, min_nInliers, match_weights=match_weights)
+                    dlen_sqrd2, min_nInliers, match_weights=match_weights,
+                    full_homog_checks=full_homog_checks)
                 # returnAff=qreq_.qparams.with_metadata)
             except Exception as ex:
                 ut.printex(ex, 'Unknown error in spatial verification.',
