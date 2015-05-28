@@ -710,12 +710,38 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd):
     kpts1_m = kpts1.take(fm.T[0], axis=0)
     kpts2_m = kpts2.take(fm.T[1], axis=0)
     # Transform all xy1 matches to xy2 space
-    xy1_mt  = ktool.transform_kpts_xys(H, kpts1_m)
+    xy1_m   = ktool.get_xys(kpts1_m)
+    xy1_mt  = ltool.transform_points_with_homography(H, xy1_m)
+    #xy1_mt  = ktool.transform_kpts_xys(H, kpts1_m)
     xy2_m   = ktool.get_xys(kpts2_m)
     # --- Find (Squared) Homography Distance Error ---
     # You cannot test for scale or orientation easily here because
     # you no longer have an ellipse? (maybe, probably have a conic) when using a
     # projective transformation
+    ut.embed()
+    if False:
+        # Use reference point for scale and orientation tests
+        oris1_m   = ktool.get_oris(kpts1_m)
+        scales1_m = ktool.get_scales(kpts1_m)
+        dxy1_m    = np.vstack((np.sin(oris1_m), np.cos(oris1_m)))
+        scaled_dxy1_m = dxy1_m * scales1_m[None, :]
+        off_xy1_m = xy1_m + scaled_dxy1_m
+        # transform reference point
+        off_xy1_mt = ltool.transform_points_with_homography(H, off_xy1_m)
+        scaled_dxy1_mt = xy1_mt - off_xy1_mt
+        # x is y due to the gravity vector being 0
+
+        oris1_mt = np.arctan2(dxy1_mt[0], dxy1_mt[1])
+        scales1_mt = np.linalg.norm(scaled_dxy1_mt, axis=0)
+        dxy1_mt = scaled_dxy1_mt / scales1_mt
+
+        _det1_mt = scales1_mt ** 2
+
+        #xy_err    = dtool.L2_sqrd(xy2_m.T, _xy1_mt.T)
+        scale_err = dtool.det_distance(_det1_mt, det2_m)
+        ori_err   = dtool.ori_distance(oris1_mt, ori2_m)
+
+
     xy_err = dtool.L2_sqrd(xy1_mt.T, xy2_m.T)
     homog_errors = (xy_err, None, None)
     # Estimate final inliers
