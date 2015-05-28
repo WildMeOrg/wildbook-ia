@@ -11,6 +11,9 @@ Look Into::
     skimage.transform
     http://stackoverflow.com/questions/11462781/fast-2d-rigid-body-transformations-in-numpy-scipy
     skimage.transform.fast_homography(im, H)
+
+FIXME:
+    is it scaled_thresh or scaled_thresh_sqrd
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import range
@@ -510,8 +513,8 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     # Mark keypoints which are inliers to this hypothosis
     xy_inliers_flag    = np.less(xy_err, xy_thresh_sqrd)
     scale_inliers_flag = np.less(scale_err, scale_thresh_sqrd)
-    np.logical_and(xy_inliers_flag, scale_inliers_flag)
     ori_inliers_flag   = np.less(ori_err, ori_thresh)
+    #np.logical_and(xy_inliers_flag, scale_inliers_flag)
     # TODO Add uniqueness of matches constraint
     #hypo_inliers_flag = np.empty(xy_inliers_flag.size, dtype=np.bool)
     hypo_inliers_flag = xy_inliers_flag  # Try to re-use memory
@@ -519,8 +522,8 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     np.logical_and(hypo_inliers_flag, scale_inliers_flag, out=hypo_inliers_flag)
     #other.iter_reduce_ufunc(np.logical_and
     #hypo_inliers_flag = ltool.and_3lists(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
-    hypo_errors = (xy_err, ori_err, scale_err)
     hypo_inliers = np.where(hypo_inliers_flag)[0]
+    hypo_errors = (xy_err, ori_err, scale_err)
     return hypo_inliers, hypo_errors
 
 
@@ -706,7 +709,7 @@ def unnormalize_transform(M_prime, T1, T2):
     return M
 
 
-def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd):
+def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh, full_homog_checks=True):
     kpts1_m = kpts1.take(fm.T[0], axis=0)
     kpts2_m = kpts2.take(fm.T[1], axis=0)
     # Transform all xy1 matches to xy2 space
@@ -718,34 +721,44 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd):
     # You cannot test for scale or orientation easily here because
     # you no longer have an ellipse? (maybe, probably have a conic) when using a
     # projective transformation
-    ut.embed()
-    if False:
+    xy_err = dtool.L2_sqrd(xy1_mt.T, xy2_m.T)
+    # Estimate final inliers
+    #ut.embed()
+    if full_homog_checks:
         # Use reference point for scale and orientation tests
         oris1_m   = ktool.get_oris(kpts1_m)
         scales1_m = ktool.get_scales(kpts1_m)
-        dxy1_m    = np.vstack((np.sin(oris1_m), np.cos(oris1_m)))
+        # Get point offsets with unit length
+        dxy1_m    = np.vstack((np.sin(oris1_m), -np.cos(oris1_m)))
         scaled_dxy1_m = dxy1_m * scales1_m[None, :]
         off_xy1_m = xy1_m + scaled_dxy1_m
         # transform reference point
         off_xy1_mt = ltool.transform_points_with_homography(H, off_xy1_m)
         scaled_dxy1_mt = xy1_mt - off_xy1_mt
-        # x is y due to the gravity vector being 0
-
-        oris1_mt = np.arctan2(dxy1_mt[0], dxy1_mt[1])
         scales1_mt = np.linalg.norm(scaled_dxy1_mt, axis=0)
         dxy1_mt = scaled_dxy1_mt / scales1_mt
-
+        # adjust for gravity vector being 0
+        oris1_mt = np.arctan2(dxy1_mt[1], dxy1_mt[0]) - ktool.GRAVITY_THETA
         _det1_mt = scales1_mt ** 2
-
+        det2_m = ktool.get_sqrd_scales(kpts2_m)
+        ori2_m = ktool.get_oris(kpts2_m)
         #xy_err    = dtool.L2_sqrd(xy2_m.T, _xy1_mt.T)
         scale_err = dtool.det_distance(_det1_mt, det2_m)
         ori_err   = dtool.ori_distance(oris1_mt, ori2_m)
-
-
-    xy_err = dtool.L2_sqrd(xy1_mt.T, xy2_m.T)
-    homog_errors = (xy_err, None, None)
-    # Estimate final inliers
-    homog_inliers = np.where(xy_err < xy_thresh_sqrd)[0].astype(INDEX_DTYPE)
+        ###
+        xy_inliers_flag = np.less(xy_err, xy_thresh_sqrd)
+        scale_inliers_flag = np.less(scale_err, scale_thresh)
+        ori_inliers_flag   = np.less(ori_err, ori_thresh)
+        hypo_inliers_flag = xy_inliers_flag  # Try to re-use memory
+        np.logical_and(hypo_inliers_flag, ori_inliers_flag, out=hypo_inliers_flag)
+        np.logical_and(hypo_inliers_flag, scale_inliers_flag, out=hypo_inliers_flag)
+        #other.iter_reduce_ufunc(np.logical_and
+        #hypo_inliers_flag = ltool.and_3lists(xy_inliers_flag, ori_inliers_flag, scale_inliers_flag)
+        homog_inliers = np.where(hypo_inliers_flag)[0].astype(INDEX_DTYPE)
+        homog_errors = (xy_err, ori_err, scale_err)
+    else:
+        homog_inliers = np.where(xy_err < xy_thresh_sqrd)[0].astype(INDEX_DTYPE)
+        homog_errors = (xy_err, None, None)
     homog_tup1 = (homog_inliers, homog_errors, H)
     return homog_tup1
 
@@ -779,7 +792,7 @@ def estimate_final_transform(kpts1, kpts2, fm, aff_inliers):
 
 
 @profile
-def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
+def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd, scale_thresh=2.0, ori_thresh=1.57, full_homog_checks=True):
     """
     Given a set of hypothesis inliers, computes a homography and refines inliers
     returned homography maps image1 space into image2 space
@@ -824,7 +837,7 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd):
 
     """
     H = estimate_final_transform(kpts1, kpts2, fm, aff_inliers)
-    homog_tup1 = test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd)
+    homog_tup1 = test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thresh, full_homog_checks)
     return homog_tup1
 
 
@@ -848,7 +861,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
                           dlen_sqrd2=None,
                           min_nInliers=4,
                           match_weights=None,
-                          returnAff=False):
+                          returnAff=False,
+                          full_homog_checks=True):
     """
     Driver function
     Spatially validates feature matches
@@ -930,7 +944,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
     # Refine inliers using a projective transformation (homography)
     try:
         homog_inliers, homog_errors, H = get_homography_inliers(
-            kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
+            kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd, scale_thresh,
+            ori_thresh, full_homog_checks)
     except npl.LinAlgError as ex:
         ut.printex(ex, 'numeric error in homog estimation.', iswarning=True)
         return None
