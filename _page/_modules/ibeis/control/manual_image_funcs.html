@@ -706,17 +706,13 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/image/thumbtup/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">thumbsize</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">draw_annots</span><span class="p">:</span>
-            <span class="n">thumbsize</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">thumb_size</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">thumbsize</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">thumb_bare_size</span>
+    <span class="n">thumbsize</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbsize</span><span class="p">(</span><span class="n">thumbsize</span><span class="p">,</span> <span class="n">draw_annots</span><span class="p">)</span>
     <span class="c"># print(&#39;gid_list = %r&#39; % (gid_list,))</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">bboxes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
     <span class="n">thetas_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
-    <span class="n">thumb_gpaths</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">draw_annots</span><span class="o">=</span><span class="n">draw_annots</span><span class="p">,</span>
-                                           <span class="n">thumbsize</span><span class="o">=</span><span class="n">thumbsize</span><span class="p">)</span>
+    <span class="n">thumb_gpaths</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath_</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">draw_annots</span><span class="o">=</span><span class="n">draw_annots</span><span class="p">,</span>
+                                            <span class="n">thumbsize</span><span class="o">=</span><span class="n">thumbsize</span><span class="p">)</span>
     <span class="n">image_paths</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">gsize_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">thumbtup_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -740,15 +736,31 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/image/thumbpath/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ensure_paths</span><span class="p">:</span>
+        <span class="n">thumbpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">preprocess_image_thumbs</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span>
+                                                     <span class="n">draw_annots</span><span class="o">=</span><span class="n">draw_annots</span><span class="p">,</span>
+                                                     <span class="n">thumbsize</span><span class="o">=</span><span class="n">thumbsize</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">thumbpath_list</span> <span class="o">=</span> <span class="n">get_image_thumbpath_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">draw_annots</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">thumbsize</span><span class="o">=</span><span class="n">thumbsize</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">thumbpath_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<div class="viewcode-block" id="get_image_thumbsize"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_thumbsize">[docs]</a><span class="k">def</span> <span class="nf">get_image_thumbsize</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">thumbsize</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">draw_annots</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">thumbsize</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">draw_annots</span><span class="p">:</span>
             <span class="n">thumbsize</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">thumb_size</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">thumbsize</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">thumb_bare_size</span>
-    <span class="k">if</span> <span class="n">ensure_paths</span><span class="p">:</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">preprocess_image_thumbs</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">draw_annots</span><span class="o">=</span><span class="n">draw_annots</span><span class="p">,</span>
-                                    <span class="n">thumbsize</span><span class="o">=</span><span class="n">thumbsize</span><span class="p">)</span>
-    <span class="n">thumb_dpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">thumb_dpath</span>
+    <span class="k">return</span> <span class="n">thumbsize</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<div class="viewcode-block" id="get_image_thumbpath_"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_image_funcs.get_image_thumbpath_">[docs]</a><span class="k">def</span> <span class="nf">get_image_thumbpath_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">draw_annots</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">thumbsize</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; get_image_thumbpath, but never will ensure existence &quot;&quot;&quot;</span>
+    <span class="n">thumbsize</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbsize</span><span class="p">(</span><span class="n">thumbsize</span><span class="p">,</span> <span class="n">draw_annots</span><span class="p">)</span>
+    <span class="n">thumb_dpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_thumbdir</span><span class="p">()</span>
     <span class="n">img_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">draw_annots</span><span class="p">:</span>
         <span class="n">thumb_suffix</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">thumbsize</span><span class="p">)</span> <span class="o">+</span> <span class="n">const</span><span class="o">.</span><span class="n">IMAGE_THUMB_SUFFIX</span>

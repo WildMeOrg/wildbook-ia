@@ -397,7 +397,7 @@ def list_available_score_normalizers(with_global=True, with_local=True):
         >>> print(list(map(ut.get_file_nBytes_str, global_normalizers_fpaths)))
 
     """
-    from ibeis.dev import sysres
+    from ibeis.init import sysres
     from ibeis import constants
     #from os.path import join
     pattern = '*' + ScoreNormalizer.prefix2 + '*' + ScoreNormalizer.ext
@@ -1019,6 +1019,26 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
 
 
 def plot_support(tn_support, tp_support, fnum=None, pnum=(1, 1, 1)):
+    r"""
+    Args:
+        tn_support (ndarray):
+        tp_support (ndarray):
+        fnum (int):  figure number
+        pnum (tuple):  plot number
+
+    CommandLine:
+        python -m ibeis.model.hots.score_normalization --test-plot_support
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.score_normalization import *  # NOQA
+        >>> tn_support = '?'
+        >>> tp_support = '?'
+        >>> fnum = None
+        >>> pnum = (1, 1, 1)
+        >>> result = plot_support(tn_support, tp_support, fnum, pnum)
+        >>> print(result)
+    """
     import plottool as pt  # NOQA
     if fnum is None:
         fnum = pt.next_fnum()

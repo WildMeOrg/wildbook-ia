@@ -1,67 +1,68 @@
+### __init__.py ###
 # flake8: noqa
 from __future__ import absolute_import, division, print_function
-import utool
 import utool as ut
-ut.noinject(__name__, '[ibeis.dev.__init__]', DEBUG=False)
+ut.noinject(__name__, '[ibeis.init.__init__]', DEBUG=False)
+from ibeis.dev import dbinfo
+from ibeis.dev import duct_tape
+from ibeis.dev import optimize_k
+#print, print_, printDBG, rrr, profile = ut.inject(
+#    __name__, '[ibeis.init.')
 
 
-print, print_, printDBG, rrr, profile = utool.inject(
-    __name__, '[ibeis.dev]', DEBUG=False)
+def reassign_submodule_attributes(verbose=True):
+    """
+    why reloading all the modules doesnt do this I don't know
+    """
+    import sys
+    if verbose and '--quiet' not in sys.argv:
+        print('dev reimport')
+    # Self import
+    import ibeis.dev
+    # Implicit reassignment.
+    seen_ = set([])
+    for tup in IMPORT_TUPLES:
+        if len(tup) > 2 and tup[2]:
+            continue  # dont import package names
+        submodname, fromimports = tup[0:2]
+        submod = getattr(ibeis.init. submodname)
+        for attr in dir(submod):
+            if attr.startswith('_'):
+                continue
+            if attr in seen_:
+                # This just holds off bad behavior
+                # but it does mimic normal util_import behavior
+                # which is good
+                continue
+            seen_.add(attr)
+            setattr(ibeis.init. attr, getattr(submod, attr))
 
-
-__LOADED__ = False
-
-def import_subs():
-    global __LOADED__
-    #from . import dbinfo
-    #from . import main_commands
-    #from . import main_helpers
-    #from . import experiment_configs
-    #from . import experiment_harness
-    from ibeis.dev import dbinfo
-    from ibeis.dev import duct_tape
-    from ibeis.dev import experiment_configs
-    from ibeis.dev import experiment_harness
-    from ibeis.dev import experiment_helpers
-    from ibeis.dev import experiment_printres
-    from ibeis.dev import main_commands
-    from ibeis.dev import main_helpers
-    from ibeis.dev import results_all
-    from ibeis.dev import results_analyzer
-    from ibeis.dev import results_organizer
-    from ibeis.dev import sysres
-    __LOADED__ = True
-
-import sys
 
 def reload_subs(verbose=True):
-    """ Reloads ibeis.dev and submodules """
+    """ Reloads ibeis.init.and submodules """
     rrr(verbose=verbose)
-    if not __LOADED__:
-        import_subs()
-    getattr(dbinfo, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(duct_tape, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(experiment_configs, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(experiment_harness, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(experiment_helpers, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(experiment_printres, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(main_commands, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(main_helpers, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(results_all, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(results_analyzer, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(results_organizer, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(sysres, 'rrr', lambda verbose: None)(verbose=verbose)
+    def fbrrr(*args, **kwargs):
+        """ fallback reload """
+        pass
+    getattr(dbinfo, 'rrr', fbrrr)(verbose=verbose)
+    getattr(duct_tape, 'rrr', fbrrr)(verbose=verbose)
+    getattr(optimize_k, 'rrr', fbrrr)(verbose=verbose)
     rrr(verbose=verbose)
+    try:
+        # hackish way of propogating up the new reloaded submodule attributes
+        reassign_submodule_attributes(verbose=verbose)
+    except Exception as ex:
+        print(ex)
 rrrr = reload_subs
 
-
+IMPORT_TUPLES = [
+    ('dbinfo', None),
+    ('duct_tape', None),
+    ('optimize_k', None),
+]
 """
 Regen Command:
-    Kinda have to work with the output of these. This module is hard to
-    autogenerate correctly.
-
     cd /home/joncrall/code/ibeis/ibeis/dev
-
-    makeinit.py -x web viz tests gui all_imports
-    makeinit.py -x constants params main_module dev control ibsfuncs dbio tests all_imports
+    makeinit.py
 """
+

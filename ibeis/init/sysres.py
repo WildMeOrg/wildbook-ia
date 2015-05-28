@@ -342,7 +342,7 @@ def is_hsinternal(dbdir):
 
 def get_ibsdb_list(workdir=None):
     r"""
-    Lists the available ibeis database inside of a work directory
+    Lists the available valid ibeis databases inside of a work directory
 
     Args:
         workdir (None):
@@ -351,17 +351,14 @@ def get_ibsdb_list(workdir=None):
         IBEISController: ibsdb_list -  ibeis controller object
 
     CommandLine:
-        python -m ibeis.dev.sysres --test-get_ibsdb_list
+        python -m ibeis.init.sysres --test-get_ibsdb_list
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dev.sysres import *  # NOQA
-        >>> # build test data
+        >>> from ibeis.init.sysres import *  # NOQA
         >>> workdir = None
-        >>> # execute function
         >>> ibsdb_list = get_ibsdb_list(workdir)
-        >>> # verify results
-        >>> result = str(ibsdb_list)
+        >>> result = str('\n'.join(ibsdb_list))
         >>> print(result)
     """
     import numpy as np
@@ -427,11 +424,11 @@ def resolve_species(species_code):
         species_code (str): can either be species_code or species_text
 
     CommandLine:
-        python -m ibeis.dev.sysres --test-resolve_species
+        python -m ibeis.init.sysres --test-resolve_species
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.dev.sysres import *  # NOQA
+        >>> from ibeis.init.sysres import *  # NOQA
         >>> # build test data
         >>> species = 'GZ'
         >>> # execute function
@@ -449,7 +446,7 @@ def grab_example_smart_xml_fpath():
     """ Gets smart example xml
 
     CommandLine:
-        python -m ibeis.dev.sysres --test-grab_example_smart_xml_fpath
+        python -m ibeis.init.sysres --test-grab_example_smart_xml_fpath
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -470,9 +467,9 @@ def grab_example_smart_xml_fpath():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.dev.sysres
-        python -m ibeis.dev.sysres --allexamples
-        python -m ibeis.dev.sysres --allexamples --noface --nosrc
+        python -m ibeis.init.sysres
+        python -m ibeis.init.sysres --allexamples
+        python -m ibeis.init.sysres --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

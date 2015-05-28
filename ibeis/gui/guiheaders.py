@@ -58,7 +58,6 @@ TABLE_NICE = {
 TABLE_COLNAMES = {
     IMAGE_TABLE     : [
         'gid',
-        #'image_uuid',
         'thumb',
         #'nAids',
         'img_gname',
@@ -70,6 +69,7 @@ TABLE_COLNAMES = {
         'contributor_tag',
         #'gdconf',
         'imgnotes',
+        'image_uuid',
     ],
 
     # debug with
@@ -303,7 +303,8 @@ def make_ibeis_headers_dict(ibs):
         for colname in TABLE_COLNAMES[tablename]:
             if colname not in getters[tablename]:
                 getters[tablename][colname] = getattr(ibs, 'get_' + shortname + '_' + colname)
-                print(getters[tablename][colname])
+                if ut.VERBOSE:
+                    print('[guiheaders] infering %r' % (getters[tablename][colname],))
     # +--------------------------
     # Encounter Iders/Setters/Getters
     iders[ENCOUNTER_TABLE]   = [ partial(ibs.get_valid_eids, shipped=False)]

@@ -12,7 +12,7 @@ from ibeis.viz import viz_matches
 DEFAULT_NTOP = 3
 
 
-@ut.indent_func
+#@ut.indent_func
 @profile
 def show_qres_top(ibs, qres, qreq_=None, **kwargs):
     """
@@ -34,7 +34,7 @@ def show_qres_top(ibs, qres, qreq_=None, **kwargs):
                      **kwargs)
 
 
-@ut.indent_func
+#@ut.indent_func
 @profile
 def show_qres_analysis(ibs, qres, qreq_=None, **kwargs):
     """
@@ -130,7 +130,7 @@ def testdata_show_qres():
     return ibs, qres, qreq_, kwargs
 
 
-@ut.indent_func
+#@ut.indent_func
 def show_qres(ibs, qres, qreq_=None, **kwargs):
     """
     Display Query Result Logic
@@ -176,7 +176,7 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
         >>> pt.show_if_requested()
 
     """
-    ut.print_dict(kwargs)
+    #ut.print_dict(kwargs)
     annot_mode     = kwargs.get('annot_mode', 1) % 3  # this is toggled
     figtitle       = kwargs.get('figtitle', '')
     make_figtitle  = kwargs.get('make_figtitle', False)
@@ -216,7 +216,9 @@ def show_qres(ibs, qres, qreq_=None, **kwargs):
         ut.printex(ex, keys=['top_aids', 'gt_aids'])
         raise
 
-    printDBG(qres.get_inspect_str())
+    if ut.DEBUG2:
+        print(qres.get_inspect_str())
+
     ranked_aids = qres.get_top_aids()
     #--------------------------------------------------
     # Get grid / cell information to build subplot grid

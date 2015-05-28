@@ -55,8 +55,8 @@ def _init_matplotlib():
 #@profile
 def _init_gui():
     import guitool
-    import utool
-    if not utool.QUIET:
+    import utool as ut
+    if not ut.QUIET:
         print('[main] _init_gui()')
     guitool.ensure_qtapp()
     #USE_OLD_BACKEND = '--old-backend' in sys.argv
@@ -118,8 +118,8 @@ def _close_parallel():
         from utool import util_parallel
         util_parallel.close_pool(terminate=True)
     except Exception as ex:
-        import utool
-        utool.printex(ex, 'error closing parallel')
+        import utool as ut
+        ut.printex(ex, 'error closing parallel')
 
 
 def _init_numpy():
@@ -152,7 +152,7 @@ def _init_numpy():
 
 def _guitool_loop(main_locals, ipy=False):
     import guitool
-    import utool
+    import utool as ut
     from ibeis import params
     print('[main] guitool loop')
     back = main_locals.get('back', None)
@@ -163,7 +163,7 @@ def _guitool_loop(main_locals, ipy=False):
         if ipy:  # If we're in IPython, the qtapp loop won't block, so we need to refresh
             back.refresh_state()
     else:
-        if not utool.QUIET:
+        if not ut.QUIET:
             print('WARNING: back was not expected to be None')
 
 
@@ -227,8 +227,8 @@ def main(gui=True, dbdir=None, defaultdb='cache',
         dict: main_locals
     """
     set_newfile_permissions()
-    from ibeis.dev import main_commands
-    from ibeis.dev import sysres
+    from ibeis.init import main_commands
+    from ibeis.init import sysres
     # Display a visible intro message
     msg1 = '''
     _____ ....... _______ _____ _______
@@ -304,7 +304,7 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
         >>> result = str(ibs)
         >>> print(result)
     """
-    from ibeis.dev import sysres
+    from ibeis.init import sysres
     from ibeis import ibsfuncs
     dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)
     if delete_ibsdir is True:
@@ -322,7 +322,7 @@ def start(*args, **kwargs):
 def test_main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False,
               db=None):
     """ alias for main() """  # + main.__doc__
-    from ibeis.dev import sysres
+    from ibeis.init import sysres
     _preload()
     dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)
     ibs = _init_ibeis(dbdir)
@@ -332,8 +332,8 @@ def test_main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False,
 #@profile
 def _preload(mpl=True, par=True, logging=True):
     """ Sets up python environment """
-    import utool
-    from ibeis.dev import main_helpers
+    import utool as ut
+    from ibeis.init import main_helpers
     from ibeis import params
     if  multiprocessing.current_process().name != 'MainProcess':
         return
@@ -342,7 +342,7 @@ def _preload(mpl=True, par=True, logging=True):
     if logging and not params.args.nologging:
         # Log in the configured ibeis log dir (which is maintained by utool)
         # fix this to be easier to figure out where the logs actually are
-        utool.start_logging(appname='ibeis')
+        ut.start_logging(appname='ibeis')
     if mpl:
         _init_matplotlib()
     # numpy print settings
@@ -353,7 +353,7 @@ def _preload(mpl=True, par=True, logging=True):
     # ctrl+c
     _init_signals()
     # inject colored exceptions
-    utool.util_inject.inject_colored_exceptions()
+    ut.util_inject.inject_colored_exceptions()
     # register type aliases for debugging
     main_helpers.register_utool_aliases()
     #return params.args
@@ -381,20 +381,20 @@ def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     """
     print('[main] ibeis.main_module.main_loop()')
     from ibeis import params
-    import utool
+    import utool as ut
     #print('current process = %r' % (multiprocessing.current_process().name,))
     #== 'MainProcess':
     if rungui and not params.args.nogui:
         try:
             _guitool_loop(main_locals, ipy=ipy)
         except Exception as ex:
-            utool.printex(ex, 'error in main_loop')
+            ut.printex(ex, 'error in main_loop')
             raise
     #if not persist or params.args.cmd:
     #    main_close()
     # Put locals in the exec namespace
-    ipycmd_execstr = utool.ipython_execstr()
-    locals_execstr = utool.execstr_dict(main_locals, 'main_locals')
+    ipycmd_execstr = ut.ipython_execstr()
+    locals_execstr = ut.execstr_dict(main_locals, 'main_locals')
     execstr = locals_execstr + '\n' + ipycmd_execstr
     return execstr
 

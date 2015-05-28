@@ -8,9 +8,10 @@ import numpy as np
 #import six
 import utool
 import utool as ut
-from ibeis.dev import experiment_helpers as eh
-from ibeis.dev import experiment_printres
-
+from ibeis.experiments import experiment_helpers as eh
+from ibeis.experiments import experiment_printres
+from ibeis.experiments import experiment_drawing
+from ibeis.experiments import experiment_storage
 print, print_, printDBG, rrr, profile = utool.inject(
     __name__, '[expt_harn]')
 
@@ -99,7 +100,7 @@ def get_config_result_info(ibs, qaids, daids):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dev.experiment_harness import *  # NOQA
+        >>> from ibeis.experiments.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaids = ibs.get_valid_aids()[0:3]
@@ -108,7 +109,7 @@ def get_config_result_info(ibs, qaids, daids):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dev.experiment_harness import *  # NOQA
+        >>> from ibeis.experiments.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> cfgdict = dict(codename='vsone')
@@ -158,11 +159,11 @@ def test_configurations(ibs, qaids, daids, test_cfg_name_list):
     Test harness driver function
 
     CommandLine:
-        python -m ibeis.dev.experiment_harness --test-test_configurations
+        python -m ibeis.experiments.experiment_harness --test-test_configurations
 
     Example:
         >>> # SLOW_DOCTEST
-        >>> from ibeis.dev.experiment_harness import *  # NOQA
+        >>> from ibeis.experiments.experiment_harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaids = ibs.get_valid_aids()[::40]
@@ -182,42 +183,7 @@ def test_configurations(ibs, qaids, daids, test_cfg_name_list):
         return
     else:
         experiment_printres.print_results(ibs, test_result)
-        experiment_printres.draw_results(ibs, test_result)
-
-
-class TestResult(object):
-    def __init__(test_result, cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, daids, qaids):
-        test_result.qaids = qaids
-        test_result.daids = daids
-        test_result.cfg_list         = cfg_list
-        test_result.cfgx2_lbl        = cfgx2_lbl
-        test_result.lbl              = lbl
-        test_result.testnameid       = testnameid
-        test_result.cfgx2_cfgresinfo = cfgx2_cfgresinfo
-        test_result.cfgx2_qreq_      = cfgx2_qreq_
-
-    @ut.memoize
-    def get_rank_mat(test_result):
-        # Ranks of Best Results
-        cfgx2_bestranks = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_bestranks')
-        rank_mat = np.vstack(cfgx2_bestranks).T  # concatenate each query rank across configs
-        # Set invalid ranks to the worse possible rank
-        #worst_possible_rank = max(9001, len(test_result.daids) + 1)
-        worst_possible_rank = len(test_result.daids) + 1
-        rank_mat[rank_mat == -1] =  worst_possible_rank
-        return rank_mat
-
-    @ut.memoize
-    def get_new_hard_qx_list(test_result):
-        """ Mark any query as hard if it didnt get everything correct """
-        rank_mat = test_result.get_rank_mat()
-        is_new_hard_list = rank_mat.max(axis=1) > 0
-        new_hard_qx_list = np.where(is_new_hard_list)[0]
-        return new_hard_qx_list
-
-    #def get_full_cfgstr(test_result, cfgx):
-    #    full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
-    #    return full_cfgstr
+        experiment_drawing.draw_results(ibs, test_result)
 
 
 @profile
@@ -273,16 +239,16 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
     # TODO: should probably just use a cfgdict to build a list of QueryRequest
     # objects. That would avoid the entire problem
     ibs.set_query_cfg(orig_query_cfg)
-    test_result = TestResult(cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, daids, qaids)
+    test_result = experiment_storage.TestResult(cfg_list, cfgx2_lbl, lbl, testnameid, cfgx2_cfgresinfo, cfgx2_qreq_, daids, qaids)
     return test_result
 
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, ibeis.dev.experiment_harness; utool.doctest_funcs(ibeis.dev.experiment_harness, allexamples=True)"
-        python -c "import utool, ibeis.dev.experiment_harness; utool.doctest_funcs(ibeis.dev.experiment_harness)"
-        python -m ibeis.dev.experiment_harness
-        python -m ibeis.dev.experiment_harness --allexamples
+        python -c "import utool, ibeis.experiments.experiment_harness; utool.doctest_funcs(ibeis.experiments.experiment_harness, allexamples=True)"
+        python -c "import utool, ibeis.experiments.experiment_harness; utool.doctest_funcs(ibeis.experiments.experiment_harness)"
+        python -m ibeis.experiments.experiment_harness
+        python -m ibeis.experiments.experiment_harness --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

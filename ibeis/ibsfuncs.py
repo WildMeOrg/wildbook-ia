@@ -12,6 +12,7 @@ TODO: need to split up into sub modules:
 from __future__ import absolute_import, division, print_function
 import six
 import types
+import re
 from six.moves import zip, range, map
 from os.path import split, join, exists
 #import vtool.image as gtool
@@ -308,6 +309,9 @@ def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
 
 @__injectable
 def get_annot_pair_truth(ibs, aid1_list, aid2_list):
+    """
+    CAREFUL: uses annot match table for truth, so only works if reviews have happend
+    """
     annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
     annotmatch_truth_list = ibs.get_annotmatch_truth(annotmatch_rowid_list)
     return annotmatch_truth_list
@@ -2704,7 +2708,7 @@ def get_yaw_viewtexts(yaw_list):
 
 
 def get_species_dbs(species_prefix):
-    from ibeis.dev import sysres
+    from ibeis.init import sysres
     ibs_dblist = sysres.get_ibsdb_list()
     isvalid_list = [split(path)[1].startswith(species_prefix) for path in ibs_dblist]
     return ut.filter_items(ibs_dblist, isvalid_list)
@@ -2795,6 +2799,8 @@ def get_match_truth(ibs, aid1, aid2):
 @__injectable
 def get_aidpair_truths(ibs, aid1_list, aid2_list):
     r"""
+    Uses NIDS to verify truth
+
     Args:
         ibs (IBEISController):  ibeis controller object
         aid1_list (list):
@@ -4463,12 +4469,9 @@ def prepare_annotgroup_review(ibs, aid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> # execute function
         >>> result = prepare_annotgroup_review(ibs, aid_list)
-        >>> # verify results
         >>> print(result)
     """
     # Build new names for source and dest annot groups
@@ -4487,6 +4490,421 @@ def prepare_annotgroup_review(ibs, aid_list):
     # Relate the annotations with the source group
     ibs.add_gar([src_ag_rowid] * len(aid_list), aid_list)
     return src_ag_rowid, dst_ag_rowid
+
+
+@__injectable
+def search_annot_notes(ibs, pattern, aid_list=None):
+    """
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_Master0')
+        >>> pattern = ['gash', 'injury', 'scar', 'wound']
+        >>> valid_aid_list = ibs.search_annot_notes(pattern)
+        >>> print(valid_aid_list)
+        >>> print(ibs.get_annot_notes(valid_aid_list))
+    """
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+    notes_list = ibs.get_annot_notes(aid_list)
+    # convert a list of patterns into an or statement
+    if isinstance(pattern, (list, tuple)):
+        pattern = '|'.join(['(%s)' % pat for pat in pattern])
+    valid_index_list, valid_match_list = search_list(notes_list, pattern, flags=re.IGNORECASE)
+    #[match.group() for match in valid_match_list]
+    valid_aid_list = ut.list_take(aid_list, valid_index_list)
+    return valid_aid_list
+
+
+def search_list(text_list, pattern, flags=0):
+    """
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-search_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> text_list = ['ham', 'jam', 'eggs', 'spam']
+        >>> pattern = '.am'
+        >>> flags = 0
+        >>> (valid_index_list, valid_match_list) = search_list(text_list, pattern, flags)
+        >>> result = str(valid_index_list)
+        >>> print(result)
+        [0, 1, 3]
+    """
+    match_list = [re.search(pattern, text, flags=flags) for text in text_list]
+    valid_index_list = [index for index, match in enumerate(match_list) if match is not None]
+    valid_match_list = ut.list_take(match_list, valid_index_list)
+    return valid_index_list, valid_match_list
+
+
+@__injectable
+def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
+    unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)
+    unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)
+    unixtime_list1[unixtime_list1 == -1] = np.nan
+    unixtime_list2[unixtime_list2 == -1] = np.nan
+    timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
+    return timedelta_list
+
+
+def make_temporally_distinct_blind_test(ibs, challenge_num=None):
+
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=1
+        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=2
+        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=3
+        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=4
+        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=5
+        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=6
+        python -m ibeis.ibsfuncs --test-make_temporally_distinct_blind_test --challenge-num=7
+
+    Ignore:
+        challenge_pdfs = ut.glob('.', 'pair_*_compressed.pdf', recursive=True)
+        dname = 'all_challenges'
+        ut.ensuredir(dname)
+        ut.copy(challenge_pdfs, dname)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('Elephants_drop1')
+        >>> result = make_temporally_distinct_blind_test(ibs)
+        >>> print(result)
+    """
+    # Parameters
+    if challenge_num is None:
+        challenge_num = ut.get_argval('--challenge-num', type_=int, default=1)
+    num_repeats = 2
+    num_singles = 4
+
+    # Filter out ones from previous challenges
+    all_aid_list = ibs.get_valid_aids()
+
+    def get_challenge_aids(aid_list):
+        # Get annots with timestamps
+        unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
+        flag_list = [unixtime != -1 for unixtime in unixtime_list]
+        aid_list = ut.list_compress(aid_list, flag_list)
+        aids_list = ibs.group_annots_by_name(aid_list)[0]
+        singletons = [aids for aids in aids_list if len(aids) == 1]
+
+        def pdist_argsort(x):
+            """
+            x = np.array([  3.05555556e-03,   1.47619797e+04,   1.47619828e+04])
+            """
+            import scipy.spatial.distance as spdist
+            mat = spdist.squareform(x)
+            matu = np.triu(mat)
+            sortx_row, sortx_col = np.unravel_index(matu.ravel().argsort(), matu.shape)
+            # only take where col is larger than row due to upper triu
+            sortx_2d = [(r, c) for r, c in zip(sortx_row, sortx_col) if (c > r)]
+            return sortx_2d
+
+        # process multitons
+        multitons = [aids for aids in aids_list if len(aids) > 1]
+        hourdists_list = ibs.get_unflat_annots_hourdists_list(multitons)
+        best_pairx_list = [pdist_argsort(x)[-1] for x in hourdists_list]
+        best_multitons = [ut.list_take(aids, xs) for aids, xs in zip(multitons, best_pairx_list)]
+        best_hourdists_list = ut.flatten(ibs.get_unflat_annots_hourdists_list(best_multitons))
+        assert len(best_hourdists_list) == len(best_multitons)
+        best_multitons_sortx = np.array(best_hourdists_list).argsort()[::-1]
+        best_pairs = ut.list_take(best_multitons, best_multitons_sortx[0:num_repeats])
+        best_multis = ut.flatten(best_pairs)
+
+        # process singletons
+        best_singles = ut.list_take(singletons, ut.random_indexes(len(singletons), num_singles, seed=0))
+        best_singles = ut.flatten(best_singles)
+
+        chosen_aids_ = best_multis + best_singles
+        assert len(best_multis) == num_repeats * 2, 'len(best_multis)=%r' % (len(best_multis),)
+        assert len(best_singles) == num_singles, 'len(best_singles)=%r' % (len(best_singles),)
+        return chosen_aids_
+        #return best_multis, best_singles
+
+    aid_list = all_aid_list
+    # Define invalid aids recusrively, so challenges are dijsoint
+    invalid_aids = []
+    for _ in range(1, challenge_num + 1):
+        prev_chosen_aids_ = get_challenge_aids(aid_list)
+        invalid_aids += prev_chosen_aids_
+        aid_list = ut.setdiff_ordered(all_aid_list, invalid_aids)
+
+    chosen_aids_ = get_challenge_aids(aid_list)
+    chosen_nids_ = ibs.get_annot_nids(chosen_aids_)
+
+    # Randomize order of chosen aids and nids
+    shufflx = ut.random_indexes(len(chosen_aids_), seed=432)
+    chosen_aids = ut.list_take(chosen_aids_, shufflx)
+    chosen_nids = ut.list_take(chosen_nids_, shufflx)
+    choosex_list = np.arange(len(chosen_aids))
+
+    # ----------------------------------
+    # SAMPLE A SET OF PAIRS TO PRESNET
+    import itertools
+    #nid_pair_list   = list(itertools.combinations(chosen_nids, 2))
+
+    def index2d_take(list_, indexes_list):
+        return [[list_[x] for x in xs] for xs in indexes_list]
+
+    choosex_pair_list = list(itertools.combinations(choosex_list, 2))
+    nid_pair_list = index2d_take(chosen_nids, choosex_pair_list)
+    # Do not choose any correct pairs
+    is_correct = [nid1 == nid2 for nid1, nid2 in nid_pair_list]
+    p = 1. - np.array(is_correct)
+    p /= p.sum()
+    random_pair_sample = 15
+    # Randomly remove nonmatch pairs
+    pairx_list = np.arange(len(choosex_pair_list))
+    num_remove = len(pairx_list) - random_pair_sample
+    randstate = np.random.RandomState(seed=10)
+    remove_xs = randstate.choice(pairx_list, num_remove, replace=False, p=p)
+    keep_mask = np.logical_not(vt.index_to_boolmask(remove_xs, len(pairx_list)))
+    sample_choosex_list = np.array(choosex_pair_list)[keep_mask]
+
+    # One last shuffle of pairs
+    #ut.random_indexes(len(chosen_aids), seed=10)
+    randstate = np.random.RandomState(seed=10)
+    randstate.shuffle(sample_choosex_list)
+
+    # Print out info
+    avuuids_list = ibs.get_annot_visual_uuids(chosen_aids)
+    print('avuuids_list=\n' + ut.list_str(avuuids_list))
+    chosen_avuuids_list = index2d_take(avuuids_list, sample_choosex_list)
+    for count, (avuuid1, avuuid2)  in enumerate(chosen_avuuids_list, start=1):
+        print('pair %3d: %s - vs - %s' % (count, avuuid1, avuuid2))
+    # Print
+    best_times = ibs.get_unflat_annots_hourdists_list(ibs.group_annots_by_name(chosen_aids_)[0])
+    print('best_times = %r' % (best_times,))
+
+    # -------------------------
+    # WRITE CHOSEN AIDS TO DISK
+    import ibeis.viz
+    #fname = 'aidchallenge_' + ibs.get_dbname() + '_' + str(challenge_num)
+    challengename = 'pair_challenge'  '_' + str(challenge_num) + '_dbname=' + ibs.get_dbname()
+    output_dirname = ut.truepath(challengename)
+    ut.ensuredir(output_dirname)
+    #aid = chosen_aids[0]
+    #ibeis.viz.viz_chip.show_many_chips(ibs, chosen_aids)
+
+    def dump_challenge_fig(ibs, aid, output_dirname):
+        import plottool as pt
+        pt.clf()
+        title_suffix = str(ibs.get_annot_visual_uuids(aid))
+        fig, ax = ibeis.viz.show_chip(ibs, aid, annote=False, show_aidstr=False, show_name=False, show_num_gt=False, fnum=1, title_suffix=title_suffix)
+        #fig.show()
+        #pt.iup()
+        fpath = ut.truepath(join(output_dirname, 'avuuid%s.png' % (title_suffix.replace('-', ''),)))
+        pt.save_figure(fpath_strict=fpath, fig=fig, fnum=1, verbose=False)
+        vt.clipwhite_ondisk(fpath, fpath)
+        return fpath
+
+    orig_fpath_list = [dump_challenge_fig(ibs, aid, output_dirname) for aid in chosen_aids]
+    #fpath_pair_list = index2d_take(orig_fpath_list, choosex_pair_list)
+    #fpath_pair_list_ = ut.list_compress(fpath_pair_list, keep_mask)
+    fpath_pair_list_ = index2d_take(orig_fpath_list, sample_choosex_list)
+    ut.vd(output_dirname)
+
+    # ----- DUMP TO LATEX ---
+
+    # Randomize pair ordering
+    #randstate = np.random.RandomState(seed=10)
+    ##ut.random_indexes(len(chosen_aids))
+    #randstate.shuffle(fpath_pair_list_)
+
+    #latex_blocks = [ut.get_latex_figure_str(fpath_pair, width_str='2.4in', nCols=2, dpath=output_dirname) for fpath_pair in fpath_pair_list_]
+    latex_blocks = [ut.get_latex_figure_str(fpath_pair, width_str='.5\\textwidth', nCols=2, dpath=output_dirname, caption_str='pair %d' % (count,))
+                    for count, fpath_pair in enumerate(fpath_pair_list_, start=1)]
+    latex_text = '\n\n'.join(latex_blocks)
+    #print(latex_text)
+    title = challengename.replace('_', ' ')
+    pdf_fpath = ut.compile_latex_text(latex_text, dpath=output_dirname, verbose=True, fname=challengename, silence=True, title=title)
+    output_pdf_fpath = ut.compress_pdf(pdf_fpath)
+    ut.startfile(output_pdf_fpath)
+    """
+    import ibeis
+    ibs = ibeis.opendb('Elephants_drop1')
+
+    Guesses:
+        def verify_guesses(partial_pairs):
+            aids_lists = ibs.unflat_map(ibs.get_annot_rowids_from_partial_vuuids, partial_pairs)
+            aid_pairs = list(map(ut.flatten, aids_lists))
+            aids1 = ut.get_list_column(aid_pairs, 0)
+            aids2 = ut.get_list_column(aid_pairs, 1)
+            truth = ibs.get_aidpair_truths(aids1, aids2)
+            return truth
+
+        # Chuck: 2, 6   --
+        partial_pairs = [('fc4fcc', '47622'), ('981ef476', '73721a95')]
+        print(verify_guesses(partial_pairs))
+        # Mine: 1, 14   --
+        partial_pairs = [('fc4f', 'f0d32'), ('73721', '47622')]
+        print(verify_guesses(partial_pairs))
+        # Hendrik: 3, X --
+        partial_pairs = [('476225', '4c383f'), ('48c1', '981ef')]
+        # Hendrik2: 3, 13 --
+        partial_pairs = [('476225', '4c383f'), ('fc4fcc', '24a50bb')]
+        print(verify_guesses(partial_pairs))
+
+        partial_vuuid_strs = ut.flatten(partial_pairs)
+
+        get_annots_from_partial_vuuids
+
+    """
+    #else:
+    #    def format_challenge_pairs():
+    #        # -------------------------
+    #        # EMBED INTO A PDF
+    #        #from utool.util_latex import *  # NOQA
+    #        import utool as ut
+    #        import vtool as vt
+    #        #verbose = True
+    #        dpath = '/home/joncrall/code/ibeis/aidchallenge'
+    #        # Read images
+    #        orig_fpath_list = ut.list_images(dpath, fullpath=True)
+    #        # Clip white out
+    #        clipped_fpath_list = [vt.clipwhite_ondisk(fpath) for fpath in orig_fpath_list]
+    #        # move into temporary figure dir with hashed names
+    #        fpath_list = []
+    #        figdpath = join(dpath, 'figures')
+    #        ut.ensuredir(figdpath)
+    #        from os.path import splitext, basename, dirname
+    #        for fpath in clipped_fpath_list:
+    #            fname, ext = splitext(basename(fpath))
+    #            fname_ = ut.hashstr(fname, alphabet=ut.ALPHABET_16) + ext
+    #            fpath_ = join(figdpath, fname_)
+    #            ut.move(fpath, fpath_)
+    #            fpath_list.append(fpath_)
+
+    #            figure_str = ut.get_latex_figure_str(fpath_list, width_str='2.4in', nCols=2, dpath=dirname(figdpath))
+    #            input_text = figure_str
+    #            pdf_fpath = ut.compile_latex_text(input_text, dpath=dpath, verbose=False, quiet=True)  # NOQA
+
+    #        #output_pdf_fpath = ut.compress_pdf(pdf_fpath)
+
+    #        #fpath_list
+    #        ## Weirdness
+    #        #new_rel_fpath_list = [ut.relpath_unix(fpath_, dpath) for fpath_ in new_fpath_list]
+
+    #    #for fpath_pair in fpath_pair_list:
+    #    #    print(fpath_pair)
+
+    #    # -------------------------
+    #    # EMBED INTO A PDF
+    #if False:
+    #    # TODO: quadratic programmming optimization
+    #    # Actually its a quadratically constrained quadratic integer program
+    #    def get_assignment_mat(ibs, aid_list):
+    #        #import scipy.spatial.distance as spdist
+    #        #nid_list = ibs.get_annot_nids(aid_list)
+    #        aid1_list, aid2_list = list(zip(*ut.iprod(aid_list, aid_list)))
+    #        truths = ibs.get_aidpair_truths(aid1_list, aid2_list)
+    #        assignment_mat = truths.reshape(len(aid_list), len(aid_list))
+    #        assignment_mat[np.diag_indices(assignment_mat.shape[0])] = 0
+    #        return assignment_mat
+    #    import scipy.spatial.distance as spdist
+    #    pairwise_times = ibs.get_unflat_annots_hourdists_list([aid_list])[0]
+    #    ptime_utri = np.triu(spdist.squareform(pairwise_times))  # NOQA
+    #    assignment_utri = np.triu(get_assignment_mat(ibs, aid_list))  # NOQA
+    #    nassign_utri = np.triu((1 - assignment_utri) - np.eye(len(assignment_utri)))  # NOQA
+
+    #    r"""
+    #    Let d be number of annots
+    #    Let x \in {0, 1}^d be an assignment vector
+
+    #    let l = num matching pairs = 2
+    #    let m = num nonmatching pairs = 2
+
+    #    # maximize total time delta
+    #    min 1/2 x^T (-ptime_utri) x
+    #    s.t.
+    #    # match constraint
+    #     .5 * x.T @ A @ x - l <= 0
+    #    -.5 * x.T @ A @ x + l <= 0
+    #    # nonmatch constraint
+    #     .5 * x.T @ \bar{A} @ x - l <= 0
+    #    -.5 * x.T @ \bar{A} @ x + l <= 0
+    #    """
+
+    #maxhourdists = np.array(list(map(ut.safe_max, hourdists_list)))
+    #top_multi_indexes = maxhourdists.argsort()[::-1][:num_repeats]
+    #top_multitons = ut.list_take(multitons, top_multi_indexes)
+
+    #
+    #scipy.optimize.linprog
+
+
+@__injectable
+def dans_lists(ibs, positives=10, negatives=10, verbose=False):
+    from random import shuffle
+
+    aid_list = ibs.get_valid_aids()
+    yaw_list = ibs.get_annot_yaw_texts(aid_list)
+    qua_list = ibs.get_annot_quality_texts(aid_list)
+    sex_list = ibs.get_annot_sex_texts(aid_list)
+    age_list = ibs.get_annot_age_months_est(aid_list)
+
+    positive_list = [
+        aid
+        for aid, yaw, qua, sex, (start, end) in zip(aid_list, yaw_list, qua_list, sex_list, age_list)
+        if yaw.upper() == 'LEFT' and qua.upper() in ['OK', 'GOOD', 'EXCELLENT'] and sex.upper() in ['MALE', 'FEMALE'] and start != -1 and end != -1
+    ]
+
+    negative_list = [
+        aid
+        for aid, yaw, qua, sex, (start, end) in zip(aid_list, yaw_list, qua_list, sex_list, age_list)
+        if yaw.upper() == 'LEFT' and qua.upper() in ['OK', 'GOOD', 'EXCELLENT'] and sex.upper() == 'UNKNOWN SEX' and start == -1 and end == -1
+    ]
+
+    shuffle(positive_list)
+    shuffle(negative_list)
+
+    positive_list = sorted(positive_list[:10])
+    negative_list = sorted(negative_list[:10])
+
+    if verbose:
+        pos_yaw_list = ibs.get_annot_yaw_texts(positive_list)
+        pos_qua_list = ibs.get_annot_quality_texts(positive_list)
+        pos_sex_list = ibs.get_annot_sex_texts(positive_list)
+        pos_age_list = ibs.get_annot_age_months_est(positive_list)
+        pos_chip_list = ibs.get_annot_chip_fpath(positive_list)
+
+        neg_yaw_list = ibs.get_annot_yaw_texts(negative_list)
+        neg_qua_list = ibs.get_annot_quality_texts(negative_list)
+        neg_sex_list = ibs.get_annot_sex_texts(negative_list)
+        neg_age_list = ibs.get_annot_age_months_est(negative_list)
+        neg_chip_list = ibs.get_annot_chip_fpath(negative_list)
+
+        print('positive_aid_list = %s\n' % (positive_list, ))
+        print('positive_yaw_list = %s\n' % (pos_yaw_list, ))
+        print('positive_qua_list = %s\n' % (pos_qua_list, ))
+        print('positive_sex_list = %s\n' % (pos_sex_list, ))
+        print('positive_age_list = %s\n' % (pos_age_list, ))
+        print('positive_chip_list = %s\n' % (pos_chip_list, ))
+
+        print('-' * 90, '\n')
+
+        print('negative_aid_list = %s\n' % (negative_list, ))
+        print('negative_yaw_list = %s\n' % (neg_yaw_list, ))
+        print('negative_qua_list = %s\n' % (neg_qua_list, ))
+        print('negative_sex_list = %s\n' % (neg_sex_list, ))
+        print('negative_age_list = %s\n' % (neg_age_list, ))
+        print('negative_chip_list = %s\n' % (neg_chip_list, ))
+
+        print('mkdir ~/Desktop/chips')
+        for pos_chip in pos_chip_list:
+            print('cp "%s" ~/Desktop/chips/' % (pos_chip, ))
+        for neg_chip in neg_chip_list:
+            print('cp "%s" ~/Desktop/chips/' % (neg_chip, ))
+
+    return positive_list, negative_list
 
 
 if __name__ == '__main__':

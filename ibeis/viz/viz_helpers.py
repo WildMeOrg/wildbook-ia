@@ -141,14 +141,43 @@ def get_truth_color(truth, base255=False, lighten_amount=None):
 
 
 def get_timedelta_str(ibs, aid1, aid2):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1 (int):  annotation id
+        aid2 (int):  annotation id
+
+    Returns:
+        str: timedelta_str
+
+    CommandLine:
+        python -m ibeis.viz.viz_helpers --test-get_timedelta_str
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.viz.viz_helpers import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid1 = 1
+        >>> aid2 = 8
+        >>> # execute function
+        >>> timedelta_str = get_timedelta_str(ibs, aid1, aid2)
+        >>> # verify results
+        >>> result = str(timedelta_str)
+        >>> print(result)
+        td(02:28:22)
+    """
     gid1, gid2 = ibs.get_annot_gids([aid1, aid2])
     unixtime1, unixtime2 = ibs.get_image_unixtime([gid1, gid2])
     if -1 in [unixtime1, unixtime2]:
         timedelta_str_ = 'NA'
     else:
         unixtime_diff = unixtime2 - unixtime1
+        #timedelta_str_ = ut.get_posix_timedelta_str(unixtime_diff)
         timedelta_str_ = ut.get_unix_timedelta_str(unixtime_diff)
-    timedelta_str = 'timedelta(%s)' % (timedelta_str_)
+    #timedelta_str = 'timedelta(%s)' % (timedelta_str_)
+    timedelta_str = 'td(%s)' % (timedelta_str_)
     return timedelta_str
 
 
@@ -294,15 +323,24 @@ def get_query_text(ibs, qres, aid2, truth, **kwargs):
         if len(text_list) > 0:
             score_str = '\n' + score_str
         text_list.append(score_str)
-    if kwargs.get('show_timedelta', False):
-        timedelta_str = ('\n' + get_timedelta_str(ibs, qaid, aid2))
-        text_list.append(timedelta_str)
     name_score = kwargs.get('name_score', None)
     name_rank = kwargs.get('name_rank', None)
-    if name_score is not None:
-        text_list.append('name_score=' + ut.num_fmt(name_score))
-    if name_rank is not None:
-        text_list.append('name_rank=%s' % (str(name_rank),))
+    if kwargs.get('show_name_score', True):
+        if name_score is not None:
+            text_list.append('name_score=' + ut.num_fmt(name_score))
+    if kwargs.get('show_name_rank', True):
+        if name_rank is not None:
+            text_list.append('name_rank=%s' % (str(name_rank),))
+    #with ut.embed_on_exception_context:
+    if kwargs.get('show_timedelta', False):
+        assert qaid is not None, 'qaid cannot be None'
+        # TODO: fixme
+        if isinstance(aid2, list):
+            aid2_ = aid2[0]
+        else:
+            aid2_ = aid2
+        timedelta_str = ('\n' + get_timedelta_str(ibs, qaid, aid2_))
+        text_list.append(timedelta_str)
     query_text = ', '.join(text_list)
     return query_text
 

@@ -16,6 +16,13 @@ def augbase(basedict, updatedict):
 exclude_vars = vars().keys()   # this line is before tests
 
 
+elph = [
+    {'affine_invariance': False, 'fg_on': [True, False]},
+    {'affine_invariance': False, 'histeq': True, 'fg_on': [True, False]},
+    {'affine_invariance': False, 'adapteq': True, 'fg_on': [True, False]},
+]
+
+
 pyrscale = {
     'maxPyramidLevels': [-1, 3],
     'affine_invariance': [True, False],

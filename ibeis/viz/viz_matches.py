@@ -104,7 +104,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     aid_list = [qaid] + name_daid_list
     annotate_matches3(ibs, aid_list, bbox_list, offset_list, qreq_=None, **kwargs)
     ax = pt.gca()
-    title = vh.get_query_text(ibs, None, name_daid_list, False, **kwargs)
+    title = vh.get_query_text(ibs, None, name_daid_list, False, qaid=qaid, **kwargs)
 
     pt.set_title(title, ax)
     import numpy as np
@@ -122,9 +122,6 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_lis
     rchip = rchip1
     H = H1 = None
     target_wh = None
-
-    TODO:
-        color the features so the scores are comparabile within the multichip match
 
     """
     import vtool.image as gtool
@@ -157,33 +154,34 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list, fs_lis
 
     fig, ax = pt.imshow(match_img, fnum=fnum, pnum=pnum)
 
-    NONVOTE_MODE = kwargs.get('nonvote_mode', 'filter')
-    ut.flatten(fs_list)
-    #ut.embed()
-    flat_fs, cumlen_list = ut.invertible_flatten2(fs_list)
-    flat_colors = pt.scores_to_color(np.array(flat_fs), 'hot')
-    colors_list = ut.unflatten2(flat_colors, cumlen_list)
-    for _tup in zip(offset_list[1:], wh_list[1:], sf_list[1:], kpts2_list, fm_list, fs_list, featflag_list, colors_list):
-        offset2, wh2, sf2, kpts2, fm2_, fs2_, featflags, colors = _tup
-        xywh1 = (offset1[0], offset1[1], wh1[0], wh1[1])
-        xywh2 = (offset2[0], offset2[1], wh2[0], wh2[1])
-        #colors = pt.scores_to_color(fs2)
-        if kpts1 is not None and kpts2 is not None:
-            if NONVOTE_MODE == 'filter':
-                fm2 = fm2_.compress(featflags, axis=0)
-                fs2 = fs2_.compress(featflags, axis=0)
-            elif NONVOTE_MODE == 'only':
-                fm2 = fm2_.compress(np.logical_not(featflags), axis=0)
-                fs2 = fs2_.compress(np.logical_not(featflags), axis=0)
-            else:
-                # TODO: optional coloring of nonvotes instead
-                fm2 = fm2_
-                fs2 = fs2_
-            pt.plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm2, fs2, fm_norm=None,
-                           H1=None, H2=None, scale_factor1=sf1,
-                           scale_factor2=sf2, colorbar_=False, colors=colors,
-                           **kwargs)
-    pt.colorbar(flat_fs, flat_colors)
+    if kwargs.get('show_matches', True):
+        NONVOTE_MODE = kwargs.get('nonvote_mode', 'filter')
+        ut.flatten(fs_list)
+        #ut.embed()
+        flat_fs, cumlen_list = ut.invertible_flatten2(fs_list)
+        flat_colors = pt.scores_to_color(np.array(flat_fs), 'hot')
+        colors_list = ut.unflatten2(flat_colors, cumlen_list)
+        for _tup in zip(offset_list[1:], wh_list[1:], sf_list[1:], kpts2_list, fm_list, fs_list, featflag_list, colors_list):
+            offset2, wh2, sf2, kpts2, fm2_, fs2_, featflags, colors = _tup
+            xywh1 = (offset1[0], offset1[1], wh1[0], wh1[1])
+            xywh2 = (offset2[0], offset2[1], wh2[0], wh2[1])
+            #colors = pt.scores_to_color(fs2)
+            if kpts1 is not None and kpts2 is not None:
+                if NONVOTE_MODE == 'filter':
+                    fm2 = fm2_.compress(featflags, axis=0)
+                    fs2 = fs2_.compress(featflags, axis=0)
+                elif NONVOTE_MODE == 'only':
+                    fm2 = fm2_.compress(np.logical_not(featflags), axis=0)
+                    fs2 = fs2_.compress(np.logical_not(featflags), axis=0)
+                else:
+                    # TODO: optional coloring of nonvotes instead
+                    fm2 = fm2_
+                    fs2 = fs2_
+                pt.plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm2, fs2, fm_norm=None,
+                               H1=None, H2=None, scale_factor1=sf1,
+                               scale_factor2=sf2, colorbar_=False, colors=colors,
+                               **kwargs)
+        pt.colorbar(flat_fs, flat_colors)
     bbox_list = [(x, y, w, h) for (x, y), (w, h) in zip(offset_list, wh_list)]
     return offset_list, sf_list, bbox_list
 
@@ -202,6 +200,7 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, qreq_=None, **kwarg
     #show_query  = kwargs.get('show_query', True)
     #draw_border = kwargs.get('draw_border', True)
     draw_lbl    = kwargs.get('draw_lbl', True)
+    # List of annotation scores for each annot in the name
     name_annot_scores = kwargs.get('name_annot_scores', None)
 
     #printDBG('[viz] annotate_matches2()')
@@ -218,6 +217,8 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, qreq_=None, **kwarg
     ax = pt.gca()
     ph.set_plotdat(ax, 'viztype', 'multi_match')
     ph.set_plotdat(ax, 'qaid', aid_list[0])
+    ph.set_plotdat(ax, 'num_matches', len(aid_list) - 1)
+    ph.set_plotdat(ax, 'aid_list', aid_list[1:])
     for count, aid in enumerate(aid_list, start=1):
         ph.set_plotdat(ax, 'aid%d' % (count,), aid)
 

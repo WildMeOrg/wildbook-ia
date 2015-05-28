@@ -9,7 +9,9 @@ Subpackages
     ibeis.control
     ibeis.dbio
     ibeis.dev
+    ibeis.experiments
     ibeis.gui
+    ibeis.init
     ibeis.model
     ibeis.templates
     ibeis.tests

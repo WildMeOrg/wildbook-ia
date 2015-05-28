@@ -169,7 +169,7 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
         default_qaid_list = qaid_list
 
     if cmdline_ok:
-        from ibeis.dev import main_helpers
+        from ibeis.init import main_helpers
         qaid_list = main_helpers.get_test_qaids(ibs, default_qaids=default_qaid_list)
         #qaid_list = ut.get_argval(('--qaid_list', '--qaid'), list, qaid_list)
         daid_list = ut.get_argval(('--daid_list', '--daids'), list, daid_list)

@@ -12,7 +12,7 @@ CHMOD_PATTERNS = [
 ]
 
 PROJECT_DIRS = ['.', 'guitool', 'plotool', 'ibeis', 'ibeis/control',
-                'ibeis/dev', 'ibeis/gui', 'ibeis/dbio', 'ibeis/model',
+                'ibeis.init., 'ibeis/gui', 'ibeis/dbio', 'ibeis/model',
                 'ibeis/hots', 'ibeis/preproc', 'ibeis/viz',
                 'ibeis/viz/interact', ]
 

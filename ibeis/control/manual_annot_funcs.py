@@ -600,6 +600,8 @@ def get_annot_aids_from_visual_uuid(ibs, visual_uuid_list):
                            visual_uuid_list, id_colname=ANNOT_VISUAL_UUID)
     return aids_list
 
+get_annot_rowids_from_visual_uuid = get_annot_aids_from_visual_uuid
+
 
 @register_ibs_method
 @ut.accepts_numpy
@@ -2062,6 +2064,7 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
     ibs.db.set(const.ANNOTATION_TABLE, colnames, name_rowid_list, id_iter)
     # postset nids
     ibs.update_annot_semantic_uuids(aid_list)
+    # TODO: flag name rowid update
 
 
 @register_ibs_method
@@ -2171,7 +2174,8 @@ def set_annot_notes(ibs, aid_list, notes_list):
 @register_api('/api/annot/parent_rowid/', methods=['PUT'])
 def set_annot_parent_rowid(ibs, aid_list, parent_aid_list):
     r"""
-    Sets the annotation's parent aid
+    Sets the annotation's parent aid.
+    TODO DEPRICATE IN FAVOR OF SEPARATE PARTS TABLE
 
     RESTful:
         Method: PUT
@@ -2283,7 +2287,7 @@ def get_annot_qualities(ibs, aid_list, eager=True):
         col = annot_quality
         tbl = annot
 
-    SeeALso:
+    SeeAlso:
         ibeis.const.QUALITY_INT_TO_TEXT
 
     RESTful:
@@ -3134,6 +3138,78 @@ def get_annot_image_contributor_tag(ibs, aid_list):
     gid_list = ibs.get_annot_gids(aid_list)
     contrib_tag_list = ibs.get_image_contributor_tag(gid_list)
     return contrib_tag_list
+
+
+@register_ibs_method
+@accessor_decors.getter
+def get_annot_rowids_from_partial_vuuids(ibs, partial_vuuid_strs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        partial_uuid_list (list):
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-get_annots_from_partial_uuids
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[::2]
+        >>> vuuids = ibs.get_annot_visual_uuids(aid_list)
+        >>> partial_vuuid_strs = [u[0:4] for u in map(str, vuuids)]
+        >>> aids_list = get_annot_rowids_from_partial_vuuids(ibs, partial_uuid_list)
+        >>> print(result)
+        [[1], [3], [5], [7], [9], [11], [13]]
+    """
+    # Hackyway because I can't figure out startswith in sqlite for UUID blobs
+    # just need to figure out how to convert a string into its corresponding byte
+    # value, then I can do it with the referecence provided
+    # References:
+    # # search like with blobs
+    # http://sqlite.1065341.n5.nabble.com/LIKE-with-BLOB-td48050.html
+    aid_list = ibs.get_valid_aids()
+    vuuids = ibs.get_annot_visual_uuids(aid_list)
+    vuuid_strs = [_.replace('-', '') for _ in map(str, vuuids)]
+    aids_list = [
+        [aid for aid, vuuid in zip(aid_list, vuuid_strs) if vuuid.startswith(partial_vuuid)]
+        for partial_vuuid in partial_vuuid_strs
+    ]
+    return aids_list
+
+    #partial_vuuid = partial_vuuid_strs[0]
+
+    #res = ibs.db.cur.execute(
+    #    '''
+    #    SELECT annot_rowid from ANNOTATIONS
+    #    WHERE annot_visual_uuid LIKE ? || '%'
+    #    ''', (bytes(partial_vuuid),))
+    #print(res.fetchall())
+
+    #res = ibs.db.cur.execute(
+    #    '''
+    #    SELECT annot_rowid from ANNOTATIONS
+    #    WHERE annot_visual_uuid LIKE ? || '%'
+    #    ''', (partial_vuuid,))
+    #print(res.fetchall())
+
+    #res = ibs.db.cur.execute(
+    #    '''
+    #    SELECT annot_rowid from ANNOTATIONS
+    #    WHERE annot_visual_uuid LIKE ? || '%'
+    #    ''', (bytes(partial_vuuid),))
+    #print(res.fetchall())
+
+    ## || - is used to concat strings
+
+    #res = ibs.db.cur.execute(
+    #    '''
+    #    SELECT annot_rowid from ANNOTATIONS
+    #    WHERE annot_note LIKE ? || '%'
+    #    ''', ('very',))
+    #print(res.fetchall())
+    #pass
 
 
 #==========

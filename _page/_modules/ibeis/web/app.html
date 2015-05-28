@@ -119,6 +119,7 @@
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.SQLDatabaseControl</span> <span class="kn">import</span> <span class="p">(</span><span class="n">SQLDatabaseController</span><span class="p">,</span>  <span class="c"># NOQA</span>
                                               <span class="n">SQLAtomicContext</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">ibeis.constants</span> <span class="kn">as</span> <span class="nn">const</span>
 <span class="kn">from</span> <span class="nn">ibeis.constants</span> <span class="kn">import</span> <span class="n">KEY_DEFAULTS</span><span class="p">,</span> <span class="n">SPECIES_KEY</span><span class="p">,</span> <span class="n">Species</span><span class="p">,</span> <span class="n">DEFAULT_WEB_API_PORT</span><span class="p">,</span> <span class="n">PI</span><span class="p">,</span> <span class="n">TAU</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="c"># Web Internal</span>
@@ -1171,6 +1172,17 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annots</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] (DELETED) turk_id: </span><span class="si">%s</span><span class="s">, aid: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">turk_id</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="p">))</span>
         <span class="n">aid</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># Reset AID to prevent previous</span>
+    <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;make junk&#39;</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_quality_texts</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">QUAL_JUNK</span><span class="p">])</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] (SET AS JUNK) turk_id: </span><span class="si">%s</span><span class="s">, aid: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">turk_id</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">redirection</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">referrer</span>
+        <span class="k">if</span> <span class="s">&#39;aid&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">redirection</span><span class="p">:</span>
+            <span class="c"># Prevent multiple clears</span>
+            <span class="k">if</span> <span class="s">&#39;?&#39;</span> <span class="ow">in</span> <span class="n">redirection</span><span class="p">:</span>
+                <span class="n">redirection</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&amp;aid=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">redirection</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">redirection</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">?aid=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">redirection</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">redirection</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;rotate left&#39;</span><span class="p">:</span>
         <span class="n">theta</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
         <span class="n">theta</span> <span class="o">=</span> <span class="p">(</span><span class="n">theta</span> <span class="o">+</span> <span class="n">PI</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">%</span> <span class="n">TAU</span>
@@ -1402,12 +1414,30 @@
 </div>
 <span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/group_review/&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="group_review"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.group_review">[docs]</a><span class="k">def</span> <span class="nf">group_review</span><span class="p">():</span>
-    <span class="k">return</span> <span class="n">ap</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;group_review&#39;</span><span class="p">)</span>
+    <span class="n">prefill</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;prefill&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefill</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+        <span class="n">bad_species_list</span><span class="p">,</span> <span class="n">bad_viewpoint_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">validate_annot_species_viewpoint_cnn</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">candidate_aid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">bad_viewpoint</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">bad_viewpoint</span> <span class="ow">in</span> <span class="n">bad_viewpoint_list</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">candidate_aid_list</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">ap</span><span class="o">.</span><span class="n">template</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;group_review&#39;</span><span class="p">,</span> <span class="n">candidate_aid_list</span><span class="o">=</span><span class="n">candidate_aid_list</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/group_review/submit/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="group_review_submit"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.group_review_submit">[docs]</a><span class="k">def</span> <span class="nf">group_review_submit</span><span class="p">():</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="n">method</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;group-review-submit&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;populate&#39;</span><span class="p">:</span>
+        <span class="n">redirection</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">referrer</span>
+        <span class="k">if</span> <span class="s">&#39;prefill&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">redirection</span><span class="p">:</span>
+            <span class="c"># Prevent multiple clears</span>
+            <span class="k">if</span> <span class="s">&#39;?&#39;</span> <span class="ow">in</span> <span class="n">redirection</span><span class="p">:</span>
+                <span class="n">redirection</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&amp;prefill=true&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">redirection</span><span class="p">,</span> <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">redirection</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">?prefill=true&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">redirection</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">redirection</span><span class="p">)</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;aid_list&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">aid_list</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;[&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
@@ -1557,9 +1587,9 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="n">precache</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] Pre-computing all image thumbnails (with annots)...&#39;</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">compute_all_thumbs</span><span class="p">()</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">preprocess_image_thumbs</span><span class="p">()</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] Pre-computing all image thumbnails (without annots)...&#39;</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">compute_all_thumbs</span><span class="p">(</span><span class="n">draw_annots</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">preprocess_image_thumbs</span><span class="p">(</span><span class="n">draw_annots</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] Pre-computing all annotation chips...&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">check_chip_existence</span><span class="p">()</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">compute_all_chips</span><span class="p">()</span>

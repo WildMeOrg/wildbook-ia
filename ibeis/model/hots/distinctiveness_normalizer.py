@@ -498,7 +498,7 @@ def test_single_annot_distinctiveness_params(ibs, aid):
     # TODO: Also paramatarize the downweighting based on the keypoint size
     ####
     # HACK IN ABILITY TO SET CONFIG
-    from ibeis.dev.main_commands import postload_commands
+    from ibeis.init.main_commands import postload_commands
     from ibeis.model import Config
     postload_commands(ibs, None)
 

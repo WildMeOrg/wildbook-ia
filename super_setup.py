@@ -8,8 +8,13 @@ mkdir $CODE_DIR
 cd $CODE_DIR
 git clone https://github.com/Erotemic/ibeis.git
 cd ibeis
+
+python super_setup.py --bootstrap
+OR
 ./_scripts/bootstrap.py
+THEN
 ./_scripts/__install_prereqs__.sh
+THEN
 ./super_setup.py --build --develop
 ./super_setup.py --build --develop
 
@@ -267,6 +272,7 @@ for nametup, repo_url in TPL_MODULES_AND_REPOS:
     'https://github.com/bluemellophone/pyrf.git',
     'https://github.com/Erotemic/hesaff.git',
     'https://github.com/bluemellophone/ibeis_cnn',
+    #'https://github.com/bluemellophone/pybing.git',
     'https://github.com/Erotemic/ibeis.git',
     #'https://github.com/aweinstock314/cyth.git',
     #'https://github.com/hjweide/pygist',

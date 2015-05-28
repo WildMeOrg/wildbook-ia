@@ -3,8 +3,9 @@ import plottool.draw_func2 as df2
 import numpy as np
 from ibeis import ibsfuncs
 from plottool import plot_helpers as ph
+import plottool as pt
 import utool as ut
-from . import viz_chip
+from ibeis.viz import viz_chip
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz]', DEBUG=False)
 
 
@@ -23,6 +24,82 @@ def testdata_showname():
     return ibs, nid, in_image, index_list
 
 
+def testdata_multichips():
+    import ibeis
+    ibs = ibeis.opendb(defaultdb='testdb1')
+    aid_list = ut.get_argval('--aids', type_=list, default=[1, 2, 3])
+    in_image = not ut.get_argflag('--no-inimage')
+    return ibs, aid_list, in_image
+
+#9108 and 9180
+
+
+def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
+                        subtitle='', annote=False, **kwargs):
+    """
+    CommandLine:
+        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --no-inimage
+        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db NNP_Master3 --aids=6435,9861,137,6563,9167,12547,9332,12598,13285 --no-inimage --notitle
+        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db NNP_Master3 --aids=137,6563,12547,9332,12598,13285 --no-inimage --notitle --adjust=.05
+        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db NNP_Master3 --aids=6563,9332,13285,12598 --no-inimage --notitle --adjust=.05 --rc=1,4
+        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=1288 --no-inimage --notitle --adjust=.05
+        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=4020,4839 --no-inimage --notitle --adjust=.05
+
+        python -m ibeis.viz.viz_name --test-show_multiple_chips --db NNP_Master3 --aids=6524,6540,6571,6751 --no-inimage --notitle --adjust=.05 --diskshow
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_name import *  # NOQA
+        >>> import ibeis
+        >>> ibs, aid_list, in_image = testdata_multichips()
+        >>> fnum = 0
+        >>> sel_aids = []
+        >>> subtitle = ''
+        >>> annote = False
+        >>> result = show_multiple_chips(ibs, aid_list, in_image, fnum, sel_aids, subtitle, annote)
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    if fnum is None:
+        fnum = pt.next_fnum()
+
+    ibsfuncs.ensure_annotation_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)
+    nAids = len(aid_list)
+    if nAids == 0:
+        df2.imshow_null(fnum=fnum, **kwargs)
+    else:
+        rc = ut.get_argval('--rc', type_=list, default=None)
+        if rc is None:
+            nRows, nCols = ph.get_square_row_cols(nAids)
+        else:
+            nRows, nCols = rc
+        notitle = ut.get_argflag('--notitle')
+        draw_lbls = not ut.get_argflag('--no-draw_lbls')
+        show_chip_kw = dict(annote=annote, in_image=in_image, notitle=notitle, draw_lbls=draw_lbls)
+        #print('[viz_name] * r=%r, c=%r' % (nRows, nCols))
+        #gs2 = gridspec.GridSpec(nRows, nCols)
+        pnum_ = df2.get_pnum_func(nRows, nCols)
+        fig = df2.figure(fnum=fnum, pnum=pnum_(0), **kwargs)
+        fig.clf()
+        # Trigger computation of all chips in parallel
+        for px, aid in enumerate(aid_list):
+            viz_chip.show_chip(ibs, aid=aid, pnum=pnum_(px), **show_chip_kw)
+            if aid in sel_aids:
+                ax = df2.gca()
+                df2.draw_border(ax, df2.GREEN, 4)
+            #plot_aid3(ibs, aid)
+
+        # HACK to show in image and not in image
+        DOBOTH = ut.get_argflag('--doboth')
+        if DOBOTH:
+            show_chip_kw['in_image'] = not show_chip_kw['in_image']
+            for px, aid in enumerate(aid_list, start=px + 1):
+                viz_chip.show_chip(ibs, aid=aid, pnum=pnum_(px), **show_chip_kw)
+                if aid in sel_aids:
+                    ax = df2.gca()
+                    df2.draw_border(ax, df2.GREEN, 4)
+
+
 #@ut.indent_func
 def show_name(ibs, nid, in_image=True, fnum=0, sel_aids=[], subtitle='',
               annote=False, aid_list=None, index_list=None,  **kwargs):
@@ -38,24 +115,6 @@ def show_name(ibs, nid, in_image=True, fnum=0, sel_aids=[], subtitle='',
 
     CommandLine:
         python -m ibeis.viz.viz_name --test-show_name --show
-
-        python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_1348" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1348.jpg --dpath figures --caption='viewpoint issue different and viewing conditions' --figsize=11,3 --no-figtitle --notitle
-
-        python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_1421" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1421.jpg --dpath figures --caption='Pose issues where the zebras are fighting'
-
-        python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_1366" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1366.jpg --dpath figures --caption='Occlusion from another animal, blurry photo'
-
-        python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_1288" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_1288.jpg --dpath figures --caption='Occlusion from another animal, blurry photo'
-
-        python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_0370" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0370.jpg --dpath figures --caption='viewpoint'
-
-        python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_0453" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0453.jpg --dpath figures --caption='Viewpoint minor occlusion'
-
-        python -m ibeis.viz.viz_name --test-show_name --name="IBEIS_PZ_0303" --db testdb3 --save ~/latex/crall-candidacy-2015/figures/IBEIS_PZ_0303.jpg --dpath figures --caption='Shadowed'
-
-        python -m ibeis.viz.viz_name --test-show_name --name=IBEIS_PZ_0884 --show --db NNP_Master3 --adjust=[.02,.02,.02] --notitle --index_list=[1,4,5,6] --rc=1,4
-
-        --left=.02 --right=.98 --top=.98 --bottom=.02 --wspace=.05 --hspace=.05
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -79,35 +138,15 @@ def show_name(ibs, nid, in_image=True, fnum=0, sel_aids=[], subtitle='',
         aid_list = ut.list_take(aid_list, index_list)
 
     name = ibs.get_name_texts((nid,))
-    ibsfuncs.ensure_annotation_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)
     print('[viz_name] * name=%r aid_list=%r' % (name, aid_list))
-    nAids = len(aid_list)
-    if nAids > 0:
-        rc = ut.get_argval('--rc', type_=list, default=None)
-        if rc is None:
-            nRows, nCols = ph.get_square_row_cols(nAids)
-        else:
-            nRows, nCols = rc
-        #print('[viz_name] * r=%r, c=%r' % (nRows, nCols))
-        #gs2 = gridspec.GridSpec(nRows, nCols)
-        pnum_ = df2.get_pnum_func(nRows, nCols)
-        fig = df2.figure(fnum=fnum, pnum=pnum_(0), **kwargs)
-        fig.clf()
-        # Trigger computation of all chips in parallel
-        for px, aid in enumerate(aid_list):
-            notitle = ut.get_argflag('--notitle')
-            show_chip_kw = dict(annote=annote, in_image=in_image, notitle=notitle)
-            viz_chip.show_chip(ibs, aid=aid, pnum=pnum_(px), **show_chip_kw)
-            if aid in sel_aids:
-                ax = df2.gca()
-                df2.draw_border(ax, df2.GREEN, 4)
-            #plot_aid3(ibs, aid)
-        if isinstance(nid, np.ndarray):
-            nid = nid[0]
-        if isinstance(name, np.ndarray):
-            name = name[0]
-    else:
-        df2.imshow_null(fnum=fnum, **kwargs)
+
+    show_multiple_chips(ibs, aid_list, in_image=in_image, fnum=fnum,
+                        sel_aids=sel_aids, annote=annote, **kwargs)
+
+    if isinstance(nid, np.ndarray):
+        nid = nid[0]
+    if isinstance(name, np.ndarray):
+        name = name[0]
 
     use_figtitle = not ut.get_argflag('--no-figtitle')
 

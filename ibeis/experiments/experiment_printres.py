@@ -6,33 +6,17 @@ import numpy as np
 import six
 import utool as ut
 from ibeis import ibsfuncs
-from ibeis.dev import experiment_helpers as eh
-from ibeis.model.hots import match_chips4 as mc4
-from itertools import chain
-from os.path import join, dirname, split, basename, splitext
-from plottool import draw_func2 as df2
-from plottool import plot_helpers as ph
+from ibeis.experiments import experiment_helpers as eh
+#from ibeis.experiments import experiment_drawing
 from six.moves import map, range, input  # NOQA
 import vtool as vt
-from ibeis import params
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[expt_report]')
-
-
-SKIP_TO = ut.get_argval(('--skip-to', '--skipto'), type_=int, default=None)
-#SAVE_FIGURES = ut.get_argflag(('--save-figures', '--sf'))
-SAVE_FIGURES = not ut.get_argflag(('--nosave-figures', '--nosf'))
-
-DUMP_EXTRA           = ut.get_argflag('--dump-extra')
-QUALITY              = ut.get_argflag('--quality')
-SHOW                 = ut.get_argflag('--show')
-
-# only triggered if dump_extra is on
-DUMP_PROBCHIP = False
-DUMP_REGCHIP = False
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[expt_printres]')
 
 
 def get_diffranks(rank_mat, qaids):
-    """ Find rows which scored differently over the various configs """
+    """ Find rows which scored differently over the various configs
+    FIXME: duplicated
+    """
     isdiff_flags = [not np.all(row == row[0]) for row in rank_mat]
     diff_aids    = ut.list_compress(qaids, isdiff_flags)
     diff_rank    = rank_mat.compress(isdiff_flags, axis=0)
@@ -40,33 +24,8 @@ def get_diffranks(rank_mat, qaids):
     return diff_aids, diff_rank, diff_qxs
 
 
-def get_interesting_ranks(rank_mat, qaids):
-    # find the rows that vary greatest with the parameter settings
-    diff_aids, diff_rank, diff_qxs = get_diffranks(rank_mat, qaids)
-    if False:
-        rankcategory = np.log(diff_rank + 1)
-    else:
-        rankcategory = diff_rank.copy()
-        rankcategory[diff_rank == 0]  = 0
-        rankcategory[diff_rank > 0]   = 1
-        rankcategory[diff_rank > 2]   = 2
-        rankcategory[diff_rank > 5]   = 3
-        rankcategory[diff_rank > 50]  = 4
-        rankcategory[diff_rank > 100] = 5
-    row_rankcategory_std = np.std(rankcategory, axis=1)
-    row_rankcategory_mean = np.mean(rankcategory, axis=1)
-    row_sortx = vt.argsort_multiarray([row_rankcategory_std, row_rankcategory_mean], reverse=True)
-
-    interesting_qx_list = diff_qxs.take(row_sortx).tolist()
-    #print("INTERSETING MEASURE")
-    #print(interesting_qx_list)
-    #print(row_rankcategory_std)
-    #print(ut.list_take(qaids, row_sortx))
-    #print(diff_rank.take(row_sortx, axis=0))
-    return interesting_qx_list
-
-
 def get_diffmat_str(rank_mat, qaids, nConfig):
+    from itertools import chain
     diff_aids, diff_rank, diff_qxs = get_diffranks(rank_mat, qaids)
     # Find columns that ore strictly better than other columns
     #def find_strictly_better_columns(diff_rank):
@@ -78,222 +37,6 @@ def get_diffmat_str(rank_mat, qaids, nConfig):
     header = 'diffmat'
     diff_matstr = ut.numpy_to_csv(diff_mat, col_lbls, header, col_type)
     return diff_matstr
-
-
-@profile
-def draw_results(ibs, test_result):
-    """
-    Draws results from an experiment harness run.
-    Rows store different qaids (query annotation ids)
-    Cols store different configurations (algorithm parameters)
-
-    CommandLine:
-        python dev.py -t custom:rrvsone_on=True,constrained_coeff=0 custom --qaid 12 --db PZ_MTEST --show --va
-        python dev.py -t custom:rrvsone_on=True,constrained_coeff=.3 custom --qaid 12 --db PZ_MTEST --show --va --noqcache
-        python dev.py -t custom:rrvsone_on=True custom --qaid 4 --db PZ_MTEST --show --va --noqcache
-
-        python dev.py -t custom:rrvsone_on=True,grid_scale_factor=1 custom --qaid 12 --db PZ_MTEST --show --va --noqcache
-        python dev.py -t custom:rrvsone_on=True,grid_scale_factor=1,grid_steps=1 custom --qaid 12 --db PZ_MTEST --show --va --noqcache
-
-    CommandLine:
-        python dev.py -t best --db seals2 --allgt --vz --fig-dname query_analysis_easy --show
-        python dev.py -t best --db seals2 --allgt --vh --fig-dname query_analysis_hard --show
-
-        python dev.py -t pyrscale --db PZ_MTEST --allgt --vn --fig-dname query_analysis_interesting --show
-        python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf
-        python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf --quality
-
-
-        python -m ibeis.dev.experiment_printres --test-draw_results --show --vn
-        python -m ibeis.dev.experiment_printres --test-draw_results --show --vn --db PZ_MTEST
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.dev.experiment_printres import *  # NOQA
-        >>> from ibeis.dev import experiment_harness
-        >>> import ibeis
-        >>> # build test data
-        >>> species = ibeis.const.Species.ZEB_PLAIN
-        >>> #ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> ibs = ibeis.opendb(defaultdb='testdb3')
-        >>> test_cfg_name_list = ['pyrscale']
-        >>> qaids = ibs.get_valid_aids(species=species, hasgt=True)
-        >>> daids = ibs.get_valid_aids(species=species)
-        >>> test_result = experiment_harness.run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
-        >>> # execute function
-        >>> result = draw_results(ibs, test_result)
-        >>> # verify results
-        >>> print(result)
-    """
-    print(' --- DRAW RESULTS ---')
-
-    # It is very inefficient to turn off caching when view_all is true
-    if not mc4.USE_CACHE:
-        print('WARNING: view_all specified with USE_CACHE == False')
-        print('WARNING: we will try to turn cache on when reloading results')
-        #mc4.USE_CACHE = True
-
-    qaids = test_result.qaids
-    daids = test_result.daids
-    new_hard_qx_list = test_result.get_new_hard_qx_list()
-    rank_mat = test_result.get_rank_mat()
-    interesting_qx_list = get_interesting_ranks(rank_mat, qaids)
-
-    (cfg_list, cfgx2_lbl, cfgx2_qreq_) = ut.dict_take(
-        test_result.__dict__, ['cfg_list', 'cfgx2_lbl', 'cfgx2_qreq_'])
-
-    #_viewkw = dict(view_interesting=True)
-    _viewkw = {}
-    sel_rows, sel_cols = get_sel_rows_and_cols(qaids, cfg_list, new_hard_qx_list, interesting_qx_list, **_viewkw)
-
-    figdir = ibs.get_fig_dir()
-    ut.ensuredir(figdir)
-    figdir_suffix = ut.get_argval('--fig-dname', type_=str, default=None)
-    if figdir_suffix is not None:
-        figdir = join(figdir, figdir_suffix)
-        ut.ensuredir(figdir)
-
-    individual_results_figdir = join(figdir, 'individual_results')
-    aggregate_results_figdir  = join(figdir, 'aggregate_results')
-    ut.ensuredir(individual_results_figdir)
-    ut.ensuredir(aggregate_results_figdir)
-
-    VIEW_FIG_DIR = ut.get_argflag(('--view-fig-dir', '--vf', '--vfd'))
-    if VIEW_FIG_DIR:
-        ut.view_directory(figdir, verbose=True)
-
-    VIZ_AGGREGATE_RESULTS = True
-    if VIZ_AGGREGATE_RESULTS:
-        import plottool as pt
-        for cfgx, ranks in enumerate(rank_mat.T):
-            full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
-            fig = pt.show_histogram(ranks, title='Groundtruth ranks\n' + full_cfgstr)  # NOQA
-            ax = pt.gca()
-            ax.set_xlabel('Ranks of correct result')
-            ax.set_ylabel('Frequency')
-            #pt.dark_background()
-            #ut.embed()
-            ut.print_dict(ut.dict_hist(ranks), 'rank histogram')
-            fpath_orig = ph.dump_figure(aggregate_results_figdir, reset=not SHOW)
-            #pt.plt.show()
-            #pt.update()
-            ut.embed()
-
-    VIZ_INDIVIDUAL_RESULTS = True
-    if VIZ_INDIVIDUAL_RESULTS:
-        cp_src_list = []
-        cp_dst_list = []
-
-        def append_copy_task(fpath_orig):
-            """ helper which copies a summary figure to root dir """
-            fname_orig, ext = splitext(basename(fpath_orig))
-            outdir = dirname(fpath_orig)
-            fdir_clean, cfgdir = split(outdir)
-            #aug = cfgdir[0:min(len(cfgdir), 10)]
-            aug = cfgdir
-            fname_fmt = '{aug}_{fname_orig}{ext}'
-            fmt_dict = {'aug': aug, 'fname_orig': fname_orig, 'ext': ext}
-            fname_clean = ut.long_fname_format(fname_fmt, fmt_dict, ['fname_orig'], max_len=128)
-            fdst_clean = join(fdir_clean, fname_clean)
-            cp_src_list.append(fpath_orig)
-            cp_dst_list.append(fdst_clean)
-
-        def flush_copy_tasks():
-            # Execute all copy tasks and empty the lists
-            print('[DRAW_RESULT] copying %r summaries' % (len(cp_src_list)))
-            for src, dst in zip(cp_src_list, cp_dst_list):
-                ut.copy(src, dst, verbose=False)
-            del cp_dst_list[:]
-            del cp_src_list[:]
-
-        def load_qres(ibs, qaid, daids, qreq_):
-            # Load / Execute the query w/ correct config
-            qreq_.set_external_qaids([qaid])
-            qres = ibs._query_chips4(
-                [qaid], daids, use_cache=True, use_bigcache=False,
-                qreq_=qreq_)[qaid]
-            return qres
-
-        def _show_chip(aid, prefix, rank=None, in_image=False, seen=set([]), config2_=None, **dumpkw):
-            print('[PRINT_RESULTS] show_chip(aid=%r) prefix=%r' % (aid, prefix))
-            from ibeis import viz
-            # only dump a chip that hasn't been dumped yet
-            if aid in seen:
-                print('[PRINT_RESULTS] SEEN SKIPPING')
-                return
-            fulldir = join(individual_results_figdir, dumpkw['subdir'])
-            if DUMP_PROBCHIP:
-                # just copy it
-                probchip_fpath = ibs.get_annot_probchip_fpath([aid], config2_=config2_)[0]
-                ut.copy(probchip_fpath, fulldir, overwrite=False)
-            if DUMP_REGCHIP:
-                chip_fpath = ibs.get_annot_chip_fpath([aid], config2_=config2_)[0]
-                ut.copy(chip_fpath, fulldir, overwrite=False)
-
-            viz.show_chip(ibs, aid, in_image=in_image, config2_=config2_)
-            if rank is not None:
-                prefix += 'rank%d_' % rank
-            df2.set_figtitle(prefix + ibs.annotstr(aid))
-            seen.add(aid)
-            if ut.VERBOSE:
-                print('[expt] dumping fig to individual_results_figdir=%s' % individual_results_figdir)
-
-            fpath_clean = ph.dump_figure(individual_results_figdir, **dumpkw)
-            return fpath_clean
-
-        for count, r in enumerate(ut.InteractiveIter(sel_rows, enabled=SHOW)):
-            qreq_list = ut.list_take(cfgx2_qreq_, sel_cols)
-            qres_list = [load_qres(ibs, qaids[r], daids, qreq_) for qreq_ in qreq_list]
-
-            for c, qres, qreq_ in zip(sel_cols, qres_list, qreq_list):
-                fnum = c if SHOW else 1
-                # Get row and column index
-                query_lbl = cfgx2_lbl[c]
-                qres_cfg = qres.get_fname(ext='')
-                subdir = qres_cfg
-                # Draw Result
-                dumpkw = {
-                    'subdir'    : subdir,
-                    'quality'   : QUALITY,
-                    'overwrite' : True,
-                    'verbose'   : 0,
-                }
-                show_kwargs = {
-                    'N': 3,
-                    'ori': True,
-                    'ell_alpha': .9,
-                }
-
-                # Show Figure
-                # try to shorten query labels a bit
-                query_lbl = query_lbl.replace(' ', '').replace('\'', '')
-                #qres.show(ibs, 'analysis', figtitle=query_lbl, fnum=fnum, **show_kwargs)
-                if SHOW:
-                    #show_kwargs['show_query'] = False
-                    show_kwargs['viz_name_score'] = True
-                    qres.ishow_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
-                    #qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
-                else:
-                    show_kwargs['show_query'] = False
-                    #show_kwargs['viz_name_score'] = False
-                    show_kwargs['viz_name_score'] = True
-                    qres.show_analysis(ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_, **show_kwargs)
-
-                # Adjust subplots
-                #df2.adjust_subplots_safe()
-                fpath_orig = ph.dump_figure(individual_results_figdir, reset=not SHOW, **dumpkw)
-                append_copy_task(fpath_orig)
-
-            # if some condition of of batch sizes
-            flush_freq = 1
-            if count % flush_freq == (flush_freq - 1):
-                flush_copy_tasks()
-
-        # Copy summary images to query_analysis folder
-        flush_copy_tasks()
-
-    if ut.NOT_QUIET:
-        print('[DRAW_RESULT] EXIT EXPERIMENT HARNESS')
 
 
 @profile
@@ -316,13 +59,13 @@ def print_results(ibs, test_result):
         python dev.py --db PZ_MTEST --allgt --noqcache --qaid4 -t custom:rrvsone_on=True --print-confusion-stats
 
     CommandLine:
-        python -m ibeis.dev.experiment_printres --test-print_results
-        utprof.py -m ibeis.dev.experiment_printres --test-print_results
+        python -m ibeis.experiments.experiment_printres --test-print_results
+        utprof.py -m ibeis.experiments.experiment_printres --test-print_results
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.dev.experiment_printres import *  # NOQA
-        >>> from ibeis.dev import experiment_harness
+        >>> from ibeis.experiments.experiment_printres import *  # NOQA
+        >>> from ibeis.experiments import experiment_harness
         >>> import ibeis
         >>> # build test data
         >>> species = ibeis.const.Species.ZEB_PLAIN
@@ -821,6 +564,40 @@ def print_results(ibs, test_result):
         print(diff_matstr)
     print_diffmat()
 
+    @ut.argv_flag_dec
+    def print_rankhist():
+        # TODO: rectify this code with other hist code
+        agg_hist_dict = test_result.get_rank_histograms()
+
+        config_gt_aids = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_gt_aid')
+        config_rand_bin_qxs = test_result.get_rank_histogram_qx_binxs()
+
+        _iter = enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs))
+        for cfgx, (ranks, agg_hist_dict, qx2_gt_aid, config_binxs) in _iter:
+            #full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()
+            #ut.print_dict(ut.dict_hist(ranks), 'rank histogram', sorted_=True)
+            # find the qxs that belong to each bin
+            test_result.qaids
+            test_result.qaids
+
+            aid_list1 = test_result.qaids
+            aid_list2 = qx2_gt_aid
+            timedelta_list = ibs.get_annotpair_timdelta(ibs, aid_list1, aid_list2)
+            #timedelta_str_list = [ut.get_posix_timedelta_str2(delta)
+            #                      for delta in timedelta_list]
+
+            bin_edges = test_result.get_rank_histogram_bin_edges()
+            timedelta_groups = ut.dict_take(ut.group_items(timedelta_list, config_binxs), np.arange(len(bin_edges)), [])
+
+            timedelta_stats = [ut.get_stats(deltas, use_nan=True, datacast=ut.get_posix_timedelta_str2) for deltas in timedelta_groups]
+            print('bin time stats')
+            print(ut.dict_str(dict(zip(bin_edges, timedelta_stats)), sorted_=True))
+
+            #timedelta_str_list = get_annotpair_timdelta_strs(ibs, aid_list1, aid_list2)
+
+            ut.print_dict(agg_hist_dict, 'agg rank histogram', sorted_=True)
+    print_rankhist()
+
     #------------
     # Print summary
     #print(' --- SUMMARY ---')
@@ -838,59 +615,12 @@ def print_results(ibs, test_result):
     print('To enable all printouts add --print-all to the commandline')
 
 
-def get_sel_rows_and_cols(qaids, cfg_list, new_hard_qx_list, interesting_qx_list,
-                          view_all=ut.get_argflag(('--view-all', '--va')),
-                          view_hard=ut.get_argflag(('--view-hard', '--vh')),
-                          view_easy=ut.get_argflag(('--view-easy', '--vz')),
-                          view_interesting=ut.get_argflag(('--view-interesting', '--vn')),
-                          ):
-    sel_cols = params.args.sel_cols  # FIXME
-    sel_rows = params.args.sel_rows  # FIXME
-    sel_cols = [] if sel_cols is None else sel_cols
-    sel_rows = [] if sel_rows is None else sel_rows
-    #sel_rows = []
-    #sel_cols = []
-    if ut.NOT_QUIET:
-        print('remember to inspect with --sel-rows (-r) and --sel-cols (-c) ')
-        print('other options:')
-        print('   --vf - view figure dir')
-        print('   --va - view all')
-        print('   --vh - view hard')
-        print('   --ve - view easy')
-        print('   --vn - view iNteresting')
-    if len(sel_rows) > 0 and len(sel_cols) == 0:
-        sel_cols = list(range(len(cfg_list)))
-    if len(sel_cols) > 0 and len(sel_rows) == 0:
-        sel_rows = list(range(len(qaids)))
-    if view_all:
-        sel_rows = list(range(len(qaids)))
-        sel_cols = list(range(len(cfg_list)))
-    if view_hard:
-        sel_rows.extend(np.array(new_hard_qx_list).tolist())
-        sel_cols.extend(list(range(len(cfg_list))))
-    if view_easy:
-        new_easy_qx_list = np.setdiff1d(np.arange(len(qaids)), new_hard_qx_list).tolist()
-        sel_rows.extend(new_easy_qx_list)
-        sel_cols.extend(list(range(len(cfg_list))))
-    if view_interesting:
-        sel_rows.extend(interesting_qx_list)
-        # TODO: grab the best scoring and most interesting configs
-        if len(sel_cols) == 0:
-            sel_cols.extend(list(range(len(cfg_list))))
-    #ut.embed()
-    sel_rows = ut.unique_keep_order2(sel_rows)
-    sel_cols = ut.unique_keep_order2(sel_cols)
-    sel_cols = list(sel_cols)
-    sel_rows = list(sel_rows)
-    return sel_rows, sel_cols
-
-
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.dev.experiment_printres
-        python -m ibeis.dev.experiment_printres --allexamples
-        python -m ibeis.dev.experiment_printres --allexamples --noface --nosrc
+        python -m ibeis.experiments.experiment_printres
+        python -m ibeis.experiments.experiment_printres --allexamples
+        python -m ibeis.experiments.experiment_printres --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

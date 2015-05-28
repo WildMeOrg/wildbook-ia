@@ -44,11 +44,12 @@ def learn_visual_words(annots_df, qreq_, use_cache=USE_CACHE_WORDS, memtrack=Non
         words
 
     Example:
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> ibs, annots_df, taids, daids, qaids, qreq_, nWords = smk_debug.testdata_dataframe()
         >>> use_cache = True
-        >>> words = learn_visual_words(annots_df, taids, nWords)
+        >>> words = learn_visual_words(annots_df, qreq_)
         >>> print(words.shape)
         (8000, 128)
 
@@ -115,6 +116,7 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign, massign_alpha,
             * idf2_wxs - vector index -> assigned word indexes
 
     Example:
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_raw_internals0()
@@ -125,7 +127,7 @@ def assign_to_words_(wordflann, words, idx2_vec, nAssign, massign_alpha,
         >>> massign_alpha = qreq_.qparams.massign_alpha
         >>> massign_sigma = qreq_.qparams.massign_sigma
         >>> massign_equal_weights = qreq_.qparams.massign_equal_weights
-        >>> _dbargs = wordflann, words, idx2_vec, nAssign, massign_alpha, massign_sigma, massign_equal_weights)
+        >>> _dbargs = (wordflann, words, idx2_vec, nAssign, massign_alpha, massign_sigma, massign_equal_weights)
         >>> wx2_idxs, wx2_maws, idx2_wxs = assign_to_words_(*_dbargs)
     """
     if ut.VERBOSE:
@@ -277,6 +279,7 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None,
         wx2_idf
 
     Example:
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams = smk_debug.testdata_raw_internals1()
@@ -284,8 +287,9 @@ def compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids, daid2_label=None,
         >>> idx2_aid = invindex.idx2_daid
         >>> daid2_label = invindex.daid2_label
         >>> wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
-        >>> print(wx2_idf.shape)
-        (8000,)
+        >>> result = str(len(wx2_idf))
+        >>> print(result)
+        8000
 
     Ignore:
         #>>> wx2_idxs = invindex.wx2_idxs
@@ -365,6 +369,7 @@ def compute_negentropy_names(aids_list, daid2_label):
         negentropy_list (ndarray[float32]): idf-like weighting for each word based on the negative entropy
 
     Example:
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams = smk_debug.testdata_raw_internals1()
@@ -470,7 +475,7 @@ def compute_idf_label1(aids_list, daid2_label):
         >>> daid2_label = invindex.daid2_label
         >>> _ = helper_idf_wordgroup(wx2_idxs, idx2_aid, wx_series)
         >>> idxs_list, aids_list = _
-        >>> wx2_idf = compute_word_idf_(wx_series, wx2_idxs, idx2_aid, daids)
+        >>> wx2_idf = compute_idf_label1(wx_series, wx2_idxs, idx2_aid, daids)
     """
     nWords = len(aids_list)
     # Computes our novel label idf weight
@@ -533,6 +538,7 @@ def compute_residuals_(words, wx2_idxs, wx2_maws, idx2_vec, idx2_aid,
                 * list of parent fxs, if aggregate is True: assert len(fxs) == 1
 
     Example:
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams = smk_debug.testdata_raw_internals1()
@@ -626,11 +632,12 @@ def compute_data_sccw_(idx2_daid, wx2_drvecs, wx2_dflags, wx2_aids, wx2_idf,
         daid2_sccw
 
     Example:
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.smk.smk_index import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_index
         >>> from ibeis.model.hots.smk import smk_debug
         >>> #tup = smk_debug.testdata_compute_data_sccw(db='testdb1')
-        >>> tup = smk_debug.testdata_compute_data_sccw(db='GZ_ALL')
+        >>> tup = smk_debug.testdata_compute_data_sccw(db='PZ_MTEST')
         >>> ibs, annots_df, invindex, wx2_idxs, wx2_idf, wx2_drvecs, wx2_aids, qparams = tup
         >>> wx2_dflags = invindex.wx2_dflags
         >>> ws2_idxs = invindex.wx2_idxs

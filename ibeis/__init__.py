@@ -40,7 +40,7 @@ from ibeis import params
 from ibeis import main_module
 from ibeis import species
 from ibeis import dev
-from ibeis.dev import sysres
+from ibeis.init import sysres
 #main_module._preload()
 
 from ibeis import control
@@ -48,11 +48,11 @@ from ibeis import ibsfuncs
 from ibeis import dbio
 #from ibeis import web
 
-from ibeis.dev import sysres
+from ibeis.init import sysres
 from ibeis.main_module import (main, _preload, _init_numpy, main_loop,
                                test_main, opendb, opendb_in_background)
 from ibeis.control.IBEISControl import IBEISController
-from ibeis.dev.sysres import get_workdir, set_workdir, ensure_pz_mtest, ensure_nauts
+from ibeis.init.sysres import get_workdir, set_workdir, ensure_pz_mtest, ensure_nauts
 
 from ibeis import model
 

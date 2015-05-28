@@ -27,7 +27,7 @@ from os.path import join, exists, split
 import utool as ut  # NOQA
 # IBEIS
 import ibeis  # NOQA
-from ibeis.dev import sysres
+from ibeis.init import sysres
 from ibeis import constants as const
 from ibeis import params
 from ibeis.control import accessor_decors, controller_inject
@@ -206,6 +206,7 @@ class IBEISController(object):
         if verbose and ut.VERBOSE:
             print('[ibs.__init__] new IBEISController')
         # an dict to hack in temporary state
+        ibs.const = const
         ibs.temporary_state = {}
         ibs.allow_override = 'override+warn'
         # observer_weakref_list keeps track of the guibacks connected to this controller
@@ -227,6 +228,25 @@ class IBEISController(object):
 
     def reset_table_cache(ibs):
         ibs.table_cache = accessor_decors.init_tablecache()
+
+    def clear_table_cache(ibs, tablename):
+        print('[ibs] clearing table_cache[%r]' % (tablename,))
+        del ibs.table_cache[tablename]
+
+    def get_cachestats_str(ibs):
+        """
+        Returns info about the underlying SQL cache memory
+        """
+        total_size_str = ut.get_object_size_str(ibs.table_cache, lbl='size(table_cache): ')
+        table_size_str_list = [ut.get_object_size_str(val, lbl='size(table_cache[%s]): ' % (key,))
+                               for key, val in six.iteritems(ibs.table_cache)]
+        cachestats_str = total_size_str + ut.indentjoin(table_size_str_list, '\n  * ')
+        return cachestats_str
+
+    def print_cachestats_str(ibs):
+        cachestats_str = ibs.get_cachestats_str()
+        print(cachestats_str)
+        return cachestats_str
 
     #def inject_module_plugin(ibs, module):
     #    global INJECTED_MODULES
@@ -897,7 +917,8 @@ class IBEISController(object):
     #------------------
 
     @default_decorator
-    @register_api('/api/core/detect_random_forest/', methods=['PUT'])
+    @accessor_decors.getter_1to1
+    @register_api('/api/core/detect_random_forest/', methods=['PUT', 'GET'])
     def detect_random_forest(ibs, gid_list, species, **kwargs):
         """
         Runs animal detection in each image. Adds annotations to the database as
@@ -940,6 +961,10 @@ class IBEISController(object):
         # TODO: Return confidence here as well
         print('[ibs] detecting using random forests')
         from ibeis.model.detect import randomforest  # NOQA
+        if isinstance(gid_list, int):
+            gid_list = [gid_list]
+        print("TYPE:", type(gid_list))
+        print("GID_LIST:", gid_list)
         detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, species, **kwargs)
         # ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
         # ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
@@ -1174,6 +1199,8 @@ class IBEISController(object):
     @register_api('/api/core/recognition_query_aids/', methods=['GET'])
     def get_recognition_query_aids(ibs, is_known, species=None):
         """
+        DEPCIRATE
+
         RESTful:
             Method: GET
             URL:    /api/core/recognition_query_aids/
@@ -1192,18 +1219,28 @@ class IBEISController(object):
                     verbose=pipeline.VERB_PIPELINE,
                     save_qcache=None):
         r"""
+        Submits a query request to the hotspotter recognition pipeline. Returns
+        a list of QueryResult objects.
+
+        Note:
+            In the future the QueryResult objects will be replaced by ChipMatch
+            objects
+
         Args:
-            qaid_list (list):
-            daid_list (list):
-            cfgdict (None):
-            use_cache (None):
-            use_bigcache (None):
-            qreq_ (QueryRequest):  hyper-parameters
-            return_request (bool):
-            verbose (bool):
+            qaid_list (list): a list of annotation ids to be submitted as queries
+            daid_list (list): a list of annotation ids used as the database that will be searched
+            cfgdict (dict): dictionary of configuration options used to create a new QueryRequest if not already specified
+            use_cache (bool):
+            use_bigcache (bool):
+            qreq_ (QueryRequest): optional, a QueryRequest object that overrides all previous settings
+            return_request (bool): returns the request which will be created if one is not already specified
+            verbose (bool): default=False, turns on verbose printing
 
         Returns:
-            tuple: (qres_list, qreq_)
+            list: a list of QueryResult objects containing the matching annotations, scores, and feature matches
+
+        Returns(2):
+            tuple: (qres_list, qreq_) - a list of query results and optionally the QueryRequest object used
 
         CommandLine:
             python -m ibeis.control.IBEISControl --test-query_chips
@@ -1215,12 +1252,14 @@ class IBEISController(object):
         Example:
             >>> # SLOW_DOCTEST
             >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis  # NOQA
+            >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
             >>> qaids = ibs.get_valid_aids()[0:1]
             >>> qres = ibs.query_chips(qaids)[0]
             >>> assert qres.qaid == qaids[0]
         """
+        # The qaid and daid objects are allowed to be None if qreq_ is
+        # specified
         if qaid_list is None:
             qaid_list = qreq_.get_external_qaids()
         if daid_list is None:
@@ -1229,17 +1268,19 @@ class IBEISController(object):
             else:
                 daid_list = ibs.get_valid_aids()
 
+        # Wrapped call to the main entrypoint in the API to the hotspotter pipeline
         _res = ibs._query_chips4(
             qaid_list, daid_list, cfgdict=cfgdict, use_cache=use_cache,
             use_bigcache=use_bigcache, qreq_=qreq_,
             return_request=return_request, verbose=verbose,
             save_qcache=save_qcache)
-
         if return_request:
             qaid2_qres, qreq_ = _res
         else:
             qaid2_qres = _res
 
+        # Return a list of query results instead of that awful dictionary
+        # that will be depricated in future version of hotspotter.
         qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
 
         if return_request:
@@ -1257,7 +1298,8 @@ class IBEISController(object):
                       verbose=pipeline.VERB_PIPELINE,
                       save_qcache=None):
         """
-        main entrypoint to submitting a query request
+        submits a query request
+        main entrypoint in the IBIES API to the hotspotter pipeline
 
         CommandLine:
             python -m ibeis.control.IBEISControl --test-_query_chips4
@@ -1281,6 +1323,7 @@ class IBEISController(object):
         #>>> qreq = ibs.qreq
         """
         from ibeis.model.hots import match_chips4 as mc4
+        # Check fo empty queries
         try:
             assert len(daid_list) > 0, 'there are no database chips'
             assert len(qaid_list) > 0, 'there are no query chips'
@@ -1295,11 +1338,8 @@ class IBEISController(object):
             else:
                 return qaid2_qres
 
-        # Actually run query
+        # Check for consistency
         if qreq_ is not None:
-            #import numpy as np
-            #assert np.all(qreq_.get_external_qaids() == qaid_list)
-            #assert np.all(qreq_.get_external_daids() == daid_list)
             ut.assert_lists_eq(
                 qreq_.get_external_qaids(), qaid_list,
                 'qaids do not agree with qreq_', verbose=True)
@@ -1307,6 +1347,7 @@ class IBEISController(object):
                 qreq_.get_external_daids(), daid_list,
                 'daids do not agree with qreq_', verbose=True)
 
+        # Send query to hotspotter (runs the query)
         _res = mc4.submit_query_request(
             ibs,  qaid_list, daid_list, use_cache, use_bigcache,
             return_request=return_request, cfgdict=cfgdict, qreq_=qreq_,
@@ -1357,7 +1398,9 @@ class IBEISController(object):
     @register_api('/api/core/query_all/', methods=['PUT'])
     def query_all(ibs, qaid_list, **kwargs):
         """
-        Queries vs the exemplars
+        DEPRICATED
+
+        Queries vs all valid chip ~~the exemplars~~
 
         RESTful:
             Method: PUT

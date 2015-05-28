@@ -948,6 +948,17 @@ ARE NO LONGER LBLANNOTS</dd>
 </dd></dl>
 
 <dl class="function">
+<dt id="ibeis.dbio.export_subset.check_database_overlap">
+<tt class="descclassname">ibeis.dbio.export_subset.</tt><tt class="descname">check_database_overlap</tt><big>(</big><em>ibs1</em>, <em>ibs2</em><big>)</big><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#check_database_overlap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.check_database_overlap" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs1</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_Master0&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs2</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s">&#39;/raid/work2/Turk/PZ_Master&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.dbio.export_subset.check_merge">
 <tt class="descclassname">ibeis.dbio.export_subset.</tt><tt class="descname">check_merge</tt><big>(</big><em>ibs_src</em>, <em>ibs_dst</em><big>)</big><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#check_merge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.check_merge" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1383,6 +1394,11 @@ python -m ibeis.dbio.export_subset &#8211;test-merge_databases:1</dd>
 <dt id="ibeis.dbio.ingest_database.FMT_KEYS">
 <em class="property">class </em><tt class="descclassname">ibeis.dbio.ingest_database.</tt><tt class="descname">FMT_KEYS</tt><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#FMT_KEYS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.FMT_KEYS" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="attribute">
+<dt id="ibeis.dbio.ingest_database.FMT_KEYS.elephant_fmt">
+<tt class="descname">elephant_fmt</tt><em class="property"> = '{prefix?}{name}_{view}_{id?}.{ext}'</em><a class="headerlink" href="#ibeis.dbio.ingest_database.FMT_KEYS.elephant_fmt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="ibeis.dbio.ingest_database.FMT_KEYS.giraffe1_fmt">
 <tt class="descname">giraffe1_fmt</tt><em class="property"> = '{name:*}_{id:d}.{ext}'</em><a class="headerlink" href="#ibeis.dbio.ingest_database.FMT_KEYS.giraffe1_fmt" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1421,6 +1437,27 @@ python -m ibeis.dbio.export_subset &#8211;test-merge_databases:1</dd>
 <tt class="descclassname">ibeis.dbio.ingest_database.</tt><tt class="descname">get_name_texts_from_gnames</tt><big>(</big><em>gpath_list</em>, <em>img_dir</em>, <em>fmtkey='{name:*}[aid:d].{ext}'</em><big>)</big><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#get_name_texts_from_gnames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.get_name_texts_from_gnames" title="Permalink to this definition">¶</a></dt>
 <dd><p>Input: gpath_list
 Output: names based on the parent folder of each image</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.dbio.ingest_database &#8211;test-get_name_texts_from_gnames</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;e_f0273_f.jpg&#39;</span><span class="p">,</span> <span class="s">&#39;f0001_f.jpg&#39;</span><span class="p">,</span> <span class="s">&#39;f0259_l_3.jpg&#39;</span><span class="p">,</span> <span class="s">&#39;f0259_f_1.jpg&#39;</span><span class="p">,</span>  <span class="s">&#39;f0259_f (1).jpg&#39;</span><span class="p">,</span> <span class="s">&#39;f0058_u16_f.jpg&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img_dir</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fmtkey</span> <span class="o">=</span> <span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">elephant_fmt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">get_name_texts_from_gnames</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Ignore:</dt>
+<dd>print(ut.get_match_text(re.match(&#8216;<a href="#id1"><span class="problematic" id="id2">e_</span></a>&#8216;, &#8216;e_foobar&#8217;)))
+print(ut.get_match_text(re.match(&#8216;(<a href="#id3"><span class="problematic" id="id4">e_</span></a>)?fo&#8217;, &#8216;e_foobar&#8217;)))
+# YAY
+print(ut.get_match_text(re.match(&#8216;(<a href="#id5"><span class="problematic" id="id6">e_</span></a>)?fo&#8217;, &#8216;foobar&#8217;)))</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -1433,6 +1470,11 @@ Output: names based on the parent folder of each image</p>
 <dl class="function">
 <dt id="ibeis.dbio.ingest_database.get_standard_ingestable">
 <tt class="descclassname">ibeis.dbio.ingest_database.</tt><tt class="descname">get_standard_ingestable</tt><big>(</big><em>dbname</em><big>)</big><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#get_standard_ingestable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.get_standard_ingestable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.ingest_Elephants_drop1">
+<tt class="descclassname">ibeis.dbio.ingest_database.</tt><tt class="descname">ingest_Elephants_drop1</tt><big>(</big><em>dbname</em><big>)</big><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_Elephants_drop1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_Elephants_drop1" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -1525,6 +1567,11 @@ Output: names based on the parent folder of each image</p>
 </pre></div>
 </div>
 </dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dbio.ingest_database.injest_main">
+<tt class="descclassname">ibeis.dbio.ingest_database.</tt><tt class="descname">injest_main</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#injest_main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.injest_main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="ibeis.dbio.ingest_database.normalize_name">

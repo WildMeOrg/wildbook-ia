@@ -3,7 +3,7 @@
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 import utool
-from ibeis.dev import sysres
+from ibeis.init import sysres
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_OPEN_DATABASE]')
 
 

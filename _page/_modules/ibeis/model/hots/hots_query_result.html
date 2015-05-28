@@ -680,6 +680,12 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">best_rank</span> <span class="o">=</span> <span class="n">best_ranks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">best_rank</span>
+</div>
+<div class="viewcode-block" id="QueryResult.get_top_groundtruth_aid"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.hots_query_result.QueryResult.get_top_groundtruth_aid">[docs]</a>    <span class="k">def</span> <span class="nf">get_top_groundtruth_aid</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">gt_ranks</span><span class="p">,</span> <span class="n">gt_aids</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_gt_ranks</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">return_gtaids</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">bestx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">gt_ranks</span><span class="p">)</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">best_aid</span> <span class="o">=</span> <span class="n">gt_aids</span><span class="p">[</span><span class="n">bestx</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">best_aid</span>
 
     <span class="c"># ----------------------------------------</span>
 </div>

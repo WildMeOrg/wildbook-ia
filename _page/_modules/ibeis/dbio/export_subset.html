@@ -1515,6 +1515,80 @@
     <span class="c">#ibs_dst.print_annotation_table()</span>
 
 </div>
+<div class="viewcode-block" id="check_database_overlap"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_subset.check_database_overlap">[docs]</a><span class="k">def</span> <span class="nf">check_database_overlap</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs1 = ibeis.opendb(db=&#39;PZ_Master0&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs2 = ibeis.opendb(dbdir=&#39;/raid/work2/Turk/PZ_Master&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">print_intersection</span><span class="p">(</span><span class="n">uuids1</span><span class="p">,</span> <span class="n">uuids2</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+        <span class="n">uuids1_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">uuids1</span><span class="p">)</span>
+        <span class="n">uuids2_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">uuids2</span><span class="p">)</span>
+        <span class="n">uuids_isect</span> <span class="o">=</span> <span class="n">uuids1_</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">uuids2_</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Intersection {lbl}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;  * Num {lbl} 1: {num}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">uuids1_</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;  * Num {lbl} 2: {num}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">uuids2_</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;  * Num {lbl} isect: {num}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">uuids_isect</span><span class="p">)))</span>
+
+    <span class="n">gids1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">gids2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">image_uuids1</span>      <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gids1</span><span class="p">)</span>
+    <span class="n">image_uuids2</span>      <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gids2</span><span class="p">)</span>
+    <span class="n">print_intersection</span><span class="p">(</span><span class="n">image_uuids1</span><span class="p">,</span> <span class="n">image_uuids2</span><span class="p">,</span> <span class="s">&#39;images&#39;</span><span class="p">)</span>
+
+    <span class="n">aids1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">aids2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">ibs1</span><span class="o">.</span><span class="n">update_annot_visual_uuids</span><span class="p">(</span><span class="n">aids1</span><span class="p">)</span>
+        <span class="n">ibs2</span><span class="o">.</span><span class="n">update_annot_visual_uuids</span><span class="p">(</span><span class="n">aids2</span><span class="p">)</span>
+        <span class="n">ibs1</span><span class="o">.</span><span class="n">update_annot_semantic_uuids</span><span class="p">(</span><span class="n">aids1</span><span class="p">)</span>
+        <span class="n">ibs2</span><span class="o">.</span><span class="n">update_annot_semantic_uuids</span><span class="p">(</span><span class="n">aids2</span><span class="p">)</span>
+    <span class="c">#</span>
+    <span class="n">annot_vuuids1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aids1</span><span class="p">)</span>
+    <span class="n">annot_vuuids2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aids2</span><span class="p">)</span>
+    <span class="n">print_intersection</span><span class="p">(</span><span class="n">annot_vuuids1</span><span class="p">,</span> <span class="n">annot_vuuids2</span><span class="p">,</span> <span class="s">&#39;vuuids&#39;</span><span class="p">)</span>
+    <span class="c">#</span>
+    <span class="n">annot_suuids1</span> <span class="o">=</span> <span class="n">ibs1</span><span class="o">.</span><span class="n">get_annot_semantic_uuids</span><span class="p">(</span><span class="n">aids1</span><span class="p">)</span>
+    <span class="n">annot_suuids2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_semantic_uuids</span><span class="p">(</span><span class="n">aids2</span><span class="p">)</span>
+    <span class="n">print_intersection</span><span class="p">(</span><span class="n">annot_suuids1</span><span class="p">,</span> <span class="n">annot_suuids2</span><span class="p">,</span> <span class="s">&#39;suuids&#39;</span><span class="p">)</span>
+    <span class="c">#</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">nAnnots_per_image1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs1</span><span class="o">.</span><span class="n">get_image_num_annotations</span><span class="p">(</span><span class="n">gids1</span><span class="p">))</span>
+    <span class="n">nAnnots_per_image2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">get_image_num_annotations</span><span class="p">(</span><span class="n">gids2</span><span class="p">))</span>
+    <span class="c">#</span>
+    <span class="n">images_without_annots1</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">nAnnots_per_image1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">images_without_annots2</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">nAnnots_per_image2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;images_without_annots1 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">images_without_annots1</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;images_without_annots2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">images_without_annots2</span><span class="p">,))</span>
+
+    <span class="n">nAnnots_per_image1</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="k">class</span> <span class="nc">AlignedIndex</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iddict_</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">def</span> <span class="nf">make_aligned_arrays</span><span class="p">(</span><span class="n">id_lists</span><span class="p">,</span> <span class="n">data_lists</span><span class="p">):</span>
+            <span class="n">idx_lists</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">compute_unique_data_ids_</span><span class="p">(</span><span class="n">id_list</span><span class="p">,</span> <span class="n">iddict_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">iddict_</span><span class="p">)</span> <span class="k">for</span> <span class="n">id_list</span> <span class="ow">in</span> <span class="n">id_lists</span><span class="p">]</span>
+            <span class="n">aligned_data</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">idx_list</span><span class="p">,</span> <span class="n">data_array</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">idx_lists</span><span class="p">,</span> <span class="n">data_lists</span><span class="p">):</span>
+                <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iddict_</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span>
+                <span class="n">array</span><span class="p">[</span><span class="n">idx_list</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_array</span>
+                <span class="n">aligned_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+
+    <span class="c"># Try to figure out the conflicts</span>
+    <span class="c"># TODO: finishme</span>
+
+    <span class="bp">self</span> <span class="o">=</span> <span class="n">AlignedIndex</span><span class="p">()</span>
+    <span class="n">id_lists</span> <span class="o">=</span> <span class="p">(</span><span class="n">image_uuids1</span><span class="p">,</span> <span class="n">image_uuids2</span><span class="p">)</span>
+    <span class="n">data_lists</span> <span class="o">=</span> <span class="p">(</span><span class="n">nAnnots_per_image1</span><span class="p">,</span> <span class="n">nAnnots_per_image2</span><span class="p">)</span>
+    <span class="n">aligned_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_aligned_arrays</span><span class="p">(</span><span class="n">id_lists</span><span class="p">,</span> <span class="n">data_lists</span><span class="p">)</span>
+    <span class="n">nAnnots1_aligned</span><span class="p">,</span> <span class="n">nAnnots2_aligned</span> <span class="o">=</span> <span class="n">aligned_data</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;images_with_different_num_annnots = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">nAnnots_per_image1</span> <span class="o">-</span> <span class="n">nAnnots_per_image2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),))</span>
+
+</div>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">def MERGE_NNP_MASTER_SCRIPT():</span>
 <span class="sd">    print(ut.truncate_str(ibs_dst.db.get_table_csv(ibeis.const.ANNOTATION_TABLE,</span>

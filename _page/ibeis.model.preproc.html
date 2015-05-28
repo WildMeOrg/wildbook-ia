@@ -286,8 +286,9 @@ normalizations.</p>
 
 <dl class="function">
 <dt id="ibeis.model.preproc.preproc_chip.compute_or_read_annotation_chips">
-<tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">compute_or_read_annotation_chips</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>ensure=True</em>, <em>config2_=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#compute_or_read_annotation_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.compute_or_read_annotation_chips" title="Permalink to this definition">¶</a></dt>
-<dd><p>Found 1 line(s) in &#8216;ibeis/model/preproc/preproc_chip.py&#8217;:
+<tt class="descclassname">ibeis.model.preproc.preproc_chip.</tt><tt class="descname">compute_or_read_annotation_chips</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>ensure=True</em>, <em>config2_=None</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_chip.html#compute_or_read_annotation_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_chip.compute_or_read_annotation_chips" title="Permalink to this definition">¶</a></dt>
+<dd><p>SUPER HACY FUNCTION. NEED TO DEPRICATE</p>
+<p>Found 1 line(s) in &#8216;ibeis/model/preproc/preproc_chip.py&#8217;:
 preproc_chip.py :  25 <a href="#id1"><span class="problematic" id="id2">|</span></a>def compute_or_read_annotation_chips(ibs, aid_list, ensure=True):
 &#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-
 Found 1 line(s) in &#8216;ibeis/control/manual_chip_funcs.py&#8217;:
@@ -1127,7 +1128,7 @@ python -m ibeis.model.preproc.preproc_probchip &#8211;test-get_extramargin_detec
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.preproc.preproc_probchip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">main_helpers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">main_helpers</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">get_test_qaids</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>

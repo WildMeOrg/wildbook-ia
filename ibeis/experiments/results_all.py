@@ -7,8 +7,8 @@ import utool
 import numpy as np
 import utool as ut
 import six
-from ibeis.dev import results_organizer
-from ibeis.dev import results_analyzer
+from ibeis.experiments import results_organizer
+from ibeis.experiments import results_analyzer
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[results_all]', DEBUG=False)
 
 
@@ -67,9 +67,9 @@ def learn_score_normalization(ibs, qres_list, qaid_list):
         qaid2_qres (int): query annotation id
 
     Example:
-        >>> from ibeis.dev.results_all import *   # NOQA
+        >>> from ibeis.experiments.results_all import *   # NOQA
         >>> import plottool as pt  # NOQA
-        >>> from ibeis.dev import results_all
+        >>> from ibeis.experiments import results_all
         >>> import ibeis
         >>> #ibs = ibeis.opendb('PZ_MTEST')
         >>> dbname = 'GZ_ALL'
@@ -416,7 +416,7 @@ def get_stem_data(ibs, qaid2_qres):
         qaid2_qres (int): query annotation id
 
     Example:
-        >>> from ibeis.dev.results_all import *   # NOQA
+        >>> from ibeis.experiments.results_all import *   # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> qaid_list = qaid_list = ibs.get_valid_aids()
@@ -616,10 +616,10 @@ def test_confidence_measures(ibs, qres_list, qaid_list):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -c "import utool, ibeis.dev.results_all; utool.doctest_funcs(ibeis.dev.results_all, allexamples=True)"
-        python -c "import utool, ibeis.dev.results_all; utool.doctest_funcs(ibeis.dev.results_all)"
-        python -m ibeis.dev.results_all --allexamples
-        python -m ibeis.dev.results_all --test-learn_score_normalization --enableall
+        python -c "import utool, ibeis.experiments.results_all; utool.doctest_funcs(ibeis.experiments.results_all, allexamples=True)"
+        python -c "import utool, ibeis.experiments.results_all; utool.doctest_funcs(ibeis.experiments.results_all)"
+        python -m ibeis.experiments.results_all --allexamples
+        python -m ibeis.experiments.results_all --test-learn_score_normalization --enableall
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

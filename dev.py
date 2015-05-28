@@ -48,11 +48,11 @@ from _devcmds_ibeis import *  # NOQA
 # Tools
 from plottool import draw_func2 as df2
 # IBEIS
-from ibeis.dev import main_helpers
+from ibeis.init import main_helpers
 from ibeis.dev import dbinfo
-from ibeis.dev import experiment_configs
-from ibeis.dev import experiment_harness
-from ibeis.dev import results_all
+from ibeis.experiments import experiment_configs
+from ibeis.experiments import experiment_harness
+from ibeis.experiments import results_all
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 
 
@@ -657,7 +657,7 @@ def test_feats(ibs, qaid_list, daid_list=None):
     """
     from ibeis import viz
     from plottool import df2
-    from ibeis.dev import experiment_configs
+    from ibeis.experiments import experiment_configs
     import utool as ut
 
     NUM_PASSES = 1 if not utool.get_argflag('--show') else 2
@@ -716,7 +716,7 @@ def devfunc(ibs, qaid_list):
     kpts = ibs.get_annot_kpts(aid)
     print('len(kpts) = %r' % len(kpts))
     from plottool import df2
-    from ibeis.dev import experiment_configs
+    from ibeis.experiments import experiment_configs
     #varyparams_list = [
     #    #{
     #    #    'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
@@ -946,6 +946,12 @@ if __name__ == '__main__':
         dev_execstr = utool.execstr_dict(dev_locals, 'dev_locals')
         exec(dev_execstr)
 
+    command = ut.get_argval('--eval', type_=str, default=None)
+    if command is not None:
+        result = eval(command, globals(), locals())
+        print('result = %r' % (result,))
+        #ibs.search_annot_notes('360')
+
     #
     #
     # Main Loop (IPython interaction, or some exec loop)
@@ -964,29 +970,51 @@ if __name__ == '__main__':
 
     print('exiting dev')
 
+"""
+CurrentExperiments:
+    # Full best settings run
+    ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains
+    # Full best settings run without spatial verification
+    ./dev.py -t custom:sv_on=False --db PZ_Master0 --allgt --species=zebra_plains
 
-class DecisionMachine(object):
-    def __init__(self, index=0):
-        # List of callable "state" functions
-        self.state_list = []
-        # Rules of transition
-        self.transition_rule_list = []
-        self.index = index
+    ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains --hs
 
-    def loop(self, count):
-        print(count)
-        state = self.state_list[self.index]
-        rule  = self.transition_rule_list[self.index]
-        state.run()
-        rule.run()
 
-    def run(self):
-        if len(self.state_list) == 0:
-            print('Warning: cannot run')
-            return
-        iter_ = enumerate(range(100))
-        for count in iter_:
-            self.loop(count)
+ElephantEarExperiments
+    --show --vh
+    ./dev.py -t custom:affine_invariance=True --db Elephants_drop1_ears --allgt --print-rankhist
+    ./dev.py -t custom:affine_invariance=False --db Elephants_drop1_ears --allgt --print-rankhist
+    ./dev.py -t custom:affine_invariance=False,histeq=True --db Elephants_drop1_ears --allgt --print-rankhist
+    ./dev.py -t custom:affine_invariance=False,adapteq=True --db Elephants_drop1_ears --allgt --print-rankhist
 
-self = DecisionMachine()
-self.run()
+    ./dev.py -t custom:affine_invariance=False,fg_on=False --db Elephants_drop1_ears --allgt
+    ./dev.py -t custom:affine_invariance=False,histeq=True,fg_on=False --db Elephants_drop1_ears --allgt
+    ./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt
+
+    ./dev.py -t elph --db Elephants_drop1_ears --allgt
+
+
+
+Without SV:
+agg rank histogram = {
+    (0, 1): 2276,
+    (1, 5): 126,
+    (5, 50): 99,
+    (50, 8624): 108,
+    (8624, 8625): 28,
+}
+With SV:
+agg rank histogram = {
+    (0, 1): 2300,
+    (1, 5): 106,
+    (5, 50): 16,
+    (50, 8624): 0,
+    (8624, 8625): 215,
+}
+
+Guesses:
+    0 2 2 2 4 4 4 4 0 0
+    0 0 4 2 2 4 4 4 2 2
+    2 4 4 4 1 1 1 2 2 2
+    0 0 1 1 1 2 0 0 1
+"""

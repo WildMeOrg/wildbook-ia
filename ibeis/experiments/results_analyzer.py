@@ -8,7 +8,7 @@ import numpy as np
 import six
 from six.moves import zip
 from ibeis import ibsfuncs
-#from ibeis.dev import results_organizer
+#from ibeis.experiments import results_organizer
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[resorg]', DEBUG=False)
 
 
@@ -65,7 +65,7 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true']):
         dict: orgres2_descmatch_dists mapping from orgtype to distances (ndarrays)
 
     Example:
-        >>> from ibeis.dev.results_analyzer import *  # NOQA
+        >>> from ibeis.experiments.results_analyzer import *  # NOQA
         >>> allres = '?'
         >>> orgtype_list = ['false', 'true']
         >>> orgres2_descmatch_dists = get_orgres_desc_match_dists(allres, orgtype_list)
@@ -109,7 +109,7 @@ def get_matching_descriptors(allres, qaid_list, daid_list):
         tuple: (stacked_qvecs, stacked_dvecs)
 
     Example:
-        >>> from ibeis.dev.results_analyzer import *  # NOQA
+        >>> from ibeis.experiments.results_analyzer import *  # NOQA
         >>> allres = '?'
         >>> qaid_list = '?'
         >>> daid_list = '?'

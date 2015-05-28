@@ -281,7 +281,7 @@
         <span class="n">default_qaid_list</span> <span class="o">=</span> <span class="n">qaid_list</span>
 
     <span class="k">if</span> <span class="n">cmdline_ok</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">ibeis.dev</span> <span class="kn">import</span> <span class="n">main_helpers</span>
+        <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">main_helpers</span>
         <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">get_test_qaids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">default_qaid_list</span><span class="p">)</span>
         <span class="c">#qaid_list = ut.get_argval((&#39;--qaid_list&#39;, &#39;--qaid&#39;), list, qaid_list)</span>
         <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--daid_list&#39;</span><span class="p">,</span> <span class="s">&#39;--daids&#39;</span><span class="p">),</span> <span class="nb">list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>

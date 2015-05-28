@@ -128,15 +128,17 @@ def compress_normvec_float16(arr_float):
         ndarray[dtype=np.float16]
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> np.random.seed(0)
         >>> arr_float = smk_debug.get_test_float_norm_rvecs(2, 5)
         >>> normalize_vecs2d_inplace(arr_float)
         >>> arr_float16 = compress_normvec_float16(arr_float)
-        >>> print(arr_float16)
-        [[ 0.49414062  0.11212158  0.27416992  0.62792969  0.5234375 ]
-         [-0.68115234  0.66210938 -0.10546875 -0.07189941  0.28613281]]
+        >>> result = ut.numpy_str(arr_float16, precision=4)
+        >>> print(result)
+        np.array([[ 0.4941,  0.1121,  0.2742,  0.6279,  0.5234],
+                  [-0.6812,  0.6621, -0.1055, -0.0719,  0.2861]], dtype=np.float16)
     """
     return arr_float.astype(np.float16)
 

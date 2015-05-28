@@ -652,6 +652,39 @@ fig = qres.show_top(ibs)</dd>
 </dd></dl>
 
 </div>
+<div class="section" id="module-ibeis.model.hots.smk.smk_hamming">
+<span id="ibeis-model-hots-smk-smk-hamming-module"></span><h2>ibeis.model.hots.smk.smk_hamming module<a class="headerlink" href="#module-ibeis.model.hots.smk.smk_hamming" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.model.hots.smk.smk_hamming.get_vecs_hamming_encoding">
+<tt class="descclassname">ibeis.model.hots.smk.smk_hamming.</tt><tt class="descname">get_vecs_hamming_encoding</tt><big>(</big><em>vecs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/smk/smk_hamming.html#get_vecs_hamming_encoding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.smk.smk_hamming.get_vecs_hamming_encoding" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>vecs</strong> (<em>ndarray</em>) &#8211; descriptors assigned to a single word</li>
+<li><strong>P</strong> (<em>ndarray</em>) &#8211; random orthognoal projection matrix for that word</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Exmaple:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.model.hots.smk.smk_hamming.make_projetion_matrix">
+<tt class="descclassname">ibeis.model.hots.smk.smk_hamming.</tt><tt class="descname">make_projetion_matrix</tt><big>(</big><em>vec_dim</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/hots/smk/smk_hamming.html#make_projetion_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.hots.smk.smk_hamming.make_projetion_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
 <div class="section" id="module-ibeis.model.hots.smk.smk_index">
 <span id="ibeis-model-hots-smk-smk-index-module"></span><h2>ibeis.model.hots.smk.smk_index module<a class="headerlink" href="#module-ibeis.model.hots.smk.smk_index" title="Permalink to this headline">¶</a></h2>
 <p>smk_index
@@ -706,7 +739,8 @@ formated as:</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_index</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_index</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_raw_internals0</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">words</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">words</span>
@@ -716,7 +750,7 @@ formated as:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">massign_alpha</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">massign_alpha</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">massign_sigma</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">massign_sigma</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">massign_equal_weights</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">massign_equal_weights</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">_dbargs</span> <span class="o">=</span> <span class="n">wordflann</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">,</span> <span class="n">massign_alpha</span><span class="p">,</span> <span class="n">massign_sigma</span><span class="p">,</span> <span class="n">massign_equal_weights</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_dbargs</span> <span class="o">=</span> <span class="p">(</span><span class="n">wordflann</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">,</span> <span class="n">massign_alpha</span><span class="p">,</span> <span class="n">massign_sigma</span><span class="p">,</span> <span class="n">massign_equal_weights</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">idx2_wxs</span> <span class="o">=</span> <span class="n">assign_to_words_</span><span class="p">(</span><span class="o">*</span><span class="n">_dbargs</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -738,11 +772,12 @@ the score of K(X, X) = 1</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_index</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_index</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_index</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c">#tup = smk_debug.testdata_compute_data_sccw(db=&#39;testdb1&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_compute_data_sccw</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;GZ_ALL&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_compute_data_sccw</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">wx2_idf</span><span class="p">,</span> <span class="n">wx2_drvecs</span><span class="p">,</span> <span class="n">wx2_aids</span><span class="p">,</span> <span class="n">qparams</span> <span class="o">=</span> <span class="n">tup</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">wx2_dflags</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_dflags</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ws2_idxs</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idxs</span>
@@ -774,7 +809,7 @@ the score of K(X, X) = 1</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daid2_label</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">daid2_label</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">helper_idf_wordgroup</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">idx2_aid</span><span class="p">,</span> <span class="n">wx_series</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">idxs_list</span><span class="p">,</span> <span class="n">aids_list</span> <span class="o">=</span> <span class="n">_</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">wx2_idf</span> <span class="o">=</span> <span class="n">compute_word_idf_</span><span class="p">(</span><span class="n">wx_series</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">idx2_aid</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wx2_idf</span> <span class="o">=</span> <span class="n">compute_idf_label1</span><span class="p">(</span><span class="n">wx_series</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">idx2_aid</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -837,7 +872,8 @@ idf-like weighting for each word based on the negative entropy</td>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_index</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_index</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">qparams</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_raw_internals1</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">wx_series</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invindex</span><span class="o">.</span><span class="n">words</span><span class="p">))</span>
@@ -897,7 +933,8 @@ returns mapping from word index to a set of residual vectors</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_index</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_index</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">qparams</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_raw_internals1</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">words</span>     <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">words</span>
@@ -923,15 +960,17 @@ returns mapping from word index to a set of residual vectors</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_index</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_index</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">qparams</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_raw_internals1</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">wx_series</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">invindex</span><span class="o">.</span><span class="n">words</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">idx2_aid</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_daid</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daid2_label</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">daid2_label</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">wx2_idf</span> <span class="o">=</span> <span class="n">compute_word_idf_</span><span class="p">(</span><span class="n">wx_series</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">idx2_aid</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">wx2_idf</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="go">(8000,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wx2_idf</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">8000</span>
 </pre></div>
 </div>
 <dl class="docutils">
@@ -962,11 +1001,12 @@ import utool as ut; print(ut.make_default_docstr(<a href="#id3"><span class="pro
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_index</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_index</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">taids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">nWords</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_dataframe</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">use_cache</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">words</span> <span class="o">=</span> <span class="n">learn_visual_words</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">taids</span><span class="p">,</span> <span class="n">nWords</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">words</span> <span class="o">=</span> <span class="n">learn_visual_words</span><span class="p">(</span><span class="n">annots_df</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">words</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 <span class="go">(8000, 128)</span>
 </pre></div>
@@ -1765,15 +1805,17 @@ Assumes RVEC_TYPE is float16</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_residuals</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk.smk_residuals</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">arr_float</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">get_test_float_norm_rvecs</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_vecs2d_inplace</span><span class="p">(</span><span class="n">arr_float</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">arr_float16</span> <span class="o">=</span> <span class="n">compress_normvec_float16</span><span class="p">(</span><span class="n">arr_float</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">arr_float16</span><span class="p">)</span>
-<span class="go">[[ 0.49414062  0.11212158  0.27416992  0.62792969  0.5234375 ]</span>
-<span class="go"> [-0.68115234  0.66210938 -0.10546875 -0.07189941  0.28613281]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">numpy_str</span><span class="p">(</span><span class="n">arr_float16</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">np.array([[ 0.4941,  0.1121,  0.2742,  0.6279,  0.5234],</span>
+<span class="go">          [-0.6812,  0.6621, -0.1055, -0.0719,  0.2861]], dtype=np.float16)</span>
 </pre></div>
 </div>
 </dd></dl>

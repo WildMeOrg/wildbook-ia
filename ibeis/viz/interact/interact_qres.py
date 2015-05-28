@@ -138,6 +138,7 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
                     with_interact_chip=False)
             if viztype.startswith('matches') or viztype == 'multi_match':  # why startswith?
                 aid2 = ph.get_plotdat(ax, 'aid2', None)
+                aid_list = ph.get_plotdat(ax, 'aid_list', None)
                 if event.button == 3:   # right-click
                     print('right click')
                     height = fig.canvas.geometry().height()
@@ -152,7 +153,7 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
                     inspect_gui.show_aidpair_context_menu(
                         ibs, qwin, qpoint, qres.qaid, aid2, qres, qreq_=self.qreq_,
                         update_callback=update_callback,
-                        backend_callback=backend_callback)
+                        backend_callback=backend_callback, aid_list=aid_list)
                     #callback_list = [
                     #]
                     #guitool.popup_menu(qwin, qpoint, callback_list)

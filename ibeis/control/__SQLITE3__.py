@@ -60,7 +60,8 @@ def REGISTER_SQLITE3_TYPES():
             out = io.BytesIO()
             np.save(out, arr)
             out.seek(0)
-            return buffer(out.read())
+            #return buffer(out.read())
+            return Binary(out.read())
     else:
         def _write_numpy_to_sqlite3(arr):
             out = io.BytesIO()
@@ -73,7 +74,8 @@ def REGISTER_SQLITE3_TYPES():
 
     if six.PY2:
         def _write_uuid_to_sqlite3(uuid_):
-            return buffer(uuid_.bytes_le)
+            #return buffer(uuid_.bytes_le)
+            return Binary(uuid_.bytes_le)
     elif six.PY3:
         def _write_uuid_to_sqlite3(uuid_):
             return memoryview(uuid_.bytes_le)

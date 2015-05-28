@@ -5,7 +5,7 @@ import multiprocessing
 import utool
 from os.path import join
 import numpy as np
-from ibeis.dev import sysres
+from ibeis.init import sysres
 from vtool.tests import grabdata
 import ibeis
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[TEST_GUI_ALL]')
