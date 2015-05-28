@@ -676,7 +676,7 @@ def find_pixel_value(img, pixel):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.math import *  # NOQA
+        >>> from vtool.image import *  # NOQA
         >>> # build test data
         >>> img = np.random.rand(10, 10, 3) + 1.0
         >>> pixel = np.array([0, 0, 0])
@@ -698,6 +698,49 @@ def find_pixel_value(img, pixel):
     mask2d = np.all(img == pixel[None, None, :], axis=2)
     pixel_locs = np.column_stack(np.where(mask2d))
     return pixel_locs
+
+
+def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1, thickness=2, fontFace=cv2.FONT_HERSHEY_SIMPLEX, lineType=cv2.CV_AA, bottomLeftOrigin=False):
+    """
+
+    CommandLine:
+        python -m vtool.image --test-draw_text --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> font_names = sorted([key for key in cv2.__dict__.keys() if key.startswith('FONT_H')])
+        >>> text = 'opencv'
+        >>> img = np.zeros((400, 1024), dtype=np.uint8)
+        >>> thickness = 2
+        >>> fontScale = 1.0
+        >>> lineType = 4
+        >>> lineType = 8
+        >>> lineType = cv2.CV_AA
+        >>> for count, font_name in enumerate(font_names, start=1):
+        >>>     print(font_name)
+        >>>     fontFace = cv2.__dict__[font_name]
+        >>>     org = (10, count * 45)
+        >>>     text = 'opencv - ' + font_name
+        >>>     vt.draw_text(img, text, org,
+        ...                  fontFace=fontFace, textcolor_rgb=[255, 255, 255],
+        ...                  fontScale=fontScale, thickness=thickness)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(img)
+        >>> ut.show_if_requested()
+
+    where each of the font IDs can be combined with FONT_ITALIC to get the slanted letters.
+    """
+    if len(textcolor_rgb) == 4:
+        # remove alpha
+        textcolor_rgb = textcolor_rgb[:3]
+    textcolor_bgr = textcolor_rgb[::-1]
+    text_pt, text_sz = cv2.getTextSize(text, fontFace, fontScale, thickness)
+    text_w, text_h = text_pt
+    out = cv2.putText(img, text, org, fontFace, fontScale, textcolor_bgr, thickness, lineType, bottomLeftOrigin)
+    return out
 
 
 if __name__ == '__main__':
