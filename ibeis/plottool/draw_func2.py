@@ -2173,34 +2173,36 @@ def stack_image_list_special(img1, img_list, num=1, vert=True):
     # stack the top images
     img_stack3, offset_list3, sf_list3 = stack_image_list(img_list3, vert=vert, return_offset=True, **stack_kw)
 
-    # Combine the stacks
-    def stack_multi_images(img1, img2, offset_list1, sf_list1, offset_list2, sf_list2, vert=True, use_larger=False, modifysize=True):
-        if img1 is None:
-            return img2, offset_list2, sf_list2
-        if img2 is None:
-            return img1, offset_list1, sf_list1
-        # combine with the main image
-        imgB, offset_tup, sf_tup = stack_images(img1, img2, vert=vert, use_larger=use_larger, modifysize=modifysize, return_sf=True)
-        # combine the offsets
-        def mult_tuplelist(tuple_list, scale_xy):
-            return [(tup[0] * scale_xy[0], tup[1] * scale_xy[1]) for tup in tuple_list]
-        def add_tuplelist(tuple_list, offset_xy):
-            return [(tup[0] + offset_xy[0], tup[1] + offset_xy[1]) for tup in tuple_list]
-        offset_list1_ = add_tuplelist(mult_tuplelist(offset_list1, sf_tup[0]), offset_tup[0])
-        offset_list2_ = add_tuplelist(mult_tuplelist(offset_list2, sf_tup[1]), offset_tup[1])
-        sf_list1_     = mult_tuplelist(sf_list1, sf_tup[0])
-        sf_list2_     = mult_tuplelist(sf_list2, sf_tup[1])
-
-        offset_listB = offset_list1_ + offset_list2_
-        sf_listB     = sf_list1_ + sf_list2_
-        return imgB, offset_listB, sf_listB
-
     # stack img1 and the first stack
     imgL, offset_listL, sf_listL = stack_multi_images(img1, img_stack2, offset_list1, sf_list1, offset_list2, sf_list2, vert=vert)
     # stack the output and the second stack
     img, offset_list, sf_list = stack_multi_images(imgL, img_stack3, offset_listL, sf_listL, offset_list3, sf_list3, vert=not vert)
 
     return img, offset_list, sf_list
+
+
+# Combine the stacks
+def stack_multi_images(img1, img2, offset_list1, sf_list1, offset_list2, sf_list2, vert=True, use_larger=False, modifysize=True):
+    """ combines images that are already stacked """
+    if img1 is None:
+        return img2, offset_list2, sf_list2
+    if img2 is None:
+        return img1, offset_list1, sf_list1
+    # combine with the main image
+    imgB, offset_tup, sf_tup = stack_images(img1, img2, vert=vert, use_larger=use_larger, modifysize=modifysize, return_sf=True)
+    # combine the offsets
+    def mult_tuplelist(tuple_list, scale_xy):
+        return [(tup[0] * scale_xy[0], tup[1] * scale_xy[1]) for tup in tuple_list]
+    def add_tuplelist(tuple_list, offset_xy):
+        return [(tup[0] + offset_xy[0], tup[1] + offset_xy[1]) for tup in tuple_list]
+    offset_list1_ = add_tuplelist(mult_tuplelist(offset_list1, sf_tup[0]), offset_tup[0])
+    offset_list2_ = add_tuplelist(mult_tuplelist(offset_list2, sf_tup[1]), offset_tup[1])
+    sf_list1_     = mult_tuplelist(sf_list1, sf_tup[0])
+    sf_list2_     = mult_tuplelist(sf_list2, sf_tup[1])
+
+    offset_listB = offset_list1_ + offset_list2_
+    sf_listB     = sf_list1_ + sf_list2_
+    return imgB, offset_listB, sf_listB
 
 
 def stack_image_list(img_list, return_offset=False, return_sf=False, **kwargs):

@@ -96,8 +96,14 @@ def all_figures_show():
     if '--noshow' not in sys.argv:
         for fig in get_all_figures():
             time.sleep(SLEEP_TIME)
-            fig.show()
-            fig.canvas.draw()
+            show_figure(fig)
+            #fig.show()
+            #fig.canvas.draw()
+
+
+def show_figure(fig):
+    fig.show()
+    fig.canvas.draw()
 
 
 def all_figures_tight_layout():
