@@ -285,6 +285,10 @@ def plot_sorted_scores(scores_list,
                  markersize=markersize)
         #ut.embed()
         #help(df2.plot)
+        if False:
+            # TODO: stems for binary labels
+            df2.draw_stems(xdata, ydata, setlims=False, color=color)
+            pass
 
     if logscale:
         set_logyscale_from_data(sorted_scores)

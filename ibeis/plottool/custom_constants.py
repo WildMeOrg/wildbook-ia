@@ -43,27 +43,31 @@ FONTS.relative = FONTS.smallest
 
 # COLORS
 
-ORANGE       = np.array((255, 127,   0, 255)) / 255.0
-RED          = np.array((255,   0,   0, 255)) / 255.0
-GREEN        = np.array((  0, 255,   0, 255)) / 255.0
-BLUE         = np.array((  0,   0, 255, 255)) / 255.0
-YELLOW       = np.array((255, 255,   0, 255)) / 255.0
-BLACK        = np.array((  0,   0,   0, 255)) / 255.0
-WHITE        = np.array((255, 255, 255, 255)) / 255.0
-GRAY         = np.array((127, 127, 127, 255)) / 255.0
-DEEP_PINK    = np.array((255,  20, 147, 255)) / 255.0
-PINK         = np.array((255, 100, 100, 255)) / 255.0
-FALSE_RED    = np.array((255,  51,   0, 255)) / 255.0
-TRUE_GREEN   = np.array((  0, 255,   0, 255)) / 255.0
-TRUE_BLUE    = np.array((  0, 255, 255, 255)) / 255.0
-DARK_GREEN   = np.array((  0, 127,   0, 255)) / 255.0
-DARK_BLUE    = np.array((  0,   0, 127, 255)) / 255.0
-DARK_RED     = np.array((127,  0,    0, 255)) / 255.0
-DARK_ORANGE  = np.array((127,  63,   0, 255)) / 255.0
-DARK_YELLOW  = np.array((127, 127,   0, 255)) / 255.0
-PURPLE       = np.array((102,   0, 153, 255)) / 255.0
-LIGHT_BLUE   = np.array((102, 100, 255, 255)) / 255.0
-UNKNOWN_PURP = PURPLE
+ORANGE        = np.array((255, 127,   0, 255)) / 255.0
+RED           = np.array((255,   0,   0, 255)) / 255.0
+GREEN         = np.array((  0, 255,   0, 255)) / 255.0
+BLUE          = np.array((  0,   0, 255, 255)) / 255.0
+YELLOW        = np.array((255, 255,   0, 255)) / 255.0
+BLACK         = np.array((  0,   0,   0, 255)) / 255.0
+WHITE         = np.array((255, 255, 255, 255)) / 255.0
+GRAY          = np.array((127, 127, 127, 255)) / 255.0
+DEEP_PINK     = np.array((255,  20, 147, 255)) / 255.0
+PINK          = np.array((255, 100, 100, 255)) / 255.0
+FALSE_RED     = np.array((255,  51,   0, 255)) / 255.0
+TRUE_GREEN    = np.array((  0, 255,   0, 255)) / 255.0
+TRUE_BLUE     = np.array((  0, 255, 255, 255)) / 255.0
+DARK_GREEN    = np.array((  0, 127,   0, 255)) / 255.0
+DARK_BLUE     = np.array((  0,   0, 127, 255)) / 255.0
+DARK_RED      = np.array((127,  0,    0, 255)) / 255.0
+DARK_ORANGE   = np.array((127,  63,   0, 255)) / 255.0
+DARK_YELLOW   = np.array((127, 127,   0, 255)) / 255.0
+PURPLE        = np.array((102,   0, 153, 255)) / 255.0
+BRIGHT_PURPLE = np.array((255,   0, 255, 255)) / 255.0
+LIGHT_PURPLE  = np.array((255, 102, 255, 255)) / 255.0
+PURPLE2       = np.array((150,  51, 200, 255)) / 255.0
+LIGHT_BLUE    = np.array((102, 100, 255, 255)) / 255.0
+LIGHT_GREEN   = np.array((102, 255, 102, 255)) / 255.0
+UNKNOWN_PURP  = PURPLE
 
 
 # GOLDEN RATIOS

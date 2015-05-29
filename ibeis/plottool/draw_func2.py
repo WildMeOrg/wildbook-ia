@@ -117,15 +117,21 @@ def get_pnum_func(nRows=1, nCols=1, base=0):
     return pnum_
 
 
-def pnum_generator(nRows=1, nCols=1, base=0):
+def pnum_generator(nRows=1, nCols=1, base=0, nSubplots=None):
     pnum_func = get_pnum_func(nRows, nCols, base)
-    for px in range(nRows * nCols):
+    total_plots = nRows * nCols
+    # TODO: have the last pnums fill in the whole figure
+    # when there are less subplots than rows * cols
+    #if nSubplots is not None:
+    #    if nSubplots < total_plots:
+    #        pass
+    for px in range(total_plots):
         yield pnum_func(px)
 
 
-def make_pnum_nextgen(nRows=1, nCols=1, base=0):
+def make_pnum_nextgen(nRows=1, nCols=1, base=0, nSubplots=None):
     import functools
-    pnum_gen = pnum_generator(nRows=nRows, nCols=nCols, base=base)
+    pnum_gen = pnum_generator(nRows=nRows, nCols=nCols, base=base, nSubplots=nSubplots)
     pnum_next = functools.partial(six.next, pnum_gen)
     return pnum_next
 
@@ -788,7 +794,7 @@ def show_signature(sig, **kwargs):
     fig.show()
 
 
-def draw_stems(x_data=None, y_data=None):
+def draw_stems(x_data=None, y_data=None, setlims=True, color=None):
     """
     Draws stem plot
     """
@@ -806,12 +812,20 @@ def draw_stems(x_data=None, y_data=None):
     y_data_sort = y_data_[y_data_sortx]
 
     markerline, stemlines, baseline = pylab.stem(x_data_sort, y_data_sort, linefmt='-')
+    #ut.embed()
+    #ax.stem
     pylab.setp(markerline, 'markerfacecolor', 'w')
     pylab.setp(stemlines, 'markerfacecolor', 'w')
+    #ut.embed()
+    if color is not None:
+        for l in stemlines:
+            l.set_color(color)
+        #pylab.setp(stemlines, 'linecolor', color)
     pylab.setp(baseline, 'linewidth', 0)  # baseline should be invisible
-    ax = gca()
-    ax.set_xlim(min(x_data) - 1, max(x_data) + 1)
-    ax.set_ylim(min(y_data) - 1, max(max(y_data), max(x_data)) + 1)
+    if setlims:
+        ax = gca()
+        ax.set_xlim(min(x_data) - 1, max(x_data) + 1)
+        ax.set_ylim(min(y_data) - 1, max(max(y_data), max(x_data)) + 1)
 
 
 def plot_sift_signature(sift, title='', fnum=None, pnum=None):
