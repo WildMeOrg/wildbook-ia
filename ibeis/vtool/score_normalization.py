@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
@@ -95,10 +96,62 @@ def find_score_maxclip(tp_support, tn_support, clip_factor=ut.PHI + 1):
     return clip_score
 
 
+def normalize_scores(score_domain, p_tp_given_score, scores):
+    """
+    Adjusts a raw scores to a probabilities based on a learned normalizer
+
+    Args:
+        score_domain (ndarray): input score domain
+        p_tp_given_score (ndarray): learned probability mapping
+        scores (ndarray): raw scores
+
+    Returns:
+        ndarray: probabilities
+
+    CommandLine:
+        python -m vtool.score_normalization --test-normalize_scores
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.score_normalization import *  # NOQA
+        >>> score_domain = np.linspace(0, 10, 10)
+        >>> p_tp_given_score = (score_domain ** 2) / (score_domain.max() ** 2)
+        >>> scores = np.array([-1, 0.0, 0.01, 2.3, 8.0, 9.99, 10.0, 10.1, 11.1])
+        >>> prob = normalize_scores(score_domain, p_tp_given_score, scores)
+        >>> result = ut.numpy_str(prob, precision=2)
+        >>> print(result)
+        np.array([ 0.  ,  0.  ,  0.  ,  0.05,  0.6 ,  0.79,  1.  ,  1.  ,  1.  ], dtype=np.float64)
+    """
+    prob = np.zeros(len(scores))
+    #prob = np.full(len(scores), np.nan)
+    is_nan  = np.isnan(scores)
+    is_low  = scores < score_domain[0]
+    is_high = scores > score_domain[-1]
+    is_ok = np.logical_not(np.logical_or.reduce((is_nan, is_low, is_high)))
+    # interpolate scores in the learned domain
+    # we are garuenteed to have nonzero elements here
+    flags = score_domain <= scores[is_ok][:, None]
+    left_indicies = np.array([np.nonzero(row)[0][-1] for row in flags])
+    # TODO: interpolatio (see vt.histogram)
+    # currently just taking the min
+    prob[is_ok] = p_tp_given_score[left_indicies]
+    # fill in other values
+    assert not np.any(is_nan), 'cannot normalize nan values'
+    #if any(is_nan):
+    #    # handle nans
+    #    raise AssertionError('user normalize score list')
+    #    prob[np.isnan(score_domain)] = -1.0
+    # clip low scores at 0
+    prob[is_low] = 0
+    # clip high scores by between max probability and one
+    prob[is_high] = (p_tp_given_score[-1] + 1.0) / 2.0
+    return prob
+
+
 # DEBUGGING FUNCTIONS
 
 
-def test_score_normalization():
+def test_score_normalization(tp_support, tn_support):
     """
     Shows how score normalization works with gaussian noise
 
@@ -108,15 +161,15 @@ def test_score_normalization():
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.score_normalization import *  # NOQA
-        >>> test_score_normalization()
+        >>> randstate = np.random.RandomState(seed=0)
+        >>> # Get a training sample
+        >>> tp_support = randstate.normal(loc=6.5, size=(256,))
+        >>> tn_support = randstate.normal(loc=3.5, size=(256,))
+        >>> test_score_normalization(tp_support, tn_support)
         >>> ut.show_if_requested()
 
     """
     import plottool as pt  # NOQA
-    randstate = np.random.RandomState(seed=0)
-    # Get a training sample
-    tp_support = randstate.normal(loc=6.5, size=(256,))
-    tn_support = randstate.normal(loc=2, size=(256,))
 
     # Print raw score statistics
     ut.print_stats(tp_support, lbl='tp_support')
@@ -147,35 +200,40 @@ def test_score_normalization():
         assert clip_score > tn_support.max()
 
         inspect_pdfs(tn_support, tp_support, score_domain,
-                     p_tp_given_score, p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score, with_scores=True)
+                     p_tp_given_score, p_tn_given_score, p_score_given_tp,
+                     p_score_given_tn, p_score,
+                     with_scores=True, with_roc=True, with_precision_recall=False)
+
+        pt.adjust_subplots(hspace=.3, bottom=.05, left=.05)
 
         pt.set_figtitle('ScoreNorm test' + ut.dict_str(normkw, newlines=False))
+
+        #confusions = get_confusion_metrics()
     locals_ = locals()
     return locals_
 
 
 def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
                  p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score,
-                 with_scores=False):
+                 with_scores=False, with_roc=False, with_precision_recall=False):
     import plottool as pt  # NOQA
 
     fnum = pt.next_fnum()
-    nRows = 2 + with_scores
-    pnum_ = pt.get_pnum_func(nRows=nRows, nCols=1)
-    #pnum_ = pt.get_pnum_func(nRows=3, nCols=1)
-    #def next_pnum():
-    #    return pnum_(
+    nSubplots = 2 + with_scores + with_roc + with_precision_recall
+    if True:
+        nRows, nCols = pt.get_square_row_cols(nSubplots)
+    else:
+        nRows = nSubplots
+        nCols = 1
+    _pnumiter = pt.make_pnum_nextgen(nRows=nRows, nCols=nCols, nSubplots=nSubplots)
 
-    def generate_pnum():
-        for px in range(nRows):
-            yield pnum_(px)
-
-    _pnumiter = generate_pnum().next
-
-    pt.figure(fnum=fnum, pnum=pnum_(0))
+    #pt.figure(fnum=fnum, pnum=pnum_(0))
 
     if with_scores:
-        plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter())
+        #plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[5, 4], score_markers=['x', '+'])
+        #plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[8, 8], score_markers=['1', '2'])
+        #plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[8, 8], score_markers=['^', 'v'])
+        plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[5, 5], score_markers=['^', 'v'])
 
     plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
                       cfgstr='', fnum=fnum, pnum=_pnumiter())
@@ -183,8 +241,24 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
     plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
                        cfgstr='', fnum=fnum, pnum=_pnumiter())
 
+    import vtool as vt
 
-def plot_support(tn_support, tp_support, fnum=None, pnum=(1, 1, 1)):
+    scores = np.hstack([tn_support, tp_support])
+    labels = np.array([False] * len(tn_support) + [True] * len(tp_support))
+    probs = normalize_scores(score_domain, p_tp_given_score, scores)
+
+    #import sklearn.metrics
+    #sklearn.metrics.classification_report(labels, probs)
+    confusions = vt.get_confusion_metrics(probs, labels)
+    if with_roc:
+        confusions.draw_roc_curve(fnum=fnum, pnum=_pnumiter())
+
+    if with_precision_recall:
+        confusions.draw_precision_recall_curve(fnum=fnum, pnum=_pnumiter())
+    #ut.embed()
+
+
+def plot_support(tn_support, tp_support, fnum=None, pnum=(1, 1, 1), figtitle='sorted scores', **kwargs):
     r"""
     Args:
         tn_support (ndarray):
@@ -216,9 +290,10 @@ def plot_support(tn_support, tp_support, fnum=None, pnum=(1, 1, 1)):
         score_colors=(false_color, true_color),
         #logscale=True,
         logscale=False,
-        figtitle='sorted nscores',
+        figtitle=figtitle,
         fnum=fnum,
-        pnum=pnum)
+        pnum=pnum,
+        **kwargs)
 
 
 def plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
@@ -228,7 +303,9 @@ def plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
         fnum = pt.next_fnum()
     true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
     false_color = pt.FALSE_RED
-    unknown_color = pt.UNKNOWN_PURP
+    #unknown_color = pt.UNKNOWN_PURP
+    unknown_color = pt.PURPLE2
+    #unknown_color = pt.GRAY
 
     pt.plots.plot_probabilities(
         (p_score_given_tn,  p_score_given_tp, p_score),

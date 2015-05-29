@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 python -c "import vtool, doctest; print(doctest.testmod(vtool.keypoint))"
 

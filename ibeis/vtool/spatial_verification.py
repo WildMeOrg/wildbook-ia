@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Spatial verification of keypoint matches
 
@@ -14,6 +15,13 @@ Look Into::
 
 FIXME:
     is it scaled_thresh or scaled_thresh_sqrd
+
+References:
+    http://ags.cs.uni-kl.de/fileadmin/inf_ags/3dcv-ws11-12/3DCV_WS11-12_lec04.pdf
+
+Notes:
+    Invariants of affine transforms - parallel lines, ratios of parallel lengths, ratios of areas
+    Invariants of homographies - cross‐ratio of four points on a line (ratio of ratio)
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import range

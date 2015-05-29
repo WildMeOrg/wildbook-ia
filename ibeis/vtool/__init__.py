@@ -28,6 +28,8 @@ IMPORT_TUPLES = [
     ('clustering2', None),
     ('distance', None),
     ('other', None),
+    ('precision_recall', None),
+    #('score_normalization', None),
     #('coverage_kpts', None),
     #('coverage_grid', None),
 ]
@@ -49,6 +51,8 @@ from vtool import clustering
 from vtool import nearest_neighbors
 from vtool import clustering2
 from vtool import other
+from vtool import precision_recall
+from vtool import score_normalization
 
 # TODO: incorporate into utoolification
 from vtool import histogram as htool
