@@ -25,6 +25,10 @@ GOALS:
 
     * Add ability for user to relearn normalizer from labeled database.
 
+
+TODO:
+    move scorenorm functionality to vtool
+
 """
 from __future__ import absolute_import, division, print_function
 import utool
@@ -723,9 +727,9 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
     except Exception as ex:
         print('cannot load noramlizer so computing on instead')
         ut.printex(ex, iswarning=True)
-        qaid_list = qreq_.get_external_qaids()
-        normalizer = learn_ibeis_score_normalizer(ibs, qaid_list, qres_list,
-                                                  cfgstr, prefix, **learnkw)
+        #qaid_list = qreq_.get_external_qaids()
+        normalizer = learn_ibeis_score_normalizer(ibs, qres_list, cfgstr,
+                                                  prefix, **learnkw)
         normalizer.save(cachedir)
     return normalizer
 
@@ -733,13 +737,12 @@ def cached_ibeis_score_normalizer(ibs, qres_list, qreq_,
 # LEARNING FUNCTIONS
 
 
-def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, prefix, **learnkw):
+def learn_ibeis_score_normalizer(ibs, qres_list, cfgstr, prefix, **learnkw):
     """
     Takes the result of queries and trains a score normalizer
 
     Args:
         ibs       (IBEISController):
-        qaid_list (int):  query annotation id
         qres_list (list):  object of feature correspondences and scores
         cfgstr    (str):
 
@@ -748,7 +751,7 @@ def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, prefix, **le
     """
     print('learning normalizer')
     # Get support
-    datatup = get_ibeis_score_training_data(ibs, qaid_list, qres_list)
+    datatup = get_ibeis_score_training_data(ibs, qres_list)
     (tp_support, tn_support, tp_support_labels, tn_support_labels) = datatup
     if len(tp_support) < 2 or len(tn_support) < 2:
         print('len(tp_support) = %r' % (len(tp_support),))
@@ -771,7 +774,7 @@ def learn_ibeis_score_normalizer(ibs, qaid_list, qres_list, cfgstr, prefix, **le
     return normalizer
 
 
-def get_ibeis_score_training_data(ibs, qaid_list, qres_list):
+def get_ibeis_score_training_data(ibs, qres_list):
     """
     Returns "good" taining examples
     """
@@ -794,10 +797,12 @@ def get_ibeis_score_training_data(ibs, qaid_list, qres_list):
         sorted_nids = np.array(sorted_nids)
         is_positive  = sorted_nids == qnid
         is_negative = np.logical_and(~is_positive, sorted_nids > 0)
+        # Only take data from results with positive and negative examples
         if not np.any(is_positive) or not np.any(is_negative):
             continue
         gt_rank = np.nonzero(is_positive)[0][0]
         gf_rank = np.nonzero(is_negative)[0][0]
+        # Only take correct groundtruth scores
         if gt_rank == 0 and len(sorted_nscores) > gf_rank:
             if len(sorted_ndiff) > gf_rank:
                 good_tp_nscores.append(sorted_nscores[gt_rank])
@@ -940,7 +945,7 @@ def test_score_normalization():
     qres_list = ibs.query_chips(qaid_list, daid_list, cfgdict)
 
     # Get a training sample
-    datatup = get_ibeis_score_training_data(ibs, qaid_list, qres_list)
+    datatup = get_ibeis_score_training_data(ibs, qres_list)
     (tp_support, tn_support, tp_support_labels, tn_support_labels) = datatup
 
     # Print raw score statistics

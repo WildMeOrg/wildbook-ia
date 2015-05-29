@@ -45,8 +45,6 @@ if __name__ == '__main__':
 #utool.util_importer.dynamic_import(__name__, ('_devcmds_ibeis', None),
 #                                   developing=True)
 from _devcmds_ibeis import *  # NOQA
-# Tools
-from plottool import draw_func2 as df2
 # IBEIS
 from ibeis.init import main_helpers
 from ibeis.dev import dbinfo
@@ -152,6 +150,8 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
         python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany'
         python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany'
 
+        python dev.py -t scores --db PZ_Master0 --allgt --show
+
 
     """
     print('[dev] annotationmatch_scores')
@@ -159,10 +159,58 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     #ut.embed()
     #orgres = allres.allorg['rank0_true']
     qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list)
-    x_data, y_data = results_all.get_stem_data(ibs, qaid2_qres)
-    pt.plots.plot_stems(x_data, y_data)
-    pt.present()
-    pt.show()
+    qres_list = ut.dict_take(qaid2_qres, qaid_list)
+
+    def get_labeled_name_scores(ibs, qres_list):
+        """
+        TODO: rectify with score_normalization.get_ibeis_score_training_data
+        This function does not return only the "good values".
+        It is more for testing and validation than training.
+        """
+        tp_nscores = []
+        tn_nscores = []
+        for qx, qres in enumerate(qres_list):
+            qaid = qres.get_qaid()
+            if not qres.is_nsum():
+                raise AssertionError('must be nsum')
+            if not ibs.get_annot_has_groundtruth(qaid):
+                continue
+            qnid = ibs.get_annot_name_rowids(qres.get_qaid())
+            # Get name scores for this query
+            nscoretup = qres.get_nscoretup(ibs)
+            (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
+            #
+            #sorted_ndiff = -np.diff(sorted_nscores.tolist())
+            sorted_nids = np.array(sorted_nids)
+            is_positive  = sorted_nids == qnid
+            is_negative = np.logical_and(~is_positive, sorted_nids > 0)
+            if np.any(is_positive):
+                gt_rank = np.nonzero(is_positive)[0][0]
+                tp_nscores.append(sorted_nscores[gt_rank])
+            if np.any(is_negative):
+                gf_rank = np.nonzero(is_negative)[0][0]
+                tn_nscores.append(sorted_nscores[gf_rank])
+        tp_nscores = np.array(tp_nscores).astype(np.float64)
+        tn_nscores = np.array(tn_nscores).astype(np.float64)
+        return tp_nscores, tn_nscores
+
+    tp_nscores, tn_nscores = get_labeled_name_scores(ibs, qres_list)
+    confusions = vt.ConfusionMetrics.from_tp_and_tn_scores(tp_nscores, tn_nscores)
+    #confusions.draw_roc_curve()
+    #ut.embed()
+
+    import vtool.score_normalization as scorenorm
+    scorenorm.test_score_normalization(tp_nscores, tn_nscores)
+    #scorenorm.plot_support(tn_nscores, tp_nscores, figtitle='sorted name scores', markersizes=[8, 4])
+
+    #from ibeis.model.hots import score_normalization
+    #tp_support, tn_support, tp_support_labels, tn_support_labels = score_normalization.get_ibeis_score_training_data(ibs, qaid_list, qres_list)
+    #ut.embed()
+    #x_data, y_data = results_all.get_stem_data(ibs, qaid2_qres)
+    #pt.plots.plot_stems(x_data, y_data)
+
+    #pt.present()
+    #pt.show()
     #locals_ = viz_allres_annotation_scores(allres)
     locals_ = locals()
     return locals_
@@ -171,6 +219,9 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
 def viz_allres_annotation_scores(allres):
     """
     chip vs chip scores
+
+    CommandLine:
+        python dev.py -t viz_allres_annotation_scores --db PZ_Master0 --allgt
     """
     # Get the descriptor distances of true matches
     #orgtype_list = ['false', 'true']
@@ -186,7 +237,7 @@ def viz_allres_annotation_scores(allres):
     scores_lbls = orgtype_list
     scores_markers = [markers_map[orgtype] for orgtype in orgtype_list]
     plottool.plots.plot_sorted_scores(scores_list, scores_lbls, scores_markers)
-    df2.set_figtitle('Chip-vs-Chip Scores ' + allres.make_title())
+    pt.set_figtitle('Chip-vs-Chip Scores ' + allres.make_title())
     return locals()
 
 
@@ -250,19 +301,19 @@ def up_dbsize_expt(ibs, qaid_list, daid_list=None):
     end_()
 
     if not utool.get_argflag('--noshow'):
-        colors = df2.distinct_colors(len(upscores_dict))
-        df2.figure(fnum=1, doclf=True, docla=True)
+        colors = pt.distinct_colors(len(upscores_dict))
+        pt.figure(fnum=1, doclf=True, docla=True)
         for ix, ((qaid, gt_aid), upscores) in enumerate(upscores_dict.items()):
             xdata = upscores['dbsizes']
             ydata = upscores['score']
-            df2.plt.plot(xdata, ydata, 'o-', color=colors[ix])
+            pt.plt.plot(xdata, ydata, 'o-', color=colors[ix])
         figtitle = 'Effect of Database Size on Match Scores'
         figtitle += '\n' + ibs.get_dbname()
         figtitle += '\n' + ibs.cfg.query_cfg.get_cfgstr()
-        df2.set_figtitle(figtitle, font='large')
-        df2.set_xlabel('# Annotations in database')
-        df2.set_ylabel('Groundtruth Match Scores (annot-vs-annot)')
-        df2.dark_background()
+        pt.set_figtitle(figtitle, font='large')
+        pt.set_xlabel('# Annotations in database')
+        pt.set_ylabel('Groundtruth Match Scores (annot-vs-annot)')
+        pt.dark_background()
         dumpkw = {
             'subdir'    : 'upsize',
             'quality'   : False,
@@ -353,7 +404,7 @@ def vecs_dist(ibs, qaid_list, daid_list=None):
     dists_lbls = orgtype_list
     dists_markers = ['x--', 'o--']
     pt.plots.plot_sorted_scores(dists_list, dists_lbls, dists_markers)
-    df2.set_figtitle('Descriptor Sorted Distance d(x)' + allres.get_cfgstr())
+    pt.set_figtitle('Descriptor Sorted Distance d(x)' + allres.get_cfgstr())
     return locals()
 
 
@@ -556,7 +607,7 @@ def run_devcmds(ibs, qaid_list, daid_list):
             test_cfg_name_list.append(testname)
             mark_test_handled(testname)
     if len(test_cfg_name_list):
-        fnum = df2.next_fnum()
+        fnum = pt.next_fnum()
         # Run Experiments
         experiment_harness.test_configurations(ibs, qaid_list, daid_list, test_cfg_name_list)
 
@@ -656,7 +707,6 @@ def test_feats(ibs, qaid_list, daid_list=None):
         >>> qaid_list = [1]
     """
     from ibeis import viz
-    from plottool import df2
     from ibeis.experiments import experiment_configs
     import utool as ut
 
@@ -681,7 +731,7 @@ def test_feats(ibs, qaid_list, daid_list=None):
                                               breakchars=',', newline_prefix='',
                                               break_words=False, wordsep=',')
                 title_suffix = (' len(kpts) = %r \n' % len(kpts)) + cfgpackstr
-                viz.show_chip(ibs, aid, fnum=df2.next_fnum(),
+                viz.show_chip(ibs, aid, fnum=pt.next_fnum(),
                               title_suffix=title_suffix, darken=.8,
                               ell_linewidth=2, ell_alpha=.6)
 
@@ -715,7 +765,6 @@ def devfunc(ibs, qaid_list):
     ibs.cfg.feat_cfg.threshold = 16.0 / 3.0
     kpts = ibs.get_annot_kpts(aid)
     print('len(kpts) = %r' % len(kpts))
-    from plottool import df2
     from ibeis.experiments import experiment_configs
     #varyparams_list = [
     #    #{
@@ -763,7 +812,7 @@ def devfunc(ibs, qaid_list):
                     cfgstr_list.append(cfgstr_)
                 if count == 1:
                     title_suffix = (' len(kpts) = %r \n' % len(kpts)) + cfgstr
-                    viz.show_chip(ibs, aid, fnum=df2.next_fnum(),
+                    viz.show_chip(ibs, aid, fnum=pt.next_fnum(),
                                    title_suffix=title_suffix, darken=.4,
                                    ell_linewidth=2, ell_alpha=.8)
 
@@ -771,7 +820,7 @@ def devfunc(ibs, qaid_list):
             nKpts_list = np.array(nKpts_list)
             cfgstr_list = np.array(cfgstr_list)
             print(get_sortbystr(cfgstr_list, nKpts_list, 'cfg', 'nKpts'))
-    df2.present()
+    pt.present()
     locals_ = locals()
     #locals_.update(annotationmatch_scores(ibs, qaid_list))
     return locals_
@@ -911,8 +960,8 @@ if __name__ == '__main__':
     if ut.get_argflag(('--help', '--verbose')):
         print(EXAMPLE_STR)
 
-    CMD   = '--cmd' in sys.argv
-    NOGUI = '--gui' not in sys.argv
+    CMD   = ut.get_argflag('--cmd')
+    NOGUI = not ut.get_argflag('--gui')
 
     if len(sys.argv) == 1:
         print('Run dev.py with arguments!')
@@ -925,7 +974,7 @@ if __name__ == '__main__':
     #
     # Run IBEIS Main, create controller, and possibly gui
     print('++dev')
-    main_locals = ibeis.main(gui='--gui' in sys.argv)
+    main_locals = ibeis.main(gui=ut.get_argflag('--gui'))
     #utool.set_process_title('IBEIS_dev')
 
     #
@@ -956,8 +1005,9 @@ if __name__ == '__main__':
     #
     # Main Loop (IPython interaction, or some exec loop)
     #if '--nopresent' not in sys.argv or '--noshow' in sys.argv:
+    ut.show_if_requested()
     if ut.get_argflag(('--show', '--wshow')):
-        df2.present()
+        pt.present()
     main_execstr = ibeis.main_loop(main_locals, ipy=(NOGUI or CMD))
     exec(main_execstr)
 
@@ -978,6 +1028,9 @@ CurrentExperiments:
     ./dev.py -t custom:sv_on=False --db PZ_Master0 --allgt --species=zebra_plains
 
     ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains --hs
+
+    # Check to see if new spatial verification helps
+    ./dev.py -t custom:full_homog_checks=False custom:full_homog_checks=True --db PZ_Master0 --allgt --species=zebra_plains
 
 
 ElephantEarExperiments

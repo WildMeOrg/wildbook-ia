@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Note:
     THERE ARE FUNCTIONS THAT ARE INJECTED INTO THE CONTROLLER

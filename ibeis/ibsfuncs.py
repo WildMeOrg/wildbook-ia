@@ -4752,6 +4752,8 @@ def make_temporally_distinct_blind_test(ibs, challenge_num=None):
         # Hendrik2: 3, 13 --
         partial_pairs = [('476225', '4c383f'), ('fc4fcc', '24a50bb')]
         print(verify_guesses(partial_pairs))
+        # Tanya:
+        partial_pairs = [('476225', 'fc4fcc48'), ('73721a', '981ef476')]
 
         partial_vuuid_strs = ut.flatten(partial_pairs)
 

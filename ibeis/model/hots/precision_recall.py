@@ -1,5 +1,7 @@
 """
 TODO: DEPRICATE WITH QRES
+
+IBEIS AGNOSTIC DEFINITIONS ARE NOW IN VTOOL
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
@@ -66,10 +68,14 @@ def get_average_percision_(qres, ibs=None, gt_aids=None):
 def get_interpolated_precision_vs_recall_(qres, ibs=None, gt_aids=None):
     tup = get_precision_recall_curve_(qres, ibs=ibs, gt_aids=gt_aids)
     ofrank_curve, precision_curve, recall_curve  = tup
+    recall_range_, p_interp_curve = interpolate_precision_recall_(precision_curve, recall_curve)
+    return recall_range_, p_interp_curve
+
+
+def interpolate_precision_recall_(precision_curve, recall_curve, nSamples=11):
     if precision_curve is None:
         return None, None
 
-    nSamples = 11
     recall_range_ = np.linspace(0, 1, nSamples)
 
     def p_interp(r):
@@ -84,7 +90,12 @@ def get_interpolated_precision_vs_recall_(qres, ibs=None, gt_aids=None):
 
 def get_precision_recall_curve_(qres, ibs=None, gt_aids=None):
     """
+
+    CommandLine:
+        python -m ibeis.model.hots.precision_recall --test-get_precision_recall_curve_ --show
+
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.hots_query_result import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
@@ -94,7 +105,13 @@ def get_precision_recall_curve_(qres, ibs=None, gt_aids=None):
         >>> qres = qaid2_qres[qaids[0]]
         >>> gt_aids = None
         >>> atrank  = 18
-        >>> precision_curve, recall_curve = qres.get_precision_recall_curve(ibs=ibs, gt_aids=gt_aids)
+        >>> nSamples = 20
+        >>> ofrank_curve, precision_curve, recall_curve = qres.get_precision_recall_curve(ibs=ibs, gt_aids=gt_aids)
+        >>> recall_range_, p_interp_curve = interpolate_precision_recall_(precision_curve, recall_curve, nSamples=nSamples)
+        >>> print((recall_range_, p_interp_curve))
+        >>> ut.quit_if_noshow()
+        >>> draw_precision_recall_curve_(recall_range_, p_interp_curve)
+        >>> ut.show_if_requested()
 
     References:
         http://en.wikipedia.org/wiki/Precision_and_recall
@@ -128,7 +145,7 @@ def get_precision_recall_curve_(qres, ibs=None, gt_aids=None):
         for TP, atrank in zip(truepos_curve, ofrank_curve)], dtype=np.float32)
 
     precision_curve = get_precision(truepos_curve, falsepos_curve)
-    recall_curve    = get_precision(truepos_curve, falseneg_curve)
+    recall_curve    = get_recall(truepos_curve, falseneg_curve)
 
     #print(np.vstack([precision_curve, recall_curve]).T)
     return ofrank_curve, precision_curve, recall_curve
@@ -136,26 +153,42 @@ def get_precision_recall_curve_(qres, ibs=None, gt_aids=None):
 
 def show_precision_recall_curve_(qres, ibs=None, gt_aids=None, fnum=1):
     """
-    Example:
-        >>> from ibeis.model.hots.hots_query_result import *  # NOQA
+    CHANGE NAME TO REFERENCE QRES
     """
-    from plottool import df2
     recall_range_, p_interp_curve = get_interpolated_precision_vs_recall_(qres, ibs=ibs, gt_aids=gt_aids)
+    title_pref = qres.make_smaller_title() + '\n',
+    return draw_precision_recall_curve_(recall_range_, p_interp_curve, title_pref, fnum)
+
+
+def draw_precision_recall_curve_(recall_range_, p_interp_curve, title_pref=None, fnum=1):
+    import plottool as pt
     if recall_range_ is None:
         recall_range_ = np.array([])
         p_interp_curve = np.array([])
-    fig = df2.figure(fnum=fnum, docla=True, doclf=True)  # NOQA
+    fig = pt.figure(fnum=fnum, docla=True, doclf=True)  # NOQA
 
     if recall_range_ is None:
         ave_p = np.nan
     else:
         ave_p = p_interp_curve.sum() / p_interp_curve.size
 
-    df2.plot2(recall_range_, p_interp_curve, marker='o--',
+    pt.plot2(recall_range_, p_interp_curve, marker='o--',
               x_label='recall', y_label='precision', unitbox=True,
               flipx=False, color='r',
-              title_pref=qres.make_smaller_title() + '\n',
               title='Interplated Precision Vs Recall\n' + 'avep = %r'  % ave_p)
     print('Interplated Precision')
     print(ut.list_str(list(zip(recall_range_, p_interp_curve))))
     #fig.show()
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.model.hots.precision_recall
+        python -m ibeis.model.hots.precision_recall --allexamples
+        python -m ibeis.model.hots.precision_recall --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
