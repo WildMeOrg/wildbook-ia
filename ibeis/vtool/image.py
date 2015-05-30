@@ -700,7 +700,13 @@ def find_pixel_value(img, pixel):
     return pixel_locs
 
 
-def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1, thickness=2, fontFace=cv2.FONT_HERSHEY_SIMPLEX, lineType=cv2.CV_AA, bottomLeftOrigin=False):
+try:
+    LINE_AA = cv2.LINE_AA
+except AttributeError:
+    LINE_AA = cv2.CV_AA
+
+
+def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1, thickness=2, fontFace=cv2.FONT_HERSHEY_SIMPLEX, lineType=LINE_AA, bottomLeftOrigin=False):
     """
 
     CommandLine:
