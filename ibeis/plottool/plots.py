@@ -273,6 +273,17 @@ def plot_sorted_scores(scores_list,
 
     df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
 
+    if len(scores_list) == 2:
+        # plot stems to get a better sense of the distribution for binary data
+        maxy = sorted_scores.max()
+        for lblx in range(len(scores_list)):
+            bottom = 0 if lblx % 2 == 1 else maxy
+            color = score_colors[lblx]
+            xdata = np.where(sorted_labelx == lblx)[0]
+            ydata = sorted_scores[xdata]
+            # TODO: stems for binary labels
+            df2.draw_stems(xdata, ydata, setlims=False, color=color, markersize=0, bottom=bottom)
+            pass
     for lblx in range(len(scores_list)):
         label = scores_lbls[lblx]
         color = score_colors[lblx]
@@ -283,12 +294,6 @@ def plot_sorted_scores(scores_list,
         #printDBG('[sorted_scores] lblx=%r label=%r, marker=%r' % (lblx, label, marker))
         df2.plot(xdata, ydata, marker, color=color, label=label, alpha=.7,
                  markersize=markersize)
-        #ut.embed()
-        #help(df2.plot)
-        if False:
-            # TODO: stems for binary labels
-            df2.draw_stems(xdata, ydata, setlims=False, color=color)
-            pass
 
     if logscale:
         set_logyscale_from_data(sorted_scores)

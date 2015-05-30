@@ -28,7 +28,7 @@ from plottool import custom_constants  # NOQA
 from plottool import custom_figure
 from plottool import fig_presenter
 #from plottool.custom_figure import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
-#from plottool.custom_constants import *  # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
+#from plottool.custom_constants import *  # NOQA  # TODO: FIXME THIS FILE NEEDSTO BE PARTITIONED
 #from plottool.fig_presenter import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
 import vtool.patch as ptool
 import vtool.image as gtool
@@ -794,7 +794,7 @@ def show_signature(sig, **kwargs):
     fig.show()
 
 
-def draw_stems(x_data=None, y_data=None, setlims=True, color=None):
+def draw_stems(x_data=None, y_data=None, setlims=True, color=None, markersize=None, bottom=None):
     """
     Draws stem plot
     """
@@ -811,9 +811,12 @@ def draw_stems(x_data=None, y_data=None, setlims=True, color=None):
     x_data_sort = x_data_[y_data_sortx]
     y_data_sort = y_data_[y_data_sortx]
 
-    markerline, stemlines, baseline = pylab.stem(x_data_sort, y_data_sort, linefmt='-')
-    #ut.embed()
+    markerline, stemlines, baseline = pylab.stem(x_data_sort, y_data_sort, linefmt='-', bottom=bottom)
+    if markersize is not None:
+        markerline.set_markersize(markersize)
+
     #ax.stem
+    #ut.embed()
     pylab.setp(markerline, 'markerfacecolor', 'w')
     pylab.setp(stemlines, 'markerfacecolor', 'w')
     #ut.embed()
