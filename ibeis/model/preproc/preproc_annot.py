@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The goal of this module is to offload annotation work from the controller into a
 single place.
