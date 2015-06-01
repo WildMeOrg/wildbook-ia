@@ -181,6 +181,8 @@ def show_if_requested():
             vals = adjust_list * 3 + [1 - adjust_list[0]] * 2 + adjust_list
         if len(adjust_list) == 3:
             vals = adjust_list + [1 - adjust_list[0], 1 - adjust_list[1], adjust_list[2]]
+        else:
+            raise NotImplementedError('vals must be len (1 or 3) not %d' % (len(adjust_list)))
         adjust_kw = dict(zip(keys, vals))
         adjust_subplots(**adjust_kw)
 
@@ -797,6 +799,35 @@ def show_signature(sig, **kwargs):
 def draw_stems(x_data=None, y_data=None, setlims=True, color=None, markersize=None, bottom=None):
     """
     Draws stem plot
+
+    Args:
+        x_data (None):
+        y_data (None):
+        setlims (bool):
+        color (None):
+        markersize (None):
+        bottom (None):
+
+    References:
+        http://exnumerus.blogspot.com/2011/02/how-to-quickly-plot-multiple-line.html
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-draw_stems --show
+        python -m plottool.draw_func2 --test-draw_stems
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> x_data = np.arange(1, 10000)
+        >>> np.random.seed(0)
+        >>> y_data = sorted(np.random.rand(len(x_data)) * 10)
+        >>> # y_data = np.array([ut.get_nth_prime(n) for n in x_data])
+        >>> setlims = False
+        >>> color = [1.0, 0.0, 0.0, 1.0]
+        >>> markersize = 0
+        >>> bottom = None
+        >>> result = draw_stems(x_data, y_data, setlims, color, markersize, bottom)
+        >>> ut.show_if_requested()
     """
     if y_data is not None and x_data is None:
         x_data = np.arange(len(y_data))
@@ -811,20 +842,29 @@ def draw_stems(x_data=None, y_data=None, setlims=True, color=None, markersize=No
     x_data_sort = x_data_[y_data_sortx]
     y_data_sort = y_data_[y_data_sortx]
 
-    markerline, stemlines, baseline = pylab.stem(x_data_sort, y_data_sort, linefmt='-', bottom=bottom)
-    if markersize is not None:
-        markerline.set_markersize(markersize)
+    OLD = False
+    if not OLD:
+        if bottom is None:
+            bottom = 0
+        # Faster way of drawing stems
+        #with ut.Timer('new stem'):
+        stemlines = []
+        ax = gca()
+        x_segments = ut.flatten([[thisx, thisx, None] for thisx in x_data_sort])
+        y_segments = ut.flatten([[bottom, thisy, None] for thisy in y_data_sort])
+        ax.plot(x_segments, y_segments, '-', color=color)
+    else:
+        with ut.Timer('old stem'):
+            markerline, stemlines, baseline = pylab.stem(x_data_sort, y_data_sort, linefmt='-', bottom=bottom)
+            if markersize is not None:
+                markerline.set_markersize(markersize)
 
-    #ax.stem
-    #ut.embed()
-    pylab.setp(markerline, 'markerfacecolor', 'w')
-    pylab.setp(stemlines, 'markerfacecolor', 'w')
-    #ut.embed()
-    if color is not None:
-        for l in stemlines:
-            l.set_color(color)
-        #pylab.setp(stemlines, 'linecolor', color)
-    pylab.setp(baseline, 'linewidth', 0)  # baseline should be invisible
+            pylab.setp(markerline, 'markerfacecolor', 'w')
+            pylab.setp(stemlines, 'markerfacecolor', 'w')
+            if color is not None:
+                for l in stemlines:
+                    l.set_color(color)
+            pylab.setp(baseline, 'linewidth', 0)  # baseline should be invisible
     if setlims:
         ax = gca()
         ax.set_xlim(min(x_data) - 1, max(x_data) + 1)

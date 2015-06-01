@@ -246,10 +246,42 @@ def plot_sorted_scores(scores_list,
                        logscale=True,
                        figtitle='plot_sorted_scores'):
     """
-    Input: a list of scores (either chip or descriptor)
-
     Concatenates and sorts the scores
     Sorts and plots with different types of scores labeled
+
+    Args:
+        scores_list (list): a list of scores
+        scores_lbls (None):
+        score_markers (None):
+        score_colors (None):
+        markersizes (None):
+        fnum (int):  figure number
+        pnum (tuple):  plot number
+        logscale (bool):
+        figtitle (str):
+
+    CommandLine:
+        python -m plottool.plots --test-plot_sorted_scores --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> randstate = np.random.RandomState(seed=0)
+        >>> # Get a training sample
+        >>> tp_support = randstate.normal(loc=6.5, size=(256,))
+        >>> tn_support = randstate.normal(loc=3.5, size=(256,))
+        >>> scores_list = [tp_support, tn_support]
+        >>> scores_lbls = None
+        >>> score_markers = None
+        >>> score_colors = None
+        >>> markersizes = None
+        >>> fnum = None
+        >>> pnum = (1, 1, 1)
+        >>> logscale = True
+        >>> figtitle = 'plot_sorted_scores'
+        >>> result = plot_sorted_scores(scores_list, scores_lbls, score_markers, score_colors, markersizes, fnum, pnum, logscale, figtitle)
+        >>> ut.show_if_requested()
+        >>> print(result)
     """
     if scores_lbls is None:
         scores_lbls = [lblx for lblx in range(len(scores_list))]
@@ -277,7 +309,7 @@ def plot_sorted_scores(scores_list,
         # plot stems to get a better sense of the distribution for binary data
         maxy = sorted_scores.max()
         for lblx in range(len(scores_list)):
-            bottom = -maxy if lblx % 2 == 1 else maxy
+            bottom = (-maxy * .1) if lblx % 2 == 1 else maxy
             color = score_colors[lblx]
             xdata = np.where(sorted_labelx == lblx)[0]
             ydata = sorted_scores[xdata]
