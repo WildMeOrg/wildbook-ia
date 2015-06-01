@@ -9,9 +9,11 @@ print, rrr, profile = utool.inject2(__name__, '[scorenorm]', DEBUG=False)
 
 def learn_score_normalization(tp_support, tn_support, gridsize=1024,
                               adjust=8, return_all=False, monotonize=True,
-                              clip_factor=(ut.PHI + 1)):
+                              clip_factor=(ut.PHI + 1), verbose=True):
     r"""
     Takes collected data and applys parzen window density estimation and bayes rule.
+
+    #True positive scores must be larger than true negative scores.
 
     Args:
         tp_support (ndarray):
@@ -36,15 +38,26 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024,
         92
     """
     # Estimate true positive density
+    if verbose:
+        print('[scorenorm] estimating true positive pdf, tp_support.shape=%r' % (tp_support.shape,))
     score_tp_pdf = ut.estimate_pdf(tp_support, gridsize=gridsize, adjust=adjust)
+    if verbose:
+        print('[scorenorm] estimating true negative pdf, tn_support.shape=%r' % (tn_support.shape,))
     score_tn_pdf = ut.estimate_pdf(tn_support, gridsize=gridsize, adjust=adjust)
+    if verbose:
+        print('[scorenorm] estimating score domain')
     # Find good maximum score (for domain not learning)
     #clip_score = 2000
+    # FIXME: allow for true positive scores to be low, or not bounded at 0
     clip_score = find_score_maxclip(tp_support, tn_support, clip_factor)
     score_domain = np.linspace(0, clip_score, 1024)
     # Evaluate true negative density
+    if verbose:
+        print('[scorenorm] evaluating density')
     p_score_given_tp = score_tp_pdf.evaluate(score_domain)
     p_score_given_tn = score_tn_pdf.evaluate(score_domain)
+    if verbose:
+        print('[scorenorm] evaluating posterior probabilities')
     # Average to get probablity of any score
     p_score = (np.array(p_score_given_tp) + np.array(p_score_given_tn)) / 2.0
     # Apply bayes
@@ -52,6 +65,8 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024,
     p_tp_given_score = ut.bayes_rule(p_score_given_tp, p_tp, p_score)
     import vtool as vt
     if monotonize:
+        if verbose:
+            print('[scorenorm] monotonizing')
         p_tp_given_score = vt.ensure_monotone_strictly_increasing(
             p_tp_given_score, zerohack=True, onehack=True)
     if return_all:
@@ -64,35 +79,46 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024,
 
 def find_score_maxclip(tp_support, tn_support, clip_factor=ut.PHI + 1):
     """
-    returns score to clip true positives past.
+    Finds score to clip true positives past. This is useful when the highest
+    true positive scores can be much larger than the highest true negative
+    score.
 
     Args:
         tp_support (ndarray):
         tn_support (ndarray):
+        clip_factor (float): factor of the true negative domain to search for true positives
 
     Returns:
         float: clip_score
 
+    CommandLine:
+        python -m vtool.score_normalization --test-find_score_maxclip
+
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.score_normalization import *  # NOQA
+        >>> from vtool.score_normalization import *  # NOQA
         >>> tp_support = np.array([100, 200, 50000])
         >>> tn_support = np.array([10, 30, 110])
-        >>> clip_score = find_score_maxclip(tp_support, tn_support)
+        >>> clip_factor = ut.PHI + 1
+        >>> clip_score = find_score_maxclip(tp_support, tn_support,  clip_score)
         >>> result = str(clip_score)
         >>> print(result)
         287.983738762
     """
-    max_true_positive_score = tp_support.max()
-    max_true_negative_score = tn_support.max()
-    if clip_factor is None:
-        clip_score = max_true_positive_score
+    max_tp_score = tp_support.max()
+    max_tn_score = tn_support.max()
+    if max_tn_score > max_tp_score:
+        # Do not clip if true negatives can score higher than true positives
+        clip_score =  max_tn_score
     else:
-        overshoot_factor = max_true_positive_score / max_true_negative_score
-        if overshoot_factor > clip_factor:
-            clip_score = max_true_negative_score * clip_factor
+        if clip_factor is None:
+            clip_score = max_tp_score
         else:
-            clip_score = max_true_positive_score
+            overshoot_factor = max_tp_score / max_tn_score
+            if overshoot_factor > clip_factor:
+                clip_score = max_tn_score * clip_factor
+            else:
+                clip_score = max_tp_score
     return clip_score
 
 
@@ -151,21 +177,25 @@ def normalize_scores(score_domain, p_tp_given_score, scores):
 # DEBUGGING FUNCTIONS
 
 
-def test_score_normalization(tp_support, tn_support):
+def test_score_normalization(tp_support, tn_support, with_scores=True,
+                             verbose=True, with_roc=True,
+                             with_precision_recall=False):
     """
-    Shows how score normalization works with gaussian noise
+    Gives an overview of how well threshold can be learned from raw scores.
 
     CommandLine:
         python -m vtool.score_normalization --test-test_score_normalization --show
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> # Shows how score normalization works with gaussian noise
         >>> from vtool.score_normalization import *  # NOQA
+        >>> verbose = True
         >>> randstate = np.random.RandomState(seed=0)
         >>> # Get a training sample
         >>> tp_support = randstate.normal(loc=6.5, size=(256,))
         >>> tn_support = randstate.normal(loc=3.5, size=(256,))
-        >>> test_score_normalization(tp_support, tn_support)
+        >>> test_score_normalization(tp_support, tn_support, verbose=verbose)
         >>> ut.show_if_requested()
 
     """
@@ -188,21 +218,30 @@ def test_score_normalization(tp_support, tn_support):
     if len(normkw_list) > 32:
         raise AssertionError('Too many plots to test!')
 
-    fnum = pt.next_fnum()
     #plot_support(tn_support, tp_support, fnum=fnum)
 
     for normkw in normkw_list:
         # Learn the appropriate normalization
-        #normkw = {}  # dict(gridsize=1024, adjust=8, clip_factor=ut.PHI + 1, return_all=True)
-        (score_domain, p_tp_given_score, p_tn_given_score, p_score_given_tp, p_score_given_tn,
-         p_score, clip_score) = learn_score_normalization(tp_support, tn_support, return_all=True, **normkw)
+        tup = learn_score_normalization(tp_support, tn_support,
+                                         return_all=True, verbose=verbose,
+                                         **normkw)
+        (score_domain,
+         p_tp_given_score, p_tn_given_score,
+         p_score_given_tp, p_score_given_tn,
+         p_score, clip_score) = tup
 
-        assert clip_score > tn_support.max()
+        assert clip_score >= tn_support.max(), (
+            'clip_score=%r, tn_support.max()=%r' %
+            (clip_score, tn_support.max()))
 
-        inspect_pdfs(tn_support, tp_support, score_domain,
-                     p_tp_given_score, p_tn_given_score, p_score_given_tp,
-                     p_score_given_tn, p_score,
-                     with_scores=True, with_roc=True, with_precision_recall=False, fnum=fnum)
+        if verbose:
+            print('plotting pdfs')
+        fnum = pt.next_fnum()
+
+        inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
+                     p_tn_given_score, p_score_given_tp, p_score_given_tn,
+                     p_score, with_scores=with_scores, with_roc=with_roc,
+                     with_precision_recall=with_precision_recall, fnum=fnum)
 
         pt.adjust_subplots(hspace=.3, bottom=.05, left=.05)
 
@@ -215,7 +254,11 @@ def test_score_normalization(tp_support, tn_support):
 
 def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
                  p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score,
-                 with_scores=False, with_roc=False, with_precision_recall=False, fnum=None):
+                 with_scores=False, with_roc=False,
+                 with_precision_recall=False, fnum=None):
+    """
+    Shows plots of learned thresholds
+    """
     import plottool as pt  # NOQA
 
     if fnum is None:
@@ -239,9 +282,12 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
         labels = np.array([False] * len(tn_support) + [True] * len(tp_support))
         probs = normalize_scores(score_domain, p_tp_given_score, scores)
         confusions = vt.get_confusion_metrics(probs, labels)
+        #print('fpr@.95 recall = %r' % (confusions.get_fpr_at_95_recall(),))
+        print('fpp@95 recall = %05.2f%%' % (confusions.get_fpr_at_95_recall() * 100,))
 
         def _support(fnum, pnum):
-            plot_support(tn_support, tp_support, fnum=fnum, pnum=pnum, markersizes=[5, 5], score_markers=['^', 'v'])
+            plot_support(tn_support, tp_support, fnum=fnum, pnum=pnum,
+                         markersizes=[5, 5], score_markers=['^', 'v'])
             #ax = pt.gca()
             #max_score = max(tn_support.max(), tp_support.max())
             #ax.set_ylim(-max_score, max_score)
@@ -273,10 +319,8 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
         #pt.figure(fnum=fnum, pnum=pnum_(0))
 
         if with_scores:
-            #plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[5, 4], score_markers=['x', '+'])
-            #plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[8, 8], score_markers=['1', '2'])
-            #plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[8, 8], score_markers=['^', 'v'])
-            plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[5, 5], score_markers=['^', 'v'])
+            plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(),
+                         markersizes=[5, 5], score_markers=['^', 'v'])
             ax = pt.gca()
             max_score = max(tn_support.max(), tp_support.max())
             ax.set_ylim(-max_score, max_score)

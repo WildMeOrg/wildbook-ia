@@ -397,6 +397,25 @@ def resized_clamped_thumb_dims(img_size, max_dsize):
     return dsize, sx, sy
 
 
+def convert_image_list_colorspace(image_list, colorspace, src_colorspace='BGR'):
+    """
+    converts a list of images from <src_colorspace> to <colorspace>
+    """
+    src_colorspace = src_colorspace.upper()
+    colorspace = colorspace.upper()
+    if colorspace == src_colorspace:
+        return image_list
+    prefix = 'COLOR_' + src_colorspace + '2'
+    valid_dst_colorspaces = [key.replace(prefix, '') for key in cv2.__dict__.keys() if key.startswith(prefix)]
+    if colorspace not in valid_dst_colorspaces:
+        raise NotImplementedError('unknown colorspace = %r' % (colorspace,))
+    else:
+        key = prefix + colorspace
+        code = cv2.__dict__[key]
+        image_list = [cv2.cvtColor(img, code) for img in image_list]
+    return image_list
+
+
 def padded_resize(img, target_size=(64, 64), interpolation=cv2.INTER_LANCZOS4):
     r"""
     makes the image resize to the target size and pads the rest of the area with a fill value

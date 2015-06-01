@@ -4,6 +4,7 @@ import utool as ut
 import six
 import numpy as np
 import sklearn.metrics
+import scipy.interpolate
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[precision_recall]', DEBUG=False)
 
 
@@ -96,13 +97,36 @@ class ConfusionMetrics(object):
         return self
 
     def draw_roc_curve(self, **kwargs):
-        return draw_roc_curve(self.fpr, self.tpr, **kwargs)
+        title_suffix = ', FPR95=%05.2f%%' % (self.get_fpr_at_95_recall() * 100.,)
+        return draw_roc_curve(self.fpr, self.tpr, title_suffix=title_suffix, **kwargs)
 
     def draw_precision_recall_curve(self, nSamples=11, **kwargs):
         precision = self.precision
         recall = self.recall
         recall_domain, p_interp = interpolate_precision_recall(precision, recall, nSamples)
         return draw_precision_recall_curve(recall_domain, p_interp, **kwargs)
+
+    def get_fpr_at_95_recall(self):
+        target_recall = .95
+        fpr95 = self.get_fpr_at_recall(target_recall)
+        return fpr95
+
+    def get_fpr_at_recall(self, target_recall):
+        indicies = np.where(self.recall >= target_recall)[0]
+        assert len(indicies) > 0, 'no recall at target level'
+        func = scipy.interpolate.interp1d(self.recall, self.fpr)
+        interp_fpp = func(target_recall)
+        ## interpolate to target recall
+        #right_index  = indicies[0]
+        #right_recall = self.recall[right_index]
+        #left_index   = right_index - 1
+        #left_recall  = self.recall[left_index]
+        #stepsize = right_recall - left_recall
+        #alpha = (target_recall - left_recall) / stepsize
+        #left_fpr   = self.fpr[left_index]
+        #right_fpr  = self.fpr[right_index]
+        #interp_fpp = (left_fpr * (1 - alpha)) + (right_fpr * (alpha))
+        return interp_fpp
 
     @property
     def precision(self):
@@ -112,8 +136,7 @@ class ConfusionMetrics(object):
     def recall(self):
         return self.tpr
 
-    @property
-    def ave_precision(self):
+    def get_ave_precision(self):
         precision = self.precision
         recall = self.recall
         recall_domain, p_interp = interpolate_precision_recall(precision, recall)
@@ -158,17 +181,23 @@ def interpolate_precision_recall(precision, recall, nSamples=11):
         return None, None
 
     recall_domain = np.linspace(0, 1, nSamples)
-    #candidate_masks = recall >= recall_domain[:, None]
-    #candidates_idxs_ = [np.where(mask)[0] for mask in candidate_masks]
-    #chosen_idx = [-1 if len(idxs) == 0 else idxs.min() for idxs in  candidates_idxs_]
-    #p_interp = precision[chosen_idx]
-    def p_interp(r):
-        precision_candidates = precision[recall >= r]
-        if len(precision_candidates) == 0:
-            return 0
-        return precision_candidates.max()
+    if False:
+        # normal interpolation
+        func = scipy.interpolate.interp1d(recall, precision, bounds_error=False, fill_value=precision.max())
+        p_interp = func(recall_domain)
+    else:
+        # Pascal interpolation
+        #candidate_masks = recall >= recall_domain[:, None]
+        #candidates_idxs_ = [np.where(mask)[0] for mask in candidate_masks]
+        #chosen_idx = [-1 if len(idxs) == 0 else idxs.min() for idxs in  candidates_idxs_]
+        #p_interp = precision[chosen_idx]
+        def p_interp(r):
+            precision_candidates = precision[recall >= r]
+            if len(precision_candidates) == 0:
+                return 0
+            return precision_candidates.max()
 
-    p_interp = np.array([p_interp(r) for r in recall_domain])
+        p_interp = np.array([p_interp(r) for r in recall_domain])
     return recall_domain, p_interp
 
 
@@ -268,7 +297,7 @@ def get_confusion_metrics(scores, labels):
     return confusions
 
 
-def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', color=(0.4, 1.0, 0.4)):
+def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', title_suffix='', color=(0.4, 1.0, 0.4)):
     import plottool as pt
     if fnum is None:
         fnum = pt.next_fnum()
@@ -278,7 +307,8 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', color=(0.4, 1.0, 
     #    ave_p = np.nan
     #else:
     #    ave_p = p_interp.sum() / p_interp.size
-    title = 'Receiver operating characteristic\n' + 'auc = %.3f' % roc_auc
+    title = 'Receiver operating characteristic\n' + 'auc=%.3f' % (roc_auc,)
+    title += title_suffix
 
     pt.plot2(fpr, tpr, marker=marker,
              x_label='False Positive Rate',
@@ -287,7 +317,8 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', color=(0.4, 1.0, 
              title=title)
 
 
-def draw_precision_recall_curve(recall_domain, p_interp, title_pref=None, fnum=1, pnum=None, color=(0.4, 1.0, 0.4)):
+def draw_precision_recall_curve(recall_domain, p_interp, title_pref=None,
+                                fnum=1, pnum=None, color=(0.4, 1.0, 0.4)):
     import plottool as pt
     if recall_domain is None:
         recall_domain = np.array([])
