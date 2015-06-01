@@ -4,7 +4,7 @@ import utool
 import numpy as np
 import utool as ut
 import six  # NOQA
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[scorenorm]', DEBUG=False)
+print, rrr, profile = utool.inject2(__name__, '[scorenorm]', DEBUG=False)
 
 
 def learn_score_normalization(tp_support, tn_support, gridsize=1024,
@@ -202,7 +202,7 @@ def test_score_normalization(tp_support, tn_support):
         inspect_pdfs(tn_support, tp_support, score_domain,
                      p_tp_given_score, p_tn_given_score, p_score_given_tp,
                      p_score_given_tn, p_score,
-                     with_scores=True, with_roc=True, with_precision_recall=False)
+                     with_scores=True, with_roc=True, with_precision_recall=False, fnum=fnum)
 
         pt.adjust_subplots(hspace=.3, bottom=.05, left=.05)
 
@@ -215,10 +215,11 @@ def test_score_normalization(tp_support, tn_support):
 
 def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
                  p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score,
-                 with_scores=False, with_roc=False, with_precision_recall=False):
+                 with_scores=False, with_roc=False, with_precision_recall=False, fnum=None):
     import plottool as pt  # NOQA
 
-    fnum = pt.next_fnum()
+    if fnum is None:
+        fnum = pt.next_fnum()
     nSubplots = 2 + with_scores + with_roc + with_precision_recall
     if True:
         nRows, nCols = pt.get_square_row_cols(nSubplots)
@@ -227,34 +228,79 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
         nCols = 1
     _pnumiter = pt.make_pnum_nextgen(nRows=nRows, nCols=nCols, nSubplots=nSubplots)
 
-    #pt.figure(fnum=fnum, pnum=pnum_(0))
+    OLD = False
+    if not OLD:
+        import plottool.interactions
 
-    if with_scores:
-        #plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[5, 4], score_markers=['x', '+'])
-        #plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[8, 8], score_markers=['1', '2'])
-        #plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[8, 8], score_markers=['^', 'v'])
-        plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[5, 5], score_markers=['^', 'v'])
+        inter = plottool.interactions.ExpandableInteraction(fnum, _pnumiter)
 
-    plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
-                      cfgstr='', fnum=fnum, pnum=_pnumiter())
+        import vtool as vt
+        scores = np.hstack([tn_support, tp_support])
+        labels = np.array([False] * len(tn_support) + [True] * len(tp_support))
+        probs = normalize_scores(score_domain, p_tp_given_score, scores)
+        confusions = vt.get_confusion_metrics(probs, labels)
 
-    plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
-                       cfgstr='', fnum=fnum, pnum=_pnumiter())
+        def _support(fnum, pnum):
+            plot_support(tn_support, tp_support, fnum=fnum, pnum=pnum, markersizes=[5, 5], score_markers=['^', 'v'])
+            #ax = pt.gca()
+            #max_score = max(tn_support.max(), tp_support.max())
+            #ax.set_ylim(-max_score, max_score)
 
-    import vtool as vt
+        def _prebayes(fnum, pnum):
+            plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
+                              cfgstr='', fnum=fnum, pnum=pnum)
 
-    scores = np.hstack([tn_support, tp_support])
-    labels = np.array([False] * len(tn_support) + [True] * len(tp_support))
-    probs = normalize_scores(score_domain, p_tp_given_score, scores)
+        def _postbayes(fnum, pnum):
+            plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
+                               cfgstr='', fnum=fnum, pnum=pnum)
+        def _roc(fnum, pnum):
+            confusions.draw_roc_curve(fnum=fnum, pnum=pnum)
 
-    #import sklearn.metrics
-    #sklearn.metrics.classification_report(labels, probs)
-    confusions = vt.get_confusion_metrics(probs, labels)
-    if with_roc:
-        confusions.draw_roc_curve(fnum=fnum, pnum=_pnumiter())
+        def _precision_recall(fnum, pnum):
+            confusions.draw_precision_recall_curve(fnum=fnum, pnum=pnum)
 
-    if with_precision_recall:
-        confusions.draw_precision_recall_curve(fnum=fnum, pnum=_pnumiter())
+        if with_scores:
+            inter.append_plot(_support)
+        inter.append_plot(_prebayes)
+        inter.append_plot(_postbayes)
+        if with_roc:
+            inter.append_plot(_roc)
+        if with_precision_recall:
+            inter.append_plot(_precision_recall)
+
+        inter.show_page()
+    else:
+        #pt.figure(fnum=fnum, pnum=pnum_(0))
+
+        if with_scores:
+            #plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[5, 4], score_markers=['x', '+'])
+            #plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[8, 8], score_markers=['1', '2'])
+            #plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[8, 8], score_markers=['^', 'v'])
+            plot_support(tn_support, tp_support, fnum=fnum, pnum=_pnumiter(), markersizes=[5, 5], score_markers=['^', 'v'])
+            ax = pt.gca()
+            max_score = max(tn_support.max(), tp_support.max())
+            ax.set_ylim(-max_score, max_score)
+
+        plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
+                          cfgstr='', fnum=fnum, pnum=_pnumiter())
+
+        plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
+                           cfgstr='', fnum=fnum, pnum=_pnumiter())
+
+        import vtool as vt
+
+        scores = np.hstack([tn_support, tp_support])
+        labels = np.array([False] * len(tn_support) + [True] * len(tp_support))
+        probs = normalize_scores(score_domain, p_tp_given_score, scores)
+
+        #import sklearn.metrics
+        #sklearn.metrics.classification_report(labels, probs)
+        confusions = vt.get_confusion_metrics(probs, labels)
+        if with_roc:
+            confusions.draw_roc_curve(fnum=fnum, pnum=_pnumiter())
+
+        if with_precision_recall:
+            confusions.draw_precision_recall_curve(fnum=fnum, pnum=_pnumiter())
     #ut.embed()
 
 
