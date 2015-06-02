@@ -152,6 +152,8 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
         python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany'
 
         python dev.py -t scores --db PZ_Master0 --allgt --show
+        python dev.py -t scores --db PZ_MTEST --allgt --show
+
 
 
     """
