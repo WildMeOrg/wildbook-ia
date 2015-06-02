@@ -1452,6 +1452,38 @@ def draw_line_segments(segments_list, **kwargs):
     #    ax.add_collection(lc)
 
 
+def draw_patches_and_sifts(patch_list, sift_list):
+    # Hacked together will not work on inputs of all sizes
+    #raise NotImplementedError('unfinished')
+    import plottool as pt
+    num, width, height = patch_list.shape[0:3]
+    rows = int(np.sqrt(num))
+    cols = num // rows
+    # TODO: recursive stack
+    #stacked_img = patch_list.transpose(2, 0, 1).reshape(height * rows, width * cols)
+    stacked_img = np.vstack([np.hstack(chunk) for chunk in ut.ichunks(patch_list, rows)])
+
+    x_base = ((np.arange(rows) + .5 ) * width) - .5
+    y_base = ((np.arange(cols) + .5 ) * height) - .5
+    xs, ys = np.meshgrid(x_base, y_base)
+
+    tmp_kpts = np.vstack(
+        (xs.flatten(),
+         ys.flatten(),
+         width / 2 * np.ones(len(sift_list)),
+         np.zeros(len(sift_list)),
+         height / 2 * np.ones(len(sift_list)),
+         np.zeros(len(sift_list)))).T
+
+    pt.figure(fnum=1, doclf=True)
+    pt.imshow(stacked_img)
+    #ax = pt.gca()
+    #ax.invert_yaxis()
+    #ax.invert_xaxis()
+    pt.draw_kpts2(tmp_kpts, sifts=sift_list)
+    #pt.iup()
+
+
 def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
                ell=True, pts=False, rect=False, eig=False, ori=False,
                pts_size=2, ell_alpha=.6, ell_linewidth=1.5,
@@ -2435,8 +2467,10 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False, use_l
         return imgB, woff, hoff
 
 
-def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False):
+def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False, return_offsets=False):
     r"""
+    TODO: return offsets as well
+
     Args:
         img_list1 (list):
         img_list2 (list):
@@ -2491,9 +2525,12 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False):
     else:
         # Right Recurse
         img2 = stack_image_recurse(img_list2[0::2], img_list2[1::2], vert=not vert, modifysize=modifysize)
-    #imgB, woff, hoff = stack_images(img1, img2, vert=vert)
-    imgB, offset_tup, sf_tup = stack_images(img1, img2, vert=vert, return_sf=True, modifysize=modifysize)
-    (woff, hoff) = offset_tup[1]
+    if return_offsets:
+        raise NotImplementedError('finishme')
+        #imgB, offset_list, sf_list = stack_multi_images(img1, img2, offset_list1, sf_list1, offset_list2, sf_list2, vert=vert)
+    else:
+        imgB, offset_tup, sf_tup = stack_images(img1, img2, vert=vert, return_sf=True, modifysize=modifysize)
+        (woff, hoff) = offset_tup[1]
     return imgB
 
 
