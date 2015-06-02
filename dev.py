@@ -62,6 +62,89 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 # and then go in _devcmds_ibeis.py
 
 
+@devcmd('scores', 'score')
+def annotationmatch_scores(ibs, qaid_list, daid_list=None):
+    """
+    TODO: plot the difference between the top true score and the next best false score
+    CommandLine:
+        ib
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany' fg_on:True
+        python dev.py -t scores --db GZ_ALL --allgt -w --show
+
+        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany'
+        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany'
+
+        python dev.py -t scores --db PZ_Master0 --allgt --show
+        python dev.py -t scores --db PZ_MTEST --allgt --show
+
+    """
+    print('[dev] annotationmatch_scores')
+    #allres = results_all.get_allres(ibs, qaid_list, daid_list)
+    #ut.embed()
+    #orgres = allres.allorg['rank0_true']
+    qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list)
+    qres_list = ut.dict_take(qaid2_qres, qaid_list)
+
+    def get_labeled_name_scores(ibs, qres_list):
+        """
+        TODO: rectify with score_normalization.get_ibeis_score_training_data
+        This function does not return only the "good values".
+        It is more for testing and validation than training.
+        """
+        tp_nscores = []
+        tn_nscores = []
+        for qx, qres in enumerate(qres_list):
+            qaid = qres.get_qaid()
+            if not qres.is_nsum():
+                raise AssertionError('must be nsum')
+            if not ibs.get_annot_has_groundtruth(qaid):
+                continue
+            qnid = ibs.get_annot_name_rowids(qres.get_qaid())
+            # Get name scores for this query
+            nscoretup = qres.get_nscoretup(ibs)
+            (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
+            #
+            #sorted_ndiff = -np.diff(sorted_nscores.tolist())
+            sorted_nids = np.array(sorted_nids)
+            is_positive  = sorted_nids == qnid
+            is_negative = np.logical_and(~is_positive, sorted_nids > 0)
+            if np.any(is_positive):
+                gt_rank = np.nonzero(is_positive)[0][0]
+                tp_nscores.append(sorted_nscores[gt_rank])
+            if np.any(is_negative):
+                gf_rank = np.nonzero(is_negative)[0][0]
+                tn_nscores.append(sorted_nscores[gf_rank])
+        tp_nscores = np.array(tp_nscores).astype(np.float64)
+        tn_nscores = np.array(tn_nscores).astype(np.float64)
+        return tp_nscores, tn_nscores
+
+    tp_nscores, tn_nscores = get_labeled_name_scores(ibs, qres_list)
+    confusions = vt.ConfusionMetrics.from_tp_and_tn_scores(tp_nscores, tn_nscores)
+    #confusions.draw_roc_curve()
+    #ut.embed()
+
+    import vtool.score_normalization as scorenorm
+    scorenorm.test_score_normalization(tp_nscores, tn_nscores)
+    #scorenorm.plot_support(tn_nscores, tp_nscores, figtitle='sorted name scores', markersizes=[8, 4])
+
+    #from ibeis.model.hots import score_normalization
+    #tp_support, tn_support, tp_support_labels, tn_support_labels = score_normalization.get_ibeis_score_training_data(ibs, qaid_list, qres_list)
+    #ut.embed()
+    #x_data, y_data = results_all.get_stem_data(ibs, qaid2_qres)
+    #pt.plots.plot_stems(x_data, y_data)
+
+    #pt.present()
+    #pt.show()
+    #locals_ = viz_allres_annotation_scores(allres)
+    locals_ = locals()
+    return locals_
+
+
 @devcmd('tune', 'autotune')
 def tune_flann(ibs, qaid_list, daid_list=None):
     r"""
@@ -132,91 +215,6 @@ def incremental_test(ibs, qaid_list, daid_list=None):
     ibs1 = ibs
     num_initial = ut.get_argval('--ninit', type_=int, default=0)
     return automated_matcher.incremental_test(ibs1, num_initial)
-
-
-@devcmd('scores', 'score')
-def annotationmatch_scores(ibs, qaid_list, daid_list=None):
-    """
-    TODO: plot the difference between the top true score and the next best false score
-    CommandLine:
-        ib
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg fg_on:True
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db PZ_MTEST --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany' fg_on:True
-        python dev.py -t scores --db GZ_ALL --allgt -w --show
-
-        python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg codename='vsmany'
-        python dev.py -t scores --db PZ_Master0 --allgt -w --show --cfg codename='vsmany'
-
-        python dev.py -t scores --db PZ_Master0 --allgt --show
-        python dev.py -t scores --db PZ_MTEST --allgt --show
-
-
-
-    """
-    print('[dev] annotationmatch_scores')
-    #allres = results_all.get_allres(ibs, qaid_list, daid_list)
-    #ut.embed()
-    #orgres = allres.allorg['rank0_true']
-    qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list)
-    qres_list = ut.dict_take(qaid2_qres, qaid_list)
-
-    def get_labeled_name_scores(ibs, qres_list):
-        """
-        TODO: rectify with score_normalization.get_ibeis_score_training_data
-        This function does not return only the "good values".
-        It is more for testing and validation than training.
-        """
-        tp_nscores = []
-        tn_nscores = []
-        for qx, qres in enumerate(qres_list):
-            qaid = qres.get_qaid()
-            if not qres.is_nsum():
-                raise AssertionError('must be nsum')
-            if not ibs.get_annot_has_groundtruth(qaid):
-                continue
-            qnid = ibs.get_annot_name_rowids(qres.get_qaid())
-            # Get name scores for this query
-            nscoretup = qres.get_nscoretup(ibs)
-            (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
-            #
-            #sorted_ndiff = -np.diff(sorted_nscores.tolist())
-            sorted_nids = np.array(sorted_nids)
-            is_positive  = sorted_nids == qnid
-            is_negative = np.logical_and(~is_positive, sorted_nids > 0)
-            if np.any(is_positive):
-                gt_rank = np.nonzero(is_positive)[0][0]
-                tp_nscores.append(sorted_nscores[gt_rank])
-            if np.any(is_negative):
-                gf_rank = np.nonzero(is_negative)[0][0]
-                tn_nscores.append(sorted_nscores[gf_rank])
-        tp_nscores = np.array(tp_nscores).astype(np.float64)
-        tn_nscores = np.array(tn_nscores).astype(np.float64)
-        return tp_nscores, tn_nscores
-
-    tp_nscores, tn_nscores = get_labeled_name_scores(ibs, qres_list)
-    confusions = vt.ConfusionMetrics.from_tp_and_tn_scores(tp_nscores, tn_nscores)
-    #confusions.draw_roc_curve()
-    #ut.embed()
-
-    import vtool.score_normalization as scorenorm
-    scorenorm.test_score_normalization(tp_nscores, tn_nscores)
-    #scorenorm.plot_support(tn_nscores, tp_nscores, figtitle='sorted name scores', markersizes=[8, 4])
-
-    #from ibeis.model.hots import score_normalization
-    #tp_support, tn_support, tp_support_labels, tn_support_labels = score_normalization.get_ibeis_score_training_data(ibs, qaid_list, qres_list)
-    #ut.embed()
-    #x_data, y_data = results_all.get_stem_data(ibs, qaid2_qres)
-    #pt.plots.plot_stems(x_data, y_data)
-
-    #pt.present()
-    #pt.show()
-    #locals_ = viz_allres_annotation_scores(allres)
-    locals_ = locals()
-    return locals_
 
 
 def viz_allres_annotation_scores(allres):
