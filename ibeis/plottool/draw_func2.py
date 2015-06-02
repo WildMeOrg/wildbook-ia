@@ -1722,9 +1722,12 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
                     imgBGR = np.array(imgBGR, dtype=np.uint8)
             imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
             ax.imshow(imgRGB, **plt_imshow_kwargs)
-        elif len(img.shape) == 2:
+        elif len(img.shape) == 2 or (len(img.shape) == 3 and img.shape[2] == 1):
             # img is in grayscale
-            imgGRAY = img
+            if len(img.shape) == 3:
+                imgGRAY = img.reshape(img.shape[0:2])
+            else:
+                imgGRAY = img
             if cmap is None:
                 cmap = plt.get_cmap('gray')
             if isinstance(cmap, six.string_types):
