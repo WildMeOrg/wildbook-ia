@@ -603,7 +603,8 @@ def intern_warp_single_patch(img, x, y, ori, V,
 @profile
 def get_warped_patch(imgBGR, kp, gray=False,
                        flags=cv2.INTER_LANCZOS4,
-                       borderMode=cv2.BORDER_REPLICATE):
+                       borderMode=cv2.BORDER_REPLICATE,
+                       patch_size=41):
     """Returns warped (into a unit circle) patch around a keypoint
 
     Args:
@@ -613,7 +614,7 @@ def get_warped_patch(imgBGR, kp, gray=False,
         tuple : (wpatch, wkp) the normalized 41x41 patches from the img corresonding to the keypoint
     """
     kpts = np.array([kp])
-    wpatches, wkpts = get_warped_patches(imgBGR, kpts, flags=flags, borderMode=borderMode)
+    wpatches, wkpts = get_warped_patches(imgBGR, kpts, flags=flags, borderMode=borderMode, patch_size=patch_size)
     wpatch = wpatches[0]
     wkp = wkpts[0]
     if gray and len(wpatch.shape) > 2:
