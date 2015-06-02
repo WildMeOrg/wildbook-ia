@@ -2294,7 +2294,69 @@ def stack_multi_images(img1, img2, offset_list1, sf_list1, offset_list2, sf_list
 
     offset_listB = offset_list1_ + offset_list2_
     sf_listB     = sf_list1_ + sf_list2_
+    #offset_listB, sf_listB = combine_offset_lists([offset_list1, offset_list2], [sf_list1, sf_list2], offset_tup, sf_tup)
     return imgB, offset_listB, sf_listB
+
+
+def combine_offset_lists(offsets_list, sfs_list, offset_tup, sf_tup):
+    # combine the offsets
+    def mult_tuplelist(tuple_list, scale_xy):
+        return [(tup[0] * scale_xy[0], tup[1] * scale_xy[1]) for tup in tuple_list]
+    def add_tuplelist(tuple_list, offset_xy):
+        return [(tup[0] + offset_xy[0], tup[1] + offset_xy[1]) for tup in tuple_list]
+
+    offset_lists_ = [
+        add_tuplelist(mult_tuplelist(offset_list, sf_tup[ix]), offset_tup[ix])
+        for ix, offset_list in enumerate(offsets_list)
+    ]
+    sf_lists_ = [
+        mult_tuplelist(sf_list, sf_tup[ix])
+        for ix, sf_list in enumerate(sfs_list)
+    ]
+    import operator
+
+    offset_listB = reduce(operator.add, offset_lists_)
+    sf_listB = reduce(operator.add, sf_lists_)
+    return offset_listB, sf_listB
+
+
+def stack_square_images(img_list, return_info=False):
+    r"""
+    Args:
+        img_list (list):
+
+    Returns:
+        ndarray:
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-stack_square_images
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> img_list = '?'
+        >>> result = stack_square_images(img_list)
+        >>> print(result)
+    """
+    if len(img_list) == 0:
+        raise IndexError('no images to stack')
+    if len(img_list) == 1:
+        return img_list[0]
+    num_vert = int(np.ceil(np.sqrt(len(img_list))))
+    num_horiz = int(np.ceil(len(img_list) / float(num_vert)))
+    stacked_info_list = [
+        stack_image_list(imgs, vert=True, return_offset=True, return_sf=True)
+        for imgs in list(ut.ichunks(img_list, num_horiz))
+    ]
+    vert_patches = ut.get_list_column(stacked_info_list, 0)
+    bigpatch, bigoffsets, bigsfs = stack_image_list(vert_patches, vert=False, return_offset=True, return_sf=True)
+    if return_info:
+        sfs_list = ut.get_list_column(stacked_info_list, 2)
+        offsets_list = ut.get_list_column(stacked_info_list, 1)
+        offset_listB, sf_listB = combine_offset_lists(offsets_list, sfs_list, bigoffsets, bigsfs)
+        return bigpatch, offset_listB, sf_listB
+    else:
+        return bigpatch
 
 
 def stack_image_list(img_list, return_offset=False, return_sf=False, **kwargs):
@@ -2451,8 +2513,8 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False, use_l
     # concatentate images
     dtype = img1.dtype
     assert img1.dtype == img2.dtype, 'img1.dtype=%r, img2.dtype=%r' % (img1.dtype, img2.dtype)
-    if nChannels == 3:
-        imgB = np.zeros((hB, wB, 3), dtype)
+    if nChannels == 3 or len(img1.shape) > 2:
+        imgB = np.zeros((hB, wB, nChannels), dtype)
         imgB[0:h1, 0:w1, :] = img1
         imgB[hoff:(hoff + h2), woff:(woff + w2), :] = img2
     elif nChannels == 1:
@@ -2535,18 +2597,6 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False, 
         imgB, offset_tup, sf_tup = stack_images(img1, img2, vert=vert, return_sf=True, modifysize=modifysize)
         (woff, hoff) = offset_tup[1]
     return imgB
-
-
-def stack_square_images(img_list):
-    if len(img_list) == 0:
-        raise IndexError('no images to stack')
-    if len(img_list) == 1:
-        return img_list[0]
-    num_vert = int(np.ceil(np.sqrt(len(img_list))))
-    num_horiz = int(np.ceil(len(img_list) / float(num_vert)))
-    vert_patches = [stack_image_list(imgs, vert=True, return_offset=False) for imgs in list(ut.ichunks(img_list, num_horiz))]
-    bigpatch = stack_image_list(vert_patches, vert=False, return_offset=False)
-    return bigpatch
 
 
 def remove_patches(ax=None):
