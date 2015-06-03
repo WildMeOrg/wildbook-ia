@@ -50,7 +50,13 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024,
     #clip_score = 2000
     # FIXME: allow for true positive scores to be low, or not bounded at 0
     clip_score = find_score_maxclip(tp_support, tn_support, clip_factor)
-    score_domain = np.linspace(0, clip_score, 1024)
+    if clip_score is None:
+        min_score = min(tp_support.min(), tn_support.min())
+        max_score = min(tp_support.max(), tn_support.max())
+    else:
+        min_score = 0
+        max_score = clip_score
+    score_domain = np.linspace(min_score, max_score, gridsize)
     # Evaluate true negative density
     if verbose:
         print('[scorenorm] evaluating density')
@@ -61,6 +67,7 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024,
     # Average to get probablity of any score
     p_score = (np.array(p_score_given_tp) + np.array(p_score_given_tn)) / 2.0
     # Apply bayes
+    # FIXME: not always going to be equal probability of true and positive cases
     p_tp = .5
     p_tp_given_score = ut.bayes_rule(p_score_given_tp, p_tp, p_score)
     import vtool as vt
@@ -75,6 +82,37 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024,
                 p_score_given_tp, p_score_given_tn, p_score, clip_score)
     else:
         return (score_domain, p_tp_given_score, clip_score)
+
+
+#def find_score_minclip(tp_support, tn_support, clip_factor=ut.PHI + 1):
+#    """
+#    Finds score to clip true positives past. This is useful when the highest
+#    true positive scores can be much larger than the highest true negative
+#    score.
+
+#    Args:
+#        tp_support (ndarray):
+#        tn_support (ndarray):
+#        clip_factor (float): factor of the true negative domain to search for true positives
+
+#    Returns:
+#        float: min_clip_score
+
+#    CommandLine:
+#        python -m vtool.score_normalization --test-find_score_maxclip
+
+#    Example:
+#        >>> # ENABLE_DOCTEST
+#        >>> from vtool.score_normalization import *  # NOQA
+#        >>> tp_support = np.array([100, 200, 50000])
+#        >>> tn_support = np.array([10, 30, 110])
+#        >>> clip_factor = ut.PHI + 1
+#        >>> min_clip_score = find_score_maxclip(tp_support, tn_support,  min_clip_score)
+#        >>> result = str(min_clip_score)
+#        >>> print(result)
+#        287.983738762
+#    """
+#    return min_clip_score
 
 
 def find_score_maxclip(tp_support, tn_support, clip_factor=ut.PHI + 1):
@@ -179,7 +217,7 @@ def normalize_scores(score_domain, p_tp_given_score, scores):
 
 def test_score_normalization(tp_support, tn_support, with_scores=True,
                              verbose=True, with_roc=True,
-                             with_precision_recall=False, figtitle=None, normkw_varydict={}):
+                             with_precision_recall=False, figtitle=None, normkw_varydict=None):
     """
     Gives an overview of how well threshold can be learned from raw scores.
 
@@ -206,14 +244,14 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
     ut.print_stats(tn_support, lbl='tn_support')
 
     # Test (potentially multiple) normalizing configurations
-    normkw_list = ut.util_dict.all_dict_combinations(
-        {
+    if normkw_varydict is None:
+        normkw_varydict = {
             'monotonize': [True],  # [True, False],
             #'adjust': [1, 4, 8],
             'adjust': [1],
             #'adjust': [8],
         }
-    )
+    normkw_list = ut.util_dict.all_dict_combinations(normkw_varydict)
 
     if len(normkw_list) > 32:
         raise AssertionError('Too many plots to test!')
@@ -233,6 +271,8 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
         assert clip_score >= tn_support.max(), (
             'clip_score=%r, tn_support.max()=%r' %
             (clip_score, tn_support.max()))
+
+        print(ut.get_stats_str(score_domain))
 
         if verbose:
             print('plotting pdfs')
