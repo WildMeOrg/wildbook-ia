@@ -195,7 +195,6 @@ def plot_probabilities(prob_list,
     Concatenates and sorts the scores
     Sorts and plots with different types of scores labeled
     """
-    print('xdata = %r' % (xdata,))
     assert len(prob_list) > 0
     if xdata is None:
         xdata = np.arange(len(prob_list[0]))
