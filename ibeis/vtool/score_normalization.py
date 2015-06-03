@@ -49,14 +49,19 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024,
     # Find good maximum score (for domain not learning)
     #clip_score = 2000
     # FIXME: allow for true positive scores to be low, or not bounded at 0
-    clip_score = find_score_maxclip(tp_support, tn_support, clip_factor)
-    if clip_score is None:
+    if clip_factor is None:
         min_score = min(tp_support.min(), tn_support.min())
-        max_score = min(tp_support.max(), tn_support.max())
+        max_score = max(tp_support.max(), tn_support.max())
     else:
         min_score = 0
+        clip_score = find_score_maxclip(tp_support, tn_support, clip_factor)
         max_score = clip_score
+    clip_score = max_score
     score_domain = np.linspace(min_score, max_score, gridsize)
+    print('clip_factor = %r' % (clip_factor,))
+    print('max_score = %r' % (max_score,))
+    print('min_score = %r' % (min_score,))
+    print('score_domain (CREATE) = %r' % (score_domain,))
     # Evaluate true negative density
     if verbose:
         print('[scorenorm] evaluating density')
@@ -272,11 +277,12 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
             'clip_score=%r, tn_support.max()=%r' %
             (clip_score, tn_support.max()))
 
-        print(ut.get_stats_str(score_domain))
-
         if verbose:
             print('plotting pdfs')
         fnum = pt.next_fnum()
+
+        print(ut.get_stats_str(score_domain))
+        print('score_domainFIRST = %r' % (score_domain,))
 
         inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
                      p_tn_given_score, p_score_given_tp, p_score_given_tn,
@@ -303,6 +309,7 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
     Shows plots of learned thresholds
     """
     import plottool as pt  # NOQA
+    print('score_domainINSPECT = %r' % (score_domain,))
 
     if fnum is None:
         fnum = pt.next_fnum()
@@ -457,6 +464,7 @@ def plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score,
         fnum = pt.next_fnum()
     true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
     false_color = pt.FALSE_RED
+    print('score_domainPDF = %r' % (score_domain,))
 
     pt.plots.plot_probabilities(
         (p_tn_given_score, p_tp_given_score),
