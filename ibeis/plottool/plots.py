@@ -308,8 +308,9 @@ def plot_sorted_scores(scores_list,
     if len(scores_list) == 2:
         # plot stems to get a better sense of the distribution for binary data
         maxy = sorted_scores.max()
+        absolute_bottom = sorted_scores.min()
         for lblx in range(len(scores_list)):
-            bottom = (-maxy * .1) if lblx % 2 == 1 else maxy
+            bottom = (absolute_bottom - (maxy * .1)) if lblx % 2 == 1 else maxy
             color = score_colors[lblx]
             xdata = np.where(sorted_labelx == lblx)[0]
             ydata = sorted_scores[xdata]
