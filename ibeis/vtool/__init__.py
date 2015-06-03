@@ -30,7 +30,7 @@ IMPORT_TUPLES = [
     ('distance', None),
     ('other', None),
     ('precision_recall', None),
-    #('score_normalization', None),
+    ('score_normalization', None),
     #('coverage_kpts', None),
     #('coverage_grid', None),
 ]

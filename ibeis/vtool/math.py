@@ -14,6 +14,11 @@ def ensure_monotone_strictly_increasing(arr_, zerohack=False, onehack=False):
     """
     Breaks up streaks of equal values by interpolating between the next lowest and next highest value
 
+    Args:
+        arr_ (ndarray): sequence to monotonize
+        zerohack (bool): default False, if True sets the first element to be zero and linearlly interpolates to the first nonzero item
+        onehack (bool):  default False, if True one will not be in the resulting array (replaced with number very close to one)
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.math import *   # NOQA
@@ -111,33 +116,89 @@ def non_decreasing(L):
     return all(x <= y for x, y in zip(L, L[1:]))
 
 
-def ensure_monotone_increasing(arr_):
+def ensure_monotone_increasing(arr_, fromright=True, fromleft=True):
+    r"""
+    Args:
+        arr_ (ndarray):
+
+    Returns:
+        ndarray: arr
+
+    CommandLine:
+        python -m vtool.math --test-ensure_monotone_increasing --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.math import *  # NOQA
+        >>> np.random.seed(0)
+        >>> size_ = 100
+        >>> domain = np.arange(size_)
+        >>> arr_ = np.sin(np.pi * (domain / 100) - 2.3) + (np.random.rand(len(domain)) - .5) * .1
+        >>> arr = ensure_monotone_increasing(arr_, fromleft=False, fromright=True)
+        >>> result = str(arr)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(2, 1, 1), title='before', equal_aspect=False)
+        >>> pt.plot2(domain, arr, 'r-', fnum=1, pnum=(2, 1, 2), title='after monotonization (increasing)', equal_aspect=False)
+        >>> ut.show_if_requested()
+    """
     arr = arr_.copy()
     size = len(arr)
     # Ensure increasing from right
-    for lx in range(1, size):
-        rx = (size - lx - 1)
-        if arr[rx] > arr[rx + 1]:
-            arr[rx] = arr[rx + 1]
-    # ensure increasing from left
-    for lx in range(0, size - 1):
-        if arr[lx] > arr[lx + 1]:
-            arr[lx + 1] = arr[lx]
+    if fromright:
+        for lx in range(1, size):
+            rx = (size - lx - 1)
+            if arr[rx] > arr[rx + 1]:
+                arr[rx] = arr[rx + 1]
+    if fromleft:
+        # ensure increasing from left
+        for lx in range(0, size - 1):
+            if arr[lx] > arr[lx + 1]:
+                arr[lx + 1] = arr[lx]
     return arr
 
 
-def ensure_monotone_decreasing(arr_):
+def ensure_monotone_decreasing(arr_, fromleft=True, fromright=True):
+    r"""
+    Args:
+        arr_ (ndarray):
+
+    Returns:
+        ndarray: arr
+
+    CommandLine:
+        python -m vtool.math --test-ensure_monotone_decreasing --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.math import *  # NOQA
+        >>> np.random.seed(0)
+        >>> size_ = 100
+        >>> domain = np.arange(size_)
+        >>> arr_ = np.sin(np.pi * (domain / 100) - 2.3) + (np.random.rand(len(domain)) - .5) * .1
+        >>> arr = ensure_monotone_decreasing(arr_, fromright=True, fromleft=False)
+        >>> result = str(arr)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.plot2(domain, arr_, 'r-', fnum=1, pnum=(2, 1, 1), title='before', equal_aspect=False)
+        >>> pt.plot2(domain, arr, 'r-', fnum=1, pnum=(2, 1, 2), title='after monotonization (decreasing)', equal_aspect=False)
+        >>> ut.show_if_requested()
+    """
     arr = arr_.copy()
     size = len(arr)
-    # Ensure decreasing from right
-    for lx in range(1, size):
-        rx = (size - lx - 1)
-        if arr[rx] < arr[rx + 1]:
-            arr[rx] = arr[rx + 1]
-    # ensure increasing from left
-    for lx in range(0, size - 1):
-        if arr[lx] > arr[lx + 1]:
-            arr[lx + 1] = arr[lx]
+    if fromright:
+        # Ensure decreasing from right
+        for lx in range(1, size):
+            rx = (size - lx - 1)
+            if arr[rx] < arr[rx + 1]:
+                arr[rx] = arr[rx + 1]
+    if fromleft:
+        # ensure increasing from left
+        for lx in range(0, size - 1):
+            if arr[lx] > arr[lx + 1]:
+                arr[lx + 1] = arr[lx]
     return arr
 
 

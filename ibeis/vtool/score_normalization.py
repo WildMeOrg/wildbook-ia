@@ -9,7 +9,7 @@ print, rrr, profile = utool.inject2(__name__, '[scorenorm]', DEBUG=False)
 
 def learn_score_normalization(tp_support, tn_support, gridsize=1024,
                               adjust=8, return_all=False, monotonize=True,
-                              clip_factor=(ut.PHI + 1), verbose=True):
+                              clip_factor=(ut.PHI + 1), verbose=True, reverse=False):
     r"""
     Takes collected data and applys parzen window density estimation and bayes rule.
 
@@ -179,7 +179,7 @@ def normalize_scores(score_domain, p_tp_given_score, scores):
 
 def test_score_normalization(tp_support, tn_support, with_scores=True,
                              verbose=True, with_roc=True,
-                             with_precision_recall=False):
+                             with_precision_recall=False, figtitle=None, normkw_varydict={}):
     """
     Gives an overview of how well threshold can be learned from raw scores.
 
@@ -245,7 +245,10 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
 
         pt.adjust_subplots(hspace=.3, bottom=.05, left=.05)
 
-        pt.set_figtitle('ScoreNorm test' + ut.dict_str(normkw, newlines=False))
+        if figtitle is not None:
+            pt.set_figtitle(figtitle)
+        else:
+            pt.set_figtitle('ScoreNorm test' + ut.dict_str(normkw, newlines=False))
 
         #confusions = get_confusion_metrics()
     locals_ = locals()
