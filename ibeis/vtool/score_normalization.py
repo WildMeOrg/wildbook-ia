@@ -58,10 +58,6 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024,
         max_score = clip_score
     clip_score = max_score
     score_domain = np.linspace(min_score, max_score, gridsize)
-    print('clip_factor = %r' % (clip_factor,))
-    print('max_score = %r' % (max_score,))
-    print('min_score = %r' % (min_score,))
-    print('score_domain (CREATE) = %r' % (score_domain,))
     # Evaluate true negative density
     if verbose:
         print('[scorenorm] evaluating density')
@@ -281,9 +277,6 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
             print('plotting pdfs')
         fnum = pt.next_fnum()
 
-        print(ut.get_stats_str(score_domain))
-        print('score_domainFIRST = %r' % (score_domain,))
-
         inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
                      p_tn_given_score, p_score_given_tp, p_score_given_tn,
                      p_score, with_scores=with_scores, with_roc=with_roc,
@@ -309,7 +302,6 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
     Shows plots of learned thresholds
     """
     import plottool as pt  # NOQA
-    print('score_domainINSPECT = %r' % (score_domain,))
 
     if fnum is None:
         fnum = pt.next_fnum()
