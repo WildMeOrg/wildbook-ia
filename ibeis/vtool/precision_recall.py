@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# TODO: rename to confusions.py
+
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
@@ -84,6 +86,10 @@ class ConfusionMetrics(object):
         self.tpr = tpr
         self.ppv = ppv
 
+    # --------------
+    # Construtors
+    # --------------
+
     @classmethod
     def from_scores_and_labels(cls, scores, labels):
         self = get_confusion_metrics(scores, labels)
@@ -95,6 +101,10 @@ class ConfusionMetrics(object):
         labels = np.array([True] * len(tp_scores) + [False] * len(tn_scores))
         self = get_confusion_metrics(scores, labels)
         return self
+
+    # --------------
+    # Visualizations
+    # --------------
 
     def draw_roc_curve(self, **kwargs):
         title_suffix = ', FPR95=%05.2f%%' % (self.get_fpr_at_95_recall() * 100.,)
