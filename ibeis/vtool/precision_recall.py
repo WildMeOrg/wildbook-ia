@@ -10,57 +10,6 @@ import scipy.interpolate
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[precision_recall]', DEBUG=False)
 
 
-#def get_interpolated_precision_vs_recall(scores, labels):
-#    tup = get_precision_recall_curve(scores, labels)
-#    _, precision, recall  = tup
-#    recall_domain, p_interp = interpolate_precision_recall(precision, recall)
-#    return recall_domain, p_interp
-
-
-#def get_average_percision(qres, ibs=None, gt_aids=None):
-#    """
-#    gets average percision using the PASCAL definition
-
-#    FIXME: Use only the groundtruth that could have been matched in the
-#    database. (shouldn't be an issue until we start using daid subsets)
-
-#    References:
-#        http://en.wikipedia.org/wiki/Information_retrieval
-
-#    """
-#    recall_domain, p_interp = get_interpolated_precision_vs_recall(qres, ibs=ibs, gt_aids=gt_aids)
-
-#    if recall_domain is None:
-#        ave_p = np.nan
-#    else:
-#        ave_p = p_interp.sum() / p_interp.size
-
-#    return ave_p
-
-
-#def get_nTruePositive(atrank, was_retrieved, gt_ranks):
-#    """ the number of documents we got right """
-#    TP = (np.logical_and(was_retrieved, gt_ranks <= atrank)).sum()
-#    return TP
-
-
-#def get_nFalseNegative(TP, nGroundTruth):
-#    """ the number of documents we should have retrieved but didn't """
-#    #FN = min((atrank + 1) - TP, nGroundTruth - TP)
-#    #nRetreived = (atrank + 1)
-#    FN = nGroundTruth - TP
-#    #min(atrank, nGroundTruth - TP)
-#    return FN
-
-
-#def get_nFalsePositive(TP, atrank):
-#    """ the number of documents we should not have retrieved """
-#    #FP = min((atrank + 1) - TP, nGroundTruth)
-#    nRetreived = (atrank + 1)
-#    FP = nRetreived - TP
-#    return FP
-
-
 def testdata_scores_labels():
     scores = [2,  3,  4,  6,  9,  9, 13, 17, 19, 22, 22, 23, 26, 26, 34, 59, 63, 75, 80, 81, 89]
     labels = [0,  0,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1,  1,  1]
@@ -291,14 +240,17 @@ def get_confusion_metrics(scores, labels):
         return recall
 
     precision = get_precision(tp, fp)
+    precision[np.isnan(precision)] = 1.0
+    #precision = np.nan_to_num(precision)
     recall    = get_recall(tp, fn)
     # False positive rate (fall-out)
-    fpr = fp / (fp + tn)
-    tpr = recall
+    fall_out = fp / (fp + tn)
+    fpr = fpr_curve
+    tpr = tpr_curve
     ppv = precision
 
     assert np.allclose(tpr_curve, recall)
-    assert np.allclose(fpr_curve, fpr)
+    assert np.allclose(fpr_curve, fall_out)
 
     confusions = ConfusionMetrics(thresholds, tp, fp, fn, tn, fpr, tpr, ppv)
 

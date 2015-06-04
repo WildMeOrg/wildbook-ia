@@ -44,7 +44,7 @@ def draw_border(img_in, color=(0, 128, 255), thickness=2, out=None):
     r"""
     Args:
         img_in (ndarray[uint8_t, ndim=2]):  image data
-        color (tuple):
+        color (tuple): in bgr
         thickness (int):
         out (None):
 

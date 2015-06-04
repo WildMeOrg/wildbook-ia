@@ -729,7 +729,8 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1, thickness=2,
     """
 
     CommandLine:
-        python -m vtool.image --test-draw_text --show
+        python -m vtool.image --test-draw_text:0 --show
+        python -m vtool.image --test-draw_text:1 --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -738,6 +739,33 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1, thickness=2,
         >>> font_names = sorted([key for key in cv2.__dict__.keys() if key.startswith('FONT_H')])
         >>> text = 'opencv'
         >>> img = np.zeros((400, 1024), dtype=np.uint8)
+        >>> thickness = 2
+        >>> fontScale = 1.0
+        >>> lineType = 4
+        >>> lineType = 8
+        >>> lineType = cv2.CV_AA
+        >>> for count, font_name in enumerate(font_names, start=1):
+        >>>     print(font_name)
+        >>>     fontFace = cv2.__dict__[font_name]
+        >>>     org = (10, count * 45)
+        >>>     text = 'opencv - ' + font_name
+        >>>     vt.draw_text(img, text, org,
+        ...                  fontFace=fontFace, textcolor_rgb=[255, 255, 255],
+        ...                  fontScale=fontScale, thickness=thickness)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(img)
+        >>> ut.show_if_requested()
+
+    Example1:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> font_names = sorted([key for key in cv2.__dict__.keys() if key.startswith('FONT_H')])
+        >>> text = 'opencv'
+        >>> img = np.zeros((400, 1024, 3), dtype=np.uint8)
+        >>> img[:200, :512, 0] = 255
+        >>> img[200:, 512:, 2] = 255
         >>> thickness = 2
         >>> fontScale = 1.0
         >>> lineType = 4

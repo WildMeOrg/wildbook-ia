@@ -119,7 +119,12 @@ class ScoreNormalizer(object):
         return scores
 
     def normalize_scores(encoder, X):
+        is_iterable = ut.isiterable(X)
+        if not is_iterable:
+            X = np.array([X])
         prob = normalize_scores(encoder.score_domain, encoder.p_tp_given_score, X, interp_fn=encoder.interp_fn)
+        if not is_iterable:
+            prob = prob[0]
         return prob
 
     def predict(encoder, X):
@@ -161,13 +166,22 @@ class ScoreNormalizer(object):
             dict(
                 with_scores=True,
                 with_roc=True,
+                with_precision_recall=True,
+                fnum=None,
+                figtitle=None,
+                interactive=None,
             ), kwargs)
-        inspect_pdfs(encoder.support['tn_support'], encoder.support['tp_support'],
-                     encoder.score_domain, encoder.p_tp_given_score,
-                     encoder.p_tn_given_score, encoder.p_score_given_tp,
-                     encoder.p_score_given_tn, encoder.p_score,
-                     learned_thresh=encoder.learned_thresh,
-                     **inspect_kw)
+        prob_thresh = encoder.learned_thresh
+        score_thresh = encoder.inverse_normalize(prob_thresh)
+        inter = inspect_pdfs(
+            encoder.support['tn_support'], encoder.support['tp_support'],
+            encoder.score_domain, encoder.p_tp_given_score,
+            encoder.p_tn_given_score, encoder.p_score_given_tp,
+            encoder.p_score_given_tn, encoder.p_score, prob_thresh=prob_thresh,
+            score_thresh=score_thresh, **inspect_kw)
+        import plottool as pt
+        pt.adjust_subplots(bottom=.06, left=.06, right=.97, wspace=.25, hspace=.25, top=.9)
+        return inter
 
 
 def learn_score_normalization(tp_support, tn_support,
@@ -232,10 +246,10 @@ def learn_score_normalization(tp_support, tn_support,
             print('[scorenorm] monotonizing')
         if reverse:
             p_tp_given_score = vt.ensure_monotone_strictly_decreasing(
-                p_tp_given_score, left_endpoint=0.0, right_endpoint=1.0)
+                p_tp_given_score, left_endpoint=1.0, right_endpoint=0.0)
         else:
             p_tp_given_score = vt.ensure_monotone_strictly_increasing(
-                p_tp_given_score, left_endpoint=1.0, right_endpoint=0.0)
+                p_tp_given_score, left_endpoint=0.0, right_endpoint=1.0)
     if return_all:
         p_tn_given_score = 1 - p_tp_given_score
         return (score_domain, p_tp_given_score, p_tn_given_score,
@@ -387,6 +401,178 @@ def normalize_scores(score_domain, p_tp_given_score, scores, interp_fn=None):
     return prob
 
 
+# --------
+# Plotting
+# --------
+
+
+def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
+                 p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score,
+                 prob_thresh=None, score_thresh=None,
+                 with_scores=False, with_roc=False,
+                 with_precision_recall=False, fnum=None, figtitle=None, interactive=None):
+    """
+    Shows plots of learned thresholds
+    """
+    import plottool as pt  # NOQA
+
+    if fnum is None:
+        fnum = pt.next_fnum()
+
+    with_normscore = True
+    with_prebayes = True
+    with_postbayes = True
+
+    nSubplots = (with_normscore + with_prebayes + with_postbayes +
+                 with_scores + with_roc + with_precision_recall)
+    if True:
+        nRows, nCols = pt.get_square_row_cols(nSubplots)
+    else:
+        nRows = nSubplots
+        nCols = 1
+    _pnumiter = pt.make_pnum_nextgen(nRows=nRows, nCols=nCols, nSubplots=nSubplots)
+
+    import plottool.interactions
+
+    inter = plottool.interactions.ExpandableInteraction(fnum, _pnumiter)
+
+    import vtool as vt
+    scores = np.hstack([tn_support, tp_support])
+    labels = np.array([False] * len(tn_support) + [True] * len(tp_support))
+
+    #c
+    # probs = encoder.normalize_scores(scores)
+    probs = normalize_scores(score_domain, p_tp_given_score, scores)
+
+    confusions = vt.get_confusion_metrics(probs, labels)
+    #print('fpr@.95 recall = %r' % (confusions.get_fpr_at_95_recall(),))
+    print('fpp@95 recall = %05.2f%%' % (confusions.get_fpr_at_95_recall() * 100,))
+
+    def _support(fnum, pnum):
+        plot_support(tn_support, tp_support, fnum=fnum, pnum=pnum,
+                     markersizes=[5, 5], score_markers=['^', 'v'],
+                     score_label='score', threshold_value=score_thresh)
+
+    def _normalized_support(fnum, pnum):
+        tp_probs = probs[labels]
+        tn_probs = probs[np.logical_not(labels)]
+        plot_support(tn_probs, tp_probs, fnum=fnum, pnum=pnum,
+                     markersizes=[5, 5], score_markers=['^', 'v'],
+                     score_label='prob', threshold_value=prob_thresh)
+        #ax = pt.gca()
+        #max_score = max(tn_support.max(), tp_support.max())
+        #ax.set_ylim(-max_score, max_score)
+
+    def _prebayes(fnum, pnum):
+        plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
+                          cfgstr='', fnum=fnum, pnum=pnum)
+
+    def _postbayes(fnum, pnum):
+        plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score, prob_thresh=prob_thresh,
+                           cfgstr='', fnum=fnum, pnum=pnum)
+    def _roc(fnum, pnum):
+        confusions.draw_roc_curve(fnum=fnum, pnum=pnum)
+
+    def _precision_recall(fnum, pnum):
+        confusions.draw_precision_recall_curve(fnum=fnum, pnum=pnum)
+
+    if with_scores:
+        inter.append_plot(_support)
+    if with_prebayes:
+        inter.append_plot(_prebayes)
+    if with_postbayes:
+        inter.append_plot(_postbayes)
+    if with_normscore:
+        inter.append_plot(_normalized_support)
+    if with_roc:
+        inter.append_plot(_roc)
+    if with_precision_recall:
+        inter.append_plot(_precision_recall)
+
+    inter.show_page()
+
+    if figtitle is not None:
+        pt.set_figtitle(figtitle)
+
+    return inter
+
+
+def plot_support(tn_support, tp_support, fnum=None, pnum=(1, 1, 1), score_label='score', **kwargs):
+    r"""
+    Args:
+        tn_support (ndarray):
+        tp_support (ndarray):
+        fnum (int):  figure number
+        pnum (tuple):  plot number
+
+    CommandLine:
+        python -m ibeis.model.hots.score_normalization --test-plot_support
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots.score_normalization import *  # NOQA
+        >>> tn_support = '?'
+        >>> tp_support = '?'
+        >>> fnum = None
+        >>> pnum = (1, 1, 1)
+        >>> result = plot_support(tn_support, tp_support, fnum, pnum)
+        >>> print(result)
+    """
+    import plottool as pt  # NOQA
+    if fnum is None:
+        fnum = pt.next_fnum()
+    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+    false_color = pt.FALSE_RED
+    pt.plots.plot_sorted_scores(
+        (tn_support, tp_support),
+        ('trueneg', 'truepos'),
+        score_colors=(false_color, true_color),
+        #logscale=True,
+        logscale=False,
+        fnum=fnum,
+        pnum=pnum,
+        score_label=score_label,
+        **kwargs)
+
+
+def plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
+                      cfgstr='', fnum=None, pnum=(1, 1, 1)):
+    import plottool as pt  # NOQA
+    if fnum is None:
+        fnum = pt.next_fnum()
+    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+    false_color = pt.FALSE_RED
+    #unknown_color = pt.UNKNOWN_PURP
+    unknown_color = pt.PURPLE2
+    #unknown_color = pt.GRAY
+
+    pt.plots.plot_probabilities(
+        (p_score_given_tn,  p_score_given_tp, p_score),
+        ('p(score | tn)', 'p(score | tp)', 'p(score)'),
+        prob_colors=(false_color, true_color, unknown_color),
+        figtitle='pre_bayes pdf score',
+        xdata=score_domain,
+        fnum=fnum,
+        pnum=pnum)
+
+
+def plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score, prob_thresh=None,
+                       cfgstr='', fnum=None, pnum=(1, 1, 1)):
+    import plottool as pt  # NOQA
+    if fnum is None:
+        fnum = pt.next_fnum()
+    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+    false_color = pt.FALSE_RED
+
+    pt.plots.plot_probabilities(
+        (p_tn_given_score, p_tp_given_score),
+        ('p(tn | score)', 'p(tp | score)'),
+        prob_colors=(false_color, true_color,),
+        figtitle='post_bayes pdf score ' + cfgstr,
+        xdata=score_domain, fnum=fnum, pnum=pnum,
+        prob_thresh=prob_thresh)
+
+
 # DEBUGGING FUNCTIONS
 
 
@@ -462,173 +648,6 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
         #confusions = get_confusion_metrics()
     locals_ = locals()
     return locals_
-
-
-# --------
-# Plotting
-# --------
-
-
-def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
-                 p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score,
-                 learned_thresh=None,
-                 with_scores=False, with_roc=False,
-                 with_precision_recall=False, fnum=None):
-    """
-    Shows plots of learned thresholds
-    """
-    import plottool as pt  # NOQA
-
-    if fnum is None:
-        fnum = pt.next_fnum()
-
-    with_normscore = True
-    with_prebayes = True
-    with_postbayes = True
-
-    nSubplots = (with_normscore + with_prebayes + with_postbayes +
-                 with_scores + with_roc + with_precision_recall)
-    if True:
-        nRows, nCols = pt.get_square_row_cols(nSubplots)
-    else:
-        nRows = nSubplots
-        nCols = 1
-    _pnumiter = pt.make_pnum_nextgen(nRows=nRows, nCols=nCols, nSubplots=nSubplots)
-
-    import plottool.interactions
-
-    inter = plottool.interactions.ExpandableInteraction(fnum, _pnumiter)
-
-    import vtool as vt
-    scores = np.hstack([tn_support, tp_support])
-    labels = np.array([False] * len(tn_support) + [True] * len(tp_support))
-
-    probs = normalize_scores(score_domain, p_tp_given_score, scores)
-
-    confusions = vt.get_confusion_metrics(probs, labels)
-    #print('fpr@.95 recall = %r' % (confusions.get_fpr_at_95_recall(),))
-    print('fpp@95 recall = %05.2f%%' % (confusions.get_fpr_at_95_recall() * 100,))
-
-    def _support(fnum, pnum):
-        plot_support(tn_support, tp_support, fnum=fnum, pnum=pnum,
-                     markersizes=[5, 5], score_markers=['^', 'v'], score_label='score')
-
-    def _normalized_support(fnum, pnum):
-        tp_probs = probs[labels]
-        tn_probs = probs[np.logical_not(labels)]
-        plot_support(tn_probs, tp_probs, fnum=fnum, pnum=pnum,
-                     markersizes=[5, 5], score_markers=['^', 'v'],
-                     score_label='prob', learned_thresh=learned_thresh)
-        #ax = pt.gca()
-        #max_score = max(tn_support.max(), tp_support.max())
-        #ax.set_ylim(-max_score, max_score)
-
-    def _prebayes(fnum, pnum):
-        plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
-                          cfgstr='', fnum=fnum, pnum=pnum)
-
-    def _postbayes(fnum, pnum):
-        plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score, learned_thresh=learned_thresh,
-                           cfgstr='', fnum=fnum, pnum=pnum)
-    def _roc(fnum, pnum):
-        confusions.draw_roc_curve(fnum=fnum, pnum=pnum)
-
-    def _precision_recall(fnum, pnum):
-        confusions.draw_precision_recall_curve(fnum=fnum, pnum=pnum)
-
-    if with_scores:
-        inter.append_plot(_support)
-    if with_prebayes:
-        inter.append_plot(_prebayes)
-    if with_postbayes:
-        inter.append_plot(_postbayes)
-    if with_normscore:
-        inter.append_plot(_normalized_support)
-    if with_roc:
-        inter.append_plot(_roc)
-    if with_precision_recall:
-        inter.append_plot(_precision_recall)
-
-    inter.show_page()
-
-
-def plot_support(tn_support, tp_support, fnum=None, pnum=(1, 1, 1), score_label='score', **kwargs):
-    r"""
-    Args:
-        tn_support (ndarray):
-        tp_support (ndarray):
-        fnum (int):  figure number
-        pnum (tuple):  plot number
-
-    CommandLine:
-        python -m ibeis.model.hots.score_normalization --test-plot_support
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.score_normalization import *  # NOQA
-        >>> tn_support = '?'
-        >>> tp_support = '?'
-        >>> fnum = None
-        >>> pnum = (1, 1, 1)
-        >>> result = plot_support(tn_support, tp_support, fnum, pnum)
-        >>> print(result)
-    """
-    import plottool as pt  # NOQA
-    if fnum is None:
-        fnum = pt.next_fnum()
-    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
-    false_color = pt.FALSE_RED
-    pt.plots.plot_sorted_scores(
-        (tn_support, tp_support),
-        ('trueneg', 'truepos'),
-        score_colors=(false_color, true_color),
-        #logscale=True,
-        logscale=False,
-        fnum=fnum,
-        pnum=pnum,
-        score_label=score_label,
-        **kwargs)
-
-
-def plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
-                      cfgstr='', fnum=None, pnum=(1, 1, 1)):
-    import plottool as pt  # NOQA
-    if fnum is None:
-        fnum = pt.next_fnum()
-    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
-    false_color = pt.FALSE_RED
-    #unknown_color = pt.UNKNOWN_PURP
-    unknown_color = pt.PURPLE2
-    #unknown_color = pt.GRAY
-
-    pt.plots.plot_probabilities(
-        (p_score_given_tn,  p_score_given_tp, p_score),
-        ('p(score | tn)', 'p(score | tp)', 'p(score)'),
-        prob_colors=(false_color, true_color, unknown_color),
-        figtitle='pre_bayes pdf score',
-        xdata=score_domain,
-        fnum=fnum,
-        pnum=pnum)
-
-
-def plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score, learned_thresh=None,
-                       cfgstr='', fnum=None, pnum=(1, 1, 1)):
-    import plottool as pt  # NOQA
-    if fnum is None:
-        fnum = pt.next_fnum()
-    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
-    false_color = pt.FALSE_RED
-    print('score_domainPDF = %r' % (score_domain,))
-
-    pt.plots.plot_probabilities(
-        (p_tn_given_score, p_tp_given_score),
-        ('p(tn | score)', 'p(tp | score)'),
-        prob_colors=(false_color, true_color,),
-        figtitle='post_bayes pdf score ' + cfgstr,
-        xdata=score_domain, fnum=fnum, pnum=pnum)
-
-    if learned_thresh is not None:
-        pt.plot(score_domain, [learned_thresh] * len(score_domain), 'g-')
 
 
 if __name__ == '__main__':
