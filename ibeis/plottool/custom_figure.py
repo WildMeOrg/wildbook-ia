@@ -119,6 +119,7 @@ def figure(fnum=None, docla=False, title=None, pnum=(1, 1, 1), figtitle=None,
         ax = gca()
         set_title(title, ax=ax)
         # Add title to figure
+        # HACK HACK HACK
         if figtitle is None and pnum == (1, 1, 1):
             figtitle = title
         if figtitle is not None:
@@ -181,7 +182,7 @@ def sanitize_img_ext(ext, defaultext=None):
 
 def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose):
     if fpath is None:
-        # Find the title
+        # Find the title if no fpath given
         fpath = sanitize_img_fname(fig.canvas.get_window_title())
     elif usetitle:
         title = sanitize_img_fname(fig.canvas.get_window_title())

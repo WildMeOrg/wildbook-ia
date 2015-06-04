@@ -186,6 +186,7 @@ def plot_probabilities(prob_list,
                        prob_lbls=None,
                        prob_colors=None,
                        xdata=None,
+                       prob_thresh=None,
                        figtitle='plot_probabilities',
                        fnum=None,
                        pnum=(1, 1, 1)):
@@ -223,6 +224,12 @@ def plot_probabilities(prob_list,
         df2.plot(xdata, ydata, color=color, label=label, alpha=.7)
         #ut.embed()
         #help(df2.plot)
+
+    if prob_thresh is not None:
+        df2.plot(xdata, [prob_thresh] * len(xdata), 'g-', label='prob thresh')
+
+    ax = df2.gca()
+    ax.set_xlim(xdata.min(), xdata.max())
     df2.set_xlabel('score value')
     df2.set_ylabel('probability')
     df2.dark_background()
@@ -244,7 +251,9 @@ def plot_sorted_scores(scores_list,
                        fnum=None,
                        pnum=(1, 1, 1),
                        logscale=True,
-                       figtitle='plot_sorted_scores'):
+                       figtitle=None,
+                       score_label='score',
+                       threshold_value=None):
     """
     Concatenates and sorts the scores
     Sorts and plots with different types of scores labeled
@@ -283,6 +292,8 @@ def plot_sorted_scores(scores_list,
         >>> ut.show_if_requested()
         >>> print(result)
     """
+    if figtitle is None:
+        figtitle = 'sorted ' + score_label
     if scores_lbls is None:
         scores_lbls = [lblx for lblx in range(len(scores_list))]
     if score_markers is None:
@@ -328,11 +339,20 @@ def plot_sorted_scores(scores_list,
         df2.plot(xdata, ydata, marker, color=color, label=label, alpha=.7,
                  markersize=markersize)
 
+    if threshold_value is not None:
+        indicies = np.arange(len(sorted_labelx))
+        #print('indicies.shape = %r' % (indicies.shape,))
+        df2.plot(indicies, [threshold_value] * len(indicies), 'g-', label='thresh')
+
     if logscale:
         set_logyscale_from_data(sorted_scores)
 
-    df2.set_xlabel('sorted score indices')
-    df2.set_ylabel('score values')
+    ax = df2.gca()
+    # dont let xlimit go far over the number of labels
+    ax.set_xlim(0, len(sorted_labelx) + 1)
+
+    df2.set_xlabel('sorted ' +  score_label + ' indices')
+    df2.set_ylabel(score_label)
     df2.dark_background()
     df2.set_title(figtitle)
     df2.legend(loc='upper left')

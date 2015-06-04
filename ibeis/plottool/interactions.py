@@ -4,9 +4,10 @@ import plottool.interact_helpers as ih
 
 
 class ExpandableInteraction(abstract_interaction.AbstractInteraction):
-    def __init__(self, fnum=None, _pnumiter=None):
+    def __init__(self, fnum=None, _pnumiter=None, interactive=None):
         self._pnumiter = _pnumiter
         self.pnum_list = []
+        self.interactive = interactive
         self.func_list = []
         if fnum is None:
             fnum = pt.next_fnum()
@@ -23,7 +24,10 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
             func(self.fnum, pnum)
             ax = pt.gca()
             pt.set_plotdat(ax, 'plot_func', func)
-        ih.connect_callback(fig, 'button_press_event', self.onclick)
+        if self.interactive is None or self.interactive:
+            ih.connect_callback(fig, 'button_press_event', self.onclick)
+        self.fig = fig
+        return fig
 
     def onclick(self, event):
         print('[inter] clicked in expandable interact')

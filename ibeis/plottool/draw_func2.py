@@ -468,10 +468,15 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
           equal_aspect=True, pad=0, label='', fnum=None, pnum=None, *args,
           **kwargs):
     """
+    don't forget to call pt.legend
 
     Kwargs:
         linewidth (float):
     """
+    if x_data is None:
+        warnstr = '[df2] ! Warning:  x_data is None'
+        print(warnstr)
+        x_data = np.arange(len(y_data))
     if fnum is not None or pnum is not None:
         figure(fnum=fnum, pnum=pnum)
     do_plot = True
@@ -1760,6 +1765,9 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
             cmap = 'hot'
         colors = scores_to_color(scores, cmap)
         colorbar(scores, colors)
+
+    if figtitle is not None:
+        custom_figure.set_figtitle(figtitle)
     if update:
         fig_presenter.update()
     return fig, ax
@@ -2222,6 +2230,17 @@ def make_ori_legend_img():
     return img_BGR
 
 
+def testdata_imglist():
+    # build test data
+    img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
+    img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
+    img3 = vt.imread(ut.grab_test_imgpath('ada.jpg'))
+    img4 = vt.imread(ut.grab_test_imgpath('jeff.png'))
+    img5 = vt.imread(ut.grab_test_imgpath('star.png'))
+    img_list = [img1, img2, img3, img4, img5]
+    return img_list
+
+
 def stack_image_list_special(img1, img_list, num=1, vert=True):
     r"""
     CommandLine:
@@ -2230,13 +2249,9 @@ def stack_image_list_special(img1, img_list, num=1, vert=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
-        >>> # build test data
-        >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
-        >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
-        >>> img3 = vt.imread(ut.grab_test_imgpath('ada.jpg'))
-        >>> img4 = vt.imread(ut.grab_test_imgpath('jeff.png'))
-        >>> img5 = vt.imread(ut.grab_test_imgpath('star.png'))
-        >>> img_list = [img2, img3, img4, img5]
+        >>> img_list_ = testdata_imglist()
+        >>> img1 = img_list_[0]
+        >>> img_list = img_list_[1:]
         >>> vert = True
         >>> return_offset = True
         >>> num_bot = 1
@@ -2298,22 +2313,74 @@ def stack_multi_images(img1, img2, offset_list1, sf_list1, offset_list2, sf_list
     return imgB, offset_listB, sf_listB
 
 
-def combine_offset_lists(offsets_list, sfs_list, offset_tup, sf_tup):
+def stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert=True):
+    r"""
+    Args:
+        multiimg_list (list):
+        offset_lists (?):
+        sfs_list (?):
+        vert (bool):
+
+    Returns:
+        tuple: (stacked_img, stacked_img, stacked_sfs)
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-stack_multi_images2 --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> img_list = testdata_imglist()
+        >>> img_stack1, offset_list1, sf_list1 = stack_image_list(img_list[::-1], vert=True, return_info=True, modifysize=True)
+        >>> img_stack2, offset_list2, sf_list2 = stack_image_list(img_list, vert=True, return_info=True, modifysize=True)
+        >>> img_stack3, offset_list3, sf_list3 = stack_image_list(img_list, vert=True, return_info=True, modifysize=False)
+        >>> multiimg_list = [img_stack1, img_stack2, img_stack3]
+        >>> offsets_list  = [offset_list1, offset_list2, offset_list3]
+        >>> sfs_list      = [sf_list1, sf_list2, sf_list3]
+        >>> vert = False
+        >>> (stacked_img, stacked_offsets, stacked_sfs) = stack_multi_images2(multiimg_list, offsets_list, sfs_list, vert)
+        >>> result = ut.remove_doublspaces(ut.numpy_str(np.array(stacked_offsets).T, precision=2, max_line_width=10000)).replace(' ,', ',')
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(stacked_img)
+        >>> wh_list = np.array([vt.get_size(img) for img in img_list[::-1] + img_list + img_list])
+        >>> wh_list_ = wh_list * stacked_sfs
+        >>> for offset, wh, color in zip(stacked_offsets, wh_list_, pt.distinct_colors(len(stacked_offsets))):
+        ...    draw_bbox((offset[0], offset[1], wh[0], wh[1]), bbox_color=color)
+        >>> ut.show_if_requested()
+        np.array([[ 0., 0., 0., 0., 0., 512., 512., 512., 512., 512., 1024., 1024., 1024., 1024., 1024. ],
+         [ 0., 512.12, 1024.25, 1827., 2339., 0., 427., 939., 1742., 2254., 0., 250., 762., 1389., 1789. ]], dtype=np.float64)
+
+    """
+    stacked_img, offset_tups, sf_tups = stack_image_list(multiimg_list, return_sf=True, return_offset=True, vert=vert)
+    stacked_offsets, stacked_sfs = combine_offset_lists(offsets_list, sfs_list, offset_tups, sf_tups)
+    return stacked_img, stacked_offsets, stacked_sfs
+
+
+def combine_offset_lists(offsets_list, sfs_list, offset_tups, sf_tups):
     # combine the offsets
+    import operator
+    from six.moves import reduce
+
+    assert len(offsets_list) == len(offset_tups)
+    assert len(sfs_list) == len(sf_tups)
+    assert len(sfs_list) == len(offsets_list)
+
     def mult_tuplelist(tuple_list, scale_xy):
         return [(tup[0] * scale_xy[0], tup[1] * scale_xy[1]) for tup in tuple_list]
+
     def add_tuplelist(tuple_list, offset_xy):
         return [(tup[0] + offset_xy[0], tup[1] + offset_xy[1]) for tup in tuple_list]
 
     offset_lists_ = [
-        add_tuplelist(mult_tuplelist(offset_list, sf_tup[ix]), offset_tup[ix])
-        for ix, offset_list in enumerate(offsets_list)
+        add_tuplelist(mult_tuplelist(offsets, sf_tups[ix]), offset_tups[ix])
+        for ix, offsets in enumerate(offsets_list)
     ]
     sf_lists_ = [
-        mult_tuplelist(sf_list, sf_tup[ix])
-        for ix, sf_list in enumerate(sfs_list)
+        mult_tuplelist(sfs, sf_tups[ix])
+        for ix, sfs in enumerate(sfs_list)
     ]
-    import operator
 
     offset_listB = reduce(operator.add, offset_lists_)
     sf_listB = reduce(operator.add, sf_lists_)
@@ -2359,7 +2426,7 @@ def stack_square_images(img_list, return_info=False):
         return bigpatch
 
 
-def stack_image_list(img_list, return_offset=False, return_sf=False, **kwargs):
+def stack_image_list(img_list, return_offset=False, return_sf=False, return_info=False, **kwargs):
     r"""
 
     CommandLine:
@@ -2369,12 +2436,7 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, **kwargs):
         >>> # ENABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
         >>> # build test data
-        >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
-        >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
-        >>> img3 = vt.imread(ut.grab_test_imgpath('ada.jpg'))
-        >>> img4 = vt.imread(ut.grab_test_imgpath('jeff.png'))
-        >>> img5 = vt.imread(ut.grab_test_imgpath('star.png'))
-        >>> img_list = [img1, img2, img3, img4, img5]
+        >>> img_list = testdata_imglist()
         >>> vert = False
         >>> return_offset = True
         >>> modifysize = True
@@ -2382,18 +2444,27 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, **kwargs):
         >>> kwargs = dict(modifysize=modifysize, vert=vert, use_larger=False)
         >>> # execute function
         >>> imgB, offset_list, sf_list = stack_image_list(img_list, return_offset=return_offset, return_sf=return_sf, **kwargs)
-        >>> print(offset_list)
-        >>> print(sf_list)
         >>> # verify results
         >>> ut.quit_if_noshow()
+        >>> result = ut.numpy_str(np.array(offset_list).T, precision=2)
+        >>> print(result)
         >>> import plottool as pt
         >>> pt.imshow(imgB)
+        >>> wh_list = np.array([vt.get_size(img) for img in img_list])
+        >>> wh_list_ = wh_list * sf_list
+        >>> for offset, wh, color in zip(offset_list, wh_list_, pt.distinct_colors(len(offset_list))):
+        ...    draw_bbox((offset[0], offset[1], wh[0], wh[1]), bbox_color=color)
         >>> pt.show_if_requested()
         >>> #wh1 = img1.shape[0:2][::-1]
         >>> #wh2 = img2.shape[0:2][::-1]
         >>> #draw_bbox((0, 0) + wh1, bbox_color=(1, 0, 0))
         >>> #draw_bbox((woff, hoff) + wh2, bbox_color=(0, 1, 0))
+        np.array([[   0.  ,   76.96,  141.08,  181.87,  246.  ],
+                  [   0.  ,    0.  ,    0.  ,    0.  ,    0.  ]], dtype=np.float64)
     """
+    if return_info:
+        return_sf = True
+        return_offset = True
     if len(img_list) == 0:
         imgB = None
         offset_list = []
@@ -2413,6 +2484,7 @@ def stack_image_list(img_list, return_offset=False, return_sf=False, **kwargs):
                 # need to modify scales of previous images
                 sf1, sf2 = sf_tup
                 #sf_list = [np.multiply(sf, sf1) for sf in sf_list]
+                offset_list = [(sf1[0] * offset[0], sf1[1] * offset[1]) for offset in offset_list]
                 sf_list[:count, :] *= sf1
                 sf_list[count, :] = sf2
             else:
