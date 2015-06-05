@@ -180,7 +180,7 @@ def sanitize_img_ext(ext, defaultext=None):
     return ext
 
 
-def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose):
+def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose, dpath=None):
     if fpath is None:
         # Find the title if no fpath given
         fpath = sanitize_img_fname(fig.canvas.get_window_title())
@@ -188,7 +188,9 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose):
         title = sanitize_img_fname(fig.canvas.get_window_title())
         fpath = join(fpath, title)
     # Split into dpath, fname, and extension
-    dpath, fname_ = split(fpath)
+    dpath_, fname_ = split(fpath)
+    if dpath is None:
+        dpath = dpath_
     fname, ext = splitext(fname_)
     # Add the extension back if it wasnt a real extension
     if ext not in ut.IMG_EXTENSIONS and ext != '.pdf':
@@ -196,14 +198,18 @@ def prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose):
         ext = ''
     # Add in DPI information
     #size_suffix = 'DPI=%r_WH=%d,%d' % (custom_constants.DPI, custom_constants.FIGSIZE[0], custom_constants.FIGSIZE[1])
-    size_suffix = 'DPI=%r_WH=%d,%d' % (fig.dpi, int(fig.get_figwidth()), int(fig.get_figheight()))
+    add_render_suffix = False
+    if add_render_suffix:
+        size_suffix = 'DPI=%r_WH=%d,%d' % (fig.dpi, int(fig.get_figwidth()), int(fig.get_figheight()))
+    else:
+        size_suffix = ''
     # Sanatize
     fname = sanitize_img_fname(fname)
     ext = sanitize_img_ext(ext, defaultext)
     # Format safely
     fname_fmt = '{fname}_{size_suffix}{ext}'
     fmt_dict = dict(fname=fname, ext=ext, size_suffix=size_suffix)
-    if verbose > 0:
+    if verbose > 1:
         print('[custom_figure] Formating long name')
     fname_clean = ut.long_fname_format(fname_fmt, fmt_dict, ['size_suffix', 'fname'], max_len=155, hashlen=8)
     # Normalize extension
@@ -229,8 +235,8 @@ def get_image_from_figure(fig):
 
 
 def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwrite=True,
-                defaultext=None, verbose=2, dpi=None, figsize=None, saveax=None,
-                fig=None):
+                defaultext=None, verbose=1, dpi=None, figsize=None, saveax=None,
+                fig=None, dpath=None):
     """
     Helper to save the figure image to disk. Tries to be smart about filename
     lengths, extensions, overwrites, etc...
@@ -263,11 +269,12 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwr
     #print('figsize = %r' % (figsize,))
     fig, fnum = prepare_figure_for_save(fnum, dpi, figsize, fig)
     if fpath_strict is None:
-        fpath_clean = prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose)
+        fpath_clean = prepare_figure_fpath(fig, fpath, fnum, usetitle, defaultext, verbose, dpath)
     else:
         fpath_clean = fpath_strict
     savekw = {'dpi': dpi}
     if verbose > 1:
+        #print('verbose = %r' % (verbose,))
         print('[pt.save_figure] saveax = %r' % (saveax,))
 
     if saveax is not None and saveax is not False:
@@ -307,7 +314,7 @@ def save_figure(fnum=None, fpath=None, fpath_strict=None, usetitle=False, overwr
                 fpathndir = ut.path_ndir_split(fpath_clean, 5)
                 print('[pt.save_figure] save_figure() ndir=%r' % (fpathndir))
             #fig.savefig(fpath_clean)
-            if verbose > 0:
+            if verbose > 1:
                 print('[pt.save_figure] savekw = ' + ut.dict_str(savekw))
             fig.savefig(fpath_clean, **savekw)
         else:
