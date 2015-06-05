@@ -97,6 +97,37 @@ def make_test_image_keypoints(imgBGR, scale=1.0, skew=0, theta=0, shift=(0, 0)):
     return kpts
 
 
+def get_no_symbol():
+    r"""
+    Returns:
+        ndarray: errorimg
+
+    CommandLine:
+        python -m vtool.patch --test-get_no_symbol --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.patch import *  # NOQA
+        >>> errorimg = get_no_symbol()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(errorimg)
+        >>> ut.show_if_requested()
+    """
+    thickness = 2
+    errorimg = np.zeros((100, 100, 3))
+    center = (50, 50)
+    radius = 50 - thickness
+    color_bgr = [0, 0, 255]
+    tau = 2 * np.pi
+    angle = 45 / 360 * tau
+    pt1 = (center[0] - int(np.sin(angle) * radius), center[1] - int(np.cos(angle) * radius))
+    pt2 = (center[0] + int(np.sin(angle) * radius), center[1] + int(np.cos(angle) * radius))
+    cv2.circle(errorimg, center, radius, color_bgr, thickness)
+    cv2.line(errorimg, pt1, pt2, color_bgr, thickness)
+    return errorimg
+
+
 def get_star_patch(jitter=False):
     """ test data patch """
     _, O = .1, .8
