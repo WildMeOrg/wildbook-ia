@@ -245,6 +245,8 @@ def parse_exif_unixtime(image_fpath):
         >>> unixtime = parse_exif_unixtime(image_fpath)
         >>> result = str(unixtime)
         >>> print(result)
+        1325351249
+
         1325369249.0
     """
     import vtool.image as gtool

@@ -205,11 +205,21 @@ def learn_score_normalization(tp_support, tn_support,
     Returns:
         tuple: (score_domain, p_tp_given_score, p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score)
 
+    CommandLine:
+        python -m vtool.score_normalization --test-learn_score_normalization
+
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.model.hots.score_normalization import *  # NOQA
+        >>> from vtool.score_normalization import *  # NOQA
         >>> tp_support = np.linspace(100, 10000, 512)
         >>> tn_support = np.linspace(0, 120, 512)
+        >>> gridsize = 1024
+        >>> adjust = 8
+        >>> return_all = False
+        >>> monotonize = True
+        >>> clip_factor = 2.6180339887499997
+        >>> verbose = True
+        >>> reverse = False
         >>> (score_domain, p_tp_given_score) = learn_score_normalization(tp_support, tn_support)
         >>> result = int(p_tp_given_score.sum())
         >>> print(result)
