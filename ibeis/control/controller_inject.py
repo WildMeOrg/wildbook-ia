@@ -178,6 +178,12 @@ def authentication_hash_validate():
     This function is called to check if a username /
     password combination is valid.
     """
+    def last_occurence_delete(string, character):
+        index = string.rfind(character)
+        if index is None or index < 0:
+            return string
+        return string[:index] + string[index + 1:]
+
     hash_response = str(request.headers.get('Authorization', ''))
     if len(hash_response) == 0:
         return False
@@ -187,8 +193,11 @@ def authentication_hash_validate():
     hash_challenge = get_url_authorization(url)
     hash_challenge_list.append(hash_challenge)
     # If hash at the end of the url, try alternate hash as well
-    if '/' == url[-1]:
-        url = url[:-1]
+    url = last_occurence_delete(url, '/')
+    hash_challenge = get_url_authorization(url)
+    hash_challenge_list.append(hash_challenge)
+    if '?' in url:
+        url.replace('?', '/?')
         hash_challenge = get_url_authorization(url)
         hash_challenge_list.append(hash_challenge)
     return hash_response in hash_challenge_list
