@@ -54,7 +54,8 @@ INSTALL_REQUIRES = [
     'plottool >= 1.0.0.dev1',
     'matplotlib >= 1.3.1',
     'scipy >= 0.13.2',
-    'numpy >= 1.8.0',
+    #'numpy >= 1.8.0',
+    'numpy',    # 1.10 has hard time in comparison
     'Pillow >= 2.4.0',
     'psutil',
     'requests >= 0.8.2',
