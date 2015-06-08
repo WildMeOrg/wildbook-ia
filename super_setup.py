@@ -228,7 +228,7 @@ ut.init_catch_ctrl_c()
 print('[super_setup] Checking third-party-libraries')
 
 TPL_MODULES_AND_REPOS = [
-    ('cv2',     'https://github.com/Erotemic/opencv.git'),
+    #('cv2',     'https://github.com/Erotemic/opencv.git'),
     ('pyflann', 'https://github.com/Erotemic/flann.git'),
     #('yael',    'https://github.com/Erotemic/yael.git'),
     (('PyQt5', 'PyQt4'),   None)
