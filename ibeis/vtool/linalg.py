@@ -170,6 +170,45 @@ def scale_mat3x3(sx, sy=None, dtype=TRANSFORM_DTYPE):
     return S
 
 
+def shear_mat3x3(shear_x, shear_y, dtype=TRANSFORM_DTYPE):
+    shear = np.array([[      1, shear_x, 0],
+                      [shear_y,       1, 0],
+                      [      0,       0, 1]], dtype=dtype)
+    return shear
+
+
+def affine_mat3x3(sx=1, sy=1, theta=0, shear=0, tx=0, ty=0):
+    """
+    Args:
+        shear is angle in counterclockwise direction
+
+    References:
+        https://github.com/scikit-image/scikit-image/blob/master/skimage/transform/_geometric.py
+    """
+    sin1_ = np.sin(theta)
+    cos1_ = np.cos(theta)
+    sin2_ = np.sin(theta + shear)
+    cos2_ = np.cos(theta + shear)
+    Aff = np.array([
+        [sx * cos1_, -sy * sin2_, tx],
+        [sx * sin1_,  sy * cos2_, ty],
+        [        0,            0,  1]
+    ])
+    return Aff
+
+
+def affine_around_mat3x3(x, y, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0):
+    # move to center location
+    tr1_ = translation_mat3x3(-x, -y)
+    # apply affine transform
+    Aff_ = affine_mat3x3(sx, sy, theta, shear, tx, ty)
+    # move to original location
+    tr2_ = translation_mat3x3(x, y)
+    # combine transformations
+    Aff = tr2_.dot(Aff_).dot(tr1_)
+    return Aff
+
+
 @profile
 #@ut.on_exception_report_input(force=True)
 def scaleedoffset_mat3x3(offset, scale_factor):

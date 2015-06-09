@@ -14,6 +14,18 @@ def check_unused_kwargs(kwargs, expected_keys):
         print('unused kwargs keys = %r' % (unused_keys))
 
 
+def testdata_score_normalier():
+    randstate = np.random.RandomState(seed=0)
+    # Get a training sample
+    tp_support = randstate.normal(loc=6.5, size=(256,))
+    tn_support = randstate.normal(loc=3.5, size=(256,))
+    data   = np.hstack((tp_support, tn_support))
+    labels = np.array([True] * len(tp_support) + [False] * len(tn_support))
+    encoder = ScoreNormalizer()
+    encoder.fit(data, labels)
+    return encoder, data, labels
+
+
 @six.add_metaclass(ut.ReloadingMetaclass)
 class ScoreNormalizer(object):
     """
@@ -142,6 +154,18 @@ class ScoreNormalizer(object):
     def get_error_indicies(encoder, X, y):
         """
         Returns the indicies of the most difficult type I and type II errors.
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from vtool.score_normalization import *  # NOQA
+            >>> encoder, X, y = testdata_score_normalier()
+            >>> (fp_indicies, fn_indicies) = encoder.get_error_indicies(X, y)
+            >>> fp_X = X.take(fp_indicies)[0:3]
+            >>> fn_X = X.take(fn_indicies)[0:3]
+            >>> result = 'fp_X = ' + ut.numpy_str2(fp_X) + '\nfn_X = ' + ut.numpy_str2(fn_X)
+            >>> print(result)
+            fp_X = np.array([ 6.196,  5.912,  5.804])
+            fn_X = np.array([ 3.947,  4.277,  4.43 ])
         """
         prob = encoder.normalize_scores(X)
         pred = prob > encoder.learned_thresh
@@ -160,6 +184,73 @@ class ScoreNormalizer(object):
         fp_indicies = fp_indicies_.take(fp_sortx)
         fn_indicies = fn_indicies_.take(fn_sortx)
         return fp_indicies, fn_indicies
+
+    def get_correct_indices(encoder, X, y):
+        r"""
+        Args:
+            X (ndarray):  data
+            y (ndarray):  labels
+
+        Returns:
+            tuple: (fp_indicies, fn_indicies)
+
+        CommandLine:
+            python -m vtool.score_normalization --test-get_correct_indices
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from vtool.score_normalization import *  # NOQA
+            >>> encoder, X, y = testdata_score_normalier()
+            >>> (tp_indicies, tn_indicies) = encoder.get_correct_indices(X, y)
+            >>> tp_X = X.take(tp_indicies)[0:3]
+            >>> tn_X = X.take(tn_indicies)[0:3]
+            >>> result = 'tp_X = ' + ut.numpy_str2(tp_X) + '\ntn_X = ' + ut.numpy_str2(tn_X)
+            >>> print(result)
+            tp_X = np.array([ 8.883,  8.77 ,  8.759])
+            tn_X = np.array([ 0.727,  0.76 ,  0.841])
+        """
+        prob = encoder.normalize_scores(X)
+        pred = prob > encoder.learned_thresh
+        is_correct = pred == y
+        # get indexes of misspredictions
+        correct_indicies = np.where(is_correct)[0]
+        # Separate by Type I and Type II error
+        correct_y = y.take(correct_indicies)
+        tp_indicies_ = correct_indicies.compress(correct_y)
+        tn_indicies_ = correct_indicies.compress(np.logical_not(correct_y))
+        # Sort by most correct cases
+        tp_sortx = prob.take(tp_indicies_).argsort()[::-1]
+        tn_sortx = prob.take(tn_indicies_).argsort()
+        tp_indicies = tp_indicies_.take(tp_sortx)
+        tn_indicies = tn_indicies_.take(tn_sortx)
+        return tp_indicies, tn_indicies
+
+    def get_confusion_indicies(encoder, X, y):
+        prob = encoder.normalize_scores(X)
+        pred = prob > encoder.learned_thresh
+        # Find correct and misspredictions
+        is_correct = pred == y
+        is_error = np.logical_not(is_correct)
+        correct_indicies = np.where(is_correct)[0]
+        error_indicies = np.where(is_error)[0]
+        # Separate by Correct and Type I and Type II error
+        error_y = y.take(error_indicies)
+        correct_y = y.take(correct_indicies)
+        fp_indicies_ = error_indicies.compress(np.logical_not(error_y))
+        fn_indicies_ = error_indicies.compress(error_y)
+        tp_indicies_ = correct_indicies.compress(correct_y)
+        tn_indicies_ = correct_indicies.compress(np.logical_not(correct_y))
+        # Sort errors by difficulty and other cases by correctness
+        fp_sortx = prob.take(fp_indicies_).argsort()[::-1]
+        fn_sortx = prob.take(fn_indicies_).argsort()
+        tp_sortx = prob.take(tp_indicies_).argsort()[::-1]
+        tn_sortx = prob.take(tn_indicies_).argsort()
+        indicies = ut.DynStruct()
+        indicies.tp = tp_indicies_.take(tp_sortx)
+        indicies.tn = tn_indicies_.take(tn_sortx)
+        indicies.fp = fp_indicies_.take(fp_sortx)
+        indicies.fn = fn_indicies_.take(fn_sortx)
+        return indicies
 
     def visualize(encoder, **kwargs):
         inspect_kw = ut.update_existing(

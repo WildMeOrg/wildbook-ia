@@ -653,7 +653,7 @@ def get_warped_patch(imgBGR, kp, gray=False,
     return wpatch, wkp
 
 
-def GaussianBlurInplace(img, sigma):
+def GaussianBlurInplace(img, sigma, size=None):
     """
     simulates code from helpers.cpp in hesaff
 
@@ -662,9 +662,21 @@ def GaussianBlurInplace(img, sigma):
         sigma (flaot):
 
     CommandLine:
-        python -m vtool.patch --test-GaussianBlurInplace --show
+        python -m vtool.patch --test-GaussianBlurInplace:0 --show
+        python -m vtool.patch --test-GaussianBlurInplace:1 --show
 
-    Example:
+
+    References;
+        http://www.cse.usf.edu/~r1k/MachineVisionBook/MachineVision.files/MachineVision_Chapter4.pdf
+        http://en.wikipedia.org/wiki/Scale_space_implementation
+        http://www.cse.psu.edu/~rtc12/CSE486/lecture10_6pp.pdf
+
+    Notes:
+        The product of the convolution of two Gaussian functions with spread
+        sigma is a Gaussian function with spread sqrt(2)*sigma scaled by the
+        area of the Gaussian filter
+
+    Example0:
         >>> # DISABLE_DOCTEST
         >>> from vtool.patch import *  # NOQA
         >>> from mpl_toolkits.mplot3d import Axes3D  # NOQA
@@ -683,12 +695,59 @@ def GaussianBlurInplace(img, sigma):
         >>> pt.imshow(img_orig * 255, fnum=1, pnum=(1, 3, 2))
         >>> pt.imshow(img * 255, fnum=1, pnum=(1, 3, 3))
         >>> pt.show_if_requested()
+
+    Example1:
+        >>> # DISABLE_DOCTEST
+        >>> # demonstrate cascading smoothing property
+        >>> # THIS ISNT WORKING WHY???
+        >>> from vtool.patch import *  # NOQA
+        >>> from mpl_toolkits.mplot3d import Axes3D  # NOQA
+        >>> import plottool as pt
+        >>> img = get_test_patch('star2')
+        >>> img1 = img.copy()
+        >>> img2 = img.copy()
+        >>> img3 = img.copy()
+        >>> img4 = img.copy()
+        >>> img_orig = img.copy()
+        >>> sigma1 = .6
+        >>> sigma2 = .9
+        >>> sigma3 = sigma1 + sigma2
+        >>> size = 7
+        >>> # compoments
+        >>> GaussianBlurInplace(img1, sigma1, size)
+        >>> GaussianBlurInplace(img2, sigma2, size)
+        >>> # all in one shot
+        >>> GaussianBlurInplace(img3, sigma3, size)
+        >>> # addative
+        >>> GaussianBlurInplace(img4, sigma1, size)
+        >>> GaussianBlurInplace(img4, sigma2, size)
+        >>> print((img4 - img3).sum())
+        >>> ut.quit_if_noshow()
+        >>> fig = pt.figure(fnum=1, pnum=(2, 4, 1))
+        >>> ksize = (size, size)
+        >>> #fig.add_subplot(1, 3, 1, projection='3d')
+        >>> fig.add_subplot(2, 4, 1, projection='3d')
+        >>> show_gaussian_patch(ksize, sigma1, sigma1)
+        >>> fig.add_subplot(2, 4, 2, projection='3d')
+        >>> show_gaussian_patch(ksize, sigma2, sigma2)
+        >>> fig.add_subplot(2, 4, 3, projection='3d')
+        >>> show_gaussian_patch(ksize, sigma3, sigma3)
+        >>> pt.imshow(img_orig * 255, fnum=1, pnum=(2, 4, 4))
+        >>> pt.imshow(img1 * 255, fnum=1, pnum=(2, 4, 5), title='%r' % (sigma1))
+        >>> pt.imshow(img2 * 255, fnum=1, pnum=(2, 4, 6), title='%r' % (sigma2))
+        >>> pt.imshow(img3 * 255, fnum=1, pnum=(2, 4, 7), title='%r' % (sigma3))
+        >>> pt.imshow(img4 * 255, fnum=1, pnum=(2, 4, 8), title='%r + %r' % (sigma1, sigma2))
+        >>> pt.show_if_requested()
     """
-    size = int((2.0 * 3.0 * sigma + 1.0))
-    if not size & 1:  # check if even
-        size += 1
+    if size is None:
+        size = int((2.0 * 3.0 * sigma + 1.0))
+        if not size & 1:  # check if even
+            size += 1
+    else:
+        assert size & 1, 'size must be odd'
     ksize = (size, size)
     cv2.GaussianBlur(img, ksize, sigmaX=sigma, sigmaY=sigma, dst=img, borderType=cv2.BORDER_REPLICATE)
+    return img
 
 
 @profile

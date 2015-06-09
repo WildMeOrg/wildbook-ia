@@ -33,6 +33,10 @@ CV2_WARP_KWARGS = {
     'borderMode': cv2.BORDER_CONSTANT
 }
 
+#cv2.BORDER_CONSTANT     cv2.BORDER_REFLECT      cv2.BORDER_REPLICATE
+#cv2.BORDER_DEFAULT      cv2.BORDER_REFLECT101   cv2.BORDER_TRANSPARENT
+#cv2.BORDER_ISOLATED     cv2.BORDER_REFLECT_101  cv2.BORDER_WRAP
+
 
 EXIF_TAG_GPS      = 'GPSInfo'
 EXIF_TAG_DATETIME = 'DateTimeOriginal'
@@ -242,7 +246,50 @@ def cvt_BGR2RGB(imgBGR):
 def warpAffine(img, Aff, dsize):
     """
     dsize = (width, height) of return image
+
+    Args:
+        img (ndarray[uint8_t, ndim=2]):  image data
+        Aff (ndarray): affine matrix
+        dsize (tuple):  width, height
+
+    Returns:
+        ndarray: warped_img
+
+    CommandLine:
+        python -m vtool.image --test-warpAffine --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img = vt.imread(img_fpath)
+        >>> TAU = np.pi * 2
+        >>> Aff = vt.rotation_mat3x3(TAU / 8)
+        >>> dsize = vt.get_size(img)
+        >>> warped_img = warpAffine(img, Aff, dsize)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(warped_img)
+        >>> ut.show_if_requested()
+
+    Timeit:
+        import skimage.transform
+        %timeit cv2.warpAffine(img, Aff[0:2], tuple(dsize), **CV2_WARP_KWARGS)
+        100 loops, best of 3: 7.95 ms per loop
+        skimage.transform.AffineTransform
+        tf = skimage.transform.AffineTransform(rotation=TAU / 8)
+        Aff_ = tf.params
+        out = skimage.transform._warps_cy._warp_fast(img[:, :, 0], Aff_, output_shape=dsize, mode='constant', order=1)
+        %timeit skimage.transform._warps_cy._warp_fast(img[:, :, 0], Aff_, output_shape=dsize, mode='constant', order=1)
+        100 loops, best of 3: 5.74 ms per loop
+        %timeit cv2.warpAffine(img[:, :, 0], Aff[0:2], tuple(dsize), **CV2_WARP_KWARGS)
+        100 loops, best of 3: 5.13 ms per loop
+
+        CONCLUSION, cv2 transforms are better
+
     """
+
     warped_img = cv2.warpAffine(img, Aff[0:2], tuple(dsize), **CV2_WARP_KWARGS)
     return warped_img
 
@@ -366,6 +413,93 @@ def rotate_image(img, theta, **kwargs):
     warp_kwargs.update(kwargs)
     imgR = cv2.warpAffine(img, R[0:2], tuple(dsize), **warp_kwargs)
     return imgR
+
+
+def shear(img, x_shear, y_shear, dsize=None, **kwargs):
+    r"""
+    Args:
+        img (ndarray[uint8_t, ndim=2]):  image data
+        x_shear (?):
+        y_shear (?):
+        dsize (tuple):  width, height
+
+    CommandLine:
+        python -m vtool.image --test-shear --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img = vt.imread(img_fpath)
+        >>> x_shear = 0.05
+        >>> y_shear = -0.05
+        >>> dsize = None
+        >>> imgSh = shear(img, x_shear, y_shear, dsize)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(imgSh)
+        >>> ut.show_if_requested()
+    """
+    from vtool import linalg as ltool
+    if dsize is None:
+        dsize = get_size(img)
+    shear_mat3x3 = ltool.shear_mat3x3(x_shear, y_shear)
+    warp_kwargs = CV2_WARP_KWARGS.copy()
+    warp_kwargs.update(kwargs)
+    imgSh = cv2.warpAffine(img, shear_mat3x3[0:2], tuple(dsize), **warp_kwargs)
+    return imgSh
+
+
+def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
+                              dsize=None, borderMode=cv2.BORDER_CONSTANT,
+                              flags=cv2.INTER_LANCZOS4):
+    r"""
+
+    CommandLine:
+        python -m vtool.image --test-affine_warp_around_center --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img = vt.imread(img_fpath)
+        >>> dsize = (1000, 1000)
+        >>> shear = .2
+        >>> theta = np.pi / 4
+        >>> tx = 0
+        >>> ty = 100
+        >>> sx = 1.5
+        >>> sy = 1.0
+        >>> img_warped = affine_warp_around_center(img, sx=sx, sy=sy, theta=theta, shear=shear, tx=tx, ty=ty, dsize=dsize)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(img_warped)
+        >>> ut.show_if_requested()
+    """
+    from vtool import linalg as ltool
+    if dsize is None:
+        dsize = get_size(img)
+    w2, h2 = dsize
+    h1, w1 = img.shape[0:2]
+    y1, x1 = h1 / 2.0, w1 / 2.0
+    y2, x2 = h2 / 2.0, w2 / 2.0
+    # MOVE AFFINE AROUND w.r.t new dsize
+    #Aff = ltool.affine_around(x, y, sx, sy, theta, shear, tx, ty)
+    # move to center location
+    tr1_ = ltool.translation_mat3x3(-x1, -y1)
+    # apply affine transform
+    Aff_ = ltool.affine_mat3x3(sx, sy, theta, shear, tx, ty)
+    # move to original location
+    tr2_ = ltool.translation_mat3x3(x2, y2)
+    # combine transformations
+    Aff = tr2_.dot(Aff_).dot(tr1_)
+    img_warped = cv2.warpAffine(img, Aff[0:2], tuple(dsize), borderMode=borderMode, flags=flags)
+    # Fix grayscale channel issues
+    if len(img.shape) == 3 and len(img_warped.shape) == 2:
+        img_warped.shape = img_warped.shape + (1,)
+    return img_warped
 
 
 def resize_image_by_scale(img, scale, interpolation=cv2.INTER_LANCZOS4):
