@@ -136,6 +136,20 @@ def make_pnum_nextgen(nRows=1, nCols=1, base=0, nSubplots=None):
     return pnum_next
 
 
+def fnum_generator(base=1):
+    fnum = base - 1
+    while True:
+        fnum += 1
+        yield fnum
+
+
+def make_fnum_nextgen(base=1):
+    import functools
+    fnum_gen = fnum_generator(base=base)
+    fnum_next = functools.partial(six.next, fnum_gen)
+    return fnum_next
+
+
 BASE_FNUM = 9001
 
 
@@ -179,10 +193,10 @@ def show_if_requested():
         keys = ['left', 'bottom', 'wspace', 'right', 'top', 'hspace']
         if len(adjust_list) == 1:
             vals = adjust_list * 3 + [1 - adjust_list[0]] * 2 + adjust_list
-        if len(adjust_list) == 3:
+        elif len(adjust_list) == 3:
             vals = adjust_list + [1 - adjust_list[0], 1 - adjust_list[1], adjust_list[2]]
         else:
-            raise NotImplementedError('vals must be len (1 or 3) not %d' % (len(adjust_list)))
+            raise NotImplementedError('vals must be len (1 or 3) not %d, adjust_list=%r' % (len(adjust_list), adjust_list))
         adjust_kw = dict(zip(keys, vals))
         adjust_subplots(**adjust_kw)
 
@@ -352,6 +366,15 @@ def get_axis_xy_width_height(ax=None, xaug=0, yaug=0, waug=0, haug=0):
     width  = (autoAxis[1] - autoAxis[0]) + waug
     height = (autoAxis[3] - autoAxis[2]) + haug
     return xy, width, height
+
+
+def get_axis_bbox(ax=None, **kwargs):
+    """
+    # returns in figure coordinates?
+    """
+
+    xy, width, height = get_axis_xy_width_height(ax=ax, **kwargs)
+    return (xy[0], xy[1], width, height)
 
 
 def draw_border(ax, color=GREEN, lw=2, offset=None, adjust=True):
