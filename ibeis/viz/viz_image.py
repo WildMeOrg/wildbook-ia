@@ -3,6 +3,7 @@ from six.moves import zip
 import utool as ut
 import plottool as pt  # NOQA
 import plottool.draw_func2 as df2
+from plottool import plot_helpers as ph
 from plottool import viz_image2
 import numpy as np
 from ibeis.viz import viz_helpers as vh
@@ -12,6 +13,7 @@ from ibeis.viz import viz_helpers as vh
 
 def draw_image_overlay(ibs, ax, gid, sel_aids, draw_lbls=True, annote=True):
     try:
+        raise NotImplementedError('use pt.viz_image2.draw_image_overlay')
         # draw chips in the image
         aid_list    = ibs.get_image_aids(gid)
         bbox_list   = ibs.get_annot_bboxes(aid_list)
@@ -27,10 +29,11 @@ def draw_image_overlay(ibs, ax, gid, sel_aids, draw_lbls=True, annote=True):
             for bbox, theta, lbl, is_sel in annotation_iter:
                 viz_image2.draw_chip_overlay(ax, bbox, theta, lbl, is_sel)
         # Put annotation centers in the axis
-        vh.set_ibsdat(ax, 'annotation_centers', np.array(annotation_centers))
-        vh.set_ibsdat(ax, 'aid_list', aid_list)
+        ph.set_plotdat(ax, 'annotation_centers', np.array(annotation_centers))
+        ph.set_plotdat(ax, 'annotation_bbox_list', bbox_list)
+        ph.set_plotdat(ax, 'aid_list', aid_list)
     except Exception as ex:
-        ut.printex(ex, key_list=['ibs', 'ax', 'gid', 'sel_aids'])
+        ut.printex(ex, 'error drawing image overlay', key_list=['ibs', 'ax', 'gid', 'sel_aids'])
         raise
 
 
@@ -150,10 +153,10 @@ def show_image(ibs, gid, sel_aids=[], fnum=None,
     showkw.update(annotekw)
     fig, ax = viz_image2.show_image(img, **showkw)
     # Label the axis with data
-    vh.set_ibsdat(ax, 'annotation_centers', annotation_centers)
-    vh.set_ibsdat(ax, 'aid_list', aid_list)
-    vh.set_ibsdat(ax, 'viztype', 'image')
-    vh.set_ibsdat(ax, 'gid', gid)
+    ph.set_plotdat(ax, 'annotation_centers', annotation_centers)
+    ph.set_plotdat(ax, 'aid_list', aid_list)
+    ph.set_plotdat(ax, 'viztype', 'image')
+    ph.set_plotdat(ax, 'gid', gid)
     return fig, ax
 
 if __name__ == '__main__':

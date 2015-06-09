@@ -62,7 +62,7 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
     """
     if fnum is None:
         fnum = pt.next_fnum()
-
+    # Trigger computation of all chips in parallel
     ibsfuncs.ensure_annotation_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)
     nAids = len(aid_list)
     if nAids == 0:
@@ -81,23 +81,127 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
         pnum_ = df2.get_pnum_func(nRows, nCols)
         fig = df2.figure(fnum=fnum, pnum=pnum_(0), **kwargs)
         fig.clf()
-        # Trigger computation of all chips in parallel
+        ax_list = []
         for px, aid in enumerate(aid_list):
             viz_chip.show_chip(ibs, aid=aid, pnum=pnum_(px), **show_chip_kw)
+            ax = df2.gca()
+            ax_list.append(ax)
             if aid in sel_aids:
-                ax = df2.gca()
                 df2.draw_border(ax, df2.GREEN, 4)
             #plot_aid3(ibs, aid)
 
         # HACK to show in image and not in image
         DOBOTH = ut.get_argflag('--doboth')
         if DOBOTH:
+            #ut.embed()
+            #ph.get_plotdat_dict(ax_list[1])
+            #ph.get_plotdat_dict(ax_list2[1])
+            ax_list2 = []
+
             show_chip_kw['in_image'] = not show_chip_kw['in_image']
             for px, aid in enumerate(aid_list, start=px + 1):
                 viz_chip.show_chip(ibs, aid=aid, pnum=pnum_(px), **show_chip_kw)
+                ax = df2.gca()
+                ax_list2.append(ax)
                 if aid in sel_aids:
-                    ax = df2.gca()
                     df2.draw_border(ax, df2.GREEN, 4)
+
+            if False:
+                # Unfinished
+                #ut.embed()
+                # Draw lines between corresponding axes
+                # References:
+                # http://stackoverflow.com/questions/17543359/drawing-lines-between-two-plots-in-matplotlib
+                import matplotlib as mpl
+                invTransFigure_fn1 = fig.transFigure.inverted().transform
+                #invTransFigure_fn1 = fig.transFigure.transform
+                #invTransFigure_fn1 = ut.identity
+                #invTransFigure_fn2 = ut.identity
+                invTransFigure_fn2 = fig.transFigure.inverted().transform
+
+                for ax1, ax2 in zip(ax_list, ax_list2):
+                    #_ = ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+                    #bbox1 = (0, 0, _.width * fig.dpi, _.height * fig.dpi)
+                    aid_ = ph.get_plotdat(ax2, 'aid')
+                    aid_list_ = ph.get_plotdat(ax2, 'aid_list')
+                    index = aid_list_.index(aid_)
+                    annotation_bbox_list = ph.get_plotdat(ax2, 'annotation_bbox_list')
+
+                    # returns in figure coordinates
+                    bbox1 = df2.get_axis_bbox(ax=ax1)
+                    #if bbox1[-1] < 0:
+                    #    # Weird bug
+                    #    bbox1 = bbox1[1]
+                    bbox2 = annotation_bbox_list[index]
+
+                    import vtool as vt
+                    verts1 = np.array(vt.verts_from_bbox(bbox1))
+                    verts2 = np.array(vt.verts_from_bbox(bbox2))
+
+                    #verts2.T[1] -= bbox2[-1]
+                    bottom_left1, bottom_right1 = verts1[1:3].tolist()
+                    bottom_left2, bottom_right2 = verts2[1:3].tolist()
+
+                    #bottom_left1 = [(.5, .1)]
+                    #bottom_left2 = [(.5, 1)]
+                    #bottom_left1 = [(5, 5)]
+                    #bottom_left2 = [(500, 500)]
+
+                    #transAxes1 = ax1.transData.inverted()
+                    transAxes1_fn = ax1.transData.transform
+                    transAxes2_fn = ax2.transData.transform
+
+                    #transAxes1_fn = ut.identity
+                    #transAxes2_fn = ut.identity
+
+                    #coord_bl1 = transFigure.transform(transAxes1.transform(bottom_left1))
+                    #coord_br1 = transFigure.transform(transAxes1.transform(bottom_right1))
+                    #coord_bl1 = invTransFigure_fn1(transAxes1_fn(bottom_left1))
+                    print('bottom_left2 = %r' % (bottom_left2,))
+                    coord_bl1 = (5, 5)
+                    coord_bl2 = invTransFigure_fn2(transAxes2_fn(bottom_left2))
+                    print('coord_bl2 = %r' % (coord_bl2,))
+
+                    coord_br1 = invTransFigure_fn1(transAxes1_fn(bottom_right1))
+                    coord_br2 = invTransFigure_fn2(transAxes2_fn(bottom_right2))
+                    #print('coord_bl1 = %r' % (coord_bl1,))
+
+                    line_coords1 = np.vstack([coord_bl1, coord_bl2])
+                    line_coords2 = np.vstack([coord_br1, coord_br2])
+                    print('line_coords1 = %r' % (line_coords1,))
+
+                    #line1 = mpl.lines.Line2D((line_coords1[0]), (line_coords1[1]), transform=fig.transFigure)
+                    #line2 = mpl.lines.Line2D((line_coords2[0]), (line_coords2[1]), transform=fig.transFigure)
+
+                    xs1, ys1 = line_coords1.T
+                    xs2, ys2 = line_coords2.T
+
+                    linekw = dict(transform=fig.transFigure)
+                    linekw = dict()
+
+                    print('xs1 = %r' % (xs1,))
+                    print('ys1 = %r' % (ys1,))
+
+                    line1 = mpl.lines.Line2D(xs1, ys1, **linekw)
+                    line2 = mpl.lines.Line2D(xs2, ys2, **linekw)  # NOQA
+
+                    con = mpl.patches.ConnectionPatch(xyA=coord_bl1,
+                                                      xyB=bottom_left2,
+                                                      coordsA="data",
+                                                      coordsB="data",
+                                                      axesA=ax1, axesB=ax2,
+                                                      arrowstyle="-|>",
+                                                      shrinkA=5, shrinkB=5,
+                                                      mutation_scale=20,
+                                                      fc="w")
+                    ax2.add_artist(con)
+                    ax1.add_artist(con)
+
+                    fig.lines.append(line1)
+                    break
+                    #fig.lines.append(line2)
+
+            pass
 
 
 #@ut.indent_func
@@ -114,6 +218,11 @@ def show_name(ibs, nid, in_image=True, fnum=0, sel_aids=[], subtitle='',
         annote (bool):
 
     CommandLine:
+
+        python -m ibeis.viz.viz_name --test-show_name --dpath ~/latex/crall-candidacy-2015 --save 'figures/{name}.jpg' --no-figtitle --notitle --db NNP_Master3 --figsize=9,4 --clipwhite --dpi=180 --adjust=.05 --index_list=[0,1,2,3] --rc=2,4 --append temp_out_figure.tex --name=IBEIS_PZ_0739 --no-draw_lbls --doboth --no-inimage  --diskshow
+
+        python -m ibeis.viz.viz_name --test-show_name --no-figtitle --notitle --db NNP_Master3 --figsize=9,4 --clipwhite --dpi=180 --adjust=.05 --index_list=[0,1,2,3] --rc=2,4 --append temp_out_figure.tex --name=IBEIS_PZ_0739 --no-draw_lbls --doboth --no-inimage  --show
+
         python -m ibeis.viz.viz_name --test-show_name --show
 
     Example:

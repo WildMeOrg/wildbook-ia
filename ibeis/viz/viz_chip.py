@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import plottool as pt
+from plottool import plot_helpers as ph
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_image
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_chip]',
@@ -128,6 +129,9 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         gid = ibs.get_annot_gids(aid)
         aid_list = ibs.get_image_aids(gid)
         annotekw = viz_image.get_annot_annotations(ibs, aid_list, sel_aids=[aid], draw_lbls=kwargs.get('draw_lbls', True))
+        # Put annotation centers in the axis
+        ph.set_plotdat(ax, 'annotation_bbox_list', annotekw['bbox_list'])
+        ph.set_plotdat(ax, 'aid_list', aid_list)
         pt.viz_image2.draw_image_overlay(ax, **annotekw)
 
     #if 'featweights' in vars() and 'color' in kwargs:
