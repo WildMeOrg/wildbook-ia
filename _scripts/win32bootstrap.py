@@ -10,6 +10,9 @@ CommandLine:
     python _scripts\win32bootstrap.py --dl winapi --run
     python _scripts\win32bootstrap.py --dl pyperclip --run
 
+    python _scripts\win32bootstrap.py --dl pydot --run
+    python _scripts\win32bootstrap.py --dl pydot --run --force
+
 """
 from __future__ import division, print_function
 import parse
@@ -99,6 +102,7 @@ class CPlatPkg(object):
         return True
 
 
+# Define alt names that map to hosted files
 cplat_alias_pkglist = [
     CPlatPkg(
         'pywin32',
@@ -255,16 +259,21 @@ def bootstrap_sysreq(pkg_list='all', force=False, dryrun=False):
     all_href_list, page_str = get_unofficial_package_hrefs(force=force)
     if len(all_href_list) > 0:
         print('all_href_list[0] = ' + str(all_href_list[0]))
-    href_list = get_win_packages_href(all_href_list, py_version, pkg_list_)
+    href_list = find_requested_hrefs(all_href_list, py_version, pkg_list_)
     print('Available hrefs are:\n' +  '\n'.join(href_list))
     if not dryrun:
         pkg_exe_list = download_win_packages(href_list)
         text = '\n'.join(href_list) + '\n'
-        text += ('Please Run:') + '\n'
-        text += ('\n'.join(['pip install ' + pkg for pkg in pkg_exe_list]))
+        print('len(pkg_exe_list) = %r' % (len(pkg_exe_list),))
+        if len(pkg_exe_list) > 0:
+            text += ('Please Run:') + '\n'
+            text += ('\n'.join(['pip install ' + pkg for pkg in pkg_exe_list]))
+            print(text)
+        else:
+            print('No packages found!')
         #print('TODO: Figure out how to run these installers without the GUI: ans use the new wheels')
-        print(text)
-        print(pkg_list_)
+        #print(text)
+        #print(pkg_list_)
     else:
         print('dryrun=True')
         print('href_list = %r' % (href_list,))
@@ -285,7 +294,8 @@ def download_win_packages(href_list):
         nBytes = ut.get_file_nBytes(pkg_exe)
         if nBytes < 1000:
             print('There may be a problem with %r' % (pkg_exe,))
-            RETRY_PROBLEMS = False
+            print('nBytes = %r' % (nBytes,))
+            RETRY_PROBLEMS = True
             if RETRY_PROBLEMS:
                 # retry if file was probably corrupted
                 ut.delete(pkg_exe)
@@ -294,12 +304,33 @@ def download_win_packages(href_list):
     return pkg_exe_list
 
 
-def get_win_packages_href(all_href_list, py_version, pkg_list):
-    """ Returns the urls to download the requested installers """
-    href_list1, missing  = filter_href_list(all_href_list, pkg_list, OS_VERSION, py_version)
-    href_list2, missing2 = filter_href_list(all_href_list, missing, OS_VERSION, py_version)
+def find_requested_hrefs(all_href_list, py_version, pkg_list):
+    """
+    Filters out everything but the requested urls
+    Returns the urls to download the requested installers
+    """
+    print('Filtering to only requested HREFS')
+    href_list1, missing1  = filter_href_list(all_href_list, pkg_list, OS_VERSION, py_version)
+    #print('missing1 = %r' % (missing1,))
+    href_list2, missing2 = filter_href_list(all_href_list, missing1, OS_VERSION, py_version)
+    #print('missing2 = %r' % (missing2,))
+    #print(href_list2)
     href_list3, missing3 = filter_href_list(all_href_list, missing2, 'x64', py_version.replace('p', 'P'))
-    href_list = href_list1 + href_list2 + href_list3
+    #print('missing3 = %r' % (missing3,))
+    href_list4, missing4 = filter_href_list(all_href_list, missing3, 'any', py_version.replace('cp', 'py')[0:3])
+
+    if len(missing4) > 0:
+        print('Could not find a match for missing4=%r' % (missing4,))
+        #import Levenshtein
+        for pkg in missing4:
+            #dist_list = [Levenshtein.distance(href, pkg) for href in all_href_list]
+            dist_list = [0 if (href.find(pkg) > -1) else 100 for href in all_href_list]
+            closest_matche_xs = ut.list_argsort(dist_list)[::1]
+            print('Perhaps pkg=%r could match one of these?' % (pkg,))
+            closest_hrefs = ut.list_take(all_href_list, closest_matche_xs[0:3])
+            print(ut.indentjoin(closest_hrefs, '\n   '))
+
+    href_list = href_list1 + href_list2 + href_list3 + href_list4
     return href_list
 
 
@@ -364,7 +395,7 @@ def filter_href_list(all_href_list, win_pkg_list, os_version, py_version):
 
 def get_unofficial_package_hrefs(force=None):
     """
-    Downloads the entire webpage of available hrefs
+    Downloads the entire webpage of available hrefs, or returns a cached copy
     """
     if force is None:
         force = FORCE
