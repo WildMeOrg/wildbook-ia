@@ -13,6 +13,9 @@ CommandLine:
     python _scripts\win32bootstrap.py --dl pydot --run
     python _scripts\win32bootstrap.py --dl pydot --run --force
 
+
+Notes:
+    'http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi'
 """
 from __future__ import division, print_function
 import parse
