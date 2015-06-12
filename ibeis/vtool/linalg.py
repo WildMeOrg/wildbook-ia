@@ -12,6 +12,7 @@ import cv2
 import numpy as np
 import numpy.linalg as npl
 import utool as ut
+import warnings  # NOQA
 
 profile = ut.profile
 (print, print_, printDBG, rrr, profile) = ut.inject(
@@ -405,7 +406,9 @@ def remove_homogenous_coordinate(_xyzs):
                [ 2.574,  2.482,  2.516,  2.5  ,  2.508]])
     """
     assert _xyzs.shape[0] == 3
-    _xys = np.divide(_xyzs[0:2], _xyzs[None, 2])
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        _xys = np.divide(_xyzs[0:2], _xyzs[None, 2])
     return _xys
 
 

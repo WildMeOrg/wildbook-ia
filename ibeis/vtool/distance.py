@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
+import warnings  # NOQA # TODO enable these warnings in strict mode
 from collections import OrderedDict
 (print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[dist]', DEBUG=False)
@@ -125,6 +126,8 @@ def det_distance(det1, det2):
         return out
         #else
     """
+    #with warnings.catch_warnings():
+    #    warnings.simplefilter("ignore")
     # TODO: Cython
     det_dist = det1 / det2
     # Flip ratios that are less than 1

@@ -25,6 +25,7 @@ Notes:
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import range
+import warnings  # NOQA
 import six  # NOQA
 import utool as ut
 import numpy as np
@@ -41,9 +42,9 @@ try:
     #if ut.WIN32:
     #    raise Exception('forcing sver_c_wrapper off')
     from vtool import sver_c_wrapper
-    HAS_SVER_C_WRAPPER = not ut.get_argflag('--noc')
+    HAVE_SVER_C_WRAPPER = not ut.get_argflag('--noc')
 except Exception as ex:
-    HAS_SVER_C_WRAPPER = False
+    HAVE_SVER_C_WRAPPER = False
     if ut.VERBOSE:
         ut.printex(ex, 'please build the sver c wrapper (run with --rebuild-sver')
     if False:
@@ -669,7 +670,7 @@ def get_best_affine_inliers(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh,
     """
     # Test each affine hypothesis
     # get list if inliers, errors, the affine matrix for each hypothesis
-    if HAS_SVER_C_WRAPPER and not forcepy:
+    if HAVE_SVER_C_WRAPPER and not forcepy:
         aff_inliers_list, aff_errors_list, Aff_mats = sver_c_wrapper.get_affine_inliers_cpp(
             kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh)
     else:
@@ -826,6 +827,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thr
     kpts2_m = kpts2.take(fm.T[1], axis=0)
     # Transform all xy1 matches to xy2 space
     xy1_m   = ktool.get_xys(kpts1_m)
+    #with ut.embed_on_exception_context:
     xy1_mt  = ltool.transform_points_with_homography(H, xy1_m)
     #xy1_mt  = ktool.transform_kpts_xys(H, kpts1_m)
     xy2_m   = ktool.get_xys(kpts2_m)
@@ -848,7 +850,9 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh, ori_thr
         # transform reference point
         off_xy1_mt = ltool.transform_points_with_homography(H, off_xy1_m)
         scaled_dxy1_mt = xy1_mt - off_xy1_mt
-        scales1_mt = np.linalg.norm(scaled_dxy1_mt, axis=0)
+        scales1_mt = npl.norm(scaled_dxy1_mt, axis=0)
+        #with warnings.catch_warnings():
+        #    warnings.simplefilter("ignore")
         dxy1_mt = scaled_dxy1_mt / scales1_mt
         # adjust for gravity vector being 0
         oris1_mt = np.arctan2(dxy1_mt[1], dxy1_mt[0]) - ktool.GRAVITY_THETA
@@ -901,6 +905,10 @@ def estimate_final_transform(kpts1, kpts2, fm, aff_inliers):
     #H = compute_affine(xy1_ma, xy2_ma)
     #print(H)
     H = unnormalize_transform(H_prime, T1, T2)
+    rank = npl.matrix_rank(H)
+    #print(rank)
+    if rank != 3:
+        raise npl.LinAlgError('Rank defficient homography ')
     return H
 
 
@@ -955,7 +963,7 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd, scale_
 
 
 def get_best_affine_inliers_(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh):
-    if HAS_SVER_C_WRAPPER:
+    if HAVE_SVER_C_WRAPPER:
         aff_inliers, aff_errors, Aff = sver_c_wrapper.get_best_affine_inliers_cpp(
             kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh, ori_thresh)
     else:
@@ -1060,7 +1068,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
             kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd, scale_thresh,
             ori_thresh, full_homog_checks)
     except npl.LinAlgError as ex:
-        ut.printex(ex, 'numeric error in homog estimation.', iswarning=True)
+        if ut.VERYVERBOSE and ut.SUPER_STRICT:
+            ut.printex(ex, 'numeric error in homog estimation.', iswarning=True)
         return None
     except Exception as ex:
         # There is a weird error that starts with MemoryError and ends up

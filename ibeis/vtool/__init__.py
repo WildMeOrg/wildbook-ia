@@ -214,7 +214,7 @@ if DOELSE:
     from vtool.chip import (compute_chip, get_filter_list,
                             get_scaled_size_with_area,
                             get_scaled_sizes_with_area,)
-    from vtool.spatial_verification import (HAS_SVER_C_WRAPPER, INDEX_DTYPE,
+    from vtool.spatial_verification import (HAVE_SVER_C_WRAPPER, INDEX_DTYPE,
                                             SV_DTYPE, VERBOSE_SVER,
                                             build_affine_lstsqrs_Mx6,
                                             build_lstsqrs_Mx9, compute_affine,
