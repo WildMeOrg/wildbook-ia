@@ -253,7 +253,8 @@ def plot_sorted_scores(scores_list,
                        logscale=True,
                        figtitle=None,
                        score_label='score',
-                       threshold_value=None):
+                       threshold_value=None,
+                       use_stems=None):
     """
     Concatenates and sorts the scores
     Sorts and plots with different types of scores labeled
@@ -316,8 +317,10 @@ def plot_sorted_scores(scores_list,
 
     df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
 
-    if len(scores_list) == 2:
-        # plot stems to get a better sense of the distribution for binary data
+    # plot stems to get a better sense of the distribution for binary data
+    if use_stems is None:
+        use_stems = len(scores_list) == 2
+    if use_stems:
         maxy = sorted_scores.max()
         absolute_bottom = sorted_scores.min()
         for lblx in range(len(scores_list)):
@@ -328,6 +331,8 @@ def plot_sorted_scores(scores_list,
             # TODO: stems for binary labels
             df2.draw_stems(xdata, ydata, setlims=False, color=color, markersize=0, bottom=bottom)
             pass
+
+    # Plot each datapoint on a line
     for lblx in range(len(scores_list)):
         label = scores_lbls[lblx]
         color = score_colors[lblx]
