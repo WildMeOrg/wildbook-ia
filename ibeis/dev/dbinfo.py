@@ -15,37 +15,15 @@ from vtool import keypoint as ktool
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[dbinfo]')
 
 
-def test_name_consistency(ibs):
-    """
-    Example:
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(db='PZ_Master0')
-        >>> #ibs = ibeis.opendb(db='GZ_ALL')
-
-    """
-    from ibeis import ibsfuncs
-    import utool as ut
-    max_ = -1
-    #max_ = 10
-    valid_aids = ibs.get_valid_aids()[0:max_]
-    valid_nids = ibs.get_valid_nids()[0:max_]
-    ax2_nid = ibs.get_annot_name_rowids(valid_aids)
-    nx2_aids = ibs.get_name_aids(valid_nids)
-
-    print('len(valid_aids) = %r' % (len(valid_aids),))
-    print('len(valid_nids) = %r' % (len(valid_nids),))
-    print('len(ax2_nid) = %r' % (len(ax2_nid),))
-    print('len(nx2_aids) = %r' % (len(nx2_aids),))
-
-    # annots are grouped by names, so mapping aid back to nid should
-    # result in each list having the same value
-    _nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, nx2_aids)
-    print(_nids_list[-20:])
-    print(nx2_aids[-20:])
-    assert all(map(ut.list_allsame, _nids_list))
-
-
-def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False, with_contrib=True, aid_list=None):
+def get_dbinfo(ibs, verbose=True,
+               with_imgsize=False,
+               with_bytes=False,
+               with_contrib=True,
+               with_agesex=True,
+               with_header=True,
+               short=False,
+               tag='dbinfo',
+               aid_list=None):
     """
 
     Returns dictionary of digestable database information
@@ -71,20 +49,17 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False, with_con
         >>> from ibeis.dev.dbinfo import *  # NOQA
         >>> import ibeis
         >>> verbose = True
+        >>> short = True
         >>> #ibs = ibeis.opendb(db='GZ_ALL')
         >>> #ibs = ibeis.opendb(db='PZ_Master0')
         >>> ibs = ibeis.opendb(db='testdb1')
         >>> ibs.delete_contributors(ibs.get_valid_contrib_rowids())
         >>> ibs.delete_empty_nids()
         >>> #ibs = ibeis.opendb(db='PZ_MTEST')
-        >>> output = get_dbinfo(ibs, verbose=False)
+        >>> output = get_dbinfo(ibs, with_contrib=False, verbose=False, short=True)
         >>> result = (output['info_str'])
         >>> print(result)
-
         +============================
-        + singleton := single sighting
-        + multiton  := multiple sightings
-        ----------
         DB Info:  testdb1
         DB Notes: None
         DB NumContrib: 0
@@ -99,42 +74,20 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False, with_con
         # Annots (singleton)         = 5
         # Annots (multiton)          = 4
         ----------
-        # Annots per Name (multiton) = {
-            'max'  : 2.0,
-            'min'  : 2.0,
-            'mean' : 2.0,
-            'std'  : 0.0,
-            'nMin' : 2,
-            'nMax' : 2,
-            'shape': (2,),
-        }
-
-        # Annots per Image           = {
-            'max'  : 1.0,
-            'min'  : 1.0,
-            'mean' : 1.0,
-            'std'  : 0.0,
-            'nMin' : 13,
-            'nMax' : 13,
-            'shape': (13,),
-        }
-        # Annots per Species         = {
-            '____'         : 3,
-            u'bear_polar'  : 2,
-            u'zebra_plains': 6,
-            u'zebra_grevys': 2,
-        }
-        ----------
         # Img                        = 13
         # Img reviewed               = 0
-        # Img with gps               = 0
+        # Img with gps               = 12
         # Img with timestamp         = 13
         Img Time Stats               = {
-            'std'  : '1:13:57',
-            'max'  : '1969/12/31 21:30:13',
-            'range': '2:28:32',
-            'mean' : '1969/12/31 20:10:15',
-            'min'  : '1969/12/31 19:01:41',
+            'max'     : '1970/01/01 02:30:13',
+            'mean'    : '1970/01/01 01:10:15',
+            'min'     : '1970/01/01 00:01:41',
+            'nMax'    : 1,
+            'nMin'    : 1,
+            'num_nan' : 0,
+            'range'   : '2:28:32',
+            'shape'   : (13,),
+            'std'     : '1:13:57',
         }
         L============================
 
@@ -187,6 +140,10 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False, with_con
     gx2_aids = ibs.get_image_aids(valid_gids)
     if FILTER_HACK:
         gx2_aids = [ibs.filter_aids_custom(aids) for aids in gx2_aids]  # HACK FOR FILTER
+    if request_annot_subset:
+        # remove annots not in this subset
+        valid_aids_set = set(valid_aids)
+        gx2_aids = [list(set(aids).intersection(valid_aids_set)) for aids in gx2_aids]
 
     gx2_nAnnots = np.array(map(len, gx2_aids))
     image_without_annots = len(np.where(gx2_nAnnots == 0)[0])
@@ -199,6 +156,10 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False, with_con
     nx2_aids = ibs.get_name_aids(valid_nids)
     if FILTER_HACK:
         nx2_aids =  [ibs.filter_aids_custom(aids) for aids in nx2_aids]    # HACK FOR FILTER
+    if request_annot_subset:
+        # remove annots not in this subset
+        valid_aids_set = set(valid_aids)
+        nx2_aids = [list(set(aids).intersection(valid_aids_set)) for aids in nx2_aids]
     associated_nids = ut.filter_items(valid_nids, map(len, nx2_aids))
 
     ibs.check_name_mapping_consistency(nx2_aids)
@@ -291,9 +252,10 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False, with_con
 
     # Time stats
     unixtime_list = ibs.get_image_unixtime(valid_gids)
-    valid_unixtime_list = [time for time in unixtime_list if time != -1]
+    unixtime_list = ut.list_replace(unixtime_list, -1, float('nan'))
+    #valid_unixtime_list = [time for time in unixtime_list if time != -1]
     #unixtime_statstr = ibs.get_image_time_statstr(valid_gids)
-    unixtime_statstr = ut.get_timestats_str(valid_unixtime_list, newlines=True)
+    unixtime_statstr = ut.get_timestats_str(unixtime_list, newlines=True, full=True)
 
     # GPS stats
     gps_list_ = ibs.get_image_gps(valid_gids)
@@ -404,9 +366,9 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False, with_con
             _num_annots_total_check = num_unknown_annots + num_singleton_annots + num_multiton_annots
             assert len(bad_aids) == 0, 'intersecting multiton aids and unknown aids'
             assert _num_names_total_check == num_names, 'inconsistent num names'
-            if not request_annot_subset:
-                # dont check this if you have an annot subset
-                assert _num_annots_total_check == num_annots, 'inconsistent num annots'
+            #if not request_annot_subset:
+            # dont check this if you have an annot subset
+            assert _num_annots_total_check == num_annots, 'inconsistent num annots'
         except Exception as ex:
             ut.printex(ex, keys=[
                 '_num_names_total_check',
@@ -428,14 +390,24 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False, with_con
     # print
     num_tabs = 5
 
-    header_block_lines = [
-        ('+============================'),
-        ('+ singleton := single sighting'),
-        ('+ multiton  := multiple sightings'),
-    ]
+    def align2(str_):
+        return ut.align(str_, ':', ' :')
+
+    def align_dict2(dict_):
+        str_ = ut.dict_str(dict_)
+        return align2(str_)
+
+    header_block_lines = (
+        [('+============================'), ] + (
+            [
+                ('+ singleton := single sighting'),
+                ('+ multiton  := multiple sightings'),
+                ('--' * num_tabs),
+            ] if not short and with_header else []
+        )
+    )
 
     source_block_lines = [
-        ('--' * num_tabs),
         ('DB Info:  ' + ibs.get_dbname()),
         ('DB Notes: ' + ibs.get_dbnotes()),
         ('DB NumContrib: %d' % num_contributors),
@@ -458,31 +430,32 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False, with_con
         ('# Names (multiton)           = %d' % num_names_multiton),
     ]
 
-    def align2(str_):
-        return ut.align(str_, ':', ' :')
-
-    def align_dict2(dict_):
-        str_ = ut.dict_str(dict_)
-        return align2(str_)
+    subset_str = '        ' if not request_annot_subset else '(SUBSET)'
 
     annot_block_lines = [
         ('--' * num_tabs),
-        ('# Annots                     = %d' % num_annots),
+        ('# Annots %s            = %d' % (subset_str, num_annots,)),
         ('# Annots (unknown)           = %d' % num_unknown_annots),
         ('# Annots (singleton)         = %d' % num_singleton_annots),
         ('# Annots (multiton)          = %d' % num_multiton_annots),
+    ]
+
+    annot_per_basic_block_lines = [
         ('--' * num_tabs),
         ('# Annots per Name (multiton) = %s' % (align2(multiton_stats),)),
         ('# Annots per Image           = %s' % (align2(gx2_nAnnots_stats),)),
         ('# Annots per Species         = %s' % (align_dict2(species2_nAids),)),
-    ]
+    ] if not short else []
 
-    qualview_block_lines = [
+    annot_per_qualview_block_lines = [
         '# Annots per Viewpoint = %s' % align_dict2(yawtext2_nAnnots),
         '# Annots per Quality = %s' % align_dict2(qualtext2_nAnnots),
+    ]
+
+    annot_per_agesex_block_lines = [
         '# Annots per Age = %s' % align_dict2(agetext2_nAnnots),
         '# Annots per Sex = %s' % align_dict2(sextext2_nAnnots),
-    ]
+    ] if not short  and with_agesex else []
 
     contrib_block_lines = [
         '# Images per contributor       = ' + align_dict2(contrib_tag_to_nImages),
@@ -496,7 +469,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False, with_con
         ('# Img                        = %d' % len(valid_gids)),
         ('# Img reviewed               = %d' % sum(image_reviewed_list)),
         ('# Img with gps               = %d' % len(gps_list)),
-        ('# Img with timestamp         = %d' % len(valid_unixtime_list)),
+        #('# Img with timestamp         = %d' % len(valid_unixtime_list)),
         ('Img Time Stats               = %s' % (align2(unixtime_statstr),)),
     ]
 
@@ -506,17 +479,90 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False, with_con
         source_block_lines +
         name_block_lines +
         annot_block_lines +
-        qualview_block_lines +
+        annot_per_basic_block_lines +
+        annot_per_qualview_block_lines +
+        annot_per_agesex_block_lines +
         img_block_lines +
         contrib_block_lines +
         imgsize_stat_lines +
         [('L============================'), ]
     )
     info_str = '\n'.join(info_str_lines)
+    info_str2 = ut.indent(info_str, '[{tag}]'.format(tag=tag))
     if verbose:
-        print(ut.indent(info_str, '[dbinfo]'))
+        print(info_str2)
     locals_ = locals()
     return locals_
+
+
+def get_short_infostr(ibs):
+    """ Returns printable database information
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    Returns:
+        str: infostr
+
+    CommandLine:
+        python -m ibeis.dev.dbinfo --test-get_short_infostr
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.dev.dbinfo import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> infostr = get_short_infostr(ibs)
+        >>> result = str(infostr)
+        >>> print(result)
+        dbname = 'testdb1'
+        num_images = 13
+        num_annotations = 13
+        num_names = 7
+    """
+    dbname = ibs.get_dbname()
+    #workdir = ut.unixpath(ibs.get_workdir())
+    num_images = ibs.get_num_images()
+    num_annotations = ibs.get_num_annotations()
+    num_names = ibs.get_num_names()
+    #workdir = %r
+    infostr = ut.codeblock('''
+    dbname = %r
+    num_images = %r
+    num_annotations = %r
+    num_names = %r
+    ''' % (dbname, num_images, num_annotations, num_names))
+    return infostr
+
+
+def test_name_consistency(ibs):
+    """
+    Example:
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(db='PZ_Master0')
+        >>> #ibs = ibeis.opendb(db='GZ_ALL')
+
+    """
+    from ibeis import ibsfuncs
+    import utool as ut
+    max_ = -1
+    #max_ = 10
+    valid_aids = ibs.get_valid_aids()[0:max_]
+    valid_nids = ibs.get_valid_nids()[0:max_]
+    ax2_nid = ibs.get_annot_name_rowids(valid_aids)
+    nx2_aids = ibs.get_name_aids(valid_nids)
+
+    print('len(valid_aids) = %r' % (len(valid_aids),))
+    print('len(valid_nids) = %r' % (len(valid_nids),))
+    print('len(ax2_nid) = %r' % (len(ax2_nid),))
+    print('len(nx2_aids) = %r' % (len(nx2_aids),))
+
+    # annots are grouped by names, so mapping aid back to nid should
+    # result in each list having the same value
+    _nids_list = ibsfuncs.unflat_map(ibs.get_annot_name_rowids, nx2_aids)
+    print(_nids_list[-20:])
+    print(nx2_aids[-20:])
+    assert all(map(ut.list_allsame, _nids_list))
 
 
 def get_keypoint_stats(ibs):

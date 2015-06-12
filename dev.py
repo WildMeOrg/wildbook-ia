@@ -509,6 +509,9 @@ def compgrav_annotationmatch_scores(ibs, qaid_list, daid_list):
 
 
 def run_devprecmds():
+    """
+    Looks for pre-tests specified with the -t flag and runs them
+    """
     input_precmd_list = params.args.tests[:]
     valid_precmd_list = []
     def intest(*args, **kwargs):
@@ -848,9 +851,17 @@ def devfunc(ibs, qaid_list):
 
 
 def run_dev(main_locals):
-    """ main command """
+    """
+    main developer command
+
+    Args:
+        main_locals (dict): locals returned by ibeis.main
+
+    CommandLine:
+        python dev.py --db PZ_Master0 --controlled --print-rankhist
+    """
     print('[dev] --- RUN DEV ---')
-    # Get references to controller
+    # Get reference to controller
     ibs  = main_locals['ibs']
     if ibs is not None:
         # Get aids marked as test cases
@@ -864,7 +875,14 @@ def run_dev(main_locals):
         print('[run_dev] * len(qaid_list) = %d' % len(qaid_list))
         print('[run_dev] * len(daid_list) = %d' % len(daid_list))
         print('[run_dev] * intersection = %r' % len(list(set(daid_list).intersection(set(qaid_list)))))
-        ibs.temporary_state['daid_list'] = daid_list
+        verbose_info = True
+        if verbose_info:
+            infokw = dict(with_contrib=False, with_agesex=False, with_header=False, verbose=False)
+            d_info_str = ibeis.dev.dbinfo.get_dbinfo(ibs, aid_list=daid_list, tag='DataInfo', **infokw)['info_str2']
+            q_info_str = ibeis.dev.dbinfo.get_dbinfo(ibs, aid_list=qaid_list, tag='QueryInfo', **infokw)['info_str2']
+            print(q_info_str)
+            print('\n')
+            print(d_info_str)
         # Warn on no test cases
         try:
             assert len(qaid_list) > 0, 'assert!'
@@ -1059,6 +1077,7 @@ CurrentExperiments:
     ./dev.py -t custom --db PZ_MTEST --allgt --species=zebra_plains --print-rankhist
     ./dev.py -t custom --db PZ_MTEST --allgt --controlled --print-rankhist
     ./dev.py -t custom --db PZ_Master0 --allgt --controlled --print-rankhist
+    ./dev.py --db PZ_Master0 --controlled --print-rankhist
 
 
 

@@ -2667,6 +2667,8 @@ def get_one_annot_per_name(ibs, col='rand'):
 
 def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
     """
+    makes controlled subset of data
+
     CONTROLLED TEST DATA
 
     Build data for experiment that tries to rule out
@@ -2680,11 +2682,12 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_Master0')
-        >>> hasgt_aids = get_two_annots_per_name_and_singletons(ibs)
-        >>> result = str(hasgt_aids)
+        >>> aid_subset = get_two_annots_per_name_and_singletons(ibs)
+        >>> ibeis.dev.dbinfo.get_dbinfo(ibs, aid_list=aid_subset, with_contrib=False)
+        >>> result = str(aid_subset)
         >>> print(result)
     """
-    aid_list = ibs.get_valid_aids(species=ibs.const.Species.ZEB_PLAIN)
+    aid_list = ibs.get_valid_aids(species=ibs.const.Species.ZEB_PLAIN, is_known=True)
     # FILTER OUT UNUSABLE ANNOTATIONS
     # Get annots with timestamps
     aid_list = filter_aids_without_timestamps(ibs, aid_list)
@@ -2693,9 +2696,9 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
     valid_yawtexts = {'left', 'frontleft'}
     flags_list = ibs.get_quality_viewpoint_filterflags(aid_list, minqual, valid_yawtexts)
     aid_list = ut.list_compress(aid_list, flags_list)
-    print('print subset info')
-    print(ut.dict_hist(ibs.get_annot_yaw_texts(aid_list)))
-    print(ut.dict_hist(ibs.get_annot_quality_texts(aid_list)))
+    #print('print subset info')
+    #print(ut.dict_hist(ibs.get_annot_yaw_texts(aid_list)))
+    #print(ut.dict_hist(ibs.get_annot_quality_texts(aid_list)))
 
     singletons, multitons = partition_annots_into_singleton_multiton(ibs, aid_list)
     # process multitons
@@ -2717,9 +2720,6 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
     #best_pairs = ut.list_take(best_multitons, best_multitons_sortx)
     #best_multis = ut.flatten(best_pairs)
 
-    ibeis.dev.dbinfo.rrr()
-    locals_ = ibeis.dev.dbinfo.get_dbinfo(ibs, aid_list=aid_subset, with_contrib=False)
-    del locals_
     # process singletons
     #[aids for aids in zip(aids, hour_dists_list]
     return aid_subset
@@ -2942,46 +2942,16 @@ def get_dbinfo_str(ibs):
 
 @__injectable
 def get_infostr(ibs):
-    """ Returns printable database information
+    """ Returns sort printable database information
 
     Args:
         ibs (IBEISController):  ibeis controller object
 
     Returns:
         str: infostr
-
-    CommandLine:
-        python -m ibeis.ibsfuncs --test-get_infostr
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> # execute function
-        >>> infostr = get_infostr(ibs)
-        >>> # verify results
-        >>> result = str(infostr)
-        >>> print(result)
-        dbname = 'testdb1'
-        num_images = 13
-        num_annotations = 13
-        num_names = 7
     """
-    dbname = ibs.get_dbname()
-    #workdir = ut.unixpath(ibs.get_workdir())
-    num_images = ibs.get_num_images()
-    num_annotations = ibs.get_num_annotations()
-    num_names = ibs.get_num_names()
-    #workdir = %r
-    infostr = ut.codeblock('''
-    dbname = %r
-    num_images = %r
-    num_annotations = %r
-    num_names = %r
-    ''' % (dbname, num_images, num_annotations, num_names))
-    return infostr
+    from ibeis.dev import dbinfo
+    return dbinfo.get_short_infostr(ibs)
 
 
 @__injectable
@@ -4705,7 +4675,7 @@ def make_temporally_distinct_blind_test(ibs, challenge_num=None):
         ut.copy(challenge_pdfs, dname)
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('Elephants_drop1')

@@ -87,8 +87,9 @@ def get_vocab_words(ibs, taids=None, qreq_=None):
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
     """
-    from vtool import clustering2 as clustertool
-    import numpy as np
+    raise NotImplementedError('no temp state!')
+    #from vtool import clustering2 as clustertool
+    #import numpy as np
     if qreq_ is not None:
         cfg = qreq_.qparams
     else:
@@ -103,29 +104,29 @@ def get_vocab_words(ibs, taids=None, qreq_=None):
             taids = cfg.vocab_taids
 
     vocab_cfgstr = get_vocab_cfgstr(ibs, taids=taids, qreq_=qreq_)
-    raise NotImplementedError('no temp state!')
+    vocab_cfgstr
 
-    if vocab_cfgstr not in ibs.temporary_state:
-        nWords = cfg.nWords
-        initmethod   = cfg.vocab_init_method
-        max_iters    = cfg.vocab_nIters
-        flann_params = cfg.vocab_flann_params
+    #if vocab_cfgstr not in ibs.temporary_state:
+    #    nWords = cfg.nWords
+    #    initmethod   = cfg.vocab_init_method
+    #    max_iters    = cfg.vocab_nIters
+    #    flann_params = cfg.vocab_flann_params
 
-        train_vecs_list = ibs.get_annot_vecs(taids, eager=True)
-        # Stack vectors
-        train_vecs = np.vstack(train_vecs_list)
-        del train_vecs_list
-        print('[get_vocab_words] Train Vocab(nWords=%d) using %d annots and %d descriptors' %
-              (nWords, len(taids), len(train_vecs)))
-        kwds = dict(max_iters=max_iters, initmethod=initmethod,
-                    appname='smk', flann_params=flann_params)
-        words = clustertool.cached_akmeans(train_vecs, nWords, **kwds)
-        # Cache words in temporary state
-        ibs.temporary_state[vocab_cfgstr] = words
-        del train_vecs
-    else:
-        words = ibs.temporary_state[vocab_cfgstr]
-    return words
+    #    train_vecs_list = ibs.get_annot_vecs(taids, eager=True)
+    #    # Stack vectors
+    #    train_vecs = np.vstack(train_vecs_list)
+    #    del train_vecs_list
+    #    print('[get_vocab_words] Train Vocab(nWords=%d) using %d annots and %d descriptors' %
+    #          (nWords, len(taids), len(train_vecs)))
+    #    kwds = dict(max_iters=max_iters, initmethod=initmethod,
+    #                appname='smk', flann_params=flann_params)
+    #    words = clustertool.cached_akmeans(train_vecs, nWords, **kwds)
+    #    # Cache words in temporary state
+    #    ibs.temporary_state[vocab_cfgstr] = words
+    #    del train_vecs
+    #else:
+    #    words = ibs.temporary_state[vocab_cfgstr]
+    #return words
 
 #@register_ibs_method
 #def get_vocab_assignments(ibs, qreq_=None):

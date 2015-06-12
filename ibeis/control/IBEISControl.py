@@ -89,7 +89,7 @@ autogenmodname_list = [
 ]
 
 pluginmodname_list = [
-    ('ibeis_cnn', '_plugin'),
+    #('ibeis_cnn', '_plugin'),
 ]
 
 
@@ -208,7 +208,6 @@ class IBEISController(object):
             print('[ibs.__init__] new IBEISController')
         # an dict to hack in temporary state
         ibs.const = const
-        ibs.temporary_state = {}
         ibs.allow_override = 'override+warn'
         # observer_weakref_list keeps track of the guibacks connected to this controller
         ibs.observer_weakref_list = []
@@ -1181,20 +1180,6 @@ class IBEISController(object):
     #-----------------------
     # --- IDENTIFICATION ---
     #-----------------------
-
-    #@default_decorator
-    #def get_recognition_database_aids(ibs, eid=None, is_exemplar=True, species=None):
-    #    """
-    #    DEPRECATE or refactor
-
-    #    Returns:
-    #        daid_list (list): testing recognition database annotations
-    #    """
-    #    if 'daid_list' in ibs.temporary_state:
-    #        daid_list = ibs.temporary_state['daid_list']
-    #    else:
-    #        daid_list = ibs.get_valid_aids(eid=eid, species=species, is_exemplar=is_exemplar)
-    #    return daid_list
 
     @default_decorator
     @register_api('/api/core/recognition_query_aids/', methods=['GET'])
