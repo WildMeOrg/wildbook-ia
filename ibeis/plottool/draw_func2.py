@@ -319,6 +319,8 @@ def show_if_requested():
         pt.draw()
         ut.embed(N=1)
     elif ut.get_argflag('--show'):
+        if ut.get_argflag('--present'):
+            present()
         plt.show()
 
 
