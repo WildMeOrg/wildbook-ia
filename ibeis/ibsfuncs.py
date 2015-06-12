@@ -634,6 +634,24 @@ def check_image_uuid_consistency(ibs, gid_list):
     what is already there.
 
     VERY SLOW
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-check_image_uuid_consistency --db=PZ_Master0
+        python -m ibeis.ibsfuncs --test-check_image_uuid_consistency
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> # Check for very large files
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> gid_list_ = ibs.get_valid_gids()
+        >>> gpath_list_ = ibs.get_image_paths(gid_list_)
+        >>> bytes_list_ = [ut.get_file_nBytes(path) for path in gpath_list_]
+        >>> sortx = ut.list_argsort(bytes_list_, reverse=True)[0:10]
+        >>> gpath_list = ut.list_take(gpath_list_, sortx)
+        >>> bytes_list = ut.list_take(bytes_list_, sortx)
+        >>> gid_list   = ut.list_take(gid_list_, sortx)
+        >>> ibeis.ibsfuncs.check_image_uuid_consistency(ibs, gid_list)
     """
     print('checking image uuid consistency')
     import ibeis.model.preproc.preproc_image as preproc_image
@@ -723,9 +741,14 @@ def check_name_consistency(ibs, nid_list):
     aids_list = ibs.get_name_aids(nid_list)
     print('Checking that all annotations of a name have the same species')
     species_rowids_list = ibs.unflat_map(ibs.get_annot_species_rowids, aids_list)
+    error_list = []
     for aids, sids in zip(aids_list, species_rowids_list):
-        assert ut.list_allsame(sids), \
-            'aids=%r have the same name, but belong to multiple species=%r' % (aids, ibs.get_species_texts(ut.unique_keep_order2(sids)))
+        if not ut.list_allsame(sids):
+            error_msg = 'aids=%r have the same name, but belong to multiple species=%r' % (aids, ibs.get_species_texts(ut.unique_keep_order2(sids)))
+            print(error_msg)
+            error_list.append(error_msg)
+    if len(error_list) > 0:
+        raise AssertionError('A total of %d names failed check_name_consistency' % (len(error_list)))
 
 
 @__injectable
@@ -2642,6 +2665,66 @@ def get_one_annot_per_name(ibs, col='rand'):
     return aid_list
 
 
+def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
+    """
+    CONTROLLED TEST DATA
+
+    Build data for experiment that tries to rule out
+    as much bad data as possible
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_two_annots_per_name_and_singletons
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_Master0')
+        >>> hasgt_aids = get_two_annots_per_name_and_singletons(ibs)
+        >>> result = str(hasgt_aids)
+        >>> print(result)
+    """
+    aid_list = ibs.get_valid_aids(species=ibs.const.Species.ZEB_PLAIN)
+    # FILTER OUT UNUSABLE ANNOTATIONS
+    # Get annots with timestamps
+    aid_list = filter_aids_without_timestamps(ibs, aid_list)
+    minqual = const.QUALITY_TEXT_TO_INT['poor']
+    #valid_yaws = {'left', 'frontleft', 'backleft'}
+    valid_yawtexts = {'left', 'frontleft'}
+    flags_list = ibs.get_quality_viewpoint_filterflags(aid_list, minqual, valid_yawtexts)
+    aid_list = ut.list_compress(aid_list, flags_list)
+    print('print subset info')
+    print(ut.dict_hist(ibs.get_annot_yaw_texts(aid_list)))
+    print(ut.dict_hist(ibs.get_annot_quality_texts(aid_list)))
+
+    singletons, multitons = partition_annots_into_singleton_multiton(ibs, aid_list)
+    # process multitons
+    hourdists_list = ibs.get_unflat_annots_hourdists_list(multitons)
+    #pairxs_list = [vt.pdist_argsort(x) for x in hourdists_list]
+    # Get the pictures taken the furthest appart of each gt case
+    best_pairx_list = [vt.pdist_argsort(x)[0] for x in hourdists_list]
+
+    best_multitons = np.array(vt.ziptake(multitons, best_pairx_list))
+    if onlygt:
+        aid_subset = best_multitons.flatten()
+    else:
+        aid_subset = np.hstack([best_multitons.flatten(), np.array(singletons).flatten()])
+    aid_subset.sort()
+
+    #best_hourdists_list = ut.flatten(ibs.get_unflat_annots_hourdists_list(best_multitons))
+    #assert len(best_hourdists_list) == len(best_multitons)
+    #best_multitons_sortx = np.array(best_hourdists_list).argsort()[::-1]
+    #best_pairs = ut.list_take(best_multitons, best_multitons_sortx)
+    #best_multis = ut.flatten(best_pairs)
+
+    ibeis.dev.dbinfo.rrr()
+    locals_ = ibeis.dev.dbinfo.get_dbinfo(ibs, aid_list=aid_subset, with_contrib=False)
+    del locals_
+    # process singletons
+    #[aids for aids in zip(aids, hour_dists_list]
+    return aid_subset
+
+
 @__injectable
 def get_aids_with_groundtruth(ibs):
     """ returns aids with valid groundtruth """
@@ -4542,12 +4625,62 @@ def search_list(text_list, pattern, flags=0):
 
 @__injectable
 def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list1 (int):  list of annotation ids
+        aid_list2 (int):  list of annotation ids
+
+    Returns:
+        list: timedelta_list
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_annot_pair_timdelta
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> from six.moves import filter
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> aid_list = ibs.get_valid_aids(hasgt=True)
+        >>> unixtimes = ibs.get_annot_image_unixtimes(aid_list)
+        >>> aid_list = ut.list_compress(aid_list, np.array(unixtimes) != -1)
+        >>> gt_aids_list = ibs.get_annot_groundtruth(aid_list, daid_list=aid_list)
+        >>> aid_list1 = [aid for aid, gt_aids in zip(aid_list, gt_aids_list) if len(gt_aids) > 0][0:5]
+        >>> aid_list2 = [gt_aids[0] for gt_aids in gt_aids_list if len(gt_aids) > 0][0:5]
+        >>> timedelta_list = ibs.get_annot_pair_timdelta(aid_list1, aid_list2)
+        >>> result = ut.numpy_str(timedelta_list, precision=2)
+        >>> print(result)
+        np.array([  7.57e+07,   7.57e+07,   2.41e+06,   1.98e+08,   9.69e+07], dtype=np.float64)
+
+    """
     unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)
     unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)
     unixtime_list1[unixtime_list1 == -1] = np.nan
     unixtime_list2[unixtime_list2 == -1] = np.nan
     timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
     return timedelta_list
+
+
+def filter_aids_without_timestamps(ibs, aid_list):
+    """
+    aid_list = ibs.get_valid_aids()
+    """
+    unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
+    flag_list = [unixtime != -1 for unixtime in unixtime_list]
+    aid_list_ = ut.list_compress(aid_list, flag_list)
+    return aid_list_
+
+
+def partition_annots_into_singleton_multiton(ibs, aid_list):
+    """
+    aid_list = aid_list_
+    """
+    aids_list = ibs.group_annots_by_name(aid_list)[0]
+    singletons = [aids for aids in aids_list if len(aids) == 1]
+    multitons = [aids for aids in aids_list if len(aids) > 1]
+    return singletons, multitons
 
 
 def make_temporally_distinct_blind_test(ibs, challenge_num=None):
@@ -4590,29 +4723,12 @@ def make_temporally_distinct_blind_test(ibs, challenge_num=None):
 
     def get_challenge_aids(aid_list):
         # Get annots with timestamps
-        unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
-        flag_list = [unixtime != -1 for unixtime in unixtime_list]
-        aid_list = ut.list_compress(aid_list, flag_list)
-        aids_list = ibs.group_annots_by_name(aid_list)[0]
-        singletons = [aids for aids in aids_list if len(aids) == 1]
-
-        def pdist_argsort(x):
-            """
-            x = np.array([  3.05555556e-03,   1.47619797e+04,   1.47619828e+04])
-            """
-            import scipy.spatial.distance as spdist
-            mat = spdist.squareform(x)
-            matu = np.triu(mat)
-            sortx_row, sortx_col = np.unravel_index(matu.ravel().argsort(), matu.shape)
-            # only take where col is larger than row due to upper triu
-            sortx_2d = [(r, c) for r, c in zip(sortx_row, sortx_col) if (c > r)]
-            return sortx_2d
-
+        aid_list_ = filter_aids_without_timestamps(ibs, aid_list)
+        singletons, multitons = partition_annots_into_singleton_multiton(ibs, aid_list_)
         # process multitons
-        multitons = [aids for aids in aids_list if len(aids) > 1]
         hourdists_list = ibs.get_unflat_annots_hourdists_list(multitons)
-        best_pairx_list = [pdist_argsort(x)[-1] for x in hourdists_list]
-        best_multitons = [ut.list_take(aids, xs) for aids, xs in zip(multitons, best_pairx_list)]
+        best_pairx_list = [vt.pdist_argsort(x)[-1] for x in hourdists_list]
+        best_multitons = vt.ziptake(multitons, best_pairx_list)
         best_hourdists_list = ut.flatten(ibs.get_unflat_annots_hourdists_list(best_multitons))
         assert len(best_hourdists_list) == len(best_multitons)
         best_multitons_sortx = np.array(best_hourdists_list).argsort()[::-1]

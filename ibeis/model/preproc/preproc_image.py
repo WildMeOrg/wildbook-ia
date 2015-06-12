@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 from PIL import Image
 from os.path import splitext, basename
 import numpy as np  # NOQA
+import warnings  # NOQA
 import hashlib
 import uuid
 import vtool.exif as vtexif
@@ -103,11 +104,18 @@ def parse_imageinfo(tup):
     gpath = tup
     #print('[ginfo] gpath=%r' % gpath)
     # Try to open the image
-    try:
-        pil_img = Image.open(gpath, 'r')  # Open PIL Image
-    except IOError as ex:
-        print('[preproc] IOError: %s' % (str(ex),))
-        return None
+    with warnings.catch_warnings(record=True) as w:
+        try:
+            pil_img = Image.open(gpath, 'r')  # Open PIL Image
+        except IOError as ex:
+            print('[preproc] IOError: %s' % (str(ex),))
+            return None
+        if len(w) > 0:
+            for warn in w:
+                warnings.showwarning(warn.message, warn.category, warn.filename, warn.lineno, warn.file, warn.line)
+                #warnstr = warnings.formatwarning(warn.message, warn.category, warn.filename, warn.lineno, warn.line)
+                #print(warnstr)
+            print('Warnings issued by %r' % (gpath,))
     # Parse out the data
     width, height  = pil_img.size         # Read width, height
     time, lat, lon = parse_exif(pil_img)  # Read exif tags
@@ -140,7 +148,10 @@ def add_images_params_gen(gpath_list, **kwargs):
     """
     generates values for add_images sqlcommands asychronously
 
-    Examples:
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_image --test-add_images_params_gen
+
+    Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_image import *   # NOQA
         >>> from vtool.tests import grabdata

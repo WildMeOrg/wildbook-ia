@@ -96,12 +96,14 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
 
     Args:
         ibs (IBEISController):  ibeis controller object
-        eid (None):
-        include_only_gid_list (list): if specified filters annots not in these gids
-        yaw (str):
-        is_exemplar (bool): if specified filters annots to either be or not be exemplars
-        species (None):
-        is_known (None):
+        eid (int): encounter id (default = None)
+        include_only_gid_list (list): if specified filters annots not in these gids (default = None)
+        yaw (str): (default = 'no-filter')
+        is_exemplar (bool): if specified filters annots to either be or not be exemplars (default = None)
+        species (str): (default = None)
+        is_known (bool): (default = None)
+        nojunk (bool): (default = False)
+        hasgt (bool): (default = None)
 
     Returns:
         list: aid_list - a list of valid ANNOTATION unique ids

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 not really used
 most things in here can be depricated
@@ -23,11 +24,12 @@ class OrganizedResult(DynStruct):
     """
     What chips are populated depends on the type of organization
 
-    Maintains an organized list of::
-        * query annotation indexes
-        * their top matching result
-        * their score
-        * their rank
+    Notes:
+        Maintains an organized list of:
+            * query annotation indexes
+            * their top matching result
+            * their score
+            * their rank
     """
     def __init__(self, orgtype=''):
         super(DynStruct, self).__init__()
@@ -123,33 +125,34 @@ def _score_sorted_ranks_lt(orgres, num):
 
 def qres2_true_and_false(ibs, qres):
     """
-
     Organizes chip-vs-chip results into true positive set and false positive set
-
     a set is a query, its best match, and a score
 
-    qres2_true_and_false
-
     Args:
-        ibs (IBEISController):
-        qres (QueryResult): object of feature correspondences and scores
+        ibs (IBEISController):  ibeis controller object
+        qres (QueryResult):  object of feature correspondences and scores
 
     Returns:
         tuple: (true_tup, false_tup)
-            * true_tup  = (true_aids,  true_scores,  true_ranks)
-            * false_tup = (false_aids, false_scores, false_ranks)
+            true_tup (tuple): (true_aids,  true_scores,  true_ranks)
+            false_tup (tuple): (false_aids, false_scores, false_ranks)
+
+    CommandLine:
+        python -m ibeis.experiments.results_organizer --test-qres2_true_and_false
 
     Example:
+        >>> # SLOW_DOCTEST
         >>> from ibeis.experiments.results_organizer import *   # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
-        >>> cfgdict = dict(codename='nsum',fg_on=True)
+        >>> cfgdict = dict()
         >>> qaid_list = aid_list[0:1]
         >>> qaid2_qres = ibs._query_chips4(qaid_list, aid_list, cfgdict=cfgdict)
         >>> qres = qaid2_qres[qaid_list[0]]
         >>> (true_tup, false_tup) = qres2_true_and_false(ibs, qres)
-        >>> print((true_tup, false_tup))
+        >>> print(true_tup)
+        >>> print(false_tup)
     """
     # Get top chip indexes and scores
     top_aids  = qres.get_top_aids()
@@ -190,9 +193,8 @@ def organize_results(ibs, qaid2_qres):
     """
     Sorts query result annotations, score, and ranks.
 
-
-    TODO:
-        somehow use the ratio of scores to try and make a prediction
+    Returns:
+        dict: orgres - contains OrganizedResult object of various types
 
     CommandLine:
         ib
@@ -202,15 +204,23 @@ def organize_results(ibs, qaid2_qres):
         python dev.py -t scores --db GZ_ALL --allgt -w --show --cfg fg_on:True
         python dev.py -t scores --db GZ_ALL --allgt -w --show
 
+    CommandLine:
+        python -m ibeis.experiments.results_organizer --test-organize_results
+
     Example:
+        >>> # SLOW_DOCTEST
         >>> from ibeis.experiments.results_organizer import *   # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
-        >>> cfgdict = dict(codename='vsmany', fg_on=True)
+        >>> cfgdict = dict()
         >>> qaid2_qres = ibs._query_chips4(aid_list, aid_list, cfgdict=cfgdict)
+        >>> orgres = organize_results(ibs, qaid2_qres)
+        >>> org_top_true = orgres['top_true']
+        >>> org_top_false = orgres['top_false']
+        >>> org_top_true.printme3()
     """
-    print('organize_results()')
+    print('[results_organizer] organize_results()')
     org_true          = OrganizedResult('true')
     org_false         = OrganizedResult('false')
     org_top_true      = OrganizedResult('top_true')   # highest ranked true matches
@@ -298,7 +308,6 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
     """
     Returns a list of matches that should be inspected
     This function is more lightweight than orgres or allres.
-
     Used in inspect_gui and interact_qres2
 
     Args:
@@ -313,6 +322,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         python -m ibeis.experiments.results_organizer --test-get_automatch_candidates:2
 
     Example0:
+        >>> # UNSTABLE_DOCTEST
         >>> from ibeis.experiments.results_organizer import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
@@ -326,6 +336,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         >>> print(candidate_matches)
 
     Example1:
+        >>> # UNSTABLE_DOCTEST
         >>> from ibeis.experiments.results_organizer import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
@@ -345,6 +356,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         >>> print(candidate_matches)
 
     Example3:
+        >>> # UNSTABLE_DOCTEST
         >>> from ibeis.experiments.results_organizer import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
@@ -364,6 +376,7 @@ def get_automatch_candidates(qaid2_qres, ranks_lt=5, directed=True,
         >>> print(candidate_matches)
 
     Example4:
+        >>> # UNSTABLE_DOCTEST
         >>> from ibeis.experiments.results_organizer import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')

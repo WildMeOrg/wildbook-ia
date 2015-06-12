@@ -105,7 +105,8 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         (dict[int, QueryResult]): qaid2_qres maps query annotid to QueryResult
 
     CommandLine:
-        python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0
+        python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show
+        python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:1 --show
 
     Example1:
         >>> # one-vs-many:
@@ -118,9 +119,10 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         >>> verbose = True
         >>> qaid2_qres = request_ibeis_query_L0(ibs, qreq_, verbose=verbose)
         >>> qres = qaid2_qres[list(qaid2_qres.keys())[0]]
-        >>> if ut.get_argflag('--show') or ut.inIPython():
-        ...     qres.show_analysis(ibs, fnum=0, make_figtitle=True)
+        >>> ut.quit_if_noshow()
+        >>> qres.show_analysis(ibs, fnum=0, make_figtitle=True)
         >>> print(qres.get_inspect_str())
+        >>> ut.show_if_requested()
 
     Example2:
         >>> # one-vs-one:
@@ -132,9 +134,10 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         >>> print(qreq_1.qparams.query_cfgstr)
         >>> qaid2_qres1 = request_ibeis_query_L0(ibs1, qreq_1)
         >>> qres1 = qaid2_qres1[list(qaid2_qres1.keys())[0]]
-        >>> if ut.get_argflag('--show') or ut.inIPython():
-        ...     qres1.show_analysis(ibs1, fnum=1, make_figtitle=True)
+        >>> ut.quit_if_noshow()
+        >>> qres1.show_analysis(ibs1, fnum=1, make_figtitle=True)
         >>> print(qres1.get_inspect_str())
+        >>> ut.show_if_requested()
 
     """
     # Load data for nearest neighbors

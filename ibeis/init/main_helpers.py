@@ -85,6 +85,10 @@ def get_test_qaids(ibs, default_qaids=None):
         print('[get_test_qaids] Adding all %d/%d ground-truthed test cases' % (len(hasgt_aids), len(valid_aids)))
         available_qaids.extend(hasgt_aids)
 
+    if ut.get_argflag('--controlled'):
+        from ibeis import ibsfuncs
+        available_qaids = ibsfuncs.get_two_annots_per_name_and_singletons(ibs, onlygt=True)
+
     # INDEX SUBSET
     # Sample a large pool of chosen query qindexes
     # Filter only the ones you want from the large pool
@@ -147,6 +151,11 @@ def get_test_daids(ibs, qaid_list=None):
     if params.args.daid_exclude is not None:
         available_daids = list(set(available_daids) - set(params.args.daid_exclude))
 
+    if ut.get_argflag('--controlled'):
+        from ibeis import ibsfuncs
+        available_daids = ibsfuncs.get_two_annots_per_name_and_singletons(ibs, onlygt=False)
+
+    # Index a subset
     if params.args.dindex is not None:
         dindexes = ensure_flatlistlike(params.args.dindex)
         #printDBG('Chosen dindexes=%r' % (dindexes,))
@@ -155,7 +164,7 @@ def get_test_daids(ibs, qaid_list=None):
         available_daids = _test_daids
         #printDBG('available_daids = %r' % available_daids)
 
-    species = ut.get_argval('--species')
+    species = ut.get_argval('--species', type_=str, default=None)
 
     if species is not None:
         import numpy as np

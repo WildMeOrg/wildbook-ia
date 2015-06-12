@@ -45,7 +45,7 @@ def test_name_consistency(ibs):
     assert all(map(ut.list_allsame, _nids_list))
 
 
-def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
+def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False, with_contrib=True, aid_list=None):
     """
 
     Returns dictionary of digestable database information
@@ -153,9 +153,18 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     # TODO: encounters, contributors, etc...
 
     # Basic variables
-    valid_aids = ibs.get_valid_aids()
-    valid_nids = ibs.get_valid_nids()
-    valid_gids = ibs.get_valid_gids()
+    request_annot_subset = False
+    if aid_list is None:
+        valid_aids = ibs.get_valid_aids()
+        valid_nids = ibs.get_valid_nids()
+        valid_gids = ibs.get_valid_gids()
+    else:
+        if verbose:
+            print('Specified %d custom aids' % (len(aid_list,)))
+        request_annot_subset = True
+        valid_aids = aid_list
+        valid_nids = list(set(ibs.get_annot_nids(aid_list, distinguish_unknowns=False)) - {ibs.UNKNOWN_NAME_ROWID})
+        valid_gids = list(set(ibs.get_annot_gids(aid_list)))
     #associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation
     FILTER_HACK = True
     if FILTER_HACK:
@@ -163,15 +172,18 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         valid_aids_ = ibs.filter_aids_custom(valid_aids)
         valid_nids_ = ibs.filter_nids_custom(valid_nids)
         valid_gids_ = ibs.filter_gids_custom(valid_gids)
-        print('Filtered %d names' % (len(valid_nids) - len(valid_nids_)))
-        print('Filtered %d images' % (len(valid_gids) - len(valid_gids_)))
-        print('Filtered %d annots' % (len(valid_aids) - len(valid_aids_)))
+        if verbose:
+            print('Filtered %d names' % (len(valid_nids) - len(valid_nids_)))
+            print('Filtered %d images' % (len(valid_gids) - len(valid_gids_)))
+            print('Filtered %d annots' % (len(valid_aids) - len(valid_aids_)))
         valid_gids = valid_gids_
         valid_nids = valid_nids_
         valid_aids = valid_aids_
         #associated_nids = ut.filter_items(associated_nids, map(any, ibs.unflat_map(ibs.get_annot_custom_filterflags, ibs.get_name_aids(associated_nids))))
 
     # Image info
+    if verbose:
+        print('Checking Image Info')
     gx2_aids = ibs.get_image_aids(valid_gids)
     if FILTER_HACK:
         gx2_aids = [ibs.filter_aids_custom(aids) for aids in gx2_aids]  # HACK FOR FILTER
@@ -182,6 +194,8 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     image_reviewed_list = ibs.get_image_reviewed(valid_gids)
 
     # Name stats
+    if verbose:
+        print('Checking Name Info')
     nx2_aids = ibs.get_name_aids(valid_nids)
     if FILTER_HACK:
         nx2_aids =  [ibs.filter_aids_custom(aids) for aids in nx2_aids]    # HACK FOR FILTER
@@ -200,11 +214,15 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
                 zip(ax2_nid, ax2_unknown)]), 'bad annot nid'
     """
     #
+    if verbose:
+        print('Checking Annot Species')
     unknown_aids = ut.filter_items(valid_aids, ibs.is_aid_unknown(valid_aids))
     species_list = ibs.get_annot_species_texts(valid_aids)
     species2_aids = ut.group_items(valid_aids, species_list)
     species2_nAids = {key: len(val) for key, val in species2_aids.items()}
 
+    if verbose:
+        print('Checking Multiton/Singleton Species')
     nx2_nAnnots = np.array(list(map(len, nx2_aids)))
     # Seperate singleton / multitons
     multiton_nxs  = np.where(nx2_nAnnots > 1)[0]
@@ -215,6 +233,8 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     num_names_with_gt = len(multiton_nxs)
 
     # Annot Info
+    if verbose:
+        print('Checking Annot Info')
     multiton_aids_list = ut.list_take(nx2_aids, multiton_nxs)
     assert len(set(multiton_nxs)) == len(multiton_nxs)
     if len(multiton_aids_list) == 0:
@@ -227,6 +247,8 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
 
     # Image size stats
     if with_imgsize:
+        if verbose:
+            print('Checking ImageSize Info')
         gpath_list = ibs.get_image_paths(valid_gids)
         def wh_print_stats(wh_list):
             if len(wh_list) == 0:
@@ -262,6 +284,9 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     else:
         imgsize_stat_lines = []
 
+    if verbose:
+        print('Building Stats String')
+
     multiton_stats  = ut.get_stats_str(multiton_nid2_nannots, newlines=True)
 
     # Time stats
@@ -274,11 +299,6 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     gps_list_ = ibs.get_image_gps(valid_gids)
     gpsvalid_list = [gps != (-1, -1) for gps in gps_list_]
     gps_list  = ut.filter_items(gps_list_, gpsvalid_list)
-
-    ibsdir_space   = ut.byte_str2(ut.get_disk_space(ibs.get_ibsdir()))
-    dbdir_space    = ut.byte_str2(ut.get_disk_space(ibs.get_dbdir()))
-    imgdir_space   = ut.byte_str2(ut.get_disk_space(ibs.get_imgdir()))
-    cachedir_space = ut.byte_str2(ut.get_disk_space(ibs.get_cachedir()))
 
     # Quality and Viewpoint Stats
     def get_annot_qual_stats(aid_list):
@@ -327,10 +347,16 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         sextext2_nAnnots = {key: val for key, val in six.iteritems(sextext2_nAnnots) if val != 0}
         return sextext2_nAnnots
 
+    if verbose:
+        print('Checking Other Annot Stats')
+
     qualtext2_nAnnots = get_annot_qual_stats(valid_aids)
     yawtext2_nAnnots = get_annot_yaw_stats(valid_aids)
     agetext2_nAnnots = get_annot_age_stats(valid_aids)
     sextext2_nAnnots = get_annot_sex_stats(valid_aids)
+
+    if verbose:
+        print('Checking Contrib Stats')
 
     # Contributor Statistics
     # hack remove colon for image alignment
@@ -347,6 +373,9 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     contrib_tag_to_nImages = {key: len(val) for key, val in six.iteritems(contrib_tag_to_gids)}
     contrib_tag_to_nAnnots = {key: len(val) for key, val in six.iteritems(contrib_tag_to_aids)}
 
+    if verbose:
+        print('Summarizing')
+
     # Summarize stats
     num_names = len(valid_nids)
     num_names_unassociated = len(valid_nids) - len(associated_nids)
@@ -358,21 +387,38 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     num_unknown_annots = len(unknown_aids)
     num_annots = len(valid_aids)
 
+    if with_bytes:
+        if verbose:
+            print('Checking Disk Space')
+        ibsdir_space   = ut.byte_str2(ut.get_disk_space(ibs.get_ibsdir()))
+        dbdir_space    = ut.byte_str2(ut.get_disk_space(ibs.get_dbdir()))
+        imgdir_space   = ut.byte_str2(ut.get_disk_space(ibs.get_imgdir()))
+        cachedir_space = ut.byte_str2(ut.get_disk_space(ibs.get_cachedir()))
+
     if True:
+        if verbose:
+            print('Check asserts')
         try:
             bad_aids = np.intersect1d(multiton_aids, unknown_aids)
+            _num_names_total_check = num_names_singleton + num_names_unassociated + num_names_multiton
+            _num_annots_total_check = num_unknown_annots + num_singleton_annots + num_multiton_annots
             assert len(bad_aids) == 0, 'intersecting multiton aids and unknown aids'
-            assert num_names_singleton + num_names_unassociated + num_names_multiton == num_names, 'inconsistent num names'
-            assert num_unknown_annots + num_singleton_annots + num_multiton_annots == num_annots, 'inconsistent num annots'
+            assert _num_names_total_check == num_names, 'inconsistent num names'
+            if not request_annot_subset:
+                # dont check this if you have an annot subset
+                assert _num_annots_total_check == num_annots, 'inconsistent num annots'
         except Exception as ex:
             ut.printex(ex, keys=[
+                '_num_names_total_check',
+                'num_names',
+                '_num_annots_total_check',
+                'num_annots',
                 'num_names_singleton',
                 'num_names_multiton',
-                'num_names',
                 'num_unknown_annots',
                 'num_multiton_annots',
                 'num_singleton_annots',
-                'num_annots'])
+            ])
             raise
 
     # Get contributor statistics
@@ -443,7 +489,7 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
         '# Annots per contributor       = ' + align_dict2(contrib_tag_to_nAnnots),
         '# Quality per contributor      = ' + ut.dict_str(contrib_tag_to_qualstats, sorted_=True),
         '# Viewpoint per contributor    = ' + ut.dict_str(contrib_tag_to_viewstats, sorted_=True),
-    ]
+    ] if with_contrib else []
 
     img_block_lines = [
         ('--' * num_tabs),
@@ -469,7 +515,8 @@ def get_dbinfo(ibs, verbose=True, with_imgsize=False, with_bytes=False):
     info_str = '\n'.join(info_str_lines)
     if verbose:
         print(ut.indent(info_str, '[dbinfo]'))
-    return locals()
+    locals_ = locals()
+    return locals_
 
 
 def get_keypoint_stats(ibs):

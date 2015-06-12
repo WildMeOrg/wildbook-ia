@@ -566,6 +566,8 @@ def print_results(ibs, test_result):
 
     @ut.argv_flag_dec
     def print_rankhist():
+        print('A rank histogram is a dictionary. '
+              'The keys denote the range of the ranks that the values fall in')
         # TODO: rectify this code with other hist code
         agg_hist_dict = test_result.get_rank_histograms()
 
@@ -582,7 +584,7 @@ def print_results(ibs, test_result):
 
             aid_list1 = test_result.qaids
             aid_list2 = qx2_gt_aid
-            timedelta_list = ibs.get_annotpair_timdelta(ibs, aid_list1, aid_list2)
+            timedelta_list = ibs.get_annot_pair_timdelta(aid_list1, aid_list2)
             #timedelta_str_list = [ut.get_posix_timedelta_str2(delta)
             #                      for delta in timedelta_list]
 
@@ -590,11 +592,12 @@ def print_results(ibs, test_result):
             timedelta_groups = ut.dict_take(ut.group_items(timedelta_list, config_binxs), np.arange(len(bin_edges)), [])
 
             timedelta_stats = [ut.get_stats(deltas, use_nan=True, datacast=ut.get_posix_timedelta_str2) for deltas in timedelta_groups]
-            print('bin time stats')
+            print('Time statistics for each rank range:')
             print(ut.dict_str(dict(zip(bin_edges, timedelta_stats)), sorted_=True))
 
-            #timedelta_str_list = get_annotpair_timdelta_strs(ibs, aid_list1, aid_list2)
+            #timedelta_str_list = get_annot_pair_timdelta(ibs, aid_list1, aid_list2)
 
+            print('Frequency of rank ranges:')
             ut.print_dict(agg_hist_dict, 'agg rank histogram', sorted_=True)
     print_rankhist()
 

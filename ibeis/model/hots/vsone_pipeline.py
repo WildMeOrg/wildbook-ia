@@ -133,11 +133,11 @@ def vsone_reranking(qreq_, cm_list_SVER, verbose=False):
         >>> # cm_list_SVER = ut.dict_subset(cm_list_SVER, [6])
         >>> cm_list_VSONE = vsone_reranking(qreq_, cm_list_SVER)
         >>> #cm_list = cm_list_VSONE
-        >>> if ut.show_was_requested():
-        ...     import plottool as pt
-        ...     figtitle = 'FIXME USE SUBSET OF CFGDICT'  # ut.dict_str(rrvsone_cfgdict, newlines=False)
-        ...     show_all_ranked_matches(qreq_.ibs, cm_list_VSONE, figtitle=figtitle)
-        ...     pt.show_if_requested()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> figtitle = 'FIXME USE SUBSET OF CFGDICT'  # ut.dict_str(rrvsone_cfgdict, newlines=False)
+        >>> show_all_ranked_matches(qreq_.ibs, cm_list_VSONE, figtitle=figtitle)
+        >>> pt.show_if_requested()
     """
     config = qreq_.qparams
     # Filter down to a shortlist

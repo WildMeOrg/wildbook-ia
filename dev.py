@@ -83,6 +83,7 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
         python dev.py -t scores --db PZ_MTEST --allgt --show
 
     """
+    import vtool as vt
     print('[dev] annotationmatch_scores')
     #allres = results_all.get_allres(ibs, qaid_list, daid_list)
     #ut.embed()
@@ -108,28 +109,37 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
             # Get name scores for this query
             nscoretup = qres.get_nscoretup(ibs)
             (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup
-            #
-            #sorted_ndiff = -np.diff(sorted_nscores.tolist())
+            # TODO: take into account viewpoint / quality difference
             sorted_nids = np.array(sorted_nids)
             is_positive  = sorted_nids == qnid
             is_negative = np.logical_and(~is_positive, sorted_nids > 0)
             if np.any(is_positive):
-                gt_rank = np.nonzero(is_positive)[0][0]
-                tp_nscores.append(sorted_nscores[gt_rank])
+                # Take only the top true name score
+                num_true = min(sum(is_positive), 1)
+                gt_rank = np.nonzero(is_positive)[0][0:num_true]
+                tp_nscores.extend(sorted_nscores[gt_rank])
             if np.any(is_negative):
-                gf_rank = np.nonzero(is_negative)[0][0]
-                tn_nscores.append(sorted_nscores[gf_rank])
+                # Take the top few false name scores
+                num_false = min(sum(is_negative), 3)
+                gf_rank = np.nonzero(is_negative)[0][0:num_false]
+                tn_nscores.extend(sorted_nscores[gf_rank])
         tp_nscores = np.array(tp_nscores).astype(np.float64)
         tn_nscores = np.array(tn_nscores).astype(np.float64)
         return tp_nscores, tn_nscores
 
     tp_nscores, tn_nscores = get_labeled_name_scores(ibs, qres_list)
-    confusions = vt.ConfusionMetrics.from_tp_and_tn_scores(tp_nscores, tn_nscores)
+
+    #encoder = vt.ScoreNormalizer(target_tpr=.7)
+    encoder = vt.ScoreNormalizer()
+    name_scores, labels = encoder._to_xy(tp_nscores, tn_nscores)
+    encoder.fit(name_scores, labels)
+    encoder.visualize(figtitle='Learned Name Score Normalizer')
+
+    #confusions = vt.ConfusionMetrics.from_tp_and_tn_scores(tp_nscores, tn_nscores)
     #confusions.draw_roc_curve()
     #ut.embed()
 
-    import vtool.score_normalization as scorenorm
-    scorenorm.test_score_normalization(tp_nscores, tn_nscores)
+    #scorenorm.test_score_normalization(tp_nscores, tn_nscores)
     #scorenorm.plot_support(tn_nscores, tp_nscores, figtitle='sorted name scores', markersizes=[8, 4])
 
     #from ibeis.model.hots import score_normalization
@@ -143,6 +153,50 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     #locals_ = viz_allres_annotation_scores(allres)
     locals_ = locals()
     return locals_
+
+
+@devcmd('dists', 'dist', 'vecs_dist')
+def vecs_dist(ibs, qaid_list, daid_list=None):
+    """
+    Plots the distances between matching descriptors
+        with groundtruth (true/false) data
+
+
+    True distances are spatially verified descriptor matches
+    Top false distances distances are spatially verified descriptor matches
+
+    CommandLine:
+        python dev.py -t vecs_dist --db NAUT_test --allgt -w --show
+        python dev.py -t vecs_dist --db PZ_MTEST --allgt -w --show
+        python dev.py -t vecs_dist --db PZ_Master0 --allgt -w --show
+        python dev.py -t vecs_dist --db NNP_Maser3 --allgt -w --show
+        python dev.py -t vecs_dist --db GZ_ALL --allgt -w --show
+    """
+    print('[dev] vecs_dist')
+    allres = results_all.get_allres(ibs, qaid_list)
+    # Get the descriptor distances of true matches
+    orgtype_list = ['top_false', 'true']
+    disttype = 'L2'
+    # Get descriptor match distances
+    orgres2_distmap = results_analyzer.get_orgres_desc_match_dists(allres, orgtype_list)
+    results_analyzer.print_desc_distances_map(orgres2_distmap)
+    #true_desc_dists  = orgres2_distmap['true']['L2']
+    #false_desc_dists = orgres2_distmap['false']['L2']
+    #scores_list = [false_desc_dists, true_desc_dists]
+    dists_list = [orgres2_distmap[orgtype][disttype] for orgtype in orgtype_list]
+    if False:
+        dists_lbls = orgtype_list
+        dists_markers = ['x--', 'o--']
+        pt.plots.plot_sorted_scores(dists_list, dists_lbls, dists_markers)
+    else:
+        encoder = vt.ScoreNormalizer()
+        tn_scores, tp_scores = dists_list
+        name_scores, labels = encoder._to_xy(tp_scores, tn_scores)
+        encoder.fit(name_scores, labels)
+        encoder.visualize(figtitle='Descriptor Distance')
+
+    pt.set_figtitle('Descriptor Sorted Distance d(x)\n' + allres.get_cfgstr())
+    return locals()
 
 
 @devcmd('tune', 'autotune')
@@ -373,40 +427,6 @@ def up_dbsize_expt(ibs, qaid_list, daid_list=None):
     # into the experiment_harness
     locals_ = locals()
     return locals_  # return in dict format for execstr_dict
-
-
-@devcmd('dists', 'dist', 'vecs_dist')
-def vecs_dist(ibs, qaid_list, daid_list=None):
-    """
-    Plots the distances between matching descriptors
-        with groundtruth (true/false) data
-
-
-    True distances are spatially verified descriptor matches
-    Top false distances distances are spatially verified descriptor matches
-
-    CommandLine:
-        python dev.py -t vecs_dist --db NAUT_test --allgt -w --show
-        python dev.py -t vecs_dist --db PZ_MTEST --allgt -w --show
-        python dev.py -t vecs_dist --db GZ_ALL --allgt -w --show
-    """
-    print('[dev] vecs_dist')
-    allres = results_all.get_allres(ibs, qaid_list)
-    # Get the descriptor distances of true matches
-    orgtype_list = ['top_false', 'true']
-    disttype = 'L2'
-    # Get descriptor match distances
-    orgres2_distmap = results_analyzer.get_orgres_desc_match_dists(allres, orgtype_list)
-    results_analyzer.print_desc_distances_map(orgres2_distmap)
-    #true_desc_dists  = orgres2_distmap['true']['L2']
-    #false_desc_dists = orgres2_distmap['false']['L2']
-    #scores_list = [false_desc_dists, true_desc_dists]
-    dists_list = [orgres2_distmap[orgtype][disttype] for orgtype in orgtype_list]
-    dists_lbls = orgtype_list
-    dists_markers = ['x--', 'o--']
-    pt.plots.plot_sorted_scores(dists_list, dists_lbls, dists_markers)
-    pt.set_figtitle('Descriptor Sorted Distance d(x)' + allres.get_cfgstr())
-    return locals()
 
 
 @devcmd('vsone_gt')
@@ -1032,6 +1052,14 @@ CurrentExperiments:
 
     # Check to see if new spatial verification helps
     ./dev.py -t custom:full_homog_checks=False custom:full_homog_checks=True --db PZ_Master0 --allgt --species=zebra_plains
+    # Yay it does
+
+
+    # Look for how many false negatives are in the bottom batch
+    ./dev.py -t custom --db PZ_MTEST --allgt --species=zebra_plains --print-rankhist
+    ./dev.py -t custom --db PZ_MTEST --allgt --controlled --print-rankhist
+    ./dev.py -t custom --db PZ_Master0 --allgt --controlled --print-rankhist
+
 
 
 ElephantEarExperiments
