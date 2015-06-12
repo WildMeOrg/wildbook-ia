@@ -29,7 +29,7 @@ IMPORT_TUPLES = [
     ('clustering2', None),
     ('distance', None),
     ('other', None),
-    ('precision_recall', None),
+    ('confusion', None),
     ('score_normalization', None),
     #('coverage_kpts', None),
     #('coverage_grid', None),

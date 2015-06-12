@@ -9,6 +9,21 @@ from six.moves import zip, range  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[other]', DEBUG=False)
 
 
+def pdist_argsort(x):
+    """
+    Sorts 2d indicies by their distnace matrix output from scipy.spatial.distance
+
+    x = np.array([  3.05555556e-03,   1.47619797e+04,   1.47619828e+04])
+    """
+    import scipy.spatial.distance as spdist
+    mat = spdist.squareform(x)
+    matu = np.triu(mat)
+    sortx_row, sortx_col = np.unravel_index(matu.ravel().argsort(), matu.shape)
+    # only take where col is larger than row due to upper triu
+    sortx_2d = [(r, c) for r, c in zip(sortx_row, sortx_col) if (c > r)]
+    return sortx_2d
+
+
 def crop_out_imgfill(img, fillval=None, thresh=0):
     if fillval is None:
         fillval = [255, 255, 255]
@@ -244,6 +259,39 @@ def index_partition(item_list, part1_items):
     part1_indexes = part1_indexes.astype(np.int32)
     part2_indexes = part2_indexes.astype(np.int32)
     return part1_indexes, part2_indexes
+
+
+def rebuild_partition(part1_vals, part2_vals, part1_indexes, part2_indexes):
+    r"""
+    Inverts work done by index_partition
+
+    Args:
+        part1_vals (?):
+        part2_vals (dict):
+        part1_indexes (?):
+        part2_indexes (dict):
+
+    CommandLine:
+        python -m vtool.other --test-rebuild_partition
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> item_list = ['dist', 'fg', 'distinctiveness']
+        >>> part1_items = ['fg', 'distinctiveness']
+        >>> part1_indexes, part2_indexes = index_partition(item_list, part1_items)
+        >>> part1_vals = ut.list_take(item_list, part1_indexes)
+        >>> part2_vals = ut.list_take(item_list, part2_indexes)
+        >>> val_list = rebuild_partition(part1_vals, part2_vals, part1_indexes, part2_indexes)
+        >>> assert val_list == item_list, 'incorrect inversin'
+        >>> print(val_list)
+    """
+    val_list = [None] * (len(part1_indexes) + len(part2_indexes))
+    for idx, val in zip(part1_indexes, part1_vals):
+        val_list[idx] = val
+    for idx, val in zip(part2_indexes, part2_vals):
+        val_list[idx] = val
+    return val_list
 
 
 def weighted_average_scoring(fsv, weight_filtxs, nonweight_filtxs):

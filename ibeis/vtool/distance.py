@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import utool as ut
+from collections import OrderedDict
 (print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[dist]', DEBUG=False)
 #profile = utool.profile
@@ -228,6 +229,156 @@ def nearest_point(x, y, pts, conflict_mode='next', __next_counter=[0]):
             else:
                 raise AssertionError('unknown conflict_mode=%r' % (conflict_mode,))
     return fx, mindist
+
+#from six.moves import zip
+#from utool import util_inject
+#print, print_, printDBG, rrr, profile = util_inject.inject(__name__, '[dist]')
+VALID_DISTS = [
+    'L1',
+    'L2',
+    'L2_sift',
+    'L2_sqrd',
+    'bar_L2_sift',
+    'bar_cos_sift',
+    'cos_sift',
+    'det_distance',
+    'emd',
+    'hist_isect',
+    'nearest_point',
+    'ori_distance',
+]
+
+
+def compute_distances(hist1, hist2, dist_list=['L1', 'L2']):
+    r"""
+    Args:
+        hist1 (ndarray):
+        hist2 (ndarray):
+        dist_list (list): (default = ['L1', 'L2'])
+
+    Returns:
+        dict: dist_dict
+
+    Ignore:
+        # Build valid dist list programtically
+        import vtool
+        func_list = ut.get_module_owned_functions(vtool.distance)
+        funcname_list = [ut.get_funcname(x) for x in func_list]
+        funcname_list = [n for n in funcname_list if n not in ['compute_distances']]
+        print('VALID_DISTS = ' + ut.list_str(sorted(funcname_list)))
+
+    CommandLine:
+        python -m vtool.distance --test-compute_distances
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.distance import *  # NOQA
+        >>> hist1 = np.array([[1, 2], [2, 1], [0, 0]])
+        >>> hist2 = np.array([[1, 2], [3, 1], [2, 2]])
+        >>> dist_list = ['L1', 'L2']
+        >>> dist_dict = compute_distances(hist1, hist2, dist_list)
+        >>> result = ut.dict_str(dist_dict, precision=3)
+        >>> print(result)
+        {
+            'L1': np.array([ 0.,  1.,  4.], dtype=np.float64),
+            'L2': np.array([ 0.   ,  1.   ,  2.828], dtype=np.float64),
+        }
+    """
+    dtype_ = np.float64
+    hist1 = np.array(hist1, dtype=dtype_)
+    hist2 = np.array(hist2, dtype=dtype_)
+    # TODO: enumerate value distances
+    dist_funcs = [globals()[type_] for type_ in dist_list]
+    val_list = [func(hist1, hist2) for func in dist_funcs]
+    dist_dict = OrderedDict(list(zip(dist_list, val_list)))
+    return dist_dict
+
+
+def bar_L2_sift(hist1, hist2):
+    """  1 - Normalized SIFT L2 """
+    return 1.0 - L2_sift(hist1, hist2)
+
+
+def bar_cos_sift(hist1, hist2):
+    """  1 - Normalized SIFT L2 """
+    return 1.0 - cos_sift(hist1, hist2)
+
+
+def L2_sift(hist1, hist2):
+    """  1 - Normalized SIFT L2 """
+    psuedo_max = 512.0
+    sift1 = hist1 / psuedo_max
+    sift2 = hist2 / psuedo_max
+    sift1 /= np.linalg.norm(sift1)
+    sift2 /= np.linalg.norm(sift2)
+    return L2(sift1, sift2)
+
+
+def cos_sift(hist1, hist2):
+    """ returns the squared L2 distance
+    seealso L2
+    """
+    psuedo_max = 512.0
+    sift1 = hist1 / psuedo_max
+    sift2 = hist2 / psuedo_max
+    sift1 /= np.linalg.norm(sift1)
+    sift2 /= np.linalg.norm(sift2)
+    #import utool as ut
+    #ut.embed()
+    return (sift1 * sift2).sum(-1)
+
+
+def emd(hist1, hist2):
+    """
+    earth mover's distance by robjects(lpSovle::lp.transport)
+    require: lpsolve55-5.5.0.9.win32-py2.7.exe
+
+    Example:
+        >>> from vtool.distances import *   # NOQA
+        >>> import numpy as np
+        >>> hist1 = np.random.rand(128)
+        >>> hist2 = np.random.rand(128)
+        >>> result = emd(hist1, hist2)
+
+    References:
+        https://github.com/andreasjansson/python-emd
+        http://stackoverflow.com/questions/15706339/how-to-compute-emd-for-2-numpy-arrays-i-e-histogram-using-opencv
+        http://www.cs.huji.ac.il/~ofirpele/FastEMD/code/
+        http://www.cs.huji.ac.il/~ofirpele/publications/ECCV2008.pdf
+    """
+    try:
+        from cv2 import cv
+    except ImportError as ex:
+        print(repr(ex))
+        print('Cannot import cv. Is opencv 2.4.9?')
+        return -1
+
+    # Stack weights into the first column
+    def add_weight(hist):
+        weights = np.ones(len(hist))
+        stacked = np.ascontiguousarray(np.vstack([weights, hist]).T)
+        return stacked
+
+    def convertCV32(stacked):
+        hist64 = cv.fromarray(stacked)
+        hist32 = cv.CreateMat(hist64.rows, hist64.cols, cv.CV_32FC1)
+        cv.Convert(hist64, hist32)
+        return hist32
+
+    def emd_(a32, b32):
+        return cv.CalcEMD2(a32, b32, cv.CV_DIST_L2)
+
+    # HACK
+    if len(hist1.shape) == 1 and len(hist2.shape) == 1:
+        a, b = add_weight(hist1), add_weight(hist2)
+        a32, b32 = convertCV32(a), convertCV32(b)
+        emd_dist = emd_(a32, b32)
+        return emd_dist
+    else:
+        ab_list   = [(add_weight(a), add_weight(b)) for a, b in zip(hist1, hist2)]
+        ab32_list = [(convertCV32(a), convertCV32(b)) for a, b in ab_list]
+        emd_dists = [emd_(a32, b32) for a32, b32, in ab32_list]
+        return emd_dists
 
 
 if __name__ == '__main__':

@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
-# TODO: rename to confusions.py
+"""
+Module for -- Confusion matrix, contingency, error matrix,
 
+References:
+    http://en.wikipedia.org/wiki/Confusion_matrix
+"""
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
@@ -160,7 +164,7 @@ def interpolate_precision_recall(precision, recall, nSamples=11):
     return recall_domain, p_interp
 
 
-def get_confusion_metrics(scores, labels):
+def get_confusion_metrics(scores, labels, verbose=True):
     """
     gets average percision using the PASCAL definition
 
@@ -187,24 +191,26 @@ def get_confusion_metrics(scores, labels):
         >>> confusions.draw_roc_curve()
         >>> ut.show_if_requested()
     """
-    scores = np.array(scores)
-    labels = np.array(labels)
     import sklearn.metrics
-    fpr_curve, tpr_curve, thresholds = sklearn.metrics.roc_curve(labels, scores, pos_label=1)
+    if not isinstance(scores, np.ndarray):
+        scores = np.array(scores)
+    if not isinstance(labels, np.ndarray):
+        labels = np.array(labels)
+    labels = labels.astype(np.bool)
+    if verbose:
+        print('[confusion] building confusion metrics.')
+        print('[confusion]  * scores.shape=%r, scores.dtype=%r' % (scores.shape, scores.dtype))
+        print('[confusion]  * labels.shape=%r, labels.dtype=%r' % (labels.shape, labels.dtype))
+        print('[confusion]  * size(scores) = %r' % (ut.get_object_size_str(scores),))
+        print('[confusion]  * size(labels) = %r' % (ut.get_object_size_str(labels),))
+    #memtrack = ut.MemoryTracker(disable=False)
+    #memtrack.report('[CONFUSION]')
+
+    #ut.embed()
+    #memtrack.report('[SKLEARN]')
     # TODO
     #sklearn.metrics.precision_recall_curve(labels, probs)
     #sklearn.metrics.classification_report
-
-    #false_positive_rate, true_positive_rate = fpr, tpr
-    # True positive rate (sensitivity)
-    # TPR = TP / (TP + FN)
-    #true_ranks = np.where(labels)[0]
-    #false_ranks = np.where(np.logical_not(labels))[0]
-    true_scores = scores[labels.astype(np.bool)]
-    false_scores = scores[np.logical_not(labels)]
-
-    nGroundTruth = len(true_scores)
-    nGroundFalse = len(false_scores)
 
     #if False:
     #    max_rank =  max(true_ranks.max(), false_ranks.max())
@@ -212,20 +218,50 @@ def get_confusion_metrics(scores, labels):
     #        max_rank = 0
     #    thresholds = np.arange(max_rank + 1)
 
-    # Count the number of true positives at each threshold position
-    # the number of documents we got right
-    truepos_curve = (true_scores[:, None] >= thresholds).sum(axis=0)
-    # Count the number of false positives at each threshold position
-    # the number of documents we should not have retrieved
-    falsepos_curve = (false_scores[:, None] >= thresholds).sum(axis=0)
-    # Count the number of documents we should have retrieved but did not
-    falseneg_curve = nGroundTruth - truepos_curve
-    trueneg_curve  = nGroundFalse - falsepos_curve
+    if False:
+        # Hey this is n**2 in memory!
+        #"""
+        #s = np.array([.3, .9, .4, .2])
+        #t = np.array([1.0, .5, .6, .1])
+        #s[:, None] >= t
+        #(s[:, None] >= t).sum(axis=0)
+        #"""
+        pass
+        #false_positive_rate, true_positive_rate = fpr, tpr
+        # True positive rate (sensitivity)
+        # TPR = TP / (TP + FN)
+        #true_ranks = np.where(labels)[0]
+        #false_ranks = np.where(np.logical_not(labels))[0]
+        #true_scores = scores.compress(labels)
+        #false_scores = scores.compress(np.logical_not(labels))
+        #nGroundTruth = len(true_scores)
+        #nGroundFalse = len(false_scores)
+        # Count the number of true positives at each threshold position
+        # the number of documents we got right
+        #truepos_curve = (true_scores[:, None] >= thresholds).sum(axis=0)
+        # Count the number of false positives at each threshold position
+        # the number of documents we should not have retrieved
+        #falsepos_curve = (false_scores[:, None] >= thresholds).sum(axis=0)
+        # Count the number of documents we should have retrieved but did not
+        #falseneg_curve = nGroundTruth - truepos_curve
+        #trueneg_curve  = nGroundFalse - falsepos_curve
+        #tp = truepos_curve
+        #fp = falsepos_curve
+        #fn = falseneg_curve
+        #tn = trueneg_curve
+    else:
+        #tp_ = np.array([(true_scores >= t).sum() for t in thresholds])
+        #fp_ = np.array([(false_scores >= t).sum() for t in thresholds])
+        # sklearn has much faster implementation
+        fp, tp, thresholds = sklearn.metrics.ranking._binary_clf_curve(labels, scores, pos_label=1)
+        nGroundTruth = labels.sum()
+        fn = nGroundTruth - tp
+        tn = nGroundTruth - fp
 
-    tp = truepos_curve
-    fp = falsepos_curve
-    fn = falseneg_curve
-    tn = trueneg_curve
+        # TODO: if this breaks check implmentation in
+        #fpr_curve, tpr_curve, thresholds = sklearn.metrics.roc_curve(labels, scores, pos_label=1)
+        fpr = fp / fp[-1]
+        tpr = tp / tp[-1]
 
     def get_precision(tp, fp):
         """ precision -- positive predictive value (PPV) """
@@ -239,20 +275,23 @@ def get_confusion_metrics(scores, labels):
         #recall = np.nan_to_num(recall)
         return recall
 
-    precision = get_precision(tp, fp)
+    ppv = precision = get_precision(tp, fp)
     precision[np.isnan(precision)] = 1.0
     #precision = np.nan_to_num(precision)
-    recall    = get_recall(tp, fn)
+    #recall    = get_recall(tp, fn)
     # False positive rate (fall-out)
-    fall_out = fp / (fp + tn)
-    fpr = fpr_curve
-    tpr = tpr_curve
-    ppv = precision
+    #fall_out = fp / (fp + tn)
 
-    assert np.allclose(tpr_curve, recall)
-    assert np.allclose(fpr_curve, fall_out)
+    #memtrack.report('[SUPERFLOUS]')
+    #fpr = fpr_curve
+    #tpr = tpr_curve
+
+    #assert np.allclose(tpr_curve, recall)
+    #assert np.allclose(fpr_curve, fall_out)
+    #memtrack.report('[MAKE]')
 
     confusions = ConfusionMetrics(thresholds, tp, fp, fn, tn, fpr, tpr, ppv)
+    #memtrack.report('[RETURN]')
 
     #print(tpr_curve)
     #print(recall)

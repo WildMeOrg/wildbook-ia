@@ -31,7 +31,11 @@ class ScoreNormalizer(object):
     """
     Conforms to scikit-learn Estimator interface
     """
-    def __init__(encoder, **kwargs):
+    def __init__(encoder, target_tpr=.95, **kwargs):
+        """
+        Args:
+            target_tpr (float): target true positive rate
+        """
         encoder.learn_kw = ut.update_existing(
             dict(
                 gridsize=1024,
@@ -44,7 +48,7 @@ class ScoreNormalizer(object):
             ), kwargs)
         check_unused_kwargs(kwargs, encoder.learn_kw.keys())
         # Target recall for learned threshold
-        encoder.target_tpr = .95
+        encoder.target_tpr = target_tpr
         # Support data
         encoder.support = dict(
             tp_support=None,
@@ -59,6 +63,20 @@ class ScoreNormalizer(object):
         encoder.p_score = None
         # Learneed classification threshold
         encoder.learned_thresh   = None
+
+    @staticmethod
+    def _to_xy(tp_scores, tn_scores):
+        """ helper """
+        scores = np.hstack([tp_scores, tn_scores])
+        labels = np.zeros(scores.size, dtype=np.bool)
+        labels[0:len(tp_scores)] = True
+        #np.array(([True] * len(tp_scores)) + ([False] * len(tn_scores), dtype=np.bool)
+        return scores, labels
+
+    def fit_partitioned(encoder, tp_scores, tn_scores):
+        """ convinience func """
+        X, y = encoder._to_xy(tp_scores, tn_scores)
+        return encoder.fit(X, y)
 
     def fit(encoder, X, y):
         """
@@ -113,15 +131,23 @@ class ScoreNormalizer(object):
             copy=False, assume_sorted=False)
 
     def learn_threshold(encoder, X, y):
+        """
+        Learns threshold that achieves the target true positive rate
+        """
         # select a cutoff threshold
-        import sklearn.metrics
+        #import sklearn.metrics
+        import vtool as vt
         probs = encoder.normalize_scores(X)
-        fpr_curve, tpr_curve, thresholds = sklearn.metrics.roc_curve(y, probs, pos_label=True)
+        confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, y)
+        #fpr_curve, tpr_curve, thresholds = sklearn.metrics.roc_curve(y, probs, pos_label=True)
         # Select threshold that gives 95% recall (we should optimize this for a tradeoff)
-        index = np.where(tpr_curve > .95)[0][0]
-        encoder.learned_thresh = thresholds[index]
-        print('[scorenorm] learned_thresh = %r' % (encoder.learned_thresh,))
-        print('[scorenorm] score_thresh = %r' % (encoder.inverse_normalize(encoder.learned_thresh),))
+        index = np.where(confusions.tpr > encoder.target_tpr)[0][0]
+        encoder.learned_thresh = confusions.thresholds[index]
+        score_thresh = encoder.inverse_normalize(encoder.learned_thresh)
+        print('[scorenorm] Learning threshold to achieve TPR=%r' % (encoder.target_tpr,))
+        print('[scorenorm]   * learned_thresh = %r' % (encoder.learned_thresh,))
+        print('[scorenorm]   * score_thresh = %r' % (score_thresh,))
+        print('[scorenorm]   * fpr = %r' % (confusions.get_fpr_at_recall(encoder.target_tpr),))
 
     def inverse_normalize(encoder, probs):
         inverse_interp = scipy.interpolate.interp1d(encoder.p_tp_given_score, encoder.score_domain,
@@ -226,6 +252,9 @@ class ScoreNormalizer(object):
         return tp_indicies, tn_indicies
 
     def get_confusion_indicies(encoder, X, y):
+        """
+        combination of get_correct_indices and get_error_indicies
+        """
         prob = encoder.normalize_scores(X)
         pred = prob > encoder.learned_thresh
         # Find correct and misspredictions
@@ -253,6 +282,18 @@ class ScoreNormalizer(object):
         return indicies
 
     def visualize(encoder, **kwargs):
+        """
+        shows details about the score normalizer
+
+        Kwargs:
+            fnum
+            figtitle
+            interactive
+            with_scores
+            with_roc
+            with_precision_recall
+        """  # + ut.get_kwargs(inspect_pdfs)[0]
+        import plottool as pt
         inspect_kw = ut.update_existing(
             dict(
                 with_scores=True,
@@ -261,6 +302,7 @@ class ScoreNormalizer(object):
                 fnum=None,
                 figtitle=None,
                 interactive=None,
+                use_stems=None,
             ), kwargs)
         prob_thresh = encoder.learned_thresh
         score_thresh = encoder.inverse_normalize(prob_thresh)
@@ -270,7 +312,6 @@ class ScoreNormalizer(object):
             encoder.p_tn_given_score, encoder.p_score_given_tp,
             encoder.p_score_given_tn, encoder.p_score, prob_thresh=prob_thresh,
             score_thresh=score_thresh, **inspect_kw)
-        import plottool as pt
         pt.adjust_subplots(bottom=.06, left=.06, right=.97, wspace=.25, hspace=.25, top=.9)
         return inter
 
@@ -318,23 +359,33 @@ def learn_score_normalization(tp_support, tn_support,
     """
     # Estimate true positive density
     if verbose:
-        print('[scorenorm] estimating true positive pdf, tp_support.shape=%r' % (tp_support.shape,))
+        print('[scorenorm] Learning normalization pdf')
+        print('[scorenorm] * tp_support.shape=%r' % (tp_support.shape,))
+        print('[scorenorm] * tn_support.shape=%r' % (tn_support.shape,))
+        print('[scorenorm] * estimating true positive pdf, ')
+        print('[scorenorm] * monotonize = %r' % (monotonize,))
+        next_ = ut.next_counter(1)
+        total = 8
+    if verbose:
+        print('[scorenorm] %d/%d estimating true negative pdf' % (next_(), total))
     score_tp_pdf = ut.estimate_pdf(tp_support, gridsize=gridsize, adjust=adjust)
     if verbose:
-        print('[scorenorm] estimating true negative pdf, tn_support.shape=%r' % (tn_support.shape,))
+        print('[scorenorm] %d/%d estimating true negative pdf' % (next_(), total))
     score_tn_pdf = ut.estimate_pdf(tn_support, gridsize=gridsize, adjust=adjust)
     if verbose:
-        print('[scorenorm] estimating score domain')
+        print('[scorenorm] %d/%d estimating score domain' % (next_(), total))
     # Find good score domain range
     min_score, max_score = find_clip_range(tp_support, tn_support, clip_factor, reverse)
     score_domain = np.linspace(min_score, max_score, gridsize)
     # Evaluate true negative density
     if verbose:
-        print('[scorenorm] evaluating density')
+        print('[scorenorm] %d/%d evaluating tp density' % (next_(), total))
     p_score_given_tp = score_tp_pdf.evaluate(score_domain)
+    if verbose:
+        print('[scorenorm] %d/%d evaluating tn density' % (next_(), total))
     p_score_given_tn = score_tn_pdf.evaluate(score_domain)
     if verbose:
-        print('[scorenorm] evaluating posterior probabilities')
+        print('[scorenorm] %d/%d evaluating posterior probabilities' % (next_(), total))
     # Average to get probablity of any score
     p_score = (np.array(p_score_given_tp) + np.array(p_score_given_tn)) / 2.0
     # Apply bayes
@@ -343,19 +394,25 @@ def learn_score_normalization(tp_support, tn_support,
     p_tp_given_score = ut.bayes_rule(p_score_given_tp, p_tp, p_score)
     import vtool as vt
     if monotonize:
-        if verbose:
-            print('[scorenorm] monotonizing')
         if reverse:
+            if verbose:
+                print('[scorenorm] %d/%d monotonize decreasing' % (next_(), total))
             p_tp_given_score = vt.ensure_monotone_strictly_decreasing(
                 p_tp_given_score, left_endpoint=1.0, right_endpoint=0.0)
         else:
+            if verbose:
+                print('[scorenorm] %d/%d monotonize increasing' % (next_(), total))
             p_tp_given_score = vt.ensure_monotone_strictly_increasing(
                 p_tp_given_score, left_endpoint=0.0, right_endpoint=1.0)
     if return_all:
+        if verbose:
+            print('[scorenorm] %d/%d returning all' % (next_(), total))
         p_tn_given_score = 1 - p_tp_given_score
         return (score_domain, p_tp_given_score, p_tn_given_score,
                 p_score_given_tp, p_score_given_tn, p_score)
     else:
+        if verbose:
+            print('[scorenorm] %d/%d returning minimum' % (next_(), total))
         return (score_domain, p_tp_given_score)
 
 
@@ -511,7 +568,7 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
                  p_tn_given_score, p_score_given_tp, p_score_given_tn, p_score,
                  prob_thresh=None, score_thresh=None,
                  with_scores=False, with_roc=False,
-                 with_precision_recall=False, fnum=None, figtitle=None, interactive=None):
+                 with_precision_recall=False, fnum=None, figtitle=None, interactive=None, use_stems=None):
     """
     Shows plots of learned thresholds
     """
@@ -545,21 +602,42 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
     # probs = encoder.normalize_scores(scores)
     probs = normalize_scores(score_domain, p_tp_given_score, scores)
 
-    confusions = vt.get_confusion_metrics(probs, labels)
+    confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
     #print('fpr@.95 recall = %r' % (confusions.get_fpr_at_95_recall(),))
     print('fpp@95 recall = %05.2f%%' % (confusions.get_fpr_at_95_recall() * 100,))
 
-    def _support(fnum, pnum):
-        plot_support(tn_support, tp_support, fnum=fnum, pnum=pnum,
-                     markersizes=[5, 5], score_markers=['^', 'v'],
-                     score_label='score', threshold_value=score_thresh)
+    import plottool as pt  # NOQA
+    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+    false_color = pt.FALSE_RED
 
-    def _normalized_support(fnum, pnum):
+    support_kw = dict(
+        scores_lbls=('trueneg', 'truepos'),
+        score_colors=(false_color, true_color),
+        logscale=False,
+        score_markers=['^', 'v'],
+        markersizes=[5, 5],
+        use_stems=use_stems,
+    )
+
+    def _score_support(fnum, pnum):
+        pt.plots.plot_sorted_scores(
+            (tn_support, tp_support),
+            fnum=fnum, pnum=pnum,
+            score_label='score',
+            threshold_value=score_thresh,
+            **support_kw
+        )
+
+    def _prob_support(fnum, pnum):
         tp_probs = probs[labels]
         tn_probs = probs[np.logical_not(labels)]
-        plot_support(tn_probs, tp_probs, fnum=fnum, pnum=pnum,
-                     markersizes=[5, 5], score_markers=['^', 'v'],
-                     score_label='prob', threshold_value=prob_thresh)
+        pt.plots.plot_sorted_scores(
+            (tn_probs, tp_probs),
+            fnum=fnum, pnum=pnum,
+            score_label='prob',
+            threshold_value=prob_thresh,
+            **support_kw
+        )
         #ax = pt.gca()
         #max_score = max(tn_support.max(), tp_support.max())
         #ax.set_ylim(-max_score, max_score)
@@ -578,13 +656,13 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
         confusions.draw_precision_recall_curve(fnum=fnum, pnum=pnum)
 
     if with_scores:
-        inter.append_plot(_support)
+        inter.append_plot(_score_support)
     if with_prebayes:
         inter.append_plot(_prebayes)
     if with_postbayes:
         inter.append_plot(_postbayes)
     if with_normscore:
-        inter.append_plot(_normalized_support)
+        inter.append_plot(_prob_support)
     if with_roc:
         inter.append_plot(_roc)
     if with_precision_recall:
@@ -598,47 +676,9 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
     return inter
 
 
-def plot_support(tn_support, tp_support, fnum=None, pnum=(1, 1, 1), score_label='score', **kwargs):
-    r"""
-    Args:
-        tn_support (ndarray):
-        tp_support (ndarray):
-        fnum (int):  figure number
-        pnum (tuple):  plot number
-
-    CommandLine:
-        python -m ibeis.model.hots.score_normalization --test-plot_support
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots.score_normalization import *  # NOQA
-        >>> tn_support = '?'
-        >>> tp_support = '?'
-        >>> fnum = None
-        >>> pnum = (1, 1, 1)
-        >>> result = plot_support(tn_support, tp_support, fnum, pnum)
-        >>> print(result)
-    """
-    import plottool as pt  # NOQA
-    if fnum is None:
-        fnum = pt.next_fnum()
-    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
-    false_color = pt.FALSE_RED
-    pt.plots.plot_sorted_scores(
-        (tn_support, tp_support),
-        ('trueneg', 'truepos'),
-        score_colors=(false_color, true_color),
-        #logscale=True,
-        logscale=False,
-        fnum=fnum,
-        pnum=pnum,
-        score_label=score_label,
-        **kwargs)
-
-
 def plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
                       cfgstr='', fnum=None, pnum=(1, 1, 1)):
-    import plottool as pt  # NOQA
+    import plottool as pt
     if fnum is None:
         fnum = pt.next_fnum()
     true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
@@ -659,7 +699,7 @@ def plot_prebayes_pdf(score_domain, p_score_given_tn, p_score_given_tp, p_score,
 
 def plot_postbayes_pdf(score_domain, p_tn_given_score, p_tp_given_score, prob_thresh=None,
                        cfgstr='', fnum=None, pnum=(1, 1, 1)):
-    import plottool as pt  # NOQA
+    import plottool as pt
     if fnum is None:
         fnum = pt.next_fnum()
     true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
@@ -718,8 +758,6 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
     if len(normkw_list) > 32:
         raise AssertionError('Too many plots to test!')
 
-    #plot_support(tn_support, tp_support, fnum=fnum)
-
     for normkw in normkw_list:
         # Learn the appropriate normalization
         tup = learn_score_normalization(tp_support, tn_support,
@@ -746,7 +784,6 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
         else:
             pt.set_figtitle('ScoreNorm test' + ut.dict_str(normkw, newlines=False))
 
-        #confusions = get_confusion_metrics()
     locals_ = locals()
     return locals_
 

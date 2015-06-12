@@ -116,6 +116,9 @@ def breakup_equal_streak(arr_in, left_endpoint=None, right_endpoint=None):
     """
     Breaks up streaks of equal values by interpolating between the next lowest and next highest value
     """
+
+    #memtrack = ut.MemoryTracker(disable=False)
+    #memtrack.report('[BREAKUP_EQUAL_STREAK]')
     #assert non_decreasing(arr), 'ensure monotonic failed'
     arr = arr_in.copy()
     size = len(arr)
@@ -136,14 +139,22 @@ def breakup_equal_streak(arr_in, left_endpoint=None, right_endpoint=None):
     min_vals = [arr[group[0]]      if isend else (arr[group[0] - 1] + arr[group[0]]) / 2.0
                 for group, isend in zip(index_groups, isend_list)]
 
+    #memtrack.report('[MIN]')
+
     max_vals = [arr[group[-1] + 1] if isend else arr[group[-1]]
                 for group, isend in zip(index_groups, isend_list)]
+
+    #memtrack.report('[MAX]')
 
     fill_list = [np.linspace(min_, max_, len_, endpoint=not isend)
                  for min_, max_, len_, isend in zip(min_vals, max_vals, runlen_list, isend_list)]
 
+    #memtrack.report('[FILL]')
+
     for group, fill in zip(index_groups, fill_list):
         arr[group[0]:group[-1] + 1] = fill
+
+    #memtrack.report('[GROUP]')
 
     if left_endpoint is not None and len(index_groups) > 0:
         # Set the leftmost value to be exactly ``left_endpoint``
@@ -171,6 +182,7 @@ def breakup_equal_streak(arr_in, left_endpoint=None, right_endpoint=None):
             minish = max(almost_right, arr[arr > right_endpoint].min())
             newmin = (right_endpoint + minish) / 2.0
             arr[arr <= minish] = np.linspace(minish, newmin, sum(arr <= minish))
+    #memtrack.report('[FIXED]')
     return arr
 
 
