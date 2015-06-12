@@ -1047,7 +1047,7 @@ if __name__ == '__main__':
 
     print('exiting dev')
 
-"""
+r"""
 CurrentExperiments:
     # Full best settings run
     ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains
@@ -1062,9 +1062,20 @@ CurrentExperiments:
 
 
     # Look for how many false negatives are in the bottom batch
-    ./dev.py -t custom --db PZ_MTEST --allgt --species=zebra_plains --print-rankhist
-    ./dev.py -t custom --db PZ_MTEST --allgt --controlled --print-rankhist
-    ./dev.py -t custom --db PZ_Master0 --allgt --controlled --print-rankhist
+    ./dev.py -t custom --db PZ_MTEST --species=zebra_plains --print-rankhist
+    ./dev.py -t custom --db PZ_MTEST --controlled --print-rankhist
+    ./dev.py -t custom --db PZ_Master0 --controlled --print-rankhist
+
+    ./dev.py -t \
+            custom \
+            custom:rotation_invariance=True,affine_invariance=False \
+            custom:rotation_invariance=True,augment_queryside_hack=True \
+            --db PZ_Master0 --controlled --print-rankhist  --print-bestcfg
+
+    ./dev.py -t \
+            custom:rotation_invariance=True,affine_invariance=False \
+            custom:rotation_invariance=True,augment_queryside_hack=True \
+            --db NNP_Master3 --controlled --print-rankhist  --print-bestcfg
 
 
 ElephantEarExperiments

@@ -88,9 +88,13 @@ autogenmodname_list = [
     ('ibeis.control', 'manual_feat_funcs'),
 ]
 
-pluginmodname_list = [
-    #('ibeis_cnn', '_plugin'),
-]
+# HACK, don't include cnn unless its already there due to theano stuff
+pluginmodname_list = []
+import sys
+if 'ibeis_cnn' in sys.modules:
+    pluginmodname_list = [
+        ('ibeis_cnn', '_plugin'),
+    ]
 
 
 def make_explicit_imports_for_pyinstaller():

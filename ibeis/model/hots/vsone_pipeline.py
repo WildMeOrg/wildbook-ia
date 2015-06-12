@@ -359,6 +359,7 @@ def single_vsone_rerank(qreq_, prior_cm, config={}):
         python -m ibeis.model.hots.vsone_pipeline --exec-single_vsone_rerank --show --qaid 1801 --controlled_daids --db PZ_Master0 --verb-testdata
         python -m ibeis.model.hots.vsone_pipeline --exec-single_vsone_rerank --show --qaid 1801 --controlled_daids --db PZ_Master0 --verb-testdata --sv_on=False --present
         python -m ibeis.model.hots.vsone_pipeline --exec-single_vsone_rerank --show --qaid 1801 --controlled_daids --db PZ_Master0 --verb-testdata --sv_on=False --present --affine-invariance=False
+        python -m ibeis.model.hots.vsone_pipeline --exec-single_vsone_rerank --show --qaid 1801 --controlled_daids --db PZ_Master0 --verb-testdata --sv_on=False --present --affine-invariance=False --rotation-invariant=True
 
     Example1:
         >>> # ENABLE_DOCTEST
