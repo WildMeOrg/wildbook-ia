@@ -11,8 +11,29 @@ import numpy as np
 import ibeis.constants as const
 from collections import OrderedDict
 from utool import util_latex as util_latex
+import functools
 from vtool import keypoint as ktool
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[dbinfo]')
+
+
+def print_qd_info(ibs, qaid_list, daid_list, verbose=False):
+    """
+    information for a query/database aid configuration
+    """
+    bigstr = functools.partial(ut.truncate_str, maxlen=64, truncmsg=' ~TRUNC~ ')
+    print('[qd_info] * dbname = %s' % ibs.get_dbname())
+    print('[qd_info] * qaid_list = %s' % bigstr(str(qaid_list)))
+    print('[qd_info] * daid_list = %s' % bigstr(str(daid_list)))
+    print('[qd_info] * len(qaid_list) = %d' % len(qaid_list))
+    print('[qd_info] * len(daid_list) = %d' % len(daid_list))
+    print('[qd_info] * intersection = %r' % len(list(set(daid_list).intersection(set(qaid_list)))))
+    if verbose:
+        infokw = dict(with_contrib=False, with_agesex=False, with_header=False, verbose=False)
+        d_info_str = get_dbinfo(ibs, aid_list=daid_list, tag='DataInfo', **infokw)['info_str2']
+        q_info_str = get_dbinfo(ibs, aid_list=qaid_list, tag='QueryInfo', **infokw)['info_str2']
+        print(q_info_str)
+        print('\n')
+        print(d_info_str)
 
 
 def get_dbinfo(ibs, verbose=True,

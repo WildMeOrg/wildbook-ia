@@ -41,12 +41,22 @@ def get_qres_name_result_info(ibs, qres):
     gf_rank = None if not np.any(is_negative) else np.nonzero(is_negative)[0][0]
 
     if gt_rank is None or gf_rank is None:
-        gt_aid = None
+        NEW = True
+        if NEW:
+            # Should a random groundtruth result be chosen if it exists here?
+            gt_aids = qres.get_groundtruth_aids(ibs)
+            if len(gt_aids) > 0:
+                gt_aid = gt_aids[0]
+            else:
+                gt_aid = None
+        else:
+            gt_aid = None
         gf_aid = None
         gt_raw_score = None
         gf_raw_score = None
         scorediff = scorefactor = scorelogfactor = scoreexpdiff = None
     else:
+
         gt_aid = sorted_aids[gt_rank][0]
         gf_aid = sorted_aids[gf_rank][0]
         gt_raw_score = sorted_nscores[gt_rank]
@@ -216,7 +226,7 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
         # Query Config / Col Loop
         #for cfgx, query_cfg in enumerate(cfg_list):
         for cfgx, query_cfg in cfgiter:
-            print('+--- REQUESTING CONFIG ---')
+            print('+--- REQUESTING TEST CONFIG ---')
             print(query_cfg.get_cfgstr())
             print('L____')
             # Set data to the current config

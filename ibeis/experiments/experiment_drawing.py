@@ -457,7 +457,7 @@ def draw_results(ibs, test_result):
     metadata.write()
     #ut.embed()
     #if ut.is_developer():
-    if ut.get_argflag('--guiview'):
+    if ut.get_argflag(('--guiview', '--gv')):
         import guitool
         guitool.ensure_qapp()
         #wgt = make_test_result_custom_api(ibs, test_result)
@@ -497,7 +497,7 @@ def get_sel_rows_and_cols(qaids, cfg_list, new_hard_qx_list, interesting_qx_list
         print('   --ve - view easy')
         print('   --vn - view iNteresting')
         print('   --hs - hist sample')
-        print('   --guiview - gui result inspection')
+        print('   --gv, --guiview - gui result inspection')
     if len(sel_rows) > 0 and len(sel_cols) == 0:
         sel_cols = list(range(len(cfg_list)))
     if len(sel_cols) > 0 and len(sel_rows) == 0:

@@ -36,7 +36,9 @@ def score_chipmatch_list(qreq_, cm_list, score_method):
         >>> score_chipmatch_list(qreq_, cm_list, score_method)
         >>> cm = cm_list[0]
         >>> assert cm.score_list.argmax() == 0
-        >>> cm.testshow_single(qreq_)
+        >>> ut.quit_if_noshow()
+        >>> cm.show_single_annotmatch(qreq_)
+        >>> ut.show_if_requested()
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -47,7 +49,9 @@ def score_chipmatch_list(qreq_, cm_list, score_method):
         >>> score_method = qreq_.qparams.score_method
         >>> score_chipmatch_list(qreq_, cm_list, score_method)
         >>> assert cm.score_list.argmax() == 0
-        >>> cm.testshow_single(qreq_)
+        >>> ut.quit_if_noshow()
+        >>> cm.show_single_annotmatch(qreq_)
+        >>> ut.show_if_requested()
     """
     # Choose the appropriate scoring mechanism
     if score_method == 'csum':
@@ -166,7 +170,9 @@ def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, sco
         >>> max_num_rerank = nNameShortList * nAnnotPerName
         >>> min_num_rerank = nNameShortList
         >>> ut.assert_inbounds(len(top_nid_list), min_num_rerank, max_num_rerank, 'incorrect number in shortlist', eq=True)
-        >>> cm.testshow_single(qreq_, daid=top_aid_list[0])
+        >>> ut.quit_if_noshow()
+        >>> cm.show_single_annotmatch(qreq_, daid=top_aid_list[0])
+        >>> ut.show_if_requested()
     """
     print('[scoring] Making shortlist nNameShortList=%r, nAnnotPerName=%r' % (nNameShortList, nAnnotPerName))
     cm_shortlist = []

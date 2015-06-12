@@ -2678,7 +2678,7 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
         python -m ibeis.ibsfuncs --test-get_two_annots_per_name_and_singletons
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_Master0')

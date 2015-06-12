@@ -391,7 +391,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver()
             >>> cm = cm_list[0]
             >>> cm.score_csum(qreq_)
-            >>> cm.testshow_ranked(qreq_, figtitle='score_csum')
+            >>> ut.quit_if_noshow()
+            >>> cm.show_ranked_matches(qreq_, figtitle='score_csum')
+            >>> ut.show_if_requested()
         """
         cm.evaluate_csum_score(qreq_)
         cm.set_cannonical_annot_score(cm.csum_score_list)
@@ -419,7 +421,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> gt_score = cm.score_list.compress(cm.get_groundtruth_flags()).max()
             >>> cm.print_csv()
             >>> assert cm.get_top_nids()[0] == cm.unique_nids[cm.name_score_list.argmax()], 'bug in alignment'
-            >>> cm.testshow_ranked(qreq_, figtitle='score_nsum')
+            >>> ut.quit_if_noshow()
+            >>> cm.show_ranked_matches(qreq_, figtitle='score_nsum')
+            >>> ut.show_if_requested()
             >>> assert cm.get_top_nids()[0] == cm.qnid, 'is this case truely hard?'
         """
         cm.evaluate_csum_score(qreq_)
@@ -446,7 +450,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> cm = cm_list[0]
             >>> cm.fs_list = cm.get_fs_list(col='lnbnn')
             >>> cm.score_annot_coverage(qreq_)
-            >>> cm.testshow_ranked(qreq_, figtitle='score_annot_coverage')
+            >>> ut.quit_if_noshow()
+            >>> cm.show_ranked_matches(qreq_, figtitle='score_annot_coverage')
+            >>> ut.show_if_requested()
         """
         cm.evaluate_acov_score(qreq_)
         cm.set_cannonical_annot_score(cm.acov_score_list)
@@ -472,7 +478,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> cm = cm_list[0]
             >>> cm.fs_list = cm.get_fs_list(col='lnbnn')
             >>> cm.score_name_coverage(qreq_)
-            >>> cm.testshow_ranked(qreq_, figtitle='score_name_coverage')
+            >>> ut.quit_if_noshow()
+            >>> cm.show_ranked_matches(qreq_, figtitle='score_name_coverage')
+            >>> ut.show_if_requested()
         """
         if cm.csum_score_list is None:
             cm.evaluate_csum_score(qreq_)
@@ -692,20 +700,6 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
                 raise
             if verbose:
                 print('[cm] nFeats are ok in fm')
-
-    def testshow_single(cm, qreq_, daid=None, lastcall=True, **kwargs):
-        if ut.show_was_requested():
-            import plottool as pt
-            cm.show_single_annotmatch(qreq_, daid=None, **kwargs)
-            if lastcall:
-                pt.show_if_requested()
-
-    def testshow_ranked(cm, qreq_, daid=None, lastcall=True, **kwargs):
-        if ut.show_was_requested():
-            import plottool as pt
-            cm.show_ranked_matches(qreq_, **kwargs)
-            if lastcall:
-                pt.show_if_requested()
 
     def show_single_namematch(cm, qreq_, dnid, fnum=None, pnum=None, homog=ut.get_argflag('--homog'), **kwargs):
         """

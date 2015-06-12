@@ -24,6 +24,10 @@ TODOLIST:
     Visualization to "prove" that vsone works
 
 
+TestCases:
+    PZ_Master0 - aids 1801, 4792 - near-miss
+
+
 TestFuncs:
     >>> # VsMany Only
     python -m ibeis.model.hots.vsone_pipeline --test-show_post_vsmany_vser --show
@@ -236,6 +240,10 @@ def refine_matches(qreq_, prior_cm, config={}):
         python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show --homog --sver_constrained&
         python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show --homog --sver_constrained --sver_unconstrained&
 
+        # CONTROLLED EXAMPLES
+        python -m ibeis.model.hots.vsone_pipeline --exec-refine_matches --show --qaid 1801 --controlled_daids --db PZ_Master0 --sv_on=False --present
+
+        # WITH DEV HARNESS
         python dev.py -t custom:rrvsone_on=True --allgt --index 0:40 --db PZ_MTEST --print-confusion-stats --print-scorediff-mat-stats
         python dev.py -t custom:rrvsone_on=True custom --allgt --index 0:40 --db PZ_MTEST --print-confusion-stats --print-scorediff-mat-stats
 
@@ -248,6 +256,7 @@ def refine_matches(qreq_, prior_cm, config={}):
         python dev.py -t custom:rrvsone_on=True,maskscore_mode=kpts --qaid 12 --db PZ_MTEST \
                 --print-confusion-stats --print-scorediff-mat-stats --show --va
 
+
         use_kptscov_scoring
 
     Example1:
@@ -258,7 +267,9 @@ def refine_matches(qreq_, prior_cm, config={}):
         >>> unscored_cm = refine_matches(qreq_, prior_cm, config)
         >>> unscored_cm.print_csv(ibs=ibs)
         >>> prior_cm.print_csv(ibs=ibs)
-        >>> prior_cm.testshow_ranked(qreq_, figtitle=qreq_.qparams.query_cfgstr)
+        >>> ut.quit_if_noshow()
+        >>> prior_cm.show_ranked_matches(qreq_, figtitle=qreq_.qparams.query_cfgstr)
+        >>> ut.show_if_requested()
     """
     # THIS CAUSES THE ISSUE
     #prior_cm.fs_list = prior_cm.fsv_list
@@ -341,6 +352,13 @@ def single_vsone_rerank(qreq_, prior_cm, config={}):
         python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank
         python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank --show
         python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank --show --qaid 18
+        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank --show --qaid 18
+        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank --show --qaid 1801 --db PZ_Master0 --controlled --verb-testdata
+        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank --show --qaid 1801 --controlled_daids --db PZ_Master0 --verb-testdata
+
+        python -m ibeis.model.hots.vsone_pipeline --exec-single_vsone_rerank --show --qaid 1801 --controlled_daids --db PZ_Master0 --verb-testdata
+        python -m ibeis.model.hots.vsone_pipeline --exec-single_vsone_rerank --show --qaid 1801 --controlled_daids --db PZ_Master0 --verb-testdata --sv_on=False --present
+        python -m ibeis.model.hots.vsone_pipeline --exec-single_vsone_rerank --show --qaid 1801 --controlled_daids --db PZ_Master0 --verb-testdata --sv_on=False --present --affine-invariance=False
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -349,7 +367,7 @@ def single_vsone_rerank(qreq_, prior_cm, config={}):
         >>> ibs, qreq_, prior_cm = plh.testdata_matching('PZ_MTEST')
         >>> config = qreq_.qparams
         >>> rerank_cm = single_vsone_rerank(qreq_, prior_cm, config)
-        >>> rerank_cm.print_rawinfostr()
+        >>> #rerank_cm.print_rawinfostr()
         >>> rerank_cm.print_csv()
         >>> print(rerank_cm.score_list)
         >>> ut.quit_if_noshow()

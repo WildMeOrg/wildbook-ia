@@ -865,24 +865,12 @@ def run_dev(main_locals):
     ibs  = main_locals['ibs']
     if ibs is not None:
         # Get aids marked as test cases
-        qaid_list = main_helpers.get_test_qaids(ibs)
-        daid_list = main_helpers.get_test_daids(ibs, qaid_list)
+        qaid_list = main_helpers.get_test_qaids(ibs, default_qaids=[1])
+        daid_list = main_helpers.get_test_daids(ibs, default_daids='all', qaid_list=qaid_list)
         print('[run_def] Test Annotations:')
         #print('[run_dev] * qaid_list = %s' % ut.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
-        bigstr = functools.partial(ut.truncate_str, maxlen=64, truncmsg=' ~TRUNC~ ')
-        print('[run_dev] * qaid_list = %s' % bigstr(str(qaid_list)))
-        print('[run_dev] * daid_list = %s' % bigstr(str(daid_list)))
-        print('[run_dev] * len(qaid_list) = %d' % len(qaid_list))
-        print('[run_dev] * len(daid_list) = %d' % len(daid_list))
-        print('[run_dev] * intersection = %r' % len(list(set(daid_list).intersection(set(qaid_list)))))
         verbose_info = True
-        if verbose_info:
-            infokw = dict(with_contrib=False, with_agesex=False, with_header=False, verbose=False)
-            d_info_str = ibeis.dev.dbinfo.get_dbinfo(ibs, aid_list=daid_list, tag='DataInfo', **infokw)['info_str2']
-            q_info_str = ibeis.dev.dbinfo.get_dbinfo(ibs, aid_list=qaid_list, tag='QueryInfo', **infokw)['info_str2']
-            print(q_info_str)
-            print('\n')
-            print(d_info_str)
+        ibeis.dev.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=verbose_info)
         # Warn on no test cases
         try:
             assert len(qaid_list) > 0, 'assert!'
@@ -1077,8 +1065,6 @@ CurrentExperiments:
     ./dev.py -t custom --db PZ_MTEST --allgt --species=zebra_plains --print-rankhist
     ./dev.py -t custom --db PZ_MTEST --allgt --controlled --print-rankhist
     ./dev.py -t custom --db PZ_Master0 --allgt --controlled --print-rankhist
-    ./dev.py --db PZ_Master0 --controlled --print-rankhist
-
 
 
 ElephantEarExperiments

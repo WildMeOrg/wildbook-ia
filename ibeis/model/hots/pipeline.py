@@ -651,7 +651,9 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_
         >>> num_matches = len(fm)
         >>> print('vsone num_matches = %r' % num_matches)
         >>> ut.assert_inbounds(num_matches, 500, 800, 'vsmany nmatches out of bounds')
-        >>> cm_list[0].testshow_single(qreq_)
+        >>> ut.quit_if_noshow()
+        >>> cm_list[0].show_single_annotmatch(qreq_)
+        >>> ut.show_if_requested()
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -667,7 +669,9 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_
         >>> num_matches = len(fm)
         >>> print('vsone num_matches = %r' % num_matches)
         >>> ut.assert_inbounds(num_matches, 33, 42, 'vsone nmatches out of bounds')
-        >>> cm_list[0].testshow_single(qreq_)
+        >>> ut.quit_if_noshow()
+        >>> cm_list[0].show_single_annotmatch(qreq_)
+        >>> ut.show_if_requested()
     """
     is_vsone =  qreq_.qparams.vsone
     if verbose:

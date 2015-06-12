@@ -13,6 +13,11 @@ VERB_TESTDATA = ut.get_argflag('--verb-testdata') or ut.VERYVERBOSE
 
 def testdata_hs2(defaultdb='testdb1', qaids=None, daids=None, cfgdict=None, stop_node=None, argnames=[]):
     """
+    CommandLine:
+        python -m ibeis.model.hots._pipeline_helpers --test-testdata_hs2
+
+    Example0:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots._pipeline_helpers import *
         >>> defaultdb = 'testdb1'
         >>> qaids = None
@@ -107,18 +112,28 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
     return locals()
 
 
-def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
-                          daid_list=None, defaultdb='testdb1', cmdline_ok=True,
+def get_pipeline_testdata(dbname=None,
+                          cfgdict=None,
+                          qaid_list=None,
+                          daid_list=None,
+                          defaultdb='testdb1',
+                          cmdline_ok=True,
                           preload=True):
-    """
+    r"""
     Gets testdata for pipeline defined by tests / and or command line
 
     Args:
         cmdline_ok : if false does not check command line
 
+    Returns:
+        tuple: ibs, qreq_
+
     CommandLine:
         python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata
         python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata --daid_list 39 --qaid 41 --db PZ_MTEST
+        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata --daids 39 --qaid 41 --db PZ_MTEST
+        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata --qaid 41 --db PZ_MTEST
+        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata --controlled_daids --qaids=41 --db PZ_MTEST --verb-testdata
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -126,9 +141,14 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
         >>> from ibeis.model.hots import _pipeline_helpers as plh
         >>> cfgdict = dict(pipeline_root='vsone', codename='vsone')
         >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict)
-        >>> print(qreq_.get_external_daids())
-        >>> print(qreq_.get_external_qaids())
-        >>> print(qreq_.qparams.query_cfgstr)
+        >>> result = ''
+        >>> result += ('daids = %r\n' % (qreq_.get_external_daids(),))
+        >>> result += ('qaids = %r' % (qreq_.get_external_qaids(),))
+        >>> print('cfgstr %s'  % (qreq_.qparams.query_cfgstr,))
+        >>> print(result)
+
+        daids = array([1, 2, 3, 4, 5])
+        qaids = array([1])
     """
     import ibeis
     from ibeis.model.hots import query_request
@@ -136,62 +156,68 @@ def get_pipeline_testdata(dbname=None, cfgdict=None, qaid_list=None,
     if cfgdict is None:
         cfgdict = {}
 
+    assert cmdline_ok is True, 'cmdline_ok should always be True'
+
     if cmdline_ok:
         from ibeis.model import Config
         # Allow specification of db and qaids/daids
         if dbname is not None:
             defaultdb = dbname
-        dbname = ut.get_argval('--db', str, defaultdb)
+        dbname = ut.get_argval('--db', type_=str, default=defaultdb)
 
-    ibs = ibeis.opendb(dbname)
+    ibs = ibeis.opendb(defaultdb=dbname)
 
-    if qaid_list == 'all':
-        qaid_list = ibs.get_valid_aids()
-    if daid_list is None:
-        daid_list = ibs.get_valid_aids()
+    default_qaid_list = qaid_list
+    default_daid_list = daid_list
+
+    # setup special defautls
+
+    default_qaid_list = {
+        'testdb1' : [1],
+        'GZ_ALL'  : [1032],
+        'PZ_ALL'  : [1, 3, 5, 9],
+    }.get(dbname, [1] if default_qaid_list is None else default_qaid_list)
+
+    default_daid_list = ut.get_argval(('--daids', '--daid-list'), type_=list, default=default_daid_list)
+
+    if default_daid_list is None:
         if dbname == 'testdb1':
-            daid_list = daid_list[0:min(5, len(daid_list))]
-    elif daid_list == 'all':
-        daid_list = ibs.get_valid_aids()
-    elif daid_list == 'gt':
-        daid_list = ut.flatten(ibs.get_annot_groundtruth(qaid_list))
-
-    if qaid_list is None:
-        if dbname == 'testdb1':
-            default_qaid_list = [1]
-        if dbname == 'GZ_ALL':
-            default_qaid_list = [1032]
-        if dbname == 'PZ_ALL':
-            default_qaid_list = [1, 3, 5, 9]
+            default_daid_list = ibs.get_valid_aids()[0:5]
         else:
-            default_qaid_list = [1]
-    else:
-        default_qaid_list = qaid_list
+            default_daid_list = 'all'
+
+    # Use commmand line parsing for custom values
 
     if cmdline_ok:
         from ibeis.init import main_helpers
-        qaid_list = main_helpers.get_test_qaids(ibs, default_qaids=default_qaid_list)
-        #qaid_list = ut.get_argval(('--qaid_list', '--qaid'), list, qaid_list)
-        daid_list = ut.get_argval(('--daid_list', '--daids'), list, daid_list)
-        #if 'codename' not in cfgdict:
+        qaid_list_ = main_helpers.get_test_qaids(ibs, default_qaids=default_qaid_list)
+        daid_list_ = main_helpers.get_test_daids(ibs, default_daids=default_daid_list, qaid_list=qaid_list_)
+        #
         # Allow commond line specification of all query params
         default_cfgdict = dict(Config.parse_config_items(Config.QueryConfig()))
         default_cfgdict.update(cfgdict)
         _orig_cfgdict = cfgdict
         force_keys = set(list(_orig_cfgdict.keys()))
-        cfgdict_ = ut.util_arg.argparse_dict(default_cfgdict, verbose=not
-                                             ut.QUIET, only_specified=True,
-                                             force_keys=force_keys)
+        cfgdict_ = ut.util_arg.argparse_dict(
+            default_cfgdict, verbose=not ut.QUIET, only_specified=True,
+            force_keys=force_keys)
         #ut.embed()
         if VERB_PIPELINE or VERB_TESTDATA:
             print('[plh] cfgdict_ = ' + ut.dict_str(cfgdict_))
     else:
+        qaid_list_ = qaid_list
+        daid_list_ = daid_list
         cfgdict_ = cfgdict
-    ibs = ibeis.test_main(db=dbname)
+
+    #ibs = ibeis.test_main(db=dbname)
+
+    if VERB_TESTDATA:
+        #ibeis.dev.dbinfo.print_qd_info(ibs, qaid_list_, daid_list_, verbose=True)
+        ibeis.dev.dbinfo.print_qd_info(ibs, qaid_list_, daid_list_, verbose=False)
 
     if 'with_metadata' not in cfgdict:
         cfgdict_['with_metadata'] = True
-    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict_)
+    qreq_ = query_request.new_ibeis_query_request(ibs, qaid_list_, daid_list_, cfgdict=cfgdict_)
     if preload:
         qreq_.lazy_load()
     return ibs, qreq_

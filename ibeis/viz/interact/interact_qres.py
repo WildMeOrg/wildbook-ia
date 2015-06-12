@@ -7,8 +7,7 @@ from plottool import plot_helpers as ph
 from plottool import interact_helpers as ih
 from ibeis.viz.interact.interact_sver import ishow_sver
 
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[interact_qres]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[interact_qres]')
 
 
 def ishow_analysis(ibs, qres, qreq_=None, **kwargs):
@@ -45,6 +44,7 @@ def ishow_analysis(ibs, qres, qreq_=None, **kwargs):
 def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
     """
     Displays query chip, groundtruth matches, and top matches
+
     TODO: make this a class
     TODO; dodraw should be false by default
 
@@ -55,9 +55,11 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
 
     CommandLine:
         python -m ibeis.viz.interact.interact_qres --test-ishow_qres --show
+        python -m ibeis.viz.interact.interact_qres --test-ishow_qres
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # UNSTABLE_DOCTEST
+        >>> # EN-ABLE_DOCTEST
         >>> from ibeis.viz.interact.interact_qres import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
@@ -67,28 +69,33 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
         >>> fig = ishow_qres(ibs, qres, analysis, dodraw=False, qreq_=qreq_)
         >>> pt.show_if_requested()
     """
+    # TODO: make this a class
 
     fnum = df2.ensure_fnum(kwargs.get('fnum', None))
     kwargs['fnum'] = fnum
 
     fig = ih.begin_interaction('qres', fnum)
     # Result Interaction
-    #printDBG('[ishow_qres] starting interaction')
+    #if verbose:
+    #    print('[ishow_qres] starting interaction')
 
     # Start the transformation into a class
     self = ut.DynStruct()
     self.qreq_ = qreq_
     self.ibs = ibs
+    verbose = False
 
     def show_sver_process_to_aid(aid2):
-        printDBG('ctrl+clicked aid2=%r' % aid2)
+        if verbose:
+            print('ctrl+clicked aid2=%r' % aid2)
         fnum_ = df2.next_fnum()
         ishow_sver(ibs, qres.qaid, aid2, qreq_=self.qreq_, fnum=fnum_)
         fig.canvas.draw()
         pt.bring_to_front(fig)
 
     def show_matches_to_aid(aid2):
-        printDBG('clicked aid2=%r' % aid2)
+        if verbose:
+            print('clicked aid2=%r' % aid2)
         fnum_ = df2.next_fnum()
         qres.ishow_matches(ibs, aid2, qreq_=self.qreq_, fnum=fnum_)
         fig = df2.gcf()
@@ -97,14 +104,16 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
 
     def _top_matches_view(toggle=0):
         # Toggle if the click is not in any axis
-        printDBG('clicked none')
+        if verbose:
+            print('clicked none')
         kwargs['annot_mode'] = kwargs.get('annot_mode', 0) + toggle
         fig = viz.show_qres(ibs, qres, qreq_=self.qreq_, **kwargs)
         return fig
 
     def _analysis_view(toggle=0):
         # Toggle if the click is not in any axis
-        printDBG('clicked none')
+        if verbose:
+            print('clicked none')
         kwargs['annot_mode'] = kwargs.get('annot_mode', 0) + toggle
         fig = qres.show_analysis(ibs, qreq_=self.qreq_, **kwargs)
         return fig
@@ -123,7 +132,8 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
         else:
             ax = event.inaxes
             viztype = ph.get_plotdat(ax, 'viztype', '')
-            #printDBG(str(event.__dict__))
+            #if verbose:
+            #    print(str(event.__dict__))
             print('viztype=%r' % viztype)
             # Clicked a specific matches
             print('plodat_dict = ' + ut.dict_str(ph.get_plotdat_dict(ax)))
@@ -183,7 +193,8 @@ def ishow_qres(ibs, qres, analysis=False, dodraw=True, qreq_=None, **kwargs):
     if dodraw:
         ph.draw()
     ih.connect_callback(fig, 'button_press_event', _on_match_click)
-    #printDBG('[ishow_qres] Finished')
+    #if verbose:
+    #    print('[ishow_qres] Finished')
     return fig
 
 
