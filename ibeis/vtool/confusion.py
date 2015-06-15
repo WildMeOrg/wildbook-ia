@@ -11,7 +11,7 @@ import six
 import numpy as np
 import sklearn.metrics
 import scipy.interpolate
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[precision_recall]', DEBUG=False)
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[confusion]', DEBUG=False)
 
 
 def testdata_scores_labels():
@@ -44,15 +44,15 @@ class ConfusionMetrics(object):
     # --------------
 
     @classmethod
-    def from_scores_and_labels(cls, scores, labels):
-        self = get_confusion_metrics(scores, labels)
+    def from_scores_and_labels(cls, scores, labels, verbose=True):
+        self = get_confusion_metrics(scores, labels, verbose=verbose)
         return self
 
     @classmethod
-    def from_tp_and_tn_scores(cls, tp_scores, tn_scores):
+    def from_tp_and_tn_scores(cls, tp_scores, tn_scores, verbose=True):
         scores = np.hstack([tp_scores, tn_scores])
         labels = np.array([True] * len(tp_scores) + [False] * len(tn_scores))
-        self = get_confusion_metrics(scores, labels)
+        self = get_confusion_metrics(scores, labels, verbose=verbose)
         return self
 
     # --------------
@@ -122,11 +122,11 @@ def interpolate_precision_recall(precision, recall, nSamples=11):
         http://en.wikipedia.org/wiki/Information_retrieval#Mean_Average_precision
 
     CommandLine:
-        python -m vtool.precision_recall --test-interpolate_precision_recall --show
+        python -m vtool.confusion --test-interpolate_precision_recall --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.precision_recall import *  # NOQA
+        >>> from vtool.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
         >>> nSamples = 11
         >>> confusions = get_confusion_metrics(scores, labels)
@@ -184,7 +184,7 @@ def get_confusion_metrics(scores, labels, verbose=True):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.precision_recall import *  # NOQA
+        >>> from vtool.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
         >>> confusions = get_confusion_metrics(scores, labels)
         >>> ut.quit_if_noshow()
@@ -342,9 +342,9 @@ def draw_precision_recall_curve(recall_domain, p_interp, title_pref=None,
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m vtool.precision_recall
-        python -m vtool.precision_recall --allexamples
-        python -m vtool.precision_recall --allexamples --noface --nosrc
+        python -m vtool.confusion
+        python -m vtool.confusion --allexamples
+        python -m vtool.confusion --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

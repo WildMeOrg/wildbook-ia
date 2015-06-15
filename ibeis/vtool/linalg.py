@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 TODO: Look at this file
     http://www.lfd.uci.edu/~gohlke/code/transformations.py.html
@@ -14,9 +15,8 @@ import numpy.linalg as npl
 import utool as ut
 import warnings  # NOQA
 
-profile = ut.profile
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[linalg]', DEBUG=False)
+#profile = ut.profile
+(print, rrr, profile) = ut.inject2(__name__, '[linalg]')
 
 '''
 #if CYTH
@@ -32,7 +32,6 @@ TRANSFORM_DTYPE = np.float64
 from numpy.core.umath_tests import matrix_multiply  # NOQA
 
 
-@profile
 def svd(M):
     r"""
     Args:
@@ -66,7 +65,6 @@ def svd(M):
     return U, s, Vt
 
 
-@profile
 def OLD_pdf_norm2d(x_, y_):
     """  DEPRICATED """
     import math
@@ -86,7 +84,6 @@ def OLD_pdf_norm2d(x_, y_):
     return norm_const * result
 
 
-@profile
 def gauss2d_pdf(x_, y_, sigma=None, mu=None):
     """
     Input: x and y coordinate of a 2D gaussian
@@ -117,7 +114,6 @@ def gauss2d_pdf(x_, y_, sigma=None, mu=None):
     return result
 
 
-@profile
 def rotation_mat3x3(radians):
     # TODO: handle array impouts
     sin_ = np.sin(radians)
@@ -128,7 +124,6 @@ def rotation_mat3x3(radians):
     return R
 
 
-@profile
 def rotation_mat2x2(theta):
     sin_ = np.sin(theta)
     cos_ = np.cos(theta)
@@ -137,7 +132,6 @@ def rotation_mat2x2(theta):
     return rot_
 
 
-@profile
 def rotation_around_mat3x3(theta, x, y):
     tr1_ = translation_mat3x3(-x, -y)
     rot_ = rotation_mat3x3(theta)
@@ -146,7 +140,6 @@ def rotation_around_mat3x3(theta, x, y):
     return rot
 
 
-@profile
 def rotation_around_bbox_mat3x3(theta, bbox):
     x, y, w, h = bbox
     centerx = x + (w / 2)
@@ -154,7 +147,6 @@ def rotation_around_bbox_mat3x3(theta, bbox):
     return rotation_around_mat3x3(theta, centerx, centery)
 
 
-@profile
 def translation_mat3x3(x, y, dtype=TRANSFORM_DTYPE):
     T = np.array([[1, 0,  x],
                   [0, 1,  y],
@@ -162,7 +154,6 @@ def translation_mat3x3(x, y, dtype=TRANSFORM_DTYPE):
     return T
 
 
-@profile
 def scale_mat3x3(sx, sy=None, dtype=TRANSFORM_DTYPE):
     sy = sx if sy is None else sy
     S = np.array([[sx, 0, 0],
@@ -210,45 +201,44 @@ def affine_around_mat3x3(x, y, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0):
     return Aff
 
 
-@profile
 #@ut.on_exception_report_input(force=True)
-def scaleedoffset_mat3x3(offset, scale_factor):
-    r"""
-    Args:
-        offset (tuple):
-        scale_factor (scalar or tuple):
-
-    Returns:
-        ndarray[ndims=2]: M
-
-    CommandLine:
-        python -m vtool.linalg --test-scaleedoffset_mat3x3
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.linalg import *  # NOQA
-        >>> # build test data
-        >>> offset = (11, 13)
-        >>> scale_factor = (.3, .5)
-        >>> # execute function
-        >>> M = scaleedoffset_mat3x3(offset, scale_factor)
-        >>> # verify results
-        >>> result = ut.numpy_str(M, precision=2)
-        >>> print(result)
-        np.array([[  0.3,   0. ,  11. ],
-                  [  0. ,   0.5,  13. ],
-                  [  0. ,   0. ,   1. ]], dtype=np.float64)
-    """
-    try:
-        sfx, sfy = scale_factor
-    except TypeError:
-        sfx = sfy = scale_factor
-    #with ut.embed_on_exception_context:
-    tx, ty = offset
-    T = translation_mat3x3(tx, ty)
-    S = scale_mat3x3(sfx, sfy)
-    M = T.dot(S)
-    return M
+#def scaleedoffset_mat3x3(offset, scale_factor):
+#    r"""
+#    Args:
+#        offset (tuple):
+#        scale_factor (scalar or tuple):
+#
+#    Returns:
+#        ndarray[ndims=2]: M
+#
+#    CommandLine:
+#        python -m vtool.linalg --test-scaleedoffset_mat3x3
+#
+#    Example:
+#        >>> # ENABLE_DOCTEST
+#        >>> from vtool.linalg import *  # NOQA
+#        >>> # build test data
+#        >>> offset = (11, 13)
+#        >>> scale_factor = (.3, .5)
+#        >>> # execute function
+#        >>> M = scaleedoffset_mat3x3(offset, scale_factor)
+#        >>> # verify results
+#        >>> result = ut.numpy_str(M, precision=2)
+#        >>> print(result)
+#        np.array([[  0.3,   0. ,  11. ],
+#                  [  0. ,   0.5,  13. ],
+#                  [  0. ,   0. ,   1. ]], dtype=np.float64)
+#    """
+#    try:
+#        sfx, sfy = scale_factor
+#    except TypeError:
+#        sfx = sfy = scale_factor
+#    #with ut.embed_on_exception_context:
+#    tx, ty = offset
+#    T = translation_mat3x3(tx, ty)
+#    S = scale_mat3x3(sfx, sfy)
+#    M = T.dot(S)
+#    return M
 
 
 # Ensure that a feature doesn't have multiple assignments
@@ -257,7 +247,6 @@ def scaleedoffset_mat3x3(offset, scale_factor):
 
 
 #PYX DEFINE
-@profile
 def det_ltri(ltri):
     #cdef det_ltri(FLOAT_2D ltri):
     """ Lower triangular determinant """
@@ -267,7 +256,6 @@ def det_ltri(ltri):
 
 
 #PYX DEFINE
-@profile
 def inv_ltri(ltri, det):
     #cdef inv_ltri(FLOAT_2D ltri, FLOAT_1D det):
     """ Lower triangular inverse """
@@ -277,7 +265,6 @@ def inv_ltri(ltri, det):
 
 
 #PYX BEGIN
-@profile
 def dot_ltri(ltri1, ltri2):
     """ Lower triangular dot product """
     #cdef dot_ltri(FLOAT_2D ltri1, FLOAT_2D ltri2):
@@ -296,7 +283,6 @@ def dot_ltri(ltri1, ltri2):
 # PYX END CDEF
 
 
-@profile
 def whiten_xy_points(xy_m):
     """
     whitens points to mean=0, stddev=1 and returns transformation
@@ -422,6 +408,26 @@ def transform_points_with_homography(H, _xys):
 def normalize_rows(arr1):  # , out=None):
     """
     from vtool.linalg import *
+
+    Args:
+        arr1 (ndarray):
+
+    Returns:
+        ndarray: arr1_normed
+
+    CommandLine:
+        python -m vtool.linalg --test-normalize_rows
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> arr1 = np.array([[1, 2, 3, 4, 5], [2, 2, 2, 2, 2]])
+        >>> arr1_normed = normalize_rows(arr1)
+        >>> result = ('arr1_normed = %s' % (ut.numpy_str(arr1_normed, precision=2),))
+        >>> assert  np.allclose((arr1_normed ** 2).sum(axis=1), [1, 1])
+        >>> print(result)
+        arr1_normed = np.array([[ 0.13,  0.27,  0.4 ,  0.54,  0.67],
+                  [ 0.45,  0.45,  0.45,  0.45,  0.45]], dtype=np.float64)
     """
     #norm_ = npl.norm(arr1, axis=-1)
     # actually this is a colwise op
@@ -445,12 +451,12 @@ def normalize_vecs2d_inplace(vecs):
         >>> # ENABLE_DOCTEST
         >>> from vtool.linalg import *  # NOQA
         >>> import numpy as np
-        >>> vecs1 = np.random.rand(1, 10)
+        >>> rng = np.random.RandomState(0)
+        >>> vecs1 = rng.rand(1, 3)
         >>> normalize_vecs2d_inplace(vecs1)
-        >>> res1 = str(vecs1)
-        >>> #vecs2 = np.random.rand(10)
-        >>> #normalize_vecs2d_inplace(vecs2)
-        >>> #res2 = str(vecs2)
+        >>> result = ut.numpy_str(vecs1, precision=2)
+        >>> print(result)
+        np.array([[ 0.51,  0.66,  0.56]], dtype=np.float64)
     """
     # Normalize residuals
     # this can easily be sped up by cyth

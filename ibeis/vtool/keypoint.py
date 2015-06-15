@@ -583,6 +583,8 @@ def transform_kpts_to_imgspace(kpts, bbox, bbox_theta, chipsz):
 #@profile
 def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
     r"""
+    Transfoms keypoints by a scale factor and a translation
+
     Args:
         kpts (ndarray[float32_t, ndim=2]):  keypoints
         offset (tuple):
@@ -593,6 +595,7 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
 
     CommandLine:
         python -m vtool.keypoint --test-offset_kpts
+        python -m vtool.keypoint --test-offset_kpts --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -601,26 +604,47 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
         >>> # build test data
         >>> kpts = vt.dummy.get_dummy_kpts()
         >>> offset = (0.0, 0.0)
-        >>> scale_factor = (1.5, .5)
+        >>> scale_factor = (1.5, 0.5)
         >>> # execute function
         >>> kpts_ = offset_kpts(kpts, offset, scale_factor).astype(np.float32)
         >>> # verify results
-        >>> orig = ut.numpy_str(kpts, precision=2)
-        >>> new = ut.numpy_str(kpts_, precision=2)
-        >>> print(orig)
-        >>> print(new)
-        >>> result = new
+        >>> result = ut.list_str((kpts, kpts_), label_list=['orig', 'new'], precision=2)
         >>> print(result)
-        np.array([[ 20.  ,  25.  ,   5.22,  -5.11,  24.15,   0.  ],
-                  [ 29.  ,  25.  ,   2.36,  -5.11,  24.15,   0.  ],
-                  [ 30.  ,  30.  ,  12.22,  12.02,  10.53,   0.  ],
-                  [ 31.  ,  29.  ,  13.36,  17.63,  14.1 ,   0.  ],
-                  [ 32.  ,  31.  ,  16.05,   3.41,  11.74,   0.  ]], dtype=np.float32)
-
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.draw_kpts2(kpts, color=pt.ORANGE, ell_linewidth=6)
+        >>> pt.draw_kpts2(kpts_, color=pt.LIGHT_BLUE, ell_linewidth=4)
+        >>> wh1 = np.array(vt.get_kpts_image_extent(kpts))
+        >>> wh2 = np.array(vt.get_kpts_image_extent(kpts_))
+        >>> wh = np.maximum(wh1, wh2)
+        >>> ax = pt.gca()
+        >>> ax.set_xlim(0, wh[0])
+        >>> ax.set_ylim(0, wh[1])
+        >>> pt.dark_background()
+        >>> ut.show_if_requested()
+        orig = np.array([[ 20.  ,  25.  ,   5.22,  -5.11,  24.15,   0.  ],
+                         [ 29.  ,  25.  ,   2.36,  -5.11,  24.15,   0.  ],
+                         [ 30.  ,  30.  ,  12.22,  12.02,  10.53,   0.  ],
+                         [ 31.  ,  29.  ,  13.36,  17.63,  14.1 ,   0.  ],
+                         [ 32.  ,  31.  ,  16.05,   3.41,  11.74,   0.  ]], dtype=np.float32)
+        new = np.array([[ 30.  ,  12.5 ,   7.82,  -2.56,  12.07,  -0.  ],
+                        [ 43.5 ,  12.5 ,   3.53,  -2.56,  12.07,  -0.  ],
+                        [ 45.  ,  15.  ,  18.32,   6.01,   5.26,  -0.  ],
+                        [ 46.5 ,  14.5 ,  20.03,   8.82,   7.05,  -0.  ],
+                        [ 48.  ,  15.5 ,  24.08,   1.7 ,   5.87,  -0.  ]], dtype=np.float32)
     """
     if np.all(offset == (0.0, 0.0)) and (np.all(scale_factor == 1.0) or np.all(scale_factor == (1.0, 1.0))):
         return kpts
-    M = ltool.scaleedoffset_mat3x3(offset, scale_factor)
+    try:
+        sfx, sfy = scale_factor
+    except TypeError:
+        sfx = sfy = scale_factor
+    #with ut.embed_on_exception_context:
+    tx, ty = offset
+    T = ltool.translation_mat3x3(tx, ty)
+    S = ltool.scale_mat3x3(sfx, sfy)
+    M = T.dot(S)
+    #M = ltool.scaleedoffset_mat3x3(offset, scale_factor)
     kpts_ = transform_kpts(kpts, M)
     return kpts_
 

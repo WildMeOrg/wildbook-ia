@@ -920,6 +920,7 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd, scale_
 
     CommandLine:
         python -m vtool.spatial_verification --test-get_homography_inliers
+        python -m vtool.spatial_verification --test-get_homography_inliers:0
         python -m vtool.spatial_verification --test-get_homography_inliers:1 --show
 
     Example0:
@@ -933,16 +934,18 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd, scale_
         >>> xy_thresh_sqrd = .01 * ktool.get_kpts_dlen_sqrd(kpts2)
         >>> homogtup = get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd)
         >>> homog_inliers, homog_errors, H = homogtup
-        >>> result = ut.list_str(homogtup, precision=3)
+        >>> result = ut.list_str(homogtup, precision=2, nl=True, suppress_small=True, label_list=['homog_inliers', 'homog_errors', 'H'])
         >>> print(result)
-        (
-            np.array([0, 1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32),
-            (np.array([   4.365,    5.284,    3.294,   13.049,  114.46 ,   48.971,
-                        17.655,   25.825,    3.819], dtype=np.float64), None, None),
-            np.array([[  9.178e-01,  -4.824e-02,   7.212e+00],
-                      [ -6.856e-03,   9.088e-01,   4.131e+00],
-                      [ -1.213e-04,  -3.454e-04,   1.000e+00]], dtype=np.float64),
-        )
+        homog_inliers = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32)
+        homog_errors = (
+                           np.array([   4.36,    5.28,    3.29,   13.05,  114.46,   48.97,   17.66,
+                                       25.83,    3.82], dtype=np.float64),
+                           np.array([ 0.1 ,  0.02,  0.44,  0.36,  0.18,  0.25,  0.04,  0.33,  0.47], dtype=np.float64),
+                           np.array([ 1.13,  1.11,  1.68,  1.89,  1.13,  1.42,  1.08,  1.01,  1.43], dtype=np.float64),
+                       )
+        H = np.array([[ 0.92, -0.05,  7.21],
+                      [-0.01,  0.91,  4.13],
+                      [-0.  , -0.  ,  1.  ]], dtype=np.float64)
 
     Example1:
         >>> # DISABLE_DOCTEST
@@ -1034,7 +1037,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         >>> result = ut.list_type_profile(svtup)
         >>> #result = ut.list_str(svtup, precision=3)
         >>> print(result)
-        tuple(numpy.ndarray, tuple(numpy.ndarray, NoneType, NoneType), numpy.ndarray, numpy.ndarray, tuple(numpy.ndarray*3), numpy.ndarray)
+        tuple(numpy.ndarray, tuple(numpy.ndarray*3), numpy.ndarray, numpy.ndarray, tuple(numpy.ndarray*3), numpy.ndarray)
 
     """
     if len(fm) == 0:

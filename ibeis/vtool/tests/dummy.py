@@ -10,6 +10,35 @@ DEFAULT_DTYPE = ktool.KPTS_DTYPE
 TAU = np.pi * 2  # References: tauday.com
 
 
+def testdata_dummy_sift(nPts=10, rng=np.random):
+    r"""
+    Makes a dummy sift descriptor that has the uint8 * 512 hack
+    like hesaff returns
+
+    Args:
+        nPts (int): (default = 10)
+
+    CommandLine:
+        python -m vtool.tests.dummy --test-testdata_dummy_sift
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.tests.dummy import *  # NOQA
+        >>> nPts = 10
+        >>> rng = np.random.RandomState(0)
+        >>> sift = testdata_dummy_sift(nPts, rng)
+        >>> assert np.allclose(((sift / 512) ** 2).sum(axis=1), 1, rtol=.01), 'bad SIFT property'
+        >>> assert np.all(sift / 512 < .2), 'bad SIFT property'
+    """
+    import vtool as vt
+    sift_ = rng.rand(nPts, 128)
+    sift_ = vt.normalize_rows(np.random.rand(nPts, 128))
+    sift_[sift_ > .2] = .2
+    sift_ = vt.normalize_rows(np.random.rand(nPts, 128))
+    sift = (sift_ * 512).round().astype(np.uint8)
+    return sift
+
+
 def testdata_nonmonotonic():
     arr = np.array([
         0.44603,  0.44698,  0.44792,  0.44886,  0.44979,  0.45072, 0.45164,

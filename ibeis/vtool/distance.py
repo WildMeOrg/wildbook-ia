@@ -8,8 +8,45 @@ from collections import OrderedDict
     __name__, '[dist]', DEBUG=False)
 #profile = utool.profile
 
+TEMP_VEC_DTYPE = np.float32
+
+#DEBUG_DIST = __debug__
+DEBUG_DIST = False
 
 TAU = 2 * np.pi  # References: tauday.com
+
+
+def testdata_hist():
+    import vtool as vt
+    np.random.seed(0)
+    hist1 = vt.tests.dummy.testdata_dummy_sift()
+    hist2 = vt.tests.dummy.testdata_dummy_sift()
+    return hist1, hist2
+
+
+def nearest_point(x, y, pts, conflict_mode='next', __next_counter=[0]):
+    """ finds the nearest point(s) in pts to (x, y)
+    """
+    with ut.embed_on_exception_context:
+        dists = (pts.T[0] - x) ** 2 + (pts.T[1] - y) ** 2
+        fx = dists.argmin()
+        mindist = dists[fx]
+        other_fx = np.where(mindist == dists)[0]
+        if len(other_fx) > 0:
+            if conflict_mode == 'random':
+                np.random.shuffle(other_fx)
+                fx = other_fx[0]
+            elif conflict_mode == 'next':
+                __next_counter[0] += 1
+                idx = __next_counter[0] % len(other_fx)
+                fx = other_fx[idx]
+            elif conflict_mode == 'all':
+                fx = other_fx
+            elif conflict_mode == 'first':
+                fx = fx
+            else:
+                raise AssertionError('unknown conflict_mode=%r' % (conflict_mode,))
+    return fx, mindist
 
 
 @profile
@@ -100,10 +137,10 @@ def det_distance(det1, det2):
         >>> np.random.seed(53)
         >>> det1 = np.random.rand(1000)
         >>> det2 = np.random.rand(1000)
-        >>> output = det_distance(det1, det2)
-        >>> result = ut.hashstr(output)
+        >>> scaledist = det_distance(det1, det2)
+        >>> result = ut.numpy_str(scaledist, precision=2, threshold=2)
         >>> print(result)
-        pfce!exwvqz8e1n!
+        np.array([ 1.03,  1.19,  1.21, ...,  1.25,  1.83,  1.43], dtype=np.float64)
 
     Cyth::
         #CYTH_INLINE
@@ -156,10 +193,10 @@ def L2_sqrd(hist1, hist2):
         >>> np.random.seed(53)
         >>> hist1 = np.random.rand(1000, 2)
         >>> hist2 = np.random.rand(1000, 2)
-        >>> output = L2_sqrd(hist1, hist2)
-        >>> result = ut.hashstr(output)
+        >>> l2dist = L2_sqrd(hist1, hist2)
+        >>> result = ut.numpy_str(l2dist, precision=2, threshold=2)
         >>> print(result)
-        v9wc&brmvjy1as!z
+        np.array([ 0.77,  0.27,  0.11, ...,  0.14,  0.3 ,  0.66], dtype=np.float64)
 
     Cyth::
         #CYTH_INLINE
@@ -195,7 +232,8 @@ def L2_sqrd(hist1, hist2):
 @profile
 def L2(hist1, hist2):
     """ returns L2 (aka euclidean or standard) distance between two histograms """
-    return np.sqrt((np.abs(hist1 - hist2) ** 2).sum(-1))
+    #return np.sqrt((np.abs(hist1 - hist2) ** 2).sum(-1))
+    return np.sqrt(((hist1 - hist2) ** 2).sum(-1))
 
 
 @profile
@@ -207,31 +245,6 @@ def hist_isect(hist1, hist2):
     if len(hisect_dist) == 1:
         hisect_dist = hisect_dist[0]
     return hisect_dist
-
-
-def nearest_point(x, y, pts, conflict_mode='next', __next_counter=[0]):
-    """ finds the nearest point(s) in pts to (x, y)
-    """
-    with ut.embed_on_exception_context:
-        dists = (pts.T[0] - x) ** 2 + (pts.T[1] - y) ** 2
-        fx = dists.argmin()
-        mindist = dists[fx]
-        other_fx = np.where(mindist == dists)[0]
-        if len(other_fx) > 0:
-            if conflict_mode == 'random':
-                np.random.shuffle(other_fx)
-                fx = other_fx[0]
-            elif conflict_mode == 'next':
-                __next_counter[0] += 1
-                idx = __next_counter[0] % len(other_fx)
-                fx = other_fx[idx]
-            elif conflict_mode == 'all':
-                fx = other_fx
-            elif conflict_mode == 'first':
-                fx = fx
-            else:
-                raise AssertionError('unknown conflict_mode=%r' % (conflict_mode,))
-    return fx, mindist
 
 #from six.moves import zip
 #from utool import util_inject
@@ -298,37 +311,101 @@ def compute_distances(hist1, hist2, dist_list=['L1', 'L2']):
 
 
 def bar_L2_sift(hist1, hist2):
-    """  1 - Normalized SIFT L2 """
+    """
+    Args:
+        hist1 (ndarray): Nx128 array of uint8 with pseudomax trick
+        hist2 (ndarray): Nx128 array of uint8 with pseudomax trick
+
+    1 - Normalized SIFT L2
+
+    CommandLine:
+        python -m vtool.distance --test-bar_L2_sift
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.distance import *  # NOQA
+        >>> hist1, hist2 = testdata_hist()
+        >>> barl2_dist = bar_L2_sift(hist1, hist2)
+        >>> result = ut.numpy_str(barl2_dist, precision=2)
+        >>> print(result)
+        np.array([ 0.36,  0.3 ,  0.28,  0.3 ,  0.27,  0.32,  0.27,  0.27,  0.3 ,  0.23], dtype=np.float32)
+    """
     return 1.0 - L2_sift(hist1, hist2)
 
 
-def bar_cos_sift(hist1, hist2):
-    """  1 - Normalized SIFT L2 """
-    return 1.0 - cos_sift(hist1, hist2)
-
-
 def L2_sift(hist1, hist2):
-    """  1 - Normalized SIFT L2 """
+    """
+    Normalized SIFT L2
+
+    Args:
+        hist1 (ndarray): Nx128 array of uint8 with pseudomax trick
+        hist2 (ndarray): Nx128 array of uint8 with pseudomax trick
+
+    Returns:
+        ndarray:
+
+    CommandLine:
+        python -m vtool.distance --test-L2_sift
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.distance import *  # NOQA
+        >>> hist1, hist2 = testdata_hist()
+        >>> l2_dist = L2_sift(hist1, hist2)
+        >>> result = ut.numpy_str(l2_dist, precision=2)
+        >>> print(result)
+        np.array([ 0.64,  0.7 ,  0.72,  0.7 ,  0.73,  0.68,  0.73,  0.73,  0.7 ,  0.77], dtype=np.float32)
+    """
+    # remove the pseudo max hack
     psuedo_max = 512.0
-    sift1 = hist1 / psuedo_max
-    sift2 = hist2 / psuedo_max
-    sift1 /= np.linalg.norm(sift1)
-    sift2 /= np.linalg.norm(sift2)
+    sift1 = hist1.astype(TEMP_VEC_DTYPE) / psuedo_max
+    sift2 = hist2.astype(TEMP_VEC_DTYPE) / psuedo_max
+    if DEBUG_DIST:
+        _assert_siftvec(sift1)
+        _assert_siftvec(sift2)
+    #sift1 /= np.linalg.norm(sift1, axis=-1)
+    #sift2 /= np.linalg.norm(sift2, axis=-1)
     return L2(sift1, sift2)
 
 
+def bar_cos_sift(hist1, hist2):
+    """ 1 - cos dist  """
+    return 1.0 - cos_sift(hist1, hist2)
+
+
 def cos_sift(hist1, hist2):
-    """ returns the squared L2 distance
-    seealso L2
+    """
+    cos dist
+
+    CommandLine:
+        python -m vtool.distance --test-cos_sift
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.distance import *  # NOQA
+        >>> hist1, hist2 = testdata_hist()
+        >>> l2_dist = cos_sift(hist1, hist2)
+        >>> result = ut.numpy_str(l2_dist, precision=2)
+        >>> print(result)
+        np.array([ 0.8 ,  0.76,  0.74,  0.75,  0.74,  0.77,  0.73,  0.73,  0.76,  0.7 ], dtype=np.float32)
     """
     psuedo_max = 512.0
-    sift1 = hist1 / psuedo_max
-    sift2 = hist2 / psuedo_max
-    sift1 /= np.linalg.norm(sift1)
-    sift2 /= np.linalg.norm(sift2)
+    sift1 = hist1.astype(TEMP_VEC_DTYPE) / psuedo_max
+    sift2 = hist2.astype(TEMP_VEC_DTYPE) / psuedo_max
+    if DEBUG_DIST:
+        _assert_siftvec(sift1)
+        _assert_siftvec(sift2)
+    #sift1 /= np.linalg.norm(sift1, axis=-1)
+    #sift2 /= np.linalg.norm(sift2, axis=-1)
     #import utool as ut
     #ut.embed()
     return (sift1 * sift2).sum(-1)
+
+
+def _assert_siftvec(sift):
+    norm = (sift ** 2).sum(axis=-1)
+    isvalid = np.allclose(norm, 1.0, rtol=.05)
+    assert np.all(isvalid), norm[np.logical_not(isvalid)]
 
 
 def emd(hist1, hist2):
@@ -336,12 +413,29 @@ def emd(hist1, hist2):
     earth mover's distance by robjects(lpSovle::lp.transport)
     require: lpsolve55-5.5.0.9.win32-py2.7.exe
 
+    Ignore:
+        #http://docs.opencv.org/modules/imgproc/doc/histograms.html
+        import re
+        [x for x in cv2.__dict__.keys() if x.find('emd') > -1 or x.find('EMD') > -1]
+        import re
+        [x for x in cv2.__dict__.keys() if re.search('emd|earth', x, flags=re.IGNORECASE)]
+        [x for x in cv2.__dict__.keys() if re.search('dist', x, flags=re.IGNORECASE)]
+        CV_COMP_CORREL Correlation
+        CV_COMP_CHISQR Chi-Square
+        CV_COMP_INTERSECT Intersection
+        CV_COMP_BHATTACHARYYA Bhattacharyya distance
+        CV_COMP_HELLINGER
+
+    CommandLine:
+        python -m vtool.distance --test-emd
+
     Example:
-        >>> from vtool.distances import *   # NOQA
-        >>> import numpy as np
-        >>> hist1 = np.random.rand(128)
-        >>> hist2 = np.random.rand(128)
-        >>> result = emd(hist1, hist2)
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.distance import *  # NOQA
+        >>> hist1, hist2 = testdata_hist()
+        >>> emd_dists = emd(hist1, hist2)
+        >>> result = ut.numpy_str(l2_dist, precision=2)
+        >>> print(result)
 
     References:
         https://github.com/andreasjansson/python-emd
@@ -349,12 +443,15 @@ def emd(hist1, hist2):
         http://www.cs.huji.ac.il/~ofirpele/FastEMD/code/
         http://www.cs.huji.ac.il/~ofirpele/publications/ECCV2008.pdf
     """
+    import cv2
     try:
         from cv2 import cv
     except ImportError as ex:
+        #cv2.histComparse(
         print(repr(ex))
-        print('Cannot import cv. Is opencv 2.4.9?')
-        return -1
+        print('Cannot import cv. Is opencv 2.4.9?. cv2.__version__=%r' % (cv2.__version__,))
+        raise
+        #return -1
 
     # Stack weights into the first column
     def add_weight(hist):
