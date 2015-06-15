@@ -67,7 +67,8 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true'],
         python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --show
         python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --show
         python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift --show
-        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn,bar_L2_sift --show
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show
         python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=cos_sift --show
 
     Example:
@@ -95,7 +96,7 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true'],
         >>> #ut.embed()
         >>> # http://stackoverflow.com/questions/20330475/matplotlib-overflowerror-allocated-too-many-blocks
         >>> # http://matplotlib.org/1.3.1/users/customizing.html
-        >>> limit_ = len(qaid_list) > 1000
+        >>> limit_ = len(qaid_list) > 100
         >>> if limit_ or True:
         >>>     import matplotlib as mpl
         >>>     mpl.rcParams['agg.path.chunksize'] = 100000

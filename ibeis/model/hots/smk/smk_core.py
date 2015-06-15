@@ -55,10 +55,14 @@ def match_kernel_L0(qrvecs_list, drvecs_list, qflags_list, dflags_list,
     Returns:
         retL0 : (daid2_totalscore, scores_list, daid_agg_keys,)
 
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_core --test-match_kernel_L0
+
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.smk.smk_core import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> smk_debug.rrr()
+        >>> #smk_debug.rrr()
         >>> core1, core2, extra = smk_debug.testdata_match_kernel_L0()
         >>> smk_alpha, smk_thresh, query_sccw, daids_list, daid2_sccw = core1
         >>> qrvecs_list, drvecs_list, qmaws_list, dmaws_list, idf_list = core2
@@ -567,3 +571,16 @@ def mem_meshgrid(wrange, hrange, cache={}):
     if key not in cache:
         cache[key] = np.meshgrid(wrange, hrange, indexing='ij')
     return cache[key]
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_core
+        python -m ibeis.model.hots.smk.smk_core --allexamples
+        python -m ibeis.model.hots.smk.smk_core --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

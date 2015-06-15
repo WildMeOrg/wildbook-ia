@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 # Python
 from six.moves import zip, range
@@ -91,9 +92,9 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
 
     ut.assert_all_not_None(cid_list, 'cid_list')
     cfpath_list       = ibs.get_chip_fpath(cid_list)
-    if ut.VERBOSE:
-        print('[preproc_feat] cfgstr = %s' % feat_cfgstr)
-        #print('hesaff_params = ' + ut.dict_str(hesaff_params))
+    if ut.NOT_QUIET:
+        print('[preproc_feat] feat_cfgstr = %s' % feat_cfgstr)
+        print('hesaff_params = ' + ut.dict_str(hesaff_params))
     if USE_OPENMP:
         # Use Avi's openmp parallelization
         featgen_mp = gen_feat_openmp(cid_list, cfpath_list, hesaff_params)
