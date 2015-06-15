@@ -405,12 +405,12 @@ def transform_points_with_homography(H, _xys):
     return xy_t
 
 
-def normalize_rows(arr1):  # , out=None):
+def normalize_rows(arr1, out=None):  # , out=None):
     """
     from vtool.linalg import *
 
     Args:
-        arr1 (ndarray):
+        arr1 (ndarray): row vectors to normalize
 
     Returns:
         ndarray: arr1_normed
@@ -423,48 +423,16 @@ def normalize_rows(arr1):  # , out=None):
         >>> from vtool.linalg import *  # NOQA
         >>> arr1 = np.array([[1, 2, 3, 4, 5], [2, 2, 2, 2, 2]])
         >>> arr1_normed = normalize_rows(arr1)
-        >>> result = ('arr1_normed = %s' % (ut.numpy_str(arr1_normed, precision=2),))
-        >>> assert  np.allclose((arr1_normed ** 2).sum(axis=1), [1, 1])
+        >>> result = ut.hz_str('arr1_normed = ', ut.numpy_str(arr1_normed, precision=2))
+        >>> assert np.allclose((arr1_normed ** 2).sum(axis=1), [1, 1])
         >>> print(result)
         arr1_normed = np.array([[ 0.13,  0.27,  0.4 ,  0.54,  0.67],
-                  [ 0.45,  0.45,  0.45,  0.45,  0.45]], dtype=np.float64)
+                                [ 0.45,  0.45,  0.45,  0.45,  0.45]], dtype=np.float64)
     """
-    #norm_ = npl.norm(arr1, axis=-1)
-    # actually this is a colwise op
-    #arr1_normed = rowwise_operation(arr1, norm_, np.divide)
     assert len(arr1.shape) == 2
     norm_ = npl.norm(arr1, axis=1)
-    norm_.shape = (norm_.size, 1)
-    arr1_normed = np.divide(arr1, norm_)  # , out=out)
+    arr1_normed = np.divide(arr1, norm_[:, None], out=out)
     return arr1_normed
-
-
-def normalize_vecs2d_inplace(vecs):
-    """
-    Args:
-        vecs (ndarray): row vectors to normalize in place
-
-    CommandLine:
-        python -m vtool.linalg --test-normalize_vecs2d_inplace
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.linalg import *  # NOQA
-        >>> import numpy as np
-        >>> rng = np.random.RandomState(0)
-        >>> vecs1 = rng.rand(1, 3)
-        >>> normalize_vecs2d_inplace(vecs1)
-        >>> result = ut.numpy_str(vecs1, precision=2)
-        >>> print(result)
-        np.array([[ 0.51,  0.66,  0.56]], dtype=np.float64)
-    """
-    # Normalize residuals
-    # this can easily be sped up by cyth
-    assert len(vecs.shape) == 2
-    norm_ = npl.norm(vecs, axis=1)
-    norm_.shape = (norm_.size, 1)
-    np.divide(vecs, norm_.reshape(norm_.size, 1), out=vecs)
-    return vecs
 
 
 #try:
