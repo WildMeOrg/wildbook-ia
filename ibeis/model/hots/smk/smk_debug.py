@@ -38,6 +38,7 @@ def testdata_ibeis(**kwargs):
     print('kwargs = ' + ut.dict_str(kwargs))
     print('[smk_debug] testdata_ibeis')
     db = kwargs.get('db', ut.get_argval('--db', str, 'PZ_MTEST'))
+    #with ut.Indenter('ENSURE'):
     if db == 'PZ_MTEST':
         ibeis.ensure_pz_mtest()
     ibs = ibeis.opendb(db=db)
@@ -52,7 +53,8 @@ def testdata_ibeis(**kwargs):
     ibs.cfg.query_cfg.smk_cfg.smk_thresh = 0
     ibs.cfg.query_cfg.smk_cfg.vocabtrain_cfg.nWords = nWords
     ibs.cfg.query_cfg.smk_cfg.vocabassign_cfg.nAssign = nAssign
-    ibs.cfg.query_cfg.smk_cfg.printme3()
+    if ut.VERYVERBOSE:
+        ibs.cfg.query_cfg.smk_cfg.printme3()
     return ibs
 
 
@@ -122,7 +124,6 @@ def testdata_raw_internals1(**kwargs):
     ibs, annots_df, daids, qaids, invindex, qreq_ = smk_debug.testdata_raw_internals0(**kwargs)
     qparams = qreq_.qparams
     print('[smk_debug] testdata_raw_internals1')
-    #ibs.cfg.query_cfg.smk_cfg.printme3()
     words  = invindex.words
     wordflann = invindex.wordflann
     idx2_vec  = invindex.idx2_dvec
@@ -150,7 +151,6 @@ def testdata_raw_internals1_5(**kwargs):
     from ibeis.model.hots.smk import smk_debug
     ibs, annots_df, daids, qaids, invindex, wx2_idxs, qparams = smk_debug.testdata_raw_internals1(**kwargs)
     print('[smk_debug] testdata_raw_internals1_5')
-    #ibs.cfg.query_cfg.smk_cfg.printme3()
     words     = invindex.words
     wx_series = np.arange(len(words))
     idx2_aid  = invindex.idx2_daid
@@ -271,6 +271,7 @@ def testdata_nonagg_rvec():
     idx2_vec  = invindex.idx2_dvec
     wx2_dmaws  = invindex.wx2_dmaws
     idx2_daid  = invindex.idx2_daid
+    # wx_sublist denotes which words are used
     wx_sublist = np.array(list(wx2_idxs.keys()))
     idxs_list  = [wx2_idxs[wx].astype(np.int32) for wx in wx_sublist]
     maws_list  = [wx2_dmaws[wx] for wx in wx_sublist]

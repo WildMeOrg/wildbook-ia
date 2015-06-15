@@ -66,6 +66,9 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true'],
         python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists
         python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --show
         python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --show
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift --show
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn,bar_L2_sift --show
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=cos_sift --show
 
     Example:
         >>> # SLOW_DOCTEST
@@ -77,10 +80,14 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true'],
         >>> allres = results_all.get_allres(ibs, qaid_list)
         >>> orgtype_list = ['false', 'top_true']
         >>> verbose = True
-        >>> distkey_list = ['fs', 'lnbnn', 'bar_L2_sift']
+        >>> distkey_list = ut.get_argval('--distkeys', type_=list, default=['fs', 'lnbnn', 'bar_L2_sift'])
+        >>> #distkey_list = ['hist_isect']
+        >>> #distkey_list = ['L2_sift', 'bar_L2_sift']
         >>> # execute function
         >>> orgres2_descmatch_dists = get_orgres_desc_match_dists(allres, orgtype_list, distkey_list, verbose)
-        >>> print('orgres2_descmatch_dists = ' + ut.dict_str(orgres2_descmatch_dists, truncate=-1, precision=3))
+        >>> #print('orgres2_descmatch_dists = ' + ut.dict_str(orgres2_descmatch_dists, truncate=-1, precision=3))
+        >>> stats_ = {key: ut.dict_val_map(val, ut.get_stats) for key, val in orgres2_descmatch_dists.items()}
+        >>> print('orgres2_descmatch_dists = ' + ut.dict_str(stats_, truncate=2, precision=3, nl=4))
         >>> # ------ VISUALIZE ------------
         >>> ut.quit_if_noshow()
         >>> import vtool as vt
@@ -89,14 +96,14 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true'],
         >>> # http://stackoverflow.com/questions/20330475/matplotlib-overflowerror-allocated-too-many-blocks
         >>> # http://matplotlib.org/1.3.1/users/customizing.html
         >>> limit_ = len(qaid_list) > 1000
-        >>> if limit_:
+        >>> if limit_ or True:
         >>>     import matplotlib as mpl
         >>>     mpl.rcParams['agg.path.chunksize'] = 100000
         >>> # visualize the descriptor scores
         >>> for fnum, distkey in enumerate(distkey_list, start=1):
         >>>     encoder = vt.ScoreNormalizer()
         >>>     tn_scores, tp_scores = ut.get_list_column(ut.dict_take(orgres2_descmatch_dists, orgtype_list), distkey)
-        >>>     encoder.fit_partitioned(tp_scores, tn_scores)
+        >>>     encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)
         >>>     figtitle = 'Descriptor Distance: %r. db=%r\norgtype_list=%r' % (distkey, ibs.get_dbname(), orgtype_list)
         >>>     encoder.visualize(figtitle=figtitle, use_stems=not limit_, fnum=fnum)
         >>> ut.show_if_requested()
@@ -113,8 +120,8 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true'],
         orgres = allres.get_orgtype(orgtype)
         qaids = orgres.qaids
         aids  = orgres.aids
+        # DO distance that need real computation
         if len(desc_dist_xs) > 0:
-            # Do distance that need real computation
             try:
                 stacked_qvecs, stacked_dvecs = get_matching_descriptors(allres, qaids, aids)
             except Exception as ex:
@@ -133,8 +140,8 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true'],
             distances1 = vt.compute_distances(hist1, hist2, distkey_list1)
         else:
             distances1 = {}
+        # DO precomputed distances like fs (true weights)
         if len(other_xs) > 0:
-            # do precomputed distances like fs (true weights)
             distances2 = ut.odict([(disttype, []) for disttype in distkey_list2])
             for qaid, daid in zip(qaids, aids):
                 try:

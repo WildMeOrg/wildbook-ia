@@ -39,11 +39,12 @@ class OrganizedResult(DynStruct):
         self.scores  = []  # the matching score
         self.ranks   = []  # the matching rank
 
-    def append(self, qaid, aid, rank, score):
+    def append(self, qaid, aid, rank, score):  # , num_fm):
         self.qaids.append(qaid)
         self.aids.append(aid)
         self.scores.append(score)
         self.ranks.append(rank)
+        #self.num_matches.append(num_fm)
 
     def freeze(self):
         """ No more appending """
@@ -90,7 +91,8 @@ class OrganizedResult(DynStruct):
         column_list = [self.qaids, self.aids, self.scores, self.ranks]
         column_lbls = ['qaids', 'aids', 'scores', 'ranks']
         header = 'Orgres %s' % (self.orgtype)
-        print(utool.make_csv_table(column_list, column_lbls, header, column_type=None))
+        csvstr = utool.make_csv_table(column_list, column_lbls, header, column_type=None)
+        print(csvstr)
 
 
 def _where_ranks_lt(orgres, num):
@@ -125,6 +127,9 @@ def _score_sorted_ranks_lt(orgres, num):
 
 def qres2_true_and_false(ibs, qres):
     """
+    TODO: generic metrics such as columns of fsv or num feature matches
+
+
     Organizes chip-vs-chip results into true positive set and false positive set
     a set is a query, its best match, and a score
 
@@ -208,17 +213,21 @@ def organize_results(ibs, qaid2_qres):
         python -m ibeis.experiments.results_organizer --test-organize_results
 
     Example:
-        >>> # SLOW_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.experiments.results_organizer import *   # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> aid_list = ibs.get_valid_aids()
+        >>> daid_list = ibs.get_valid_aids()
+        >>> qaid_list = daid_list[20:60:2]
         >>> cfgdict = dict()
-        >>> qaid2_qres = ibs._query_chips4(aid_list, aid_list, cfgdict=cfgdict)
+        >>> qaid2_qres = ibs._query_chips4(qaid_list, daid_list, cfgdict=cfgdict)
         >>> orgres = organize_results(ibs, qaid2_qres)
-        >>> org_top_true = orgres['top_true']
-        >>> org_top_false = orgres['top_false']
-        >>> org_top_true.printme3()
+        >>> #orgres['true'].printme3()
+        >>> #orgres['false'].printme3()
+        >>> orgres['top_true'].printme3()
+        >>> orgres['top_false'].printme3()
+        >>> orgres['rank0_true'].printme3()
+        >>> orgres['rank0_false'].printme3()
     """
     print('[results_organizer] organize_results()')
     org_true          = OrganizedResult('true')

@@ -284,7 +284,6 @@ class QueryResultsWidget(APIItemWidget):
             model.layoutChanged.emit()
             print('emited data changed')
             #model.select()
-            #ut.embed()
 
     @guitool.slot_(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuRequested(qres_wgt, qtindex, qpoint):

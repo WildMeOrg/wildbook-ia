@@ -890,6 +890,8 @@ class MainWindowBackend(QtCore.QObject):
             const.INTRA_ENC_KEY: {
                 'eid': eid,
             },
+            'all': {
+            }
         }
         valid_kw = {
             'species': back.get_selected_species(),
@@ -898,6 +900,7 @@ class MainWindowBackend(QtCore.QObject):
         mode_str = {
             const.VS_EXEMPLARS_KEY: 'vs_exemplar',
             const.INTRA_ENC_KEY: 'intra_encounter',
+            'all': 'all'
         }[daids_mode]
         valid_kw.update(daids_mode_valid_kw_dict[daids_mode])
         print('[back] get_selected_daids: ' + mode_str)
@@ -1048,14 +1051,14 @@ class MainWindowBackend(QtCore.QObject):
         back.review_queries(qres_list, qreq_=qreq_,
                             filter_reviewed=False,
                             name_scoring=False,
-                            ranks_lt=ranks_lt, query_title='Annot Splits')
+                            ranks_lt=ranks_lt,
+                            query_title='Annot Splits')
 
     @blocking_slot()
     def compute_queries(back, refresh=True, daids_mode=None,
                         query_is_known=None, qaid_list=None,
                         use_prioritized_name_subset=False,
                         use_visual_selection=False, cfgdict={},
-
                         **kwargs):
         """
         MAIN QUERY FUNCTION
@@ -1135,8 +1138,12 @@ class MainWindowBackend(QtCore.QObject):
 
         if daids_mode == const.VS_EXEMPLARS_KEY:
             query_title += ' vs exemplars'
-        else:
+        elif daids_mode == const.INTRA_ENC_KEY:
             query_title += ' intra encounter'
+        elif daids_mode == 'all':
+            query_title += ' all'
+        else:
+            print('Unknown daids_mode=%r' % (daids_mode,))
 
         daid_list = back.get_selected_daids(eid=eid, daids_mode=daids_mode)
         if len(qaid_list) == 0:
@@ -1167,7 +1174,7 @@ class MainWindowBackend(QtCore.QObject):
 
         back.review_queries(qres_list,
                             filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
-                            qreq_=qreq_, query_title=query_title)
+                            qreq_=qreq_, query_title=query_title, **kwargs)
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: eid=%r' % (eid,))

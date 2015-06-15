@@ -393,8 +393,8 @@ def ensure_pz_mtest():
     valid_aids = ibs.get_valid_aids()
     assert len(valid_aids) == 119
     ibs.update_annot_semantic_uuids(valid_aids)
-    ibs.print_annotation_table()
-
+    if ut.VERYVERBOSE:
+        ibs.print_annotation_table()
     nid = ibs.get_name_rowids_from_text('', ensure=False)
     if nid is not None:
         ibs.set_name_texts([nid], ['lostname'])

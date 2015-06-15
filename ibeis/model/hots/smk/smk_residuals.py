@@ -1,14 +1,13 @@
 from __future__ import absolute_import, division, print_function
-import utool
 import utool as ut
-import numpy.linalg as npl
 import numpy as np
+import vtool as vt
 from vtool import clustering2 as clustertool
 from ibeis.model.hots import hstypes
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_residuals]')
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[smk_residuals]')
 
 
-#@utool.cached_func('nonagg_rvecs', appname='smk_cachedir', key_argx=[1, 3, 4])
+#@ut.cached_func('nonagg_rvecs', appname='smk_cachedir', key_argx=[1, 3, 4])
 @profile
 def compute_nonagg_rvecs(words, idx2_vec, wx_sublist, idxs_list):
     """
@@ -23,16 +22,22 @@ def compute_nonagg_rvecs(words, idx2_vec, wx_sublist, idxs_list):
     Returns:
         tuple : (rvecs_list, flags_list)
 
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_residuals --test-compute_nonagg_rvecs:0
+        python -m ibeis.model.hots.smk.smk_residuals --test-compute_nonagg_rvecs:1
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> from ibeis.model.hots.smk import smk_residuals
         >>> words, wx_sublist, aids_list, idxs_list, idx2_vec, maws_list = smk_debug.testdata_nonagg_rvec()
         >>> rvecs_list, flags_list = smk_residuals.compute_nonagg_rvecs(words, idx2_vec, wx_sublist, idxs_list)
-        >>> print('Computed size(rvecs_list) = %r' % utool.get_object_size_str(rvecs_list))
-        >>> print('Computed size(flags_list) = %r' % utool.get_object_size_str(flags_list))
+        >>> print('Computed size(rvecs_list) = %r' % ut.get_object_size_str(rvecs_list))
+        >>> print('Computed size(flags_list) = %r' % ut.get_object_size_str(flags_list))
 
     Example2:
+        >>> # ENABLE_DOCTEST
         >>> # The case where vecs == words
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
         >>> vecs = (hstypes.VEC_MAX * np.random.rand(4, 128)).astype(hstypes.VEC_TYPE)
@@ -81,12 +86,19 @@ def compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list):
     Returns:
         tuple : (aggvecs_list, aggaids_list, aggidxs_list, aggmaws_list)
 
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_residuals --test-compute_agg_rvecs
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> from ibeis.model.hots.smk import smk_residuals
         >>> words, wx_sublist, aids_list, idxs_list, idx2_vec, maws_list = smk_debug.testdata_nonagg_rvec()
         >>> rvecs_list, flags_list = smk_residuals.compute_nonagg_rvecs(words, idx2_vec, wx_sublist, idxs_list)
+        >>> tup = compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list)
+        >>> aggvecs_list, aggaids_list, aggidxs_list, aggmaws_list, aggflags_list = tup
+        >>> ut.assert_eq(len(wx_sublist), len(rvecs_list))
 
     """
     #assert len(idxs_list) == len(rvecs_list)
@@ -127,13 +139,16 @@ def compress_normvec_float16(arr_float):
     Returns:
         ndarray[dtype=np.float16]
 
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_residuals --test-compress_normvec_float16
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> np.random.seed(0)
         >>> arr_float = smk_debug.get_test_float_norm_rvecs(2, 5)
-        >>> normalize_vecs2d_inplace(arr_float)
+        >>> vt.normalize_rows(arr_float, out=arr_float)
         >>> arr_float16 = compress_normvec_float16(arr_float)
         >>> result = ut.numpy_str(arr_float16, precision=4)
         >>> print(result)
@@ -149,24 +164,29 @@ def compress_normvec_uint8(arr_float):
     compresses 8 or 4 bytes of information into 1 byte
     Assumes RVEC_TYPE is int8
 
-        Takes a normalized float vectors in range -1 to 1 with l2norm=1 and
-        compresses them into 1 byte. Takes advantage of the fact that
-        rarely will a component of a vector be greater than 64, so we can extend the
-        range to double what normally would be allowed. This does mean there is a
-        slight (but hopefully negligable) information loss. It will be negligable
-        when nDims=128, when it is lower, you may want to use a different function.
+    Takes a normalized float vectors in range -1 to 1 with l2norm=1 and
+    compresses them into 1 byte. Takes advantage of the fact that
+    rarely will a component of a vector be greater than 64, so we can extend the
+    range to double what normally would be allowed. This does mean there is a
+    slight (but hopefully negligable) information loss. It will be negligable
+    when nDims=128, when it is lower, you may want to use a different function.
 
     Args:
         arr_float (ndarray): normalized residual vector of type float in range -1 to 1 (with l2 norm of 1)
+
     Returns:
         (ndarray): residual vector of type int8 in range -128 to 128
 
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_residuals --test-compress_normvec_uint8
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> np.random.seed(0)
         >>> arr_float = smk_debug.get_test_float_norm_rvecs(2, 5)
-        >>> normalize_vecs2d_inplace(arr_float)
+        >>> vt.normalize_rows(arr_float, out=arr_float)
         >>> arr_int8 = compress_normvec_uint8(arr_float)
         >>> print(arr_int8)
         [[ 127   29   70 -128 -128]
@@ -193,35 +213,6 @@ else:
 
 
 @profile
-def normalize_vecs2d_inplace(vecs):
-    """
-    Args:
-        vecs (ndarray): row vectors to normalize in place
-
-    Example:
-        >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
-        >>> import numpy as np
-        >>> vecs = np.random.rand(1, 10)
-        >>> normalize_vecs2d_inplace(vecs)
-        >>> print(vecs)
-        >>> vecs = np.random.rand(10)
-        >>> normalize_vecs2d_inplace(vecs)
-        >>> print(vecs)
-    """
-    if utool.DEBUG2:
-        try:
-            assert vecs.ndim == 2, 'vecs.shape = %r' % (vecs.shape,)
-        except AssertionError as ex:
-            ut.printex(ex, keys=['vecs'])
-            raise
-    # Normalize residuals
-    # this can easily be sped up by cyth
-    norm_ = npl.norm(vecs, axis=1)
-    norm_.shape = (norm_.size, 1)
-    np.divide(vecs, norm_.reshape(norm_.size, 1), out=vecs)
-
-
-@profile
 def aggregate_rvecs(rvecs, maws):
     """
     helper for compute_agg_rvecs
@@ -233,11 +224,26 @@ def aggregate_rvecs(rvecs, maws):
     Returns:
         rvecs_agg : aggregated residual vectors
 
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_residuals --test-aggregate_rvecs
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> #rvecs = (hstypes.RVEC_MAX * np.random.rand(4, 4)).astype(hstypes.RVEC_TYPE)
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
         >>> rvecs = (hstypes.RVEC_MAX * np.random.rand(4, 128)).astype(hstypes.RVEC_TYPE)
         >>> maws  = (np.random.rand(rvecs.shape[0])).astype(hstypes.FLOAT_TYPE)
+        >>> rvecs_agg = aggregate_rvecs(rvecs, maws)
+        >>> result = ut.numpy_str2(rvecs_agg)
+        >>> print(result)
+        np.array([[14, 25, 15, 25, 23, 17, 30, 13, 28, 27, 20, 20, 26, 24, 18, 16, 27,
+                   37, 15, 11, 25, 23, 29, 16, 18, 25, 18, 21, 20, 17, 18, 29, 21, 29,
+                   24, 23, 15, 28, 12, 26, 21, 28, 20, 20, 19, 25, 20, 20, 32, 17, 17,
+                   17, 25, 14, 18, 26, 35, 26, 19, 21, 21, 29, 20, 18, 19, 28, 20, 19,
+                   15, 22, 22, 29, 15, 21, 13, 13, 29, 15, 33, 12, 29, 15, 27, 13, 30,
+                   28, 18, 19, 18, 11, 23, 29, 17, 31, 26,  8, 16, 10, 15, 38, 15, 12,
+                   12, 18, 32, 22, 19, 30, 22, 28, 21, 31, 25, 31, 22, 29, 26, 28, 17,
+                   17, 28, 18, 15, 17, 31, 15, 28, 28]], dtype=np.int8)
     """
     if rvecs.shape[0] == 1:
         return rvecs
@@ -247,7 +253,7 @@ def aggregate_rvecs(rvecs, maws):
     (maws[:, np.newaxis] * rvecs.astype(hstypes.FLOAT_TYPE)).sum(axis=0, out=arr_float[0])
     # Jegou uses mean instead. Sum should be fine because we normalize
     #rvecs.mean(axis=0, out=rvecs_agg[0])
-    normalize_vecs2d_inplace(arr_float)
+    vt.normalize_rows(arr_float, out=arr_float)
     rvecs_agg = compress_normvec(arr_float)
     return rvecs_agg
 
@@ -264,38 +270,48 @@ def get_norm_residuals(vecs, word):
     Returns:
         tuple : (rvecs_n, rvec_flag)
 
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_residuals --test-get_norm_residuals
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> # The case where vecs != words
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
         >>> vecs = (hstypes.VEC_MAX * np.random.rand(4, 128)).astype(hstypes.VEC_TYPE)
         >>> word = (hstypes.VEC_MAX * np.random.rand(1, 128)).astype(hstypes.VEC_TYPE)
+        >>> rvecs_n = get_norm_residuals(vecs, word)
+        >>> result = ut.numpy_str2(rvecs_n)
+        >>> print(result)
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> # The case where vecs == words
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
         >>> vecs = (hstypes.VEC_MAX * np.random.rand(4, 128)).astype(hstypes.VEC_TYPE)
         >>> word = vecs[1]
+        >>> rvecs_n = get_norm_residuals(vecs, word)
+        >>> result = ut.numpy_str2(rvecs_n)
+        >>> print(result)
 
     IGNORE
         rvecs_agg8 = compress_normvec_uint8(arr_float)
         rvecs_agg16 = compress_normvec_float16(arr_float)
-        utool.print_object_size(rvecs_agg16, 'rvecs_agg16: ')
-        utool.print_object_size(rvecs_agg8,  'rvecs_agg8:  ')
-        utool.print_object_size(rvec_flag,   'rvec_flag:   ')
+        ut.print_object_size(rvecs_agg16, 'rvecs_agg16: ')
+        ut.print_object_size(rvecs_agg8,  'rvecs_agg8:  ')
+        ut.print_object_size(rvec_flag,   'rvec_flag:   ')
 
         %timeit np.isnan(_rvec_sums)
         %timeit  _rvec_sums == 0
         %timeit  np.equal(rvec_sums, 0)
         %timeit  rvec_sums == 0
         %timeit  np.logical_or(np.isnan(_rvec_sums), _rvec_sums == 0)
-    IGNORE
     """
     # Compute residuals of assigned vectors
     #rvecs_n = word.astype(dtype=FLOAT_TYPE) - vecs.astype(dtype=FLOAT_TYPE)
     arr_float = np.subtract(word.astype(hstypes.FLOAT_TYPE), vecs.astype(hstypes.FLOAT_TYPE))
     # Faster, but doesnt work with np.norm
     #rvecs_n = np.subtract(word.view(hstypes.FLOAT_TYPE), vecs.view(hstypes.FLOAT_TYPE))
-    normalize_vecs2d_inplace(arr_float)
+    vt.normalize_rows(arr_float, out=arr_float)
     # Mark null residuals
     #_rvec_sums = arr_float.sum(axis=1)
     #rvec_flag = np.isnan(_rvec_sums)
@@ -305,3 +321,16 @@ def get_norm_residuals(vecs, word):
     # (but we should use int8, and in that case it is implicit)
     # rvecs_n = np.nan_to_num(rvecs_n)
     return rvecs_n
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_residuals
+        python -m ibeis.model.hots.smk.smk_residuals --allexamples
+        python -m ibeis.model.hots.smk.smk_residuals --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
