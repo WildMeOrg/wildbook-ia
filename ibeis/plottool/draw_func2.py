@@ -815,6 +815,7 @@ def show_histogram(data, bins=None, **kwargs):
     fig = figure(**kwargs)
     ax  = gca()
     ax.hist(data, bins=bins, range=(dmin, dmax))
+    dark_background()
     return fig
     #help(np.bincount)
     #fig.show()

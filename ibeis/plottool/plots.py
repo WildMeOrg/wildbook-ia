@@ -364,6 +364,103 @@ def plot_sorted_scores(scores_list,
     #df2.iup()
 
 
+def plot_score_histograms(scores_list,
+                          scores_lbls=None,
+                          score_markers=None,
+                          score_colors=None,
+                          markersizes=None,
+                          fnum=None,
+                          pnum=(1, 1, 1),
+                          figtitle=None,
+                          score_label='score',
+                          threshold_value=None):
+    """
+    CommandLine:
+        python -m plottool.plots --test-plot_score_histograms --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> randstate = np.random.RandomState(seed=0)
+        >>> # Get a training sample
+        >>> tp_support = randstate.normal(loc=6.5, size=(256,))
+        >>> tn_support = randstate.normal(loc=3.5, size=(256,))
+        >>> scores_list = [tp_support, tn_support]
+        >>> scores_lbls = None
+        >>> score_markers = None
+        >>> score_colors = None
+        >>> markersizes = None
+        >>> fnum = None
+        >>> pnum = (1, 1, 1)
+        >>> logscale = True
+        >>> figtitle = 'plot_scores_histogram'
+        >>> result = plot_score_histograms(scores_list, scores_lbls, score_markers, score_colors, markersizes, fnum, pnum, logscale, figtitle)
+        >>> ut.show_if_requested()
+        >>> print(result)
+    """
+    if figtitle is None:
+        figtitle = 'histogram of ' + score_label
+    if scores_lbls is None:
+        scores_lbls = [lblx for lblx in range(len(scores_list))]
+    if score_markers is None:
+        score_markers = ['o' for lblx in range(len(scores_list))]
+    if score_colors is None:
+        score_colors = df2.distinct_colors(len(scores_list))[::-1]
+    if markersizes is None:
+        markersizes = [12 / (1.0 + lblx) for lblx in range(len(scores_list))]
+    #labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(scores_list)]
+    agg_scores  = np.hstack(scores_list)
+
+    dmin = agg_scores.min()
+    dmax = agg_scores.max()
+
+    # References: http://stats.stackexchange.com/questions/798/calculating-optimal-number-of-bins-in-a-histogram-for-n-where-n-ranges-from-30
+    #bandwidth = diff(range(x)) / (2 * IQR(x) / length(x) ^ (1 / 3)))
+
+    if fnum is None:
+        fnum = df2.next_fnum()
+
+    df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
+
+    bins = None
+
+    # Plot each datapoint on a line
+    for lblx in range(len(scores_list)):
+        label = scores_lbls[lblx]
+        color = score_colors[lblx]
+        #marker = score_markers[lblx]
+        data = scores_list[lblx]
+
+        dmin = int(np.floor(data.min()))
+        dmax = int(np.ceil(data.max()))
+        if bins is None:
+            bins = dmax - dmin
+        ax  = df2.gca()
+        ax.hist(data, bins=100,
+                #range=(dmin, dmax),
+                label=str(label),
+                color=color, alpha=.5)
+
+    #if threshold_value is not None:
+    #    indicies = np.arange(len(sorted_labelx))
+    #    #print('indicies.shape = %r' % (indicies.shape,))
+    #    df2.plot(indicies, [threshold_value] * len(indicies), 'g-', label='thresh')
+
+    #ax = df2.gca()
+    ## dont let xlimit go far over the number of labels
+    #ax.set_xlim(0, len(sorted_labelx) + 1)
+
+    #df2.set_xlabel('sorted ' +  score_label + ' indices')
+    df2.set_xlabel(score_label)
+    df2.set_ylabel('frequency')
+    df2.dark_background()
+    df2.set_title(figtitle)
+    df2.legend(loc='upper left')
+    print('[df2] show_histogram()')
+    df2.dark_background()
+    #return fig
+
+
 def set_logyscale_from_data(y_data):
     if len(y_data) == 1:
         print('Warning: not enough information to infer yscale')
