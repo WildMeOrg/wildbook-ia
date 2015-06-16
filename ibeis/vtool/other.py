@@ -150,23 +150,96 @@ def argsort_multiarray(arrays, reverse=False):
     return sortx
 
 
-def compute_unique_data_ids(data):
-    """
+def unique_row_indexes(arr):
+    """ np.unique on rows
+
+    Args:
+        arr (ndarray): 2d array
+
+    Returns:
+        ndarray: unique_rowx
+
+    References:
+        http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
+
     CommandLine:
-        python -m vtool.other --test-compute_unique_data_ids
+        python -m vtool.other --test-unique_row_indexes
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.other import *  # NOQA
-        >>> data = np.array([[0, 0], [0, 1], [1, 1], [0, 0], [.534432, .432432], [.534432, .432432]])
-        >>> dataid_list = compute_unique_data_ids(data)
-        >>> dataid_list = compute_unique_data_ids(data)
-        >>> result = str(dataid_list)
+        >>> arr = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
+        >>> unique_rowx = unique_row_indexes(arr)
+        >>> result = ('unique_rowx = %s' % (ut.numpy_str(unique_rowx),))
         >>> print(result)
-        >>> print(len(np.unique(dataid_list)))
-        >>> print(len((dataid_list)))
-        [0, 1, 2, 0, 3, 3]
+        unique_rowx = np.array([0, 1, 2, 3, 5], dtype=np.int64)
 
+    Ignore:
+        %timeit unique_row_indexes(arr)
+        %timeit compute_unique_data_ids(arr)
+        %timeit compute_unique_integer_data_ids(arr)
+
+    """
+    void_dtype = np.dtype((np.void, arr.dtype.itemsize * arr.shape[1]))
+    arr_void_view = np.ascontiguousarray(arr).view(void_dtype)
+    _, unique_rowx = np.unique(arr_void_view, return_index=True)
+    # cast back to original dtype
+    unique_rowx.sort()
+    return unique_rowx
+
+
+def nonunique_row_flags(arr):
+    unique_rowx = unique_row_indexes(arr)
+    unique_flags = index_to_boolmask(unique_rowx, len(arr))
+    nonunique_flags = np.logical_not(unique_flags)
+    return nonunique_flags
+
+
+def nonunique_row_indexes(arr):
+    """ rows that are not unique (does not include the first instance of each pattern)
+
+    Args:
+        arr (ndarray): 2d array
+
+    Returns:
+        ndarray: nonunique_rowx
+
+    SeeAlso:
+        unique_row_indexes
+        nonunique_row_flags
+
+    CommandLine:
+        python -m vtool.other --test-unique_row_indexes
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arr = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
+        >>> nonunique_rowx = unique_row_indexes(arr)
+        >>> result = ('nonunique_rowx = %s' % (ut.numpy_str(nonunique_rowx),))
+        >>> print(result)
+        nonunique_rowx = np.array([4, 6, 7, 8], dtype=np.int64)
+    """
+    nonunique_flags = nonunique_row_flags(arr)
+    nonunique_rowx = np.where(nonunique_flags)[0]
+    return nonunique_rowx
+
+
+def compute_unique_data_ids(data):
+    """
+    This is actually faster than compute_unique_integer_data_ids it seems
+
+    CommandLine:
+        python -m vtool.other --test-compute_unique_data_ids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> data = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
+        >>> dataid_list = compute_unique_data_ids(data)
+        >>> result = 'dataid_list = ' + ut.numpy_str(dataid_list)
+        >>> print(result)
+        dataid_list = np.array([0, 1, 2, 3, 0, 4, 4, 2, 1], dtype=np.int32)
     """
     # construct a unique id for every edge
     hashable_rows = [tuple(row_.tolist()) for row_ in data]
@@ -901,6 +974,16 @@ def norm01(array, dim=None):
     array_exnt = np.subtract(array_max, array_min)
     array_norm = np.divide(np.subtract(array, array_min), array_exnt)
     return array_norm
+
+
+#def xor_swap(arr1, arr2, inplace=True):
+#    if not inplace:
+#        arr1 = arr1.copy()
+#        arr2 = arr2.copy()
+#    np.bitwise_xor(arr1, arr2, out=arr1)
+#    np.bitwise_xor(arr1, arr2, out=arr2)
+#    np.bitwise_xor(arr1, arr2, out=arr1)
+#    return arr1, arr2
 
 
 if __name__ == '__main__':
