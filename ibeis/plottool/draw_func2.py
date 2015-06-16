@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """ Lots of functions for drawing and plotting visiony things """
 # TODO: New naming scheme
 # viz_<funcname> will clear everything. The current axes and fig: clf, cla.  # Will add annotations
@@ -87,6 +88,9 @@ DARK_YELLOW  = custom_constants.DARK_YELLOW
 PURPLE       = custom_constants.PURPLE
 LIGHT_BLUE   = custom_constants.LIGHT_BLUE
 UNKNOWN_PURP = custom_constants.UNKNOWN_PURP
+
+TRUE = TRUE_BLUE
+FALSE = FALSE_RED
 
 figure       = custom_figure.figure
 gca          = custom_figure.gca
@@ -560,11 +564,38 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
         # No data, draw big red x
         draw_boxedX()
 
+    presetup_axes(x_label, y_label, title_pref, title, ax=None)
+
+
+def pad_axes(pad, xlim=None, ylim=None):
+    ax = gca()
+    if xlim is None:
+        xlim = ax.get_xlim()
+    if ylim is None:
+        ylim = ax.get_ylim()
+    min_x, max_x = xlim
+    min_y, max_y = ylim
+    ax.set_xlim(min_x - pad, max_x + pad)
+    ax.set_ylim(min_y - pad, max_y + pad)
+
+
+def presetup_axes(x_label='x', y_label='y', title_pref='', title=None, equal_aspect=False, ax=None):
+    if ax is None:
+        ax = gca()
     ax.set_xlabel(x_label, fontproperties=custom_constants.FONTS.xlabel)
     ax.set_ylabel(y_label, fontproperties=custom_constants.FONTS.xlabel)
     if title is None:
         title = x_label + ' vs ' + y_label
     set_title(title_pref + ' ' + title, ax=None)
+    if equal_aspect:
+        ax.set_aspect('equal')
+
+
+def postsetup_axes(use_legend=True, bg='dark'):
+    if bg == 'dark':
+        dark_background()
+    if use_legend:
+        legend()
 
 
 def adjust_subplots_xlabels():
