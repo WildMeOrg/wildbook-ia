@@ -464,7 +464,8 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
         >>> from vtool.image import *  # NOQA
         >>> import vtool as vt
         >>> img_fpath = ut.grab_test_imgpath('lena.png')
-        >>> img = vt.imread(img_fpath)
+        >>> img = vt.imread(img_fpath) / 255.0
+        >>> img = img.astype(np.float32)
         >>> dsize = (1000, 1000)
         >>> shear = .2
         >>> theta = np.pi / 4
@@ -472,10 +473,14 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
         >>> ty = 100
         >>> sx = 1.5
         >>> sy = 1.0
-        >>> img_warped = affine_warp_around_center(img, sx=sx, sy=sy, theta=theta, shear=shear, tx=tx, ty=ty, dsize=dsize)
+        >>> borderMode = cv2.BORDER_CONSTANT
+        >>> flags = cv2.INTER_LANCZOS4
+        >>> img_warped = affine_warp_around_center(img, sx=sx, sy=sy,
+        ...     theta=theta, shear=shear, tx=tx, ty=ty, dsize=dsize,
+        ...     borderMode=borderMode, flags=flags)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> pt.imshow(img_warped)
+        >>> pt.imshow((img_warped * 255.0).astype(np.uint8))
         >>> ut.show_if_requested()
     """
     from vtool import linalg as ltool
