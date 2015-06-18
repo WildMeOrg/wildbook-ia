@@ -133,6 +133,8 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         ph.set_plotdat(ax, 'annotation_bbox_list', annotekw['bbox_list'])
         ph.set_plotdat(ax, 'aid_list', aid_list)
         pt.viz_image2.draw_image_overlay(ax, **annotekw)
+    else:
+        ph.set_plotdat(ax, 'chipshape', chip.shape)
 
     #if 'featweights' in vars() and 'color' in kwargs:
     if weights is not None and weight_label is not None:
