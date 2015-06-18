@@ -18,6 +18,27 @@ def verts_list_from_bboxes_list(bboxes_list):
 
 
 def verts_from_bbox(bbox, close=False):
+    r"""
+    Args:
+        bbox (tuple):  bounding box in the format (x, y, w, h)
+        close (bool): (default = False)
+
+    Returns:
+        list: verts
+
+    CommandLine:
+        python -m vtool.geometry --test-verts_from_bbox
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.geometry import *  # NOQA
+        >>> bbox = (10, 10, 50, 50)
+        >>> close = False
+        >>> verts = verts_from_bbox(bbox, close)
+        >>> result = ('verts = %s' % (str(verts),))
+        >>> print(result)
+        verts = ((10, 10), (60, 10), (60, 60), (10, 60))
+    """
     x1, y1, w, h = bbox
     x2 = (x1 + w)
     y2 = (y1 + h)

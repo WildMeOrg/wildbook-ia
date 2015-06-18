@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function
 # Python
 from os.path import exists, join
-from six.moves import zip, map
+from six.moves import zip, map, range
 # Science
 #import sys
 #sys.exit(1)
@@ -551,8 +551,18 @@ def convert_image_list_colorspace(image_list, colorspace, src_colorspace='BGR'):
     else:
         key = prefix + colorspace
         code = cv2.__dict__[key]
-        image_list = [cv2.cvtColor(img, code) for img in image_list]
-    return image_list
+        if isinstance(image_list, np.ndarray):
+            # Be more efficient if using numpy arrays
+            if colorspace == 'GRAY' and src_colorspace != 'GRAY':
+                image_list2 = np.empty(image_list.shape[0:3], dtype=image_list.dtype)
+            else:
+                image_list2 = np.empty(image_list.shape, dtype=image_list.dtype)
+            for index in range(len(image_list2)):
+                cv2.cvtColor(image_list[index], code, dst=image_list2[index])
+        else:
+            # If python list use comprehension
+            image_list2 = [cv2.cvtColor(img, code) for img in image_list]
+    return image_list2
 
 
 def padded_resize(img, target_size=(64, 64), interpolation=cv2.INTER_LANCZOS4):
@@ -933,6 +943,131 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1, thickness=2,
     text_w, text_h = text_pt
     out = cv2.putText(img, text, org, fontFace, fontScale, textcolor_bgr, thickness, lineType, bottomLeftOrigin)
     return out
+
+
+def testing(img):
+    r"""
+    Args:
+        img (ndarray[uint8_t, ndim=2]):  image data
+
+    CommandLine:
+        python -m vtool.image --test-testing --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img = vt.imread(img_fpath)
+        >>> img2 = testing(img)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(img, pnum=(1, 2, 1))
+        >>> pt.imshow(img2, pnum=(1, 2, 2))
+        >>> ut.show_if_requested()
+    """
+    img = img.astype(np.float32)
+    mask = np.ones(img.shape, dtype=np.uint8)
+    img2 = img.copy()
+    alpha = 2.2
+    beta = 50.0
+    cv2.illuminationChange(img, mask, img2, alpha, beta)
+    ut.embed()
+    return img2
+
+
+def perlin_noise(size, scale=32.0):
+    """
+    References:
+        http://www.siafoo.net/snippet/229
+
+    CommandLine:
+        python -m vtool.image --test-perlin_noise --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> size = (64, 64)
+        >>> scale = 128.0
+        >>> img = perlin_noise(size, scale)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(img, pnum=(1, 1, 1))
+        >>> ut.show_if_requested()
+    """
+    from PIL import Image
+
+    class PerlinNoise(object):
+
+        def __init__(self, size=None, n=None):
+
+            n = n if n else  256
+            self.size = size if size else (256, 256)
+
+            self.order = len(self.size)
+
+            # Generate WAY more numbers than we need
+            # because we are throwing out all the numbers not inside a unit
+            # sphere.  Something of a hack but statistically speaking
+            # it should work fine... or crash.
+            G = (np.random.uniform(size=2 * self.order * n) * 2 - 1).reshape(-1, self.order)
+
+            # GAH! How do I generalize this?!
+            #length = hypot(G[:,i] for i in range(self.order))
+
+            if self.order == 1:
+                length = G[:, 0]
+            elif self.order == 2:
+                length = np.hypot(G[:, 0], G[:, 1])
+            elif self.order == 3:
+                length = np.hypot(G[:, 0], G[:, 1], G[:, 2])
+
+            self.G = (G[length < 1] / (length[length < 1])[:, np.newaxis])[:n, ]
+            self.P = np.arange(n, dtype=np.int32)
+
+            np.random.shuffle(self.P)
+
+            self.idx_ar = np.indices(2 * np.ones(self.order), dtype=np.int8).reshape(self.order, -1).T
+            self.drop = np.poly1d((-6, 15, -10, 0, 0, 1.0))
+
+        def noise(self, coords):
+
+            ijk = (np.floor(coords) + self.idx_ar).astype(np.int8)
+
+            uvw = coords - ijk
+
+            indexes = self.P[ijk[:, :, self.order - 1]]
+
+            for i in range(self.order - 1):
+                indexes = self.P[(ijk[:, :, i] + indexes) % len(self.P)]
+
+            gradiens = self.G[indexes % len(self.G)]
+            #gradiens = self.G[(ijk[:,:, 0] + indexes) % len(self.G)]
+
+            res = (self.drop(np.abs(uvw)).prod(axis=2) * np.prod([gradiens, uvw], axis=0).sum(axis=2)).sum(axis=1)
+
+            res[res > 1.0] = 1.0
+            res[res < -1.0] = -1.0
+
+            return ((res + 1) * 128).astype(np.int8)
+
+        def getData(self, scale=32.0):
+            return self.noise(np.indices(self.size).reshape(self.order, 1, -1).T / scale)
+
+        def getImage(self, scale=32.0):
+            return Image.frombuffer('L', self.size[:2],
+                                    self.getData(scale)[ : self.size[0] * self.size[1]],
+                                    'raw', 'L', 0, 1)
+
+        def saveImage(self, fileName, scale=32.0):
+            im = self.getImage(scale)
+            im.save(fileName)
+
+    self = PerlinNoise(size=size)
+    pil_img = self.getImage(scale=scale)
+    img = np.array(pil_img.getdata()).reshape(size)
+    return img
 
 
 if __name__ == '__main__':
