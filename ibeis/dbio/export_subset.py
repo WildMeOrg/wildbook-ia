@@ -1210,7 +1210,7 @@ def make_new_dbpath(ibs, id_label, id_list):
     tag_hash = ut.hashstr_arr(id_list, hashlen=8, alphabet=ut.ALPHABET_27)
     base_fmtstr = ibs.get_dbname() + '_' + id_label + 's=' + tag_hash.replace('(', '_').replace(')', '_') + '_%d'
     dpath = ibeis.get_workdir()
-    new_dbpath = ut.get_nonconflicting_path(base_fmtstr, dpath)
+    new_dbpath = ut.get_nonconflicting_path_old(base_fmtstr, dpath)
     return new_dbpath
 
 
