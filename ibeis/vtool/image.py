@@ -303,10 +303,38 @@ def warpHomog(img, Homog, dsize):
     return warped_img
 
 
-def blend_images(img1, img2):
-    assert img1.shape == img2.shape, 'chips must be same shape to blend'
+def blend_images(img1, img2, alpha=.5):
+    r"""
+    Args:
+        img1 (ndarray[uint8_t, ndim=2]):  image data
+        img2 (ndarray[uint8_t, ndim=2]):  image data
+        alpha (float): (default = 0.5)
+
+    Returns:
+        ndarray: chip_blend
+
+    CommandLine:
+        python -m vtool.image --test-blend_images --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> import vtool as vt
+        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+        >>> img1 = vt.imread(img_fpath)
+        >>> img2 = vt.perlin_noise(img1.shape[0:2])[None, :].T
+        >>> alpha = 0.8
+        >>> chip_blend = blend_images(img1, img2, alpha)
+        >>> result = ('chip_blend = %s' % (str(chip_blend),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(chip_blend)
+        >>> ut.show_if_requested()
+    """
+    #assert img1.shape == img2.shape, 'chips must be same shape to blend'
     chip_blend = np.zeros(img2.shape, dtype=img2.dtype)
-    chip_blend = img1 / 2 + img2 / 2
+    chip_blend = (img1 * alpha) + (img2 * (1.0 - alpha))
     return chip_blend
 
 
