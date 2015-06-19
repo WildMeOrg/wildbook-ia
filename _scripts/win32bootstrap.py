@@ -13,6 +13,8 @@ CommandLine:
     python _scripts\win32bootstrap.py --dl pydot --run
     python _scripts\win32bootstrap.py --dl pydot --run --force
 
+    python _scripts\win32bootstrap.py --dl h5py --run
+
 
 Notes:
     'http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi'
@@ -298,7 +300,7 @@ def download_win_packages(href_list):
         if nBytes < 1000:
             print('There may be a problem with %r' % (pkg_exe,))
             print('nBytes = %r' % (nBytes,))
-            RETRY_PROBLEMS = True
+            RETRY_PROBLEMS = False
             if RETRY_PROBLEMS:
                 # retry if file was probably corrupted
                 ut.delete(pkg_exe)

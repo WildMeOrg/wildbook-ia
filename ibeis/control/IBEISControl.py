@@ -402,7 +402,12 @@ class IBEISController(object):
         from ibeis.control import SQLDatabaseControl as sqldbc
         from ibeis.control import DB_SCHEMA
         # Before load, ensure database has been backed up for the day
-        _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
+        if not ut.get_argflag('--nobackup'):
+            try:
+                _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
+            except IOError as ex:
+                ut.printex(ex, 'Failed making daily backup run with --nobackup to disable')
+                raise
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
         ibs.db_version_expected = '1.4.4'
