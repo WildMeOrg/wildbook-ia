@@ -976,6 +976,35 @@ def norm01(array, dim=None):
     return array_norm
 
 
+def weighted_geometic_mean(data, weights):
+    r"""
+    Args:
+        data (list of ndarrays):
+        weights (ndarray):
+
+    Returns:
+        ndarray: gmean_
+
+    CommandLine:
+        python -m vtool.other --test-weighted_geometic_mean
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> data = [np.array(.9), np.array(.5)]
+        >>> weights = np.array([1.0, .5])
+        >>> gmean_ = weighted_geometic_mean(data, weights)
+        >>> result = ('gmean_ = %.3f' % (gmean_,))
+        >>> print(result)
+        gmean_ = 0.740
+    """
+    terms = [x ** w for x, w in zip(data, weights)]
+    termprod = iter_reduce_ufunc(np.multiply, iter(terms))
+    exponent = 1 / np.sum(weights)
+    gmean_ = termprod ** exponent
+    return gmean_
+
+
 #def xor_swap(arr1, arr2, inplace=True):
 #    if not inplace:
 #        arr1 = arr1.copy()

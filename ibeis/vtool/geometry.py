@@ -17,6 +17,13 @@ def verts_list_from_bboxes_list(bboxes_list):
     return [verts_from_bbox(bbox) for bbox in bboxes_list]
 
 
+def bbox_center(bbox):
+    (x, y, w, h) = bbox
+    centerx = x + (w / 2)
+    centery = y + (h / 2)
+    return centerx, centery
+
+
 def verts_from_bbox(bbox, close=False):
     r"""
     Args:

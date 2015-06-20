@@ -1,18 +1,13 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
-# Python
 from os.path import exists, join
 from six.moves import zip, map, range
-# Science
-#import sys
-#sys.exit(1)
 import cv2
 import numpy as np
 from PIL import Image
 from vtool import linalg
 from vtool import geometry
 import utool as ut
-#from vtool.dummy import dummy_img  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(
     __name__, '[img]', DEBUG=False)
 
@@ -303,41 +298,6 @@ def warpHomog(img, Homog, dsize):
     return warped_img
 
 
-def blend_images(img1, img2, alpha=.5):
-    r"""
-    Args:
-        img1 (ndarray[uint8_t, ndim=2]):  image data
-        img2 (ndarray[uint8_t, ndim=2]):  image data
-        alpha (float): (default = 0.5)
-
-    Returns:
-        ndarray: chip_blend
-
-    CommandLine:
-        python -m vtool.image --test-blend_images --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
-        >>> img1 = vt.imread(img_fpath)
-        >>> img2 = vt.perlin_noise(img1.shape[0:2])[None, :].T
-        >>> alpha = 0.8
-        >>> chip_blend = blend_images(img1, img2, alpha)
-        >>> result = ('chip_blend = %s' % (str(chip_blend),))
-        >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> pt.imshow(chip_blend)
-        >>> ut.show_if_requested()
-    """
-    #assert img1.shape == img2.shape, 'chips must be same shape to blend'
-    chip_blend = np.zeros(img2.shape, dtype=img2.dtype)
-    chip_blend = (img1 * alpha) + (img2 * (1.0 - alpha))
-    return chip_blend
-
-
 def print_image_checks(img_fpath):
     hasimg = ut.checkpath(img_fpath, verbose=True)
     if hasimg:
@@ -481,7 +441,7 @@ def shear(img, x_shear, y_shear, dsize=None, **kwargs):
 
 def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
                               dsize=None, borderMode=cv2.BORDER_CONSTANT,
-                              flags=cv2.INTER_LANCZOS4):
+                              flags=cv2.INTER_LANCZOS4, **kwargs):
     r"""
 
     CommandLine:
@@ -505,7 +465,7 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
         >>> flags = cv2.INTER_LANCZOS4
         >>> img_warped = affine_warp_around_center(img, sx=sx, sy=sy,
         ...     theta=theta, shear=shear, tx=tx, ty=ty, dsize=dsize,
-        ...     borderMode=borderMode, flags=flags)
+        ...     borderMode=borderMode, flags=flags, borderValue=(.5, .5, .5))
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pt.imshow((img_warped * 255.0).astype(np.uint8))
@@ -528,7 +488,7 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
     tr2_ = ltool.translation_mat3x3(x2, y2)
     # combine transformations
     Aff = tr2_.dot(Aff_).dot(tr1_)
-    img_warped = cv2.warpAffine(img, Aff[0:2], tuple(dsize), borderMode=borderMode, flags=flags)
+    img_warped = cv2.warpAffine(img, Aff[0:2], tuple(dsize), borderMode=borderMode, flags=flags, **kwargs)
     # Fix grayscale channel issues
     if len(img.shape) == 3 and len(img_warped.shape) == 2:
         img_warped.shape = img_warped.shape + (1,)
@@ -562,6 +522,32 @@ def resized_clamped_thumb_dims(img_size, max_dsize):
     sx = dsize[0] / img_size[0]
     sy = dsize[1] / img_size[1]
     return dsize, sx, sy
+
+
+def rectify_to_float01(img):
+    if ut.is_int(img):
+        assert img.max() < 256
+        img_ = img.astype(np.float) / 255.0
+    else:
+        img_ = img
+    return img_
+
+
+def make_channels_comparable(img1, img2):
+    import vtool as vt
+    if img1.shape != img2.shape:
+        channels1 = vt.get_num_channels(img1)
+        channels2 = vt.get_num_channels(img2)
+        if channels1 == 3 and channels2 == 1:
+            if len(img2.shape) == 2:
+                # convert (w, h) to (w, h, 1)
+                img2 = np.transpose(img2[None, :], (1, 2, 0))
+            if len(img2.shape) == 3:
+                # (w, h, 1) to (w, h, 3)
+                img2 = np.tile(img2, 3)
+        elif channels1 == 1 and channels2 == 3:
+            return make_channels_comparable(img1, img2)
+    return img1, img2
 
 
 def convert_image_list_colorspace(image_list, colorspace, src_colorspace='BGR'):
@@ -1017,7 +1003,8 @@ def perlin_noise(size, scale=32.0):
         >>> from vtool.image import *  # NOQA
         >>> import vtool as vt
         >>> size = (64, 64)
-        >>> scale = 128.0
+        >>> #scale = 128.0
+        >>> scale = 64.0
         >>> img = perlin_noise(size, scale)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -1026,7 +1013,7 @@ def perlin_noise(size, scale=32.0):
     """
     from PIL import Image
 
-    class PerlinNoise(object):
+    class PerlinNoiseGenerator(object):
 
         def __init__(self, size=None, n=None):
 
@@ -1092,7 +1079,7 @@ def perlin_noise(size, scale=32.0):
             im = self.getImage(scale)
             im.save(fileName)
 
-    self = PerlinNoise(size=size)
+    self = PerlinNoiseGenerator(size=size)
     pil_img = self.getImage(scale=scale)
     img = np.array(pil_img.getdata()).reshape(size)
     return img
