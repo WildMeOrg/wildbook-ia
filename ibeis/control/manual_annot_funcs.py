@@ -860,6 +860,7 @@ def get_annot_contact_aids(ibs, aid_list):
     check_intersection = False
     if check_intersection:
         import shapely.geometry
+        # TODO: might not be accounting for rotated verticies
         verts_list = ibs.get_annot_verts(aid_list)
         other_verts_list = ibs.unflat_map(ibs.get_annot_verts, other_aids_list)
         poly_list = [shapely.geometry.Polygon(verts) for verts in verts_list]
@@ -1268,7 +1269,33 @@ def get_annot_verts(ibs, aid_list):
     from ibeis.model.preproc import preproc_annot
     vertstr_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_verts',), aid_list)
     vert_list = preproc_annot.postget_annot_verts(vertstr_list)
+    #vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]
     return vert_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/annot/rotated_verts/', methods=['GET'])
+def get_annot_rotated_verts(ibs, aid_list):
+    r"""
+    Returns:
+        rotated_vert_list (list): verticies after rotation by theta.
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/rotated_verts/
+    """
+    import vtool as vt
+    vert_list = ibs.get_annot_verts(aid_list)
+    theta_list = ibs.get_annot_thetas(aid_list)
+    # Convex bounding boxes for verticies
+    bbox_list = vt.geometry.bboxes_from_vert_list(vert_list)
+    rot_list = [vt.rotation_around_bbox_mat3x3(theta, bbox)
+                for theta, bbox in zip(theta_list, bbox_list)]
+    rotated_vert_list = [vt.transform_points_with_homography(rot, np.array(verts).T).T.tolist()
+                         for rot, verts in zip(rot_list, vert_list)]
+    #vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]
+    return rotated_vert_list
 
 
 @register_ibs_method

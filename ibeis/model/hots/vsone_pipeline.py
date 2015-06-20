@@ -605,7 +605,7 @@ def gridsearch_single_vsone_rerank():
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.vsone_pipeline import *  # NOQA
         >>> import plottool as pt
-        >>> gridsearch_unconstrained_matches()
+        >>> gridsearch_single_vsone_rerank()
         >>> pt.show_if_requested()
     """
     ibs, qreq_, prior_cm = plh.testdata_matching()

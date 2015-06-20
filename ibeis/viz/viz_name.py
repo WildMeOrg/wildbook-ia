@@ -78,6 +78,8 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
     # Trigger computation of all chips in parallel
     ibsfuncs.ensure_annotation_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)
 
+    print('[viz_name] * annot_vuuid=%r' % ((ibs.get_annot_visual_uuids(aid_list),)))
+
     DOBOTH = ut.get_argflag('--doboth')
 
     rc = ut.get_argval('--rc', type_=list, default=None)
@@ -128,6 +130,9 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
             # http://stackoverflow.com/questions/17543359/drawing-lines-between-two-plots-in-matplotlib
             import matplotlib as mpl
             import vtool as vt
+            # !!!
+            #http://matplotlib.org/users/transforms_tutorial.html
+
             #invTransFigure_fn1 = fig.transFigure.inverted().transform
             #invTransFigure_fn2 = fig.transFigure.inverted().transform
             #print(ax_list1)
@@ -165,7 +170,8 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
 
                 print('vert_list1 = %r' % (vert_list1,))
                 print('vert_list2 = %r' % (vert_list2,))
-                for vx in [0, 1, 2, 3]:
+                #for vx in [0, 1, 2, 3]:
+                for vx in [0, 1]:
                     vert1 = vert_list1[vx].tolist()
                     vert2 = vert_list2[vx].tolist()
                     print('  ***')
@@ -189,7 +195,7 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
                         xyA=vert1, xyB=vert2, coordsA=coordsA,
                         coordsB=coordsB,
                         axesA=ax1, axesB=ax2,
-                        linewidth=3)
+                        linewidth=1)
                     #, arrowstyle="-")
 
                     #ut.embed()

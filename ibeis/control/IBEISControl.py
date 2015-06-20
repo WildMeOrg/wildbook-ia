@@ -289,6 +289,8 @@ class IBEISController(object):
         For utools auto reload.
         Called before reload
         """
+        # Reloading breaks flask, turn it off
+        controller_inject.GLOBAL_APP_ENABLED = False
         # Only warn on first load. Overrideing while reloading is ok
         ibs.allow_override = True
         ibs.unregister_controller()

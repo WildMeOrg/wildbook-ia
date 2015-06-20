@@ -2665,6 +2665,30 @@ def get_one_annot_per_name(ibs, col='rand'):
     return aid_list
 
 
+def get_dominant_species(ibs, aid_list):
+    r"""
+    Args:
+        aid_list (int):  list of annotation ids
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-get_dominant_species
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('GZ_ALL')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> result = get_dominant_species(aid_list)
+        >>> print(result)
+    """
+    hist_ = ut.dict_hist(ibs.get_annot_species_texts(aid_list))
+    keys = hist_.keys()
+    vals = hist_.values()
+    species_text = keys[ut.list_argmax(vals)]
+    return species_text
+
+
 def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
     """
     makes controlled subset of data
@@ -2676,24 +2700,32 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
 
     CommandLine:
         python -m ibeis.ibsfuncs --test-get_two_annots_per_name_and_singletons
+        python -m ibeis.ibsfuncs --test-get_two_annots_per_name_and_singletons --db GZ_ALL
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_Master0')
+        >>> ibs = ibeis.opendb(defaultdb='PZ_Master0')
         >>> aid_subset = get_two_annots_per_name_and_singletons(ibs)
         >>> ibeis.dev.dbinfo.get_dbinfo(ibs, aid_list=aid_subset, with_contrib=False)
         >>> result = str(aid_subset)
         >>> print(result)
     """
-    aid_list = ibs.get_valid_aids(species=ibs.const.Species.ZEB_PLAIN, is_known=True)
+    species = get_dominant_species(ibs, ibs.get_valid_aids())
+    #aid_list = ibs.get_valid_aids(species=ibs.const.Species.ZEB_PLAIN, is_known=True)
+    aid_list = ibs.get_valid_aids(species=species, is_known=True)
     # FILTER OUT UNUSABLE ANNOTATIONS
     # Get annots with timestamps
     aid_list = filter_aids_without_timestamps(ibs, aid_list)
     minqual = const.QUALITY_TEXT_TO_INT['poor']
     #valid_yaws = {'left', 'frontleft', 'backleft'}
-    valid_yawtexts = {'left', 'frontleft'}
+    if species == ibs.const.Species.ZEB_PLAIN:
+        valid_yawtexts = {'left', 'frontleft'}
+    elif species == ibs.const.Species.ZEB_GREVY:
+        valid_yawtexts = {'right', 'frontright'}
+    else:
+        valid_yawtexts = {'left', 'frontleft'}
     flags_list = ibs.get_quality_viewpoint_filterflags(aid_list, minqual, valid_yawtexts)
     aid_list = ut.list_compress(aid_list, flags_list)
     #print('print subset info')
@@ -4543,6 +4575,13 @@ def prepare_annotgroup_review(ibs, aid_list):
     # Relate the annotations with the source group
     ibs.add_gar([src_ag_rowid] * len(aid_list), aid_list)
     return src_ag_rowid, dst_ag_rowid
+
+
+def remove_rfdetect(ibs):
+    aids = ibs.search_annot_notes('rfdetect')
+    notes = ibs.get_annot_notes(aids)
+    newnotes = [note.replace('rfdetect', '') for note in notes]
+    ibs.set_annot_notes(aids, newnotes)
 
 
 @__injectable

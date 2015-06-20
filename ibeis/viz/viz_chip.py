@@ -133,6 +133,32 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         ph.set_plotdat(ax, 'annotation_bbox_list', annotekw['bbox_list'])
         ph.set_plotdat(ax, 'aid_list', aid_list)
         pt.viz_image2.draw_image_overlay(ax, **annotekw)
+
+        zoom_ = ut.get_argval('--zoom', type_=float, default=None)
+        if zoom_ is not None:
+            # Zoom into the chip for some image context
+            rotated_verts = ibs.get_annot_rotated_verts(aid)
+            bbox = ibs.get_annot_bboxes(aid)
+            print(bbox)
+            print(rotated_verts)
+            import vtool as vt
+            rotated_bbox = vt.bbox_from_verts(rotated_verts)
+            imgw, imgh = ibs.get_image_sizes(gid)
+
+            pad_factor = zoom_
+            pad_length = min(bbox[2], bbox[3]) * pad_factor
+            minx = max(rotated_bbox[0] - pad_length, 0)
+            miny = max(rotated_bbox[1] - pad_length, 0)
+            maxx = min((rotated_bbox[0] + rotated_bbox[2]) + pad_length, imgw)
+            maxy = min((rotated_bbox[1] + rotated_bbox[3]) + pad_length, imgh)
+
+            #maxy = imgh - maxy
+            #miny = imgh - miny
+
+            ax = pt.gca()
+            ax.set_xlim(minx, maxx)
+            ax.set_ylim(miny, maxy)
+            ax.invert_yaxis()
     else:
         ph.set_plotdat(ax, 'chipshape', chip.shape)
 
