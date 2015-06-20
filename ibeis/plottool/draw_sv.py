@@ -3,7 +3,7 @@ import utool as ut
 import numpy as np
 import plottool.draw_func2 as df2
 from plottool import custom_constants
-from vtool import image as gtool
+import vtool as vt
 #from vtool import keypoint as ktool
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_sv]', DEBUG=False)
 ut.noinject(__name__, '[viz_sv]')
@@ -13,9 +13,9 @@ def get_blended_chip(chip1, chip2, M):
     """
     warps chip1 into chip2 space
     """
-    wh2 = gtool.get_size(chip2)
-    chip1_Mt = gtool.warpHomog(chip1, M, wh2)
-    chip2_blendM = gtool.blend_images(chip1_Mt, chip2)
+    wh2 = vt.get_size(chip2)
+    chip1_Mt = vt.warpHomog(chip1, M, wh2)
+    chip2_blendM = vt.blend_images(chip1_Mt, chip2)
     return chip2_blendM
 
 
@@ -27,23 +27,23 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
     # GEt Matching chips
     kpts1_m = kpts1[fm.T[0]]
     kpts2_m = kpts2[fm.T[1]]
-    wh2 = gtool.get_size(chip2)
+    wh2 = vt.get_size(chip2)
     #
     # Get Affine Chips, Keypoints, Inliers
     show_aff   = aff_tup is not None
     if show_aff:
         (aff_inliers, Aff) = aff_tup
-        chip1_At = gtool.warpAffine(chip1, Aff, wh2)
+        chip1_At = vt.warpAffine(chip1, Aff, wh2)
         #kpts1_mAt = ktool.transform_kpts(kpts1_m, Aff)
-        chip2_blendA = gtool.blend_images(chip1_At, chip2)
+        chip2_blendA = vt.blend_images(chip1_At, chip2)
     #
     # Get Homog Chips, Keypoints, Inliers
     show_homog = homog_tup is not None
     if show_homog:
         (hom_inliers, H) = homog_tup
         #kpts1_mHt = ktool.transform_kpts(kpts1_m, H)
-        chip1_Ht = gtool.warpHomog(chip1, H, wh2)
-        chip2_blendH = gtool.blend_images(chip1_Ht, chip2)
+        chip1_Ht = vt.warpHomog(chip1, H, wh2)
+        chip2_blendH = vt.blend_images(chip1_Ht, chip2)
     #
     # Drawing settings
     nRows  = (show_assign) + (show_aff) + (show_homog)
