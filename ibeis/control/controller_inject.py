@@ -111,6 +111,9 @@ def translate_ibeis_webcall(func, *args, **kwargs):
     _process_input(request.form)
     print(args)
     print(kwargs)
+    if 'callback' in kwargs and 'jQuery' in kwargs['callback']:
+        kwargs.pop('callback', None)
+        kwargs.pop('_', None)
     print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     ibs = current_app.ibs
     try:
