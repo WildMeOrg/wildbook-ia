@@ -113,8 +113,6 @@ def translate_ibeis_webcall(func, *args, **kwargs):
     # Pipe web input into Python web call
     _process_input(request.args)
     _process_input(request.form)
-    print(args)
-    print(kwargs)
     jQuery_callback = None
     if 'callback' in kwargs and 'jQuery' in kwargs['callback']:
         jQuery_callback = str(kwargs.pop('callback', None))
