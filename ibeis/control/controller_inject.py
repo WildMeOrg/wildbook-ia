@@ -109,6 +109,8 @@ def translate_ibeis_webcall(func, *args, **kwargs):
     # Pipe web input into Python web call
     _process_input(request.args)
     _process_input(request.form)
+    print(args)
+    print(kwargs)
     print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     ibs = current_app.ibs
     try:
