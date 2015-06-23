@@ -64,7 +64,7 @@ def _as_python_object(value, **kwargs):
     return value
 
 
-def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None, cache=None):
+def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None, jQuery_callback=None, cache=None):
     if code is None:
         code = ''
     if message is None:
@@ -80,7 +80,11 @@ def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None, 
         },
         'response' : rawreturn
     }
-    return json.dumps(template, cls=JSONPythonObjectEncoder)
+    response = json.dumps(template, cls=JSONPythonObjectEncoder)
+    if jQuery_callback is not None and isinstance(jQuery_callback, str):
+        print('[web] Including jQuery callback function: %r' % (jQuery_callback, ))
+        response = '%s(%s)' % (jQuery_callback, response)
+    return response
 
 
 def translate_ibeis_webcall(func, *args, **kwargs):
@@ -109,10 +113,9 @@ def translate_ibeis_webcall(func, *args, **kwargs):
     # Pipe web input into Python web call
     _process_input(request.args)
     _process_input(request.form)
-    print(args)
-    print(kwargs)
+    jQuery_callback = None
     if 'callback' in kwargs and 'jQuery' in kwargs['callback']:
-        kwargs.pop('callback', None)
+        jQuery_callback = str(kwargs.pop('callback', None))
         kwargs.pop('_', None)
     print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     ibs = current_app.ibs
@@ -120,7 +123,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
         output = func(*args, **kwargs)
     except TypeError:
         output = func(ibs=ibs, *args, **kwargs)
-    return (output, True, 200, None)
+    return (output, True, 200, None, jQuery_callback)
 
 
 def authentication_challenge():
@@ -131,7 +134,8 @@ def authentication_challenge():
     success = False
     code = 401
     message = 'Could not verify your authentication, login with proper credentials.'
-    webreturn = translate_ibeis_webreturn(rawreturn, success, code, message)
+    jQuery_callback = None
+    webreturn = translate_ibeis_webreturn(rawreturn, success, code, message, jQuery_callback)
     response = make_response(webreturn, code)
     response.headers['WWW-Authenticate'] = 'Basic realm="Login Required"'
     return response
@@ -243,7 +247,8 @@ def get_ibeis_flask_api(__name__):
                 def translated_call(*args, **kwargs):
                     #from flask import make_response
                     try:
-                        rawreturn, success, code, message = translate_ibeis_webcall(func, *args, **kwargs)
+                        values = translate_ibeis_webcall(func, *args, **kwargs)
+                        rawreturn, success, code, message, jQuery_callback = values
                     except WebException as webex:
                         rawreturn = ''
                         print(traceback.format_exc())
@@ -251,6 +256,7 @@ def get_ibeis_flask_api(__name__):
                         success = False
                         code = webex.code
                         message = webex.message
+                        jQuery_callback = None
                     except Exception as ex:
                         rawreturn = ''
                         print(traceback.format_exc())
@@ -260,7 +266,8 @@ def get_ibeis_flask_api(__name__):
                         message = 'API error, Python Exception thrown: %r' % (str(ex))
                         if "'int' object is not iterable" in message:
                             rawreturn = 'HINT: the input for this call is most likely expected to be a list.  Try adding a comma at the end of the input (to cast the conversion into a list) or encapsualte the input with [].'  # NOQA
-                    webreturn = translate_ibeis_webreturn(rawreturn, success, code, message)
+                        jQuery_callback = None
+                    webreturn = translate_ibeis_webreturn(rawreturn, success, code, message, jQuery_callback)
                     return flask.make_response(webreturn, code)
                 # return the original unmodified function
                 return func
@@ -291,7 +298,8 @@ def get_ibeis_flask_route(__name__):
                         success = False
                         code = 400
                         message = 'Route error, Python Exception thrown: %r' % (str(ex), )
-                        result = translate_ibeis_webreturn(rawreturn, success, code, message)
+                        jQuery_callback = None
+                        result = translate_ibeis_webreturn(rawreturn, success, code, message, jQuery_callback)
                     return result
                 #wrp_getter_cacher = ut.preserve_sig(wrp_getter_cacher, getter_func)
                 # return the original unmodified function
