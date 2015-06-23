@@ -2701,13 +2701,14 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
     CommandLine:
         python -m ibeis.ibsfuncs --test-get_two_annots_per_name_and_singletons
         python -m ibeis.ibsfuncs --test-get_two_annots_per_name_and_singletons --db GZ_ALL
+        python -m ibeis.ibsfuncs --test-get_two_annots_per_name_and_singletons --db PZ_Master0 --onlygt
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master0')
-        >>> aid_subset = get_two_annots_per_name_and_singletons(ibs)
+        >>> aid_subset = get_two_annots_per_name_and_singletons(ibs, onlygt=ut.get_argflag('--onlygt'))
         >>> ibeis.dev.dbinfo.get_dbinfo(ibs, aid_list=aid_subset, with_contrib=False)
         >>> result = str(aid_subset)
         >>> print(result)

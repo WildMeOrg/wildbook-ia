@@ -8,7 +8,7 @@ CommandLine:
 import utool as ut
 
 
-DRY_RUN = ut.get_argflag('--dryrun')
+DRY_RUN = ut.get_argflag(('--dryrun', '--dry-run'))
 
 
 def rsync(src_uri, dst_uri, exclude_dirs=[], dryrun=DRY_RUN):
@@ -44,7 +44,7 @@ def rsync(src_uri, dst_uri, exclude_dirs=[], dryrun=DRY_RUN):
         ut.cmd(cmdstr)
 
 
-def sync_ibeisdb(remote_uri, dbname, mode='pull'):
+def sync_ibeisdb(remote_uri, dbname, mode='pull', workdir=None):
     """
     syncs an ibeisdb without syncing the cache or the chip directory
     (or the top level image directory because it shouldnt exist unless it is an
@@ -62,16 +62,22 @@ def sync_ibeisdb(remote_uri, dbname, mode='pull'):
         #'_ibsdb/chips',
         './images',  # the hotspotter images dir
     ]
-    local_uri = ut.ensure_unixslash(ibeis.sysres.get_workdir())
+    if workdir is None:
+        workdir = ibeis.sysres.get_workdir()
+    local_uri = ut.ensure_unixslash(workdir)
     if ut.WIN32:
         # fix for mingw rsync
         local_uri = ut.ensure_mingw_drive(local_uri)
     if mode == 'pull':
         # pull remote to local
-        rsync(ut.unixjoin(remote_uri, dbname), local_uri, exclude_dirs)
+        remote_src = ut.unixjoin(remote_uri, dbname)
+        ut.assert_exists(local_uri)
+        rsync(remote_src, local_uri, exclude_dirs)
     elif mode == 'push':
         # push local to remote
-        rsync(ut.unixjoin(local_uri, dbname), remote_uri, exclude_dirs)
+        local_src = ut.unixjoin(local_uri, dbname)
+        ut.assert_exists(local_src)
+        rsync(local_src, remote_uri, exclude_dirs)
     else:
         raise AssertionError('unknown mode=%r' % (mode,))
 
@@ -91,6 +97,7 @@ def rsync_ibsdb_main():
         sys.exit(1)
     user = ut.get_argval('--user', type_=str, default=default_user)
     dbname = ut.get_argval(('--db', '--dbname'), type_=str, default=default_db)
+    workdir = ut.get_argval(('--workdir', '--dbname'), type_=str, default=None, help_='local work dir override')
     mode = sys.argv[1]
 
     assert mode in ['push', 'pull'], 'mode=%r must be push or pull' % (mode,)
@@ -101,7 +108,7 @@ def rsync_ibsdb_main():
     }
     remote = remote_map.get(remote_key, remote_key)
     remote_uri = user + remote
-    sync_ibeisdb(remote_uri, dbname, mode)
+    sync_ibeisdb(remote_uri, dbname, mode, workdir)
 
 
 if __name__ == '__main__':
@@ -121,5 +128,8 @@ if __name__ == '__main__':
         python _scripts/rsync_ibeisdb.py pull --db NNP_Master3 --user jonc --remote pachy
         python _scripts/rsync_ibeisdb.py pull --db testdb3 --user joncrall --remote hyrule
         python _scripts/rsync_ibeisdb.py pull --db NNP_MasterGIRM_core --user jonc --remote pachy
+
+        python _scripts/rsync_ibeisdb.py push --db ELEPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk --dryrun
+        python _scripts/rsync_ibeisdb.py push --db ELPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk
     """
     rsync_ibsdb_main()

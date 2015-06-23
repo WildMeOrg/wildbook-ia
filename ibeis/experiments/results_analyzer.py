@@ -70,6 +70,7 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true'],
         python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show
         python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show
         python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=cos_sift --show
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show --nosupport
 
     Example:
         >>> # SLOW_DOCTEST
@@ -106,7 +107,8 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true'],
         >>>     tn_scores, tp_scores = ut.get_list_column(ut.dict_take(orgres2_descmatch_dists, orgtype_list), distkey)
         >>>     encoder.fit_partitioned(tp_scores, tn_scores, verbose=False)
         >>>     figtitle = 'Descriptor Distance: %r. db=%r\norgtype_list=%r' % (distkey, ibs.get_dbname(), orgtype_list)
-        >>>     encoder.visualize(figtitle=figtitle, use_stems=not limit_, fnum=fnum)
+        >>>     use_support = not ut.get_argflag('--nosupport')
+        >>>     encoder.visualize(figtitle=figtitle, use_stems=not limit_, fnum=fnum, with_normscore=use_support, with_scores=use_support)
         >>> ut.show_if_requested()
     """
     import vtool as vt

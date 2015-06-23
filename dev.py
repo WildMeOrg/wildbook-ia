@@ -82,6 +82,10 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
         python dev.py -t scores --db PZ_Master0 --allgt --show
         python dev.py -t scores --db PZ_MTEST --allgt --show
 
+        python dev.py -t scores --db PZ_Master0 --show --controlled
+        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg bar_l2_on:True lnbnn_on:False
+        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg fg_on:False
+        python dev.py -t scores --db PZ_Master0 --show --controlled --cfg fg_on:False
     """
     import vtool as vt
     print('[dev] annotationmatch_scores')
@@ -133,8 +137,7 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     encoder = vt.ScoreNormalizer()
     name_scores, labels = encoder._to_xy(tp_nscores, tn_nscores)
     encoder.fit(name_scores, labels)
-    encoder.visualize(figtitle='Learned Name Score Normalizer')
-
+    encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr())
     #confusions = vt.ConfusionMetrics.from_tp_and_tn_scores(tp_nscores, tn_nscores)
     #confusions.draw_roc_curve()
     #ut.embed()

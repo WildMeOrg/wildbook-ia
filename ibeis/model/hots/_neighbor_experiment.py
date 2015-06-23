@@ -18,8 +18,9 @@ def flann_add_time_experiment(update=False):
     TODO: time experiment
 
     CommandLine:
-        python -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment
-        utprof.py -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment
+        python -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_MTEST --show
+        python -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_Master0 --show
+        utprof.py -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -30,9 +31,7 @@ def flann_add_time_experiment(update=False):
         >>> result = flann_add_time_experiment(update)
         >>> # verify results
         >>> print(result)
-        >>> from matplotlib import pyplot as plt
-        >>> plt.show()
-        #>>> ibeis.main_loop({'ibs': ibs, 'back': None})
+        >>> ut.show_if_requested()
 
     """
     import ibeis
@@ -45,21 +44,23 @@ def flann_add_time_experiment(update=False):
         flann.build_index(vecs, **flann_params)
         return flann
 
+    db = ut.get_argval('--db')
+    ibs = ibeis.opendb(db=db)
+
     # Input
-    mode = 1
-    if mode == 1:
-        ibs = ibeis.opendb(db='PZ_MTEST')
+    if ibs.get_dbname() == 'PZ_MTEST':
         initial = 1
         reindex_stride = 16
         addition_stride = 4
         max_ceiling = 120
-    elif mode == 2:
+    elif ibs.get_dbname() == 'PZ_Master0':
         #ibs = ibeis.opendb(db='GZ_ALL')
-        ibs = ibeis.opendb(db='PZ_Master0')
         initial = 32
         reindex_stride = 32
         addition_stride = 16
         max_ceiling = 300001
+    else:
+        assert False
     #max_ceiling = 32
     all_daids = ibs.get_valid_aids()
     max_num = min(max_ceiling, len(all_daids))
@@ -151,6 +152,14 @@ def augment_nnindexer_experiment(update=True):
         utprof.py -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment
         python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment
 
+        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_MTEST --show
+
+        # RUNS THE SEGFAULTING CASE
+        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
+        # Debug it
+        gdb python
+        run -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots._neighbor_experiment import *  # NOQA
@@ -160,9 +169,7 @@ def augment_nnindexer_experiment(update=True):
         >>> # execute function
         >>> augment_nnindexer_experiment(update)
         >>> # verify results
-        >>> if show:
-        ...     from matplotlib import pyplot as plt
-        ...     plt.show()
+        >>> ut.show_if_requested()
 
     """
     import ibeis
@@ -170,19 +177,18 @@ def augment_nnindexer_experiment(update=True):
     # build test data
     ZEB_PLAIN = ibeis.const.Species.ZEB_PLAIN
     #ibs = ibeis.opendb('PZ_MTEST')
-    ibs = ibeis.opendb('PZ_Master0')
-    mode = 2
-    if mode == 1:
-        ibs = ibeis.opendb(db='PZ_MTEST')
+    ibs = ibeis.opendb(defaultdb='PZ_Master0')
+    if ibs.get_dbname() == 'PZ_MTEST':
         initial = 1
         addition_stride = 4
         max_ceiling = 10000
-    elif mode == 2:
-        #ibs = ibeis.opendb(db='GZ_ALL')
-        ibs = ibeis.opendb(db='PZ_Master0')
+    elif ibs.get_dbname() == 'PZ_Master0':
         initial = 128
         addition_stride = 64
-        max_ceiling = 10000
+        #max_ceiling = 10000
+        max_ceiling = 600
+    else:
+        assert False
     all_daids = ibs.get_valid_aids(species=ZEB_PLAIN)
     qreq_ = ibs.new_query_request(all_daids, all_daids)
     max_num = min(max_ceiling, len(all_daids))
@@ -200,27 +206,56 @@ def augment_nnindexer_experiment(update=True):
 
     nnindexer_list = []
     addition_lbl = 'Addition'
-    _addition_iter = range(initial + 1, max_num, addition_stride)
+    _addition_iter = list(range(initial + 1, max_num, addition_stride))
     addition_iter = ut.ProgressIter(_addition_iter, lbl=addition_lbl)
     time_list_addition = []
     #time_list_reindex = []
-    count_list = []
+    addition_count_list = []
+    tmp_cfgstr_list = []
+
     for count in addition_iter:
         aid_list_ = all_randomize_daids_[0:count]
+        # Request an indexer which could be an augmented version of an existing indexer.
         with ut.Timer(verbose=False) as t:
             nnindexer_ = neighbor_index.request_augmented_ibeis_nnindexer(qreq_, aid_list_)
         nnindexer_list.append(nnindexer_)
-        count_list.append(count)
+        addition_count_list.append(count)
         time_list_addition.append(t.ellapsed)
+        tmp_cfgstr_list.append(nnindexer_.cfgstr)
         print('===============\n\n')
     print(ut.list_str(time_list_addition))
+    print(ut.list_str(list(map(id, nnindexer_list))))
+    print(ut.list_str(tmp_cfgstr_list))
+    print(ut.list_str(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
+
+    nnindexer_list = []
+    reindex_label = 'Reindex'
+    _reindex_iter = list(range(initial + 1, max_num, addition_stride))
+    reindex_iter = ut.ProgressIter(_reindex_iter, lbl=reindex_label)
+    time_list_reindex = []
+    #time_list_reindex = []
+    reindex_count_list = []
+    for count in reindex_iter:
+        aid_list_ = all_randomize_daids_[0:count]
+        # Call the same code, but force rebuilds
+        with ut.Timer(verbose=False) as t:
+            nnindexer_ = neighbor_index.request_augmented_ibeis_nnindexer(qreq_, aid_list_, force_rebuild=True)
+        nnindexer_list.append(nnindexer_)
+        reindex_count_list.append(count)
+        time_list_reindex.append(t.ellapsed)
+        print('===============\n\n')
+    print(ut.list_str(time_list_reindex))
     print(ut.list_str(list(map(id, nnindexer_list))))
     print(ut.list_str(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
 
     next_fnum = iter(range(0, 1)).next  # python3 PY3
     pt.figure(fnum=next_fnum())
-    pt.plot2(count_list, time_list_addition, marker='-o', equal_aspect=False,
+    pt.plot2(addition_count_list, time_list_addition, marker='-o', equal_aspect=False,
              x_label='num_annotations', label=addition_lbl + ' Time')
+
+    pt.plot2(reindex_count_list, time_list_reindex, marker='-o', equal_aspect=False,
+             x_label='num_annotations', label=reindex_label + ' Time')
+
     pt.legend()
     if update:
         pt.update()

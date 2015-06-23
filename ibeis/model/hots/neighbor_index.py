@@ -284,7 +284,7 @@ def request_ibeis_nnindexer(qreq_, verbose=True, use_memcache=True):
 
 @profile
 def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
-                                      use_memcache=True):
+                                      use_memcache=True, force_rebuild=False):
     """
     DO NOT USE. THIS FUNCTION CAN CURRENTLY CAUSE A SEGFAULT
 
@@ -303,7 +303,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         python -m ibeis.model.hots.neighbor_index --test-request_augmented_ibeis_nnindexer
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> # build test data
@@ -337,11 +337,14 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
     """
     global NEIGHBOR_CACHE
     min_reindex_thresh = qreq_.qparams.min_reindex_thresh
-    new_daid_list, covered_aids_list = group_daids_by_cached_nnindexer(
-        qreq_, daid_list, min_reindex_thresh, max_covers=1)
-    can_augment = (
-        len(covered_aids_list) > 0 and
-        not ut.list_set_equal(covered_aids_list[0], daid_list))
+    if not force_rebuild:
+        new_daid_list, covered_aids_list = group_daids_by_cached_nnindexer(
+            qreq_, daid_list, min_reindex_thresh, max_covers=1)
+        can_augment = (
+            len(covered_aids_list) > 0 and
+            not ut.list_set_equal(covered_aids_list[0], daid_list))
+    else:
+        can_augment = False
     print('[aug] Requesting augmented nnindexer')
     if can_augment:
         covered_aids = covered_aids_list[0]
@@ -381,15 +384,18 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
         return nnindexer
     else:
-        print('[aug] Fallback to memcache')
+        print('[aug] Cannot augment, fallback to memcache')
         # Fallback
         nnindexer = request_memcached_ibeis_nnindexer(
-            qreq_, daid_list, verbose=verbose, use_memcache=use_memcache)
+            qreq_, daid_list, verbose=verbose, use_memcache=use_memcache, force_rebuild=force_rebuild
+        )
         return nnindexer
 
 
 @profile
-def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True, verbose=True, veryverbose=False, ):
+def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
+                                      verbose=True, veryverbose=False,
+                                      force_rebuild=False):
     """
     FOR INTERNAL USE ONLY
     takes custom daid list. might not be the same as what is in qreq_
@@ -418,7 +424,7 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True, verbo
     global NEIGHBOR_CACHE
     nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
     # neighbor memory cache
-    if use_memcache and NEIGHBOR_CACHE.has_key(nnindex_cfgstr):  # NOQA (has_key is for a lru cache)
+    if not force_rebuild and use_memcache and NEIGHBOR_CACHE.has_key(nnindex_cfgstr):  # NOQA (has_key is for a lru cache)
         if veryverbose or ut.VERYVERBOSE:
             print('... nnindex memcache hit: cfgstr=%s' % (nnindex_cfgstr,))
         nnindexer = NEIGHBOR_CACHE[nnindex_cfgstr]
@@ -426,7 +432,9 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True, verbo
         if veryverbose or ut.VERYVERBOSE:
             print('... nnindex memcache miss: cfgstr=%s' % (nnindex_cfgstr,))
         # Write to inverse uuid
-        nnindexer = request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr, verbose)
+        nnindexer = request_diskcached_ibeis_nnindexer(
+            qreq_, daid_list, nnindex_cfgstr, verbose,
+            force_rebuild=force_rebuild)
         # Write to memcache
         if ut.VERBOSE or ut.VERYVERBOSE:
             print('[disk] Wrote to memcache=%r' % (nnindex_cfgstr,))
@@ -435,7 +443,7 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True, verbo
 
 
 @profile
-def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, verbose=True):
+def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, verbose=True, force_rebuild=False):
     """
     builds new NeighborIndexer which will try to use a disk cached flann if
     available
@@ -479,11 +487,13 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
     try:
         nnindexer = new_neighbor_index(
             daid_list, vecs_list, fgws_list, flann_params, cachedir,
-            cfgstr=cfgstr, verbose=verbose)
+            cfgstr=cfgstr, verbose=verbose, force_rebuild=force_rebuild)
     except Exception as ex:
         ut.printex(ex, True, msg_='cannot build inverted index',
                         key_list=['ibs.get_infostr()'])
         raise
+    # Record these uuids in the disk based uuid map so they can be augmented if
+    # needed
     min_reindex_thresh = qreq_.qparams.min_reindex_thresh
     if len(daid_list) > min_reindex_thresh:
         uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
@@ -622,7 +632,7 @@ def get_support_data(qreq_, daid_list):
 
 @profile
 def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
-                       cfgstr, verbose=True):
+                       cfgstr, force_rebuild=False, verbose=True):
     """
     constructs neighbor index independent of ibeis
 
@@ -638,8 +648,11 @@ def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
     Returns:
         nnindexer
 
+    CommandLine:
+        python -m ibeis.model.hots.neighbor_index --test-new_neighbor_index
+
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.neighbor_index import *  # NOQA
         >>> import ibeis
         >>> # build test data
@@ -656,13 +669,16 @@ def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
         >>> vecs_list, fgws_list = get_support_data(qreq_, daid_list)
         >>> # execute function
         >>> nnindexer = new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir, cfgstr, verbose=True)
+        >>> result = ('nnindexer.ax2_aid = %s' % (str(nnindexer.ax2_aid),))
+        >>> print(result)
+        nnindexer.ax2_aid = [1 2 3 4 5 6]
 
     """
     nnindexer = NeighborIndex(flann_params, cfgstr)
     # Initialize neighbor with unindexed data
     nnindexer.init_support(daid_list, vecs_list, fgws_list, verbose=verbose)
     # Load or build the indexing structure
-    nnindexer.load_or_build(cachedir, verbose=verbose)
+    nnindexer.load_or_build(cachedir, verbose=verbose, force_rebuild=force_rebuild)
     return nnindexer
 
 
@@ -727,6 +743,9 @@ class NeighborIndex(object):
 
     @profile
     def init_support(nnindexer, aid_list, vecs_list, fgws_list, verbose=True):
+        """
+        prepares inverted indicies and FLANN data structure
+        """
         preptup = prepare_index_data(aid_list, vecs_list, fgws_list, verbose=verbose)
         (ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx) = preptup
         nnindexer.flann    = pyflann.FLANN()  # Approximate search structure
@@ -771,7 +790,8 @@ class NeighborIndex(object):
         if verbose or ut.VERYVERBOSE:
             print('[nnindex] Adding %d vecs from %d annots to nnindex with %d vecs and %d annots' %
                   (nNewVecs, nNewAnnots, nVecs, nAnnots))
-        print('STACKING')
+        if ut.DEBUG2:
+            print('STACKING')
         # Stack inverted information
         ##---
         if not hasattr(nnindexer, 'old_vecs'):
@@ -789,7 +809,8 @@ class NeighborIndex(object):
         _idx2_vec = np.vstack((old_idx2_vec, new_idx2_vec))
         if nnindexer.idx2_fgw is not None:
             _idx2_fgw = np.hstack((nnindexer.idx2_fgw, new_idx2_fgw))
-        print('REPLACING')
+        if ut.DEBUG2:
+            print('REPLACING')
         nnindexer.ax2_aid  = _ax2_aid
         nnindexer.idx2_ax  = _idx2_ax
         nnindexer.idx2_vec = _idx2_vec
@@ -799,15 +820,17 @@ class NeighborIndex(object):
         #nnindexer.idx2_kpts   = None
         #nnindexer.idx2_oris   = None
         # Add new points to flann structure
-        print('ADD POINTS (FIXME: SOMETIMES SEGFAULT OCCURS)')
-        print('new_idx2_vec.dtype = %r' % new_idx2_vec.dtype)
-        print('new_idx2_vec.shape = %r' % (new_idx2_vec.shape,))
+        if ut.DEBUG2:
+            print('ADD POINTS (FIXME: SOMETIMES SEGFAULT OCCURS)')
+            print('new_idx2_vec.dtype = %r' % new_idx2_vec.dtype)
+            print('new_idx2_vec.shape = %r' % (new_idx2_vec.shape,))
         nnindexer.flann.add_points(new_idx2_vec)
-        print('DONE ADD POINTS')
+        if ut.DEBUG2:
+            print('DONE ADD POINTS')
 
-    def load_or_build(nnindexer, cachedir, verbose=True):
+    def load_or_build(nnindexer, cachedir, verbose=True, force_rebuild=False):
         #with ut.PrintStartEndContext(msg='CACHED NNINDEX', verbose=verbose):
-        if NOCACHE_FLANN:
+        if NOCACHE_FLANN or force_rebuild:
             print('...nnindex flann cache is forced off')
             load_success = False
         else:

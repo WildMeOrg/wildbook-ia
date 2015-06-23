@@ -529,6 +529,12 @@ def dist_fn(vdist, ndist):
 
 
 @_register_nn_normalized_weight_func
+def bar_l2_fn(vdist, ndist):
+    """ one - distnce. no normalizer """
+    return 1.0 - vdist
+
+
+@_register_nn_normalized_weight_func
 def logratio_fn(vdist, ndist):
     return np.log(np.divide(ndist, vdist + EPS) + 1.0)
 

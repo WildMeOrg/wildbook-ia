@@ -588,6 +588,11 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         _filtweight_list.append(lnbnn_weight_list)
         _filtvalid_list.append(None)  # None means all valid
         filtkey_list.append('lnbnn')
+    if qreq_.qparams.bar_l2_on:
+        bar_l2_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT['bar_l2'](nns_list, nnvalid0_list, qreq_)
+        _filtweight_list.append(bar_l2_weight_list)
+        _filtvalid_list.append(None)  # None means all valid
+        filtkey_list.append('bar_l2')
     if qreq_.qparams.ratio_thresh:
         ratio_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT['ratio'](nns_list, nnvalid0_list, qreq_)
         ratio_isvalid   = [qfx2_ratio <= qreq_.qparams.ratio_thresh for qfx2_ratio in ratio_weight_list]
