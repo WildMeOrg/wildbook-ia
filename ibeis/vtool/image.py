@@ -524,10 +524,20 @@ def resized_clamped_thumb_dims(img_size, max_dsize):
     return dsize, sx, sy
 
 
-def rectify_to_float01(img):
+def rectify_to_float01(img, dtype=np.float32):
     if ut.is_int(img):
-        assert img.max() < 256
-        img_ = img.astype(np.float) / 255.0
+        assert img.max() <= 255
+        img_ = img.astype(dtype) / 255.0
+    else:
+        img_ = img
+    return img_
+
+
+def rectify_to_uint8(img):
+    if ut.is_float(img):
+        assert img.max() <= 1.0
+        assert img.min() >= 0.0
+        img_ = (img * 255.0).astype(np.uint8)
     else:
         img_ = img
     return img_
@@ -1002,8 +1012,9 @@ def perlin_noise(size, scale=32.0):
         >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> import vtool as vt
-        >>> size = (64, 64)
-        >>> #scale = 128.0
+        >>> #size = (64, 64)
+        >>> size = (256, 256)
+        >>> #scale = 32.0
         >>> scale = 64.0
         >>> img = perlin_noise(size, scale)
         >>> ut.quit_if_noshow()

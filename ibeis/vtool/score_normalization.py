@@ -579,7 +579,7 @@ def inspect_pdfs(tn_support, tp_support, score_domain, p_tp_given_score,
     if fnum is None:
         fnum = pt.next_fnum()
 
-    with_normscore = True
+    with_normscore = with_scores
     with_prebayes = True
     with_postbayes = True
 
