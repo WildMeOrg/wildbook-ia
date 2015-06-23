@@ -674,6 +674,37 @@ def interval_stats_plot(param2_stat_dict, fnum=None, pnum=(1, 1, 1), x_label='',
     #plt.show()
 
 
+def interval_line_plot(xdata, ydata_mean, y_data_std, color=[1, 0, 0], label=None, marker='o', linestyle='-'):
+    r"""
+    Args:
+        xdata (?):
+        ydata_mean (?):
+        y_data_std (?):
+
+    CommandLine:
+        python -m plottool.plots --test-interval_line_plot --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> xdata = [1, 2, 3, 4, 5, 6, 7, 8]
+        >>> ydata_mean = [2, 3, 4, 3, 3, 2, 2, 2]
+        >>> y_data_std = [1, 2, 1, 1, 3, 2, 2, 1]
+        >>> result = interval_line_plot(xdata, ydata_mean, y_data_std)
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    xdata = np.array(xdata)
+    ydata_mean = np.array(ydata_mean)
+    y_data_std = np.array(y_data_std)
+    y_data_max = ydata_mean + y_data_std
+    y_data_min = ydata_mean - y_data_std
+    ax = df2.gca()
+    ax.fill_between(xdata, y_data_min, y_data_max, alpha=.2, color=color)
+    ax.plot(xdata, ydata_mean, marker=marker, color=color, label=label, linestyle=linestyle)
+    return
+
+
 if __name__ == '__main__':
     """
     CommandLine:
