@@ -6,6 +6,8 @@ import pyflann
 from os.path import basename, exists  # NOQA
 from six.moves import range
 from ibeis.model.hots import neighbor_index
+#import mem_top
+
 #import vtool.nearest_neighbors as nntool
 #from ibeis.model.hots import hstypes
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[neighbor_experiment]', DEBUG=False)
@@ -24,7 +26,11 @@ def augment_nnindexer_experiment():
         python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment
 
         python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_MTEST --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6
-        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann
+        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --show
+        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --show
+
+
+        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann --no-api-cache --nocache-uuids
 
         python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_MTEST --show
         python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
@@ -58,8 +64,12 @@ def augment_nnindexer_experiment():
         max_ceiling = 100
     elif ibs.get_dbname() == 'PZ_Master0':
         initial = 128
-        addition_stride = 64
+        #addition_stride = 64
+        #addition_stride = 128
+        addition_stride = 256
         max_ceiling = 10000
+        #max_ceiling = 4000
+        #max_ceiling = 2000
         #max_ceiling = 600
     else:
         assert False
@@ -92,13 +102,12 @@ def augment_nnindexer_experiment():
     try:
         memtrack = ut.MemoryTracker(disable=False)
         for count in addition_iter:
-            break
             aid_list_ = all_randomize_daids_[0:count]
             # Request an indexer which could be an augmented version of an existing indexer.
             with ut.Timer(verbose=False) as t:
-                memtrack.report('before augment')
+                memtrack.report('BEFORE AUGMENT')
                 nnindexer_ = neighbor_index.request_augmented_ibeis_nnindexer(qreq_, aid_list_)
-                memtrack.report('after augment')
+                memtrack.report('AFTER AUGMENT')
             nnindexer_list.append(nnindexer_)
             addition_count_list.append(count)
             time_list_addition.append(t.ellapsed)
@@ -114,28 +123,41 @@ def augment_nnindexer_experiment():
         if IS_SMALL:
             nnindexer_list = []
         reindex_label = 'Reindex'
-        _reindex_iter = list(range(initial + 1, max_num, addition_stride))
+        _reindex_iter = list(range(initial + 1, max_num, addition_stride))[::-1]  # go backwards for reindex
         reindex_iter = ut.ProgressIter(_reindex_iter, lbl=reindex_label)
         time_list_reindex = []
         #time_list_reindex = []
         reindex_count_list = []
+
         for count in reindex_iter:
+            print('\n+===PREDONE====================\n')
+            # check only a single size for memory leaks
+            #count = max_num // 16 + ((x % 6) * 1)
+            #x += 1
+
             aid_list_ = all_randomize_daids_[0:count]
             # Call the same code, but force rebuilds
             memtrack.report('BEFORE REINDEX')
             with ut.Timer(verbose=False) as t:
-                nnindexer_ = neighbor_index.request_augmented_ibeis_nnindexer(qreq_, aid_list_, force_rebuild=True)
+                nnindexer_ = neighbor_index.request_augmented_ibeis_nnindexer(qreq_, aid_list_, force_rebuild=True, memtrack=memtrack)
             memtrack.report('AFTER REINDEX')
-            print('totalsize(nnindexer) = ' + ut.get_object_size_str(nnindexer_))
-            #ut.print_object_size_tree(nnindexer_, lbl='nnindexer_')
+            ibs.print_cachestats_str()
             print('[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = %s' % (ut.get_object_size_str(neighbor_index.NEIGHBOR_CACHE.items()),))
             print('[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %s' % (len(neighbor_index.NEIGHBOR_CACHE.items()),))
-            ibs.print_cachestats_str()
+            print('[nnindex.MEMCACHE] size(UUID_MAP_CACHE) = %s' % (ut.get_object_size_str(neighbor_index.UUID_MAP_CACHE),))
+            print('totalsize(nnindexer) = ' + ut.get_object_size_str(nnindexer_))
+            memtrack.report_type(neighbor_index.NeighborIndex)
+            ut.print_object_size_tree(nnindexer_, lbl='nnindexer_')
             if IS_SMALL:
                 nnindexer_list.append(nnindexer_)
             reindex_count_list.append(count)
             time_list_reindex.append(t.ellapsed)
-            print('===============\n\n')
+            #import cv2
+            #import matplotlib as mpl
+            #print(mem_top.mem_top(limit=30, width=120,
+            #                      #exclude_refs=[cv2.__dict__, mpl.__dict__]
+            #     ))
+            print('L___________________\n\n\n')
         print(ut.list_str(time_list_reindex))
         if IS_SMALL:
             print(ut.list_str(list(map(id, nnindexer_list))))
@@ -161,11 +183,13 @@ def augment_nnindexer_experiment():
 
     next_fnum = iter(range(0, 1)).next  # python3 PY3
     pt.figure(fnum=next_fnum())
-    pt.plot2(addition_count_list, time_list_addition, marker='-o', equal_aspect=False,
-             x_label='num_annotations', label=addition_lbl + ' Time')
+    if len(addition_count_list) > 0:
+        pt.plot2(addition_count_list, time_list_addition, marker='-o', equal_aspect=False,
+                 x_label='num_annotations', label=addition_lbl + ' Time')
 
-    pt.plot2(reindex_count_list, time_list_reindex, marker='-o', equal_aspect=False,
-             x_label='num_annotations', label=reindex_label + ' Time')
+    if len(reindex_count_list) > 0:
+        pt.plot2(reindex_count_list, time_list_reindex, marker='-o', equal_aspect=False,
+                 x_label='num_annotations', label=reindex_label + ' Time')
 
     pt.set_figtitle('Augmented indexer experiment')
 
@@ -414,6 +438,7 @@ if __name__ == '__main__':
     if ut.get_argflag('--test-augment_nnindexer_experiment'):
         # See if exec has something to do with memory leaks
         augment_nnindexer_experiment()
+        ut.show_if_requested()
         pass
     else:
         ut.doctest_funcs()

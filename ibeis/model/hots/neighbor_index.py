@@ -25,18 +25,19 @@ import utool as ut
 import pyflann
 #import lockfile
 from os.path import join
-from os.path import basename, exists  # NOQA
+from os.path import basename
 from six.moves import range, zip, map  # NOQA
-import vtool.nearest_neighbors as nntool
+import vtool as vt
 from ibeis.model.hots import hstypes
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[neighbor_index]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[neighbor_index]', DEBUG=False)
 
 NOCACHE_FLANN = ut.get_argflag('--nocache-flann')
 NOSAVE_FLANN = ut.get_argflag('--nosave-flann')
+NOCACHE_UUIDS = ut.get_argflag('--nocache-uuids')
 
 # LRU cache for nn_indexers. Ensures that only a few are ever in memory
-MAX_NEIGHBOR_CACHE_SIZE = ut.get_argval('--max-neighbor-cachesize', type_=int, default=3)
+MAX_NEIGHBOR_CACHE_SIZE = ut.get_argval('--max-neighbor-cachesize', type_=int, default=2)
 NEIGHBOR_CACHE = ut.get_lru_cache(MAX_NEIGHBOR_CACHE_SIZE)
 # Background process for building indexes
 CURRENT_THREAD = None
@@ -97,6 +98,9 @@ class UUIDMapHyrbridCache(object):
     @profile
     def write_uuid_map_dict(self, uuid_map_fpath, visual_uuid_list, daids_hashid):
         """ uses in memory dictionary instead of disk """
+        if NOCACHE_UUIDS:
+            print('uuid cache is off')
+            return
         #with ut.EmbedOnException():
         uuid_map = self.uuid_maps[uuid_map_fpath]
         uuid_map[daids_hashid] = visual_uuid_list
@@ -153,7 +157,7 @@ class UUIDMapHyrbridCache(object):
 UUID_MAP_CACHE = UUIDMapHyrbridCache()
 
 
-@profile
+#@profile
 def write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid):
     """
     let the multi-indexer know about any big caches we've made multi-indexer.
@@ -166,7 +170,7 @@ def write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid):
     #    uuid_map[daids_hashid] = visual_uuid_list
 
 
-@profile
+#@profile
 def read_uuid_map(uuid_map_fpath, min_reindex_thresh):
 
     #with ContextUUIDMap(uuid_map_fpath, min_reindex_thresh) as uuid_map:
@@ -174,7 +178,7 @@ def read_uuid_map(uuid_map_fpath, min_reindex_thresh):
     return candidate_uuids
 
 
-@profile
+#@profile
 def get_nnindexer_uuid_map_fpath(qreq_):
     """
     Example:
@@ -205,7 +209,7 @@ def clear_memcache():
     NEIGHBOR_CACHE.clear()
 
 
-@profile
+#@profile
 def clear_uuid_cache(qreq_):
     """
     CommandLine:
@@ -253,7 +257,7 @@ def print_uuid_cache(qreq_):
     print(candidate_uuids)
 
 
-@profile
+#@profile
 def request_ibeis_nnindexer(qreq_, verbose=True, use_memcache=True, force_rebuild=False):
     """
     CALLED BY QUERYREQUST::LOAD_INDEXER
@@ -292,7 +296,7 @@ def request_ibeis_nnindexer(qreq_, verbose=True, use_memcache=True, force_rebuil
     return nnindexer
 
 
-@profile
+#@profile
 def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
                                       use_memcache=True, force_rebuild=False, memtrack=None):
     """
@@ -402,7 +406,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         return nnindexer
 
 
-@profile
+#@profile
 def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
                                       verbose=True, veryverbose=False,
                                       force_rebuild=False, allow_memfallback=True, memtrack=None):
@@ -432,11 +436,14 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
         >>> print(result)
     """
     global NEIGHBOR_CACHE
-    try:
+    #try:
+    if True:
         if True or veryverbose:
             print('[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %r' % (len(NEIGHBOR_CACHE),))
             # the lru cache wont be recognized by get_object_size_str, cast to pure python objects
             print('[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = %s' % (ut.get_object_size_str(NEIGHBOR_CACHE.items()),))
+        #if memtrack is not None:
+        #    memtrack.report('IN REQUEST MEMCACHE')
         nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
         # neighbor memory cache
         if not force_rebuild and use_memcache and NEIGHBOR_CACHE.has_key(nnindex_cfgstr):  # NOQA (has_key is for a lru cache)
@@ -450,25 +457,30 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
             nnindexer = request_diskcached_ibeis_nnindexer(
                 qreq_, daid_list, nnindex_cfgstr, verbose,
                 force_rebuild=force_rebuild, memtrack=memtrack)
-            # Write to memcache
-            if ut.VERBOSE or ut.VERYVERBOSE:
-                print('[disk] Wrote to memcache=%r' % (nnindex_cfgstr,))
-            NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
+            NEIGHBOR_CACHE_WRITE = True
+            if NEIGHBOR_CACHE_WRITE:
+                # Write to memcache
+                if ut.VERBOSE or ut.VERYVERBOSE:
+                    print('[disk] Write to memcache=%r' % (nnindex_cfgstr,))
+                NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
+            else:
+                if ut.VERBOSE or ut.VERYVERBOSE:
+                    print('[disk] Did not write to memcache=%r' % (nnindex_cfgstr,))
         return nnindexer
-    except MemoryError as ex:
-        if not allow_memfallback:
-            ut.printex(ex, '[NNINDEX MEMORY FATAL ERROR.]', iswarning=False)
-            raise
-        else:
-            NEIGHBOR_CACHE.clear()
-            ut.printex(ex, '[NNINDEX MEMORY ERROR. CLEARING CACHE]', iswarning=True)
-            request_memcached_ibeis_nnindexer(
-                qreq_, daid_list, use_memcache=use_memcache, verbose=verbose,
-                veryverbose=veryverbose, force_rebuild=force_rebuild,
-                allow_memfallback=False)
+    #except MemoryError as ex:
+    #    if not allow_memfallback:
+    #        ut.printex(ex, '[NNINDEX MEMORY FATAL ERROR.]', iswarning=False)
+    #        raise
+    #    else:
+    #        NEIGHBOR_CACHE.clear()
+    #        ut.printex(ex, '[NNINDEX MEMORY ERROR. CLEARING CACHE]', iswarning=True)
+    #        request_memcached_ibeis_nnindexer(
+    #            qreq_, daid_list, use_memcache=use_memcache, verbose=verbose,
+    #            veryverbose=veryverbose, force_rebuild=force_rebuild,
+    #            allow_memfallback=False)
 
 
-@profile
+#@profile
 def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, verbose=True, force_rebuild=False, memtrack=None):
     """
     builds new NeighborIndexer which will try to use a disk cached flann if
@@ -508,8 +520,12 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
     cachedir     = qreq_.ibs.get_flann_cachedir()
     flann_params = qreq_.qparams.flann_params
     flann_params['checks'] = qreq_.qparams.checks
+    #if memtrack is not None:
+    #    memtrack.report('[PRE SUPPORT]')
     # Get annot descriptors to index
     vecs_list, fgws_list = get_support_data(qreq_, daid_list)
+    if memtrack is not None:
+        memtrack.report('[AFTER GET SUPPORT DATA]')
     try:
         nnindexer = new_neighbor_index(
             daid_list, vecs_list, fgws_list, flann_params, cachedir,
@@ -526,10 +542,12 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
         daids_hashid   = get_data_cfgstr(qreq_.ibs, daid_list)
         visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
         write_uuid_map(uuid_map_fpath, visual_uuid_list, daids_hashid)
+        if memtrack is not None:
+            memtrack.report('[AFTER WRITE_UUID_MAP]')
     return nnindexer
 
 
-@profile
+#@profile
 def group_daids_by_cached_nnindexer(qreq_, daid_list, min_reindex_thresh,
                                     max_covers=None):
     r"""
@@ -594,7 +612,7 @@ def get_data_cfgstr(ibs, daid_list):
     return daids_hashid
 
 
-@profile
+#@profile
 def build_nnindex_cfgstr(qreq_, daid_list):
     """
     builds a string that  uniquely identified an indexer built with parameters
@@ -634,7 +652,7 @@ def build_nnindex_cfgstr(qreq_, daid_list):
     return nnindex_cfgstr
 
 
-@profile
+#@profile
 def get_fgweights_hack(qreq_, daid_list):
     """
     hack to get  feature weights. returns None if feature weights are turned off
@@ -656,7 +674,7 @@ def get_support_data(qreq_, daid_list):
     return vecs_list, fgws_list
 
 
-@profile
+#@profile
 def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
                        cfgstr, force_rebuild=False, verbose=True, memtrack=None):
     """
@@ -701,14 +719,20 @@ def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
 
     """
     nnindexer = NeighborIndex(flann_params, cfgstr)
+    #if memtrack is not None:
+    #    memtrack.report('CREATEED NEIGHTOB INDEX')
     # Initialize neighbor with unindexed data
     nnindexer.init_support(daid_list, vecs_list, fgws_list, verbose=verbose)
+    if memtrack is not None:
+        memtrack.report('AFTER INIT SUPPORT')
     # Load or build the indexing structure
-    nnindexer.load_or_build(cachedir, verbose=verbose, force_rebuild=force_rebuild)
+    nnindexer.load_or_build(cachedir, verbose=verbose, force_rebuild=force_rebuild, memtrack=memtrack)
+    if memtrack is not None:
+        memtrack.report('AFTER LOAD OR BUILD')
     return nnindexer
 
 
-@profile
+#@profile
 def prepare_index_data(aid_list, vecs_list, fgws_list, verbose=True):
     """
     flattens vecs_list and builds a reverse index from the flattened indices
@@ -770,13 +794,14 @@ class NeighborIndex(object):
         nnindexer.num_indexed = None
         nnindexer.flann_fpath = None
 
-    def __del__(nnindexer):
-        print('+------------')
-        print('!!! DELETING NNINDEXER: ' + nnindexer.cfgstr)
-        print('L___________')
-        nnindexer.flann.delete_index()
+    #def __del__(nnindexer):
+    #    print('+------------')
+    #    print('!!! DELETING NNINDEXER: ' + nnindexer.cfgstr)
+    #    print('L___________')
+    #    if nnindexer.flann is not None:
+    #        nnindexer.flann.delete_index()
 
-    @profile
+    #@profile
     def init_support(nnindexer, aid_list, vecs_list, fgws_list, verbose=True):
         """
         prepares inverted indicies and FLANN data structure
@@ -790,14 +815,14 @@ class NeighborIndex(object):
         nnindexer.idx2_fgw = idx2_fgw  # (M x 1) Descriptor forground weight
         nnindexer.idx2_ax  = idx2_ax   # (M x 1) Index into the aid_list
         nnindexer.idx2_fx  = idx2_fx   # (M x 1) Index into the annot's features
-        nnindexer.num_indexed = len(nnindexer.idx2_vec)
+        nnindexer.num_indexed = nnindexer.idx2_vec.shape[0]
         if nnindexer.idx2_vec.dtype == hstypes.VEC_TYPE:
             nnindexer.max_distance = hstypes.VEC_PSEUDO_MAX_DISTANCE
         else:
             raise AssertionError('NNindexer should get uint8s right now unless the algorithm has changed')
         nnindexer.max_distance_sqrd = nnindexer.max_distance ** 2
 
-    @profile
+    #@profile
     def add_support(nnindexer, new_daid_list, new_vecs_list, new_fgws_list,
                     verbose=True):
         """
@@ -872,7 +897,7 @@ class NeighborIndex(object):
         if ut.DEBUG2:
             print('DONE ADD POINTS')
 
-    def load_or_build(nnindexer, cachedir, verbose=True, force_rebuild=False):
+    def load_or_build(nnindexer, cachedir, verbose=True, force_rebuild=False, memtrack=None):
         #with ut.PrintStartEndContext(msg='CACHED NNINDEX', verbose=verbose):
         if NOCACHE_FLANN or force_rebuild:
             print('...nnindex flann cache is forced off')
@@ -891,13 +916,13 @@ class NeighborIndex(object):
                 nAnnots = nnindexer.num_indexed_annots()
                 print('...nnindex flann cache miss: %d vectors, %d annots' %
                       (nVecs, nAnnots))
-            nnindexer.build_and_save(cachedir, verbose=verbose)
+            nnindexer.build_and_save(cachedir, verbose=verbose, memtrack=memtrack)
 
-    def build_and_save(nnindexer, cachedir, verbose=True):
-        nnindexer.reindex()
+    def build_and_save(nnindexer, cachedir, verbose=True, memtrack=None):
+        nnindexer.reindex(memtrack=memtrack)
         nnindexer.save(cachedir, verbose=verbose)
 
-    def reindex(nnindexer, verbose=True):
+    def reindex(nnindexer, verbose=True, memtrack=None):
         """ indexes all vectors with FLANN. """
         num_vecs = nnindexer.num_indexed
         notify_num = 1E6
@@ -910,7 +935,11 @@ class NeighborIndex(object):
         if num_vecs == 0:
             print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS. THIS MAY BE A SIGN OF A DEEPER ISSUE')
         else:
+            if memtrack is not None:
+                memtrack.report('BEFORE BUILD FLANN INDEX')
             nnindexer.flann.build_index(idx2_vec, **flann_params)
+            if memtrack is not None:
+                memtrack.report('AFTER BUILD FLANN INDEX')
         if verbose_:
             ut.toc(tt)
 
@@ -943,12 +972,11 @@ class NeighborIndex(object):
         return load_success
         if ut.VERYVERBOSE or ut.VERBOSE:
             print('[nnindex] load_success = %r' % (load_success,))
-        #flann = nntool.flann_cache(idx2_vec, verbose=verbose, **flannkw)
 
     def get_prefix(nnindexer):
         return nnindexer.prefix1
 
-    @profile
+    #@profile
     def get_cfgstr(nnindexer):
         """ returns string which uniquely identified configuration and support data """
         flann_cfgstr_list = []
@@ -1064,10 +1092,12 @@ class NeighborIndex(object):
         return (qfx2_idx, qfx2_dist)
 
     def num_indexed_vecs(nnindexer):
-        return len(nnindexer.idx2_vec)
+        return nnindexer.idx2_vec.shape[0]
+        #return len(nnindexer.idx2_vec)
 
     def num_indexed_annots(nnindexer):
-        return len(nnindexer.ax2_aid)
+        return nnindexer.ax2_aid.shape[0]
+        #return len(nnindexer.ax2_aid)
 
     def get_indexed_aids(nnindexer):
         return nnindexer.ax2_aid
@@ -1080,7 +1110,7 @@ class NeighborIndex(object):
         """ gets matching internal annotation indices """
         return nnindexer.idx2_ax.take(qfx2_nnidx)
 
-    @profile
+    #@profile
     def get_nn_aids(nnindexer, qfx2_nnidx):
         """
         Args:
@@ -1147,7 +1177,7 @@ class NeighborIndex(object):
         return qfx2_fgw
 
 
-@profile
+#@profile
 def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
     """
     Aggregates descriptors of input annotations and returns inverted information
@@ -1155,7 +1185,7 @@ def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
     if ut.VERYVERBOSE:
         print('[nnindex] stacking descriptors from %d annotations' % len(ax_list))
     try:
-        idx2_vec, idx2_ax, idx2_fx = nntool.invertible_stack(vecs_list, ax_list)
+        idx2_vec, idx2_ax, idx2_fx = vt.invertible_stack(vecs_list, ax_list)
         assert idx2_vec.shape[0] == idx2_ax.shape[0]
         assert idx2_vec.shape[0] == idx2_fx.shape[0]
     except MemoryError as ex:
@@ -1189,7 +1219,7 @@ def test_nnindexer(dbname='testdb1', with_indexer=True):
 # NEW
 
 
-@profile
+#@profile
 def check_background_process():
     """
     checks to see if the process has finished and then
@@ -1215,7 +1245,7 @@ def can_request_background_nnindexer():
     return CURRENT_THREAD is None or not CURRENT_THREAD.is_alive()
 
 
-@profile
+#@profile
 def request_background_nnindexer(qreq_, daid_list):
     """ FIXME: Duplicate code
 
@@ -1263,7 +1293,6 @@ def request_background_nnindexer(qreq_, daid_list):
     # Dont hash rowids when given enough info in nnindex_cfgstr
     flann_params['cores'] = 2  # Only ues a few cores in the background
     # Build/Load the flann index
-    #flann = nntool.flann_cache(idx2_vec, verbose=verbose, **flannkw)
     uuid_map_fpath   = get_nnindexer_uuid_map_fpath(qreq_)
     visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
 
@@ -1282,7 +1311,6 @@ def background_flann_func(cachedir, daid_list, vecs_list, fgws_list, flann_param
     """ FIXME: Duplicate code """
     print('[BG] Starting Background FLANN')
     # FIXME. dont use flann cache
-    #nntool.flann_cache(idx2_vec, **flannkw)
     nnindexer = NeighborIndex(flann_params, cfgstr)
     # Initialize neighbor with unindexed data
     nnindexer.init_support(daid_list, vecs_list, fgws_list, verbose=True)

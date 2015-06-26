@@ -242,6 +242,7 @@ class IBEISController(object):
         Returns info about the underlying SQL cache memory
         """
         total_size_str = ut.get_object_size_str(ibs.table_cache, lbl='size(table_cache): ')
+        total_size_str = '\nlen(table_cache) = %r' % (len(ibs.table_cache))
         table_size_str_list = [ut.get_object_size_str(val, lbl='size(table_cache[%s]): ' % (key,))
                                for key, val in six.iteritems(ibs.table_cache)]
         cachestats_str = total_size_str + ut.indentjoin(table_size_str_list, '\n  * ')
