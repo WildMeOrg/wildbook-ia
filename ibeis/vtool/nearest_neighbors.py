@@ -13,6 +13,75 @@ import numpy as np
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[nneighbs]')
 
 
+def test_cv2_flann():
+    """
+    Ignore:
+        [name for name in dir(cv2) if 'create' in name.lower()]
+        [name for name in dir(cv2) if 'stereo' in name.lower()]
+
+        ut.grab_zipped_url('https://priithon.googlecode.com/archive/a6117f5e81ec00abcfb037f0f9da2937bb2ea47f.tar.gz', download_dir='.')
+    """
+    import cv2
+    from vtool.tests import dummy
+    import plottool as pt
+    import vtool as vt
+    img1 = vt.imread(ut.grab_test_imgpath('easy1.png'))
+    img2 = vt.imread(ut.grab_test_imgpath('easy2.png'))
+
+    stereo = cv2.StereoBM_create(numDisparities=16, blockSize=15)
+    disparity = stereo.compute(img1, img2)
+    pt.imshow(disparity)
+    pt.show()
+
+    #cv2.estima
+
+    flow = cv2.createOptFlow_DualTVL1()
+    img1, img2 = vt.convert_image_list_colorspace([img1, img2], 'gray', src_colorspace='bgr')
+    img2 = vt.resize(img2, img1.shape[0:2][::-1])
+    out = img1.copy()
+    flow.calc(img1, img2, out)
+
+    orb = cv2.ORB_create()
+    kp1, vecs1 = orb.detectAndCompute(img1, None)
+    kp2, vecs2 = orb.detectAndCompute(img2, None)
+
+    detector = cv2.FeatureDetector_create("SIFT")
+    descriptor = cv2.DescriptorExtractor_create("SIFT")
+
+    skp = detector.detect(img1)
+    skp, sd = descriptor.compute(img1, skp)
+
+    tkp = detector.detect(img2)
+    tkp, td = descriptor.compute(img2, tkp)
+
+    out = img1.copy()
+    cv2.drawKeypoints(img1, kp1, outImage=out)
+    pt.imshow(out)
+
+    vecs1 = dummy.testdata_dummy_sift(10)
+    vecs2 = dummy.testdata_dummy_sift(10)
+
+    FLANN_INDEX_KDTREE = 0  # bug: flann enums are missing
+    #flann_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=4)
+    index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
+    search_params = dict(checks=50)   # or pass empty dictionary
+    flann = cv2.FlannBasedMatcher(index_params, search_params)
+
+    cv2.flann.Index(vecs1, index_params)
+
+    #cv2.FlannBasedMatcher(flann_params)
+
+    cv2.flann.Index(vecs1, flann_params)
+
+    def match_flann(desc1, desc2, r_threshold = 0.6):
+        flann = cv2.flann_Index(desc2, flann_params)
+        idx2, dist = flann.knnSearch(desc1, 2, params = {}) # bug: need to provide empty dict
+        mask = dist[:,0] / dist[:,1] < r_threshold
+        idx1 = np.arange(len(desc1))
+        pairs = np.int32( zip(idx1, idx2[:,0]) )
+        return pairs[mask]
+
+
 def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     """
     Finds the approximate nearest neighbors of qpts in dpts
