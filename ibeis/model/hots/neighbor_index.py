@@ -33,9 +33,10 @@ from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[neighbor_index]', DEBUG=False)
 
 NOCACHE_FLANN = ut.get_argflag('--nocache-flann')
+NOSAVE_FLANN = ut.get_argflag('--nosave-flann')
 
 # LRU cache for nn_indexers. Ensures that only a few are ever in memory
-MAX_NEIGHBOR_CACHE_SIZE = 8
+MAX_NEIGHBOR_CACHE_SIZE = ut.get_argval('--max-neighbor-cachesize', type_=int, default=3)
 NEIGHBOR_CACHE = ut.get_lru_cache(MAX_NEIGHBOR_CACHE_SIZE)
 # Background process for building indexes
 CURRENT_THREAD = None
@@ -253,7 +254,7 @@ def print_uuid_cache(qreq_):
 
 
 @profile
-def request_ibeis_nnindexer(qreq_, verbose=True, use_memcache=True):
+def request_ibeis_nnindexer(qreq_, verbose=True, use_memcache=True, force_rebuild=False):
     """
     CALLED BY QUERYREQUST::LOAD_INDEXER
 
@@ -276,15 +277,24 @@ def request_ibeis_nnindexer(qreq_, verbose=True, use_memcache=True):
         >>> nnindexer = request_ibeis_nnindexer(qreq_)
     """
     daid_list = qreq_.get_internal_daids()
-    nnindexer = request_memcached_ibeis_nnindexer(qreq_, daid_list,
-                                                  verbose=verbose,
-                                                  use_memcache=use_memcache)
+    if not hasattr(qreq_.qparams, 'use_augmented_indexer'):
+        qreq_.qparams.use_augmented_indexer = True
+    if qreq_.qparams.use_augmented_indexer:
+        nnindexer = request_augmented_ibeis_nnindexer(qreq_, daid_list,
+                                                      verbose=verbose,
+                                                      use_memcache=use_memcache,
+                                                      force_rebuild=force_rebuild)
+    else:
+        nnindexer = request_memcached_ibeis_nnindexer(qreq_, daid_list,
+                                                      verbose=verbose,
+                                                      use_memcache=use_memcache,
+                                                      force_rebuild=force_rebuild)
     return nnindexer
 
 
 @profile
 def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
-                                      use_memcache=True, force_rebuild=False):
+                                      use_memcache=True, force_rebuild=False, memtrack=None):
     """
     DO NOT USE. THIS FUNCTION CAN CURRENTLY CAUSE A SEGFAULT
 
@@ -387,7 +397,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
         print('[aug] Cannot augment, fallback to memcache')
         # Fallback
         nnindexer = request_memcached_ibeis_nnindexer(
-            qreq_, daid_list, verbose=verbose, use_memcache=use_memcache, force_rebuild=force_rebuild
+            qreq_, daid_list, verbose=verbose, use_memcache=use_memcache, force_rebuild=force_rebuild, memtrack=memtrack
         )
         return nnindexer
 
@@ -395,7 +405,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
 @profile
 def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
                                       verbose=True, veryverbose=False,
-                                      force_rebuild=False):
+                                      force_rebuild=False, allow_memfallback=True, memtrack=None):
     """
     FOR INTERNAL USE ONLY
     takes custom daid list. might not be the same as what is in qreq_
@@ -422,28 +432,44 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
         >>> print(result)
     """
     global NEIGHBOR_CACHE
-    nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
-    # neighbor memory cache
-    if not force_rebuild and use_memcache and NEIGHBOR_CACHE.has_key(nnindex_cfgstr):  # NOQA (has_key is for a lru cache)
-        if veryverbose or ut.VERYVERBOSE:
-            print('... nnindex memcache hit: cfgstr=%s' % (nnindex_cfgstr,))
-        nnindexer = NEIGHBOR_CACHE[nnindex_cfgstr]
-    else:
-        if veryverbose or ut.VERYVERBOSE:
-            print('... nnindex memcache miss: cfgstr=%s' % (nnindex_cfgstr,))
-        # Write to inverse uuid
-        nnindexer = request_diskcached_ibeis_nnindexer(
-            qreq_, daid_list, nnindex_cfgstr, verbose,
-            force_rebuild=force_rebuild)
-        # Write to memcache
-        if ut.VERBOSE or ut.VERYVERBOSE:
-            print('[disk] Wrote to memcache=%r' % (nnindex_cfgstr,))
-        NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
-    return nnindexer
+    try:
+        if True or veryverbose:
+            print('[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %r' % (len(NEIGHBOR_CACHE),))
+            # the lru cache wont be recognized by get_object_size_str, cast to pure python objects
+            print('[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = %s' % (ut.get_object_size_str(NEIGHBOR_CACHE.items()),))
+        nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
+        # neighbor memory cache
+        if not force_rebuild and use_memcache and NEIGHBOR_CACHE.has_key(nnindex_cfgstr):  # NOQA (has_key is for a lru cache)
+            if veryverbose or ut.VERYVERBOSE:
+                print('... nnindex memcache hit: cfgstr=%s' % (nnindex_cfgstr,))
+            nnindexer = NEIGHBOR_CACHE[nnindex_cfgstr]
+        else:
+            if veryverbose or ut.VERYVERBOSE:
+                print('... nnindex memcache miss: cfgstr=%s' % (nnindex_cfgstr,))
+            # Write to inverse uuid
+            nnindexer = request_diskcached_ibeis_nnindexer(
+                qreq_, daid_list, nnindex_cfgstr, verbose,
+                force_rebuild=force_rebuild, memtrack=memtrack)
+            # Write to memcache
+            if ut.VERBOSE or ut.VERYVERBOSE:
+                print('[disk] Wrote to memcache=%r' % (nnindex_cfgstr,))
+            NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
+        return nnindexer
+    except MemoryError as ex:
+        if not allow_memfallback:
+            ut.printex(ex, '[NNINDEX MEMORY FATAL ERROR.]', iswarning=False)
+            raise
+        else:
+            NEIGHBOR_CACHE.clear()
+            ut.printex(ex, '[NNINDEX MEMORY ERROR. CLEARING CACHE]', iswarning=True)
+            request_memcached_ibeis_nnindexer(
+                qreq_, daid_list, use_memcache=use_memcache, verbose=verbose,
+                veryverbose=veryverbose, force_rebuild=force_rebuild,
+                allow_memfallback=False)
 
 
 @profile
-def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, verbose=True, force_rebuild=False):
+def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, verbose=True, force_rebuild=False, memtrack=None):
     """
     builds new NeighborIndexer which will try to use a disk cached flann if
     available
@@ -487,7 +513,7 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
     try:
         nnindexer = new_neighbor_index(
             daid_list, vecs_list, fgws_list, flann_params, cachedir,
-            cfgstr=cfgstr, verbose=verbose, force_rebuild=force_rebuild)
+            cfgstr=cfgstr, verbose=verbose, force_rebuild=force_rebuild, memtrack=memtrack)
     except Exception as ex:
         ut.printex(ex, True, msg_='cannot build inverted index',
                         key_list=['ibs.get_infostr()'])
@@ -632,7 +658,7 @@ def get_support_data(qreq_, daid_list):
 
 @profile
 def new_neighbor_index(daid_list, vecs_list, fgws_list, flann_params, cachedir,
-                       cfgstr, force_rebuild=False, verbose=True):
+                       cfgstr, force_rebuild=False, verbose=True, memtrack=None):
     """
     constructs neighbor index independent of ibeis
 
@@ -735,17 +761,27 @@ class NeighborIndex(object):
         nnindexer.idx2_fx  = None  # (M x 1) Index into the annot's features
         nnindexer.max_distance = None  # max possible distance for normalization
         nnindexer.cfgstr   = cfgstr  # configuration id
+        if 'random_seed' not in flann_params:
+            # Make flann determenistic for the same data
+            flann_params['random_seed'] = 42
         nnindexer.flann_params = flann_params
         nnindexer.cores  = flann_params.get('cores', 0)
         nnindexer.checks = flann_params.get('checks', 1028)
         nnindexer.num_indexed = None
         nnindexer.flann_fpath = None
 
+    def __del__(nnindexer):
+        print('+------------')
+        print('!!! DELETING NNINDEXER: ' + nnindexer.cfgstr)
+        print('L___________')
+        nnindexer.flann.delete_index()
+
     @profile
     def init_support(nnindexer, aid_list, vecs_list, fgws_list, verbose=True):
         """
         prepares inverted indicies and FLANN data structure
         """
+        assert nnindexer.flann is None, 'already initalized'
         preptup = prepare_index_data(aid_list, vecs_list, fgws_list, verbose=verbose)
         (ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx) = preptup
         nnindexer.flann    = pyflann.FLANN()  # Approximate search structure
@@ -766,6 +802,12 @@ class NeighborIndex(object):
                     verbose=True):
         """
         adds support data (aka data to be indexed)
+
+        Args:
+            new_daid_list (list): list of annotation ids that are being added
+            new_vecs_list (list): list of descriptor vectors for each annotation
+            new_fgws_list (list): list of weights per vector for each annotation
+            verbose (bool):  verbosity flag(default = True)
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -794,14 +836,16 @@ class NeighborIndex(object):
             print('STACKING')
         # Stack inverted information
         ##---
-        if not hasattr(nnindexer, 'old_vecs'):
-            nnindexer.old_vecs = []
+        #if not hasattr(nnindexer, 'old_vecs'):
+        #    nnindexer.old_vecs = []
         # Try to hack in a way to keep the old memory
         old_idx2_vec = nnindexer.idx2_vec
-        nnindexer.old_vecs.append(old_idx2_vec)
+        #if True:
+        #    nnindexer.old_vecs.append(old_idx2_vec)
+        #    nnindexer.old_vecs.append(new_idx2_vec)
         if nnindexer.idx2_fgw is not None:
             new_idx2_fgw = np.hstack(new_fgws_list)
-            nnindexer.old_vecs.append(new_idx2_fgw)
+            #nnindexer.old_vecs.append(new_idx2_fgw)
         ##---
         _ax2_aid = np.hstack((nnindexer.ax2_aid, new_daid_list))
         _idx2_ax = np.hstack((nnindexer.idx2_ax, new_idx2_ax))
@@ -873,6 +917,10 @@ class NeighborIndex(object):
     # ---- <cachable_interface> ---
 
     def save(nnindexer, cachedir, verbose=True):
+        if NOSAVE_FLANN:
+            if ut.VERYVERBOSE or verbose:
+                print('[nnindex] flann save is deactivated')
+            return False
         flann_fpath = nnindexer.get_fpath(cachedir)
         nnindexer.flann_fpath = flann_fpath
         if ut.VERYVERBOSE or verbose:

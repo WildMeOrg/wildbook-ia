@@ -26,7 +26,7 @@ def dependencies_for_myprogram():
     from scipy.sparse.csgraph import _validation  # NOQA
     from scipy.special import _ufuncs_cxx  # NOQA
     from mpl_toolkits.axes_grid1 import make_axes_locatable  # NOQA
-    import lru  # NOQA
+    #import lru  # NOQA
     # Workaround for mpl_toolkits
     import importlib
     importlib.import_module('mpl_toolkits').__path__

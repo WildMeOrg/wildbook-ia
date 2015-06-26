@@ -19,6 +19,10 @@ for cached computations.
 * Remove self matches.
 * New SIFT parameters for pyhesaff (root, powerlaw, meanwhatever, output_dtype)
 
+
+TODO:
+    This needs to be less constant when using non-sift descriptors
+
 Issues:
 * 10GB are in use when performing query on Oxford 5K
 * errors when there is a word without any database vectors.

@@ -11,7 +11,168 @@ from ibeis.model.hots import neighbor_index
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[neighbor_experiment]', DEBUG=False)
 
 
-def flann_add_time_experiment(update=False):
+def augment_nnindexer_experiment():
+    """
+
+    python -c "import utool; print(utool.auto_docstr('ibeis.model.hots._neighbor_experiment', 'augment_nnindexer_experiment'))"
+
+    References:
+        http://answers.opencv.org/question/44592/flann-index-in-python-training-fails-with-segfault/
+
+    CommandLine:
+        utprof.py -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment
+        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment
+
+        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_MTEST --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6
+        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6 --nosave-flann
+
+        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_MTEST --show
+        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
+
+        # RUNS THE SEGFAULTING CASE
+        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
+        # Debug it
+        gdb python
+        run -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
+        gdb python
+        run -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save "augment_experiment_{db}.png" --dpath='.' --dpi=180 --figsize=9,6
+
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.hots._neighbor_experiment import *  # NOQA
+        >>> # execute function
+        >>> augment_nnindexer_experiment()
+        >>> # verify results
+        >>> ut.show_if_requested()
+
+    """
+    import ibeis
+    # build test data
+    ZEB_PLAIN = ibeis.const.Species.ZEB_PLAIN
+    #ibs = ibeis.opendb('PZ_MTEST')
+    ibs = ibeis.opendb(defaultdb='PZ_Master0')
+    if ibs.get_dbname() == 'PZ_MTEST':
+        initial = 1
+        addition_stride = 4
+        max_ceiling = 100
+    elif ibs.get_dbname() == 'PZ_Master0':
+        initial = 128
+        addition_stride = 64
+        max_ceiling = 10000
+        #max_ceiling = 600
+    else:
+        assert False
+    all_daids = ibs.get_valid_aids(species=ZEB_PLAIN)
+    qreq_ = ibs.new_query_request(all_daids, all_daids)
+    max_num = min(max_ceiling, len(all_daids))
+
+    # Clear Caches
+    ibs.delete_flann_cachedir()
+    neighbor_index.clear_memcache()
+    neighbor_index.clear_uuid_cache(qreq_)
+
+    # Setup
+    all_randomize_daids_ = ut.deterministic_shuffle(all_daids[:])
+    # ensure all features are computed
+    #ibs.get_annot_vecs(all_randomize_daids_, ensure=True)
+    #ibs.get_annot_fgweights(all_randomize_daids_, ensure=True)
+
+    nnindexer_list = []
+    addition_lbl = 'Addition'
+    _addition_iter = list(range(initial + 1, max_num, addition_stride))
+    addition_iter = iter(ut.ProgressIter(_addition_iter, lbl=addition_lbl, freq=1, autoadjust=False))
+    time_list_addition = []
+    #time_list_reindex = []
+    addition_count_list = []
+    tmp_cfgstr_list = []
+
+    #for _ in range(80):
+    #    next(addition_iter)
+    try:
+        memtrack = ut.MemoryTracker(disable=False)
+        for count in addition_iter:
+            break
+            aid_list_ = all_randomize_daids_[0:count]
+            # Request an indexer which could be an augmented version of an existing indexer.
+            with ut.Timer(verbose=False) as t:
+                memtrack.report('before augment')
+                nnindexer_ = neighbor_index.request_augmented_ibeis_nnindexer(qreq_, aid_list_)
+                memtrack.report('after augment')
+            nnindexer_list.append(nnindexer_)
+            addition_count_list.append(count)
+            time_list_addition.append(t.ellapsed)
+            tmp_cfgstr_list.append(nnindexer_.cfgstr)
+            print('===============\n\n')
+        print(ut.list_str(time_list_addition))
+        print(ut.list_str(list(map(id, nnindexer_list))))
+        print(ut.list_str(tmp_cfgstr_list))
+        print(ut.list_str(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
+
+        IS_SMALL = False
+
+        if IS_SMALL:
+            nnindexer_list = []
+        reindex_label = 'Reindex'
+        _reindex_iter = list(range(initial + 1, max_num, addition_stride))
+        reindex_iter = ut.ProgressIter(_reindex_iter, lbl=reindex_label)
+        time_list_reindex = []
+        #time_list_reindex = []
+        reindex_count_list = []
+        for count in reindex_iter:
+            aid_list_ = all_randomize_daids_[0:count]
+            # Call the same code, but force rebuilds
+            memtrack.report('BEFORE REINDEX')
+            with ut.Timer(verbose=False) as t:
+                nnindexer_ = neighbor_index.request_augmented_ibeis_nnindexer(qreq_, aid_list_, force_rebuild=True)
+            memtrack.report('AFTER REINDEX')
+            print('totalsize(nnindexer) = ' + ut.get_object_size_str(nnindexer_))
+            #ut.print_object_size_tree(nnindexer_, lbl='nnindexer_')
+            print('[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = %s' % (ut.get_object_size_str(neighbor_index.NEIGHBOR_CACHE.items()),))
+            print('[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %s' % (len(neighbor_index.NEIGHBOR_CACHE.items()),))
+            ibs.print_cachestats_str()
+            if IS_SMALL:
+                nnindexer_list.append(nnindexer_)
+            reindex_count_list.append(count)
+            time_list_reindex.append(t.ellapsed)
+            print('===============\n\n')
+        print(ut.list_str(time_list_reindex))
+        if IS_SMALL:
+            print(ut.list_str(list(map(id, nnindexer_list))))
+            print(ut.list_str(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
+    except KeyboardInterrupt:
+            print('\n[train] Caught CRTL+C')
+            resolution = ''
+            from six.moves import input
+            while not (resolution.isdigit()):
+                print('\n[train] What do you want to do?')
+                print('[train]     0 - Continue')
+                print('[train]     1 - Embed')
+                print('[train]  ELSE - Stop network training')
+                resolution = input('[train] Resolution: ')
+            resolution = int(resolution)
+            # We have a resolution
+            if resolution == 0:
+                print('resuming training...')
+            elif resolution == 1:
+                ut.embed()
+
+    import plottool as pt
+
+    next_fnum = iter(range(0, 1)).next  # python3 PY3
+    pt.figure(fnum=next_fnum())
+    pt.plot2(addition_count_list, time_list_addition, marker='-o', equal_aspect=False,
+             x_label='num_annotations', label=addition_lbl + ' Time')
+
+    pt.plot2(reindex_count_list, time_list_reindex, marker='-o', equal_aspect=False,
+             x_label='num_annotations', label=reindex_label + ' Time')
+
+    pt.set_figtitle('Augmented indexer experiment')
+
+    pt.legend()
+
+
+def flann_add_time_experiment():
     """
     builds plot of number of annotations vs indexer build time.
 
@@ -22,13 +183,14 @@ def flann_add_time_experiment(update=False):
         python -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_Master0 --show
         utprof.py -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment --show
 
+        valgrind --tool=memcheck --suppressions=valgrind-python.supp python -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_MTEST --no-with-reindex
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots._neighbor_experiment import *  # NOQA
         >>> import ibeis
         >>> #ibs = ibeis.opendb('PZ_MTEST')
-        >>> update = True
-        >>> result = flann_add_time_experiment(update)
+        >>> result = flann_add_time_experiment()
         >>> # verify results
         >>> print(result)
         >>> ut.show_if_requested()
@@ -98,12 +260,14 @@ def flann_add_time_experiment(update=False):
         flann = make_flann_index(vecs, flann_params)
         return flann
 
-    # Reindex Part
-    reindex_lbl = 'Reindexing'
-    _reindex_iter = range(1, max_num, reindex_stride)
-    reindex_iter = ut.ProgressIter(_reindex_iter, lbl=reindex_lbl, freq=1)
-    for count in reindex_iter:
-        reindex_step(count, count_list, time_list_reindex)
+    WITH_REINDEX = not ut.get_argflag('--no-with-reindex')
+    if WITH_REINDEX:
+        # Reindex Part
+        reindex_lbl = 'Reindexing'
+        _reindex_iter = range(1, max_num, reindex_stride)
+        reindex_iter = ut.ProgressIter(_reindex_iter, lbl=reindex_lbl, freq=1)
+        for count in reindex_iter:
+            reindex_step(count, count_list, time_list_reindex)
 
     # Add Part
     flann = make_initial_index(initial)
@@ -127,8 +291,9 @@ def flann_add_time_experiment(update=False):
 
     next_fnum = iter(range(0, 2)).next  # python3 PY3
     pt.figure(fnum=next_fnum())
-    pt.plot2(count_list, time_list_reindex, marker='-o', equal_aspect=False,
-             x_label='num_annotations', label=reindex_lbl + ' Time', dark=False)
+    if WITH_REINDEX:
+        pt.plot2(count_list, time_list_reindex, marker='-o', equal_aspect=False,
+                 x_label='num_annotations', label=reindex_lbl + ' Time', dark=False)
 
     #pt.figure(fnum=next_fnum())
     pt.plot2(count_list2, time_list_addition, marker='-o', equal_aspect=False,
@@ -136,129 +301,6 @@ def flann_add_time_experiment(update=False):
 
     pt
     pt.legend()
-    if update:
-        pt.update()
-
-
-def augment_nnindexer_experiment(update=True):
-    """
-
-    python -c "import utool; print(utool.auto_docstr('ibeis.model.hots._neighbor_experiment', 'augment_nnindexer_experiment'))"
-
-    References:
-        http://answers.opencv.org/question/44592/flann-index-in-python-training-fails-with-segfault/
-
-    CommandLine:
-        utprof.py -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment
-        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment
-
-        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_MTEST --show
-
-        # RUNS THE SEGFAULTING CASE
-        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
-        # Debug it
-        gdb python
-        run -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.model.hots._neighbor_experiment import *  # NOQA
-        >>> # build test data
-        >>> show = ut.get_argflag('--show')
-        >>> update = show
-        >>> # execute function
-        >>> augment_nnindexer_experiment(update)
-        >>> # verify results
-        >>> ut.show_if_requested()
-
-    """
-    import ibeis
-    import plottool as pt
-    # build test data
-    ZEB_PLAIN = ibeis.const.Species.ZEB_PLAIN
-    #ibs = ibeis.opendb('PZ_MTEST')
-    ibs = ibeis.opendb(defaultdb='PZ_Master0')
-    if ibs.get_dbname() == 'PZ_MTEST':
-        initial = 1
-        addition_stride = 4
-        max_ceiling = 10000
-    elif ibs.get_dbname() == 'PZ_Master0':
-        initial = 128
-        addition_stride = 64
-        #max_ceiling = 10000
-        max_ceiling = 600
-    else:
-        assert False
-    all_daids = ibs.get_valid_aids(species=ZEB_PLAIN)
-    qreq_ = ibs.new_query_request(all_daids, all_daids)
-    max_num = min(max_ceiling, len(all_daids))
-
-    # Clear Caches
-    ibs.delete_flann_cachedir()
-    neighbor_index.clear_memcache()
-    neighbor_index.clear_uuid_cache(qreq_)
-
-    # Setup
-    all_randomize_daids_ = ut.deterministic_shuffle(all_daids[:])
-    # ensure all features are computed
-    #ibs.get_annot_vecs(all_randomize_daids_, ensure=True)
-    #ibs.get_annot_fgweights(all_randomize_daids_, ensure=True)
-
-    nnindexer_list = []
-    addition_lbl = 'Addition'
-    _addition_iter = list(range(initial + 1, max_num, addition_stride))
-    addition_iter = ut.ProgressIter(_addition_iter, lbl=addition_lbl)
-    time_list_addition = []
-    #time_list_reindex = []
-    addition_count_list = []
-    tmp_cfgstr_list = []
-
-    for count in addition_iter:
-        aid_list_ = all_randomize_daids_[0:count]
-        # Request an indexer which could be an augmented version of an existing indexer.
-        with ut.Timer(verbose=False) as t:
-            nnindexer_ = neighbor_index.request_augmented_ibeis_nnindexer(qreq_, aid_list_)
-        nnindexer_list.append(nnindexer_)
-        addition_count_list.append(count)
-        time_list_addition.append(t.ellapsed)
-        tmp_cfgstr_list.append(nnindexer_.cfgstr)
-        print('===============\n\n')
-    print(ut.list_str(time_list_addition))
-    print(ut.list_str(list(map(id, nnindexer_list))))
-    print(ut.list_str(tmp_cfgstr_list))
-    print(ut.list_str(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
-
-    nnindexer_list = []
-    reindex_label = 'Reindex'
-    _reindex_iter = list(range(initial + 1, max_num, addition_stride))
-    reindex_iter = ut.ProgressIter(_reindex_iter, lbl=reindex_label)
-    time_list_reindex = []
-    #time_list_reindex = []
-    reindex_count_list = []
-    for count in reindex_iter:
-        aid_list_ = all_randomize_daids_[0:count]
-        # Call the same code, but force rebuilds
-        with ut.Timer(verbose=False) as t:
-            nnindexer_ = neighbor_index.request_augmented_ibeis_nnindexer(qreq_, aid_list_, force_rebuild=True)
-        nnindexer_list.append(nnindexer_)
-        reindex_count_list.append(count)
-        time_list_reindex.append(t.ellapsed)
-        print('===============\n\n')
-    print(ut.list_str(time_list_reindex))
-    print(ut.list_str(list(map(id, nnindexer_list))))
-    print(ut.list_str(list([nnindxer.cfgstr for nnindxer in nnindexer_list])))
-
-    next_fnum = iter(range(0, 1)).next  # python3 PY3
-    pt.figure(fnum=next_fnum())
-    pt.plot2(addition_count_list, time_list_addition, marker='-o', equal_aspect=False,
-             x_label='num_annotations', label=addition_lbl + ' Time')
-
-    pt.plot2(reindex_count_list, time_list_reindex, marker='-o', equal_aspect=False,
-             x_label='num_annotations', label=reindex_label + ' Time')
-
-    pt.legend()
-    if update:
-        pt.update()
 
 
 def subindexer_time_experiment():
@@ -290,7 +332,7 @@ def subindexer_time_experiment():
     time_arr = np.array(time_list)
     pt.plot2(count_arr, time_arr, marker='-', equal_aspect=False,
              x_label='num_annotations', y_label='FLANN build time')
-    pt.update()
+    #pt.update()
 
 
 def test_incremental_add(ibs):
@@ -299,7 +341,7 @@ def test_incremental_add(ibs):
         ibs (IBEISController):
 
     CommandLine:
-        python -m ibeis.model.hots.neighbor_index --test-test_incremental_add
+        python -m ibeis.model.hots._neighbor_experiment --test-test_incremental_add
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -315,8 +357,8 @@ def test_incremental_add(ibs):
     aids3 = sample_aids[:-1]  # NOQA
     daid_list = aids1  # NOQA
     qreq_ = ibs.new_query_request(aids1, aids1)
-    nnindexer1 = request_ibeis_nnindexer(ibs.new_query_request(aids1, aids1))  # NOQA
-    nnindexer2 = request_ibeis_nnindexer(ibs.new_query_request(aids2, aids2))  # NOQA
+    nnindexer1 = neighbor_index.request_ibeis_nnindexer(ibs.new_query_request(aids1, aids1))  # NOQA
+    nnindexer2 = neighbor_index.request_ibeis_nnindexer(ibs.new_query_request(aids2, aids2))  # NOQA
 
     # TODO: SYSTEM use visual uuids
     #daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()
@@ -331,7 +373,7 @@ def test_incremental_add(ibs):
     covered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(covered_items))
     uncovered_aids = sorted(ibs.get_annot_aids_from_visual_uuid(uncovered_items))
 
-    nnindexer3 = request_ibeis_nnindexer(ibs.new_query_request(uncovered_aids, uncovered_aids))  # NOQA
+    nnindexer3 = neighbor_index.request_ibeis_nnindexer(ibs.new_query_request(uncovered_aids, uncovered_aids))  # NOQA
 
     # TODO: SYSTEM use visual uuids
     #daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()
@@ -352,8 +394,8 @@ def test_incremental_add(ibs):
     #uuid_map[daids_hashid] = visual_uuid_list
     #visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
     #visual_uuid_list
-    #%timeit request_ibeis_nnindexer(qreq_, use_memcache=False)
-    #%timeit request_ibeis_nnindexer(qreq_, use_memcache=True)
+    #%timeit neighbor_index.request_ibeis_nnindexer(qreq_, use_memcache=False)
+    #%timeit neighbor_index.request_ibeis_nnindexer(qreq_, use_memcache=True)
 
     #for uuids in uuid_set
     #    if
@@ -369,4 +411,9 @@ if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
-    ut.doctest_funcs()
+    if ut.get_argflag('--test-augment_nnindexer_experiment'):
+        # See if exec has something to do with memory leaks
+        augment_nnindexer_experiment()
+        pass
+    else:
+        ut.doctest_funcs()

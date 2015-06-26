@@ -1085,6 +1085,7 @@ class OtherConfig(ConfigBase):
         other_cfg.smart_enabled = True
         other_cfg.enable_custom_filter = False
         other_cfg.hots_batch_size = 256
+        other_cfg.use_augmented_indexer = True
         other_cfg.update(**kwargs)
 
     #def get_cfgstr_list(nn_cfg):
