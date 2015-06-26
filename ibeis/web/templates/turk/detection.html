@@ -9,7 +9,7 @@
   {% else %}
   <div class="row">
     <div class="col-lg-1"></div>
-    
+
     <div class="col-lg-10">
       {% if eid %}
         <div class="alert alert-info" role="alert">
@@ -25,7 +25,7 @@
           </div>
         </div>
       {% endif %}
-      
+
       Gid: {{ gid }}
       <br/>
       Species: {{ species }} <span data-toggle="modal" data-target="#turk-species-examples" style="margin-left: 50px; cursor: pointer; color: #428bca;">(What does this species look like?)</span>
@@ -74,12 +74,12 @@
           <h4 class="modal-title" id="myModalLabel">Example Images of Species Found in IBEIS</h4>
         </div>
         <div class="modal-body">
-          Here are example images of the different species that IBEIS recognizes.  
-          <br/>  
+          Here are example images of the different species that IBEIS recognizes.
+          <br/>
           <br/>
           Only annotations for the species specified (top left of the page) should exist in the image. If the species is '____', annotate the most frequent or predominate species in the image. If you are uncertain as to what the specified species looks like, ask a graduate student.
           <br/>
-          
+
           <div class="row">
             <div class="col-lg-1"></div>
             <div class="col-lg-10" style="margin-top: 20px;">
@@ -92,7 +92,7 @@
             </div>
             <div class="col-lg-1"></div>
           </div>
-          
+
           <div class="row">
             <div class="col-lg-1"></div>
             <div class="col-lg-10" style="margin-top: 20px;">
@@ -105,7 +105,7 @@
             </div>
             <div class="col-lg-1"></div>
           </div>
-          
+
           <div class="row">
             <div class="col-lg-1"></div>
             <div class="col-lg-10" style="margin-top: 20px;">
@@ -118,7 +118,7 @@
             </div>
             <div class="col-lg-1"></div>
           </div>
-          
+
           <div class="row">
             <div class="col-lg-1"></div>
             <div class="col-lg-10" style="margin-top: 20px;">
@@ -131,7 +131,7 @@
             </div>
             <div class="col-lg-1"></div>
           </div>
-          
+
           <div class="row">
             <div class="col-lg-1"></div>
             <div class="col-lg-10" style="margin-top: 20px;">
@@ -144,7 +144,7 @@
             </div>
             <div class="col-lg-1"></div>
           </div>
-          
+
           <div class="row">
             <div class="col-lg-1"></div>
             <div class="col-lg-10" style="margin-top: 20px;">
@@ -154,13 +154,13 @@
               </div>
               <img src="{{ url_for('static', filename='images/example-species-lion-male.jpg') }}" style="width: 100%; margin-bottom: 5px;">
               <p>The Male Lion is distinguished by its large size, dark-brown or tan mane around the neck, and sleek, thin, tan coat.  The Male Lion has a much larger head compared to the Cheetah and the juvenile males can usually be identified by the presence of testicles and the start of a mane. [6]</p>
-              
+
               <img src="{{ url_for('static', filename='images/example-species-lion-female.jpg') }}" style="width: 100%; margin-bottom: 5px;">
               <p>The Female Lion (Lioness) is distinguished from the Male Lion by the absence of a mane around the neck.  The Lioness is also more lean and has a swayed back for hunting and stalking prey more efficiently. [7]</p>
             </div>
             <div class="col-lg-1"></div>
           </div>
-          
+
           <div class="row">
             <div class="col-lg-1"></div>
             <div class="col-lg-10" style="margin-top: 20px;">
@@ -181,7 +181,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Modal -->
   <div class="modal fade" id="turk-instructions" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -196,12 +196,12 @@
           <br/>
           <ul style="padding-right:30px;">
             <li>
-              When deciding to add, edit, or remove an annotation, it is important to understand to what ends IBEIS will use annotations.  IBEIS uses the annotation's <b>usable information</b> (a picture is worth a thousand words) to assign keypoint descriptors (see below), which are oval regions on the image that have a lot of <i>information</i> in them.  The algorithms in IBEIS use the bounding boxes and annotations to <b>detect</b> animals (draw bounding boxes automatically) and <b>distinguish</b> animals (differentiate between two individuals) in an image.  In order to capture the most <i>information</i> about an animal, the bounding box should satisfy the following three requirements: 
+              When deciding to add, edit, or remove an annotation, it is important to understand to what ends IBEIS will use annotations.  IBEIS uses the annotation's <b>usable information</b> (a picture is worth a thousand words) to assign keypoint descriptors (see below), which are oval regions on the image that have a lot of <i>information</i> in them.  The algorithms in IBEIS use the bounding boxes and annotations to <b>detect</b> animals (draw bounding boxes automatically) and <b>distinguish</b> animals (differentiate between two individuals) in an image.  In order to capture the most <i>information</i> about an animal, the bounding box should satisfy the following three requirements:
               <ol style="margin: 20px 0px;">
                 <li>An annotation should <i>include</i> as much of the <i>foreground</i> animal as possible; this means cover the <b>entire</b> animal with the bounding box.</li>
                 <li>An annotation should <i>exclude</i> as much of the <i>background</i> landscape or other animals as possible; this means fit the bounding box <b>tightly</b> around the animal.</li>
                 <li>Only annotations for the species specified (top left of the page) should exist.  If the species is '____', annotate the most frequent or predominate species in the image.  If you are uncertain as to what the specified species looks like, ask a graduate student or <span data-dismiss="modal" data-toggle="modal" data-target="#turk-species-examples" style="text-decoration: underline; cursor: pointer">click here</span>.</li>
-            
+
               </ol>
               The example images below show how hard it can be to satisfy these three simple requirements.
               <br/>
@@ -248,7 +248,7 @@
               <div class="col-lg-1"></div>
             </div>
             <li>
-              A new annotation can be added by dragging the mouse cursor around the animal like a selection.  To perform a selection, click the left mouse button down on the top left corner where the annotation should <i>start</i>, <i>drag</i> the mouse to the bottom right corner where the annotation should <i>end</i>, and release the left mouse button to add the annotation.  
+              A new annotation can be added by dragging the mouse cursor around the animal like a selection.  To perform a selection, click the left mouse button down on the top left corner where the annotation should <i>start</i>, <i>drag</i> the mouse to the bottom right corner where the annotation should <i>end</i>, and release the left mouse button to add the annotation.
             </li>
             <li>
               You can <b>always</b> add a new annotation by <b>double clicking</b>.  This is particularly helpful when adding an annotation on top (inside) of a current annotation.
@@ -277,7 +277,7 @@
               </ul>
             </li>
           </ul>
-          
+
           <br/>
           <span style="color:#888;">
           <u>Image Credits</u><br/>
@@ -310,10 +310,10 @@
   </style>
   {% endif %}
 {% endblock %}
-{% block content_custom_javascript %}  
+{% block content_custom_javascript %}
 <script src="{{ url_for('static', filename='javascript/turk-detection.js') }}"></script>
 <script src="{{ url_for('static', filename='include/bbox_annotator.js') }}"></script>
-<script type="text/javascript">  
+<script type="text/javascript">
   $(document).ready(function() {
     // Initialize the bounding-box annotator.
     var annotator = new BBoxAnnotator({
@@ -326,18 +326,18 @@
         $('#detection_data').text(JSON.stringify(entries, null, "  "));
       }
     });
-    
+
     {% if display_instructions %}
       $('#turk-instructions').modal('show');
     {% endif %}
-    
+
     {% if display_species_examples %}
-      $('#turk-species-examples').modal('show');
+      // $('#turk-species-examples').modal('show');
     {% endif %}
-    
+
     {% for annot in annotation_list %}
       annotator.add_entry({
-        left:   {{ annot['left'] }}, 
+        left:   {{ annot['left'] }},
         top:    {{ annot['top'] }},
         width:  {{ annot['width'] }},
         height: {{ annot['height'] }},
@@ -346,8 +346,8 @@
         angle:  {{ annot['angle'] }},
       });
     {% endfor %}
-    
+
     annotator.refresh();
   });
-</script>  
+</script>
 {% endblock %}

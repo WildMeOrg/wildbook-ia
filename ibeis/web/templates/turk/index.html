@@ -3,19 +3,19 @@
   <div class="row marketing">
     <div class="col-lg-4">
       <h4>Detection Review Turking</h4>
-      <p>Online turking for bounding box detection regions</p>        
+      <p>Online turking for bounding box detection regions</p>
       <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_detection') }}?eid={{ eid }}" role="button">Start Turking Detection Review</a></p>
     </div>
-    
+
     <div class="col-lg-4">
       <h4>Viewpoint Turking</h4>
-      <p>Online turking for viewpointing annotations.</p>        
+      <p>Online turking for viewpointing annotations.</p>
       <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_viewpoint') }}?eid={{ eid }}" role="button">Start Turking Viewpoint Annotation</a></p>
     </div>
-    
+
     <div class="col-lg-4">
       <h4>Quality Turking</h4>
-      <p>Online turking for qualitizing annotations.</p>        
+      <p>Online turking for qualitizing annotations.</p>
       <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_quality') }}?eid={{ eid }}" role="button">Start Turking Quality Annotation</a></p>
     </div>
   </div>
@@ -23,13 +23,13 @@
   <div class="row marketing">
     <div class="col-lg-4">
       <h4>Additional Review Turking</h4>
-      <p>Online turking of additional information for annotations</p>        
+      <p>Online turking of additional information for annotations</p>
       <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_additional') }}?eid={{ eid }}" role="button">Start Turking Additional Review</a></p>
     </div>
-    
+
     <div class="col-lg-4">
     </div>
-    
+
     <div class="col-lg-4">
     </div>
   </div>
@@ -56,6 +56,6 @@
 {% endblock %}
 {% block content_custom_javascript %}
 <script type="text/javascript">
-  $('#turk-id').modal('show');
-</script>  
+  // $('#turk-id').modal('show');
+</script>
 {% endblock %}

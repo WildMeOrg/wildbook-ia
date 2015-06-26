@@ -784,7 +784,10 @@ def turk_viewpoint():
         aid_list = src_aid_list
         reviewed_list = [ src_aid in dst_aid_list for src_aid in src_aid_list ]
 
-    progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+    try:
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+    except ZeroDivisionError:
+        progress = '0.00'
     aid = request.args.get('aid', '')
     if len(aid) > 0:
         aid = int(aid)
@@ -837,7 +840,10 @@ def turk_quality():
     gid_list = ibs.get_valid_gids(eid=eid)
     aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     reviewed_list = encounter_annot_quality_processed(ibs, aid_list)
-    progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+    try:
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+    except ZeroDivisionError:
+        progress = '0.00'
 
     enctext = None if eid is None else ibs.get_encounter_text(eid)
     aid = request.args.get('aid', '')
@@ -893,7 +899,10 @@ def turk_additional():
     aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     nid_list = ibs.get_annot_nids(aid_list)
     reviewed_list = encounter_annot_additional_processed(ibs, aid_list, nid_list)
-    progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+    try:
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+    except ZeroDivisionError:
+        progress = '0.00'
 
     enctext = None if eid is None else ibs.get_encounter_text(eid)
     aid = request.args.get('aid', '')
@@ -1383,8 +1392,11 @@ def graph_sightings():
 
 @register_route('/dbinfo')
 def dbinfo():
-    ibs = current_app.ibs
-    dbinfo_str = ibs.get_dbinfo_str()
+    try:
+        ibs = current_app.ibs
+        dbinfo_str = ibs.get_dbinfo_str()
+    except:
+        dbinfo_str = ''
     dbinfo_str_formatted = '<pre>%s</pre>' % (dbinfo_str, )
     return dbinfo_str_formatted
 
