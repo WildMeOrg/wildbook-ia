@@ -1181,8 +1181,8 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
     # TODO: ensure images are localized
     # otherwise this wont work
     print('BEGIN MERGE OF %r into %r' % (ibs_src.get_dbname(), ibs_dst.get_dbname()))
-    #ibs_src.check_consistency()
-    #ibs_dst.check_consistency()
+    #ibs_src.run_integrity_checks()
+    #ibs_dst.run_integrity_checks()
     ibs_dst.update_annot_visual_uuids(ibs_dst.get_valid_aids())
     ibs_src.update_annot_visual_uuids(ibs_src.get_valid_aids())
     ibs_src.ensure_contributor_rowids()

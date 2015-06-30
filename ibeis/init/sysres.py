@@ -400,6 +400,106 @@ def ensure_pz_mtest():
         ibs.set_name_texts([nid], ['lostname'])
 
 
+def ensure_pz_mtest_mergesplit_test():
+    r"""
+
+    CommandLine:
+        python -m ibeis.init.sysres --test-ensure_pz_mtest_mergesplit_test
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.init.sysres import *  # NOQA
+        >>> ensure_pz_mtest_mergesplit_test()
+    """
+    import ibeis
+    ibeis.ensure_pz_mtest()
+    workdir = ibeis.sysres.get_workdir()
+    dbpath = join(workdir, 'PZ_MERGESPLIT_MTEST')
+    mtest_dbpath = join(workdir, 'PZ_MTEST')
+    if ut.checkpath(dbpath):
+        return
+
+    source_dbdir = mtest_dbpath
+    dest_dbdir = join(workdir, 'PZ_MERGESPLIT_MTEST')
+
+    if False:
+        ut.delete(dest_dbdir)
+
+    def copy_ibeisdb(source_dbdir, dest_dbdir):
+        # TODO; rectify with rsycn script
+        from os.path import normpath
+        exclude_dirs = [ut.ensure_unixslash(normpath(rel)) for rel in ibeis.const.EXCLUDE_COPY_REL_DIRS + ['_hsdb', '.hs_internals']]
+
+        rel_tocopy = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs, recursive=True, with_files=True, with_dirs=False, fullpath=False)
+        rel_tocopy_dirs = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs, recursive=True, with_files=False, with_dirs=True, fullpath=False)
+
+        src_list = [join(source_dbdir, relpath) for relpath in rel_tocopy]
+        dst_list = [join(dest_dbdir, relpath) for relpath in rel_tocopy]
+
+        # ensure directories exist
+        rel_tocopy_dirs = [dest_dbdir] + [join(dest_dbdir, dpath_) for dpath_ in rel_tocopy_dirs]
+        for dpath in rel_tocopy_dirs:
+            ut.ensuredir(dpath)
+        # copy files
+        ut.copy(src_list, dst_list)
+
+    copy_ibeisdb(source_dbdir, dest_dbdir)
+
+    ibs = ibeis.opendb('PZ_MERGESPLIT_MTEST')
+    assert len(ibs.get_valid_aids()) == 119
+    assert len(ibs.get_valid_nids()) == 41
+
+    aid_list = ibs.get_valid_aids()
+    aids_list, nid_list = ibs.group_annots_by_name(aid_list)
+    num_aids = list(map(len, aids_list))
+
+    # num cases wanted
+    num_merge = 3
+    num_split = 1
+    num_combo = 1
+
+    # num inputs needed
+    num_merge_names = num_merge
+    num_split_names = num_split * 2
+    num_combo_names = num_combo * 3
+
+    total_names = num_merge_names + num_split_names + num_combo_names
+
+    modify_aids = ut.list_take(aids_list, ut.list_argsort(num_aids, reverse=True)[0:total_names])
+
+    merge_nids1 = ibs.make_next_nids(num_merge, location_text='XMERGE')
+    merge_nids2 = ibs.make_next_nids(num_merge, location_text='XMERGE')
+    split_nid  = ibs.make_next_nids(num_split, location_text='XSPLIT')[0]
+    combo_nids = ibs.make_next_nids(num_combo * 2, location_text='XCOMBO')
+
+    # the first 3 become merge cases
+    #left = 0
+    #right = left + num_merge
+    for aids, nid1, nid2 in zip(modify_aids[0:3], merge_nids1, merge_nids2):
+        #ibs.get_annot_nids(aids)
+        aids_ = aids[::2]
+        ibs.set_annot_name_rowids(aids_, [nid1] * len(aids_))
+        ibs.set_annot_name_rowids(aids_, [nid2] * len(aids_))
+
+    # the next 2 become split cases
+    #left = right
+    #right = left + num_split_names
+    for aids in modify_aids[3:5]:
+        ibs.set_annot_name_rowids(aids, [split_nid] * len(aids))
+
+    #left = right
+    #right = left + num_combo_names
+    # The final 3 are a combination case
+    for aids in modify_aids[5:8]:
+        aids_even = aids[::2]
+        aids_odd = aids[1::2]
+        ibs.set_annot_name_rowids(aids_even, [combo_nids[0]] * len(aids_even))
+        ibs.set_annot_name_rowids(aids_odd, [combo_nids[1]] * len(aids_odd))
+
+    final_result = ibs.unflat_map(ibs.get_annot_nids, modify_aids)
+    print('final_result = %s' % (ut.list_str(final_result),))
+
+
 def ensure_nauts():
     """ Ensures that you have the NAUT_test dataset """
     from ibeis import sysres

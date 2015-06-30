@@ -838,12 +838,8 @@ def check_exif_data(ibs, gid_list):
 
 
 @__injectable
-def check_consistency(ibs, embed=False):
-    """ Function to run all database consistency checks
-
-    Rename to run_check_consistency_scripts
-
-    """
+def run_integrity_checks(ibs, embed=False):
+    """ Function to run all database consistency checks """
     print('[ibsfuncs] Checking consistency')
     gid_list = ibs.get_valid_gids()
     aid_list = ibs.get_valid_aids()
@@ -2703,6 +2699,9 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
         python -m ibeis.ibsfuncs --test-get_two_annots_per_name_and_singletons --db GZ_ALL
         python -m ibeis.ibsfuncs --test-get_two_annots_per_name_and_singletons --db PZ_Master0 --onlygt
 
+    Ignore:
+        sys.argv.extend(['--db', 'PZ_MTEST'])
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
@@ -2732,7 +2731,6 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
     #print('print subset info')
     #print(ut.dict_hist(ibs.get_annot_yaw_texts(aid_list)))
     #print(ut.dict_hist(ibs.get_annot_quality_texts(aid_list)))
-
     singletons, multitons = partition_annots_into_singleton_multiton(ibs, aid_list)
     # process multitons
     hourdists_list = ibs.get_unflat_annots_hourdists_list(multitons)
@@ -2746,6 +2744,19 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
     else:
         aid_subset = np.hstack([best_multitons.flatten(), np.array(singletons).flatten()])
     aid_subset.sort()
+
+    """
+    if False:
+        qaids = aid_subset
+        daids = aid_list
+        def get_close_groundfalse_pairs(qaids, daids):
+            valid_daids_list = [ibs.get_annot_groundfalse(qaid, daid_list=daids) for qaid in qaids]
+            for qaid, valid_daids in zip(qaids, valid_daids_list):
+                query_unixtime = ibs.get_annot_image_unixtimes(qaid)
+                valid_data_unixtimes = np.array(ibs.get_annot_image_unixtimes(valid_daids))
+                hourdiffs = ut.unixtime_hourdiff(query_unixtime, valid_data_unixtimes)
+                valid_daids[hourdiffs.argmin()]
+    """
 
     #best_hourdists_list = ut.flatten(ibs.get_unflat_annots_hourdists_list(best_multitons))
     #assert len(best_hourdists_list) == len(best_multitons)

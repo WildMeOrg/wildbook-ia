@@ -29,6 +29,7 @@ def setup_menus(mainwin, back=None):
     setup_file_menu(mainwin, back)
     setup_actions_menu(mainwin, back)
     setup_batch_menu(mainwin, back)
+    setup_checks_menu(mainwin, back)
     setup_option_menu(mainwin, back)
     setup_help_menu(mainwin, back)
     setup_developer_menu(mainwin, back)
@@ -310,6 +311,16 @@ def setup_option_menu(mainwin, back):
         slot_fn=back.edit_preferences)
 
 
+def setup_checks_menu(mainwin, back):
+    mainwin.menuChecks = guitool.newMenu(mainwin, mainwin.menubar, 'menuChecks', 'Checks')
+    mainwin.menuChecks.newAction(
+        name='actionRunMergeChecks',
+        text='Run Merge Checks',
+        shortcut='',
+        slot_fn=back.run_merge_checks)
+    pass
+
+
 def setup_help_menu(mainwin, back):
     """ HELP MENU """
     mainwin.menuHelp = guitool.newMenu(mainwin, mainwin.menubar, 'menuHelp', 'Help')
@@ -366,9 +377,9 @@ def setup_help_menu(mainwin, back):
         slot_fn=back.fix_and_clean_database)
     mainwin.menuHelp.newAction(
         name='actionConsistencyCheck',
-        text='Run Consistency Checks',
+        text='Run Integrity Checks',
         shortcut='',
-        slot_fn=back.run_consistency_checks)
+        slot_fn=back.run_integrity_checks)
     mainwin.menuHelp.addSeparator()
     mainwin.menuHelp.newAction(
         name='actionDelete_Precomputed_Results',

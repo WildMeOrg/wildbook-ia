@@ -908,17 +908,17 @@ class MainWindowBackend(QtCore.QObject):
         daid_list = back.ibs.get_valid_aids(**valid_kw)
         return daid_list
 
-    def make_confirm_query_msg(back, daid_list, qaid_list, cfgdict=None):
+    def make_confirm_query_msg(back, daid_list, qaid_list, cfgdict=None, query_msg=None):
         r"""
         Args:
             daid_list (list):
             qaid_list (list):
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-confirm_query_dialog
+            python -m ibeis.gui.guiback --test-MainWindowBackend.make_confirm_query_msg
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # GUI_DOCTEST
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> import ibeis
             >>> # build test data
@@ -949,6 +949,8 @@ class MainWindowBackend(QtCore.QObject):
         # Build confirmation message
         fmtdict = dict()
         msg_fmtstr_list = ['You are about to run identification...']
+        if query_msg is not None:
+            msg_fmtstr_list = [query_msg]
         msg_fmtstr_list += ['    -----']
         # Append database information to query confirmation
         if daid_list is not None:
@@ -984,8 +986,8 @@ class MainWindowBackend(QtCore.QObject):
         msg_str = msg_fmtstr.format(**fmtdict)
         return msg_str
 
-    def confirm_query_dialog(back, daid_list=None, qaid_list=None, cfgdict=None):
-        msg_str = back.make_confirm_query_msg(daid_list, qaid_list, cfgdict=cfgdict)
+    def confirm_query_dialog(back, daid_list=None, qaid_list=None, cfgdict=None, query_msg=None):
+        msg_str = back.make_confirm_query_msg(daid_list, qaid_list, cfgdict=cfgdict, query_msg=query_msg)
         confirm_kw = dict(use_msg=msg_str, title='Begin Identification?', default='Yes')
         if not back.are_you_sure(**confirm_kw):
             raise guiexcept.UserCancel
@@ -1046,7 +1048,7 @@ class MainWindowBackend(QtCore.QObject):
         ranks_lt = min(len(aid_list), 10)
         ibs = back.ibs
         qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
-        back.confirm_query_dialog(aid_list, aid_list, cfgdict=cfgdict)
+        back.confirm_query_dialog(aid_list, aid_list, cfgdict=cfgdict, query_msg='Checking for SPLIT cases (matching each annotation within a name)')
         qres_list = ibs.query_chips(qreq_=qreq_)
         back.review_queries(qres_list, qreq_=qreq_,
                             filter_reviewed=False,
@@ -1054,11 +1056,17 @@ class MainWindowBackend(QtCore.QObject):
                             ranks_lt=ranks_lt,
                             query_title='Annot Splits')
 
+    def run_merge_checks(back):
+        qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
+        back.compute_queries(qaid_list, daids_mode=const.VS_EXEMPLARS_KEY,
+                             query_msg='Checking for MERGE cases (this is an exemplars-vs-exemplars query)')
+
     @blocking_slot()
     def compute_queries(back, refresh=True, daids_mode=None,
                         query_is_known=None, qaid_list=None,
                         use_prioritized_name_subset=False,
                         use_visual_selection=False, cfgdict={},
+                        query_msg=None,
                         **kwargs):
         """
         MAIN QUERY FUNCTION
@@ -1159,7 +1167,7 @@ class MainWindowBackend(QtCore.QObject):
                 qaid_list = back.ibs.filter_aids_custom(qaid_list)
             daid_list = back.ibs.filter_aids_custom(daid_list)
         qreq_ = back.ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict)
-        back.confirm_query_dialog(daid_list, qaid_list, cfgdict=cfgdict)
+        back.confirm_query_dialog(daid_list, qaid_list, cfgdict=cfgdict, query_msg=query_msg)
         qres_list = back.ibs.query_chips(qreq_=qreq_)
         #qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list, cfgdict=cfgdict)
         # HACK IN ENCOUNTER INFO
@@ -1450,8 +1458,8 @@ class MainWindowBackend(QtCore.QObject):
         back.front.update_tables()
 
     @blocking_slot()
-    def run_consistency_checks(back):
-        back.ibs.check_consistency()
+    def run_integrity_checks(back):
+        back.ibs.run_integrity_checks()
 
     #--------------------------------------------------------------------------
     # File Slots

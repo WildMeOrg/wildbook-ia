@@ -161,6 +161,26 @@ def vsone_reranking(qreq_, cm_list_SVER, verbose=False):
     return cm_list_VSONE
 
 
+def vsone_independant(qreq_):
+    r"""
+    Args:
+        qreq_ (QueryRequest):  query request object with hyper-parameters
+
+    CommandLine:
+        python -m ibeis.model.hots.vsone_pipeline --test-vsone_independant
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots import _pipeline_helpers as plh
+        >>> cfgdict = dict(pipeline_root='vsone', codename='vsone')
+        >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict, qaid_list=[1], daid_list=[2, 5])
+        >>> result = vsone_independant(qreq_)
+        >>> print(result)
+    """
+    # TODO
+    pass
+
+
 def marge_matches_lists(fmfs_A, fmfs_B):
     if fmfs_A is None:
         return fmfs_B

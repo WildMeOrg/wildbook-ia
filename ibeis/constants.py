@@ -87,6 +87,7 @@ class PATH_NAMES(object):
     flann      = 'flann'
     images     = 'images'
     trees      = 'trees'
+    nets       = 'nets'
     uploads    = 'uploads'
     qres       = 'qres'
     bigcache   = 'qres_bigcache'
@@ -108,6 +109,7 @@ class REL_PATHS(object):
     chips    = join(_ibsdb, PATH_NAMES.chips)
     images   = join(_ibsdb, PATH_NAMES.images)
     trees    = join(_ibsdb, PATH_NAMES.trees)
+    nets     = join(_ibsdb, PATH_NAMES.nets)
     uploads  = join(_ibsdb, PATH_NAMES.uploads)
     # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
     thumbs   = join(cache, PATH_NAMES.thumbs)
@@ -115,6 +117,19 @@ class REL_PATHS(object):
     qres     = join(cache, PATH_NAMES.qres)
     bigcache = join(cache, PATH_NAMES.bigcache)
     distinctdir = join(cache, PATH_NAMES.distinctdir)
+
+
+# Directories that should be excluded from copy operations
+EXCLUDE_COPY_REL_DIRS = [
+    REL_PATHS.chips,
+    REL_PATHS.cache,
+    REL_PATHS.backups,
+    REL_PATHS.figures,
+    REL_PATHS.nets,
+    #'_ibsdb/_ibeis_cache',
+    #'_ibsdb/chips',
+    './images',  # the hotspotter images dir
+]
 
 
 # TODO: Remove anything under this block completely

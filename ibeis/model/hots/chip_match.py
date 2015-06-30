@@ -5,7 +5,7 @@ import vtool as vt
 from operator import xor
 from vtool import matching
 import six
-#from ibeis.model.hots import hstypes
+from ibeis.model.hots import hstypes
 #from collections import namedtuple, defaultdict
 from ibeis.model.hots import old_chip_match
 from ibeis.model.hots import scoring
@@ -108,7 +108,13 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         fsv_col_lbls = qres.filtkey_list
         #ut.embed()
         cm = cls.from_cmtup_old(cmtup_old, qaid, fsv_col_lbls, daid_list=qres.daids)
-        fs_list = [fsv.T[cm.fsv_col_lbls.index('lnbnn')] for fsv in cm.fsv_list]
+        #with ut.embed_on_exception_context:
+        #if 'lnbnn' in fsv_col_lbls:
+        #    assert 'lnbnn' in fsv_col_lbls, 'cm.fsv_col_lbls=%r' % (cm.fsv_col_lbls,)
+        #    fs_list = [fsv.T[cm.fsv_col_lbls.index('lnbnn')] for fsv in cm.fsv_list]
+        #else:
+        if True:
+            fs_list = ut.dict_take(qres.aid2_fs, cm.daid_list, np.empty((0,), dtype=hstypes.FS_DTYPE))
         cm.fs_list = fs_list
         return cm
 

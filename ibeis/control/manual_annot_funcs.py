@@ -1218,6 +1218,10 @@ def get_annot_semantic_uuids(ibs, aid_list):
 @register_api('/api/annot/visual_uuids/', methods=['GET'])
 def get_annot_visual_uuids(ibs, aid_list):
     r"""
+    The image uuid, annotation verticies, are theta is hashted together to
+    compute the visual uuid.  The visual uuid does not include name or species
+    information.
+
     annot_visual_uuid_list <- annot.annot_visual_uuid[aid_list]
 
     gets data from the "native" column "annot_visual_uuid" in the "annot" table
@@ -1310,8 +1314,10 @@ def get_annot_yaws(ibs, aid_list):
     The following views have these angles of yaw:
         left side  - 0.50 tau radians
         front side - 0.25 tau radians
-        right side - 0.00 radians
+        right side - 0.00 tau radians
         back side  - 0.75 tau radians
+
+        tau = 2 * pi
 
     SeeAlso:
         ibies.const.VIEWTEXT_TO_YAW_RADIANS
@@ -1356,8 +1362,10 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
     The following views have these angles of yaw:
         left side  - 0.00 tau radians
         front side - 0.25 tau radians
-        right side - 0.50 radians
+        right side - 0.50 tau radians
         back side  - 0.75 tau radians
+
+        tau = 2 * pi
 
     SeeAlso:
         ibies.const.VIEWTEXT_TO_YAW_RADIANS
@@ -1405,6 +1413,10 @@ def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
     Returns:
         list_ (list): number of other chips with the same name
 
+    RESTful:
+        Method: GET
+        URL:    /api/annot/num_groundtruth/
+
     CommandLine:
         python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth
         python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth:0
@@ -1431,11 +1443,6 @@ def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         >>> result = get_annot_num_groundtruth(ibs, aid_list, noself=noself)
         >>> print(result)
         [1, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1]
-
-
-    RESTful:
-        Method: GET
-        URL:    /api/annot/num_groundtruth/
     """
     # TODO: Optimize
     groundtruth_list = ibs.get_annot_groundtruth(aid_list,
@@ -1859,8 +1866,11 @@ def get_annot_images(ibs, aid_list):
 @register_api('/api/annot/visual_uuid_info/', methods=['GET'])
 def get_annot_visual_uuid_info(ibs, aid_list):
     r"""
-    Returns annotation UUID that is unique for the visual qualities
-    of the annoation. does not include name ore species information.
+
+    Returns information used to compute annotation UUID.
+    The image uuid, annotation verticies, are theta is hashted together to
+      compute the visual uuid.
+     The visual uuid does not include name or species information.
 
     get_annot_visual_uuid_info
 
@@ -1869,6 +1879,10 @@ def get_annot_visual_uuid_info(ibs, aid_list):
 
     Returns:
         tuple: visual_infotup (image_uuid_list, verts_list, theta_list)
+
+    SeeAlso:
+        get_annot_visual_uuids
+        get_annot_semantic_uuid_info
 
     CommandLine:
         python -m ibeis.control.manual_annot_funcs --test-get_annot_visual_uuid_info
