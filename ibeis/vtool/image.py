@@ -1000,7 +1000,7 @@ def testing(img):
     return img2
 
 
-def perlin_noise(size, scale=32.0):
+def perlin_noise(size, scale=32.0, rng=np.random):
     """
     References:
         http://www.siafoo.net/snippet/229
@@ -1037,7 +1037,7 @@ def perlin_noise(size, scale=32.0):
             # because we are throwing out all the numbers not inside a unit
             # sphere.  Something of a hack but statistically speaking
             # it should work fine... or crash.
-            G = (np.random.uniform(size=2 * self.order * n) * 2 - 1).reshape(-1, self.order)
+            G = (rng.uniform(size=2 * self.order * n) * 2 - 1).reshape(-1, self.order)
 
             # GAH! How do I generalize this?!
             #length = hypot(G[:,i] for i in range(self.order))
@@ -1052,7 +1052,7 @@ def perlin_noise(size, scale=32.0):
             self.G = (G[length < 1] / (length[length < 1])[:, np.newaxis])[:n, ]
             self.P = np.arange(n, dtype=np.int32)
 
-            np.random.shuffle(self.P)
+            rng.shuffle(self.P)
 
             self.idx_ar = np.indices(2 * np.ones(self.order), dtype=np.int8).reshape(self.order, -1).T
             self.drop = np.poly1d((-6, 15, -10, 0, 0, 1.0))

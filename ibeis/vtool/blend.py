@@ -10,11 +10,14 @@ import utool as ut
     __name__, '[blend]', DEBUG=False)
 
 
-def testdata_blend():
+def testdata_blend(scale=128):
     import vtool as vt
     img_fpath = ut.grab_test_imgpath('lena.png')
     img1 = vt.imread(img_fpath)
-    img2 = vt.perlin_noise(img1.shape[0:2], scale=64)[None, :].T
+    rng = np.random.RandomState(0)
+    img2 = vt.perlin_noise(img1.shape[0:2], scale=scale, rng=rng)[None, :].T
+    img1 = vt.rectify_to_float01(img1)
+    img2 = vt.rectify_to_float01(img2)
     return img1, img2
 
 
@@ -58,7 +61,7 @@ def blend_images_average(img1, img2, alpha=.5):
         alpha (float): (default = 0.5)
 
     Returns:
-        ndarray: chip_blend
+        ndarray: imgB
 
     References:
         https://en.wikipedia.org/wiki/Blend_modes
@@ -72,10 +75,10 @@ def blend_images_average(img1, img2, alpha=.5):
         >>> from vtool.image import *  # NOQA
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
-        >>> chip_blend = blend_images_average(img1, img2, alpha)
+        >>> imgB = blend_images_average(img1, img2, alpha)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> pt.imshow(chip_blend)
+        >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
 
     Example2:
@@ -83,19 +86,22 @@ def blend_images_average(img1, img2, alpha=.5):
         >>> test_func = blend_images_average
         >>> args = testdata_blend()
         >>> param_info = ut.ParamInfoList('blend_params', [
-        ...    ut.ParamInfo('alpha', .8, 'prior_coeff=',
-        ...                 varyvals=np.linspace(0, 1.0, 9).tolist()),
+        ...    ut.ParamInfo('alpha', .8, 'alpha=',
+        ...                 varyvals=np.linspace(0, 1.0, 25).tolist()),
         ... ])
         >>> gridsearch_image_function(param_info, test_func, args)
         >>> ut.show_if_requested()
     """
     #assert img1.shape == img2.shape, 'chips must be same shape to blend'
-    #chip_blend = np.zeros(img2.shape, dtype=img2.dtype)
-    chip_blend = (img1 * (1.0 - alpha)) + (img2 * (alpha))
-    return chip_blend
+    #imgB = np.zeros(img2.shape, dtype=img2.dtype)
+    #assert img1.min() >= 0 and img1.max() <= 1
+    #assert img2.min() >= 0 and img2.max() <= 1
+    imgB = (img1 * (1.0 - alpha)) + (img2 * (alpha))
+    #assert imgB.min() >= 0 and imgB.max() <= 1
+    return imgB
 
 
-def blend_images_multiply(img1, img2, alpha=1.0):
+def blend_images_mult_average(img1, img2, alpha=.5):
     r"""
     Args:
         img1 (ndarray[uint8_t, ndim=2]):  image data
@@ -103,7 +109,55 @@ def blend_images_multiply(img1, img2, alpha=1.0):
         alpha (float): (default = 0.5)
 
     Returns:
-        ndarray: chip_blend
+        ndarray: imgB
+
+    References:
+        https://en.wikipedia.org/wiki/Blend_modes
+
+    CommandLine:
+        python -m vtool.blend --test-blend_images_mult_average:0 --show
+        python -m vtool.blend --test-blend_images_mult_average:1 --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> alpha = 0.8
+        >>> img1, img2 = testdata_blend()
+        >>> imgB = blend_images_mult_average(img1, img2, alpha)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(imgB)
+        >>> ut.show_if_requested()
+
+    Example2:
+        >>> # GRIDSEARCH
+        >>> test_func = blend_images_mult_average
+        >>> args = testdata_blend()
+        >>> param_info = ut.ParamInfoList('blend_params', [
+        ...    ut.ParamInfo('alpha', .8, 'alpha=',
+        ...                 varyvals=np.linspace(0, 1.0, 25).tolist()),
+        ... ])
+        >>> gridsearch_image_function(param_info, test_func, args)
+        >>> ut.show_if_requested()
+    """
+    #assert img1.shape == img2.shape, 'chips must be same shape to blend'
+    #imgB = np.zeros(img2.shape, dtype=img2.dtype)
+    #assert img1.min() >= 0 and img1.max() <= 1
+    #assert img2.min() >= 0 and img2.max() <= 1
+    imgB = blend_images_average(img1, blend_images_multiply(img1, img2, .5), alpha)
+    #assert imgB.min() >= 0 and imgB.max() <= 1
+    return imgB
+
+
+def blend_images_multiply(img1, img2, alpha=0.5):
+    r"""
+    Args:
+        img1 (ndarray[uint8_t, ndim=2]):  image data
+        img2 (ndarray[uint8_t, ndim=2]):  image data
+        alpha (float): (default = 0.5)
+
+    Returns:
+        ndarray: imgB
 
 
     References:
@@ -118,19 +172,19 @@ def blend_images_multiply(img1, img2, alpha=1.0):
         >>> from vtool.blend import *  # NOQA
         >>> alpha = 0.8
         >>> img1, img2 = testdata_blend()
-        >>> chip_blend = blend_images_multiply(img1, img2, alpha)
+        >>> imgB = blend_images_multiply(img1, img2, alpha)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> pt.imshow(chip_blend)
+        >>> pt.imshow(imgB)
         >>> ut.show_if_requested()
 
     Example2:
         >>> # GRIDSEARCH
         >>> test_func = blend_images_multiply
-        >>> args = testdata_blend()
+        >>> args = testdata_blend(scale=128)
         >>> param_info = ut.ParamInfoList('blend_params', [
-        ...    ut.ParamInfo('alpha', .8, 'prior_coeff=',
-        ...                 varyvals=np.linspace(0, 3.0, 25).tolist()),
+        ...    ut.ParamInfo('alpha', .8, 'alpha=',
+        ...                 varyvals=np.linspace(0, 1.0, 25).tolist()),
         ... ])
         >>> gridsearch_image_function(param_info, test_func, args)
         >>> ut.show_if_requested()
@@ -139,14 +193,18 @@ def blend_images_multiply(img1, img2, alpha=1.0):
     # rectify type
     img1_ = vt.rectify_to_float01(img1)
     img2_ = vt.rectify_to_float01(img2)
+    #assert img1_.min() >= 0 and img1_.max() <= 1
+    #assert img2_.min() >= 0 and img2_.max() <= 1
     # apply transform
-    if alpha == 1:
+    if False and alpha == .5:
         imgB = img1_ * img2_
     else:
         data = [img1_, img2_]
-        weights = [1.0, alpha]
-        imgB = vt.weighted_geometic_mean(data, weights)
+        weights = [1.0 - alpha + .5, alpha + .5]
+        #imgB = vt.weighted_geometic_mean(data, weights)
+        imgB = vt.weighted_geometic_mean_unnormalized(data, weights)
     # unrectify
+    #assert imgB.min() >= 0 and imgB.max() <= 1
     return imgB
 
 
@@ -179,7 +237,7 @@ def gridsearch_addWeighted():
         ut.ParamInfo('gamma', .0,
                      varyvals=np.linspace(0, 1.0, 5).tolist()),
         #varyvals=[.0],))
-        #ut.ParamInfo('gamma', .8, 'prior_coeff=',
+        #ut.ParamInfo('gamma', .8, 'alpha=',
         #             varyvals=np.linspace(0, 1.0, 9).tolist()),
     ])
     gridsearch_image_function(param_info, test_func, args)

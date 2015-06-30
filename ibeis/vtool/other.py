@@ -976,6 +976,12 @@ def norm01(array, dim=None):
     return array_norm
 
 
+def weighted_geometic_mean_unnormalized(data, weights):
+    terms = [x ** w for x, w in zip(data, weights)]
+    termprod = iter_reduce_ufunc(np.multiply, iter(terms))
+    return termprod
+
+
 def weighted_geometic_mean(data, weights):
     r"""
     Args:
@@ -988,8 +994,14 @@ def weighted_geometic_mean(data, weights):
     CommandLine:
         python -m vtool.other --test-weighted_geometic_mean
 
+    References:
+        https://en.wikipedia.org/wiki/Weighted_geometric_mean
+
+    SeeAlso:
+        scipy.stats.mstats.gmean
+
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.other import *  # NOQA
         >>> data = [np.array(.9), np.array(.5)]
         >>> weights = np.array([1.0, .5])
@@ -997,6 +1009,22 @@ def weighted_geometic_mean(data, weights):
         >>> result = ('gmean_ = %.3f' % (gmean_,))
         >>> print(result)
         gmean_ = 0.740
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> rng = np.random.RandomState(0)
+        >>> img1 = rng.rand(4, 4)
+        >>> img2 = rng.rand(4, 4)
+        >>> data = [img1, img2]
+        >>> weights = np.array([.5, .5])
+        >>> gmean_ = weighted_geometic_mean(data, weights)
+        >>> result = ('gmean_ = %.3f' % (gmean_,))
+        >>> print(result)
+
+    Ignore:
+        res1 = ((img1 ** .5 * img2 ** .5)) ** 1
+        res2 = np.sqrt(img1 * img2)
     """
     terms = [x ** w for x, w in zip(data, weights)]
     termprod = iter_reduce_ufunc(np.multiply, iter(terms))
