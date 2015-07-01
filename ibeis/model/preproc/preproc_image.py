@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from PIL import Image
 from os.path import splitext, basename
@@ -7,8 +8,7 @@ import hashlib
 import uuid
 import vtool.exif as vtexif
 import utool as ut
-import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_img]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[preproc_img]', DEBUG=False)
 
 
 #@profile
@@ -120,7 +120,7 @@ def parse_imageinfo(tup):
     width, height  = pil_img.size         # Read width, height
     time, lat, lon = parse_exif(pil_img)  # Read exif tags
     # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
-    image_uuid = utool.get_file_uuid(gpath)  # Read file ]-hash-> guid = gid
+    image_uuid = ut.get_file_uuid(gpath)  # Read file ]-hash-> guid = gid
     #orig_gpath = gpath
     orig_gname = basename(gpath)
     ext = get_standard_ext(gpath)
@@ -168,7 +168,7 @@ def add_images_params_gen(gpath_list, **kwargs):
     """
     #preproc_args = [(gpath, kwargs) for gpath in gpath_list]
     #print('[about to parse]: gpath_list=%r' % (gpath_list,))
-    params_gen = utool.generate(parse_imageinfo, gpath_list, **kwargs)
+    params_gen = ut.generate(parse_imageinfo, gpath_list, **kwargs)
     return params_gen
 
 
