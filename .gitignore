@@ -102,3 +102,5 @@ failed_shelltests.txt
 T*.sh
 tempfile*.txt
 testdb*
+
+localdata
