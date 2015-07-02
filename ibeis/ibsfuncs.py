@@ -4723,7 +4723,7 @@ def make_temporally_distinct_blind_test(ibs, challenge_num=None):
 
     Ignore:
         challenge_pdfs = ut.glob('.', 'pair_*_compressed.pdf', recursive=True)
-        dname = 'all_challenges'
+        dname = 'localdata/all_challenges'
         ut.ensuredir(dname)
         ut.copy(challenge_pdfs, dname)
 
@@ -4828,7 +4828,7 @@ def make_temporally_distinct_blind_test(ibs, challenge_num=None):
     import ibeis.viz
     #fname = 'aidchallenge_' + ibs.get_dbname() + '_' + str(challenge_num)
     challengename = 'pair_challenge'  '_' + str(challenge_num) + '_dbname=' + ibs.get_dbname()
-    output_dirname = ut.truepath(challengename)
+    output_dirname = ut.truepath(join('localdata', challengename))
     ut.ensuredir(output_dirname)
     #aid = chosen_aids[0]
     #ibeis.viz.viz_chip.show_many_chips(ibs, chosen_aids)

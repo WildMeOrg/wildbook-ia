@@ -12,5 +12,6 @@ else
     export PY=python2.7
 fi
 
-cd ~jonathan/code/ibeis
-$PY main.py $FLAGS
+#cd ~jonathan/code/ibeis
+#$PY main.py $FLAGS
+$PY -m ibeis $FLAGS

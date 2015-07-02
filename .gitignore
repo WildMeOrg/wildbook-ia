@@ -88,7 +88,6 @@ run_cyth_benchmarks.py
 *.orig
 *.h5
 _grave.py
-_ibeis_setup.py
 _doc
 _test_times.txt
 
@@ -103,4 +102,9 @@ T*.sh
 tempfile*.txt
 testdb*
 
+# Place to store all the local data you want to ignore
 localdata
+
+
+# More dubuious ignores
+_ibeis_setup.py
