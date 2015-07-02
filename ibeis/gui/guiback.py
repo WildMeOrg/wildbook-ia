@@ -1058,8 +1058,16 @@ class MainWindowBackend(QtCore.QObject):
 
     def run_merge_checks(back):
         qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
+        cfgdict = {
+            'can_match_samename': False,
+            #'K': 3,
+            #'Knorm': 3,
+            #'prescore_method': 'csum',
+            #'score_method': 'csum'
+        }
         back.compute_queries(qaid_list, daids_mode=const.VS_EXEMPLARS_KEY,
-                             query_msg='Checking for MERGE cases (this is an exemplars-vs-exemplars query)')
+                             query_msg='Checking for MERGE cases (this is an exemplars-vs-exemplars query)',
+                             cfgdict=cfgdict)
 
     @blocking_slot()
     def compute_queries(back, refresh=True, daids_mode=None,

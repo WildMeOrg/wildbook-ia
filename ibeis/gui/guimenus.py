@@ -31,8 +31,10 @@ def setup_menus(mainwin, back=None):
     setup_batch_menu(mainwin, back)
     setup_checks_menu(mainwin, back)
     setup_option_menu(mainwin, back)
+    setup_refresh_menu(mainwin, back)
     setup_help_menu(mainwin, back)
     setup_developer_menu(mainwin, back)
+    setup_depricated_menu(mainwin, back)
 
 
 def setup_file_menu(mainwin, back):
@@ -107,7 +109,8 @@ def setup_file_menu(mainwin, back):
 def setup_actions_menu(mainwin, back):
     """ ACTIONS MENU """
     mainwin.menuActions = guitool.newMenu(mainwin, mainwin.menubar, 'menuActions', 'Actions')
-    mainwin.menuActions.newAction(
+    menu = mainwin.menuActions
+    menu.newAction(
         name='actionQuery',
         text='Query Single Annotation',
         shortcut='Q',
@@ -124,89 +127,80 @@ def setup_actions_menu(mainwin, back):
     #    text='Select Previous',
     #    shortcut='Ctrl+P',
     #    slot_fn=back.select_prev)
-    mainwin.menuActions.addSeparator()
-    mainwin.menuActions.newAction(
+    menu.addSeparator()
+    menu.newAction(
         name='actionDeleteAllEncounters',
         text='Delete All Encounters',
         shortcut='',
         slot_fn=back.delete_all_encounters)
-    mainwin.menuActions.newAction(
+    menu.newAction(
         name='actionDelete_Image',
         text='Delete Image',
         shortcut='',
         slot_fn=back.delete_image)
-    mainwin.menuActions.newAction(
+    menu.newAction(
         name='actionDelete_ANNOTATION',
         text='Delete Annotation',
         shortcut='Ctrl+Del',
         slot_fn=back.delete_annot)
-    mainwin.menuActions.addSeparator()
-    mainwin.menuActions.newAction(
+    menu.addSeparator()
+    menu.newAction(
         name='actionTrainWithEncounters',
         text='Train RF with Open Encounter',
         shortcut='',
         slot_fn=back.train_rf_with_encounter)
-    mainwin.menuActions.addSeparator()
-    mainwin.menuActions.newAction(
+    menu.addSeparator()
+    menu.newAction(
         name='toggleThumbnails',
         text='Toggle Thumbnails',
         shortcut='',
         slot_fn=back.toggle_thumbnails)
+    menu.addSeparator()
+    menu.newAction(
+        name='actionExpandNamesTree',
+        text='Expand Names Tree',
+        slot_fn=mainwin.expand_names_tree)
 
 
 def setup_batch_menu(mainwin, back):
     """ BATCH MENU """
     mainwin.menuBatch = guitool.newMenu(mainwin, mainwin.menubar, 'menuBatch', 'Batch')
-    mainwin.menuBatch.newAction(
+    menu = mainwin.menuBatch
+    menu.newAction(
         name='actionCompute_Encounters',
         text='Cluster Encounters',
         #shortcut='Ctrl+2',
         slot_fn=back.compute_encounters)
-    mainwin.menuBatch.addSeparator()  # ---------
-    mainwin.menuBatch.newAction(
+    menu.addSeparator()  # ---------
+    menu.newAction(
         name='actionDetect',
         text='Run Detection',
         #shortcut='Ctrl+3',
         slot_fn=back.run_detection)
-    mainwin.menuBatch.addSeparator()  # ---------
-    mainwin.menuBatch.newAction(
-        name='actionCompute_Queries',
-        text='Query: Old Style',
-        tooltip='''This might take anywhere from a coffee break to an
-                    overnight procedure depending on how many ANNOTATIONs you\'ve
-                    made. It queries each chip and saves the result which
-                    allows multiple queries to be rapidly inspected later.''',
-        #shortcut='Ctrl+4',
-        slot_fn=back.compute_queries)
-    mainwin.menuBatch.newAction(
-        name='actionComputeIncremental_Queries',
-        text='Query: Incremental',
-        slot_fn=back.incremental_query
-    )
-    mainwin.menuBatch.addSeparator()  # ---------
-    mainwin.menuBatch.newAction(
+    menu.addSeparator()  # ---------
+    menu.newAction(
         name='actionBatchIntraEncounterQueries',
         text='Query: Intra Encounter',
         slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_ENC_KEY),
     )
-    mainwin.menuBatch.newAction(
+    menu.newAction(
         name='actionBatchVsExemplarQueries',
         text='Query: vs Exemplars',
         slot_fn=functools.partial(back.compute_queries, daids_mode=const.VS_EXEMPLARS_KEY),
     )
-    mainwin.menuBatch.addSeparator()  # ---------
-    mainwin.menuBatch.newAction(
+    menu.addSeparator()  # ---------
+    menu.newAction(
         name='actionBatchUnknownIntraEncounterQueries',
         text='Query: Unknown Intra Encounter',
         slot_fn=functools.partial(back.compute_queries, query_is_known=False, daids_mode=const.INTRA_ENC_KEY),
     )
-    mainwin.menuBatch.newAction(
+    menu.newAction(
         name='actionBatchUnknownVsExemplarQueries',
         text='Query: Unknowns vs Exemplars',
         slot_fn=functools.partial(back.compute_queries, query_is_known=False, daids_mode=const.VS_EXEMPLARS_KEY),
     )
-    mainwin.menuBatch.addSeparator()  # ---------
-    mainwin.menuBatch.newAction(
+    menu.addSeparator()  # ---------
+    menu.newAction(
         name='actionNameVsExemplarsQuery',
         text='Query: Names vs Exemplar',
         slot_fn=functools.partial(back.compute_queries,
@@ -214,7 +208,7 @@ def setup_batch_menu(mainwin, back):
                                   daids_mode=const.VS_EXEMPLARS_KEY,
                                   cfgdict=dict(can_match_samename=False, use_k_padding=False)),
     )
-    mainwin.menuBatch.newAction(
+    menu.newAction(
         name='actionNameVsExemplarsMode3',
         text='Query: Names vs Exemplar + Ori Hack + Scale + No Affine',
         slot_fn=functools.partial(back.compute_queries,
@@ -223,23 +217,23 @@ def setup_batch_menu(mainwin, back):
                                   cfgdict=dict(can_match_samename=False, use_k_padding=False,
                                                affine_invariance=False, scale_max=150, augment_queryside_hack=True)),
     )
-    mainwin.menuBatch.addSeparator()  # ---------
-    mainwin.menuBatch.newAction(
+    menu.addSeparator()  # ---------
+    menu.newAction(
         name='actionQueryInEncMode1',
         text='Query: Names Intra Encounter With OriAugment',
         slot_fn=functools.partial(back.compute_queries, daids_mode=const.INTRA_ENC_KEY,
                                   use_prioritized_name_subset=True,
                                   cfgdict=dict(augment_queryside_hack=True, can_match_samename=False, use_k_padding=False)),
     )
-    mainwin.menuBatch.newAction(
+    menu.newAction(
         name='actionQueryInEncMode2',
         text='Query: Names VsExamplar With OriAugment',
         slot_fn=functools.partial(back.compute_queries, daids_mode=const.VS_EXEMPLARS_KEY,
                                   use_prioritized_name_subset=True,
                                   cfgdict=dict(augment_queryside_hack=True, can_match_samename=False, use_k_padding=False)),
     )
-    mainwin.menuBatch.addSeparator()  # ---------
-    mainwin.menuBatch.newAction(
+    menu.addSeparator()  # ---------
+    menu.newAction(
         name='actionSetExemplarsFromQualityAndViewpoint',
         text='Set Exemplars from Quality and Viewpoint',
         slot_fn=back.set_exemplars_from_quality_and_viewpoint,
@@ -249,7 +243,7 @@ def setup_batch_menu(mainwin, back):
             per viewpoint, per name.
             ''')
     )
-    mainwin.menuBatch.newAction(
+    menu.newAction(
         name='actionBatchConsecutiveLocationSpeciesRename',
         text='Consecutive Location+Species Rename',
         slot_fn=back.batch_rename_consecutive_via_species,
@@ -260,8 +254,8 @@ def setup_batch_menu(mainwin, back):
             ''')
     )
 
-    mainwin.menuBatch.addSeparator()  # ---------
-    mainwin.menuBatch.newAction(
+    menu.addSeparator()  # ---------
+    menu.newAction(
         name='actionShipProcessedEncounters',
         text='Ship Processed Encounters',
         tooltip='''This action will ship to WildBook any encounters that have
@@ -269,41 +263,42 @@ def setup_batch_menu(mainwin, back):
                     processed encounters that failed to ship correctly.''',
         #shortcut='Ctrl+5',
         slot_fn=back.send_unshipped_processed_encounters)
-    mainwin.menuBatch.addSeparator()  # ---------
-    mainwin.menuBatch.newAction(
+    menu.addSeparator()  # ---------
+    menu.newAction(
         name='actionEncounterImagesReviewed',
         text='Reviewed All Encounter Images',
         shortcut='',
         slot_fn=back.encounter_reviewed_all_images)
-    mainwin.menuBatch.newAction(
+    menu.newAction(
         name='actionPrecomputeANNOTATIONFeatures',
         text='Precompute Chips/Features',
         #shortcut='Ctrl+Return',
         slot_fn=back.compute_feats)
-    mainwin.menuBatch.newAction(
+    menu.newAction(
         name='actionPrecomputeThumbnails',
         text='Precompute Thumbnails',
         shortcut='',
         slot_fn=back.compute_thumbs)
-    mainwin.menuBatch.addSeparator()  # ---------
+    menu.addSeparator()  # ---------
 
 
 def setup_option_menu(mainwin, back):
     """ OPTIONS MENU """
     mainwin.menuOptions = guitool.newMenu(mainwin, mainwin.menubar, 'menuOptions', 'Options')
-    mainwin.menuOptions.newAction(
+    menu = mainwin.menuOptions
+    menu.newAction(
         name='actionLayout_Figures',
         text='Layout Figures',
         tooltip='Organizes windows in a grid',
         shortcut='Ctrl+L',
         slot_fn=back.layout_figures)
-    mainwin.menuOptions.newAction(
+    menu.newAction(
         name='actionToggleQueryMode',
         text='Toggle Query Mode: ----',
         tooltip='Changes behavior of Actions->Query',
         slot_fn=functools.partial(back.set_daids_mode, 'toggle'))
-    mainwin.menuOptions.addSeparator()
-    mainwin.menuOptions.newAction(
+    menu.addSeparator()
+    menu.newAction(
         name='actionPreferences',
         text='Edit Preferences',
         tooltip='Changes algorithm parameters and program behavior.',
@@ -312,7 +307,7 @@ def setup_option_menu(mainwin, back):
 
 
 def setup_checks_menu(mainwin, back):
-    mainwin.menuChecks = guitool.newMenu(mainwin, mainwin.menubar, 'menuChecks', 'Checks')
+    mainwin.menuChecks = guitool.newMenu(mainwin, mainwin.menubar, 'menuChecks', 'Consistency')
     mainwin.menuChecks.newAction(
         name='actionRunMergeChecks',
         text='Run Merge Checks',
@@ -329,123 +324,151 @@ def setup_help_menu(mainwin, back):
     import ibeis
     version = ibeis.__version__
     about_msg = 'IBEIS version %s\nImage Based Ecological Information System\nhttp://ibeis.org/' % (version,)
-    mainwin.menuHelp.newAction(
+    menu = mainwin.menuHelp
+    menu.newAction(
         name='actionAbout',
         text='About',
         shortcut='',
         slot_fn=guitool.msg_event('About', about_msg))
-    mainwin.menuHelp.newAction(
+    menu.newAction(
         name='actionDBInfo',
         text='Database Info',
         shortcut='',
         slot_fn=back.display_dbinfo),
-    #mainwin.menuHelp.newAction(
+    #menu.newAction(
     #    name='actionView_Docs',
     #    text='View Documentation',
     #    shortcut='',
     #    slot_fn=back.view_docs)
     # ---
-    mainwin.menuHelp.addSeparator()
+    menu.addSeparator()
     # ---
-    mainwin.menuHelp.newAction(
+    menu.newAction(
         name='actionView_DBDir',
         text='View Database Directory',
         shortcut='',
         slot_fn=back.view_database_dir)
-    mainwin.menuHelp.newAction(
+    menu.newAction(
         name='actionView_App_Files_Dir',
         text='View Application Files Directory',
         shortcut='',
         slot_fn=back.view_app_files_dir)
-    mainwin.menuHelp.newAction(
+    menu.newAction(
         name='actionViewLogsDir',
         text='View Log Directory',
         shortcut='',
         slot_fn=back.view_log_dir)
     # ---
-    mainwin.menuHelp.addSeparator()
+    menu.addSeparator()
     # ---
-    mainwin.menuHelp.newAction(
-        name='actionRedownload_Detection_Models',
-        text='Redownload Detection Models',
-        shortcut='',
-        slot_fn=back.redownload_detection_models)
-    mainwin.menuHelp.newAction(
-        name='actionFixCleanDatabase',
-        text='Fix/Clean Database',
-        shortcut='',
-        slot_fn=back.fix_and_clean_database)
-    mainwin.menuHelp.newAction(
+    menu.newAction(
         name='actionConsistencyCheck',
         text='Run Integrity Checks',
         shortcut='',
         slot_fn=back.run_integrity_checks)
-    mainwin.menuHelp.addSeparator()
-    mainwin.menuHelp.newAction(
+    menu.newAction(
+        name='actionFixCleanDatabase',
+        text='Fix/Clean Database Integrity',
+        shortcut='',
+        slot_fn=back.fix_and_clean_database)
+
+
+def setup_developer_menu(mainwin, back):
+    """ DEV MENU """
+    mainwin.menuDev = guitool.newMenu(mainwin, mainwin.menubar, 'menuDev', 'Dev')
+    menu = mainwin.menuDev
+    menu.newAction(
+        name='actionDeveloper_mode',
+        text='Developer IPython',
+        shortcut='Ctrl+Shift+I',
+        slot_fn=back.dev_mode)
+    menu.newAction(
+        name='actionDevRunTests',
+        text='Run Developer Tests',
+        slot_fn=back.run_tests)
+    menu.addSeparator()
+    menu.newAction(
+        name='actionDeveloper_reload',
+        text='Developer Reload',
+        shortcut='Ctrl+Shift+R',
+        slot_fn=back.dev_reload)
+    menu.addSeparator()
+    menu.newAction(
+        name='actionDeveloper_DumpDB',
+        text='Dump SQL Database',
+        slot_fn=back.dev_dumpdb)
+    menu.newAction(
+        name='export_learning_data',
+        text='Export learning data',
+        slot_fn=back.dev_export_annotations)
+    menu.addSeparator()
+    menu.newAction(
+        name='start_web_server_parallel',
+        text='Start web interface',
+        slot_fn=back.start_web_server_parallel)
+    menu.newAction(
+        name='kill_web_server_parallel',
+        text='Terminate web interface',
+        slot_fn=back.kill_web_server_parallel)
+
+
+def setup_refresh_menu(mainwin, back):
+    mainwin.menuRefresh = guitool.newMenu(mainwin, mainwin.menubar, 'menuRefresh', 'Refresh')
+    menu = mainwin.menuRefresh
+    # ---------
+    menu.newAction(
+        name='actionDeveloper_CLS',
+        text='Refresh Tables',
+        shortcut='Ctrl+Shift+C',
+        slot_fn=back.dev_cls)
+    # ---------
+    menu.addSeparator()
+    # ---------
+    menu.newAction(
+        name='actionRedownload_Detection_Models',
+        text='Redownload Detection Models',
+        shortcut='',
+        slot_fn=back.redownload_detection_models)
+    # ---------
+    menu.addSeparator()
+    # ---------
+    menu.newAction(
         name='actionDelete_Precomputed_Results',
         text='Delete Cached Query Results',
         shortcut='',
         slot_fn=back.delete_queryresults_dir)
-    mainwin.menuHelp.newAction(
+    menu.newAction(
         name='actionDelete_Cache_Directory',
         text='Delete Database Cache',
         shortcut='',
         slot_fn=back.delete_cache)
-    mainwin.menuHelp.newAction(
+    menu.newAction(
         name='actionDelete_global_preferences',
         text='Delete Global Preferences',
         shortcut='',
         slot_fn=back.delete_global_prefs)
-    mainwin.menuHelp.newAction(
+    menu.newAction(
         name='actionDeleteThumbnails',
         text='Delete Thumbnails',
         shortcut='',
         slot_fn=back.delete_thumbnails)
 
 
-def setup_developer_menu(mainwin, back):
-    """ DEV MENU """
-    mainwin.menuDev = guitool.newMenu(mainwin, mainwin.menubar, 'menuDev', 'Dev')
-    mainwin.menuDev.newAction(
-        name='actionDeveloper_mode',
-        text='Developer IPython',
-        shortcut='Ctrl+Shift+I',
-        slot_fn=back.dev_mode)
-    mainwin.menuDev.newAction(
-        name='actionDevRunTests',
-        text='Run Developer Tests',
-        slot_fn=back.run_tests)
-    mainwin.menuDev.addSeparator()
-    mainwin.menuDev.newAction(
-        name='actionDeveloper_reload',
-        text='Developer Reload',
-        shortcut='Ctrl+Shift+R',
-        slot_fn=back.dev_reload)
-    mainwin.menuDev.newAction(
-        name='actionDeveloper_CLS',
-        text='Refresh Tables',
-        shortcut='Ctrl+Shift+C',
-        slot_fn=back.dev_cls)
-    mainwin.menuDev.addSeparator()
-    mainwin.menuDev.newAction(
-        name='actionExpandNamesTree',
-        text='Expand Names Tree',
-        slot_fn=mainwin.expand_names_tree)
-    mainwin.menuDev.addSeparator()
-    mainwin.menuDev.newAction(
-        name='actionDeveloper_DumpDB',
-        text='Dump SQL Database',
-        slot_fn=back.dev_dumpdb)
-    mainwin.menuDev.newAction(
-        name='export_learning_data',
-        text='Export learning data',
-        slot_fn=back.dev_export_annotations)
-    mainwin.menuDev.addSeparator()
-    mainwin.menuDev.newAction(
-        name='start_web_server_parallel',
-        text='Start web interface',
-        slot_fn=back.start_web_server_parallel)
-    mainwin.menuDev.newAction(
-        name='kill_web_server_parallel',
-        text='Terminate web interface',
-        slot_fn=back.kill_web_server_parallel)
+def setup_depricated_menu(mainwin, back):
+    mainwin.menuDepr = guitool.newMenu(mainwin, mainwin.menubar, 'menuDepr', 'Depricated')
+    menu = mainwin.menuDepr
+    menu.addSeparator()  # ---------
+    menu.newAction(
+        name='actionCompute_Queries',
+        text='Query: Old Style',
+        tooltip='''This might take anywhere from a coffee break to an
+                    overnight procedure depending on how many ANNOTATIONs you\'ve
+                    made. It queries each chip and saves the result which
+                    allows multiple queries to be rapidly inspected later.''',
+        #shortcut='Ctrl+4',
+        slot_fn=back.compute_queries)
+    menu.newAction(
+        name='actionComputeIncremental_Queries',
+        text='Query: Incremental',
+        slot_fn=back.incremental_query
+    )
