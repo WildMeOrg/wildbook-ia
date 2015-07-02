@@ -181,7 +181,7 @@ def show_was_requested():
     returns True if --show is specified on the commandline or you are in
     IPython (and presumably want some sort of interaction
     """
-    return ut.get_argflag(('--show', '--save')) or ut.inIPython()
+    return not ut.get_argflag(('--noshow')) and (ut.get_argflag(('--show', '--save')) or ut.inIPython())
     #return ut.show_was_requested()
 
 
