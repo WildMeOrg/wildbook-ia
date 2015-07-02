@@ -225,7 +225,7 @@ def system_command(command_tuple, detatch=False, sudo=False, shell=False, verbos
 
 def get_setup_dpath():
     assert exists('setup.py'), 'must be run in ibeis directory'
-    assert exists('main.py'), 'must be run in ibeis directory'
+    #assert exists('main.py'), 'must be run in ibeis directory'
     assert exists('../ibeis/ibeis'), 'must be run in ibeis directory'
     cwd = normpath(realpath(dirname(__file__)))
     return cwd

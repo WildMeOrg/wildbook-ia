@@ -281,7 +281,8 @@ for (dst, src) in DATATUP_LIST:
 
 print('[installer] Running Analysis')
 a = Analysis(  # NOQA
-    ['main.py'],
+    #['main.py'],
+    ['ibeis/__main__.py'],
     pathex=pathex,
     hiddenimports=[
         'guitool.__PYQT__',
