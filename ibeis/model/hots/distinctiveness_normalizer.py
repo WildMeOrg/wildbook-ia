@@ -42,7 +42,7 @@ PUBLISH_DIR = ut.unixpath('~/Dropbox/IBEIS')
 def testdata_distinctiveness():
     """
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA
         >>> dstcnvs_normer, qreq_ = testdata_distinctiveness()
     """
@@ -160,7 +160,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             python -m ibeis.model.hots.distinctiveness_normalizer --test-exists
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA
             >>> # build test data
             >>> dstcnvs_normer = testdata_distinctiveness()[0]
@@ -192,9 +192,11 @@ class DistinctivnessNormalizer(ut.Cachable):
             try:
                 dstcnvs_normer.flann = pyflann.FLANN()
                 dstcnvs_normer.flann.load_index(flann_fpath, dstcnvs_normer.vecs)
+                assert dstcnvs_normer.flann._FLANN__curindex is not None
                 #load_success = True
             except Exception as ex:
                 ut.printex(ex, '... cannot load distinctiveness flann', iswarning=True)
+                dstcnvs_normer.rebuild(cachedir)
         else:
             dstcnvs_normer.ensure_flann(cachedir)
             #raise IOError('cannot load distinctiveness flann')
@@ -253,7 +255,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 3&
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # SLOW_DOCTEST
             >>> from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA
             >>> dstcnvs_normer, qreq_ = testdata_distinctiveness()
             >>> qaid = qreq_.get_external_qaids()[0]
@@ -264,20 +266,21 @@ class DistinctivnessNormalizer(ut.Cachable):
             >>> ut.assert_eq(len(qfx2_dstncvs.shape), 1)
             >>> assert np.all(qfx2_dstncvs) <= 1
             >>> assert np.all(qfx2_dstncvs) >= 0
-            >>> if ut.show_was_requested():
-            >>>     # Show distinctivness on an animal and a corresponding graph
-            >>>     import plottool as pt
-            >>>     chip = qreq_.ibs.get_annot_chips(qaid)
-            >>>     qfx2_kpts = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.qparams)
-            >>>     show_chip_distinctiveness_plot(chip, qfx2_kpts, qfx2_dstncvs)
-            >>>     #pt.figure(2)
-            >>>     #pt.show_all_colormaps()
-            >>>     pt.show_if_requested()
+            >>> ut.quit_if_noshow()
+            >>> # Show distinctivness on an animal and a corresponding graph
+            >>> import plottool as pt
+            >>> chip = qreq_.ibs.get_annot_chips(qaid)
+            >>> qfx2_kpts = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.qparams)
+            >>> show_chip_distinctiveness_plot(chip, qfx2_kpts, qfx2_dstncvs)
+            >>> #pt.figure(2)
+            >>> #pt.show_all_colormaps()
+            >>> pt.show_if_requested()
 
         Ignore:
             %s/\(^ *\)\(.*\)/\1>>> \2/c
 
         """
+        #ut.embed()
         assert dcvs_K > 0 and dcvs_K < len(dstcnvs_normer.vecs), 'dcvs_K=%r' % (dcvs_K,)
         if len(qfx2_vec) == 0:
             #(qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.empty_neighbors(0, dcvs_K)
@@ -378,7 +381,7 @@ def request_ibeis_distinctiveness_normalizer(qreq_, verbose=True):
         python -m ibeis.model.hots.distinctiveness_normalizer --test-request_ibeis_distinctiveness_normalizer
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA
         >>> import ibeis
         >>> # build test data
@@ -439,7 +442,7 @@ def list_published_distinctivness():
         python -m ibeis.model.hots.distinctiveness_normalizer --test-list_published_distinctivness
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA
         >>> published_fpaths = list_published_distinctivness()
         >>> print(ut.list_str(published_fpaths))

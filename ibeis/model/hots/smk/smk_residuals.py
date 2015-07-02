@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
 import vtool as vt
 from vtool import clustering2 as clustertool
 from ibeis.model.hots import hstypes
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[smk_residuals]')
+(print, rrr, profile) = ut.inject2(__name__, '[smk_residuals]')
 
 
 #@ut.cached_func('nonagg_rvecs', appname='smk_cachedir', key_argx=[1, 3, 4])
@@ -27,7 +28,7 @@ def compute_nonagg_rvecs(words, idx2_vec, wx_sublist, idxs_list):
         python -m ibeis.model.hots.smk.smk_residuals --test-compute_nonagg_rvecs:1
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> from ibeis.model.hots.smk import smk_residuals
@@ -40,7 +41,8 @@ def compute_nonagg_rvecs(words, idx2_vec, wx_sublist, idxs_list):
         >>> # ENABLE_DOCTEST
         >>> # The case where vecs == words
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
-        >>> vecs = (hstypes.VEC_MAX * np.random.rand(4, 128)).astype(hstypes.VEC_TYPE)
+        >>> rng = np.random.RandomState(0)
+        >>> vecs = (hstypes.VEC_MAX * rng.rand(4, 128)).astype(hstypes.VEC_TYPE)
         >>> word = vecs[1]
         >>> words = word.reshape(1, 128)
         >>> idx2_vec = vecs
@@ -90,7 +92,7 @@ def compute_agg_rvecs(rvecs_list, idxs_list, aids_list, maws_list):
         python -m ibeis.model.hots.smk.smk_residuals --test-compute_agg_rvecs
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
         >>> from ibeis.model.hots.smk import smk_residuals
@@ -146,8 +148,8 @@ def compress_normvec_float16(arr_float):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> np.random.seed(0)
-        >>> arr_float = smk_debug.get_test_float_norm_rvecs(2, 5)
+        >>> rng = np.random.RandomState(0)
+        >>> arr_float = smk_debug.get_test_float_norm_rvecs(2, 5, rng=rng)
         >>> vt.normalize_rows(arr_float, out=arr_float)
         >>> arr_float16 = compress_normvec_float16(arr_float)
         >>> result = ut.numpy_str(arr_float16, precision=4)
@@ -184,11 +186,12 @@ def compress_normvec_uint8(arr_float):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> np.random.seed(0)
-        >>> arr_float = smk_debug.get_test_float_norm_rvecs(2, 5)
+        >>> rng = np.random.RandomState(0)
+        >>> arr_float = smk_debug.get_test_float_norm_rvecs(2, 5, rng=rng)
         >>> vt.normalize_rows(arr_float, out=arr_float)
         >>> arr_int8 = compress_normvec_uint8(arr_float)
-        >>> print(arr_int8)
+        >>> result = arr_int8
+        >>> print(result)
         [[ 127   29   70 -128 -128]
          [-128 -128  -27  -18   73]]
     """
@@ -214,7 +217,7 @@ else:
 
 @profile
 def aggregate_rvecs(rvecs, maws):
-    """
+    r"""
     helper for compute_agg_rvecs
 
     Args:
@@ -226,24 +229,26 @@ def aggregate_rvecs(rvecs, maws):
 
     CommandLine:
         python -m ibeis.model.hots.smk.smk_residuals --test-aggregate_rvecs
+        ./run_tests.py --exclude-doctest-patterns pipeline neighbor score coverage automated_helpers name automatch chip_match multi_index automated special_query scoring automated nn_weights distinctive match_chips4 query_request devcases hstypes params ibsfuncs smk_core, smk_debug control
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> #rvecs = (hstypes.RVEC_MAX * np.random.rand(4, 4)).astype(hstypes.RVEC_TYPE)
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
-        >>> rvecs = (hstypes.RVEC_MAX * np.random.rand(4, 128)).astype(hstypes.RVEC_TYPE)
-        >>> maws  = (np.random.rand(rvecs.shape[0])).astype(hstypes.FLOAT_TYPE)
+        >>> rng = np.random.RandomState(0)
+        >>> rvecs = (hstypes.RVEC_MAX * rng.rand(4, 128)).astype(hstypes.RVEC_TYPE)
+        >>> maws  = (rng.rand(rvecs.shape[0])).astype(hstypes.FLOAT_TYPE)
         >>> rvecs_agg = aggregate_rvecs(rvecs, maws)
-        >>> result = ut.numpy_str2(rvecs_agg)
+        >>> result = ut.numpy_str2(rvecs_agg, linewidth=70)
         >>> print(result)
-        np.array([[14, 25, 15, 25, 23, 17, 30, 13, 28, 27, 20, 20, 26, 24, 18, 16, 27,
-                   37, 15, 11, 25, 23, 29, 16, 18, 25, 18, 21, 20, 17, 18, 29, 21, 29,
-                   24, 23, 15, 28, 12, 26, 21, 28, 20, 20, 19, 25, 20, 20, 32, 17, 17,
-                   17, 25, 14, 18, 26, 35, 26, 19, 21, 21, 29, 20, 18, 19, 28, 20, 19,
-                   15, 22, 22, 29, 15, 21, 13, 13, 29, 15, 33, 12, 29, 15, 27, 13, 30,
-                   28, 18, 19, 18, 11, 23, 29, 17, 31, 26,  8, 16, 10, 15, 38, 15, 12,
-                   12, 18, 32, 22, 19, 30, 22, 28, 21, 31, 25, 31, 22, 29, 26, 28, 17,
-                   17, 28, 18, 15, 17, 31, 15, 28, 28]], dtype=np.int8)
+        np.array([[28, 28, 33, 16, 16, 16, 12, 31, 27, 29, 20, 28, 21, 24, 15,
+                   21, 17, 37, 13, 40, 38, 33, 17, 30, 13, 23,  9, 25, 19, 15,
+                   20, 17, 19, 18, 13, 25, 37, 29, 21, 16, 20, 21, 35, 11, 28,
+                   19, 17, 12, 14, 24, 21, 11, 27, 11, 24, 10, 23, 20, 28, 12,
+                   16, 14, 30, 22, 18, 26, 22, 20, 18,  9, 30, 20, 25, 19, 23,
+                   20,  7, 13, 23, 22, 15, 20, 22, 16, 27, 10, 16, 20, 25, 26,
+                   26, 28, 22, 38, 24, 16, 14, 19, 24, 14, 22, 19, 20, 33, 21,
+                   22, 18, 22, 25, 25, 22, 23, 32, 16, 25, 15, 29, 22, 25, 20,
+                   22, 31, 29, 24, 25, 25, 21, 14]], dtype=np.int8)
     """
     if rvecs.shape[0] == 1:
         return rvecs
@@ -277,8 +282,9 @@ def get_norm_residuals(vecs, word):
         >>> # ENABLE_DOCTEST
         >>> # The case where vecs != words
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
-        >>> vecs = (hstypes.VEC_MAX * np.random.rand(4, 128)).astype(hstypes.VEC_TYPE)
-        >>> word = (hstypes.VEC_MAX * np.random.rand(1, 128)).astype(hstypes.VEC_TYPE)
+        >>> rng = np.random.RandomState(0)
+        >>> vecs = (hstypes.VEC_MAX * rng.rand(4, 128)).astype(hstypes.VEC_TYPE)
+        >>> word = (hstypes.VEC_MAX * rng.rand(1, 128)).astype(hstypes.VEC_TYPE)
         >>> rvecs_n = get_norm_residuals(vecs, word)
         >>> result = ut.numpy_str2(rvecs_n)
         >>> print(result)
@@ -287,7 +293,8 @@ def get_norm_residuals(vecs, word):
         >>> # ENABLE_DOCTEST
         >>> # The case where vecs == words
         >>> from ibeis.model.hots.smk.smk_residuals import *  # NOQA
-        >>> vecs = (hstypes.VEC_MAX * np.random.rand(4, 128)).astype(hstypes.VEC_TYPE)
+        >>> rng = np.random.RandomState(0)
+        >>> vecs = (hstypes.VEC_MAX * rng.rand(4, 128)).astype(hstypes.VEC_TYPE)
         >>> word = vecs[1]
         >>> rvecs_n = get_norm_residuals(vecs, word)
         >>> result = ut.numpy_str2(rvecs_n)

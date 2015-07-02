@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python2.7
 from __future__ import absolute_import, division, print_function
 import utool as ut
@@ -42,12 +43,23 @@ def run_tests():
         'notebook',
     ]
     dpath_list = ['ibeis']
-    doctest_modname_list = ut.find_doctestable_modnames(
+    doctest_modname_list_ = ut.find_doctestable_modnames(
         dpath_list, exclude_doctests_fnames, exclude_dirs)
+
+    exclude_doctest_pattern = ut.get_argval(('--exclude-doctest-patterns', '--x'), type_=list, default=[])
+    if exclude_doctest_pattern is not None:
+        import re
+        is_ok = [all([re.search(pat, name) is None for pat in exclude_doctest_pattern])
+                 for name in doctest_modname_list_]
+        doctest_modname_list = ut.list_compress(doctest_modname_list_, is_ok)
+    else:
+        doctest_modname_list = doctest_modname_list_
 
     for modname in doctest_modname_list:
         exec('import ' + modname, globals(), locals())
+
     module_list = [sys.modules[name] for name in doctest_modname_list]
+
     nPass, nTotal, failed_cmd_list = ut.doctest_module_list(module_list)
     if nPass != nTotal:
         return 1

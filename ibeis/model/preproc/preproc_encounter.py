@@ -1,19 +1,16 @@
-# flake8: NOQA
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool
 import numpy as np
-from six.moves import zip, map
+from six.moves import zip, map  # NOQA
 from scipy.spatial import distance
 import scipy.cluster.hierarchy as hier
 from sklearn.cluster import MeanShift, estimate_bandwidth
 from scipy.spatial.distance import pdist
-#from ibeis.control.IBEISControl import IBEISController
-from ibeis import constants
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[preproc_encounter]', DEBUG=False)
+(print, rrr, profile) = utool.inject2(__name__, '[preproc_encounter]')
 
 
-@utool.indent_func('[encounter]')
+#@utool.indent_func('[encounter]')
 def ibeis_compute_encounters(ibs, gid_list):
     """
     clusters encounters togethers (by time, not yet space)
@@ -21,18 +18,18 @@ def ibeis_compute_encounters(ibs, gid_list):
     a group of animals.  Animals are identified within each encounter.
     """
     # Config info
-    enc_cfgstr      = ibs.cfg.enc_cfg.get_cfgstr()
+    enc_cfgstr       = ibs.cfg.enc_cfg.get_cfgstr()
     seconds_thresh   = ibs.cfg.enc_cfg.seconds_thresh
     min_imgs_per_enc = ibs.cfg.enc_cfg.min_imgs_per_encounter
     cluster_algo     = ibs.cfg.enc_cfg.cluster_algo
     quantile         = ibs.cfg.enc_cfg.quantile
-    print('Computing %r encounters on %r images.' % (cluster_algo, len(gid_list)))
-    print('enc_cfgstr = %r' % enc_cfgstr)
+    print('[encounter] Computing %r encounters on %r images.' % (cluster_algo, len(gid_list)))
+    print('[encounter] enc_cfgstr = %r' % enc_cfgstr)
     if len(gid_list) == 0:
-        print('WARNING: len(gid_list) == 0. No images to compute encounters with')
+        print('[encounter] WARNING: len(gid_list) == 0. No images to compute encounters with')
         return [], []
     elif len(gid_list) == 1:
-        print('WARNING: custering 1 image into its own encounter')
+        print('[encounter] WARNING: custering 1 image into its own encounter')
         gid_arr = np.array(gid_list)
         label_arr = np.zeros(gid_arr.shape)
     else:
@@ -43,7 +40,7 @@ def ibeis_compute_encounters(ibs, gid_list):
         elif cluster_algo == 'meanshift':
             label_arr = _meanshift_cluster_encounters(X_data, quantile)
         else:
-            raise AssertionError('Uknown clustering algorithm: %r' % cluster_algo)
+            raise AssertionError('[encounter] Uknown clustering algorithm: %r' % cluster_algo)
     # Group images by unique label
     labels, label_gids = _group_images_by_label(label_arr, gid_arr)
     # Remove encounters less than the threshold
@@ -59,7 +56,7 @@ def ibeis_compute_encounters(ibs, gid_list):
     # enctext_list = ['E' + str(eid) + enc_cfgstr for eid in flat_eids]
     #enctext_list = [dt + '_E' + str(num) + enc_cfgstr for num, dt in zip(enc_labels, enc_datetimes)]
     #enctext_list = ibsfuncs.make_enctext_list(flat_eids, enc_cfgstr)
-    print('Found %d clusters.' % len(labels))
+    print('[encounter] Found %d clusters.' % len(labels))
     return flat_eids, flat_gids
 
 
@@ -71,12 +68,14 @@ def _compute_encounter_unixtime(ibs, enc_gids):
     enc_unixtimes = list(map(np.mean, time_arrs))
     return enc_unixtimes
 
+
 def _compute_encounter_datetime(ibs, enc_gids):
     #assert isinstance(ibs, IBEISController)
-    from ibeis import ibsfuncs
+    #from ibeis import ibsfuncs
     enc_unixtimes = _compute_encounter_unixtime(ibs, enc_gids)
     enc_datetimes = list(map(utool.unixtime_to_datetime, enc_unixtimes))
     return enc_datetimes
+
 
 def _prepare_X_data(ibs, gid_list, use_gps=False):
     """
@@ -205,7 +204,7 @@ def testdata_gps():
 
     X_data = np.vstack((time, lat, lon)).T
 
-    X_name = np.array([0, 1, 2, 2, 2, 2, 3, 3, 3])
+    X_name = np.array([0, 1, 2, 2, 2, 2, 3, 3, 3])  # NOQA
     X_data = np.array([
         (0, 42.727985, -73.683994),  # MRC
         (0, 42.657872, -73.764148),  # Home
@@ -221,8 +220,8 @@ def testdata_gps():
     timespace_distance(X_data[1], X_data[0])
 
     from scipy.cluster.hierarchy import fcluster
-    import numpy as np
-    np.set_printoptions(precision=8, threshold=1000, linewidth=200)
+    #import numpy as np
+    #np.set_printoptions(precision=8, threshold=1000, linewidth=200)
 
     condenced_dist_mat = distance.pdist(X_data, timespace_distance)
     #linkage_methods = [
@@ -267,14 +266,15 @@ def testdata_gps():
 
 def plot_annotaiton_gps(X_Data):
     """ Plots gps coordinates on a map projection """
+    import plottool as pt
     from mpl_toolkits.basemap import Basemap
     #lat = X_data[1:5, 1]
     #lon = X_data[1:5, 2]
-    lat = X_data[:, 1]
-    lon = X_data[:, 2]
-    fig = df2.figure(fnum=1, doclf=True, docla=True)
-    df2.close_figure(fig)
-    fig = df2.figure(fnum=1, doclf=True, docla=True)
+    lat = X_data[:, 1]  # NOQA
+    lon = X_data[:, 2]  # NOQA
+    fig = pt.figure(fnum=1, doclf=True, docla=True)  # NOQA
+    pt.close_figure(fig)
+    fig = pt.figure(fnum=1, doclf=True, docla=True)
     # setup Lambert Conformal basemap.
     m = Basemap(llcrnrlon=lon.min(),
                 urcrnrlon=lon.max(),

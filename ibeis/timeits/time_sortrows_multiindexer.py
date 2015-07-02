@@ -7,7 +7,7 @@
 
         import utool as ut
         #ut.rrrr()
-        np.set_printoptions(threshold=10000000)
+        #np.set_printoptions(threshold=10000000)
         setup = ut.unindent(
         '''
         import numpy as np

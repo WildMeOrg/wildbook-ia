@@ -166,6 +166,8 @@ def get_timedelta_str(ibs, aid1, aid2):
         >>> # verify results
         >>> result = str(timedelta_str)
         >>> print(result)
+        td(+2:28:22)
+
         td(02:28:22)
     """
     gid1, gid2 = ibs.get_annot_gids([aid1, aid2])

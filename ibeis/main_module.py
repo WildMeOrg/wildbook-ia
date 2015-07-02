@@ -133,17 +133,17 @@ def _init_numpy():
         'under':   on_err,
         'invalid': on_err,
     }
-    numpy_print = {
-        'precision': 8,
-        'threshold': 500,
-        'edgeitems': 3,
-        'linewidth': 200,  # default 75
-        'suppress': False,
-        'nanstr': 'nan',
-        'formatter': None,
-    }
+    #numpy_print = {
+    #    'precision': 8,
+    #    'threshold': 500,
+    #    'edgeitems': 3,
+    #    'linewidth': 200,  # default 75
+    #    'suppress': False,
+    #    'nanstr': 'nan',
+    #    'formatter': None,
+    #}
     np.seterr(**numpy_err)
-    np.set_printoptions(**numpy_print)
+    #np.set_printoptions(**numpy_print)
 
 
 #-----------------------

@@ -298,7 +298,7 @@ def compute_annot_coverage_score(qreq_, cm, config={}):
         python -m ibeis.model.hots.scoring --test-compute_annot_coverage_score:0
 
     Example0:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.scoring import *  # NOQA
         >>> qreq_, cm = plh.testdata_scoring()
         >>> config = qreq_.qparams

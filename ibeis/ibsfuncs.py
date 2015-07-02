@@ -64,6 +64,7 @@ def postinject_func(ibs):
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
+        >>> ibs.delete_empty_nids()  # a test run before this forgot to do this
         >>> aids_list = ibs.get_name_aids(ibs.get_valid_nids())
         >>> # indirectly test postinject_func
         >>> thetas_list = ibs.get_unflat_annot_thetas(aids_list)
@@ -2673,10 +2674,11 @@ def get_dominant_species(ibs, aid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('GZ_ALL')
+        >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> result = get_dominant_species(aid_list)
+        >>> result = get_dominant_species(ibs, aid_list)
         >>> print(result)
+        zebra_plains
     """
     hist_ = ut.dict_hist(ibs.get_annot_species_texts(aid_list))
     keys = hist_.keys()
@@ -4270,7 +4272,7 @@ def export_nnp_master3_subset(ibs):
         python -m ibeis.ibsfuncs --test-export_nnp_master3_subset
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SCRIPT
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> # build test data

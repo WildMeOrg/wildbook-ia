@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 TODO: DEPRICATE
 
@@ -99,7 +100,7 @@ def query_vsone_verified(ibs, qaids, daids, qreq_vsmany__=None, incinfo=None):
         python -m ibeis.model.hots.special_query --test-query_vsone_verified
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.special_query import *  # NOQA
         >>> ibs, valid_aids = testdata_special_query('PZ_MTEST')
         >>> qaids = valid_aids[0:1]
@@ -411,7 +412,7 @@ def build_vsone_shortlist(ibs, qaid2_qres_vsmany):
         python -m ibeis.model.hots.special_query --test-build_vsone_shortlist
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.special_query import *  # NOQA
         >>> ibs, valid_aids = testdata_special_query()
         >>> qaids = valid_aids[0:1]
@@ -460,7 +461,7 @@ def query_vsone_pairs(ibs, vsone_query_pairs, use_cache=False, save_qcache=False
         python -m ibeis.model.hots.special_query --test-query_vsone_pairs
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.special_query import *  # NOQA
         >>> ibs, valid_aids = testdata_special_query()
         >>> qaids = valid_aids[0:1]
@@ -538,7 +539,7 @@ def augment_vsone_with_vsmany(vsone_query_pairs, qaid2_qres_vsone, qaid2_qres_vs
         python -m ibeis.model.hots.special_query --test-augment_vsone_with_vsmany
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.special_query import *  # NOQA
         >>> # build test data
         >>> ibs, valid_aids = testdata_special_query()
@@ -675,7 +676,7 @@ def get_extern_distinctiveness(qreq_, qres, **kwargs):
         python -m ibeis.model.hots.special_query --test-get_extern_distinctiveness
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.special_query import *  # NOQA
         >>> import ibeis
         >>> # build test data

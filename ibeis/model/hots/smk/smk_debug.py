@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
@@ -15,12 +15,6 @@ from ibeis.model.hots import query_request
 
 # <TESTDATA>
 
-def testdata_printops(**kwargs):
-    """ test print options. doesnt take up too much screen
-    """
-    print('[smk_debug] testdata_printops')
-    np.set_printoptions(precision=4)
-
 
 def testdata_ibeis(**kwargs):
     """
@@ -33,8 +27,6 @@ def testdata_ibeis(**kwargs):
         >>> kwargs = {}
     """
     print(' === Test Data IBEIS ===')
-    from ibeis.model.hots.smk import smk_debug
-    smk_debug.testdata_printops(**kwargs)
     print('kwargs = ' + ut.dict_str(kwargs))
     print('[smk_debug] testdata_ibeis')
     db = kwargs.get('db', ut.get_argval('--db', str, 'PZ_MTEST'))
@@ -279,17 +271,17 @@ def testdata_nonagg_rvec():
     return words, wx_sublist, aids_list, idxs_list, idx2_vec, maws_list
 
 
-def get_test_float_norm_rvecs(num=1000, dim=None):
+def get_test_float_norm_rvecs(num=1000, dim=None, rng=np.random):
     import numpy.linalg as npl
     from ibeis.model.hots import hstypes
     if dim is None:
         dim = hstypes.VEC_DIM
-    rvecs_float = np.random.normal(size=(num, dim))
+    rvecs_float = rng.normal(size=(num, dim))
     rvecs_norm_float = rvecs_float / npl.norm(rvecs_float, axis=1)[:, None]
     return rvecs_norm_float
 
 
-def get_test_rvecs(num=1000, dim=None, nanrows=None):
+def get_test_rvecs(num=1000, dim=None, nanrows=None, rng=np.random):
     from ibeis.model.hots import hstypes
     max_ = hstypes.RVEC_MAX
     min_ = hstypes.RVEC_MIN
@@ -297,7 +289,7 @@ def get_test_rvecs(num=1000, dim=None, nanrows=None):
     if dim is None:
         dim = hstypes.VEC_DIM
     dtype_range = max_ - min_
-    rvecs_float = np.random.normal(size=(num, dim))
+    rvecs_float = rng.normal(size=(num, dim))
     rvecs = ((dtype_range * rvecs_float) - hstypes.RVEC_MIN).astype(dtype)
     if nanrows is not None:
         rvecs[nanrows] = np.nan
@@ -319,9 +311,9 @@ def get_test_rvecs(num=1000, dim=None, nanrows=None):
     return rvecs
 
 
-def get_test_maws(rvecs):
+def get_test_maws(rvecs, rng=np.random):
     from ibeis.model.hots import hstypes
-    return (np.random.rand(rvecs.shape[0])).astype(hstypes.FLOAT_TYPE)
+    return (rng.rand(rvecs.shape[0])).astype(hstypes.FLOAT_TYPE)
 
 
 def testdata_match_kernel_L0():
@@ -1118,22 +1110,6 @@ def main_smk_debug():
     print('finished main')
     return locals()
 
-
-#if __name__ == '__main__':
-#    print('\n\n\n\n\n\n')
-#    from ibeis.model.hots.smk import smk_plots
-#    import multiprocessing
-#    from plottool import draw_func2 as df2
-#    mode = ut.get_argval('--mode', int, default=0)
-#    if mode == 0 or ut.get_argflag('--view-vocabs'):
-#        smk_plots.view_vocabs()
-#    else:
-#        np.set_printoptions(precision=2)
-#        multiprocessing.freeze_support()  # for win32
-#        main_locals = main_smk_debug()
-#        main_execstr = ut.execstr_dict(main_locals, 'main_locals')
-#        exec(main_execstr)
-#    exec(df2.present())
 
 if __name__ == '__main__':
     """

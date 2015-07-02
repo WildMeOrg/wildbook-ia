@@ -172,11 +172,12 @@ def get_pipeline_testdata(dbname=None,
 
     # setup special defautls
 
-    default_qaid_list = {
-        'testdb1' : [1],
-        'GZ_ALL'  : [1032],
-        'PZ_ALL'  : [1, 3, 5, 9],
-    }.get(dbname, [1] if default_qaid_list is None else default_qaid_list)
+    if default_qaid_list is None:
+        default_qaid_list = {
+            'testdb1' : [1],
+            'GZ_ALL'  : [1032],
+            'PZ_ALL'  : [1, 3, 5, 9],
+        }.get(dbname, [1])
 
     default_daid_list = ut.get_argval(('--daids', '--daid-list'), type_=list, default=default_daid_list)
 
@@ -381,9 +382,9 @@ def _sameimg_verbose_check(qfx2_notsameimg, qfx2_valid0):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.model.hots._pipline_helpers
-        python -m ibeis.model.hots._pipline_helpers --allexamples
-        python -m ibeis.model.hots._pipline_helpers --allexamples --noface --nosrc
+        python -m ibeis.model.hots._pipeline_helpers
+        python -m ibeis.model.hots._pipeline_helpers --allexamples
+        python -m ibeis.model.hots._pipeline_helpers --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

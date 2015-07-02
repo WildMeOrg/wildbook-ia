@@ -164,7 +164,7 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
 def distinctiveness_match_weighter(qreq_):
     """
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.model.hots.nn_weights import *  # NOQA
         >>> from ibeis.model.hots import nn_weights
         >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', codename='vsone_dist_extern_distinctiveness')

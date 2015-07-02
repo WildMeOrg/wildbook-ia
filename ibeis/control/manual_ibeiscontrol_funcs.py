@@ -156,7 +156,7 @@ def get_annot_kpts_distinctiveness(ibs, aid_list, config2_=None, **kwargs):
         python -m ibeis.control.manual_ibeiscontrol_funcs --test-get_annot_kpts_distinctiveness
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.control.manual_ibeiscontrol_funcs import *  # NOQA
         >>> from ibeis.model.hots import distinctiveness_normalizer
         >>> import ibeis

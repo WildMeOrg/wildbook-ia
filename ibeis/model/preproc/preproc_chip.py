@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Preprocess Chips
 
@@ -17,7 +18,7 @@ import utool as ut  # NOQA
 import vtool.chip as ctool
 import vtool.image as gtool
 import functools
-(print, print_, printDBG, rrr, profile) = ut.inject(
+(print, rrr, profile) = ut.inject2(
     __name__, '[preproc_chip]', DEBUG=False)
 
 
@@ -258,10 +259,11 @@ def gen_chip(tup):
     r"""
     Parallel worker. Crops chip out of an image, applies filters, etc
     """
+    #print('generating chip')
     cfpath, gfpath, bbox, theta, new_size, filter_list = tup
     chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)
     #if DEBUG:
-    #printDBG('write chip: %r' % cfpath)
+    #print('write chip: %r' % cfpath)
     height, width = chipBGR.shape[0:2]
     gtool.imwrite(cfpath, chipBGR)
     return cfpath, width, height

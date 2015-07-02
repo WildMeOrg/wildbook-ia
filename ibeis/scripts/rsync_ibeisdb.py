@@ -109,6 +109,7 @@ def rsync_ibsdb_main():
     }
     remote = remote_map.get(remote_key, remote_key)
     remote_uri = user + remote
+    ut.change_term_title('RSYNC IBEISDB %r' % (dbname,))
     sync_ibeisdb(remote_uri, dbname, mode, workdir, port, dry_run)
 
 

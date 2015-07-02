@@ -2,10 +2,10 @@
 from __future__ import absolute_import, division, print_function
 from PIL import Image
 from os.path import splitext, basename
-import numpy as np  # NOQA
+#import numpy as np  # NOQA
 import warnings  # NOQA
-import hashlib
-import uuid
+#import hashlib
+#import uuid
 import vtool.exif as vtexif
 import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_img]', DEBUG=False)
@@ -28,37 +28,6 @@ def parse_exif(pil_img):
     lat, lon = vtexif.get_lat_lon(exif_dict)
     time = vtexif.get_unixtime(exif_dict)
     return time, lat, lon
-
-
-@profile
-def get_image_uuid(pil_img):
-    """ DEPRICATE
-
-    Cyth::
-
-        cdef:
-            UUID uuid_
-            object img_bytes_
-            object bytes_sha1
-            object hashbytes_16
-            object hashbytes_20
-
-    """
-    # DEPRICATE
-    # Read PIL image data (every 64th byte)
-    img_bytes_ = np.asarray(pil_img).ravel()[::64].tostring()
-    #print('[ginfo] npimg.sum() = %r' % npimg.sum())
-    #img_bytes_ = np.asarray(pil_img).ravel().tostring()
-    # hash the bytes using sha1
-    bytes_sha1 = hashlib.sha1(img_bytes_)
-    hashbytes_20 = bytes_sha1.digest()
-    # sha1 produces 20 bytes, but UUID requires 16 bytes
-    hashbytes_16 = hashbytes_20[0:16]
-    uuid_ = uuid.UUID(bytes=hashbytes_16)
-    #uuid_ = uuid.uuid4()
-    #print('[ginfo] hashbytes_16 = %r' % (hashbytes_16,))
-    #print('[ginfo] uuid_ = %r' % (uuid_,))
-    return uuid_
 
 
 def get_standard_ext(gpath):

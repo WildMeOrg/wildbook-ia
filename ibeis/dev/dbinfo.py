@@ -1,11 +1,11 @@
-# This is not the cleanest module
+# -*- coding: utf-8 -*-
 """
 get_dbinfo is probably the only usefull funciton in here
+# This is not the cleanest module
 """
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 import utool as ut
-# Science
 import six
 import numpy as np
 import ibeis.constants as const
@@ -94,15 +94,20 @@ def get_dbinfo(ibs, verbose=True,
         # Annots (unknown)           = 4
         # Annots (singleton)         = 5
         # Annots (multiton)          = 4
+        # Annots per Viewpoint = {
+            None : 13,
+        }
+        # Annots per Quality = {
+            'UNKNOWN' : 13,
+        }
         ----------
         # Img                        = 13
         # Img reviewed               = 0
         # Img with gps               = 12
-        # Img with timestamp         = 13
         Img Time Stats               = {
-            'max'     : '1970/01/01 02:30:13',
-            'mean'    : '1970/01/01 01:10:15',
-            'min'     : '1970/01/01 00:01:41',
+            'max'     : '1969/12/31 21:30:13',
+            'mean'    : '1969/12/31 20:10:15',
+            'min'     : '1969/12/31 19:01:41',
             'nMax'    : 1,
             'nMin'    : 1,
             'num_nan' : 0,
@@ -601,8 +606,8 @@ def get_keypoint_stats(ibs):
     cx2_nFeats = list(map(len, cx2_kpts))
     kpts = np.vstack(cx2_kpts)
     print('[dbinfo] --- LaTeX --- ')
-    _printopts = np.get_printoptions()
-    np.set_printoptions(precision=3)
+    #_printopts = np.get_printoptions()
+    #np.set_printoptions(precision=3)
     scales = ktool.get_scales(kpts)
     scales = np.array(sorted(scales))
     tex_scale_stats = util_latex.latex_get_stats(r'kpt scale', scales)
@@ -611,7 +616,7 @@ def get_keypoint_stats(ibs):
     print(tex_nKpts)
     print(tex_kpts_stats)
     print(tex_scale_stats)
-    np.set_printoptions(**_printopts)
+    #np.set_printoptions(**_printopts)
     print('[dbinfo] ---/LaTeX --- ')
     return (tex_nKpts, tex_kpts_stats, tex_scale_stats)
 
