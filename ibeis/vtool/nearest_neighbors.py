@@ -59,27 +59,27 @@ def test_cv2_flann():
     pt.imshow(out)
 
     vecs1 = dummy.testdata_dummy_sift(10)
-    vecs2 = dummy.testdata_dummy_sift(10)
+    vecs2 = dummy.testdata_dummy_sift(10)  # NOQA
 
     FLANN_INDEX_KDTREE = 0  # bug: flann enums are missing
     #flann_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=4)
     index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
     search_params = dict(checks=50)   # or pass empty dictionary
-    flann = cv2.FlannBasedMatcher(index_params, search_params)
+    flann = cv2.FlannBasedMatcher(index_params, search_params)  # NOQA
 
     cv2.flann.Index(vecs1, index_params)
 
     #cv2.FlannBasedMatcher(flann_params)
 
-    cv2.flann.Index(vecs1, flann_params)
+    cv2.flann.Index(vecs1, flann_params)  # NOQA
 
-    def match_flann(desc1, desc2, r_threshold = 0.6):
-        flann = cv2.flann_Index(desc2, flann_params)
-        idx2, dist = flann.knnSearch(desc1, 2, params = {}) # bug: need to provide empty dict
-        mask = dist[:,0] / dist[:,1] < r_threshold
-        idx1 = np.arange(len(desc1))
-        pairs = np.int32( zip(idx1, idx2[:,0]) )
-        return pairs[mask]
+    #def match_flann(desc1, desc2, r_threshold = 0.6):
+    #    flann = cv2.flann_Index(desc2, flann_params)
+    #    idx2, dist = flann.knnSearch(desc1, 2, params = {}) # bug: need to provide empty dict
+    #    mask = dist[:,0] / dist[:,1] < r_threshold
+    #    idx1 = np.arange(len(desc1))
+    #    pairs = np.int32( zip(idx1, idx2[:,0]) )
+    #    return pairs[mask]
 
 
 def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
@@ -199,8 +199,8 @@ def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_da
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.nearest_neighbors import *  # NOQA
-        >>> np.random.seed(1)
-        >>> dpts = np.random.randint(0, 255, (10, 128)).astype(np.uint8)
+        >>> rng = np.random.RandomState(1)
+        >>> dpts = rng.randint(0, 255, (10, 128)).astype(np.uint8)
         >>> cache_dir = '.'
         >>> cfgstr = '_FEAT(alg=heshes)'
         >>> flann_params = get_kdtree_flann_params()

@@ -969,35 +969,35 @@ def draw_text(img, text, org, textcolor_rgb=[0, 0, 0], fontScale=1, thickness=2,
     return out
 
 
-def testing(img):
-    r"""
-    Args:
-        img (ndarray[uint8_t, ndim=2]):  image data
-
-    CommandLine:
-        python -m vtool.image --test-testing --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
-        >>> import vtool as vt
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
-        >>> img = vt.imread(img_fpath)
-        >>> img2 = testing(img)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> pt.imshow(img, pnum=(1, 2, 1))
-        >>> pt.imshow(img2, pnum=(1, 2, 2))
-        >>> ut.show_if_requested()
-    """
-    img = img.astype(np.float32)
-    mask = np.ones(img.shape, dtype=np.uint8)
-    img2 = img.copy()
-    alpha = 2.2
-    beta = 50.0
-    cv2.illuminationChange(img, mask, img2, alpha, beta)
-    ut.embed()
-    return img2
+#def testing(img):
+#    r"""
+#    Args:
+#        img (ndarray[uint8_t, ndim=2]):  image data
+#
+#    CommandLine:
+#        python -m vtool.image --test-testing --show
+#
+#    Example:
+#        >>> # DISABLE_DOCTEST
+#        >>> from vtool.image import *  # NOQA
+#        >>> import vtool as vt
+#        >>> img_fpath = ut.grab_test_imgpath('lena.png')
+#        >>> img = vt.imread(img_fpath)
+#        >>> img2 = testing(img)
+#        >>> ut.quit_if_noshow()
+#        >>> import plottool as pt
+#        >>> pt.imshow(img, pnum=(1, 2, 1))
+#        >>> pt.imshow(img2, pnum=(1, 2, 2))
+#        >>> ut.show_if_requested()
+#    """
+#    img = img.astype(np.float32)
+#    mask = np.ones(img.shape, dtype=np.uint8)
+#    img2 = img.copy()
+#    alpha = 2.2
+#    beta = 50.0
+#    cv2.illuminationChange(img, mask, img2, alpha, beta)
+#    #ut.embed()
+#    return img2
 
 
 def perlin_noise(size, scale=32.0, rng=np.random):

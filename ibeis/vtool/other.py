@@ -1019,8 +1019,12 @@ def weighted_geometic_mean(data, weights):
         >>> data = [img1, img2]
         >>> weights = np.array([.5, .5])
         >>> gmean_ = weighted_geometic_mean(data, weights)
-        >>> result = ('gmean_ = %.3f' % (gmean_,))
+        >>> result = ut.hz_str('gmean_ = ', ut.numpy_str(gmean_, precision=2))
         >>> print(result)
+        gmean_ = np.array([[ 0.11,  0.77,  0.68,  0.69],
+                           [ 0.64,  0.72,  0.45,  0.83],
+                           [ 0.34,  0.5 ,  0.34,  0.71],
+                           [ 0.54,  0.62,  0.14,  0.26]], dtype=np.float64)
 
     Ignore:
         res1 = ((img1 ** .5 * img2 ** .5)) ** 1
