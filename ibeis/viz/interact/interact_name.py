@@ -442,7 +442,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         if not annotation_unknown:
             # remove name
             callback = functools.partial(self.unname_annotation, aid)
-            self.append_button('remove name', callback=callback, **butkw)
+            self.append_button('remove name (' + ibs.get_name_texts(nid) + ')', callback=callback, **butkw)
         else:
             # new name
             callback = functools.partial(self.mark_annotation_as_new_name, aid)
