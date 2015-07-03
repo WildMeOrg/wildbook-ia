@@ -26,7 +26,6 @@ def reload_subs(verbose=True):
         pass
     getattr(preproc_annot, 'rrr', fbrrr)(verbose=verbose)
     getattr(preproc_chip, 'rrr', fbrrr)(verbose=verbose)
-    getattr(preproc_detectchip, 'rrr', fbrrr)(verbose=verbose)
     getattr(preproc_detectimg, 'rrr', fbrrr)(verbose=verbose)
     getattr(preproc_encounter, 'rrr', fbrrr)(verbose=verbose)
     getattr(preproc_feat, 'rrr', fbrrr)(verbose=verbose)
@@ -41,7 +40,6 @@ rrrr = reload_subs
 IMPORT_TUPLES = [
     ('preproc_annot', None),
     ('preproc_chip', None),
-    ('preproc_detectchip', None),
     ('preproc_detectimg', None),
     ('preproc_encounter', None),
     ('preproc_feat', None),

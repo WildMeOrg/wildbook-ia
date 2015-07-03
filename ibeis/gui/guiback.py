@@ -4,7 +4,7 @@ This module controls the GUI backend.  It is the layer between the GUI frontend
 gui components is written or called from here
 """
 from __future__ import absolute_import, division, print_function
-#import six
+import six  # NOQA
 import sys
 import functools
 import guitool
@@ -99,7 +99,13 @@ def blocking_slot(*types_):
 #------------------------
 # Backend MainWindow Class
 #------------------------
-class MainWindowBackend(QtCore.QObject):
+#QtReloadingMetaClass = ut.reloading_meta_metaclass_factory(guitool.QtCore.pyqtWrapperType)
+
+GUIBACK_BASE = QtCore.QObject
+
+
+#@six.add_metaclass(QtReloadingMetaClass)  # cant do this quit yet
+class MainWindowBackend(GUIBACK_BASE):
     """
     Sends and recieves signals to and from the frontend
     """
@@ -112,7 +118,8 @@ class MainWindowBackend(QtCore.QObject):
     #------------------------
     def __init__(back, ibs=None):
         """ Creates GUIBackend object """
-        QtCore.QObject.__init__(back)
+        #GUIBACK_BASE.__init__(back)
+        super(MainWindowBackend, back).__init__()
         if ut.VERBOSE:
             print('[back] MainWindowBackend.__init__(ibs=%r)' % (ibs,))
         back.ibs = None
@@ -627,6 +634,11 @@ class MainWindowBackend(QtCore.QObject):
         back.ibs.update_special_encounters()
         back.front.update_tables()
 
+    @blocking_slot()
+    def update_special_encounters(back):
+        back.ibs.update_special_encounters()
+        back.front.update_tables([gh.ENCOUNTER_TABLE])
+
     @blocking_slot(int)
     def delete_encounter_and_images(back, eid_list):
         print('\n\n[back] delete_encounter_and_images')
@@ -1065,7 +1077,7 @@ class MainWindowBackend(QtCore.QObject):
             #'prescore_method': 'csum',
             #'score_method': 'csum'
         }
-        back.compute_queries(qaid_list, daids_mode=const.VS_EXEMPLARS_KEY,
+        back.compute_queries(qaid_list=qaid_list, daids_mode=const.VS_EXEMPLARS_KEY,
                              query_msg='Checking for MERGE cases (this is an exemplars-vs-exemplars query)',
                              cfgdict=cfgdict)
 
@@ -1401,7 +1413,8 @@ class MainWindowBackend(QtCore.QObject):
     @backreport
     def delete_queryresults_dir(back):
         print('[back] delete_queryresults_dir')
-        if not back.are_you_sure():
+        if not back.are_you_sure(use_msg=('Are you sure you want to delete the '
+                                          'cached query results?')):
             return
         ut.delete(back.ibs.qresdir)
         pass
@@ -1410,8 +1423,10 @@ class MainWindowBackend(QtCore.QObject):
     def dev_reload(back):
         """ Help -> Developer Reload"""
         print('[back] dev_reload')
-        from ibeis.all_imports import reload_all
-        reload_all()
+        #from ibeis.all_imports import reload_all
+        back.ibs.rrr()
+        #back.rrr()
+        #reload_all()
 
     @blocking_slot()
     def dev_mode(back):
@@ -1745,6 +1760,13 @@ class MainWindowBackend(QtCore.QObject):
         """
         dbinfo = back.ibs.get_dbinfo_str()
         guitool.msgbox(msg=back.ibs.get_infostr(), title="DBInfo", detailed_msg=dbinfo)
+
+    @slot_()
+    def show_about_message(back):
+        import ibeis
+        version = ibeis.__version__
+        about_msg = 'IBEIS version %s\nImage Based Ecological Information System\nhttp://ibeis.org/' % (version,)
+        guitool.msgbox(msg=about_msg, title='About')
 
 
 def testdata_guiback():

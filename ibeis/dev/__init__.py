@@ -40,14 +40,14 @@ def reassign_submodule_attributes(verbose=True):
 
 def reload_subs(verbose=True):
     """ Reloads ibeis.init.and submodules """
-    rrr(verbose=verbose)
+    #rrr(verbose=verbose)
     def fbrrr(*args, **kwargs):
         """ fallback reload """
         pass
     getattr(dbinfo, 'rrr', fbrrr)(verbose=verbose)
     getattr(duct_tape, 'rrr', fbrrr)(verbose=verbose)
     getattr(optimize_k, 'rrr', fbrrr)(verbose=verbose)
-    rrr(verbose=verbose)
+    #rrr(verbose=verbose)
     try:
         # hackish way of propogating up the new reloaded submodule attributes
         reassign_submodule_attributes(verbose=verbose)

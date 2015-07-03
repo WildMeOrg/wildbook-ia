@@ -591,6 +591,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def connect_ibeis_control(ibswgt, ibs):
         """ Connects a new ibscontroler to the models """
         print('[newgui] connecting ibs control. ibs=%r' % (ibs,))
+        ibswgt.enc_tabwgt._close_all_tabs()
         if ibs is None:
             print('[newgui] invalid ibs')
             title = 'No Database Opened'

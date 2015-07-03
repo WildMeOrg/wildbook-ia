@@ -57,6 +57,9 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
     Returns:
         generator : generates param tups
 
+    CommandLine:
+        python -m ibeis.model.preproc.preproc_feat --test-generate_feat_properties
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.preproc.preproc_feat import *  # NOQA
@@ -75,6 +78,22 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
         >>> assert nFeat == len(kpts) and nFeat == len(vecs)
         >>> assert kpts.shape[1] == 6
         >>> assert vecs.shape[1] == 128
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.model.preproc.preproc_feat import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> cfgdict = {}
+        >>> cfgdict['feat_type'] = 'hesaff+siam128'
+        >>> qreq_ = ibs.new_query_request([1], [1, 2, 3], cfgdict)
+        >>> query_config2 = qreq_.get_external_query_config2()
+        >>> data_config2 = qreq_.get_external_data_config2()
+        >>> cid_list = '?'
+        >>> config2_ = None
+        >>> nInput = None
+        >>> result = generate_feat_properties(ibs, cid_list, config2_, nInput)
+        >>> print(result)
     """
     if nInput is None:
         nInput = len(cid_list)

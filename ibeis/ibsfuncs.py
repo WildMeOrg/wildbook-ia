@@ -3818,8 +3818,11 @@ def filter_aids_custom(ibs, aid_list):
         >>> result = str(aid_list_)
         >>> print(result)
     """
+    if not ibs.cfg.other_cfg.enable_custom_filter:
+        return aid_list
     flags_list = ibs.get_annot_custom_filterflags(aid_list)
     aid_list_ = list(ut.ifilter_items(aid_list, flags_list))
+    #aid_list_ = list(ut.list_compress(aid_list, flags_list))
     return aid_list_
 
 

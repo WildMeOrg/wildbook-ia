@@ -177,6 +177,32 @@ def vsone_independant(qreq_):
         >>> result = vsone_independant(qreq_)
         >>> print(result)
     """
+    # test script
+    ibs = qreq_.ibs
+    # ./dev.py --db lewa_grevys --cmd
+    # Get matches that have some property (scenerymatch)
+    # HACK TEST SCRIPT
+
+    def get_scenery_match_aid_pairs(ibs):
+        import utool as ut
+        annotmatch_rowids = ibs._get_all_annotmatch_rowids()
+        flags = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowids)
+        annotmatch_rowids_ = ut.list_compress(annotmatch_rowids, flags)
+        aid1_list = ibs.get_annotmatch_aid1(annotmatch_rowids_)
+        aid2_list = ibs.get_annotmatch_aid2(annotmatch_rowids_)
+        aid_pair_list = list(zip(aid1_list, aid2_list))
+        return aid_pair_list
+    aid_pair_list = get_scenery_match_aid_pairs(ibs)
+    aid1, aid2 = aid_pair_list[0]
+    info_list = []
+    for aid1, aid2 in ut.ProgressIter(aid_pair_list):
+        rchip_fpath1, rchip_fpath2 = ibs.get_annot_chip_fpath([aid1, aid2])
+        matches, metadata = vt.matching.vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2)
+        info_list.append((matches, metadata))
+        print('So Far')
+        print(sum([matches['RAT+SV'][0].shape[0] for (matches, metadata) in info_list]))  # NOQA
+    # nnp_master had 15621 background examples
+    vt.matching.show_matching_dict(matches, metadata)
     # TODO
     pass
 
