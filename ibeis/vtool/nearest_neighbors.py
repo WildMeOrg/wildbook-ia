@@ -138,7 +138,7 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
         >>> # Get actual distance by hand
         >>> hand_dist = np.sum((qpts8 - dpts8[qx2_dx.T[0]]) ** 2, 0)
         >>> # Seems like flann returns squared distance. makes sense
-        >>> result = utool.hashstr(repr((qx2_dx, qx2_dist)))
+        >>> result = utool.hashstr27(repr((qx2_dx, qx2_dist)))
         >>> print(result)
         8zdwd&q0mu+ez4gp
 
@@ -206,7 +206,7 @@ def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_da
         >>> flann_params = get_kdtree_flann_params()
         >>> result = get_flann_cfgstr(dpts, flann_params, cfgstr)
         >>> print(result)
-        _FEAT(alg=heshes)_FLANN(4kdtree)_DPTS((10,128)b+oqb%cnuo&oxk7h)
+        _FEAT(alg=heshes)_FLANN(4kdtree)_DPTS((10,128)xxaotseonmfjkzcr)
     """
     flann_cfgstr = cfgstr
     if use_params_hash:
@@ -215,7 +215,7 @@ def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True, use_da
     # Generate a unique filename for dpts and flann parameters
     if use_data_hash:
         # flann is dependent on the dpts
-        data_hashstr = utool.hashstr_arr(dpts, '_DPTS')
+        data_hashstr = utool.hashstr_arr27(dpts, '_DPTS')
         flann_cfgstr += data_hashstr
     return flann_cfgstr
 

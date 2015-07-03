@@ -28,22 +28,25 @@ def extract_features(img_fpath, **kwargs):
         >>> import vtool as vt
         >>> # build test data
         >>> img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='lena.png'))
+        >>> imgBGR = vt.imread(img_fpath)
         >>> # execute function
-        >>> (kpts, vecs) = extract_features(img_fpath)
+        >>> #(kpts, vecs) = extract_features(img_fpath)
+        >>> (kpts, vecs) = extract_features(imgBGR)
         >>> # verify results
         >>> result = str((kpts, vecs))
         >>> print(result)
         >>> # Show keypoints
-        >>> if ut.show_was_requested():
-        >>>     import plottool as pt
-        >>>     pt.figure(fnum=1, doclf=True, docla=True)
-        >>>     imgBGR = vt.imread(img_fpath)
-        >>>     pt.imshow(imgBGR)
-        >>>     pt.draw_kpts2(kpts, ori=True)
-        >>>     pt.show_if_requested()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> #pt.figure(fnum=1, doclf=True, docla=True)
+        >>> #pt.imshow(imgBGR)
+        >>> #pt.draw_kpts2(kpts, ori=True)
+        >>> pt.interact_keypoints.ishow_keypoints(imgBGR, kpts, vecs, ori=True, ell_alpha=.4, color='distinct')
+        >>> pt.show_if_requested()
     """
     import pyhesaff
-    (kpts, vecs) = pyhesaff.detect_kpts(img_fpath, **kwargs)
+    #(kpts, vecs) = pyhesaff.detect_kpts(img_fpath, **kwargs)
+    (kpts, vecs) = pyhesaff.detect_kpts2(img_fpath, **kwargs)
     return (kpts, vecs)
 
 

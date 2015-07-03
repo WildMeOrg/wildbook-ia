@@ -12,6 +12,135 @@ PSEUDO_MAX_DIST_SQRD = 2 * (PSEUDO_MAX_VEC_COMPONENT ** 2)
 PSEUDO_MAX_DIST = np.sqrt(2) * (PSEUDO_MAX_VEC_COMPONENT)
 
 
+def show_matching_dict(matches, metadata):
+    import plottool as pt
+    fm, fs = matches['RAT+SV'][0:2]
+    rchip1, rchip2, kpts1, kpts2 = ut.dict_take(metadata, ['rchip1', 'rchip2', 'kpts1', 'kpts2'])
+    pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
+
+
+def vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict={}):
+    r"""
+    Args:
+        rchip_fpath1 (str):
+        rchip_fpath2 (str):
+        cfgdict (dict): (default = {})
+
+    CommandLine:
+        python -m vtool.matching --test-vsone_image_fpath_matching --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.matching import *  # NOQA
+        >>> rchip_fpath1 = ut.grab_test_imgpath('easy1.png')
+        >>> rchip_fpath2 = ut.grab_test_imgpath('easy2.png')
+        >>> cfgdict = {}
+        >>> matches, metadata = vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict)
+        >>> ut.quit_if_noshow()
+        >>> vt.show_matching_dict(matches, metadata)
+        >>> ut.show_if_requested()
+    """
+    import vtool as vt
+    rchip1 = vt.imread(rchip_fpath1)
+    rchip2 = vt.imread(rchip_fpath2)
+    matches, metadata = vsone_image_matching(rchip1, rchip2, cfgdict=cfgdict)
+    metadata.update({
+        'rchip1': rchip1,
+        'rchip2': rchip2,
+    })
+    return matches, metadata
+
+
+def vsone_image_matching(rchip1, rchip2, cfgdict={}):
+    import vtool as vt
+    dlen_sqrd2 = rchip2.shape[0] ** 2 + rchip2.shape[1] ** 2
+    kpts1, vecs1 = vt.extract_features(rchip1)
+    kpts2, vecs2 = vt.extract_features(rchip2)
+    matches, metadata = vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict=cfgdict)
+    metadata.update({
+        'kpts1': kpts1,
+        'kpts2': kpts2,
+        'vecs1': vecs1,
+        'vecs2': vecs2,
+    })
+    return matches, metadata
+
+
+def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={}):
+    r"""
+    Args:
+        vecs1 (ndarray[uint8_t, ndim=2]): SIFT descriptors
+        vecs2 (ndarray[uint8_t, ndim=2]): SIFT descriptors
+        kpts1 (ndarray[float32_t, ndim=2]):  keypoints
+        kpts2 (ndarray[float32_t, ndim=2]):  keypoints
+
+    Ignore:
+        %pylab qt4
+        import plottool as pt
+        pt.imshow(rchip1)
+        pt.draw_kpts2(kpts1)
+
+        pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
+        pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
+    """
+    #import vtool as vt
+    sver_xy_thresh = cfgdict.get('sver_xy_thresh', .01)
+    ratio_thresh =  cfgdict.get('ratio_thresh', .625)
+    K =  cfgdict.get('K', 1)
+    Knorm =  cfgdict.get('Knorm', 1)
+    #ratio_thresh =  .99
+    # GET NEAREST NEIGHBORS
+    import vtool as vt
+    import pyflann
+    from vtool import spatial_verification as sver
+    checks = 800
+    flann_params = {
+        'algorithm': 'kdtree',
+        'trees': 8
+    }
+    #pseudo_max_dist_sqrd = (np.sqrt(2) * 512) ** 2
+    #pseudo_max_dist_sqrd = 2 * (512 ** 2)
+    flann = vt.flann_cache(vecs1, flann_params=flann_params)
+    try:
+        num_neighbors = K + Knorm
+        fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(flann, vecs2, num_neighbors, checks)
+        #fx2_to_fx1, _fx2_to_dist = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
+    except pyflann.FLANNException:
+        print('vecs1.shape = %r' % (vecs1.shape,))
+        print('vecs2.shape = %r' % (vecs2.shape,))
+        print('vecs1.dtype = %r' % (vecs1.dtype,))
+        print('vecs2.dtype = %r' % (vecs2.dtype,))
+        raise
+    assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist)
+    fx2_match, fx1_match, fx1_norm, match_dist, norm_dist = assigntup
+    fm_ORIG = np.vstack((fx1_match, fx2_match)).T
+    fs_ORIG = 1 - np.divide(match_dist, norm_dist)
+    # APPLY RATIO TEST
+    fm_RAT, fs_RAT, fm_norm_RAT = ratio_test(fx2_match, fx1_match, fx1_norm, match_dist, norm_dist, ratio_thresh)
+    # SPATIAL VERIFICATION FILTER
+    #with ut.EmbedOnException():
+    match_weights = np.ones(len(fm_RAT))
+    svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_RAT, sver_xy_thresh, dlen_sqrd2, match_weights=match_weights)
+    if svtup is not None:
+        (homog_inliers, homog_errors, H_RAT) = svtup[0:3]
+    else:
+        H_RAT = np.eye(3)
+        homog_inliers = []
+    fm_SV = fm_RAT.take(homog_inliers, axis=0)
+    fs_SV = fs_RAT.take(homog_inliers, axis=0)
+    fm_norm_SV = fm_norm_RAT[homog_inliers]
+
+    matches = {
+        'ORIG': (fm_ORIG, fs_ORIG),
+        'RAT': (fm_RAT, fm_SV, fm_norm_RAT),
+        'RAT+SV': (fm_SV, fs_SV, fm_norm_SV),
+    }
+    metadata = {
+        'H_RAT': H_RAT,
+    }
+    return matches, metadata
+
+
 def normalized_nearest_neighbors(flann, vecs2, K, checks=800):
     """
     uses flann index to return nearest neighbors with distances normalized

@@ -1074,6 +1074,8 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         if ut.VERYVERBOSE and ut.SUPER_STRICT:
             ut.printex(ex, 'numeric error in homog estimation.', iswarning=True)
         return None
+    except IndexError:
+        raise
     except Exception as ex:
         # There is a weird error that starts with MemoryError and ends up
         # makeing len(h) = 6.

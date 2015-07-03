@@ -128,6 +128,24 @@ def testdata_matcher(fname1='easy1.png', fname2='easy2.png'):
 
     python -m vtool.test_constrained_matching --test-visualize_matches --show
 
+    Args:
+        fname1 (str): (default = 'easy1.png')
+        fname2 (str): (default = 'easy2.png')
+
+    Returns:
+        ?: testtup
+
+    CommandLine:
+        python -m vtool.test_constrained_matching --test-testdata_matcher
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.test_constrained_matching import *  # NOQA
+        >>> fname1 = 'easy1.png'
+        >>> fname2 = 'easy2.png'
+        >>> testtup = testdata_matcher(fname1, fname2)
+        >>> result = ('testtup = %s' % (str(testtup),))
+        >>> print(result)
     """
     import utool as ut
     #import vtool as vt
@@ -408,10 +426,10 @@ def show_example():
     simp2 = SimpleMatcher(testtup2)
     simp1.run_matching()
     simp2.run_matching()
-    #simp1.visualize_matches()
-    #simp2.visualize_matches()
-    simp1.visualize_normalizers()
-    simp2.visualize_normalizers()
+    simp1.visualize_matches()
+    simp2.visualize_matches()
+    #simp1.visualize_normalizers()
+    #simp2.visualize_normalizers()
     #simp1.param_interaction()
 
 
