@@ -185,7 +185,7 @@ def show_was_requested():
     #return ut.show_was_requested()
 
 
-def show_if_requested():
+def show_if_requested(N=1):
     if VERBOSE:
         print('[pt] show_if_requested()')
 
@@ -321,7 +321,7 @@ def show_if_requested():
     elif ut.get_argflag('--cmd'):
         import plottool as pt
         pt.draw()
-        ut.embed(N=1)
+        ut.embed(N=N)
     elif ut.get_argflag('--show'):
         if ut.get_argflag('--present'):
             present()
