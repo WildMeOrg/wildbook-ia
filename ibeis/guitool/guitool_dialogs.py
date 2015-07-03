@@ -57,7 +57,7 @@ def user_option(parent=None, msg='msg', title='user_option',
         python -m guitool.guitool_dialogs --test-user_option
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # GUI_DOCTEST
         >>> from guitool.guitool_dialogs import *  # NOQA
         >>> import guitool
         >>> guitool.ensure_qtapp()
@@ -132,7 +132,7 @@ def user_input(parent=None, msg='msg', title='user_input'):
         python -m guitool.guitool_dialogs --test-user_input
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # GUI_DOCTEST
         >>> from guitool.guitool_dialogs import *  # NOQA
         >>> # build test data
         >>> parent = None
@@ -196,7 +196,7 @@ def select_directory(caption='Select Directory', directory=None,
         python -m guitool.guitool_dialogs --test-select_directory
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # GUI_DOCTEST
         >>> from guitool.guitool_dialogs import *  # NOQA
         >>> import guitool
         >>> guitool.ensure_qtapp()
@@ -320,10 +320,11 @@ def msgbox(msg='', title='msgbox', detailed_msg=None):
     """ Make a non modal critical QtGui.QMessageBox.
 
     CommandLine:
+        python -m guitool.guitool_dialogs --test-msgbox
         python -m guitool.guitool_dialogs --test-msgbox --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> import guitool
         >>> guitool.ensure_qtapp()
         >>> from guitool.guitool_dialogs import *  # NOQA
