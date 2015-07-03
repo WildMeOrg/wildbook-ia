@@ -20,7 +20,7 @@ def impaint_mask(img, label_colors=None, init_mask=None, init_label=None):
     TODO: Label selector
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from plottool.interact_impaint import *  # NOQA
         >>> import utool as ut
         >>> import vtool as vt
@@ -162,7 +162,7 @@ def demo():
         http://docs.opencv.org/trunk/doc/py_tutorials/py_gui/py_mouse_handling/py_mouse_handling.html
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from plottool.interact_impaint import *  # NOQA
         >>> # build test data
         >>> # execute function
