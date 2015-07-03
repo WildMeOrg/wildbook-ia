@@ -338,7 +338,9 @@ def compute_and_write_chips(ibs, aid_list, config2_=None):
     arg_iter = zip(cfpath_list, gfpath_list, bbox_list, theta_list,
                             newsize_list, filtlist_iter)
     arg_list = list(arg_iter)
+    #ut.embed()
     chip_result_iter = ut.util_parallel.generate(gen_chip, arg_list, ordered=True)
+    #print(ut.util_parallel.__POOL__)
     # Compute and write chips in asychronous process
     if ut.VERBOSE:
         print('Computing %d chips' % (len(cfpath_list)))

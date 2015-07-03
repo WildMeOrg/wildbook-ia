@@ -170,7 +170,7 @@ def vsone_independant(qreq_):
         python -m ibeis.model.hots.vsone_pipeline --test-vsone_independant
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots import _pipeline_helpers as plh
         >>> cfgdict = dict(pipeline_root='vsone', codename='vsone')
         >>> ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict, qaid_list=[1], daid_list=[2, 5])

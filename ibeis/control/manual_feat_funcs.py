@@ -184,7 +184,7 @@ def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
         >>> nFeats_list = get_annot_num_feats(ibs, aid_list, ensure=True)
         >>> assert len(nFeats_list) == 3
         >>> ut.assert_inbounds(nFeats_list[0], 1256, 1258)
-        >>> ut.assert_inbounds(nFeats_list[1],  910,  921)
+        >>> ut.assert_inbounds(nFeats_list[1],  910,  922)
         >>> ut.assert_inbounds(nFeats_list[2], 1340, 1343)
 
     [1257, 920, 1342]
