@@ -215,6 +215,53 @@ def open_pil_image(image_fpath):
 
 
 def open_image_size(image_fpath):
+    """
+    Gets image size from an image on disk
+
+    Args:
+        image_fpath (str):
+
+    Returns:
+        tuple: size (width, height)
+
+    CommandLine:
+        python -m vtool.image --test-open_image_size
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> image_fpath = ut.grab_test_imgpath('patsy.jpg')
+        >>> size = open_image_size(image_fpath)
+        >>> result = ('size = %s' % (str(size),))
+        >>> print(result)
+        size = (800, 441)
+
+    Ignore:
+        # Confirm that Image.open is a lazy load
+        import vtool as vt
+        import utool as ut
+        import timeit
+        setup = ut.codeblock(
+            '''
+            from PIL import Image
+            import utool as ut
+            import vtool as vt
+            image_fpath = ut.grab_test_imgpath('patsy.jpg')
+            '''
+        )
+        t1 = timeit.timeit('Image.open(image_fpath)', setup, number=100)
+        t2 = timeit.timeit('Image.open(image_fpath).size', setup, number=100)
+        t3 = timeit.timeit('vt.open_image_size(image_fpath)', setup, number=100)
+        t4 = timeit.timeit('vt.imread(image_fpath).shape', setup, number=100)
+        t5 = timeit.timeit('Image.open(image_fpath).getdata()', setup, number=100)
+        print('t1 = %r' % (t1,))
+        print('t2 = %r' % (t2,))
+        print('t3 = %r' % (t3,))
+        print('t4 = %r' % (t4,))
+        print('t5 = %r' % (t5,))
+        assert t2 < t5
+        assert t3 < t4
+    """
     pil_img = Image.open(image_fpath)
     size = pil_img.size
     return size
@@ -745,7 +792,12 @@ def scaled_verts_from_bbox_gen(bbox_list, theta_list, sx, sy):
 
 
 def scaled_verts_from_bbox(bbox, theta, sx, sy):
-    """ Helps with drawing scaled bbounding boxes on thumbnails """
+    """
+    Helps with drawing scaled bbounding boxes on thumbnails
+
+    """
+    if bbox is None:
+        return None
     # Transformation matrixes
     R = linalg.rotation_around_bbox_mat3x3(theta, bbox)
     S = linalg.scale_mat3x3(sx, sy)
@@ -1022,7 +1074,7 @@ def perlin_noise(size, scale=32.0, rng=np.random):
         >>> pt.imshow(img, pnum=(1, 1, 1))
         >>> ut.show_if_requested()
     """
-    from PIL import Image
+    #from PIL import Image
 
     class PerlinNoiseGenerator(object):
 
