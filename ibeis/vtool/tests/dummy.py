@@ -32,9 +32,9 @@ def testdata_dummy_sift(nPts=10, rng=np.random):
     """
     import vtool as vt
     sift_ = rng.rand(nPts, 128)
-    sift_ = vt.normalize_rows(np.random.rand(nPts, 128))
+    sift_ = vt.normalize_rows(rng.rand(nPts, 128))
     sift_[sift_ > .2] = .2
-    sift_ = vt.normalize_rows(np.random.rand(nPts, 128))
+    sift_ = vt.normalize_rows(rng.rand(nPts, 128))
     sift = (sift_ * 512).round().astype(np.uint8)
     return sift
 
@@ -356,8 +356,8 @@ def dummy_seed(seed=None):
 
 
 def get_dummy_xy(seed=0):
-    dummy_seed(seed=seed)
-    xy = np.random.rand(2, 100).astype(np.float64)
+    rng = np.random.RandomState(seed)
+    xy = rng.rand(2, 100).astype(np.float64)
     return xy
 
 
