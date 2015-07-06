@@ -990,3 +990,73 @@ class APIItemModel(API_MODEL_BASE):
             return Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
         else:
             return Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable
+
+
+def simple_thumbnail_widget():
+    r"""
+    Very simple example to test thumbnails
+
+    CommandLine:
+        python -m guitool.api_item_model --test-simple_thumbnail_widget  --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from guitool.api_item_widget import *  # NOQA
+        >>> import guitool
+        >>> guitool.ensure_qapp()  # must be ensured before any embeding
+        >>> wgt = simple_thumbnail_widget()
+        >>> ut.quit_if_noshow()
+        >>> wgt.show()
+        >>> guitool.qtapp_loop(wgt, frequency=100, init_signals=True)
+    """
+    import guitool
+    guitool.ensure_qapp()
+    col_name_list = ['rowid', 'image_name', 'thumb']
+    col_types_dict = {
+        'thumb': 'PIXMAP',
+    }
+
+    def thumb_getter(id_, thumbsize=128):
+        """ Thumb getters must conform to thumbtup structure """
+        #print(id_)
+        return ut.grab_test_imgpath(id_)
+        #return None
+
+    col_getter_dict = {
+        'rowid': [1, 2, 3],
+        'image_name': ['lena.png', 'carl.jpg', 'patsy.jpg'],
+        'thumb': thumb_getter
+    }
+    col_ider_dict = {
+        'thumb': 'image_name',
+    }
+    col_setter_dict = {}
+    editable_colnames = []
+    sortby = 'rowid'
+    get_thumb_size = lambda: 128
+    col_width_dict = {}
+    col_bgrole_dict = {}
+
+    api = guitool.CustomAPI(
+        col_name_list, col_types_dict, col_getter_dict,
+        col_bgrole_dict, col_ider_dict, col_setter_dict,
+        editable_colnames, sortby, get_thumb_size, True, col_width_dict)
+    headers = api.make_headers(tblnice='Simple Example')
+
+    wgt = guitool.APIItemWidget()
+    wgt.change_headers(headers)
+    #guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
+    return wgt
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m guitool.api_item_model
+        python -m guitool.api_item_model --allexamples
+        python -m guitool.api_item_model --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

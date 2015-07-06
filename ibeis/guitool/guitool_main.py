@@ -83,7 +83,18 @@ def remove_pyqt_input_hook():
     pyqtRemoveInputHook()
 
 
-def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420, **kwargs):
+def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420, init_signals=True, **kwargs):
+    r"""
+    Args:
+        qwin (None): (default = None)
+        ipy (bool): set to True if running with IPython (default = False)
+        enable_activate_qwin (bool): (default = True)
+        frequency (int): frequency to ping python interpreter (default = 420)
+        init_signals (bool): set to False if you are want to handle terminal signals yourself (default = True)
+
+    CommandLine:
+        python -m guitool.guitool_main --test-qtapp_loop
+    """
     global QAPP
     #if not QUIET and VERBOSE:
     if not QUIET:
@@ -92,6 +103,9 @@ def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420, *
     if enable_activate_qwin and (qwin is not None):
         activate_qwindow(qwin)
         qwin.timer = ping_python_interpreter(frequency=frequency)
+    if init_signals:
+        # allow ctrl+c to exit the program
+        _init_signals()
     if IS_ROOT_WINDOW:
         if not QUIET:
             print('[guitool.qtapp_loop()] qapp.exec_()  # runing main loop')
@@ -122,6 +136,7 @@ def ping_python_interpreter(frequency=420):  # 4200):
         print('[guitool] pinging python interpreter for ctrl+c freq=%r' % frequency)
     timer = QtCore.QTimer()
     def ping_func():
+        #print('lub dub')
         return None
     timer.ping_func = ping_func
     timer.timeout.connect(timer.ping_func)
@@ -134,3 +149,16 @@ def exit_application():
     if utool.NOT_QUIET:
         print('[guitool] exiting application')
     QtGui.qApp.quit()
+
+
+def _on_ctrl_c(signal, frame):
+    print('[guitool.guitool_main] Caught ctrl+c. sys.exit(0)...')
+    sys.exit(0)
+
+#-----------------------
+# private init functions
+
+
+def _init_signals():
+    import signal
+    signal.signal(signal.SIGINT, _on_ctrl_c)

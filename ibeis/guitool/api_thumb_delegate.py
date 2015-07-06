@@ -493,6 +493,78 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
 #      (qtindex.row(), qtindex.column(), len(bbox_list)))
 #print('[APIItemDelegate] bbox_list = %r' % (bbox_list,))
 
+def simple_thumbnail_widget():
+    r"""
+    Very simple example to test thumbnails
+
+    CommandLine:
+        python -m guitool.api_thumb_delegate --test-simple_thumbnail_widget  --show
+
+    Example:
+        >>> # GUI_DOCTEST
+        >>> from guitool.api_thumb_delegate import *  # NOQA
+        >>> import guitool
+        >>> guitool.ensure_qapp()  # must be ensured before any embeding
+        >>> wgt = simple_thumbnail_widget()
+        >>> ut.quit_if_noshow()
+        >>> wgt.show()
+        >>> guitool.qtapp_loop(wgt, frequency=100)
+    """
+    import guitool
+    guitool.ensure_qapp()
+    col_name_list = ['rowid', 'image_name', 'thumb']
+    col_types_dict = {
+        'thumb': 'PIXMAP',
+    }
+
+    guitool_test_thumbdir = ut.ensure_app_resource_dir('guitool', 'thumbs')
+    ut.delete(guitool_test_thumbdir)
+    ut.ensuredir(guitool_test_thumbdir)
+    import vtool as vt
+    from os.path import join
+
+    def thumb_getter(id_, thumbsize=128):
+        """ Thumb getters must conform to thumbtup structure """
+        #print(id_)
+        img_path = ut.grab_test_imgpath(id_, verbose=False)
+        thumb_path = join(guitool_test_thumbdir, ut.hashstr(img_path) + '.jpg')
+        img_size = vt.open_image_size(img_path)
+        bbox_list = []
+        theta_list = []
+        thumbtup = (thumb_path, img_path, img_size, bbox_list, theta_list)
+        #print('thumbtup = %r' % (thumbtup,))
+        return thumbtup
+        #return None
+
+    imgname_list = sorted(ut.TESTIMG_URL_DICT.keys())
+
+    col_getter_dict = {
+        'rowid': list(range(len(imgname_list))),
+        'image_name': imgname_list,
+        'thumb': thumb_getter
+    }
+    col_ider_dict = {
+        'thumb': 'image_name',
+    }
+    col_setter_dict = {}
+    editable_colnames = []
+    sortby = 'rowid'
+    get_thumb_size = lambda: 201
+    col_width_dict = {}
+    col_bgrole_dict = {}
+
+    api = guitool.CustomAPI(
+        col_name_list, col_types_dict, col_getter_dict,
+        col_bgrole_dict, col_ider_dict, col_setter_dict,
+        editable_colnames, sortby, get_thumb_size, True, col_width_dict)
+    headers = api.make_headers(tblnice='Utool Test Images')
+
+    wgt = guitool.APIItemWidget()
+    wgt.change_headers(headers)
+    wgt.resize(600, 400)
+    #guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
+    return wgt
+
 
 if __name__ == '__main__':
     """
