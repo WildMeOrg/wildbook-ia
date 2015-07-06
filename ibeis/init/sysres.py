@@ -271,6 +271,9 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None, cach
         print('[sysres] defaultdb=%r, allow_newdir=%r, cache_priority=%r' % (defaultdb, allow_newdir, cache_priority))
         print('[sysres] db=%r, dbdir=%r' % (db, dbdir))
 
+    if ut.get_argflag('--nodbcache'):
+        return None
+
     def _db_arg_priorty(dbdir_, db_):
         invalid = ['', ' ', '.', 'None']
         # Invalidate bad db's

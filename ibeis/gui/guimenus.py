@@ -202,7 +202,7 @@ def setup_batch_menu(mainwin, back):
     menu = mainwin.menuBatch
     menu.newAction(
         name='actionCompute_Encounters',
-        text='Cluster Encounters',
+        text='Group Encounters',
         #shortcut='Ctrl+2',
         slot_fn=back.compute_encounters)
     menu.addSeparator()  # ---------
@@ -419,6 +419,11 @@ def setup_developer_menu(mainwin, back):
                                   cfgdict=dict(augment_queryside_hack=True, can_match_samename=False, use_k_padding=False)),
     )
     menu.addSeparator()  # ---------
+    menu.newAction(
+        name='takeScreenshot',
+        text='Take Screenshot',
+        shortcut='Ctrl+]',
+        slot_fn=back.take_screenshot)
 
 
 def setup_refresh_menu(mainwin, back):

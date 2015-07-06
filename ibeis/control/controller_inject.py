@@ -4,7 +4,7 @@ import utool as ut
 import flask
 from flask import current_app, request, make_response
 from functools import wraps
-from os.path import abspath, join
+from os.path import abspath, join, dirname
 # import simplejson as json
 import json
 import pickle
@@ -21,8 +21,6 @@ UTOOL_AUTOGEN_SPHINX_RUNNING = not (os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING
 GLOBAL_APP_ENABLED = not UTOOL_AUTOGEN_SPHINX_RUNNING
 GLOBAL_APP_NAME = 'IBEIS'
 GLOBAL_APP_SECRET = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
-GLOBAL_APP_TEMPALTE_PATH = abspath(join('ibeis', 'web', 'templates'))
-GLOBAL_APP_STATIC_PATH = abspath(join('ibeis', 'web', 'static'))
 
 GLOBAL_APP = None
 JSON_PYTHON_OBJECT_TAG = '__PYTHON_OBJECT__'
@@ -31,7 +29,10 @@ JSON_PYTHON_OBJECT_TAG = '__PYTHON_OBJECT__'
 def get_flask_app():
     global GLOBAL_APP
     if GLOBAL_APP is None:
-        GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME, template_folder=GLOBAL_APP_TEMPALTE_PATH, static_folder=GLOBAL_APP_STATIC_PATH)
+        root_dpath = abspath(dirname(dirname(__file__)))
+        tempalte_dpath = join(root_dpath, 'web', 'templates')
+        static_dpath = join(root_dpath, 'web', 'static')
+        GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME, template_folder=tempalte_dpath, static_folder=static_dpath)
     return GLOBAL_APP
 
 

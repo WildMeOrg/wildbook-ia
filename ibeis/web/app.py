@@ -91,7 +91,7 @@ def encounter_annot_additional_processed(ibs, aid_list, nid_list):
 
 
 def convert_old_viewpoint_to_yaw(view_angle):
-    ''' we initially had viewpoint coordinates inverted
+    """ we initially had viewpoint coordinates inverted
 
     Example:
         >>> import math
@@ -109,7 +109,7 @@ def convert_old_viewpoint_to_yaw(view_angle):
         >>> fmtstr = 'old %15r %.2f -> new %15r %.2f'
         >>> for lbl, angle, radians in old_viewpoint_labels:
         >>>     print(fmtstr % (lbl, angle, lbl, convert_old_viewpoint_to_yaw(angle)))
-    '''
+    """
     if view_angle is None:
         return None
     view_angle = ut.deg_to_rad(view_angle)
@@ -118,7 +118,7 @@ def convert_old_viewpoint_to_yaw(view_angle):
 
 
 def convert_yaw_to_old_viewpoint(yaw):
-    ''' we initially had viewpoint coordinates inverted
+    """ we initially had viewpoint coordinates inverted
 
     Example:
         >>> import math
@@ -138,7 +138,7 @@ def convert_yaw_to_old_viewpoint(yaw):
         >>>     yaw = convert_old_viewpoint_to_yaw(angle)
         >>>     reconstructed_angle = convert_yaw_to_old_viewpoint(yaw)
         >>>     print(fmtstr % (lbl, angle, lbl, yaw, lbl, reconstructed_angle))
-    '''
+    """
     if yaw is None:
         return None
     view_angle = ((TAU / 2) - yaw) % TAU
@@ -1450,9 +1450,9 @@ def error404(exception=None):
 
 
 def start_tornado(ibs, port=None, browser=BROWSER):
-    '''
+    """
         Initialize the web server
-    '''
+    """
     def _start_tornado(ibs_, port_):
         # Get Flask app
         app = controller_inject.get_flask_app()
@@ -1486,9 +1486,13 @@ def start_tornado(ibs, port=None, browser=BROWSER):
 
 
 def start_from_ibeis(ibs, port=None, browser=BROWSER, precache=True):
-    '''
+    """
     Parse command line options and start the server.
-    '''
+
+    CommandLine:
+        python -m ibeis --db PZ_MTEST --web
+        python -m ibeis --db PZ_MTEST --web --browser
+    """
     if precache:
         print('[web] Pre-computing all image thumbnails (with annots)...')
         ibs.preprocess_image_thumbs()

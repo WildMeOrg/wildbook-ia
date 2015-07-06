@@ -129,11 +129,11 @@ def request_IBEISController(dbdir=None, ensure=True, wbaddr=None, verbose=ut.VER
     return a memory cached object
 
     Args:
-        dbdir     (str):
+        dbdir     (str): databse directory
         ensure    (bool):
         wbaddr    (None):
         verbose   (bool):
-        use_cache (bool):
+        use_cache (bool): use the global ibeis controller cache. (default=True)
 
     Returns:
         IBEISController: ibs

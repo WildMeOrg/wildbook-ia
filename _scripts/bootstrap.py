@@ -55,10 +55,22 @@ cd ~/code/guitool
 python setup.py install
 cd ~/code/plottool
 python setup.py install
+
+CommandLine:
+    # upgrade pip packages
+    ./_scripts/bootstrap.py --no-syspkg --upgrade
+
+
 """
 import sys
 import os
 from os.path import dirname, realpath, join
+
+
+DRYRUN = '--dry' in sys.argv or '--dryrun' in sys.argv
+OPTIONAL = '--optional' in sys.argv
+UPGRADE = '--upgrade' in sys.argv or '-U' in sys.argv
+WITH_SYSPKG = '--no-syspkg' not in sys.argv
 
 
 def import_module_from_fpath(module_fpath):
@@ -90,12 +102,6 @@ APPLE = util_cplat_packages.APPLE
 FEDORA_FAMILY = util_cplat_packages.FEDORA_FAMILY
 DEBIAN_FAMILY = util_cplat_packages.DEBIAN_FAMILY
 print_sysinfo = util_cplat_packages.print_sysinfo
-
-
-DRYRUN = '--dry' in sys.argv or '--dryrun' in sys.argv
-OPTIONAL = '--optional' in sys.argv
-UPGRADE = '--upgrade' in sys.argv or '-U' in sys.argv
-WITH_SYSPKG = '--no-syspkg' not in sys.argv
 
 
 def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):

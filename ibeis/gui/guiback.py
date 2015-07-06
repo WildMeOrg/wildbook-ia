@@ -1528,7 +1528,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if dbdir is None:
             print('[back] new_database(): SELECT A DIRECTORY')
             #director
-            dbdir = guitool.select_directory('Select new database directory', other_sidebar_dpaths=[back.get_work_directory()])
+            dbdir = guitool.select_directory('Open a database directory', other_sidebar_dpaths=[back.get_work_directory()])
             if dbdir is None:
                 return
         print('[back] open_database(dbdir=%r)' % dbdir)
@@ -1767,6 +1767,19 @@ class MainWindowBackend(GUIBACK_BASE):
         version = ibeis.__version__
         about_msg = 'IBEIS version %s\nImage Based Ecological Information System\nhttp://ibeis.org/' % (version,)
         guitool.msgbox(msg=about_msg, title='About')
+
+    @slot_()
+    def take_screenshot(back):
+        """ dev command only """
+        from guitool.__PYQT__.QtGui import QPixmap
+        #screengrab_fpath = ut.truepath('~/latex/ibeis_userguide/figures/filemenu.jpg')
+        screengrab_dpath = ut.truepath(ut.get_argval('--screengrab_dpath', type_=str, default='.'))
+        screengrab_fname = ut.get_argval('--screengrab_fname', type_=str, default='screenshot')
+        screengrab_fpath = ut.get_nonconflicting_path(join(screengrab_dpath, screengrab_fname + '_%d.jpg'))
+        screenimg = QPixmap.grabWindow(back.mainwin.winId())
+        screenimg.save(screengrab_fpath, 'jpg')
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(screengrab_fpath)
 
 
 def testdata_guiback():

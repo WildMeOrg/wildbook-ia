@@ -4,7 +4,7 @@ import numpy as np
 import cStringIO as StringIO
 from flask import request, render_template, make_response
 # Others
-from os.path import join
+from os.path import join, dirname, abspath  # NOQA
 from datetime import date
 import base64
 
@@ -53,9 +53,9 @@ def open_oriented_image(im_path):
 
 
 def apply_orientation(im, orientation):
-    '''
+    """
     This script handles the skimage exif problem.
-    '''
+    """
     if orientation in ORIENTATIONS:
         for method in ORIENTATIONS[orientation]:
             im = im.transpose(method)
@@ -63,7 +63,7 @@ def apply_orientation(im, orientation):
 
 
 def embed_image_html(image, filter_width=True):
-    '''Creates an image embedded in HTML base64 format.'''
+    """ Creates an image embedded in HTML base64 format. """
     image_pil = Image.fromarray((255 * image).astype('uint8'))
     width, height = image_pil.size
     if filter_width:
@@ -112,9 +112,12 @@ def template(template_directory=None, template_filename=None, **kwargs):
         global_args['REFER_DST_STR'] = decode_refer_url(refer)
     if template_directory is None:
         template_directory = ''
+        #template_directory = abspath(join(dirname(__file__), 'templates'))
+        #template_directory = join(dirname(dirname(__file__)))
     if template_filename is None:
         template_filename = 'index'
     template_ = join(template_directory, template_filename + '.html')
+    #print('template_ = %r' % (template_,))
     # Update global args with the template's args
     _global_args = dict(global_args)
     _global_args.update(kwargs)
