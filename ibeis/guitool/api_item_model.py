@@ -655,7 +655,7 @@ class APIItemModel(API_MODEL_BASE):
             #data = getter((row_id,), **kwargs)[0]
             data = getter(row_id, **kwargs)
         except Exception as ex:
-            ut.printex(ex, 'problem getting in column %r' % (col,))
+            ut.printex(ex, '[api_item_model._get_data] problem getting in column %r' % (col,))
             #getting from: %r' % ut.util_str.get_callable_name(getter))
             raise
         # <HACK: MODEL_CACHE>

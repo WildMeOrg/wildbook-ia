@@ -212,7 +212,8 @@ class APIThumbDelegate(DELEGATE_BASE):
         try:
             data = dgt.get_model_data(qtindex)
             if data is None:
-                print('[thumb_delegate] no data')
+                if VERBOSE_THUMB:
+                    print('[thumb_delegate] no data')
                 return
             (thumb_path, img_path, img_size, bbox_list, theta_list) = data
             invalid = (thumb_path is None or img_path is None or bbox_list is None
@@ -420,7 +421,8 @@ def make_thread_thumb(img_path, dsize, new_verts_list):
     del img
     # Draw bboxes on thumb (not image)
     for new_verts in new_verts_list:
-        geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2, out=thumb)
+        if new_verts is not None:
+            geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2, out=thumb)
         #thumb = geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
     return thumb
 
@@ -499,6 +501,7 @@ def simple_thumbnail_widget():
 
     CommandLine:
         python -m guitool.api_thumb_delegate --test-simple_thumbnail_widget  --show
+        python -m guitool.api_thumb_delegate --test-simple_thumbnail_widget  --show --tb
 
     Example:
         >>> # GUI_DOCTEST
@@ -526,17 +529,33 @@ def simple_thumbnail_widget():
     def thumb_getter(id_, thumbsize=128):
         """ Thumb getters must conform to thumbtup structure """
         #print(id_)
-        img_path = ut.grab_test_imgpath(id_, verbose=False)
-        thumb_path = join(guitool_test_thumbdir, ut.hashstr(img_path) + '.jpg')
-        img_size = vt.open_image_size(img_path)
-        bbox_list = []
-        theta_list = []
+        if id_ == 'doesnotexist.jpg':
+            return None
+            img_path = None
+            img_size = (100, 100)
+        else:
+            img_path = ut.grab_test_imgpath(id_, verbose=False)
+            img_size = vt.open_image_size(img_path)
+        thumb_path = join(guitool_test_thumbdir, ut.hashstr(str(img_path)) + '.jpg')
+        if id_ == 'carl.jpg':
+            bbox_list = [(10, 10, 200, 200)]
+            theta_list = [0]
+        elif id_ == 'lena.png':
+            #bbox_list = [(10, 10, 200, 200)]
+            bbox_list = [None]
+            theta_list = [None]
+        else:
+            bbox_list = []
+            theta_list = []
         thumbtup = (thumb_path, img_path, img_size, bbox_list, theta_list)
         #print('thumbtup = %r' % (thumbtup,))
         return thumbtup
         #return None
 
-    imgname_list = sorted(ut.TESTIMG_URL_DICT.keys())
+    #imgname_list = sorted(ut.TESTIMG_URL_DICT.keys())
+    imgname_list = ['carl.jpg', 'lena.png', 'patsy.jpg']
+
+    imgname_list += ['doesnotexist.jpg']
 
     col_getter_dict = {
         'rowid': list(range(len(imgname_list))),
@@ -549,7 +568,7 @@ def simple_thumbnail_widget():
     col_setter_dict = {}
     editable_colnames = []
     sortby = 'rowid'
-    get_thumb_size = lambda: 201
+    get_thumb_size = lambda: 128
     col_width_dict = {}
     col_bgrole_dict = {}
 
