@@ -210,6 +210,27 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
     return aid_list
 
 
+@register_ibs_method
+@accessor_decors.getter_1to1
+def get_annot_aid(ibs, aid_list, eager=True, nInput=None):
+    """ self verifier
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.IBEISControl import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids() + [None, -1, 10434320432]
+        >>> aid_list_ = ibs.get_annot_aid(aid_list)
+        >>> assert [r is None for r in aid_list_[-3:]]
+        >>> assert [r is not None for r in aid_list_[0:-3]]
+    """
+    id_iter = aid_list
+    colnames = (ANNOT_ROWID,)
+    aid_list = ibs.db.get(const.ANNOTATION_TABLE, colnames,
+                          id_iter, id_colname='rowid', eager=eager, nInput=nInput)
+    return aid_list
+
+
 # ==========
 # ADDERS
 # ==========
@@ -217,7 +238,7 @@ def get_valid_aids(ibs, eid=None, include_only_gid_list=None,
 
 @register_ibs_method
 @accessor_decors.adder
-@accessor_decors.cache_invalidator(const.IMAGE_TABLE, colnames=[ANNOT_ROWIDS], rowidx=0)
+@accessor_decors.cache_invalidator(const.IMAGE_TABLE, colnames=[ANNOT_ROWIDS], rowidx=None)
 @accessor_decors.cache_invalidator(const.NAME_TABLE, colnames=[ANNOT_ROWIDS])
 @accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_names_with_exemplar_str'])
 @register_api('/api/annot/', methods=['POST'])
@@ -517,8 +538,8 @@ def delete_annot_speciesids(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.deleter
 @accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, rowidx=0)
-@accessor_decors.cache_invalidator(const.IMAGE_TABLE, colnames=[ANNOT_ROWIDS], rowidx=0)
-@accessor_decors.cache_invalidator(const.NAME_TABLE, colnames=[ANNOT_ROWIDS], rowidx=0)
+@accessor_decors.cache_invalidator(const.IMAGE_TABLE, colnames=[ANNOT_ROWIDS], rowidx=None)
+@accessor_decors.cache_invalidator(const.NAME_TABLE, colnames=[ANNOT_ROWIDS], rowidx=None)
 @accessor_decors.cache_invalidator(const.ENCOUNTER_TABLE, ['percent_names_with_exemplar_str'])
 @register_api('/api/annot/', methods=['DELETE'])
 def delete_annots(ibs, aid_list):
@@ -528,6 +549,48 @@ def delete_annots(ibs, aid_list):
     RESTful:
         Method: DELETE
         URL:    /api/annot/
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-delete_annots
+        python -m ibeis.control.manual_annot_funcs --test-delete_annots --debug-api-cache
+        python -m ibeis.control.manual_annot_funcs --test-delete_annots
+
+    SeeAlso:
+        back.delete_annot
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> ibs.delete_empty_nids()
+        >>> # Add some annotations to delete
+        >>> num_add = 2
+        >>> gid_list = ibs.get_valid_gids()[0:num_add]
+        >>> nid = ibs.make_next_nids(1)[0]
+        >>> nid_list = [nid] * num_add
+        >>> bbox_list = [(int(w * .1), int(h * .6), int(w * .5), int(h *  .3))
+        ...              for (w, h) in ibs.get_image_sizes(gid_list)]
+        >>> new_aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, nid_list=nid_list)
+        >>> ibs.get_annot_nids(new_aid_list)
+        >>> ut.assert_lists_eq(ibs.get_annot_nids(new_aid_list), nid_list)
+        >>> assert ibs.get_name_aids(nid) == new_aid_list, 'annots should all have same name'
+        >>> assert new_aid_list == ibs.get_name_aids(nid), 'inverse name mapping should work'
+        >>> before_gids = ibs.get_image_aids(gid_list)
+        >>> print('BEFORE gids: ' + str(before_gids))
+        >>> result = ibs.delete_annots(new_aid_list)
+        >>> assert ibs.get_name_aids(nid) == [], 'annots should be removed'
+        >>> after_gids = ibs.get_image_aids(gid_list)
+        >>> assert after_gids != before_gids, 'the invalidators must have bugs'
+        >>> print('AFTER gids: ' + str(after_gids))
+        >>> valid_aids = ibs.get_valid_aids()
+        >>> assert  [aid not in valid_aids for aid in new_aid_list], 'should no longer be valid aids'
+        >>> print(result)
+
     """
     if ut.VERBOSE:
         print('[ibs] deleting %d annotations' % len(aid_list))
@@ -536,7 +599,7 @@ def delete_annots(ibs, aid_list):
     preproc_annot.on_delete(ibs, aid_list)
     # TODO:
     # delete parent rowid column if exists in annot table
-    ibs.db.delete_rowids(const.ANNOTATION_TABLE, aid_list)
+    return ibs.db.delete_rowids(const.ANNOTATION_TABLE, aid_list)
 
 
 # ==========

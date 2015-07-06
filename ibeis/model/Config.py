@@ -1079,7 +1079,7 @@ class OtherConfig(ConfigBase):
         other_cfg.exemplar_distinctiveness_thresh  = .95
         other_cfg.detect_add_after = 1
         # other_cfg.detect_use_chunks = True
-        other_cfg.use_more_special_encounters = False
+        other_cfg.use_more_special_encounters = True
         other_cfg.location_for_names = 'IBEIS'
         #other_cfg.location_for_names = 'MUGU'
         other_cfg.smart_enabled = True

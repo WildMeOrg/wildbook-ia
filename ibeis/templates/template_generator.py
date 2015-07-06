@@ -45,6 +45,8 @@ CommandLine:
     python -m ibeis.templates.template_generator --key images --funcname-filter contrib --Tcfg with_api_cache=False with_deleters=False
     python -m ibeis.templates.template_generator --key annotmatch --Tcfg with_web_api=False with_api_cache=False with_deleters=False
 
+    python -m ibeis.templates.template_generator --key annotations --Tcfg with_getters:True strip_docstr:True --funcname-filter get.*aid
+
 
 TODO:
    * autogen testdata function
@@ -887,6 +889,7 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
         except Exception as ex:
             utool.printex(ex, keys=['func_type', 'tablename'])
             raise
+        return func_tup
     # L____________________________
 
     # +----------------------------
@@ -1075,6 +1078,13 @@ def build_controller_table_funcs(tablename, tableinfo, autogen_modname,
                     # HACK
                     continue
                 append_func('2_Native.getter_col', Tdef.Tgetter_table_column)
+            if True:
+                # Hack in self rowid getter (a check to see if the row has been deleted)
+                #ut.embed()
+                # python -m ibeis.templates.template_generator --key annotations --Tcfg with_getters:True strip_docstr:True --funcname-filter get.*aid
+                for colname in col_generator(['{tbl}_rowid'.format(tbl=tbl)]):
+                    append_func('2_Native.getter_col', Tdef.Tgetter_table_column)
+
         if with_setters and with_native and  tablename not in readonly_set:
             # Setter template: columns
             for colname in col_generator(list(other_colnames)):

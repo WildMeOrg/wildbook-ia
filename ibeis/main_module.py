@@ -25,6 +25,7 @@ def _on_ctrl_c(signal, frame):
     except Exception as ex:
         print('Something very bad happened' + repr(ex))
     finally:
+        print('[ibeis.main_module] sys.exit(0)')
         sys.exit(0)
 
 #-----------------------
@@ -159,7 +160,7 @@ def _guitool_loop(main_locals, ipy=False):
     if back is not None:
         loop_freq = params.args.loop_freq
         ipy = ipy or params.args.cmd
-        guitool.qtapp_loop(qwin=back.mainwin, ipy=ipy, frequency=loop_freq)
+        guitool.qtapp_loop(qwin=back.mainwin, ipy=ipy, frequency=loop_freq, init_signals=False)
         if ipy:  # If we're in IPython, the qtapp loop won't block, so we need to refresh
             back.refresh_state()
     else:

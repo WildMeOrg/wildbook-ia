@@ -116,10 +116,6 @@ TABLE_COLNAMES = {
         #'eid',
         'enctext',
         'nImgs',
-        'percent_annotmatch_reviewed_str',
-        'percent_names_with_exemplar_str',
-        #'percent_imgs_reviewed_str',
-        'encounter_start_datetime',
         #'num_imgs_reviewed',
         #'num_annotmatch_reviewed',
         #'encounter_end_datetime',
@@ -156,6 +152,15 @@ TABLE_COLNAMES = {
 
 
 }
+
+if False and ut.get_computer_name() != '':
+    TABLE_COLNAMES[ENCOUNTER_TABLE].append([
+        'percent_annotmatch_reviewed_str',
+        'percent_names_with_exemplar_str',
+        #'percent_imgs_reviewed_str',
+        'encounter_start_datetime',
+    ])
+
 
 #THUMB_TABLE     : ['thumb' 'thumb' 'thumb' 'thumb'],
 #NAMES_TREE      : {('name' 'nid' 'nAids') : ['aid' 'bbox' 'thumb']}

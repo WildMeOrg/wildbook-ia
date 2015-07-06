@@ -1163,6 +1163,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         elif model.name == gh.ANNOTATION_TABLE:
             aid_list = level2_ids[0]
             # Conditional context menu
+            # TODO: UNIFY COMMMON CONTEXT MENUS
             if len(aid_list) == 1:
                 aid = aid_list[0]
                 eid = model.eid

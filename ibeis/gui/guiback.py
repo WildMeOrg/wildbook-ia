@@ -556,12 +556,14 @@ class MainWindowBackend(GUIBACK_BASE):
     def add_annotation_from_image(back, gid_list, refresh=True):
         """ Context -> Add Annotation from Image"""
         print('[back] add_annotation_from_image')
+        assert isinstance(gid_list, list), 'must pass in list here'
         size_list = back.ibs.get_image_sizes(gid_list)
         bbox_list = [ (0, 0, w, h) for (w, h) in size_list ]
         theta_list = [0.0] * len(gid_list)
-        back.ibs.add_annots(gid_list, bbox_list, theta_list)
+        aid_list = back.ibs.add_annots(gid_list, bbox_list, theta_list)
         if refresh:
             back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
+        return aid_list
 
     @blocking_slot()
     def delete_image_annotations(back, gid_list):
@@ -570,7 +572,36 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def delete_annot(back, aid_list=None):
-        """ Action -> Delete Chip"""
+        """ Action -> Delete Annotation
+
+        CommandLine:
+            python -m ibeis.gui.guiback --test-delete_annot --show
+            python -m ibeis.gui.guiback --test-delete_annot --show --no-api-cache
+            python -m ibeis.gui.guiback --test-delete_annot --show --assert-api-cache
+            python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
+
+        SeeAlso:
+            manual_annot_funcs.delete_annots
+
+        Example:
+            >>> # GUI_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> back = testdata_guiback()
+            >>> ibs = back.ibs
+            >>> eid_list = back.ibs.get_valid_eids()
+            >>> eid = ut.list_take(eid_list, ut.list_argmax(list(map(len, back.ibs.get_encounter_gids(eid_list)))))
+            >>> back.front.select_encounter_tab(eid)
+            >>> gid = back.ibs.get_encounter_gids(eid)[0]
+            >>> # add a test annotation to delete
+            >>> aid_list = back.add_annotation_from_image([gid])
+            >>> # delte annotations
+            >>> aids1 = back.ibs.get_image_aids(gid)
+            >>> back.delete_annot(aid_list)
+            >>> aids2 = back.ibs.get_image_aids(gid)
+            >>> #assert len(aids2) == len(aids1) - 1
+            >>> ut.quit_if_noshow()
+            >>> guitool.qtapp_loop(back.mainwin, frequency=100)
+        """
         print('[back] delete_annot, aid_list = %r' % (aid_list, ))
         if aid_list is None:
             aid_list = back.get_selected_aids()
@@ -1232,7 +1263,6 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> kwargs = {}
             >>> back.incremental_query()
             >>> # verify results
-            >>> print(result)
         """
         from ibeis.model.hots import qt_inc_automatch as iautomatch
         from ibeis.gui.guiheaders import NAMES_TREE  # ADD AS NEEDED
@@ -1440,6 +1470,8 @@ class MainWindowBackend(GUIBACK_BASE):
         """ Help -> Developer Mode"""
         print('[back] dev_cls')
         print('\n'.join([''] * 100))
+        if back.ibs is not None:
+            back.ibs.reset_table_cache()
         back.refresh_state()
         from plottool import draw_func2 as df2
         df2.update()
@@ -1772,6 +1804,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def take_screenshot(back):
         """ dev command only """
         from guitool.__PYQT__.QtGui import QPixmap
+        print('TAKING SCREENSHOT')
         #screengrab_fpath = ut.truepath('~/latex/ibeis_userguide/figures/filemenu.jpg')
         screengrab_dpath = ut.truepath(ut.get_argval('--screengrab_dpath', type_=str, default='.'))
         screengrab_fname = ut.get_argval('--screengrab_fname', type_=str, default='screenshot')

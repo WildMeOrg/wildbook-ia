@@ -48,6 +48,7 @@ def default_decorator(input_):
 #        del self._cache[index]
 
 DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
+DEBUG_API_CACHE = ut.get_argflag('--debug-api-cache')
 
 RELEASE_MODE = True
 if RELEASE_MODE:
@@ -304,7 +305,9 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
         tablename (str): the table that the owns the underlying cache
         colnames (list): the list of cached column that this function will invalidate
         rowidx (int): the position (not including self) of the invalidated
-                      table's native rowid in the argument signature.
+                      table's native rowid in the writer function's argument
+                      signature. If this does not exist you should use None.
+                      (default=None)
     """
     colnames = [colnames] if isinstance(colnames, six.string_types) else colnames
     def closure_cache_invalidator(writer_func):
@@ -318,6 +321,16 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
             # the class must have a table_cache property
             colscache_ = self.table_cache[tblname]
             colnames_ =  list(six.iterkeys(colscache_)) if colnames is None else colnames
+            if DEBUG_API_CACHE:
+                indenter = ut.Indenter('[%s]' % (tblname,))
+                indenter.start()
+                print('+------')
+                print('INVALIDATING tblname=%r, colnames=%r, rowidx=%r, force=%r' % (tblname, colnames, rowidx, force))
+                print('self = %r' % (self,))
+                print('args = %r' % (args,))
+                print('kwargs = %r' % (kwargs,))
+                print('colscache_ = ' + ut.dict_str(colscache_, truncate=1))
+
             # Clear the cache of any specified colname
             # when the invalidator is called
             if rowidx is None:
@@ -334,8 +347,18 @@ def cache_invalidator(tblname, colnames=None, rowidx=None, force=False):
                     # iterate over all getter kwargs values
                     for cache_ in six.itervalues(kwargs_cache_):
                         ut.delete_dict_keys(cache_, rowid_list)
+
             # Preform set/delete action
-            return writer_func(self, *args, **kwargs)
+            if DEBUG_API_CACHE:
+                print('After:')
+                print('colscache_ = ' + ut.dict_str(colscache_, truncate=1))
+                print('L__________')
+
+            writer_result = writer_func(self, *args, **kwargs)
+
+            if DEBUG_API_CACHE:
+                indenter.stop()
+            return writer_result
         wrp_cache_invalidator = ut.preserve_sig(wrp_cache_invalidator, writer_func)
         return wrp_cache_invalidator
     return closure_cache_invalidator

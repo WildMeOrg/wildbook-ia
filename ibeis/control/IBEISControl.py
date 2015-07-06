@@ -233,8 +233,10 @@ class IBEISController(object):
     def reset_table_cache(ibs):
         ibs.table_cache = accessor_decors.init_tablecache()
 
-    def clear_table_cache(ibs, tablename):
+    def clear_table_cache(ibs, tablename=None):
         print('[ibs] clearing table_cache[%r]' % (tablename,))
+        if tablename is None:
+            ibs.reset_table_cache()
         del ibs.table_cache[tablename]
 
     def get_cachestats_str(ibs):
