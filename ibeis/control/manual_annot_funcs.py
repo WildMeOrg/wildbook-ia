@@ -590,6 +590,7 @@ def delete_annots(ibs, aid_list):
         >>> valid_aids = ibs.get_valid_aids()
         >>> assert  [aid not in valid_aids for aid in new_aid_list], 'should no longer be valid aids'
         >>> print(result)
+        >>> ibs.delete_empty_nids()
 
     """
     if ut.VERBOSE:

@@ -1110,6 +1110,8 @@ if __name__ == '__main__':
     CommandLine:
         python -m ibeis.control.manual_name_funcs
         python -m ibeis.control.manual_name_funcs --allexamples
+        python -c "import utool, ibeis; utool.doctest_funcs(ibeis.control.manual_annot_funcs); utool.doctest_funcs(ibeis.control.manual_name_funcs) " --allexamples
+
         python -m ibeis.control.manual_name_funcs --allexamples --noface --nosrc
 
     RESTful:

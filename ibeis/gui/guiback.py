@@ -1653,7 +1653,31 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def import_images_from_dir_with_smart(back, dir_=None, size_filter=None, refresh=True):
-        """ File -> Import Images From Directory with smart"""
+        """ File -> Import Images From Directory with smart
+
+        Args:
+            dir_ (None): (default = None)
+            size_filter (None): (default = None)
+            refresh (bool): (default = True)
+
+        Returns:
+            list: gid_list
+
+        CommandLine:
+            python -m ibeis.gui.guiback --test-import_images_from_dir_with_smart
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> back = testdata_guiback()
+            >>> back = '?'
+            >>> dir_ = None
+            >>> size_filter = None
+            >>> refresh = True
+            >>> gid_list = back.import_images_from_dir_with_smart(dir_, size_filter, refresh)
+            >>> result = ('gid_list = %s' % (str(gid_list),))
+            >>> print(result)
+        """
         print('[back] import_images_from_dir_with_smart')
         gid_list = back.import_images_from_dir(dir_=dir_, size_filter=size_filter,
                                                refresh=refresh, clock_offset=False)
