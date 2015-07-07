@@ -263,7 +263,9 @@ def detect(ibs, gpath_list, tree_path_list, **kwargs):
 ########################
 
 
-def _overlap_percentage((xmin1, xmax1, ymin1, ymax1), (xmin2, xmax2, ymin2, ymax2)):
+def _overlap_percentage(minmax_tup1, minmax_tup2):
+    (xmin1, xmax1, ymin1, ymax1) = minmax_tup1
+    (xmin2, xmax2, ymin2, ymax2) = minmax_tup2
     width1, height1 = xmax1 - xmin1, ymax1 - ymin1
     width2, height2 = xmax2 - xmin2, ymax2 - ymin2
     x_overlap = max(0, min(xmax1, xmax2) - max(xmin1, xmin2))

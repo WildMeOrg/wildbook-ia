@@ -43,7 +43,7 @@ def run_ibeis():
     execstr = ibeis.main_loop(main_locals)
     # <DEBUG CODE>
     if 'back' in main_locals and CMD:
-        from ibeis.all_imports import *  # NOQA
+        #from ibeis.all_imports import *  # NOQA
         back = main_locals['back']
         front = getattr(back, 'front', None)  # NOQA
         #front = back.front

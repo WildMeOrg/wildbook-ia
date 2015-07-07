@@ -123,7 +123,7 @@ def testsdata_match_verification(defaultdb='testdb1', aid1=1, aid2=2):
         >>>    self.show_page()
         >>>    pt.show_if_requested()
     """
-    from ibeis.viz.interact.interact_name import *  # NOQA
+    #from ibeis.viz.interact.interact_name import *  # NOQA
     import ibeis
     #ibs = ibeis.opendb(defaultdb='PZ_Master0')
     ibs = ibeis.opendb(defaultdb=defaultdb)

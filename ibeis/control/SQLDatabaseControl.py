@@ -7,7 +7,8 @@ from six.moves import map, zip
 from os.path import join, exists
 import utool
 import utool as ut
-import cStringIO
+#import cStringIO
+from six.moves import cStringIO
 from ibeis import constants as const
 from ibeis.control._sql_helpers import (_unpacker, sanitize_sql,
                                         SQLExecutionContext, VERBOSE_SQL, NOT_QUIET)
