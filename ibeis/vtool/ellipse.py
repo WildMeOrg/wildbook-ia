@@ -100,7 +100,7 @@ def sample_ell_border_vals(imgBGR, expanded_kpts, nKp, nScales, nSamples):
 
 
 def interpolate_between(peak_list, nScales, high, low):
-    def bin_to_subscale(bins):
+    def bin_to_subscale(peaks):
         return 2 ** ((peaks[:, 0] / nScales) * (high - low) + low)
     subscale_list = [bin_to_subscale(peaks) if len(peaks) > 0 else []
                      for peaks in peak_list]
