@@ -117,7 +117,9 @@ class IBEIS_Image(object):
     def __len__(ibsi):
         return len(ibsi.objects)
 
-    def _distance((x1, y1), (x2, y2)):
+    def _distance(pt1, pt2):
+        (x1, y1) = pt1
+        (x2, y2) = pt2
         return math.sqrt( (x1 - x2) ** 2 + (y1 - y2) ** 2 )
 
     def _overlaps(ibsi, objects, obj, margin=0.50, bins=['left', 'front', 'right', 'back']):

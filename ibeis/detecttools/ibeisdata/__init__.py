@@ -3,8 +3,8 @@ from __future__ import print_function
 
 import os
 from detecttools.directory import Directory
-from . import common as com
-from ibeis_image import IBEIS_Image
+from detecttools.ibeisdata import common as com
+from detecttools.ibeisdata.ibeis_image import IBEIS_Image
 
 
 class IBEIS_Data(object):
