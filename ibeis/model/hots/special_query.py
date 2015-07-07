@@ -215,7 +215,7 @@ def test_vsone_errors(ibs, daids, qaid2_qres_vsmany, qaid2_qres_vsone, incinfo):
         if ut.get_argflag('--interupt-case') and case in [VSMANY_WINS, VSMANY_DOMINATES]:
             incinfo['interactive'] = True
             incinfo['use_oracle'] = False
-            incinfo['PLEASE_STOP'] = True
+            incinfo['STOP'] = True
             if ut.is_developer():
                 import plottool as pt  # NOQA
                 IPYTHON_COMMANDS = """

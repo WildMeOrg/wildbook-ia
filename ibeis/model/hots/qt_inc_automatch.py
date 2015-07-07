@@ -270,8 +270,8 @@ class IncQueryHarness(INC_LOOP_BASE):
                 self.qreq_     = qreq_
                 self.incinfo = incinfo
                 incinfo['count'] += 1
-                if incinfo.get('PLEASE_STOP', False):
-                    print('PLEASE_STOP triggered')
+                if incinfo.get('STOP', False):
+                    print('STOP triggered')
                     interactive_after = incinfo['count'] - 1
                     incinfo['next_query_callback'] = next_query_callback
                     incinfo['use_oracle'] = False
@@ -293,7 +293,7 @@ class IncQueryHarness(INC_LOOP_BASE):
         incinfo['use_oracle'] = False
         #incinfo['metatup'] = None
         if hack_run_name_decision:
-            # need to rn this so PLEASE_STOP can trigger user interaction
+            # need to rn this so STOP can trigger user interaction
             automatch.run_until_name_decision_signal(ibs, qres, qreq_, incinfo=incinfo)
         else:
             incinfo['next_query_callback']()

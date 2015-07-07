@@ -829,6 +829,47 @@ class NeighborIndex(object):
         new_vecs_list, new_fgws_list = get_support_data(qreq_, new_daid_list)
         nnindexer.add_support(new_daid_list, new_vecs_list, new_fgws_list)
 
+    def remove_ibeis_support(nnindexer, qreq_, remove_daid_list):
+        # TODO: ensure that the memcache changes appropriately
+        print('adding single-indexer support')
+        nnindexer.remove_support(remove_daid_list)
+
+    def remove_support(nnindexer, remove_daid_list):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> nnindexer, qreq_, ibs = test_nnindexer()
+            >>> remove_daid_list = [8, 9, 10, 11]
+            >>> K = 2
+            >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
+            >>> # get before data
+            >>> (qfx2_idx1, qfx2_dist1) = nnindexer.knn(qfx2_vec, K)
+            >>> # execute test function
+            >>> nnindexer.remove_support(remove_daid_list)
+            >>> # test before data vs after data
+            >>> (qfx2_idx2, qfx2_dist2) = nnindexer.knn(qfx2_vec, K)
+            >>> #
+            >>> ax2_nvecs = ut.dict_take(ut.dict_hist(nnindexer.idx2_ax), range(len(nnindexer.ax2_aid)))
+            >>> assert qfx2_idx2.max() < ax2_nvecs[0], 'should only get points from aid 7'
+            >>> assert qfx2_idx1.max() > ax2_nvecs[0], 'should get points from everyone'
+        """
+        if ut.DEBUG2:
+            print('REMOVING POINTS')
+        ax2_remove_flag = np.in1d(nnindexer.ax2_aid, remove_daid_list)
+        remove_ax_list = np.nonzero(ax2_remove_flag)[0]
+        idx2_remove_flag = np.in1d(nnindexer.idx2_ax, remove_ax_list)
+        remove_idx_list = np.nonzero(idx2_remove_flag)[0]
+        # FIXME: indicies may need adjustment after remove points
+        # Currently this is not being done and the data is just being left alone
+        # This should be ok temporarilly because removed ids should not
+        # be returned by the flann object
+        nnindexer.flann.remove_points(remove_idx_list)
+        # FIXME: This will definitely bug out if you remove points and then try
+        # to add the same points back again.
+        if ut.DEBUG2:
+            print('DONE REMOVE POINTS')
+
     #@profile
     def add_support(nnindexer, new_daid_list, new_vecs_list, new_fgws_list,
                     verbose=True):
@@ -841,6 +882,9 @@ class NeighborIndex(object):
             new_fgws_list (list): list of weights per vector for each annotation
             verbose (bool):  verbosity flag(default = True)
 
+        CommandLine:
+            python -m ibeis.model.hots.neighbor_index --test-add_support
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
@@ -848,9 +892,12 @@ class NeighborIndex(object):
             >>> new_daid_list = [2, 3, 4]
             >>> K = 2
             >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
+            >>> # get before data
             >>> (qfx2_idx1, qfx2_dist1) = nnindexer.knn(qfx2_vec, K)
             >>> new_vecs_list, new_fgws_list = get_support_data(qreq_, new_daid_list)
+            >>> # execute test function
             >>> nnindexer.add_support(new_daid_list, new_vecs_list, new_fgws_list)
+            >>> # test before data vs after data
             >>> (qfx2_idx2, qfx2_dist2) = nnindexer.knn(qfx2_vec, K)
             >>> assert qfx2_idx2.max() > qfx2_idx1.max()
         """
@@ -867,14 +914,7 @@ class NeighborIndex(object):
         if ut.DEBUG2:
             print('STACKING')
         # Stack inverted information
-        ##---
-        #if not hasattr(nnindexer, 'old_vecs'):
-        #    nnindexer.old_vecs = []
-        # Try to hack in a way to keep the old memory
         old_idx2_vec = nnindexer.idx2_vec
-        #if True:
-        #    nnindexer.old_vecs.append(old_idx2_vec)
-        #    nnindexer.old_vecs.append(new_idx2_vec)
         if nnindexer.idx2_fgw is not None:
             new_idx2_fgw = np.hstack(new_fgws_list)
             #nnindexer.old_vecs.append(new_idx2_fgw)
