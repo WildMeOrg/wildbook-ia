@@ -418,7 +418,7 @@ class ANNOTATIONInteraction(object):
         if len(self.polys) != 0:
             wh_list = np.array([basecoords_to_bbox(poly.xy)[2:4] for poly in
                                 six.itervalues(self.polys)])
-            poly_index = self.polys.keys()[wh_list.prod(axis=1).argmax()]
+            poly_index = list(self.polys.keys())[wh_list.prod(axis=1).argmax()]
             self._currently_selected_poly = self.polys[poly_index]
             self.update_colors(poly_index)
             self._update_line()
@@ -575,7 +575,7 @@ class ANNOTATIONInteraction(object):
         if len(self.polys) == 0:
             return (None, None)
         else:
-            poly_ind = max(self.polys.keys())  # most recently added polygon has the highest index
+            poly_ind = max(list(self.polys.keys()))  # most recently added polygon has the highest index
             return poly_ind, self.polys[poly_ind]
 
     def button_press_callback(self, event):
