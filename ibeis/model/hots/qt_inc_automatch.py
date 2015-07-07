@@ -12,6 +12,7 @@ CommandLine:
 
 CommandLine:
     >>> # Interactive Test
+    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:1 --ia 0 --aid_order=same
     python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0 --ia 0
 
 TODO:

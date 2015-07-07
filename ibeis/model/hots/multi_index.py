@@ -442,6 +442,7 @@ class MultiNeighborIndex(object):
                 if USE_FORGROUND_REINDEX:
                     raise NotImplementedError('no foreground reindex in stateful query')
                 else:
+                    # Reindex the multi-indexed trees in the background
                     aid_list = mxer.get_indexed_aids()
                     neighbor_index.request_background_nnindexer(qreq_, aid_list)
 

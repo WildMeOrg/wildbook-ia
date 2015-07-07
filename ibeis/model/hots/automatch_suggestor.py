@@ -169,7 +169,7 @@ def get_system_exemplar_suggestion(ibs, qaid):
         ibsfuncs.set_exemplars_from_quality_and_viewpoint
 
     CommandLine:
-        python -m ibeis.model.hots.automatch_suggestor --test-get_system_exemplar_suggestion
+        python -m ibeis.model.hots.automatch_suggestor --test-get_system_exemplar_suggestion:1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -178,6 +178,19 @@ def get_system_exemplar_suggestion(ibs, qaid):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> qaid = 2
+        >>> # execute function
+        >>> (autoexmplr_msg, exemplar_decision, exemplar_confidence) = get_system_exemplar_suggestion(ibs, qaid)
+        >>> # verify results
+        >>> result = str((autoexmplr_msg, exemplar_decision, exemplar_confidence))
+        >>> print(result)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.hots.automatch_suggestor import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qaid = 1
         >>> # execute function
         >>> (autoexmplr_msg, exemplar_decision, exemplar_confidence) = get_system_exemplar_suggestion(ibs, qaid)
         >>> # verify results

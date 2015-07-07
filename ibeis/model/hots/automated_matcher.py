@@ -156,7 +156,7 @@ def initialize_persistant_query_request(ibs, qaid_chunk):
     vsmany_cfgdict = dict(
         K=vsmany_K,
         Knorm=3,
-        index_method='multi',
+        #index_method='single',
         pipeline_root='vsmany',
         #return_expanded_nns=False,
         #return_expanded_nns=True,
@@ -174,8 +174,10 @@ def load_or_make_qreq(ibs, qreq_vsmany_, qaid_chunk):
         qreq_vsmany_.set_internal_qaids(qaid_chunk)
         # state based exemplars
         # daid_list = qreq_vsmany_.get_external_daids()
-        # Force indexer reloading if background process is completed we might
-        # get a shiny new indexer.
+        #
+        # VALID FOR MULTI_INDEXER ONLY
+        # Force indexer reloading if background process is completed.
+        # we might get a shiny new indexer.
         force = neighbor_index.check_background_process()
         qreq_vsmany_.load_indexer(force=force)
     return qreq_vsmany_

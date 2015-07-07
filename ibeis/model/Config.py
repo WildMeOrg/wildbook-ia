@@ -157,7 +157,7 @@ class NNConfig(ConfigBase):
         nn_cfg.min_reindex_thresh = 200  # number of annots before a new multi-indexer is built
         nn_cfg.max_subindexers = 2  # number of annots before a new multi-indexer is built
         nn_cfg.valid_index_methods = ['single', 'multi', 'name']
-        nn_cfg.index_method = 'multi'
+        #nn_cfg.index_method = 'multi'
         nn_cfg.index_method = 'single'
         nn_cfg.Knorm = 1
         nn_cfg.checks = 800

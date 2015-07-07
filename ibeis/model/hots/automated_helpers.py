@@ -300,7 +300,7 @@ def make_incremental_test_database(ibs_gt, aid_list1, reset):
 
 
 @profile
-def setup_incremental_test(ibs_gt, clear_names=True):
+def setup_incremental_test(ibs_gt, clear_names=True, aid_order='shuffle'):
     r"""
     CommandLine:
         python -m ibeis.model.hots.automated_helpers --test-setup_incremental_test:0
@@ -358,12 +358,12 @@ def setup_incremental_test(ibs_gt, clear_names=True):
     # Add aids in a random order
     VALID_ORDERS = ['shuffle', 'stagger', 'same']
     #AID_ORDER = 'shuffle'
-    AID_ORDER = 'stagger'
-    assert VALID_ORDERS.index(AID_ORDER) > -1
+    aid_order = ut.get_argval('--aid-order', default=aid_order)
+    assert VALID_ORDERS.index(aid_order) > -1
 
-    if AID_ORDER == 'shuffle':
+    if aid_order == 'shuffle':
         aid_list1 = ut.deterministic_shuffle(aid_list1_[:])
-    elif AID_ORDER == 'stagger':
+    elif aid_order == 'stagger':
         from six.moves import zip_longest, filter
         aid_groups, unique_nid_list = ibs_gt.group_annots_by_name(aid_list1_)
         def stagger_group(list_):
@@ -372,7 +372,7 @@ def setup_incremental_test(ibs_gt, clear_names=True):
         aid_list1 = stagger_group(aid_multiton_group)
         #aid_list1 = ibs_gt.get_annot_rowid_sample(per_name=10, aid_list=aid_list1_, stagger_names=True)
         pass
-    elif AID_ORDER == 'same':
+    elif aid_order == 'same':
         aid_list1 = aid_list1_
 
     # If reset is true the test database is started completely from scratch

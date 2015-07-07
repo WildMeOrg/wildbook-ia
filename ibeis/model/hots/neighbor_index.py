@@ -822,6 +822,12 @@ class NeighborIndex(object):
             raise AssertionError('NNindexer should get uint8s right now unless the algorithm has changed')
         nnindexer.max_distance_sqrd = nnindexer.max_distance ** 2
 
+    def add_ibeis_support(nnindexer, qreq_, new_daid_list):
+        # TODO: ensure that the memcache changes appropriately
+        print('adding single-indexer support')
+        new_vecs_list, new_fgws_list = get_support_data(qreq_, new_daid_list)
+        nnindexer.add_support(new_daid_list, new_vecs_list, new_fgws_list)
+
     #@profile
     def add_support(nnindexer, new_daid_list, new_vecs_list, new_fgws_list,
                     verbose=True):
