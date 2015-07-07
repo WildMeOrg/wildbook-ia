@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from ibeis.model.hots import neighbor_index
 from ibeis.model.hots import multi_index

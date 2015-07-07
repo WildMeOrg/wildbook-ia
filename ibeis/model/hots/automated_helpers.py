@@ -182,8 +182,12 @@ def assert_testdb_annot_consistency(ibs_gt, ibs2, aid_list1, aid_list2):
     ut.assert_lists_eq(_visual_uuid_list1, visual_uuid_list1)
     ut.assert_lists_eq(_visual_uuid_list2, visual_uuid_list2)
 
-    ibs1_dup_annots = ut.debug_duplicate_items(visual_uuid_list1)
-    ibs2_dup_annots = ut.debug_duplicate_items(visual_uuid_list2)
+    if ut.VERBOSE:
+        ibs1_dup_annots = ut.debug_duplicate_items(visual_uuid_list1)
+        ibs2_dup_annots = ut.debug_duplicate_items(visual_uuid_list2)
+    else:
+        ibs1_dup_annots = ut.find_duplicate_items(visual_uuid_list1)
+        ibs2_dup_annots = ut.find_duplicate_items(visual_uuid_list2)
 
     # if these fail try ibsfuncs.fix_remove_visual_dupliate_annotations
     assert len(ibs1_dup_annots) == 0

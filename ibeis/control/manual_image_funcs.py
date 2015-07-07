@@ -262,7 +262,8 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize
         gpath_list = ibs.get_image_paths(gid_list)
         guuid_list = ibs.get_image_uuids(gid_list)
         gext_list  = ibs.get_image_exts(gid_list)
-        ut.debug_duplicate_items(gid_list, gpath_list, guuid_list, gext_list)
+        if ut.VERBOSE:
+            ut.debug_duplicate_items(gid_list, gpath_list, guuid_list, gext_list)
 
     if ut.VERBOSE:
         uuid_list = [None if params_ is None else params_[0] for params_ in params_list]

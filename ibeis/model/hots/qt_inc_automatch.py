@@ -6,6 +6,9 @@ CommandLine:
     utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --num-init 5000 --stateful-query
     utprof.py -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
 
+    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --ia 0
+    python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:3 --ia 0 --force-serial
+
 CommandLine:
     >>> # Autonomous Test
     python -m ibeis.model.hots.qt_inc_automatch --test-test_inc_query:0
