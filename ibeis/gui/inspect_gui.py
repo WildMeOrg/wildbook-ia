@@ -110,6 +110,7 @@ class QueryResultsWidget(APIItemWidget):
     def closeEvent(qres_wgt, event):
         event.accept()
         if qres_wgt.callback is not None:
+            # update names tree after closing
             qres_wgt.callback()
 
     def add_checkboxes(qres_wgt, show_new, show_join, show_split):

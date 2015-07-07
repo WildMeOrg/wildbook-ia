@@ -1037,48 +1037,24 @@ class MainWindowBackend(GUIBACK_BASE):
 
     def run_annot_splits(back, aid_list):
         """
-        vuuid_list = [UUID('139bd9d6-92e0-351d-cd88-fd2dc486a6ef'),
-        UUID('a0b75696-72c3-41c0-3c64-902fd81e105a'),
-        UUID('49f3ef2a-c6e4-42b2-8fdd-b55f81596c8a'),
-        UUID('361b82d1-9dc4-38ae-2518-361a7d2422be'),
-        UUID('8c821e21-7f5a-bbe9-ca81-ac0bc57a173d'),
-        UUID('3666e621-e916-4f34-7813-deea786e953b'),
-        UUID('de0666a3-dc57-8d2a-e0ab-0460d0100bf6'),
-        UUID('dd204d70-4981-2da4-3ecd-de7734901d23'),
-        UUID('c9bc4e06-8cbe-4c36-4895-6ce1a76deff7'),
-        UUID('b1913c57-07e7-b137-643a-e70702743fda'),
-        UUID('fcd21a86-f9b9-56c1-1ff5-770bf08b61b1'),
-        UUID('31aaf2c3-838e-94eb-77c6-dabbf7d626a1'),
-        UUID('bd875369-fce8-9574-2349-f25c2dc83c0f'),
-        UUID('c5363971-5c52-de98-75f3-aabeff7126b2'),
-        UUID('6988e40b-e927-cead-f8d0-172cfbdc34fd'),
-        UUID('f1d96725-a2d0-2107-fd3f-76079bff9260'),
-        UUID('c04bd609-dad0-f08b-b8a6-6e5c32ce4ad7'),
-        UUID('072a58a2-dc79-03dc-b3fc-7b88bf8115ea'),
-        UUID('2a3f40fd-d02c-0d8c-663f-65c7ee336d1e'),
-        UUID('84658fee-23d2-e7af-7d69-6139b0b86999'),
-        UUID('ac2a3962-6a67-6c4e-8516-fda09b850650'),
-        UUID('3680eed4-6bec-486a-00b5-934b4be985df'),
-        UUID('d555c7d1-49a8-9701-77e1-4cb88214759b'),
-        UUID('b3fc2bc3-e892-59e5-2c35-4d9eb64dcfa0'),
-        UUID('cd4ad12d-07da-0bbb-32fb-41784489de9a'),
-        UUID('250b11fd-5294-0203-7f10-6b333a6cbcb6'),
-        UUID('4808d189-eb8c-e385-2454-6f11dede2507'),
-        UUID('9a056923-5fd2-e2e3-2649-54264c774b02'),
-        UUID('8871a6d8-0a07-0832-610b-bb62bca994af'),
-        UUID('470dc0b2-0135-d66a-1b7b-b75f9c014dcf'),
-        UUID('b1f387f2-298a-4cdb-9009-5b758c25510a'),
-        UUID('bbd59dce-e0ee-3d72-86c3-bb6c3d54b31b'),
-        UUID('ddbbf609-c6ed-2916-8996-b880112bc986'),
-        UUID('8a00a89e-ccb7-6e51-e6ef-9cb5ce230153'),
-        UUID('1588afd0-07a9-6ff8-0412-8a0050ee3f2f'),
-        UUID('993da060-658d-321e-e84f-4140e1ab2de1'),
-        UUID('6238b3f5-b8c3-df5e-d33a-5835fdc069ae')]
-        aid_list = [10775, 10887, 10940, 11140, 11167, 11168, 11234, 11261,
-        11289, 11345, 11461, 11615, 11616, 11647, 11655, 11721, 11722, 11734,
-        11735, 11782, 11804, 11837, 12137, 12138, 12263, 12264, 12295, 12302,
-        12323, 12324, 12403, 12404, 12432, 12784, 12876, 12877, 12904]
-        back.run_annot_splits(aid_list)
+        Checks for mismatches within a group of annotations
+
+        Args:
+            aid_list (int):  list of annotation ids
+
+        CommandLine:
+            python -m ibeis.gui.guiback --test-run_annot_splits --show
+
+        Example:
+            >>> # GUI_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> back = testdata_guiback()
+            >>> back.ibs
+            >>> aids_list, nids = back.ibs.group_annots_by_name(back.ibs.get_valid_aids())
+            >>> aid_list = aids_list[ut.list_argmax(list(map(len, aids_list)))]
+            >>> back.run_annot_splits(aid_list)
+            >>> ut.quit_if_noshow()
+            >>> guitool.qtapp_loop(back.mainwin, frequency=100)
 
         """
         cfgdict = {
@@ -1100,6 +1076,22 @@ class MainWindowBackend(GUIBACK_BASE):
                             query_title='Annot Splits')
 
     def run_merge_checks(back):
+        r"""
+        Checks for missed matches within a group of annotations
+
+        CommandLine:
+            python -m ibeis.gui.guiback --test-run_merge_checks --show
+
+        Example:
+            >>> # GUI_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> back = testdata_guiback()
+            >>> result = back.run_merge_checks()
+            >>> print(result)
+            >>> ut.quit_if_noshow()
+            >>> guitool.qtapp_loop(back.mainwin, frequency=100)
+        """
+        pass
         qaid_list = back.ibs.get_valid_aids(is_exemplar=True)
         cfgdict = {
             'can_match_samename': False,
@@ -1110,7 +1102,7 @@ class MainWindowBackend(GUIBACK_BASE):
         }
         back.compute_queries(qaid_list=qaid_list, daids_mode=const.VS_EXEMPLARS_KEY,
                              query_msg='Checking for MERGE cases (this is an exemplars-vs-exemplars query)',
-                             cfgdict=cfgdict)
+                             cfgdict=cfgdict, custom_qaid_list_title='Merge Candidates')
 
     @blocking_slot()
     def compute_queries(back, refresh=True, daids_mode=None,
@@ -1118,11 +1110,11 @@ class MainWindowBackend(GUIBACK_BASE):
                         use_prioritized_name_subset=False,
                         use_visual_selection=False, cfgdict={},
                         query_msg=None,
+                        custom_qaid_list_title=None,
                         **kwargs):
         """
         MAIN QUERY FUNCTION
 
-        def query
         execute_query
 
         Batch -> Compute OldStyle Queries
@@ -1180,7 +1172,9 @@ class MainWindowBackend(GUIBACK_BASE):
                 qaid_list = back.get_selected_qaids(eid=eid, is_known=query_is_known)
                 query_title += 'encounter=' + back.ibs.get_encounter_text(eid)
         else:
-            query_title += 'custom'
+            if custom_qaid_list_title is None:
+                custom_qaid_list_title = 'custom'
+            query_title += custom_qaid_list_title
         if use_prioritized_name_subset:
             # you do get unknowns back in this list
             HACK = back.ibs.cfg.other_cfg.enable_custom_filter
