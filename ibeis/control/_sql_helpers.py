@@ -163,7 +163,7 @@ def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True
         utool.copy(src_fpath, dst_fpath)
         # Clean-up old database backups
         path_list = sorted(utool.glob(backup_dir, '*%s' % ext))
-        if path_list > max_keep:
+        if len(path_list) > max_keep:
             path_delete_list = path_list[:-1 * max_keep]
             for path_delete in path_delete_list:
                 print('[ensure_daily_database_backup] Deleting old backup %r' % path_delete)
