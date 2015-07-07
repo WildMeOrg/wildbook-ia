@@ -153,8 +153,8 @@ TABLE_COLNAMES = {
 
 }
 
-if False and ut.get_computer_name() != '':
-    TABLE_COLNAMES[ENCOUNTER_TABLE].append([
+if ut.get_computer_name() != 'ibeis.cs.uic.edu':
+    TABLE_COLNAMES[ENCOUNTER_TABLE].extend([
         'percent_annotmatch_reviewed_str',
         'percent_names_with_exemplar_str',
         #'percent_imgs_reviewed_str',

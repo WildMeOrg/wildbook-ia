@@ -210,6 +210,7 @@ def set_newfile_permissions():
 #@profile
 def main(gui=True, dbdir=None, defaultdb='cache',
          allow_newdir=False, db=None,
+         delete_ibsdir=False,
          **kwargs):
     """
     Program entry point
@@ -251,6 +252,10 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     # Parse directory to be loaded from command line args
     # and explicit kwargs
     dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)
+    if delete_ibsdir is True:
+        from ibeis import ibsfuncs
+        assert allow_newdir, 'must be making new directory if you are deleting everything!'
+        ibsfuncs.delete_ibeis_database(dbdir)
     # Execute preload commands
     main_commands.preload_commands(dbdir, **kwargs)  # PRELOAD CMDS
     try:

@@ -20,7 +20,7 @@ from ibeis.gui import guiexcept
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import newgui
 from ibeis.viz import interact
-from os.path import exists, join
+from os.path import exists, join, dirname
 from plottool import fig_presenter
 from six.moves import zip
 (print, print_, printDBG, rrr, profile) = ut.inject(
@@ -1616,15 +1616,16 @@ class MainWindowBackend(GUIBACK_BASE):
         if gpath_list is None:
             gpath_list = guitool.select_images('Select image files to import')
         gid_list = back.ibs.add_images(gpath_list, as_annots=as_annots)
-        return back._add_images(refresh, gid_list, clock_offset=clock_offset)
+        back._process_new_images(refresh, gid_list, clock_offset=clock_offset)
+        return gid_list
 
     @blocking_slot()
     def import_images_from_dir(back, dir_=None, size_filter=None, refresh=True,
-                               clock_offset=True):
+                               clock_offset=True, return_dir=False, defaultdir=None):
         """ File -> Import Images From Directory"""
         print('[back] import_images_from_dir')
         if dir_ is None:
-            dir_ = guitool.select_directory('Select directory with images in it')
+            dir_ = guitool.select_directory('Select directory with images in it', directory=defaultdir)
         #printDBG('[back] dir=%r' % dir_)
         if dir_ is None:
             return
@@ -1632,27 +1633,32 @@ class MainWindowBackend(GUIBACK_BASE):
         if size_filter is not None:
             raise NotImplementedError('Can someone implement the size filter?')
         gid_list = back.ibs.add_images(gpath_list)
-        return back._add_images(refresh, gid_list, clock_offset=clock_offset)
+        back._process_new_images(refresh, gid_list, clock_offset=clock_offset)
+        if return_dir:
+            return gid_list, dir_
+        else:
+            return gid_list
+
         #print('')
 
-    @blocking_slot()
-    def import_images_with_smart(back, gpath_list=None, dir_=None, refresh=True):
-        """ File -> Import Images with smart"""
-        print('[back] import_images_with_smart')
-        gid_list = back.import_images(gpath_list=gpath_list, dir_=dir_, refresh=refresh,
-                                      clock_offset=False)
-        back._add_images_with_smart_patrol(gid_list, refresh=refresh)
+    #@blocking_slot()
+    #def import_images_with_smart(back, gpath_list=None, dir_=None, refresh=True):
+    #    """ File -> Import Images with smart"""
+    #    print('[back] import_images_with_smart')
+    #    gid_list = back.import_images(gpath_list=gpath_list, dir_=dir_, refresh=refresh,
+    #                                  clock_offset=False)
+    #    back._group_images_with_smartxml(gid_list, refresh=refresh)
+
+    #@blocking_slot()
+    #def import_images_from_file_with_smart(back, gpath_list=None, refresh=True, as_annots=False):
+    #    """ File -> Import Images From File with smart"""
+    #    print('[back] import_images_from_file_with_smart')
+    #    gid_list = back.import_images_from_file(gpath_list=gpath_list, refresh=refresh,
+    #                                            as_annots=as_annots, clock_offset=False)
+    #    back._group_images_with_smartxml(gid_list, refresh=refresh)
 
     @blocking_slot()
-    def import_images_from_file_with_smart(back, gpath_list=None, refresh=True, as_annots=False):
-        """ File -> Import Images From File with smart"""
-        print('[back] import_images_from_file_with_smart')
-        gid_list = back.import_images_from_file(gpath_list=gpath_list, refresh=refresh,
-                                                as_annots=as_annots, clock_offset=False)
-        back._add_images_with_smart_patrol(gid_list, refresh=refresh)
-
-    @blocking_slot()
-    def import_images_from_dir_with_smart(back, dir_=None, size_filter=None, refresh=True):
+    def import_images_from_dir_with_smart(back, dir_=None, size_filter=None, refresh=True, smart_xml_fpath=None, defaultdir=None):
         """ File -> Import Images From Directory with smart
 
         Args:
@@ -1664,40 +1670,53 @@ class MainWindowBackend(GUIBACK_BASE):
             list: gid_list
 
         CommandLine:
-            python -m ibeis.gui.guiback --test-import_images_from_dir_with_smart
+            python -m ibeis.gui.guiback --test-import_images_from_dir_with_smart --show
+            python -m ibeis.gui.guiback --test-import_images_from_dir_with_smart --show --auto
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # DEV_GUI_DOCTEST
             >>> from ibeis.gui.guiback import *  # NOQA
-            >>> back = testdata_guiback()
-            >>> back = '?'
-            >>> dir_ = None
+            >>> back = testdata_guiback(db='freshsmart_test', delete_ibsdir=True, allow_newdir=True)
+            >>> ibs = back.ibs
+            >>> defaultdir = ut.truepath('~/lewa-desktop/Desktop/GZ_Foal_Patrol_22_06_2015')
+            >>> dir_ = None if not ut.get_argflag('--auto') else join(defaultdir, 'Photos')
+            >>> smart_xml_fpath = None if not ut.get_argflag('--auto') else join(defaultdir, 'Patrols', 'LWC_000526LEWA_GZ_FOAL_PATROL.xml')
             >>> size_filter = None
             >>> refresh = True
-            >>> gid_list = back.import_images_from_dir_with_smart(dir_, size_filter, refresh)
+            >>> gid_list = back.import_images_from_dir_with_smart(dir_, size_filter, refresh, defaultdir=defaultdir, smart_xml_fpath=smart_xml_fpath)
             >>> result = ('gid_list = %s' % (str(gid_list),))
             >>> print(result)
+            >>> ut.quit_if_noshow()
+            >>> guitool.qtapp_loop(back.mainwin, frequency=100)
         """
         print('[back] import_images_from_dir_with_smart')
-        gid_list = back.import_images_from_dir(dir_=dir_, size_filter=size_filter,
-                                               refresh=refresh, clock_offset=False)
-        back._add_images_with_smart_patrol(gid_list, refresh=refresh)
+        gid_list, add_dir_ = back.import_images_from_dir(
+            dir_=dir_, size_filter=size_filter, refresh=False,
+            clock_offset=False, return_dir=True, defaultdir=defaultdir)
+        back._group_images_with_smartxml(gid_list, refresh=refresh, smart_xml_fpath=smart_xml_fpath,
+                                         defaultdir=dirname(add_dir_))
 
-    def _add_images_with_smart_patrol(back, gid_list, refresh=True):
+    def _group_images_with_smartxml(back, gid_list, refresh=True, smart_xml_fpath=None, defaultdir=None):
+        """
+        Clusters the newly imported images with smart xml file
+        """
         if gid_list is not None and len(gid_list) > 0:
-            name_filter = 'XML Files (*.xml)'
-            xml_path_list = guitool.select_files(caption='Select Patrol XML File:',
-                                                 directory=None, name_filter=name_filter)
-            # xml_path_list = ['/Users/bluemellophone/Desktop/LWC_000261.xml']
-            assert len(xml_path_list) < 2, "Cannot specity more than one Patrol XML file"
-            if len(xml_path_list) == 1:
+            if smart_xml_fpath is None:
+                name_filter = 'XML Files (*.xml)'
+                xml_path_list = guitool.select_files(caption='Select Patrol XML File:',
+                                                     directory=defaultdir,
+                                                     name_filter=name_filter,
+                                                     single_file=True)
+                # xml_path_list = ['/Users/bluemellophone/Desktop/LWC_000261.xml']
+                assert len(xml_path_list) == 1, "Must specity one Patrol XML file"
                 smart_xml_fpath = xml_path_list[0]
-                back.ibs.compute_encounters_smart(gid_list, smart_xml_fpath)
+            back.ibs.compute_encounters_smart(gid_list, smart_xml_fpath)
         if refresh:
-            ibsfuncs.update_ungrouped_special_encounter(back.ibs)
-            back.front.update_tables([gh.ENCOUNTER_TABLE])
+            back.ibs.update_special_encounters()
+            #back.front.update_tables([gh.ENCOUNTER_TABLE])
+            back.front.update_tables()
 
-    def _add_images(back, refresh, gid_list, clock_offset=True):
+    def _process_new_images(back, refresh, gid_list, clock_offset=True):
         if refresh:
             back.ibs.update_special_encounters()
             back.front.update_tables([gh.IMAGE_TABLE, gh.ENCOUNTER_TABLE])
@@ -1839,9 +1858,9 @@ class MainWindowBackend(GUIBACK_BASE):
             ut.startfile(screengrab_fpath)
 
 
-def testdata_guiback():
+def testdata_guiback(db='testdb2', **kwargs):
     import ibeis
-    main_locals = ibeis.main(db='testdb2')
+    main_locals = ibeis.main(db=db, **kwargs)
     back = main_locals['back']
     return back
 

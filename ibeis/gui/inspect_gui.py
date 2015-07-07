@@ -106,6 +106,12 @@ class QueryResultsWidget(APIItemWidget):
             # Register parentless QWidgets
             fig_presenter.register_qt4_win(qres_wgt)
 
+    @guitool.slot_()
+    def closeEvent(qres_wgt, event):
+        event.accept()
+        if qres_wgt.callback is not None:
+            qres_wgt.callback()
+
     def add_checkboxes(qres_wgt, show_new, show_join, show_split):
         _CHECK  = partial(guitool.newCheckBox, qres_wgt)
         qres_wgt.button_list = [

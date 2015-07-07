@@ -109,10 +109,10 @@ def setup_file_menu(mainwin, back):
         text='Import Cropped Images As Annotations (select file(s))',
         slot_fn=back.import_images_as_annots_from_file)
     menu.addSeparator()
-    menu.newAction(
-        name='actionImport_Img_file_with_smart',
-        text='Import Images (select file(s)) with smart Patrol XML',
-        slot_fn=back.import_images_from_file_with_smart)
+    #menu.newAction(
+    #    name='actionImport_Img_file_with_smart',
+    #    text='Import Images (select file(s)) with smart Patrol XML',
+    #    slot_fn=back.import_images_from_file_with_smart)
     menu.newAction(
         name='actionImport_Img_dir_with_smart',
         text='Import Images (select directory) with smart Patrol XML',
