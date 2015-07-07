@@ -366,6 +366,6 @@ TRUTH_INT_TO_TEXT = {
     TRUTH_MATCH     : 'Matched',
 }
 
-# clean namespace
-#del utool
-#del np
+
+# Turn off features at Lewa :(
+SIMPLIFY_INTERFACE = (ut.get_computer_name() == 'ibeis.cs.uic.edu') or ut.get_argflag('--simplify')

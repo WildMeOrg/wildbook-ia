@@ -239,16 +239,17 @@ def setup_batch_menu(mainwin, back):
         text='Run Merge Checks (Exemplars vs Exemplars)',
         slot_fn=back.run_merge_checks)
     menu.addSeparator()  # ---------
-    menu.newAction(
-        name='actionBatchConsecutiveLocationSpeciesRename',
-        text='Consecutive Location+Species Rename',
-        slot_fn=back.batch_rename_consecutive_via_species,
-        tooltip=ut.textblock(
-            '''
-            Renames ALL the names in the database to
-            {other_cfg.location_for_names}_{species_code}_{num}
-            ''')
-    )
+    if not const.SIMPLIFY_INTERFACE:
+        menu.newAction(
+            name='actionBatchConsecutiveLocationSpeciesRename',
+            text='Consecutive Location+Species Rename',
+            slot_fn=back.batch_rename_consecutive_via_species,
+            tooltip=ut.textblock(
+                '''
+                Renames ALL the names in the database to
+                {other_cfg.location_for_names}_{species_code}_{num}
+                ''')
+        )
 
 
 def setup_option_menu(mainwin, back):

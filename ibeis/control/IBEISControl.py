@@ -812,10 +812,19 @@ class IBEISController(object):
         raise NotImplementedError()
 
     @default_decorator
+    @register_api('/api/core/wildbook_signal_annot_name_changes/', methods=['PUT'])
+    def wildbook_signal_annot_name_changes(ibs, aid_list=None):
+        pass
+
+    @default_decorator
     @register_api('/api/core/wildbook_signal_eid_list/', methods=['PUT'])
     def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url=True):
         """
         Exports specified encounters to wildbook
+
+
+        Check to see if this is asyncronous
+
 
         RESTful:
             Method: PUT

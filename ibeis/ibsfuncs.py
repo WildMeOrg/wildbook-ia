@@ -4092,7 +4092,7 @@ def get_fastest_names(ibs, nid_list=None):
         python -m ibeis.ibsfuncs --test-get_fastest_names
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.ibsfuncs import *  # NOQA
         >>> ibs = testdata_ibs('NNP_Master3')
         >>> nid_list = None

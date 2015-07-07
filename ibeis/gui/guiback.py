@@ -254,11 +254,15 @@ class MainWindowBackend(GUIBACK_BASE):
         from ibeis.gui import inspect_gui
         qaid2_qres = {qres.qaid: qres for qres in qres_list}
         ibs = back.ibs
-        backend_callback = back.front.update_tables
+
+        def finished_review_callback():
+            back.ibs.wildbook_signal_annot_name_changes()
+            back.front.update_tables()
+
         kwargs['ranks_lt'] = kwargs.get('ranks_lt', ibs.cfg.other_cfg.ranks_lt)
         kwargs['qreq_'] = kwargs.get('qreq_', qreq_)
         back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
-                                                       callback=backend_callback,
+                                                       callback=finished_review_callback,
                                                        **kwargs)
         back.qres_wgt.show()
         back.qres_wgt.raise_()

@@ -438,36 +438,35 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
     """
     global NEIGHBOR_CACHE
     #try:
-    if True:
-        if True or veryverbose:
-            print('[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %r' % (len(NEIGHBOR_CACHE),))
-            # the lru cache wont be recognized by get_object_size_str, cast to pure python objects
-            print('[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = %s' % (ut.get_object_size_str(NEIGHBOR_CACHE.items()),))
-        #if memtrack is not None:
-        #    memtrack.report('IN REQUEST MEMCACHE')
-        nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
-        # neighbor memory cache
-        if not force_rebuild and use_memcache and NEIGHBOR_CACHE.has_key(nnindex_cfgstr):  # NOQA (has_key is for a lru cache)
-            if veryverbose or ut.VERYVERBOSE:
-                print('... nnindex memcache hit: cfgstr=%s' % (nnindex_cfgstr,))
-            nnindexer = NEIGHBOR_CACHE[nnindex_cfgstr]
+    if veryverbose:
+        print('[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = %r' % (len(NEIGHBOR_CACHE),))
+        # the lru cache wont be recognized by get_object_size_str, cast to pure python objects
+        print('[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = %s' % (ut.get_object_size_str(NEIGHBOR_CACHE.items()),))
+    #if memtrack is not None:
+    #    memtrack.report('IN REQUEST MEMCACHE')
+    nnindex_cfgstr = build_nnindex_cfgstr(qreq_, daid_list)
+    # neighbor memory cache
+    if not force_rebuild and use_memcache and NEIGHBOR_CACHE.has_key(nnindex_cfgstr):  # NOQA (has_key is for a lru cache)
+        if veryverbose or ut.VERYVERBOSE:
+            print('... nnindex memcache hit: cfgstr=%s' % (nnindex_cfgstr,))
+        nnindexer = NEIGHBOR_CACHE[nnindex_cfgstr]
+    else:
+        if veryverbose or ut.VERYVERBOSE:
+            print('... nnindex memcache miss: cfgstr=%s' % (nnindex_cfgstr,))
+        # Write to inverse uuid
+        nnindexer = request_diskcached_ibeis_nnindexer(
+            qreq_, daid_list, nnindex_cfgstr, verbose,
+            force_rebuild=force_rebuild, memtrack=memtrack)
+        NEIGHBOR_CACHE_WRITE = True
+        if NEIGHBOR_CACHE_WRITE:
+            # Write to memcache
+            if ut.VERBOSE or ut.VERYVERBOSE:
+                print('[disk] Write to memcache=%r' % (nnindex_cfgstr,))
+            NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
         else:
-            if veryverbose or ut.VERYVERBOSE:
-                print('... nnindex memcache miss: cfgstr=%s' % (nnindex_cfgstr,))
-            # Write to inverse uuid
-            nnindexer = request_diskcached_ibeis_nnindexer(
-                qreq_, daid_list, nnindex_cfgstr, verbose,
-                force_rebuild=force_rebuild, memtrack=memtrack)
-            NEIGHBOR_CACHE_WRITE = True
-            if NEIGHBOR_CACHE_WRITE:
-                # Write to memcache
-                if ut.VERBOSE or ut.VERYVERBOSE:
-                    print('[disk] Write to memcache=%r' % (nnindex_cfgstr,))
-                NEIGHBOR_CACHE[nnindex_cfgstr] = nnindexer
-            else:
-                if ut.VERBOSE or ut.VERYVERBOSE:
-                    print('[disk] Did not write to memcache=%r' % (nnindex_cfgstr,))
-        return nnindexer
+            if ut.VERBOSE or ut.VERYVERBOSE:
+                print('[disk] Did not write to memcache=%r' % (nnindex_cfgstr,))
+    return nnindexer
     #except MemoryError as ex:
     #    if not allow_memfallback:
     #        ut.printex(ex, '[NNINDEX MEMORY FATAL ERROR.]', iswarning=False)
@@ -836,10 +835,13 @@ class NeighborIndex(object):
 
     def remove_support(nnindexer, remove_daid_list):
         """
+        CommandLine:
+            python -m ibeis.model.hots.neighbor_index --test-remove_support
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-            >>> nnindexer, qreq_, ibs = test_nnindexer()
+            >>> nnindexer, qreq_, ibs = test_nnindexer(use_memcache=False)
             >>> remove_daid_list = [8, 9, 10, 11]
             >>> K = 2
             >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
@@ -888,7 +890,7 @@ class NeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.model.hots.neighbor_index import *  # NOQA
-            >>> nnindexer, qreq_, ibs = test_nnindexer()
+            >>> nnindexer, qreq_, ibs = test_nnindexer(use_memcache=False)
             >>> new_daid_list = [2, 3, 4]
             >>> K = 2
             >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
@@ -1244,7 +1246,7 @@ def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
     return idx2_vec, idx2_ax, idx2_fx
 
 
-def test_nnindexer(dbname='testdb1', with_indexer=True):
+def test_nnindexer(dbname='testdb1', with_indexer=True, use_memcache=True):
     """
     Example:
         >>> # ENABLE_DOCTEST
@@ -1254,9 +1256,11 @@ def test_nnindexer(dbname='testdb1', with_indexer=True):
     import ibeis
     daid_list = [7, 8, 9, 10, 11]
     ibs = ibeis.opendb(db=dbname)
-    qreq_ = ibs.new_query_request(daid_list, daid_list)
+    # use_memcache isn't use here because we aren't lazy loading the indexer
+    qreq_ = ibs.new_query_request(daid_list, daid_list, use_memcache=use_memcache)
     if with_indexer:
-        nnindexer = request_ibeis_nnindexer(qreq_)
+        # we do an explicit creation of an indexer for these tests
+        nnindexer = request_ibeis_nnindexer(qreq_, use_memcache=use_memcache)
     else:
         nnindexer = None
     return nnindexer, qreq_, ibs

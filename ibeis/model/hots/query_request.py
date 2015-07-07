@@ -28,7 +28,7 @@ def testdata_newqreq(defaultdb):
 
 @profile
 def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
-                            verbose=ut.NOT_QUIET, unique_species=None):
+                            verbose=ut.NOT_QUIET, unique_species=None, use_memcache=True):
     """
     ibeis entry point to create a new query request object
 
@@ -126,7 +126,8 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         query_config2_ = qparams
     # </HACK>
     data_config2_ = qparams
-    qreq_ = QueryRequest(qaid_list, daid_list, qparams, qresdir, ibs)
+    _indexer_request_params = dict(use_memcache=use_memcache)
+    qreq_ = QueryRequest(qaid_list, daid_list, qparams, qresdir, ibs, _indexer_request_params)
     qreq_.query_config2_ = query_config2_
     qreq_.data_config2_ = data_config2_
     qreq_.unique_species = unique_species_  # HACK
@@ -173,7 +174,7 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids, verbose=VERBOSE
 @six.add_metaclass(ut.ReloadingMetaclass)
 class QueryRequest(object):
     def __init__(qreq_, qaid_list, daid_list, qparams,
-                 qresdir, ibs):
+                 qresdir, ibs, _indexer_request_params):
         # Reminder:
         # lists and other objects are functionally equivalent to pointers
         #
@@ -201,6 +202,7 @@ class QueryRequest(object):
         qreq_.qresdir = qresdir
         qreq_.set_external_daids(daid_list)
         qreq_.set_external_qaids(qaid_list)
+        qreq_._indexer_request_params = _indexer_request_params
 
     @profile
     def shallowcopy(qreq_, qaids=None, qx=None, dx=None):
@@ -643,7 +645,7 @@ class QueryRequest(object):
                 # TODO: SYSTEM updatable indexer
                 if ut.VERYVERBOSE or verbose:
                     print('[qreq] loading single indexer normalizer')
-                indexer = neighbor_index.request_ibeis_nnindexer(qreq_, verbose=verbose)
+                indexer = neighbor_index.request_ibeis_nnindexer(qreq_, verbose=verbose, **qreq_._indexer_request_params)
             elif index_method == 'multi':
                 if ut.VERYVERBOSE or verbose:
                     print('[qreq] loading multi indexer normalizer')

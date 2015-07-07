@@ -11,15 +11,15 @@ encounters on disk to help startuptime.
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
-from ibeis import constants
+from ibeis import constants as const
 import utool as ut
 from functools import partial
 #from ibeis.control import
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[headers]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[headers]')
 
-ENCOUNTER_TABLE  = constants.ENCOUNTER_TABLE
-IMAGE_TABLE      = constants.IMAGE_TABLE
-ANNOTATION_TABLE = constants.ANNOTATION_TABLE
+ENCOUNTER_TABLE  = const.ENCOUNTER_TABLE
+IMAGE_TABLE      = const.IMAGE_TABLE
+ANNOTATION_TABLE = const.ANNOTATION_TABLE
 IMAGE_GRID       = 'image_grid'
 NAME_TABLE       = 'names'
 NAMES_TREE       = 'names_tree'
@@ -153,7 +153,7 @@ TABLE_COLNAMES = {
 
 }
 
-if ut.get_computer_name() != 'ibeis.cs.uic.edu':
+if not const.SIMPLIFY_INTERFACE:
     TABLE_COLNAMES[ENCOUNTER_TABLE].extend([
         'percent_annotmatch_reviewed_str',
         'percent_names_with_exemplar_str',
@@ -196,6 +196,9 @@ TABLE_EDITSET = {
     THUMB_TABLE      : set([]),
     NAMES_TREE       : set(['exemplar', 'name', 'namenotes', 'yaw', 'yaw_text', 'quality_text']),
 }
+
+if const.SIMPLIFY_INTERFACE:
+    TABLE_EDITSET[NAMES_TREE].remove('name')
 
 TABLE_HIDDEN_LIST = {
     #IMAGE_TABLE      : [False, True, False, False, False, True, False, False, False, False, False],
@@ -277,7 +280,7 @@ COL_DEF = dict([
 #        else:
 #            type_ = valid
 #        COL_DEF[name] = (type_, nice)
-#expand_special_colnames(constants.ROSEMARY_ANNOT_METADATA)
+#expand_special_colnames(const.ROSEMARY_ANNOT_METADATA)
 
 #-----
 

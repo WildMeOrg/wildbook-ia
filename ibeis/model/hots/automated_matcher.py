@@ -162,7 +162,7 @@ def initialize_persistant_query_request(ibs, qaid_chunk):
         #return_expanded_nns=True,
     )
     # Create New qreq
-    qreq_vsmany_ = ibs.new_query_request(qaid_chunk, daid_list, cfgdict=vsmany_cfgdict)
+    qreq_vsmany_ = ibs.new_query_request(qaid_chunk, daid_list, cfgdict=vsmany_cfgdict, use_memcache=False)
     return qreq_vsmany_
 
 
