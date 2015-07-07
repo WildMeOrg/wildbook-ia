@@ -186,8 +186,10 @@ def select_directory(caption='Select Directory', directory=None,
                      other_sidebar_dpaths=[], use_sidebar_cwd=True):
     r"""
     Args:
-        caption (str):
-        directory (None):
+        caption (str): (default = 'Select Directory')
+        directory (None): default directory to start in (default = None)
+        other_sidebar_dpaths (list): (default = [])
+        use_sidebar_cwd (bool): (default = True)
 
     Returns:
         str: dpath
@@ -242,19 +244,49 @@ def select_images(caption='Select images:', directory=None):
     return select_files(caption, directory, name_filter)
 
 
-def select_files(caption='Select Files:', directory=None, name_filter=None, other_sidebar_dpaths=[], use_sidebar_cwd=True):
+def select_files(caption='Select Files:', directory=None, name_filter=None,
+                 other_sidebar_dpaths=[], use_sidebar_cwd=True, single_file=False):
     """
     Selects one or more files from disk using a qt dialog
 
+    Args:
+        caption (str): (default = 'Select Files:')
+        directory (None): default directory to start in (default = None)
+        name_filter (None): (default = None)
+        other_sidebar_dpaths (list): (default = [])
+        use_sidebar_cwd (bool): (default = True)
+
     References:
         http://qt-project.org/doc/qt-4.8/qfiledialog.html
+
+    CommandLine:
+        python -m guitool.guitool_dialogs --test-select_files
+
+    Example:
+        >>> # GUI_DOCTEST
+        >>> from guitool.guitool_dialogs import *  # NOQA
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
+        >>> # build test data
+        >>> caption = 'Select Files'
+        >>> name_filter = 'Python Files (*.py)'
+        >>> directory = os.path.dirname(guitool.__file__)
+        >>> # execute function
+        >>> other_sidebar_dpaths = [os.path.dirname(ut.__file__)]
+        >>> dpath = select_files(caption, directory, name_filter, other_sidebar_dpaths, single_file=True)
+        >>> # verify results
+        >>> result = str(dpath)
+        >>> print(result)
     """
     print(caption)
     if directory is None:
         directory = _guitool_cache_read(SELDIR_CACHEID, default='.')
     #qdlg = QtGui.QFileDialog()
     qdlg = newFileDialog(directory, other_sidebar_dpaths=[], use_sidebar_cwd=True)
-    qfile_list = qdlg.getOpenFileNames(caption=caption, directory=directory, filter=name_filter)
+    if single_file:
+        qfile_list = [qdlg.getOpenFileName(caption=caption, directory=directory, filter=name_filter)]
+    else:
+        qfile_list = qdlg.getOpenFileNames(caption=caption, directory=directory, filter=name_filter)
     file_list = list(map(str, qfile_list))
     print('Selected %d files' % len(file_list))
     _guitool_cache_write(SELDIR_CACHEID, directory)
