@@ -431,7 +431,11 @@ def normalize_rows(arr1, out=None):  # , out=None):
     """
     assert len(arr1.shape) == 2
     norm_ = npl.norm(arr1, axis=1)
-    arr1_normed = np.divide(arr1, norm_[:, None], out=out)
+    if out is None:
+        # Hack this shouldn't need to happen
+        arr1_normed = np.divide(arr1, norm_[:, None])
+    else:
+        arr1_normed = np.divide(arr1, norm_[:, None], out=out)
     return arr1_normed
 
 
