@@ -121,23 +121,27 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         verticalStretch (int):
 
     Returns:
-        ?: progressBar
+        QProgressBar: progressBar
 
     CommandLine:
-        python -m guitool.guitool_components --test-newProgressBar
+        python -m guitool.guitool_components --test-newProgressBar --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from guitool.guitool_components import *  # NOQA
         >>> # build test data
-        >>> parent = '?'
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
+        >>> parent = None
         >>> visible = True
         >>> verticalStretch = 1
-        >>> # execute function
+        >>> # hook into utool progress iter
         >>> progressBar = newProgressBar(parent, visible, verticalStretch)
+        >>> progiter = ut.ProgressIter(range(100), freq=1, autoadjust=False, prog_hook=progressBar.utool_prog_hook)
+        >>> results1 = [ut.get_nth_prime_bruteforce(500) for x in progiter]
         >>> # verify results
-        >>> result = str(progressBar)
-        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> guitool.guitool_main.qtapp_loop()
     """
     progressBar = QtGui.QProgressBar(parent)
     sizePolicy = newSizePolicy(progressBar,
@@ -145,6 +149,10 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
                                verticalStretch=verticalStretch)
     progressBar.setSizePolicy(sizePolicy)
     progressBar.setProperty('value', 42)
+    def utool_prog_hook(count, nTotal):
+        progressBar.setProperty('value', int(100 * count / nTotal))
+        pass
+    progressBar.utool_prog_hook = utool_prog_hook
     progressBar.setTextVisible(False)
     progressBar.setVisible(visible)
     setattr(progressBar, '_guitool_sizepolicy', sizePolicy)
