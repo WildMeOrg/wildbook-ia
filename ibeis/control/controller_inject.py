@@ -232,7 +232,7 @@ def authentication_either(func):
     return wrp_authentication_either
 
 
-def get_ibeis_flask_api(__name__):
+def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
     if __name__ == '__main__':
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
@@ -253,7 +253,8 @@ def get_ibeis_flask_api(__name__):
                     except WebException as webex:
                         rawreturn = ''
                         print(traceback.format_exc())
-                        # rawreturn = str(traceback.format_exc())
+                        if DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE:
+                            rawreturn = str(traceback.format_exc())
                         success = False
                         code = webex.code
                         message = webex.message
@@ -261,7 +262,8 @@ def get_ibeis_flask_api(__name__):
                     except Exception as ex:
                         rawreturn = ''
                         print(traceback.format_exc())
-                        # rawreturn = str(traceback.format_exc())
+                        if DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE:
+                            rawreturn = str(traceback.format_exc())
                         success = False
                         code = 500
                         message = 'API error, Python Exception thrown: %r' % (str(ex))
