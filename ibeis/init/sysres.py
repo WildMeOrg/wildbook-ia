@@ -230,42 +230,6 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
 
 def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None, cache_priority=True):
     """ Machinery for finding a database directory """
-    '''
-        # LEGACY DB ARG PARSING:
-        if dbdir is None and db is not None:
-            printDBG('[sysres] use command line dbdir')
-            dbdir = params.args.dbdir
-        if db is None and dbdir is not None:
-            printDBG('[sysres] use command line db')
-            db = params.args.db
-        if dbdir == 'None' or db == 'None':
-            print('Forcing no dbdir')
-            # If specified as the string none, the user forces no db
-            return None
-        # Force absolute path
-        if dbdir is not None:
-            dbdir = realpath(dbdir)
-            printDBG('[sysres] realpath dbdir: %r' % dbdir)
-        # Invalidate bad values
-        if dbdir is None or dbdir in ['', ' ', '.']:  # or not exists(dbdir):
-            dbdir = None
-            printDBG('[sysres] Invalidate dbdir: %r' % dbdir)
-        # Fallback onto args.db
-        if dbdir is None:
-            printDBG('[sysres] Trying cache')
-            # Try a cached / commandline / default db
-            if db is None and defaultdb == 'cache' and not params.args.nocache_db:
-                dbdir = get_default_dbdir()
-                #if not utool.QUIET and utool.VERBOSE:
-                printDBG('[sysres] Loading dbdir from cache.')
-                printDBG('[sysres] dbdir=%r' % (dbdir,))
-            elif db is not None:
-                dbdir = db_to_dbdir(db, allow_newdir=allow_newdir)
-            elif defaultdb is not None:
-                dbdir = db_to_dbdir(defaultdb, allow_newdir=allow_newdir)
-        printDBG('[sysres] return get_args_dbdir: dbdir=%r' % (dbdir,))
-        return dbdir
-    '''
     if not utool.QUIET and utool.VERBOSE:
         print('[sysres] get_args_dbdir: parsing commandline for dbdir')
         print('[sysres] defaultdb=%r, allow_newdir=%r, cache_priority=%r' % (defaultdb, allow_newdir, cache_priority))

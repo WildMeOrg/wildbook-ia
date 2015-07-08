@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 This module defines the entry point into the IBEIS system
 ibeis.opendb and ibeis.main are the main entry points
@@ -249,6 +250,17 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     if not QUIET:
         print('[main] ibeis.main_module.main()')
     _preload()
+    DIAGNOSTICS = True
+    if DIAGNOSTICS:
+        import os
+        import utool as ut
+        import ibeis
+        print('[main] MAIN DIAGNOSTICS')
+        print('[main]  * username = %r' % (ut.get_user_name()))
+        print('[main]  * ibeis.__version__ = %r' % (ibeis.__version__,))
+        print('[main]  * computername = %r' % (ut.get_computer_name()))
+        print('[main]  * cwd = %r' % (os.getcwd(),))
+        print('[main]  * sys.argv = %r' % (sys.argv,))
     # Parse directory to be loaded from command line args
     # and explicit kwargs
     dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)

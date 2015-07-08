@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function
 import six  # NOQA
 import sys
 import functools
+import traceback  # NOQA
 import guitool
 import utool as ut
 from guitool import slot_, signal_, cast_from_qt
@@ -41,8 +42,9 @@ def backreport(func):
             print('handling user cancel')
             return None
         except Exception as ex:
-            error_msg = "Error caught while performing function. \n %r" % ex
-            import traceback
+            #error_msg = "Error caught while performing function. \n %r" % ex
+            error_msg = 'Error: %s' % (ex,)
+            import traceback  # NOQA
             detailed_msg = traceback.format_exc()
             guitool.msgbox(title="Error Catch!", msg=error_msg, detailed_msg=detailed_msg)
             raise
@@ -1130,7 +1132,11 @@ class MainWindowBackend(GUIBACK_BASE):
         CommandLine:
             ./main.py --query 1 -y
             python -m ibeis --query 1 -y
-            python -m ibeis --query 1:20 --db PZ_MTEST --nocache-query
+            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid -y
+            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid -y --force-all-progress
+            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=3 -y
+            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=3 -y
+            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=32 -y
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1219,6 +1225,9 @@ class MainWindowBackend(GUIBACK_BASE):
             daid_list = back.ibs.filter_aids_custom(daid_list)
         qreq_ = back.ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict)
         back.confirm_query_dialog(daid_list, qaid_list, cfgdict=cfgdict, query_msg=query_msg)
+        #if not ut.WIN32:
+        #    progbar = guitool.newProgressBar(back.mainwin)
+        #else:
         progbar = guitool.newProgressBar(None)  # back.front)
         progbar.setWindowTitle('querying')
         qres_list = back.ibs.query_chips(qreq_=qreq_, prog_hook=progbar.utool_prog_hook)
@@ -1360,6 +1369,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def edit_preferences(back):
         """ Options -> Edit Preferences"""
         print('[back] edit_preferences')
+        assert back.ibs is not None, 'No database is loaded. Open a database to continue'
         epw = back.ibs.cfg.createQWidget()
         fig_presenter.register_qt4_win(epw)
         epw.ui.defaultPrefsBUT.clicked.connect(back.default_config)

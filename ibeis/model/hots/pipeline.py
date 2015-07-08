@@ -152,6 +152,9 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         # Selective match kernel
         qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
     elif qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
+        if qreq_.prog_hook is not None:
+            qreq_.prog_hook.initialize_subhooks(4)
+
         qreq_.lazy_load(verbose=verbose)
         impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
 
@@ -354,7 +357,7 @@ def nearest_neighbor_cacheid(qreq_, num_neighbors_list):
     ut.ensuredir(neighbor_cachedir)
     return neighbor_cachedir, nn_mid_cacheid
 
-USE_NN_MID_CACHE = True and ut.is_developer()
+USE_NN_MID_CACHE = (True and ut.is_developer()) and not ut.get_argflag('--nocache-nnmid')
 
 
 def nearest_neighbor_cacheid2(qreq_, Kpad_list):
@@ -401,7 +404,8 @@ def nearest_neighbors_withcache(qreq_, Kpad_list, verbose=VERB_PIPELINE):
             if len(internal_qaids) == 1:
                 print('[hs] depth(qvecs_list) = %r' % (ut.depth_profile(qvecs_list),))
         # Mark progress ane execute nearest indexer nearest neighbor code
-        qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, **PROGKW)
+        prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
+        qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW)
         nns_list = [qreq_.indexer.knn(qfx2_vec, num_neighbors) for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
         return nns_list
 
@@ -458,7 +462,8 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     internal_qaids = qreq_.get_internal_qaids()
     qvecs_list = qreq_.ibs.get_annot_vecs(internal_qaids, config2_=qreq_.get_internal_query_config2())
     # Mark progress ane execute nearest indexer nearest neighbor code
-    qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, **PROGKW)
+    prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
+    qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW)
     nns_list = [qreq_.indexer.knn(qfx2_vec, num_neighbors) for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
     # Verbose statistics reporting
     if verbose:
@@ -514,7 +519,8 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
     nnidx_iter = (qfx2_idx.T[0:-Knorm].T for (qfx2_idx, _) in nns_list)
     qfx2_aid_list = [qreq_.indexer.get_nn_aids(qfx2_nnidx) for qfx2_nnidx in nnidx_iter]
     filter_iter = zip(qfx2_aid_list, impossible_daids_list)
-    filter_iter = ut.ProgressIter(filter_iter, nTotal=len(qfx2_aid_list), lbl=FILT_LBL, **PROGKW)
+    prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
+    filter_iter = ut.ProgressIter(filter_iter, nTotal=len(qfx2_aid_list), lbl=FILT_LBL, prog_hook=prog_hook, **PROGKW)
     nnvalid0_list = [
         vt.get_uncovered_mask(qfx2_aid, impossible_daids)
         for qfx2_aid, impossible_daids in filter_iter
@@ -693,7 +699,8 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_
     internal_qaids = qreq_.get_internal_qaids()
     external_qaids = qreq_.get_external_qaids()
     external_daids = qreq_.get_external_daids()
-    intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL, **PROGKW)
+    prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
+    intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL, prog_hook=prog_hook, **PROGKW)
     #intern_qaid_iter = internal_qaids
 
     if is_vsone:
@@ -860,7 +867,8 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
         cm.evaluate_dnids(qreq_.ibs)
     scoring.score_chipmatch_list(qreq_, cm_list, score_method)
     cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, score_method)
-    cm_progiter = ut.ProgressIter(cm_shortlist, nTotal=len(cm_shortlist), lbl=SVER_LVL, **PROGKW)
+    prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
+    cm_progiter = ut.ProgressIter(cm_shortlist, nTotal=len(cm_shortlist), prog_hook=prog_hook, lbl=SVER_LVL, **PROGKW)
     cm_list_SVER = [sver_single_chipmatch(qreq_, cm) for cm in cm_progiter]
     #cm_list_SVER = []
     #for cm in cm_progiter:

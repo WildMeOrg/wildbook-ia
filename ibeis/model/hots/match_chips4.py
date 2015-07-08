@@ -238,7 +238,10 @@ def execute_query2(ibs, qreq_, verbose, save_qcache):
     all_qaids = qreq_.get_external_qaids()
     qaid2_qres = {}
     # vsone must have a chunksize of 1
-    chunksize = 1 if qreq_.qparams.vsone else ibs.cfg.other_cfg.hots_batch_size
+    hots_batch_size = ut.get_argval('--hots-batch-size', type_=int, default=None)
+    if hots_batch_size is None:
+        hots_batch_size = ibs.cfg.other_cfg.hots_batch_size
+    chunksize = 1 if qreq_.qparams.vsone else hots_batch_size
     # Iterate over vsone queries in chunks. This ensures that we dont lose
     # too much time if a qreq_ crashes after the 2000th nn index.
     nTotalChunks    = ut.get_nTotalChunks(len(all_qaids), chunksize)
