@@ -483,7 +483,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         ibswgt.import_button = _NEWBUT(
             '1) Import',
-            back.import_images_from_file,
+            back.import_images_from_dir,
             bgcolor=(235, 200, 200), fontkw=primary_fontkw)
 
         ibswgt.encounter_button = _NEWBUT(

@@ -94,7 +94,7 @@ def parse_args():
         parser2.add_flag('--aggroflush', help='utool writes flush immediately')
         parser2.add_flag('--nologging', help='disables logging')
         parser2.add_flag('--noindent', help='disables utool indentation')
-        parser2.add_str('--wildbook-target', help='specify the Wildbook target deployment')
+        #parser2.add_str('--wildbook-target', help='specify the Wildbook target deployment')
 
     def database_argparse(parser2):
         # Database selections

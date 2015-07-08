@@ -1601,24 +1601,26 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] backup_database')
         back.ibs.backup_database()
 
-    @blocking_slot()
-    def import_images(back, gpath_list=None, dir_=None, refresh=True, clock_offset=True):
-        """ File -> Import Images (ctrl + i)"""
-        print('[back] import_images')
-        reply = None
-        if gpath_list is None and dir_ is None:
-            reply = back.user_option(
-                msg='Import specific files or whole directory?',
-                title='Import Images',
-                options=['Files', 'Directory'],
-                use_cache=False)
-        if reply == 'Files' or gpath_list is not None:
-            gid_list = back.import_images_from_file(gpath_list=gpath_list,
-                                                    refresh=refresh, clock_offset=True)
-        if reply == 'Directory' or dir_ is not None:
-            gid_list = back.import_images_from_dir(dir_=dir_, refresh=refresh,
-                                                   clock_offset=True)
-        return gid_list
+    #@blocking_slot()
+    #def import_images(back, gpath_list=None, dir_=None, refresh=True, clock_offset=True):
+    #    """ File -> Import Images (ctrl + i)"""
+    #    print('[back] import_images')
+    #    if back.ibs is None:
+    #        raise ValueError('back.ibs is None! must open IBEIS database first')
+    #    reply = None
+    #    if gpath_list is None and dir_ is None:
+    #        reply = back.user_option(
+    #            msg='Import specific files or whole directory?',
+    #            title='Import Images',
+    #            options=['Files', 'Directory'],
+    #            use_cache=False)
+    #    if reply == 'Files' or gpath_list is not None:
+    #        gid_list = back.import_images_from_file(gpath_list=gpath_list,
+    #                                                refresh=refresh, clock_offset=True)
+    #    if reply == 'Directory' or dir_ is not None:
+    #        gid_list = back.import_images_from_dir(dir_=dir_, refresh=refresh,
+    #                                               clock_offset=True)
+    #    return gid_list
 
     @blocking_slot()
     def import_images_from_file(back, gpath_list=None, refresh=True, as_annots=False,

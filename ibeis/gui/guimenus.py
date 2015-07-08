@@ -104,10 +104,6 @@ def setup_file_menu(mainwin, back):
         text='Import Images (select directory)',
         shortcut='Ctrl+I',
         slot_fn=back.import_images_from_dir)
-    menu.newAction(
-        name='actionImport_Img_AsAnnot_file',
-        text='Import Cropped Images As Annotations (select file(s))',
-        slot_fn=back.import_images_as_annots_from_file)
     menu.addSeparator()
     #menu.newAction(
     #    name='actionImport_Img_file_with_smart',
@@ -342,12 +338,6 @@ def setup_developer_menu(mainwin, back):
         slot_fn=back.run_tests)
     menu.addSeparator()
     menu.newAction(
-        name='actionDeveloper_reload',
-        text='Developer Reload',
-        shortcut='Ctrl+Shift+R',
-        slot_fn=back.dev_reload)
-    menu.addSeparator()
-    menu.newAction(
         name='actionDeveloper_DumpDB',
         text='Dump SQL Database',
         slot_fn=back.dev_dumpdb)
@@ -489,6 +479,16 @@ def setup_depricated_menu(mainwin, back):
         text='Query: Incremental',
         slot_fn=back.incremental_query
     )
+    menu.newAction(
+        name='actionImport_Img_AsAnnot_file',
+        text='Import Cropped Images As Annotations (select file(s))',
+        slot_fn=back.import_images_as_annots_from_file)
+    menu.addSeparator()
+    menu.newAction(
+        name='actionDeveloper_reload',
+        text='Developer Reload',
+        shortcut='Ctrl+Shift+R',
+        slot_fn=back.dev_reload)
 
 
 if __name__ == '__main__':

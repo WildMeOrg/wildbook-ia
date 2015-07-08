@@ -23,14 +23,12 @@ import lockfile
 import webbrowser
 from six.moves import zip
 from os import system
-from os.path import join, exists, split
-# UTool
-import utool as ut  # NOQA
-# IBEIS
+from os.path import join, split
+import utool as ut
 import ibeis  # NOQA
 from ibeis.init import sysres
 from ibeis import constants as const
-from ibeis import params
+#from ibeis import params
 from ibeis.control import accessor_decors, controller_inject
 from ibeis.control.accessor_decors import (default_decorator, )
 import xml.etree.ElementTree as ET
@@ -178,6 +176,40 @@ def __cleanup():
         pass
 
 
+def testdata_wildbook_server(dryrun=False):
+    """
+    SeeAlso:
+        ~/local/build_scripts/init_wildbook.sh
+
+    """
+    import os
+    # Very hacky and specific testdata script.
+    tomcat_dpath = join(os.environ['CODE_DIR'], 'Wildbook/apache-tomcat-8.0.24')
+    wb_target = 'ibeis'
+    #ut.cmd(catalina_fpath, 'stop')
+    if not dryrun:
+        catalina_fpath = join(tomcat_dpath, 'bin/catalina.sh')
+        ut.assert_exists(catalina_fpath)
+        ut.cmd(catalina_fpath, 'start')
+
+        chromedriver_fpath = ut.grab_selenium_chromedriver()
+        os.environ['webdriver.chrome.driver'] = chromedriver_fpath
+
+        # Use selenimum to login to wildbook
+        from selenium import webdriver
+        driver = webdriver.Chrome()
+        driver.get('http://localhost:8080/' + wb_target)
+        login_button = driver.find_element_by_partial_link_text('Log in')
+        login_button.click()
+        username_field = driver.find_element_by_name('username')
+        password_field = driver.find_element_by_name('password')
+        username_field.send_keys('tomcat')
+        password_field.send_keys('tomcat123')
+        submit_login_button = driver.find_element_by_name('submit')
+        submit_login_button.click()
+    return wb_target, tomcat_dpath
+
+
 #
 #
 #-----------------
@@ -219,16 +251,10 @@ class IBEISController(object):
         ibs.table_cache = None
         ibs._initialize_self()
         ibs._init_dirs(dbdir=dbdir, ensure=ensure)
-        # _init_wb will do nothing if no wildbook address is specified
-        ibs._init_wb(wbaddr)
+        # _send_wildbook_request will do nothing if no wildbook address is specified
+        ibs._send_wildbook_request(wbaddr)
         ibs._init_sql()
         ibs._init_config()
-        wb_target = params.args.wildbook_target
-        if ut.VERBOSE and not ut.QUIET:
-            if wb_target is None:
-                print('[ibs.__init__] Default Wildbook target: %s' % (const.WILDBOOK_TARGET, ))
-            else:
-                print('[ibs.__init__] Custom Wildbook target: %s' % (wb_target, ))
 
     def reset_table_cache(ibs):
         ibs.table_cache = accessor_decors.init_tablecache()
@@ -483,20 +509,19 @@ class IBEISController(object):
         _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqldb_fname, ibs.backupdir)
 
     @default_decorator
-    def _init_wb(ibs, wbaddr, payload=None):
+    def _send_wildbook_request(ibs, wbaddr, payload=None):
         if wbaddr is None:
             return
-        #TODO: Clean this up to use like ut and such
         try:
             if payload is None:
                 response = requests.get(wbaddr)
             else:
                 response = requests.post(wbaddr, data=payload)
         # except requests.MissingSchema:
-        #     print('[ibs._init_wb] Invalid URL: %r' % wbaddr)
+        #     print('[ibs._send_wildbook_request] Invalid URL: %r' % wbaddr)
         #     return None
         except requests.ConnectionError:
-            print('[ibs._init_wb] Could not connect to Wildbook server at %r' % wbaddr)
+            print('[ibs._send_wildbook_request] Could not connect to Wildbook server at %r' % wbaddr)
             return None
         return response
 
@@ -798,9 +823,9 @@ class IBEISController(object):
                 import ibeis.dbio.export_wb as wb
                 print('[ibs] exporting to wildbook')
                 eid_list = ibs.get_valid_eids()
-                addr = "http://127.0.0.1:8080/wildbook-4.1.0-RELEASE"
-                #addr = "http://tomcat:tomcat123@127.0.0.1:8080/wildbook-5.0.0-EXPERIMENTAL"
-                ibs._init_wb(addr)
+                addr = 'http://127.0.0.1:8080/wildbook-4.1.0-RELEASE'
+                #addr = 'http://tomcat:tomcat123@127.0.0.1:8080/wildbook-5.0.0-EXPERIMENTAL'
+                ibs._send_wildbook_request(addr)
                 wb.export_ibeis_to_wildbook(ibs, eid_list)
 
                 # compute encounters
@@ -813,26 +838,98 @@ class IBEISController(object):
 
     @default_decorator
     @register_api('/api/core/wildbook_signal_annot_name_changes/', methods=['PUT'])
-    def wildbook_signal_annot_name_changes(ibs, aid_list=None):
-        pass
+    def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb_target=None, dryrun=False):
+        r"""
+        Args:
+            aid_list (int):  list of annotation ids(default = None)
+            tomcat_dpath (None): (default = None)
+            wb_target (None): (default = None)
+            dryrun (bool): (default = False)
+
+        CommandLine:
+            python -m ibeis.control.IBEISControl --test-wildbook_signal_annot_name_changes
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+            >>> aid_list = None
+            >>> dryrun = True
+            >>> wb_target, tomcat_dpath = testdata_wildbook_server(dryrun)
+            >>> result = ibs.wildbook_signal_annot_name_changes(aid_list, tomcat_dpath, wb_target, dryrun)
+            >>> print(result)
+        """
+        wildbook_base_url, wildbook_tomcat_path = ibs.get_wildbook_info(tomcat_dpath, wb_target)
+        submit_url_fmtstr   = wildbook_base_url + '/EncounterSetMarkedIndividual?encounterID={annot_uuid}?individualID={name_text}'
+
+        if aid_list is None:
+            aid_list = ibs.get_valid_aids(is_known=True)
+            annot_uuid_list    = ibs.get_annot_uuids(aid_list)
+            annot_name_text_list  = ibs.get_annot_name_texts(aid_list)
+
+        for annot_uuid, name_text in zip(annot_uuid_list, annot_name_text_list):
+            submit_url_ = submit_url_fmtstr.format(annot_uuid=str(annot_uuid), name_text=str(name_text))
+            payload = {
+            }
+            print('[_send] URL=%r' % (submit_url_, ))
+            if not dryrun:
+                response = ibs._send_wildbook_request(submit_url_, payload)
+                if response.status_code == 200:
+                    return True
+                else:
+                    print('[_send] ERROR: WILDBOOK SERVER STATUS = %r' % (response.status_code, ))
+                    print('[_send] ERROR: WILDBOOK SERVER RESPONSE = %r' % (response.text, ))
+                    webbrowser.open_new_tab(submit_url_)
+                    raise AssertionError('Wildbook response NOT ok (200)')
+                    return False
+
+    def get_wildbook_info(ibs, tomcat_dpath=None, wb_target=None):
+        wb_target = const.WILDBOOK_TARGET if wb_target is None else wb_target
+        tomcat_dpath = '/var/lib/tomcat' if tomcat_dpath is None else tomcat_dpath
+        hostname = '127.0.0.1'
+        wildbook_base_url = 'http://' + str(hostname)
+        wildbook_tomcat_path = join(tomcat_dpath, 'webapps', wb_target)
+        # Setup
+        print('Looking for WildBook installation: %r' % ( wildbook_tomcat_path, ))
+        ut.assert_exists(wildbook_tomcat_path, 'Wildbook is not installed on this machine')
+        return wildbook_base_url, wildbook_tomcat_path
 
     @default_decorator
     @register_api('/api/core/wildbook_signal_eid_list/', methods=['PUT'])
-    def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url=True):
+    def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url=True, tomcat_dpath=None, wb_target=None, dryrun=False):
         """
-        Exports specified encounters to wildbook
+        Exports specified encounters to wildbook. This is a synchronous call.
 
-
-        Check to see if this is asyncronous
-
+        Args:
+            eid_list (list): (default = None)
+            set_shipped_flag (bool): (default = True)
+            open_url (bool): (default = True)
 
         RESTful:
             Method: PUT
             URL:    /api/core/wildbook_signal_eid_list/
+
+        CommandLine:
+            python -m ibeis.control.IBEISControl --test-wildbook_signal_eid_list
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> dryrun = False
+            >>> wb_target, tomcat_dpath = testdata_wildbook_server(dryrun)
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+            >>> eid_list = None
+            >>> set_shipped_flag = True
+            >>> open_url = True
+            >>> result = ibs.wildbook_signal_eid_list(eid_list, set_shipped_flag, open_url, tomcat_dpath, wb_target, dryrun)
+            >>> print(result)
         """
+
         def _send(eid, sudo=False):
             encounter_uuid = ibs.get_encounter_uuid(eid)
-            submit_url_ = submit_url % (hostname, encounter_uuid)
+            submit_url_ = submit_url_fmtstr.format(encounter_uuid=str(encounter_uuid))
             print('[_send] URL=%r' % (submit_url_, ))
             smart_xml_fname = ibs.get_encounter_smart_xml_fnames([eid])[0]
             smart_waypoint_id = ibs.get_encounter_smart_waypoint_ids([eid])[0]
@@ -843,95 +940,102 @@ class IBEISController(object):
                 print('[_send] Sending with SMART payload - patrol: %r (%d lines) waypoint_id: %r' %
                       (smart_xml_fpath, len(smart_xml_content_list), smart_waypoint_id))
                 smart_xml_content = ''.join(smart_xml_content_list)
-                if sudo:
-                    payload = {
-                        'smart_xml_content': smart_xml_content,
-                        'smart_waypoint_id': smart_waypoint_id,
-                    }
-                else:
-                    payload = {
-                        'smart_xml_content': smart_xml_content,
-                        'smart_waypoint_id': smart_waypoint_id,
+                payload = {
+                    'smart_xml_content': smart_xml_content,
+                    'smart_waypoint_id': smart_waypoint_id,
+                }
+                if not sudo:
+                    payload.update({
                         'IBEIS_DB_path'    : ibs.get_db_core_path(),
                         'IBEIS_image_path' : ibs.get_imgdir(),
-                    }
+                    })
             else:
                 payload = None
-            response = ibs._init_wb(submit_url_, payload)
-            if response.status_code == 200:
-                return True
-            else:
-                print("[_send] ERROR: WILDBOOK SERVER STATUS = %r" % (response.status_code, ))
-                print("[_send] ERROR: WILDBOOK SERVER RESPONSE = %r" % (response.text, ))
-                webbrowser.open_new_tab(submit_url_)
-                raise AssertionError('Wildbook response NOT ok (200)')
-                return False
+            if not dryrun:
+                with ut.embed_on_exception_context:
+                    response = ibs._send_wildbook_request(submit_url_, payload)
+                    if response is None:
+                        webbrowser.open_new_tab(submit_url_)
+                        raise AssertionError('Wildbook response NOT ok (200)')
+                        return False
+                    if response.status_code == 200:
+                        return True
+                    else:
+                        print('[_send] ERROR: WILDBOOK SERVER STATUS = %r' % (response.status_code, ))
+                        print('[_send] ERROR: WILDBOOK SERVER RESPONSE = %r' % (response.text, ))
+                        webbrowser.open_new_tab(submit_url_)
+                        raise AssertionError('Wildbook response NOT ok (200)')
+                        return False
+
         def _complete(eid):
             encounter_uuid = ibs.get_encounter_uuid(eid)
-            complete_url_ = complete_url % (hostname, encounter_uuid)
+            complete_url_ = complete_url_fmtstr.format(encounter_uuid=str(encounter_uuid))
             print('[_complete] URL=%r' % (complete_url_, ))
-            webbrowser.open_new_tab(complete_url_)
+            if open_url and not dryrun:
+                webbrowser.open_new_tab(complete_url_)
+
+        if eid_list is None:
+            eid_list = ibs.get_valid_eids()
+        # Check to make sure encounters are ok:
+        for eid in eid_list:
+            # First, check if encounter can be pushed
+            aid_list = ibs.get_encounter_nids(eid)
+            unknown_flags = ibs.is_aid_unknown(aid_list)
+            unnamed_aid_list = ut.list_compress(aid_list, unknown_flags)
+            assert len(unnamed_aid_list) == 0, 'Encounter cannot be shipped becuase annotation(s) %r are not named' % (unnamed_aid_list, )
+
         # Configuration
         sudo = True
-        wb_target = params.args.wildbook_target
-        if wb_target is None:
-            wb_target = const.WILDBOOK_TARGET
-            hostname = '127.0.0.1'
-            submit_url   = 'http://%s:8080/' + str(wb_target) + '/OccurrenceCreateIBEIS?ibeis_encounter_id=%s'
-            complete_url = 'http://%s:8080/' + str(wb_target) + '/occurrence.jsp?number=%s'
-            wildbook_tomcat_path = '/var/lib/tomcat/webapps/%s/' % (wb_target, )
-            # Setup
-        print("Looking for WildBook installation: %r" % ( wildbook_tomcat_path, ))
-        if exists(wildbook_tomcat_path):
-            # With a lock file, modify the configuration with the new settings
-            with lockfile.LockFile(join(ibs.get_ibeis_resource_dir(), 'wildbook.lock')):
-                # Update the Wildbook configuration to see *THIS* ibeis database
-                if sudo:
-                    wildbook_properties_path  = 'WEB-INF/classes/bundles/'
-                    wildbook_properties_path_ = join(wildbook_tomcat_path, wildbook_properties_path)
-                    src_config = 'commonConfiguration.properties.default'
-                    dst_config = 'commonConfiguration.properties'
-                    print('[ibs.wildbook_signal_eid_list()] Wildbook properties=%r' % (wildbook_properties_path_, ))
+        wildbook_base_url, wildbook_tomcat_path = ibs.get_wildbook_info(tomcat_dpath, wb_target)
+        submit_url_fmtstr   = wildbook_base_url + '/OccurrenceCreateIBEIS?ibeis_encounter_id={encounter_uuid}'
+        complete_url_fmtstr = wildbook_base_url + '/occurrence.jsp?number={encounter_uuid}'
+        # Call Wildbook url to signal update
+        print('[ibs.wildbook_signal_eid_list()] shipping eid_list = %r to wildbook' % (eid_list, ))
+
+        # With a lock file, modify the configuration with the new settings
+        with lockfile.LockFile(join(ibs.get_ibeis_resource_dir(), 'wildbook.lock')):
+            # Update the Wildbook configuration to see *THIS* ibeis database
+            if sudo:
+                wildbook_properteis_dpath = join(wildbook_tomcat_path, 'WEB-INF/classes/bundles/')
+                print('[ibs.wildbook_signal_eid_list()] Wildbook properties=%r' % (wildbook_properteis_dpath, ))
+                wildbook_config_fpath_src = join(wildbook_properteis_dpath, 'commonConfiguration.properties.default')
+                wildbook_config_fpath_dst = join(wildbook_properteis_dpath, 'commonConfiguration.properties')
+                ut.assert_exists(wildbook_properteis_dpath)
+                if ut.checkpath(wildbook_config_fpath_src):
                     # Open the default configuration
-                    with open(join(wildbook_properties_path_, src_config), 'r') as f:
-                        content = f.read()
+                    with open(wildbook_config_fpath_src, 'r') as file_:
+                        content = file_.read()
                         content = content.replace('__IBEIS_DB_PATH__', ibs.get_db_core_path())
                         content = content.replace('__IBEIS_IMAGE_PATH__', ibs.get_imgdir())
                         content = '"%s"' % (content, )
-                    # Write to the configuration
-                    print('[ibs.wildbook_signal_eid_list()] To update the Wildbook configuration, we need sudo privaleges')
-                    command = ['sudo', 'sh', '-c', '\'', 'echo', content, '>', join(wildbook_properties_path_, dst_config), '\'']
-                    # ut.cmd(command, sudo=True)
-                    command = ' '.join(command)
+                else:
+                    # for come reason the .default file is not there, that should be ok though
+                    with open(wildbook_config_fpath_dst, 'r') as file_:
+                        content = file_.read()
+                        content = content.replace('/set/to/real/path.sqlite3', ibs.get_db_core_path())
+                        content = content.replace('/set/to/real/path/for/images', ibs.get_imgdir())
+                        content = '"%s"' % (content, )
+                # Write to the configuration
+                print('[ibs.wildbook_signal_eid_list()] To update the Wildbook configuration, we need sudo privaleges')
+                command = ['sudo', 'sh', '-c', '\'', 'echo', content, '>', wildbook_config_fpath_dst, '\'']
+                # ut.cmd(command, sudo=True)
+                command = ' '.join(command)
+                if not dryrun:
                     system(command)
-                    # with open(join(wildbook_properties_path_, dst_config), 'w') as f:
-                    #     f.write(content)
 
-                # Call Wildbook url to signal update
-                print('[ibs.wildbook_signal_eid_list()] shipping eid_list = %r to wildbook' % (eid_list, ))
-                if eid_list is None:
-                    eid_list = ibs.get_valid_eids()
-                # Check and push "done" encounters
-                status_list = []
-                for eid in eid_list:
-                    # First, check if encounter can be pushed
-                    gid_list = ibs.get_encounter_gids(eid)
-                    aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-                    nid_list = ibs.get_annot_nids(aid_list)
-                    unnamed_aid_list = [ aid for aid, nid in zip(aid_list, nid_list) if nid <= 0 ]
-                    assert len(unnamed_aid_list) == 0, "Encounter cannot be shipped becuase annotation(s) %r are not named" % (unnamed_aid_list, )
-                    #Check for nones
-                    status = _send(eid, sudo=sudo)
-                    status_list.append(status)
-                    if set_shipped_flag:
-                        if status:
-                            ibs.set_encounter_shipped_flags([eid], [1])
-                            _complete(eid)
-                        else:
-                            ibs.set_encounter_shipped_flags([eid], [0])
-                return status_list
-        else:
-            raise AssertionError('Wildbook is not installed on this machine')
+            # Check and push 'done' encounters
+            status_list = []
+            for eid in eid_list:
+                #Check for nones
+                status = _send(eid, sudo=sudo)
+                status_list.append(status)
+                if set_shipped_flag and not dryrun:
+                    if status:
+                        ibs.set_encounter_shipped_flags([eid], [1])
+                        _complete(eid)
+                    else:
+                        ibs.set_encounter_shipped_flags([eid], [0])
+            return status_list
 
     #
     #
@@ -986,12 +1090,12 @@ class IBEISController(object):
         from ibeis.model.detect import randomforest  # NOQA
         if isinstance(gid_list, int):
             gid_list = [gid_list]
-        print("TYPE:", type(gid_list))
-        print("GID_LIST:", gid_list)
+        print('TYPE:', type(gid_list))
+        print('GID_LIST:', gid_list)
         detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, species, **kwargs)
         # ibs.cfg.other_cfg.ensure_attr('detect_add_after', 1)
         # ADD_AFTER_THRESHOLD = ibs.cfg.other_cfg.detect_add_after
-        print("TYPE:", type(detect_gen))
+        print('TYPE:', type(detect_gen))
         aids_list = []
         for gid, (gpath, result_list) in zip(gid_list, detect_gen):
             aids = []
@@ -1103,16 +1207,16 @@ class IBEISController(object):
         dst_xml_path = join(ibs.get_smart_patrol_dir(), xml_name)
         ut.copy(smart_xml_fpath, dst_xml_path, overwrite=True)
         # Process the XML File
-        print("[ibs] Processing Patrol XML file: %r" % (dst_xml_path, ))
+        print('[ibs] Processing Patrol XML file: %r' % (dst_xml_path, ))
         try:
             encounter_info_list = ibs._parse_smart_xml(dst_xml_path, len(gid_list))
         except Exception as e:
             ibs.delete_images(gid_list)
-            print("[ibs] ERROR: Parsing Patrol XML file failed, rolling back by deleting %d images..." % (len(gid_list, )))
+            print('[ibs] ERROR: Parsing Patrol XML file failed, rolling back by deleting %d images...' % (len(gid_list, )))
             raise e
         if len(gid_list) > 0:
             # Sanity check
-            assert len(encounter_info_list) > 0, "Trying to added %d images, but the Patrol  XML file has no observations" % (len(gid_list), )
+            assert len(encounter_info_list) > 0, 'Trying to added %d images, but the Patrol  XML file has no observations' % (len(gid_list), )
         # Display the patrol encounters
         for index, encounter_info in enumerate(encounter_info_list):
             smart_xml_fname, smart_waypoint_id, gps, local_time, range_ = encounter_info
@@ -1142,7 +1246,7 @@ class IBEISController(object):
             ibs.set_encounter_start_time_posix([eid], [start_time])
             ibs.set_encounter_end_time_posix([eid], [end_time])
         # Complete
-        print("[ibs] ...Done processing Patrol XML file")
+        print('[ibs] ...Done processing Patrol XML file')
 
     #@ut.indent_func('[ibs.compute_encounters]')
     def compute_encounters(ibs):
@@ -1168,14 +1272,14 @@ class IBEISController(object):
             >>> ungr_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)
             >>> ungr_gids = ibs.get_encounter_gids([ungr_eid])[0]
             >>> #Now let's make sure that when we recompute encounters, our non-special eid remains the same
-            >>> print("PRE COMPUTE: Encounters are %r" % ibs.get_valid_eids())
-            >>> print("Containing: %r" % ibs.get_encounter_gids(ibs.get_valid_eids()))
+            >>> print('PRE COMPUTE: Encounters are %r' % ibs.get_valid_eids())
+            >>> print('Containing: %r' % ibs.get_encounter_gids(ibs.get_valid_eids()))
             >>> ibs.compute_encounters()
-            >>> print("COMPUTE: New encounters are %r" % ibs.get_valid_eids())
-            >>> print("Containing: %r" % ibs.get_encounter_gids(ibs.get_valid_eids()))
+            >>> print('COMPUTE: New encounters are %r' % ibs.get_valid_eids())
+            >>> print('Containing: %r' % ibs.get_encounter_gids(ibs.get_valid_eids()))
             >>> ibs.update_special_encounters()
-            >>> print("UPDATE SPECIAL: New encounters are %r" % ibs.get_valid_eids())
-            >>> print("Containing: %r" % ibs.get_encounter_gids(ibs.get_valid_eids()))
+            >>> print('UPDATE SPECIAL: New encounters are %r' % ibs.get_valid_eids())
+            >>> print('Containing: %r' % ibs.get_encounter_gids(ibs.get_valid_eids()))
             >>> assert(images_to_remove[0] not in ibs.get_encounter_gids(nonspecial_eids[0:1])[0])
         """
         from ibeis.model.preproc import preproc_encounter
@@ -1190,7 +1294,7 @@ class IBEISController(object):
         flat_eids_offset = [eid + eid_offset for eid in flat_eids]  # This way we can make sure that manually separated encounters
         # remain untouched, and ensure that new encounters are created
         enctext_list = ['Encounter ' + str(eid) for eid in flat_eids_offset]
-        #print("enctext_list: %r; flat_gids: %r" % (enctext_list, flat_gids))
+        #print('enctext_list: %r; flat_gids: %r' % (enctext_list, flat_gids))
         print('[ibs] Finished computing, about to add encounter.')
         ibs.set_image_enctext(flat_gids, enctext_list)
         # HACK TO UPDATE ENCOUNTER POSIX TIMES
