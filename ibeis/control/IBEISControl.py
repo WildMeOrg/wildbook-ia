@@ -1226,7 +1226,8 @@ class IBEISController(object):
                     qreq_=None,
                     return_request=False,
                     verbose=pipeline.VERB_PIPELINE,
-                    save_qcache=None):
+                    save_qcache=None,
+                    prog_hook=None):
         r"""
         Submits a query request to the hotspotter recognition pipeline. Returns
         a list of QueryResult objects.
@@ -1282,7 +1283,8 @@ class IBEISController(object):
             qaid_list, daid_list, cfgdict=cfgdict, use_cache=use_cache,
             use_bigcache=use_bigcache, qreq_=qreq_,
             return_request=return_request, verbose=verbose,
-            save_qcache=save_qcache)
+            save_qcache=save_qcache,
+            prog_hook=prog_hook)
         if return_request:
             qaid2_qres, qreq_ = _res
         else:
@@ -1305,7 +1307,8 @@ class IBEISController(object):
                       cfgdict=None,
                       qreq_=None,
                       verbose=pipeline.VERB_PIPELINE,
-                      save_qcache=None):
+                      save_qcache=None,
+                      prog_hook=None):
         """
         submits a query request
         main entrypoint in the IBIES API to the hotspotter pipeline
@@ -1360,7 +1363,7 @@ class IBEISController(object):
         _res = mc4.submit_query_request(
             ibs,  qaid_list, daid_list, use_cache, use_bigcache,
             return_request=return_request, cfgdict=cfgdict, qreq_=qreq_,
-            verbose=verbose, save_qcache=save_qcache)
+            verbose=verbose, save_qcache=save_qcache, prog_hook=prog_hook)
 
         if return_request:
             qaid2_qres, qreq_ = _res

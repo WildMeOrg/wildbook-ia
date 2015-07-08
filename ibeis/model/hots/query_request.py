@@ -203,6 +203,7 @@ class QueryRequest(object):
         qreq_.set_external_daids(daid_list)
         qreq_.set_external_qaids(qaid_list)
         qreq_._indexer_request_params = _indexer_request_params
+        qreq_.prog_hook = None
 
     @profile
     def shallowcopy(qreq_, qaids=None, qx=None, dx=None):

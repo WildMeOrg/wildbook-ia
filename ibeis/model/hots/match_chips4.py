@@ -79,7 +79,8 @@ def submit_query_request_nocache(ibs, qreq_, verbose=pipeline.VERB_PIPELINE):
 def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
                          use_bigcache=None, return_request=False,
                          cfgdict=None, qreq_=None,
-                         verbose=pipeline.VERB_PIPELINE, save_qcache=None):
+                         verbose=pipeline.VERB_PIPELINE, save_qcache=None,
+                         prog_hook=None):
     """
     The standard query interface.
 
@@ -128,6 +129,8 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     if qreq_ is None:
         qreq_ = ibs.new_query_request(qaid_list, daid_list,
                                       cfgdict=cfgdict, verbose=verbose)
+
+    qreq_.prog_hook = prog_hook
     # --- BIG CACHE ---
     # Do not use bigcache single queries
     use_bigcache_ = (use_bigcache and use_cache and
@@ -242,7 +245,8 @@ def execute_query2(ibs, qreq_, verbose, save_qcache):
     qaid_chunk_iter = ut.ichunks(all_qaids, chunksize)
     _qreq_iter = (qreq_.shallowcopy(qaids=qaids) for qaids in qaid_chunk_iter)
     qreq_iter = ut.ProgressIter(_qreq_iter, nTotal=nTotalChunks, freq=1,
-                                lbl='[mc4] query chunk: ', backspace=False)
+                                lbl='[mc4] query chunk: ', backspace=False,
+                                prog_hook=qreq_.prog_hook)
     for __qreq in qreq_iter:
         if ut.VERBOSE:
             print('Generating vsmany chunk')

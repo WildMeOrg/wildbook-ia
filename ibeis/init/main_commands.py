@@ -111,8 +111,12 @@ def postload_commands(ibs, back):
             back.select_aid(params.args.select_aid)
     if params.args.query_aid is not None:
         import ibeis.constants as const
+        qaid_list = params.args.query_aid
+        # fix stride case
+        if len(qaid_list) == 1 and isinstance(qaid_list[0], tuple):
+            qaid_list = list(qaid_list[0])
         daids_mode = ut.get_argval('--daids-mode', type_=str, default=const.VS_EXEMPLARS_KEY)
-        back.compute_queries(qaid_list=[params.args.query_aid],
+        back.compute_queries(qaid_list=qaid_list,
                              daids_mode=daids_mode, ranks_lt=10)
     if params.args.select_gid is not None:
         back.select_gid(params.args.select_gid)

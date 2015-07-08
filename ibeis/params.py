@@ -136,7 +136,7 @@ def parse_args():
         parser2.add_int(('--select-nid', '--nid'), help='view col')
         parser2.add_int(('--select-gid', '--gid'), help='view col')
         parser2.add_int(('--select-aid', '--aid'), help='view col')
-        parser2.add_int(('--query-aid', '--query'), help='query aid')
+        parser2.add_ints(('--query-aid', '--query'), help='query aid(s)')
         parser2.add_flag(('--edit-notes'), help='edits database notes')
         parser2.add_str(('--set-notes'), help='overwrites database notes')
         parser2.add_ints('--set-aids-as-hard', help='set hard tag on selected aids')

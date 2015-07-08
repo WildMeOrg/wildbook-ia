@@ -1129,6 +1129,8 @@ class MainWindowBackend(GUIBACK_BASE):
 
         CommandLine:
             ./main.py --query 1 -y
+            python -m ibeis --query 1 -y
+            python -m ibeis --query 1:20 --db PZ_MTEST --nocache-query
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1217,7 +1219,11 @@ class MainWindowBackend(GUIBACK_BASE):
             daid_list = back.ibs.filter_aids_custom(daid_list)
         qreq_ = back.ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict)
         back.confirm_query_dialog(daid_list, qaid_list, cfgdict=cfgdict, query_msg=query_msg)
-        qres_list = back.ibs.query_chips(qreq_=qreq_)
+        progbar = guitool.newProgressBar(None)  # back.front)
+        progbar.setWindowTitle('querying')
+        qres_list = back.ibs.query_chips(qreq_=qreq_, prog_hook=progbar.utool_prog_hook)
+        progbar.close()
+        del progbar
         #qaid2_qres = back.ibs._query_chips4(qaid_list, daid_list, cfgdict=cfgdict)
         # HACK IN ENCOUNTER INFO
         if daids_mode == const.INTRA_ENC_KEY:
