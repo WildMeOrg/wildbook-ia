@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-from six.moves import map
+import six
+from six.moves import map, range
 from guitool.__PYQT__ import QtCore, QtGui
 from guitool.__PYQT__.QtGui import QSizePolicy
 from guitool.__PYQT__.QtCore import Qt
@@ -7,6 +9,7 @@ import functools
 import utool
 import utool as ut  # NOQA
 from guitool import guitool_dialogs
+import weakref
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__,
                                                        '[guitool_components]')
 
@@ -113,6 +116,100 @@ def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
     return action
 
 
+SHOW_TEXT = ut.get_argflag('--progtext')
+
+
+class ProgressHooks(object):
+    """
+    hooks into utool.ProgressIterator
+    """
+    def __init__(proghook, progressBar, substep_min=0, substep_size=1, level=0):
+        proghook.progressBarRef = weakref.ref(progressBar)
+        proghook.substep_min = substep_min
+        proghook.substep_size = substep_size
+        proghook.count = 0
+        proghook.nTotal = None
+        proghook.progiter = None
+        proghook.lbl = None
+        proghook.level = level
+        proghook.child_hook_gen = None
+
+    def initialize_subhooks(proghook, num_child_subhooks):
+        proghook.child_hook_gen = iter(proghook.make_substep_hooks(num_child_subhooks))
+
+    def next_subhook(proghook):
+        return six.next(proghook.child_hook_gen)
+
+    def register_progiter(proghook, progiter):
+        proghook.progiter = weakref.ref(progiter)
+        proghook.nTotal = proghook.progiter().nTotal
+        proghook.lbl = proghook.progiter().lbl
+
+    def make_substep_hooks(proghook, num_substeps):
+        """ make hooks that take up a fraction of this hooks step size.
+            substep sizes are all fractional
+        """
+        step_min = ((proghook.progiter().count - 1) / proghook.nTotal) * proghook.substep_size  + proghook.substep_min
+        step_size = (1.0 / proghook.nTotal) * proghook.substep_size
+
+        substep_size = step_size / num_substeps
+        substep_min_list = [(step * substep_size) + step_min for step in range(num_substeps)]
+
+        DEBUG = False
+        if DEBUG:
+            with ut.Indenter(' ' * 4 * proghook.level):
+                print('\n')
+                print('+____<NEW SUBSTEPS>____')
+                print('Making %d substeps for proghook.lbl = %s' % (num_substeps, proghook.lbl,))
+                print(' * step_min         = %.2f' % (step_min,))
+                print(' * step_size        = %.2f' % (step_size,))
+                print(' * substep_size     = %.2f' % (substep_size,))
+                print(' * substep_min_list = %r' % (substep_min_list,))
+                print('L____<\NEW SUBSTEPS>____')
+                print('\n')
+
+        subhook_list = [ProgressHooks(proghook.progressBarRef(), substep_min, substep_size, proghook.level + 1)
+                        for substep_min in substep_min_list]
+        return subhook_list
+
+    def __call__(proghook, count, nTotal=None):
+        if nTotal is None:
+            nTotal = proghook.nTotal
+        else:
+            proghook.nTotal = nTotal
+        proghook.count = count
+        local_fraction = (count) / nTotal
+        global_fraction = (local_fraction * proghook.substep_size) + proghook.substep_min
+        DEBUG = False
+
+        if DEBUG:
+            with ut.Indenter(' ' * 4 * proghook.level):
+                print('\n')
+                print('+-----------')
+                print('proghook.substep_min = %.3f' % (proghook.substep_min,))
+                print('proghook.lbl = %r' % (proghook.lbl,))
+                print('proghook.substep_size = %.3f' % (proghook.substep_size,))
+                print('global_fraction = %.3f' % (global_fraction,))
+                print('local_fraction = %.3f' % (local_fraction,))
+                print('L___________')
+        if SHOW_TEXT:
+            resolution = 75
+            num_full = int(round(global_fraction * resolution))
+            num_empty = resolution - num_full
+            print('\n')
+            print('[' + '#' * num_full + '.' * num_empty + '] %7.3f%%' % (global_fraction * 100))
+            print('\n')
+        #assert local_fraction <= 1.0
+        #assert global_fraction <= 1.0
+        progbar = proghook.progressBarRef()
+        progbar.setFormat(proghook.lbl + ' %p%')
+        progbar.setProperty('value', int(round(progbar.maximum() * global_fraction)))
+        # major hack
+        import guitool
+        qtapp = guitool.get_qtapp()
+        qtapp.processEvents()
+
+
 def newProgressBar(parent, visible=True, verticalStretch=1):
     r"""
     Args:
@@ -124,10 +221,11 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         QProgressBar: progressBar
 
     CommandLine:
-        python -m guitool.guitool_components --test-newProgressBar --show
+        python -m guitool.guitool_components --test-newProgressBar:0 --show
+        python -m guitool.guitool_components --test-newProgressBar:1 --progtext
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # GUI_DOCTEST
         >>> from guitool.guitool_components import *  # NOQA
         >>> # build test data
         >>> import guitool
@@ -137,30 +235,78 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         >>> verticalStretch = 1
         >>> # hook into utool progress iter
         >>> progressBar = newProgressBar(parent, visible, verticalStretch)
+        >>> progressBar.show()
         >>> progiter = ut.ProgressIter(range(100), freq=1, autoadjust=False, prog_hook=progressBar.utool_prog_hook)
-        >>> results1 = [ut.get_nth_prime_bruteforce(500) for x in progiter]
+        >>> results1 = [ut.get_nth_prime_bruteforce(300) for x in progiter]
         >>> # verify results
         >>> ut.quit_if_noshow()
-        >>> guitool.guitool_main.qtapp_loop()
+        >>> guitool.qtapp_loop(freq=10)
+
+    Example:
+        >>> # GUI_DOCTEST
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> # build test data
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
+        >>> parent = None
+        >>> visible = True
+        >>> verticalStretch = 1
+        >>> def complex_tasks(proghook):
+        ...     progkw = dict(freq=1, backspace=False, autoadjust=False)
+        ...     num = 800
+        ...     for x in ut.ProgressIter(range(4), lbl='TASK', prog_hook=proghook, **progkw):
+        ...         ut.get_nth_prime_bruteforce(num)
+        ...         subhooks = proghook.make_substep_hooks(2)
+        ...         for task1 in ut.ProgressIter(range(2), lbl='task1.1', prog_hook=subhooks[0], **progkw):
+        ...             ut.get_nth_prime_bruteforce(num)
+        ...             subsubhooks = subhooks[0].make_substep_hooks(3)
+        ...             for task1 in ut.ProgressIter(range(7), lbl='task1.1.1', prog_hook=subsubhooks[0], **progkw):
+        ...                 ut.get_nth_prime_bruteforce(num)
+        ...             for task1 in ut.ProgressIter(range(11), lbl='task1.1.2', prog_hook=subsubhooks[1], **progkw):
+        ...                 ut.get_nth_prime_bruteforce(num)
+        ...             for task1 in ut.ProgressIter(range(3), lbl='task1.1.3', prog_hook=subsubhooks[2], **progkw):
+        ...                 ut.get_nth_prime_bruteforce(num)
+        ...         for task2 in ut.ProgressIter(range(10), lbl='task1.2', prog_hook=subhooks[1], **progkw):
+        ...             ut.get_nth_prime_bruteforce(num)
+        >>> # hook into utool progress iter
+        >>> progressBar = newProgressBar(parent, visible, verticalStretch)
+        >>> complex_tasks(progressBar.utool_prog_hook)
+        >>> # verify results
+        >>> ut.quit_if_noshow()
+        >>> guitool.qtapp_loop(freq=10)
     """
     progressBar = QtGui.QProgressBar(parent)
     sizePolicy = newSizePolicy(progressBar,
                                verticalSizePolicy=QSizePolicy.Maximum,
                                verticalStretch=verticalStretch)
     progressBar.setSizePolicy(sizePolicy)
-    progressBar.setProperty('value', 42)
-    def utool_prog_hook(count, nTotal):
-        progressBar.setProperty('value', int(100 * count / nTotal))
-        pass
-    progressBar.utool_prog_hook = utool_prog_hook
-    progressBar.setTextVisible(False)
+    progressBar.setMaximum(10000)
+    progressBar.setProperty('value', 0)
+    #def utool_prog_hook(count, nTotal):
+    #    progressBar.setProperty('value', int(100 * count / nTotal))
+    #    # major hack
+    #    import guitool
+    #    qtapp = guitool.get_qtapp()
+    #    qtapp.processEvents()
+    #    pass
+    progressBar.utool_prog_hook = ProgressHooks(progressBar)
+    #progressBar.setTextVisible(False)
+    progressBar.setTextVisible(True)
+    progressBar.setFormat('%p%')
     progressBar.setVisible(visible)
+    progressBar.setMinimumWidth(600)
     setattr(progressBar, '_guitool_sizepolicy', sizePolicy)
+    if visible:
+        # hack to make progres bar show up immediately
+        import guitool
+        progressBar.show()
+        qtapp = guitool.get_qtapp()
+        qtapp.processEvents()
     return progressBar
 
 
 def newOutputLog(parent, pointSize=6, visible=True, verticalStretch=1):
-    from .guitool_misc import QLoggedOutput
+    from guitool.guitool_misc import QLoggedOutput
     outputLog = QLoggedOutput(parent)
     sizePolicy = newSizePolicy(outputLog,
                                #verticalSizePolicy=QSizePolicy.Preferred,
