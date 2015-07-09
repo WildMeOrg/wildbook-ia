@@ -1,16 +1,18 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, division
 import utool as ut
+import six
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[feat]', DEBUG=False)
 
 
-def extract_features(img_fpath, **kwargs):
+def extract_features(img_or_fpath, feat_type='hesaff+sift', **kwargs):
     r"""
     calls pyhesaff's main driver function for detecting hessian affine keypoints.
     extra parameters can be passed to the hessian affine detector by using
     kwargs.
 
     Args:
-        img_fpath (str): image file path on disk
+        img_or_fpath (str): image file path on disk
         use_adaptive_scale (bool):
         nogravity_hack (bool):
 
@@ -21,6 +23,9 @@ def extract_features(img_fpath, **kwargs):
     CommandLine:
         python -m vtool.features --test-extract_features
         python -m vtool.features --test-extract_features --show
+        python -m vtool.features --test-extract_features --feat-type=hesaff+siam128 --show
+        python -m vtool.features --test-extract_features --feat-type=hesaff+siam128 --show
+        python -m vtool.features --test-extract_features --feat-type=hesaff+siam128 --show --no-affine-invariance
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -28,10 +33,13 @@ def extract_features(img_fpath, **kwargs):
         >>> import vtool as vt
         >>> # build test data
         >>> img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='lena.png'))
+        >>> feat_type = ut.get_argval('--feat_type', default='hesaff+sift')
         >>> imgBGR = vt.imread(img_fpath)
+        >>> import pyhesaff
+        >>> kwargs = ut.parse_dict_from_argv(pyhesaff.get_hesaff_default_params())
         >>> # execute function
         >>> #(kpts, vecs) = extract_features(img_fpath)
-        >>> (kpts, vecs) = extract_features(imgBGR)
+        >>> (kpts, vecs) = extract_features(imgBGR, feat_type, **kwargs)
         >>> # verify results
         >>> result = str((kpts, vecs))
         >>> print(result)
@@ -45,8 +53,21 @@ def extract_features(img_fpath, **kwargs):
         >>> pt.show_if_requested()
     """
     import pyhesaff
-    #(kpts, vecs) = pyhesaff.detect_kpts(img_fpath, **kwargs)
-    (kpts, vecs) = pyhesaff.detect_kpts2(img_fpath, **kwargs)
+    if feat_type == 'hesaff+sift':
+        #(kpts, vecs) = pyhesaff.detect_kpts(img_fpath, **kwargs)
+        (kpts, vecs) = pyhesaff.detect_kpts2(img_or_fpath, **kwargs)
+    elif feat_type == 'hesaff+siam128':
+        # hacky
+        from ibeis_cnn import _plugin
+        (kpts, sift) = pyhesaff.detect_kpts2(img_or_fpath, **kwargs)
+        if isinstance(img_or_fpath, six.string_types):
+            import vtool as vt
+            img_or_fpath = vt.imread(img_or_fpath)
+        vecs_list = _plugin.extract_siam128_vecs([img_or_fpath], [kpts])
+        vecs = vecs_list[0]
+        pass
+    else:
+        raise AssertionError('Unknown feat_type=%r' % (feat_type,))
     return (kpts, vecs)
 
 

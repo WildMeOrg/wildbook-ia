@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 #from six.moves import range
 import utool as ut
@@ -13,10 +14,19 @@ PSEUDO_MAX_DIST = np.sqrt(2) * (PSEUDO_MAX_VEC_COMPONENT)
 
 
 def show_matching_dict(matches, metadata):
-    import plottool as pt
+    #import plottool as pt
     fm, fs = matches['RAT+SV'][0:2]
+    #fm, fs = matches['RAT'][0:2]
     rchip1, rchip2, kpts1, kpts2 = ut.dict_take(metadata, ['rchip1', 'rchip2', 'kpts1', 'kpts2'])
-    pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
+
+    #pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
+
+    import plottool.interact_matches
+    vecs1, vecs2 = ut.dict_take(metadata, ['vecs1', 'vecs2'])
+    fsv = fs[:, None]
+    plottool.interact_matches.MatchInteraction2(rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2)
+
+    #MatchInteraction2
 
 
 def vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict={}):
@@ -28,16 +38,24 @@ def vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict={}):
 
     CommandLine:
         python -m vtool.matching --test-vsone_image_fpath_matching --show
+        python -m vtool.matching --test-vsone_image_fpath_matching --show --helpx
+        python -m vtool.matching --test-vsone_image_fpath_matching --show --feat-type=hesaff+siam128
+        python -m vtool.matching --test-vsone_image_fpath_matching --show --feat-type=hesaff+siam128 --ratio-thresh=.9
+        python -m vtool.matching --test-vsone_image_fpath_matching --show --feat-type=hesaff+sift --ratio-thresh=.8
+        python -m vtool.matching --test-vsone_image_fpath_matching --show --feat-type=hesaff+sift --ratio-thresh=.8
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.matching import *  # NOQA
+        >>> import vtool as vt
         >>> rchip_fpath1 = ut.grab_test_imgpath('easy1.png')
         >>> rchip_fpath2 = ut.grab_test_imgpath('easy2.png')
-        >>> cfgdict = {}
+        >>> import pyhesaff
+        >>> default_cfgdict = dict(feat_type='hesaff+sift', ratio_thresh=.625, **pyhesaff.get_hesaff_default_params())
+        >>> cfgdict = ut.parse_dict_from_argv(default_cfgdict)
         >>> matches, metadata = vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict)
         >>> ut.quit_if_noshow()
-        >>> vt.show_matching_dict(matches, metadata)
+        >>> show_matching_dict(matches, metadata)
         >>> ut.show_if_requested()
     """
     import vtool as vt
@@ -54,8 +72,8 @@ def vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict={}):
 def vsone_image_matching(rchip1, rchip2, cfgdict={}):
     import vtool as vt
     dlen_sqrd2 = rchip2.shape[0] ** 2 + rchip2.shape[1] ** 2
-    kpts1, vecs1 = vt.extract_features(rchip1)
-    kpts2, vecs2 = vt.extract_features(rchip2)
+    kpts1, vecs1 = vt.extract_features(rchip1, **cfgdict)
+    kpts2, vecs2 = vt.extract_features(rchip2, **cfgdict)
     matches, metadata = vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict=cfgdict)
     metadata.update({
         'kpts1': kpts1,
@@ -132,7 +150,7 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={}):
 
     matches = {
         'ORIG': (fm_ORIG, fs_ORIG),
-        'RAT': (fm_RAT, fm_SV, fm_norm_RAT),
+        'RAT': (fm_RAT, fs_RAT, fm_norm_RAT),
         'RAT+SV': (fm_SV, fs_SV, fm_norm_SV),
     }
     metadata = {

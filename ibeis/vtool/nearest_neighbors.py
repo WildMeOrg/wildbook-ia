@@ -364,10 +364,30 @@ def get_kdtree_flann_params():
     return flann_params
 
 
-def get_flann_params(type_='kdtree'):
+def get_flann_params(algorithm='kdtree'):
     """
+    Returns flann params that are relvant tothe algorithm
+
     References:
         http://www.cs.ubc.ca/research/flann/uploads/FLANN/flann_manual-1.8.4.pdf
+
+    Args:
+        algorithm (str): (default = 'kdtree')
+
+    Returns:
+        ?: flann_params
+
+    CommandLine:
+        python -m vtool.nearest_neighbors --test-get_flann_params --algo=kdtree
+        python -m vtool.nearest_neighbors --test-get_flann_params --algo=kmeans
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.nearest_neighbors import *  # NOQA
+        >>> algorithm = ut.get_argval('--algo', default='kdtree')
+        >>> flann_params = get_flann_params(algorithm)
+        >>> result = ('flann_params = %s' % (ut.dict_str(flann_params),))
+        >>> print(result)
     """
     _algorithm_options = [
         'linear',
@@ -382,23 +402,31 @@ def get_flann_params(type_='kdtree'):
         'kmeanspp',
     ]
     # Search params (for all algos)
+    assert algorithm in _algorithm_options
     flann_params = {
-        'checks': 32,  # how many leafs (features) to check in one search
-        'cb_index': 0.5,  # cluster boundary index for searching kdtrees
+        'algorithm': algorithm
     }
-    if type_ == 'kdtree':
+    if algorithm != 'linear':
+        flann_params.update({
+            'random_seed': -1
+        })
+    if algorithm in ['kdtree', 'composite']:
         # kdtree index parameters
         flann_params.update({
             'algorithm': _algorithm_options[1],
             'trees': 4,
+            'checks': 32,  # how many leafs (features) to check in one search
         })
+    elif algorithm in ['kmeans', 'composite']:
         # Kmeans index parametrs
         flann_params.update({
-            'breanching': 32,
+            'branching': 32,
             'iterations': 5,
             'centers_init': _centersinit_options[2],
+            'cb_index': 0.5,  # cluster boundary index for searching kmeanms tree
+            'checks': 32,  # how many leafs (features) to check in one search
         })
-    elif type_ == 'autotuned':
+    elif algorithm == 'autotuned':
         flann_params.update({
             'algorithm'        : 'autotuned',
             'target_precision' : .01,    # precision desired (used for autotuning, -1 otherwise)
@@ -406,6 +434,13 @@ def get_flann_params(type_='kdtree'):
             'memory_weight'    : 0.0,    # index memory weigthing factor
             'sample_fraction'  : 0.001,  # what fraction of the dataset to use for autotuning
         })
+    elif algorithm == 'lsh':
+        flann_params.update({
+            'table_number_': 12,
+            'key_size_': 20,
+            'multi_probe_level_': 2,
+        })
+
     return flann_params
 
 
