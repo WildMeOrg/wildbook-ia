@@ -285,7 +285,11 @@ PROJECT_REPO_DIRS = IBEIS_REPO_DIRS + TPL_REPO_DIRS
 # Set ut global git repos
 ut.set_project_repos(PROJECT_REPO_URLS, PROJECT_REPO_DIRS)
 
-GET_ARGFLAG = ut.get_argflag
+
+def GET_ARGFLAG(arg, *args, **kwargs):
+    return arg.lstrip('--') in sys.argv or ut.get_argflag(arg, *args, **kwargs)
+
+
 GET_ARGVAL = ut.get_argval
 
 # Commands on global git repos
