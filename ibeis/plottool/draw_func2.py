@@ -934,6 +934,36 @@ def draw_stems(x_data=None, y_data=None, setlims=True, color=None, markersize=No
 
 
 def plot_sift_signature(sift, title='', fnum=None, pnum=None):
+    """
+    Plots a SIFT descriptor as a histogram and distinguishes different bins
+    into different colors
+
+    Args:
+        sift (ndarray[dtype=np.uint8]):
+        title (str):  (default = '')
+        fnum (int):  figure number(default = None)
+        pnum (tuple):  plot number(default = None)
+
+    Returns:
+        AxesSubplot: ax
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-plot_sift_signature --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import vtool as vt
+        >>> sift = vt.dummy.testdata_dummy_sift(1, np.random.RandomState(0))[0]
+        >>> title = 'test sift histogram'
+        >>> fnum = None
+        >>> pnum = None
+        >>> ax = plot_sift_signature(sift, title, fnum, pnum)
+        >>> result = ('ax = %s' % (str(ax),))
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    fnum = ensure_fnum(fnum)
     figure(fnum=fnum, pnum=pnum)
     ax = gca()
     plot_bars(sift, 16)
@@ -941,6 +971,51 @@ def plot_sift_signature(sift, title='', fnum=None, pnum=None):
     ax.set_ylim(0, 256)
     space_xticks(9, 16)
     space_yticks(5, 64)
+    set_title(title, ax=ax)
+    dark_background(ax)
+    return ax
+
+
+def plot_descriptor_signature(vec, title='', fnum=None, pnum=None):
+    """
+    signature general for for any descriptor vector.
+
+    Args:
+        vec (ndarray):
+        title (str):  (default = '')
+        fnum (int):  figure number(default = None)
+        pnum (tuple):  plot number(default = None)
+
+    Returns:
+        AxesSubplot: ax
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-plot_descriptor_signature --show
+
+    SeeAlso:
+        plot_sift_signature
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import vtool as vt
+        >>> vec = ((np.random.RandomState(0).rand(258) - .2) * 4)
+        >>> title = 'test sift histogram'
+        >>> fnum = None
+        >>> pnum = None
+        >>> ax = plot_descriptor_signature(vec, title, fnum, pnum)
+        >>> result = ('ax = %s' % (str(ax),))
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    fnum = ensure_fnum(fnum)
+    figure(fnum=fnum, pnum=pnum)
+    ax = gca()
+    plot_bars(vec, vec.size // 8)
+    ax.set_xlim(0, vec.size)
+    ax.set_ylim(vec.min(), vec.max())
+    #space_xticks(9, 16)
+    #space_yticks(5, 64)
     set_title(title, ax=ax)
     dark_background(ax)
     return ax
@@ -1881,7 +1956,8 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True):
 def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None,
                     fm_norm=None, title=None,
                     vert=None, fnum=None, pnum=None, heatmap=False,
-                    draw_fmatch=True, darken=DARKEN, H1=None, H2=None, **kwargs):
+                    draw_fmatch=True, darken=DARKEN, H1=None, H2=None,
+                    sel_fm=[], **kwargs):
     """
     Draws two chips and the feature matches between them. feature matches
     kpts1 and kpts2 use the (x,y,a,c,d)
@@ -1899,6 +1975,9 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None,
         pnum (tuple):  plot number
         heatmap (bool):
         draw_fmatch (bool):
+
+     Returns:
+         ax, xywh1, xywh2
 
     CommandLine:
         python -m plottool.draw_func2 --test-show_chipmatch2 --show
@@ -1952,6 +2031,10 @@ def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None,
     if draw_fmatch and kpts1 is not None and kpts2 is not None:
         plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs, fm_norm=fm_norm, H1=H1,
                     H2=H2, **kwargs)
+        if len(sel_fm) > 0:
+            # Draw any selected matches in blue
+            sm_kw = dict(rect=True, colors=BLUE)
+            plot_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, **sm_kw)
     return ax, xywh1, xywh2
 
 

@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut  # NOQA
 import six
+import itertools
 import plottool.draw_func2 as df2
 from plottool import plot_helpers as ph
 from plottool import custom_constants
@@ -77,8 +78,6 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
         >>> print(result)
         >>> pt.show_if_requested()
     """
-    import itertools
-
     pnum_ = df2.get_pnum_func(nRows, nCols, base=1)
     countgen = itertools.count(1)
 
@@ -131,8 +130,13 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols, px, prevsift=None,
         custom_figure.figure(fnum=fnum, pnum=pnum)
         df2.draw_keypoint_gradient_orientations(chip, kp, sift=sift)
     else:
-        sigtitle =  'sift histogram' if (px % 3) == 0 else ''
-        ax = df2.plot_sift_signature(sift, sigtitle, fnum=fnum, pnum=pnum)
+        import numpy as np
+        if sift.dtype.type == np.uint8:
+            sigtitle =  'sift histogram' if (px % 3) == 0 else ''
+            ax = df2.plot_sift_signature(sift, sigtitle, fnum=fnum, pnum=pnum)
+        else:
+            sigtitle =  'descriptor vector' if (px % 3) == 0 else ''
+            ax = df2.plot_descriptor_signature(sift, sigtitle,  fnum=fnum, pnum=pnum)
         ax._hs_viztype = 'histogram'
     #dist_list = ['L1', 'L2', 'hist_isect', 'emd']
     #dist_list = ['L2', 'hist_isect']

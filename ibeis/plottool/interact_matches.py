@@ -35,10 +35,7 @@ class MatchInteraction2(object):
             fnum = pt.next_fnum()
         fig = ih.begin_interaction('matches', fnum)  # call doclf docla and make figure
 
-        rchip1, rchip2 = None, None
-        fm = None
         mx = kwargs.pop('mx', None)
-        xywh2_ptr = [None]
         annote_ptr = [kwargs.pop('mode', 0)]
         self.same_fig = same_fig
         self.last_fx = 0
@@ -56,10 +53,9 @@ class MatchInteraction2(object):
         self.fig = fig
         self.fig        = fig
         self.annote_ptr = annote_ptr
-        self.xywh2_ptr  = xywh2_ptr
-        self.fm         = fm
-        self.rchip1     = rchip1
-        self.rchip2     = rchip2
+        self.xywh2 = None
+        #self.rchip1     = rchip1
+        #self.rchip2     = rchip2
 
         if mx is None:
             self.chipmatch_view()
@@ -75,6 +71,7 @@ class MatchInteraction2(object):
         just visualizes the matches using some type of lines
         """
         import plottool as pt
+        from plottool import plot_helpers as ph
         # <CLOSURE VARS>
         fnum     = self.fnum
         #figtitle = self.figtitle
@@ -96,9 +93,9 @@ class MatchInteraction2(object):
         show_matches_kw.update(kwargs_)
 
         #tup = show_matches(fm, fs, **show_matches_kw)
-        #ax, xywh1, xywh2 = tup
-        #xywh2_ptr[0] = xywh2
-
+        ax, xywh1, xywh2 = pt.show_chipmatch2(self.rchip1, self.rchip2, self.kpts1, self.kpts2, fm=self.fm, fs=self.fs, pnum=pnum, **kwargs_)
+        self.xywh2 = xywh2
+        ph.set_plotdat(ax, 'viztype', 'matches')
         #pt.set_figtitle(figtitle + ' ' + vh.get_vsstr(qaid, aid))
 
     # Draw clicked selection
@@ -131,23 +128,21 @@ class MatchInteraction2(object):
         # Get info for the select_ith_match plot
         annote_ptr[0] = 1
         # Get the mx-th feature match
-        fx1, fx2 = None, None  # qres.aid2_fm[aid2][mx]
+        fx1, fx2 = self.fm[mx]
 
         # Older info
-        fscore2  = None, None  # qres.aid2_fs[aid2][mx]
+        fscore2  = self.fs[mx]
         fk2      = None  # qres.aid2_fk[aid2][mx]
-        kpts1, kpts2 = None, None  # ibs.get_annot_kpts([aid1, aid2])
-        desc1, desc2 = None, None  # ibs.get_annot_vecs([aid1, aid2])
-        kp1, kp2     = kpts1[fx1], kpts2[fx2]
-        sift1, sift2 = desc1[fx1], desc2[fx2]
+        kp1, kp2     = self.kpts1[fx1], self.kpts2[fx2]
+        vecs1, vecs2 = self.vecs1[fx1], self.vecs2[fx2]
         info1 = '\nquery'
         info2 = '\nk=%r fscore=%r' % (fk2, fscore2)
         #self.last_fx = fx1
         self.last_fx = fx1
 
         # Extracted keypoints to draw
-        extracted_list = [(rchip1, kp1, sift1, fx1, 'aid1', info1),
-                          (rchip2, kp2, sift2, fx2, 'aid2', info2)]
+        extracted_list = [(rchip1, kp1, vecs1, fx1, 'aid1', info1),
+                          (rchip2, kp2, vecs2, fx2, 'aid2', info2)]
         # Normalizng Keypoint
         #if hasattr(qres, 'filt2_meta') and 'lnbnn' in qres.filt2_meta:
         #    qfx2_norm = qres.filt2_meta['lnbnn']
@@ -180,6 +175,7 @@ class MatchInteraction2(object):
             fig2 = pt.figure(fnum=fnum2, docla=True, doclf=True)
         else:
             fnum2 = fnum
+
         for (rchip, kp, sift, fx, aid, info) in extracted_list:
             px = viz_featrow.draw_feat_row(rchip, fx, kp, sift, fnum2, nRows, nCols, px,
                                            prevsift=prevsift, aid=aid, info=info)
@@ -205,7 +201,6 @@ class MatchInteraction2(object):
         kpts1     = self.kpts1
         kpts2     = self.kpts2
         fm        = self.fm
-        xywh2_ptr = self.xywh2_ptr
         #print_('[inter] clicked matches')
         if event is None:
             return
@@ -237,7 +232,7 @@ class MatchInteraction2(object):
                     # Select nearest feature match to the click
                     kpts1_m = kpts1[fm[:, 0]]
                     kpts2_m = kpts2[fm[:, 1]]
-                    x2, y2, w2, h2 = xywh2_ptr[0]
+                    x2, y2, w2, h2 = self.xywh2
                     _mx1, _dist1 = ut.nearest_point(x, y, kpts1_m)
                     _mx2, _dist2 = ut.nearest_point(x - x2, y - y2, kpts2_m)
                     mx = _mx1 if _dist1 < _dist2 else _mx2
@@ -311,3 +306,16 @@ class MatchInteraction2(object):
     #    fig3 = pt.gcf()
     #    ih.connect_callback(fig3, 'button_press_event', self._click_matches_click)
     #    pt.update()
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m plottool.interact_matches
+        python -m plottool.interact_matches --allexamples
+        python -m plottool.interact_matches --allexamples --noface --nosrc
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
