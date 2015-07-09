@@ -1873,6 +1873,10 @@ class MainWindowBackend(GUIBACK_BASE):
         if ut.get_argflag('--diskshow'):
             ut.startfile(screengrab_fpath)
 
+    @slot_()
+    def reconnect_controller(back):
+        back.connect_ibeis_control(back.ibs)
+
 
 def testdata_guiback(db='testdb2', **kwargs):
     import ibeis

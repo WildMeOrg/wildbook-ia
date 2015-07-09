@@ -432,6 +432,11 @@ def setup_refresh_menu(mainwin, back):
         text='Refresh Special Encounters',
         slot_fn=back.update_special_encounters)
     # ---------
+    menu.newAction(
+        name='actionReconnectController',
+        text='Reconnect Controller',
+        slot_fn=back.reconnect_controller)
+    # ---------
     menu.addSeparator()
     # ---------
     menu.newAction(

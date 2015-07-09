@@ -194,9 +194,13 @@ def testdata_wildbook_server(dryrun=False):
         if ut.is_developer():
             catalina_fpath = join(tomcat_dpath, 'bin/catalina.sh')
             ut.assert_exists(catalina_fpath)
+            ut.cmd(catalina_fpath, 'stop')
+            import time
+            time.sleep(1)
             ut.cmd(catalina_fpath, 'start')
+            time.sleep(1)
 
-        login = False
+        login = True
         if login:
             chromedriver_fpath = ut.grab_selenium_chromedriver()
             os.environ['webdriver.chrome.driver'] = chromedriver_fpath
@@ -892,7 +896,11 @@ class IBEISController(object):
 
     def get_wildbook_info(ibs, tomcat_dpath=None, wb_target=None):
         wb_target = const.WILDBOOK_TARGET if wb_target is None else wb_target
-        tomcat_dpath = '/var/lib/tomcat' if tomcat_dpath is None else tomcat_dpath
+        DEFAULT_TOMCAT_PATH = '/var/lib/tomcat'
+        if ut.is_developer():
+            import os
+            DEFAULT_TOMCAT_PATH = join(os.environ['CODE_DIR'], 'Wildbook/apache-tomcat-8.0.24')
+        tomcat_dpath = DEFAULT_TOMCAT_PATH if tomcat_dpath is None else tomcat_dpath
         hostname = '127.0.0.1'
         wb_port = 8080
         wildbook_base_url = 'http://' + str(hostname) + ':' + str(wb_port) + '/' + wb_target

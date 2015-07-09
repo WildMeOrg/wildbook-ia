@@ -378,6 +378,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """ Defines gui components """
         # Layout
         ibswgt.vlayout = QtGui.QVBoxLayout(ibswgt)
+        #ibswgt.hsplitter = guitool.newSplitter(ibswgt, Qt.Horizontal, verticalStretch=18)
         ibswgt.hsplitter = guitool.newSplitter(ibswgt, Qt.Horizontal, verticalStretch=18)
         ibswgt.vsplitter = guitool.newSplitter(ibswgt, Qt.Vertical)
         #ibswgt.hsplitter = guitool.newWidget(ibswgt, Qt.Horizontal, verticalStretch=18)
@@ -505,6 +506,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         hack_enabled_machines = [
             'ibeis.cs.uic.edu',
             'pachy.cs.uic.edu',
+            'hyrule',
         ]
         enable_complete = ut.get_computer_name() in hack_enabled_machines
 
@@ -606,7 +608,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ibs.update_special_encounters()
             # Update the api models to use the new control
             with ut.Timer('make headers'):
-                header_dict = gh.make_ibeis_headers_dict(ibswgt.ibs)
+                header_dict, declare_tup = gh.make_ibeis_headers_dict(ibswgt.ibs)
+            ibswgt.declare_tup = declare_tup
             # Enable the redirections between tables
             #ibswgt._init_redirects()
             title = ibsfuncs.get_title(ibswgt.ibs)
@@ -972,7 +975,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             print('... tblname == ENCOUNTER_TABLE, ...hack return')
             return
         tblname = str(tblname)
-        tblnice = gh.TABLE_NICE[tblname]
+        TABLE_NICE = ibswgt.declare_tup[1]  # hack
+        tblnice = TABLE_NICE[tblname]
         index = ibswgt.get_table_tab_index(tblname)
         text = tblnice + ' ' + str(nRows)
         #printDBG('Rows updated in index=%r, text=%r' % (index, text))
@@ -1325,17 +1329,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt.redirects[src_table] = {}
         ibswgt.redirects[src_table][src_table_col] = (dst_table, mapping_func)
 
-    def _init_redirects(ibswgt):
-        """
-        redirects allows user to go from a row of a table to corresponding rows
-        of other tables
-        """
-        redirects = gh.get_redirects(ibswgt.ibs)
-        for src_table in redirects.keys():
-            for src_table_name in redirects[src_table].keys():
-                dst_table, mapping_func = redirects[src_table][src_table_name]
-                src_table_col = gh.TABLE_COLNAMES[src_table].index(src_table_name)
-                ibswgt.register_redirect(src_table, src_table_col, dst_table, mapping_func)
+    #def _init_redirects(ibswgt):
+    #    """
+    #    redirects allows user to go from a row of a table to corresponding rows
+    #    of other tables
+    #    """
+    #    redirects = gh.get_redirects(ibswgt.ibs)
+    #    for src_table in redirects.keys():
+    #        for src_table_name in redirects[src_table].keys():
+    #            dst_table, mapping_func = redirects[src_table][src_table_name]
+    #            src_table_col = gh.TABLE_COLNAMES[src_table].index(src_table_name)
+    #            ibswgt.register_redirect(src_table, src_table_col, dst_table, mapping_func)
 
     @slot_(QtCore.QModelIndex)
     def on_click(ibswgt, qtindex):

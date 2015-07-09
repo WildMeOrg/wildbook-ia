@@ -156,4 +156,4 @@ class EncTableView(APITableView):
     def __init__(tblview, parent=None):
         APITableView.__init__(tblview, parent)
         tblview.ibswin = parent
-        tblview.setMaximumSize(500, 9999)
+        #tblview.setMaximumSize(500, 9999)

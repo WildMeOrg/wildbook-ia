@@ -30,242 +30,256 @@ THUMB_TABLE      = 'thumbs'
 # Define the tables
 #-----------------
 
-# available tables
-TABLENAME_LIST = [
-    IMAGE_TABLE,
-    ANNOTATION_TABLE,
-    #NAME_TABLE,
-    ENCOUNTER_TABLE,
-    IMAGE_GRID,
-    THUMB_TABLE,
-    NAMES_TREE
-]
 
-# table nice names
-TABLE_NICE = {
-    IMAGE_TABLE      : 'Image Table',
-    ANNOTATION_TABLE : 'Annotations Table',
-    NAME_TABLE       : 'Name Table',
-    QRES_TABLE       : 'Query Results Table',
-    ENCOUNTER_TABLE  : 'Encounter Table',
-    IMAGE_GRID       : 'Thumbnail Grid',
-    THUMB_TABLE      : 'Thumbnail Table',
-    NAMES_TREE       : 'Tree of Names',
-}
+def make_table_declarations(ibs):
+    """
+    these used to be global variables, hopefully we can make them a little more configurable
+    """
+    # available tables
+    TABLENAME_LIST = [
+        IMAGE_TABLE,
+        ANNOTATION_TABLE,
+        #NAME_TABLE,
+        ENCOUNTER_TABLE,
+        IMAGE_GRID,
+        THUMB_TABLE,
+        NAMES_TREE
+    ]
 
-# COLUMN DEFINITIONS
-# the columns each ibeis table has,
-TABLE_COLNAMES = {
-    IMAGE_TABLE     : [
-        'gid',
-        'thumb',
-        #'nAids',
-        'img_gname',
-        #'ext',
-        'reviewed',  # detection reviewed flag is not fullyused
-        'datetime',
-        'gps',
-        'party_tag',
-        'contributor_tag',
-        #'gdconf',
-        'imgnotes',
-        'image_uuid',
-    ],
+    # table nice names
+    TABLE_NICE = {
+        IMAGE_TABLE      : 'Image Table',
+        ANNOTATION_TABLE : 'Annotations Table',
+        NAME_TABLE       : 'Name Table',
+        QRES_TABLE       : 'Query Results Table',
+        ENCOUNTER_TABLE  : 'Encounter Table',
+        IMAGE_GRID       : 'Thumbnail Grid',
+        THUMB_TABLE      : 'Thumbnail Table',
+        NAMES_TREE       : 'Tree of Names',
+    }
 
-    # debug with
-    # --noannottbl
-    # --nonametree
-    # even just aid seems to be very slow
-    ANNOTATION_TABLE       : [
-        #'annotation_uuid',
-        'aid',
-        'thumb',
-        'annot_gname',
-        'name',
-        'exemplar',
-        'species',  # <put back in
-        'yaw_text',
-        'quality_text',
-        #'rdconf',
-        #'nGt',  # ## <put back in
-        'annotnotes',  # ## <put back in
-        #'annot_visual_uuid',
-        #'annot_semantic_uuid',
-        #'nFeats',
-        #'bbox',
-        #'theta',
-        #'verts',
-        #'num_verts',
-    ],
+    # COLUMN DEFINITIONS
+    # the columns each ibeis table has,
+    TABLE_COLNAMES = {
+        IMAGE_TABLE     : [
+            'gid',
+            'thumb',
+            #'nAids',
+            'img_gname',
+            #'ext',
+            'reviewed',  # detection reviewed flag is not fullyused
+            'datetime',
+            'gps',
+            'party_tag',
+            'contributor_tag',
+            #'gdconf',
+            'imgnotes',
+            'image_uuid',
+        ],
 
-    NAME_TABLE      : [
-        'nid',
-        'name',
-        'nAids',
-        'namenotes'
-    ],
+        # debug with
+        # --noannottbl
+        # --nonametree
+        # even just aid seems to be very slow
+        ANNOTATION_TABLE       : [
+            #'annotation_uuid',
+            'aid',
+            'thumb',
+            'annot_gname',
+            'name',
+            'exemplar',
+            'species',  # <put back in
+            'yaw_text',
+            'quality_text',
+            #'rdconf',
+            #'nGt',  # ## <put back in
+            'annotnotes',  # ## <put back in
+            #'annot_visual_uuid',
+            #'annot_semantic_uuid',
+            #'nFeats',
+            #'bbox',
+            #'theta',
+            #'verts',
+            #'num_verts',
+        ],
 
-    QRES_TABLE      : [
-        'rank',
-        'score',
-        'name',
-        'aid'
-    ],
+        NAME_TABLE      : [
+            'nid',
+            'name',
+            'nAids',
+            'namenotes'
+        ],
 
-    ENCOUNTER_TABLE : [
-        #'eid',
-        'enctext',
-        'nImgs',
-        #'num_imgs_reviewed',
-        #'num_annotmatch_reviewed',
-        #'encounter_end_datetime',
-        # 'encounter_processed_flag',
-        # 'encounter_shipped_flag',
-    ],
+        QRES_TABLE      : [
+            'rank',
+            'score',
+            'name',
+            'aid'
+        ],
 
-    NAMES_TREE      : [
-        'name',
-        'nAids',
-        'thumb',
-        'nid',
-        'exemplar',
-        'nExAids',
-        'aid',
-        #'annot_gname',
-        'yaw_text',
-        'quality_text',
-        'datetime',
-        'max_hourdiff',
-        'max_speed',
-        'namenotes',
-    ],
+        ENCOUNTER_TABLE : [
+            #'eid',
+            'enctext',
+            'nImgs',
+            #'num_imgs_reviewed',
+            #'num_annotmatch_reviewed',
+            #'encounter_end_datetime',
+            # 'encounter_processed_flag',
+            # 'encounter_shipped_flag',
+        ],
 
-    IMAGE_GRID     : [
-        'thumb',
-    ],
+        NAMES_TREE      : [
+            'name',
+            'nAids',
+            'thumb',
+            'nid',
+            'exemplar',
+            'nExAids',
+            'aid',
+            #'annot_gname',
+            'yaw_text',
+            'quality_text',
+            'datetime',
+            'max_hourdiff',
+            'max_speed',
+            'namenotes',
+        ],
 
-    # TEST TABLE
-    THUMB_TABLE     : [
-        'img_gname',
-        'thumb',
-    ],
+        IMAGE_GRID     : [
+            'thumb',
+        ],
+
+        # TEST TABLE
+        THUMB_TABLE     : [
+            'img_gname',
+            'thumb',
+        ],
 
 
-}
+    }
 
-if not const.SIMPLIFY_INTERFACE:
-    TABLE_COLNAMES[ENCOUNTER_TABLE].extend([
-        'percent_annotmatch_reviewed_str',
-        'percent_names_with_exemplar_str',
-        #'percent_imgs_reviewed_str',
-        'encounter_start_datetime',
+    # dynamicly defined headers
+    if not const.SIMPLIFY_INTERFACE:
+        TABLE_COLNAMES[ENCOUNTER_TABLE].extend([
+            'percent_annotmatch_reviewed_str',
+            'percent_names_with_exemplar_str',
+            #'percent_imgs_reviewed_str',
+            'encounter_start_datetime',
+        ])
+
+    if ibs.cfg.other_cfg.show_shipped_encounters:
+        TABLE_COLNAMES[ENCOUNTER_TABLE].extend([
+            'encounter_processed_flag',
+            'encounter_shipped_flag',
+        ])
+
+    #THUMB_TABLE     : ['thumb' 'thumb' 'thumb' 'thumb'],
+    #NAMES_TREE      : {('name' 'nid' 'nAids') : ['aid' 'bbox' 'thumb']}
+
+    TABLE_TREE_LEVELS = {
+        NAMES_TREE :
+        {
+            'name': 0,
+            'namenotes': 0,
+            'nid': 0,
+            'nAids': 0,
+            'nExAids': 0,
+            'exemplar': 1,
+            'thumb': 1,
+            'annot_gname': 1,
+            'yaw_text': 1,
+            'quality_text': 1,
+            'aid': 1,
+            'datetime': 1,
+            'max_hourdiff': 0,
+            'max_speed': 0,
+        },
+    }
+
+    # the columns which are editable
+    TABLE_EDITSET = {
+        IMAGE_TABLE      : set(['reviewed', 'imgnotes']),
+        ANNOTATION_TABLE : set(['name', 'species', 'annotnotes', 'exemplar', 'yaw', 'yaw_text', 'quality_text']),
+        NAME_TABLE       : set(['name', 'namenotes']),
+        QRES_TABLE       : set(['name']),
+        ENCOUNTER_TABLE  : set(['enctext', 'encounter_shipped_flag', 'encounter_processed_flag']),
+        IMAGE_GRID       : set([]),
+        THUMB_TABLE      : set([]),
+        NAMES_TREE       : set(['exemplar', 'name', 'namenotes', 'yaw', 'yaw_text', 'quality_text']),
+    }
+
+    if const.SIMPLIFY_INTERFACE:
+        TABLE_EDITSET[NAMES_TREE].remove('name')
+
+    TABLE_HIDDEN_LIST = {
+        #IMAGE_TABLE      : [False, True, False, False, False, True, False, False, False, False, False],
+        #ANNOTATION_TABLE : [False, False, False, False, False, False, False, True, True, True, True, True, True],
+        #NAMES_TREE       : [False, False, False, False, False, False],
+        #NAME_TABLE       : [False, False, False, False],
+    }
+
+    TABLE_STRIPE_LIST = {
+        IMAGE_GRID : 9,
+    }
+
+    # Define the valid columns a table could have
+    COL_DEF = dict([
+        ('annot_semantic_uuid',  (str,      'Annot Semantic UUID')),
+        ('annot_visual_uuid',    (str,      'Annot Visual UUID')),
+        ('image_uuid',  (str,      'Image UUID')),
+        ('gid',         (int,      'Image ID')),
+        ('aid',         (int,      'Annotation ID')),
+        ('nid',         (int,      'Name ID')),
+        ('eid',         (int,      'Encounter ID')),
+        ('nAids',       (int,      '#Annots')),
+        ('nExAids',     (int,      '#Exemplars')),
+        ('nGt',         (int,      '#GT')),
+        ('nImgs',       (int,      '#Imgs')),
+        ('nFeats',      (int,      '#Features')),
+        ('quality_text',  (str,      'Quality')),
+        ('rank',        (str,      'Rank')),  # needs to be a string for !Query
+        ('unixtime',    (float,    'unixtime')),
+        ('species',     (str,      'Species')),
+        ('yaw',         (str,      'Yaws')),
+        ('yaw_text',    (str,      'Viewpoint')),
+        ('img_gname',   (str,      'Image Name')),
+        ('annot_gname', (str,     'Source Image')),
+        ('gdconf',      (str,      'Detection Confidence')),
+        ('rdconf',      (float,    'Detection Confidence')),
+        ('name',        (str,      'Name')),
+        ('annotnotes',  (str,      'Annot Notes')),
+        ('namenotes',   (str,      'Name Notes')),
+        ('imgnotes',    (str,      'Image Notes')),
+        ('match_name',  (str,      'Matching Name')),
+        ('bbox',        (str,      'BBOX (x, y, w, h))')),  # Non editables are safe as strs
+        ('num_verts',   (int,      'NumVerts')),
+        ('verts',       (str,      'Verts')),
+        ('score',       (str,      'Confidence')),
+        ('theta',       (str,      'Theta')),
+        ('reviewed',    (bool,     'Detection Reviewed')),
+        ('exemplar',    (bool,     'Is Exemplar')),
+        ('enctext',     (str,      'Encounter Text')),
+        ('datetime',    (str,      'Date / Time')),
+        ('ext',         (str,      'EXT')),
+        ('thumb',       ('PIXMAP', 'Thumb')),
+        ('gps',         (str,      'GPS')),
+        ('encounter_processed_flag',       (bool,      'Processed')),
+        ('encounter_shipped_flag',         (bool,      'Commited')),
+        ('encounter_start_datetime',     (str,      'Start Time')),
+        ('encounter_end_datetime',       (str,      'End Time')),
+        ('party_tag', (str, 'Party')),
+        ('contributor_tag', (str, 'Contributor')),
+        ('percent_imgs_reviewed_str', (str, '%Imgs Reviewed')),
+        ('percent_annotmatch_reviewed_str', (str, '%Queried')),
+        ('num_imgs_reviewed', (str, '#Imgs Reviewed')),
+        ('num_annotmatch_reviewed', (str, '#Matches Reviewed')),
+        ('percent_names_with_exemplar_str', (str, '%Names with Exemplar')),
+        ('max_speed', (float, 'Max Speed km/h')),
+        ('max_hourdiff', (float, 'Max Hour Diff')),
     ])
 
-
-#THUMB_TABLE     : ['thumb' 'thumb' 'thumb' 'thumb'],
-#NAMES_TREE      : {('name' 'nid' 'nAids') : ['aid' 'bbox' 'thumb']}
-
-TABLE_TREE_LEVELS = {
-    NAMES_TREE :
-    {
-        'name': 0,
-        'namenotes': 0,
-        'nid': 0,
-        'nAids': 0,
-        'nExAids': 0,
-        'exemplar': 1,
-        'thumb': 1,
-        'annot_gname': 1,
-        'yaw_text': 1,
-        'quality_text': 1,
-        'aid': 1,
-        'datetime': 1,
-        'max_hourdiff': 0,
-        'max_speed': 0,
-    },
-}
-
-# the columns which are editable
-TABLE_EDITSET = {
-    IMAGE_TABLE      : set(['reviewed', 'imgnotes']),
-    ANNOTATION_TABLE : set(['name', 'species', 'annotnotes', 'exemplar', 'yaw', 'yaw_text', 'quality_text']),
-    NAME_TABLE       : set(['name', 'namenotes']),
-    QRES_TABLE       : set(['name']),
-    ENCOUNTER_TABLE  : set(['enctext', 'encounter_shipped_flag', 'encounter_processed_flag']),
-    IMAGE_GRID       : set([]),
-    THUMB_TABLE      : set([]),
-    NAMES_TREE       : set(['exemplar', 'name', 'namenotes', 'yaw', 'yaw_text', 'quality_text']),
-}
-
-if const.SIMPLIFY_INTERFACE:
-    TABLE_EDITSET[NAMES_TREE].remove('name')
-
-TABLE_HIDDEN_LIST = {
-    #IMAGE_TABLE      : [False, True, False, False, False, True, False, False, False, False, False],
-    #ANNOTATION_TABLE : [False, False, False, False, False, False, False, True, True, True, True, True, True],
-    #NAMES_TREE       : [False, False, False, False, False, False],
-    #NAME_TABLE       : [False, False, False, False],
-}
-
-TABLE_STRIPE_LIST = {
-    IMAGE_GRID : 9,
-}
-
-# Define the valid columns a table could have
-COL_DEF = dict([
-    ('annot_semantic_uuid',  (str,      'Annot Semantic UUID')),
-    ('annot_visual_uuid',    (str,      'Annot Visual UUID')),
-    ('image_uuid',  (str,      'Image UUID')),
-    ('gid',         (int,      'Image ID')),
-    ('aid',         (int,      'Annotation ID')),
-    ('nid',         (int,      'Name ID')),
-    ('eid',         (int,      'Encounter ID')),
-    ('nAids',       (int,      '#Annots')),
-    ('nExAids',     (int,      '#Exemplars')),
-    ('nGt',         (int,      '#GT')),
-    ('nImgs',       (int,      '#Imgs')),
-    ('nFeats',      (int,      '#Features')),
-    ('quality_text',  (str,      'Quality')),
-    ('rank',        (str,      'Rank')),  # needs to be a string for !Query
-    ('unixtime',    (float,    'unixtime')),
-    ('species',     (str,      'Species')),
-    ('yaw',         (str,      'Yaws')),
-    ('yaw_text',    (str,      'Viewpoint')),
-    ('img_gname',   (str,      'Image Name')),
-    ('annot_gname', (str,     'Source Image')),
-    ('gdconf',      (str,      'Detection Confidence')),
-    ('rdconf',      (float,    'Detection Confidence')),
-    ('name',        (str,      'Name')),
-    ('annotnotes',  (str,      'Annot Notes')),
-    ('namenotes',   (str,      'Name Notes')),
-    ('imgnotes',    (str,      'Image Notes')),
-    ('match_name',  (str,      'Matching Name')),
-    ('bbox',        (str,      'BBOX (x, y, w, h))')),  # Non editables are safe as strs
-    ('num_verts',   (int,      'NumVerts')),
-    ('verts',       (str,      'Verts')),
-    ('score',       (str,      'Confidence')),
-    ('theta',       (str,      'Theta')),
-    ('reviewed',    (bool,     'Detection Reviewed')),
-    ('exemplar',    (bool,     'Is Exemplar')),
-    ('enctext',     (str,      'Encounter Text')),
-    ('datetime',    (str,      'Date / Time')),
-    ('ext',         (str,      'EXT')),
-    ('thumb',       ('PIXMAP', 'Thumb')),
-    ('gps',         (str,      'GPS')),
-    ('encounter_processed_flag',       (bool,      'Processed')),
-    ('encounter_shipped_flag',         (bool,      'Commited')),
-    ('encounter_start_datetime',     (str,      'Start Time')),
-    ('encounter_end_datetime',       (str,      'End Time')),
-    ('party_tag', (str, 'Party')),
-    ('contributor_tag', (str, 'Contributor')),
-    ('percent_imgs_reviewed_str', (str, '%Imgs Reviewed')),
-    ('percent_annotmatch_reviewed_str', (str, '%Queried')),
-    ('num_imgs_reviewed', (str, '#Imgs Reviewed')),
-    ('num_annotmatch_reviewed', (str, '#Matches Reviewed')),
-    ('percent_names_with_exemplar_str', (str, '%Names with Exemplar')),
-    ('max_speed', (float, 'Max Speed km/h')),
-    ('max_hourdiff', (float, 'Max Hour Diff')),
-])
+    declare_tup = TABLENAME_LIST, TABLE_NICE, TABLE_COLNAMES, TABLE_TREE_LEVELS, TABLE_EDITSET, TABLE_HIDDEN_LIST, TABLE_STRIPE_LIST, COL_DEF
+    return declare_tup
 
 #----
 # Define the special metadata for annotation
@@ -285,21 +299,24 @@ COL_DEF = dict([
 #-----
 
 
-def get_redirects(ibs):
-    """
-        Allows one to specify a column in a particular table to redirect the view
-        to a different view (like a link in HTML to a different page)
-    """
-    redirects = {}
-    # Annotation redirects
-    # redirects[ANNOTATION_TABLE] = {
-    #     'annot_gname' : (IMAGE_TABLE, ibs.get_annot_gids),
-    # }
-    # Return the redirects dictionary
-    return redirects
+#def get_redirects(ibs):
+#    """
+#        Allows one to specify a column in a particular table to redirect the view
+#        to a different view (like a link in HTML to a different page)
+#    """
+#    redirects = {}
+#    # Annotation redirects
+#    # redirects[ANNOTATION_TABLE] = {
+#    #     'annot_gname' : (IMAGE_TABLE, ibs.get_annot_gids),
+#    # }
+#    # Return the redirects dictionary
+#    return redirects
 
 
 def make_ibeis_headers_dict(ibs):
+    declare_tup = make_table_declarations(ibs)
+    TABLENAME_LIST, TABLE_NICE, TABLE_COLNAMES, TABLE_TREE_LEVELS, TABLE_EDITSET, TABLE_HIDDEN_LIST, TABLE_STRIPE_LIST, COL_DEF = declare_tup
+
     partial_imap_1to1 = ut.partial_imap_1to1
     #
     # Table Iders/Setters/Getters
@@ -315,7 +332,9 @@ def make_ibeis_headers_dict(ibs):
                     print('[guiheaders] infering %r' % (getters[tablename][colname],))
     # +--------------------------
     # Encounter Iders/Setters/Getters
-    SHOW_SHIPPED_ENCOUNTERS = True
+    #ibs.cfg.other_cfg.ensure_attr(show_shipped_encounters, ut.is_developer())
+    SHOW_SHIPPED_ENCOUNTERS = ibs.cfg.other_cfg.show_shipped_encounters
+    #SHOW_SHIPPED_ENCOUNTERS = True
     if SHOW_SHIPPED_ENCOUNTERS:
         iders[ENCOUNTER_TABLE]   = [ibs.get_valid_eids]
     else:
@@ -527,4 +546,4 @@ def make_ibeis_headers_dict(ibs):
         return header
 
     header_dict = {tblname: make_header(tblname) for tblname in TABLENAME_LIST}
-    return header_dict
+    return header_dict, declare_tup
