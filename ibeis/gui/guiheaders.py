@@ -315,7 +315,12 @@ def make_ibeis_headers_dict(ibs):
                     print('[guiheaders] infering %r' % (getters[tablename][colname],))
     # +--------------------------
     # Encounter Iders/Setters/Getters
-    iders[ENCOUNTER_TABLE]   = [ partial(ibs.get_valid_eids, shipped=False)]
+    SHOW_SHIPPED_ENCOUNTERS = True
+    if SHOW_SHIPPED_ENCOUNTERS:
+        iders[ENCOUNTER_TABLE]   = [ partial(ibs.get_valid_eids, shipped=None)]
+    else:
+        iders[ENCOUNTER_TABLE]   = [ partial(ibs.get_valid_eids, shipped=False)]
+
     getters[ENCOUNTER_TABLE] = {
         'eid'        : lambda eids: eids,
         'nImgs'      : ibs.get_encounter_num_gids,
