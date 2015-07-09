@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 ./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10 --guiview
 """
@@ -316,6 +317,10 @@ def draw_results(ibs, test_result):
 
     figdir = ibs.get_fig_dir()
     ut.ensuredir(figdir)
+
+    if ut.get_argflag(('--view-fig-directory', '--vf')):
+        ut.view_directory(figdir)
+
     figdir_suffix = ut.get_argval('--fig-dname', type_=str, default=None)
     if figdir_suffix is not None:
         figdir = join(figdir, figdir_suffix)
@@ -328,6 +333,7 @@ def draw_results(ibs, test_result):
     ut.ensuredir(individual_results_figdir)
     ut.ensuredir(aggregate_results_figdir)
     ut.ensuredir(top_rank_analysis_dir)
+    ut.ensuredir(blind_results_figdir)
     #gx2_gt_timedelta
     #    cfgres_info['qx2_gf_timedelta'] = qx2_gf_timedelta
 

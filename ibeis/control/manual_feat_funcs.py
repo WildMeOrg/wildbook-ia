@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 python -c "import utool as ut; ut.write_modscript_alias('Tgen.sh', 'ibeis.templates.template_generator')"
 sh Tgen.sh --key feat --Tcfg with_setters=False with_getters=True  with_adders=True --modfname manual_feat_funcs
@@ -12,7 +13,7 @@ from ibeis.control.accessor_decors import (adder, ider, default_decorator,
                                            getter_1to1, getter_1toM, deleter)
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_feats]')
+print, rrr, profile = ut.inject2(__name__, '[manual_feats]')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -102,42 +103,46 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
         python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose
         python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose --no-affine-invariance
         python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose --no-affine-invariance --scale_max=20
+        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --feat_type=hesaff+siam128
+        ipython -i -- --show --feat_type=hesaff+siam128
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.control.manual_feat_funcs import *  # NOQA
         >>> from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
         >>> import vtool as vt
         >>> import numpy as np
         >>> import ibeis
+        >>> import ibeis.viz.interact
         >>> # build test data
         >>> ibs, qreq1_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=False, cfgdict=dict(rotation_invariance=True))
         >>> ibs, qreq2_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=False, cfgdict=dict(rotation_invariance=False))
         >>> aid_list = qreq1_.get_external_qaids()
-        >>> print('qreq1 params: ' + qreq1_.qparams.feat_cfgstr)
-        >>> print('qreq2 params: ' + qreq2_.qparams.feat_cfgstr)
-        >>> print('id(qreq1): ' + str(id(qreq1_)))
-        >>> print('id(qreq2): ' + str(id(qreq2_)))
-        >>> print('feat_config_rowid1 = %r' % (ibs.get_feat_config_rowid(config2_=qreq1_),))
-        >>> print('feat_config_rowid2 = %r' % (ibs.get_feat_config_rowid(config2_=qreq2_),))
+        >>> with ut.Indenter('[TEST_GET_ANNOT_KPTS]'):
+        ...     print('qreq1 params: ' + qreq1_.qparams.feat_cfgstr)
+        ...     print('qreq2 params: ' + qreq2_.qparams.feat_cfgstr)
+        ...     print('id(qreq1): ' + str(id(qreq1_)))
+        ...     print('id(qreq2): ' + str(id(qreq2_)))
+        ...     print('feat_config_rowid1 = %r' % (ibs.get_feat_config_rowid(config2_=qreq1_.get_external_query_config2()),))
+        ...     print('feat_config_rowid2 = %r' % (ibs.get_feat_config_rowid(config2_=qreq2_.get_external_query_config2()),))
         >>> # Force recomputation of features
         >>> with ut.Indenter('[DELETE1]'):
-        ...     ibs.delete_annot_feats(aid_list, config2_=qreq1_)
+        ...     ibs.delete_annot_feats(aid_list, config2_=qreq1_.get_external_query_config2())
         >>> with ut.Indenter('[DELETE2]'):
-        ...     ibs.delete_annot_feats(aid_list, config2_=qreq2_)
+        ...     ibs.delete_annot_feats(aid_list, config2_=qreq2_.get_external_query_config2())
         >>> eager, ensure, nInput = True, True, None
         >>> # execute function
         >>> with ut.Indenter('[GET1]'):
-        ...     kpts1_list = get_annot_kpts(ibs, aid_list, ensure, eager, nInput, qreq1_)
+        ...     kpts1_list = get_annot_kpts(ibs, aid_list, ensure, eager, nInput, qreq1_.get_external_query_config2())
         >>> with ut.Indenter('[GET2]'):
-        ...     kpts2_list = get_annot_kpts(ibs, aid_list, ensure, eager, nInput, qreq2_)
+        ...     kpts2_list = get_annot_kpts(ibs, aid_list, ensure, eager, nInput, qreq2_.get_external_query_config2())
         >>> # verify results
         >>> assert not np.all(vt.get_oris(kpts1_list[0]) == 0)
         >>> assert np.all(vt.get_oris(kpts2_list[0]) == 0)
         >>> ut.quit_if_noshow()
         >>> #ibeis.viz.viz_chip.show_chip(ibs, aid_list[0], config2_=qreq1_, ori=True)
-        >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq1_.qparams, ori=True, fnum=1)
-        >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq2_.qparams, ori=True, fnum=2)
+        >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq1_.get_external_query_config2(), ori=True, fnum=1)
+        >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq2_.get_external_query_config2(), ori=True, fnum=2)
         >>> ut.show_if_requested()
     """
     fid_list  = ibs.get_annot_feat_rowids(aid_list, ensure=ensure, eager=eager, nInput=nInput, config2_=config2_)

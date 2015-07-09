@@ -80,7 +80,7 @@ def TIME_GEN_PREPROC_IMG(ibs):
 @profile
 def TIME_GEN_PREPROC_FEAT(ibs):
     print('[TIME_GEN_PREPROC_FEAT]')
-    from ibeis.model.preproc.preproc_feat import generate_feats
+    from ibeis.model.preproc.preproc_feat import extract_hesaff_sift_feats
     from six.moves import zip
     import numpy as np
 
@@ -98,12 +98,12 @@ def TIME_GEN_PREPROC_FEAT(ibs):
     if not utool.get_argflag('--nostable'):
         # TEST 1
         with utool.Timer('parallel chunksize=1'):
-            output1 = list(generate_feats(cfpath_list, chunksize=1))
+            output1 = list(extract_hesaff_sift_feats(cfpath_list, chunksize=1))
         print(utool.truncate_str(str(output1), 80))
 
         # TEST 2
         with utool.Timer('parallel chunksize=2'):
-            output2 = list(generate_feats(cfpath_list, chunksize=2))
+            output2 = list(extract_hesaff_sift_feats(cfpath_list, chunksize=2))
         print(utool.truncate_str(str(output2), 80))
 
         assert all([_listeq(*xtup) for tup in zip(output1, output2)
@@ -111,7 +111,7 @@ def TIME_GEN_PREPROC_FEAT(ibs):
 
         # TEST N
         with utool.Timer('parallel chunksize=None'):
-            outputN = list(generate_feats(cfpath_list, chunksize=None))
+            outputN = list(extract_hesaff_sift_feats(cfpath_list, chunksize=None))
         print(utool.truncate_str(str(output2), 80))
 
         assert all([_listeq(*xtup) for tup in zip(outputN, output2)
@@ -121,7 +121,7 @@ def TIME_GEN_PREPROC_FEAT(ibs):
 
     setup = utool.unindent(
         '''
-        from ibeis.model.preproc.preproc_feat import generate_feats
+        from ibeis.model.preproc.preproc_feat import extract_hesaff_sift_feats
         genkw = dict(prog=False, verbose=True)
         cfpath_list = %r
         ''' % (cfpath_list,))
@@ -129,50 +129,50 @@ def TIME_GEN_PREPROC_FEAT(ibs):
     print(utool.truncate_str(str(cid_list), 80))
     print('Processing %d chips' % (len(cid_list),))
     timeit3 = partial(timeit2, setup=setup, number=1)
-    timeit3('list(generate_feats(cfpath_list, chunksize=None, **genkw))')
-    timeit3('list(generate_feats(cfpath_list, chunksize=None, **genkw))')
-    timeit3('list(generate_feats(cfpath_list, chunksize=1, **genkw))')
-    timeit3('list(generate_feats(cfpath_list, chunksize=2, **genkw))')
-    timeit3('list(generate_feats(cfpath_list, chunksize=4, **genkw))')
-    timeit3('list(generate_feats(cfpath_list, chunksize=8, **genkw))')
-    timeit3('list(generate_feats(cfpath_list, chunksize=16, **genkw))')
-    timeit3('list(generate_feats(cfpath_list, chunksize=32, **genkw))')
-    timeit3('list(generate_feats(cfpath_list, chunksize=64, **genkw))')
+    timeit3('list(extract_hesaff_sift_feats(cfpath_list, chunksize=None, **genkw))')
+    timeit3('list(extract_hesaff_sift_feats(cfpath_list, chunksize=None, **genkw))')
+    timeit3('list(extract_hesaff_sift_feats(cfpath_list, chunksize=1, **genkw))')
+    timeit3('list(extract_hesaff_sift_feats(cfpath_list, chunksize=2, **genkw))')
+    timeit3('list(extract_hesaff_sift_feats(cfpath_list, chunksize=4, **genkw))')
+    timeit3('list(extract_hesaff_sift_feats(cfpath_list, chunksize=8, **genkw))')
+    timeit3('list(extract_hesaff_sift_feats(cfpath_list, chunksize=16, **genkw))')
+    timeit3('list(extract_hesaff_sift_feats(cfpath_list, chunksize=32, **genkw))')
+    timeit3('list(extract_hesaff_sift_feats(cfpath_list, chunksize=64, **genkw))')
 
-    #list(generate_feats(cfpath_list, chunksize=None, **genkw))
+    #list(extract_hesaff_sift_feats(cfpath_list, chunksize=None, **genkw))
     #[parallel] initializing pool with 7 processes
     #[parallel] executing 1049 gen_feat_worker tasks using 7 processes with chunksize=21
     # * timed: 125.17100650510471 seconds
     #----------
-    #list(generate_feats(cfpath_list, chunksize=None, **genkw))
+    #list(extract_hesaff_sift_feats(cfpath_list, chunksize=None, **genkw))
     #[parallel] executing 1049 gen_feat_worker tasks using 7 processes with chunksize=21
     # * timed: 97.37531812573734 seconds
     #----------
-    #list(generate_feats(cfpath_list, chunksize=1, **genkw))
+    #list(extract_hesaff_sift_feats(cfpath_list, chunksize=1, **genkw))
     #[parallel] executing 1049 gen_feat_worker tasks using 7 processes with chunksize=1
     # * timed: 89.11060989484363 seconds
     #----------
-    #list(generate_feats(cfpath_list, chunksize=2, **genkw))
+    #list(extract_hesaff_sift_feats(cfpath_list, chunksize=2, **genkw))
     #[parallel] executing 1049 gen_feat_worker tasks using 7 processes with chunksize=2
     # * timed: 89.3294122591355 seconds
     #----------
-    #list(generate_feats(cfpath_list, chunksize=4, **genkw))
+    #list(extract_hesaff_sift_feats(cfpath_list, chunksize=4, **genkw))
     #[parallel] executing 1049 gen_feat_worker tasks using 7 processes with chunksize=4
     # * timed: 114.7752637914524 seconds
     #----------
-    #list(generate_feats(cfpath_list, chunksize=8, **genkw))
+    #list(extract_hesaff_sift_feats(cfpath_list, chunksize=8, **genkw))
     #[parallel] executing 1049 gen_feat_worker tasks using 7 processes with chunksize=8
     # * timed: 123.35112345890252 seconds
     #----------
-    #list(generate_feats(cfpath_list, chunksize=16, **genkw))
+    #list(extract_hesaff_sift_feats(cfpath_list, chunksize=16, **genkw))
     #[parallel] executing 1049 gen_feat_worker tasks using 7 processes with chunksize=16
     # * timed: 124.47361485097099 seconds
     #----------
-    #list(generate_feats(cfpath_list, chunksize=32, **genkw))
+    #list(extract_hesaff_sift_feats(cfpath_list, chunksize=32, **genkw))
     #[parallel] executing 1049 gen_feat_worker tasks using 7 processes with chunksize=32
     # * timed: 126.47238857719219 seconds
     #----------
-    #list(generate_feats(cfpath_list, chunksize=64, **genkw))
+    #list(extract_hesaff_sift_feats(cfpath_list, chunksize=64, **genkw))
     #[parallel] executing 1049 gen_feat_worker tasks using 7 processes with chunksize=64
     # * timed: 137.3404114996564 seconds
 

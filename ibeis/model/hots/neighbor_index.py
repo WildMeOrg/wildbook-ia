@@ -33,9 +33,10 @@ from ibeis.model.hots import hstypes
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 (print, rrr, profile) = ut.inject2(__name__, '[neighbor_index]', DEBUG=False)
 
-NOCACHE_FLANN = ut.get_argflag('--nocache-flann')
+USE_HOTSPOTTER_CACHE = not ut.get_argflag('--nocache-hs')
+NOCACHE_FLANN = ut.get_argflag('--nocache-flann') and USE_HOTSPOTTER_CACHE
 NOSAVE_FLANN = ut.get_argflag('--nosave-flann')
-NOCACHE_UUIDS = ut.get_argflag('--nocache-uuids')
+NOCACHE_UUIDS = ut.get_argflag('--nocache-uuids') and USE_HOTSPOTTER_CACHE
 
 # LRU cache for nn_indexers. Ensures that only a few are ever in memory
 MAX_NEIGHBOR_CACHE_SIZE = ut.get_argval('--max-neighbor-cachesize', type_=int, default=2)
@@ -783,7 +784,7 @@ class NeighborIndex(object):
         nnindexer.idx2_fgw = None  # (M x 1) Descriptor forground weight
         nnindexer.idx2_ax  = None  # (M x 1) Index into the aid_list
         nnindexer.idx2_fx  = None  # (M x 1) Index into the annot's features
-        nnindexer.max_distance = None  # max possible distance for normalization
+        nnindexer.max_distance_sqrd = None  # max possible distance^2 for normalization
         nnindexer.cfgstr   = cfgstr  # configuration id
         if 'random_seed' not in flann_params:
             # Make flann determenistic for the same data
@@ -817,10 +818,12 @@ class NeighborIndex(object):
         nnindexer.idx2_fx  = idx2_fx   # (M x 1) Index into the annot's features
         nnindexer.num_indexed = nnindexer.idx2_vec.shape[0]
         if nnindexer.idx2_vec.dtype == hstypes.VEC_TYPE:
-            nnindexer.max_distance = hstypes.VEC_PSEUDO_MAX_DISTANCE
+            # these are sift descriptors
+            nnindexer.max_distance_sqrd = hstypes.VEC_PSEUDO_MAX_DISTANCE
         else:
-            raise AssertionError('NNindexer should get uint8s right now unless the algorithm has changed')
-        nnindexer.max_distance_sqrd = nnindexer.max_distance ** 2
+            # FIXME: hacky way to support siam128 descriptors.
+            #raise AssertionError('NNindexer should get uint8s right now unless the algorithm has changed')
+            nnindexer.max_distance_sqrd = None
 
     def add_ibeis_support(nnindexer, qreq_, new_daid_list):
         # TODO: ensure that the memcache changes appropriately
@@ -1029,12 +1032,19 @@ class NeighborIndex(object):
     def get_cfgstr(nnindexer):
         """ returns string which uniquely identified configuration and support data """
         flann_cfgstr_list = []
-        use_params_hash = False
+        use_params_hash = True
         if use_params_hash:
-            flann_params = nnindexer.flann_params
-            flann_valsig_ = str(list(flann_params.values()))
-            flann_valsig = ut.remove_chars(flann_valsig_, ', \'[]')
-            flann_cfgstr_list.append('_FLANN(' + flann_valsig + ')')
+            flann_defaults = vt.get_flann_params(nnindexer.flann_params['algorithm'])
+            flann_params_clean = flann_defaults.copy()
+            ut.updateif_haskey(flann_params_clean, nnindexer.flann_params)
+            shortnames = dict(algorithm='algo', checks='chks', random_seed='seed', trees='t')
+            short_params = dict([(shortnames.get(key, key), str(val)[0:7])
+                                 for key, val in six.iteritems(flann_params_clean)])
+            #  if key == 'algorithm'])  # or val != flann_defaults.get(key, None)])
+            flann_valsig_ = ut.dict_str(short_params, nl=False, explicit=True, strvals=True).lstrip('dict').replace(' ', '')
+            #flann_valsig_ = str(list(flann_params.values()))
+            #flann_valsig = ut.remove_chars(flann_valsig_, ', \'[]')
+            flann_cfgstr_list.append('_FLANN(' + flann_valsig_ + ')')
         use_data_hash = True
         if use_data_hash:
             idx2_vec = nnindexer.idx2_vec
@@ -1053,6 +1063,7 @@ class NeighborIndex(object):
         cfgstr = nnindexer.get_cfgstr()
         ext    = nnindexer.ext
         fpath  = _args2_fpath(dpath, prefix, cfgstr, ext, write_hashtbl=False)
+        print('flann fpath = %r' % (fpath,))
         return fpath
 
     # ---- </cachable_interface> ---
@@ -1131,7 +1142,8 @@ class NeighborIndex(object):
                 #cachedir = ibs.get_flann_cachedir()
                 #flann_fpath = nnindexer.get_fpath(cachedir)
             # Ensure that distance returned are between 0 and 1
-            qfx2_dist = np.divide(qfx2_dist, nnindexer.max_distance_sqrd)
+            if nnindexer.max_distance_sqrd is not None:
+                qfx2_dist = np.divide(qfx2_dist, nnindexer.max_distance_sqrd)
             #qfx2_dist = np.sqrt(qfx2_dist) / nnindexer.max_distance_sqrd
         return (qfx2_idx, qfx2_dist)
 

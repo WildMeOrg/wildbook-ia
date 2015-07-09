@@ -58,6 +58,7 @@ def componentwise_uint8_dot(qfx2_qvec, qfx2_dvec):
     """
     arr1 = qfx2_qvec.astype(hstypes.FS_DTYPE)
     arr2 = qfx2_dvec.astype(hstypes.FS_DTYPE)
+    assert qfx2_qvec.dtype.type == np.uint8, 'must have normalized sift descriptors here'
     cosangle = vt.componentwise_dot(arr1, arr2) / hstypes.PSEUDO_UINT8_MAX_SQRD
     return cosangle
 

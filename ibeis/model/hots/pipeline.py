@@ -82,7 +82,9 @@ WEIGHT_LBL  = 'Weight NN:       '
 BUILDCM_LBL = 'Build Chipmatch: '
 SVER_LVL    = 'SVER:            '
 
-PROGKW = dict(freq=50, time_thresh=4.0)
+#PROGKW = dict(freq=50, time_thresh=4.0)
+#PROGKW = dict(freq=10, time_thresh=4.0)
+PROGKW = dict(freq=1, time_thresh=4.0)
 
 
 # Query Level 0
@@ -350,14 +352,17 @@ def nearest_neighbor_cacheid(qreq_, num_neighbors_list):
     query_hashid   = qreq_.ibs.get_annot_hashid_visual_uuid(internal_qaids, prefix='Q')
     data_hashid    = qreq_.ibs.get_annot_hashid_visual_uuid(internal_daids, prefix='D')
     nn_cfgstr      = qreq_.qparams.nn_cfgstr
+    indexer_cfgstr = qreq_.indexer.get_cfgstr()
     num_neigbors_list_hashid = ut.hashstr_arr(num_neighbors_list, hashlen=8, lbl='neighblist')
     nn_mid_cacheid = 'nn_mid' + query_hashid + data_hashid + nn_cfgstr + num_neigbors_list_hashid
+    nn_mid_cacheid += indexer_cfgstr
     nn_mid_cacheid += 'aug_quryside' if  qreq_.qparams.augment_queryside_hack else ''
     neighbor_cachedir = ut.unixjoin(qreq_.ibs.get_cachedir(), 'neighborcache')
     ut.ensuredir(neighbor_cachedir)
     return neighbor_cachedir, nn_mid_cacheid
 
-USE_NN_MID_CACHE = (True and ut.is_developer()) and not ut.get_argflag('--nocache-nnmid')
+USE_HOTSPOTTER_CACHE = not ut.get_argflag('--nocache-hs')
+USE_NN_MID_CACHE = (True and ut.is_developer()) and not ut.get_argflag('--nocache-nnmid') and USE_HOTSPOTTER_CACHE
 
 
 def nearest_neighbor_cacheid2(qreq_, Kpad_list):

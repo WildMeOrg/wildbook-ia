@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Helper module that helps expand parameters for grid search
 """
@@ -9,10 +10,10 @@ from six.moves import zip, map
 import re
 from ibeis.experiments import experiment_configs
 from ibeis.model import Config
-print, print_, printDBG, rrr, profile = utool.inject(
+print, print_, printDBG, rrr, profile = ut.inject(
     __name__, '[expt_helpers]', DEBUG=False)
 
-QUIET = utool.QUIET
+QUIET = ut.QUIET
 
 
 def get_vary_dicts(test_cfg_name_list):
@@ -20,11 +21,22 @@ def get_vary_dicts(test_cfg_name_list):
     build varydicts from experiment_configs.
     recomputes test_cfg_name_list_out in case there are any nested lists specified in it
 
+    CommandLine:
+        python -m ibeis.experiments.experiment_helpers --test-get_vary_dicts
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.experiments.experiment_helpers import *  # NOQA
         >>> test_cfg_name_list = ['lnbnn2']
         >>> vary_dicts, test_cfg_name_list_out = get_vary_dicts(test_cfg_name_list)
-        >>> print(utool.list_str(vary_dicts))
+        >>> result = ut.list_str(vary_dicts)
+        >>> print(result)
+        [
+            {'lnbnn_weight': [0.0], 'loglnbnn_weight': [0.0, 1.0], 'normonly_weight': [0.0], 'pipeline_root': ['vsmany'], 'sv_on': [True],},
+            {'lnbnn_weight': [0.0], 'loglnbnn_weight': [0.0], 'normonly_weight': [0.0, 1.0], 'pipeline_root': ['vsmany'], 'sv_on': [True],},
+            {'lnbnn_weight': [0.0, 1.0], 'loglnbnn_weight': [0.0], 'normonly_weight': [0.0], 'pipeline_root': ['vsmany'], 'sv_on': [True],},
+        ]
+
         [
             {'sv_on': [True], 'logdist_weight': [0.0, 1.0], 'lnbnn_weight': [0.0], 'pipeline_root': ['vsmany'], 'normonly_weight': [0.0]},
             {'sv_on': [True], 'logdist_weight': [0.0], 'lnbnn_weight': [0.0], 'pipeline_root': ['vsmany'], 'normonly_weight': [0.0, 1.0]},

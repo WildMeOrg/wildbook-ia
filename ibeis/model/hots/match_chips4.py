@@ -11,7 +11,8 @@ from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 
 
 # TODO: Move to params
-USE_CACHE    = not ut.get_argflag(('--nocache-query', '--noqcache'))
+USE_HOTSPOTTER_CACHE = not ut.get_argflag('--nocache-hs')
+USE_CACHE    = not ut.get_argflag(('--nocache-query', '--noqcache'))  and USE_HOTSPOTTER_CACHE
 USE_BIGCACHE = not ut.get_argflag(('--nocache-big', '--no-bigcache-query', '--noqcache', '--nobigcache'))
 SAVE_CACHE   = not ut.get_argflag('--nocache-save')
 #MIN_BIGCACHE_BUNDLE = 20

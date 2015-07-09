@@ -59,6 +59,10 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
 
     CommandLine:
         python -m ibeis.model.preproc.preproc_feat --test-generate_feat_properties
+        python -m ibeis.model.preproc.preproc_feat --test-generate_feat_properties:1
+
+    SeeAlso:
+        ~/code/ibeis_cnn/ibeis_cnn/_plugin.py
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -89,10 +93,11 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
         >>> qreq_ = ibs.new_query_request([1], [1, 2, 3], cfgdict)
         >>> query_config2 = qreq_.get_external_query_config2()
         >>> data_config2 = qreq_.get_external_data_config2()
-        >>> cid_list = '?'
-        >>> config2_ = None
+        >>> cid_list = ibs.get_annot_chip_rowids(ibs.get_valid_aids())
+        >>> config2_ = query_config2
         >>> nInput = None
-        >>> result = generate_feat_properties(ibs, cid_list, config2_, nInput)
+        >>> featgen = generate_feat_properties(ibs, cid_list, config2_, nInput)
+        >>> result = list(featgen)
         >>> print(result)
     """
     if nInput is None:
@@ -102,10 +107,12 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
         #print('id(config2_) = ' + str(id(config2_)))
         feat_cfgstr     = config2_.get('feat_cfgstr')
         hesaff_params   = config2_.get('hesaff_params')
+        feat_type       = config2_.get('feat_type')
         assert feat_cfgstr is not None
         assert hesaff_params is not None
     else:
         # Get config from IBEIS controller
+        feat_type       = ibs.cfg.feat_cfg.feat_type
         feat_cfgstr     = ibs.cfg.feat_cfg.get_cfgstr()
         hesaff_params   = ibs.cfg.feat_cfg.get_hesaff_params()
 
@@ -114,21 +121,27 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
     if ut.NOT_QUIET:
         print('[preproc_feat] feat_cfgstr = %s' % feat_cfgstr)
         print('hesaff_params = ' + ut.dict_str(hesaff_params))
-    if USE_OPENMP:
-        # Use Avi's openmp parallelization
-        featgen_mp = gen_feat_openmp(cid_list, cfpath_list, hesaff_params)
-        for (cid, nFeat, kpts, vecs) in ut.ProgressIter(featgen_mp, lbl='openmp feat'):
-            yield (nFeat, kpts, vecs,)
+
+    if feat_type == 'hesaff+sift':
+        if USE_OPENMP:
+            # Use Avi's openmp parallelization
+            featgen_mp = gen_feat_openmp(cid_list, cfpath_list, hesaff_params)
+            featgen = ut.ProgressIter(featgen_mp, lbl='openmp feat')
+        else:
+            # Multiprocessing parallelization
+            featgen = extract_hesaff_sift_feats(cfpath_list, hesaff_params=hesaff_params,
+                                                cid_list=cid_list, nInput=nInput, ordered=True)
+    elif feat_type == 'hesaff+siam128':
+        from ibeis_cnn import _plugin
+        featgen = _plugin.generate_siam_l2_128_feats(ibs, cid_list, config2_=config2_)
     else:
-        # Multiprocessing parallelization
-        featgen = generate_feats(cfpath_list, hesaff_params=hesaff_params,
-                                 cid_list=cid_list, nInput=nInput, ordered=True)
-        for cid, nFeat, kpts, vecs in featgen:
-            yield (nFeat, kpts, vecs,)
-    pass
+        raise AssertionError('unknown feat_type=%r' % (feat_type,))
+
+    for cid, nFeat, kpts, vecs in featgen:
+        yield (nFeat, kpts, vecs,)
 
 
-def generate_feats(cfpath_list, hesaff_params={}, cid_list=None, nInput=None, **kwargs):
+def extract_hesaff_sift_feats(cfpath_list, hesaff_params={}, cid_list=None, nInput=None, **kwargs):
     # chip-ids are an artifact of the IBEIS Controller. Make dummyones if needbe.
     """ Function to be parallelized by multiprocessing / joblib / whatever.
     Must take in one argument to be used by multiprocessing.map_async

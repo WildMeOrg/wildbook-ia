@@ -6,7 +6,6 @@ import vtool as vt
 import utool as ut
 #import six
 #from ibeis.model.hots import scoring
-#from ibeis.model.hots import hstypes
 from ibeis.model.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[nscoring]', DEBUG=False)
@@ -313,7 +312,7 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         >>> annot_aid_list   = []
         >>> daid2_idx        = {}
         >>> # Name aligned lists
-        >>> name_score_list  = np.array([], dtype=hstypes.FS_DTYPE)
+        >>> name_score_list  = np.array([], dtype=np.float32)
         >>> name_groupxs     = []
         >>> # Execute Function
         >>> score_list = align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list)

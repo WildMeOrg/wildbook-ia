@@ -324,19 +324,21 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
     try:
         ax, xywh1, xywh2 = pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm,
                                                fs=fs, fm_norm=fm_norm,
-                                               H1=H1, H2=H2, lbl1=lbl1, lbl2=lbl2, **kwargs)
+                                               H1=H1, H2=H2, lbl1=lbl1,
+                                              lbl2=lbl2, sel_fm=sel_fm,
+                                              **kwargs)
     except Exception as ex:
         ut.printex(ex, 'consider qr.remove_corrupted_queries',
                       '[viz_matches]')
         print('')
         raise
+    # Moved the code into show_chipmatch
+    #if len(sel_fm) > 0:
+    #    # Draw any selected matches
+    #    sm_kw = dict(rect=True, colors=pt.BLUE)
+    #    pt.plot_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, **sm_kw)
     (x1, y1, w1, h1) = xywh1
     (x2, y2, w2, h2) = xywh2
-    # TODO: MOVE TO ANNOTATE MATCHES
-    if len(sel_fm) > 0:
-        # Draw any selected matches
-        sm_kw = dict(rect=True, colors=pt.BLUE)
-        pt.plot_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, **sm_kw)
     offset1 = (x1, y1)
     offset2 = (x2, y2)
     annotate_matches2(ibs, aid1, aid2, fm, fs, xywh2=xywh2, xywh1=xywh1,

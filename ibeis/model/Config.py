@@ -308,8 +308,6 @@ class FlannConfig(ConfigBase):
         flann_cfgstrs = ['_FLANN(']
         if flann_cfg.algorithm == 'kdtree':
             flann_cfgstrs += ['%d_kdtrees' % flann_cfg.trees]
-        elif flann_cfg.algorithm == 'linear':
-            flann_cfgstrs += ['%s' % flann_cfg.algorithm]
         elif flann_cfg.algorithm == 'kdtree':
             flann_cfgstrs += [
                 '%s_' % flann_cfg.algorithm,
@@ -317,6 +315,8 @@ class FlannConfig(ConfigBase):
                 'cb=%s_' % flann_cfg.cb_index,
                 'branch=%s' % flann_cfg.branching,
             ]
+        elif flann_cfg.algorithm == 'linear':
+            flann_cfgstrs += ['%s' % flann_cfg.algorithm]
         else:
             flann_cfgstrs += ['%s' % flann_cfg.algorithm]
         #flann_cfgstrs += ['checks=%r' % flann_cfg.checks]

@@ -916,7 +916,7 @@ class IBEISController(object):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> dryrun = False
+            >>> dryrun = True
             >>> wb_target, tomcat_dpath = testdata_wildbook_server(dryrun)
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
@@ -1007,17 +1007,18 @@ class IBEISController(object):
                         content = file_.read()
                         content = content.replace('__IBEIS_DB_PATH__', ibs.get_db_core_path())
                         content = content.replace('__IBEIS_IMAGE_PATH__', ibs.get_imgdir())
-                        content = '"%s"' % (content, )
+                        quoted_content = '"%s"' % (content, )
                 else:
                     # for come reason the .default file is not there, that should be ok though
                     with open(wildbook_config_fpath_dst, 'r') as file_:
                         content = file_.read()
-                        content = content.replace('/set/to/real/path.sqlite3', ibs.get_db_core_path())
-                        content = content.replace('/set/to/real/path/for/images', ibs.get_imgdir())
-                        content = '"%s"' % (content, )
+                    import re
+                    content = re.sub('IBEIS_DB_path = .*', 'IBEIS_DB_path = ' + ibs.get_db_core_path(), content)
+                    content = re.sub('IBEIS_image_path = .*', 'IBEIS_image_path = ' + ibs.get_imgdir(), content)
+                    quoted_content = '"%s"' % (content, )
                 # Write to the configuration
                 print('[ibs.wildbook_signal_eid_list()] To update the Wildbook configuration, we need sudo privaleges')
-                command = ['sudo', 'sh', '-c', '\'', 'echo', content, '>', wildbook_config_fpath_dst, '\'']
+                command = ['sudo', 'sh', '-c', '\'', 'echo', quoted_content, '>', wildbook_config_fpath_dst, '\'']
                 # ut.cmd(command, sudo=True)
                 command = ' '.join(command)
                 if not dryrun:
