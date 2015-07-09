@@ -935,7 +935,7 @@ class IBEISController(object):
             >>> open_url = True
             >>> result = ibs.wildbook_signal_eid_list(eid_list, set_shipped_flag, open_url, tomcat_dpath, wb_target, dryrun)
             >>> # cleanup
-            >>> ibs.delete_encounters(new_eid)
+            >>> #ibs.delete_encounters(new_eid)
             >>> print(result)
         """
 
