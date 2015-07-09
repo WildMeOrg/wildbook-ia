@@ -1036,7 +1036,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('Export encounter', lambda: ibswgt.back.export_encounters(eid_list)),
                     ('----', lambda: None),
                     ('Delete encounter', lambda: ibswgt.back.delete_encounter(eid_list)),
-                    ('Delete encounter (and images)', lambda: ibswgt.back.delete_encounter_and_images(eid_list)),
+                    ('----', lambda: None),
+                    ('Delete encounter AND images', lambda: ibswgt.back.delete_encounter_and_images(eid_list)),
                 ]
             else:
                 context_options += [
@@ -1047,7 +1048,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         lambda: ibswgt.back.merge_encounters(eid_list, merge_destination_id)),
                     ('----', lambda: None),
                     ('Delete encounters', lambda: ibswgt.back.delete_encounter(eid_list)),
-                    ('Delete encounters (and images)', lambda: ibswgt.back.delete_encounter_and_images(eid_list)),
+                    ('----', lambda: None),
+                    ('Delete encounters AND images', lambda: ibswgt.back.delete_encounter_and_images(eid_list)),
                     # ('export encounters', lambda: ibswgt.back.export_encounters(eid_list)),
                 ]
         # ---- IMAGE CONTEXT ----
