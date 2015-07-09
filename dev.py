@@ -125,6 +125,7 @@ def annotationmatch_scores(ibs, qaid_list, daid_list=None):
             if np.any(is_negative):
                 # Take the top few false name scores
                 num_false = min(sum(is_negative), 3)
+                #num_false = min(sum(is_negative), 100000)
                 gf_rank = np.nonzero(is_negative)[0][0:num_false]
                 tn_nscores.extend(sorted_nscores[gf_rank])
         tp_nscores = np.array(tp_nscores).astype(np.float64)
@@ -164,9 +165,15 @@ def vecs_dist(ibs, qaid_list, daid_list=None):
     Plots the distances between matching descriptors
         with groundtruth (true/false) data
 
-
     True distances are spatially verified descriptor matches
     Top false distances distances are spatially verified descriptor matches
+
+    SeeAlso:
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn --show
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show --nosupport
+
 
     CommandLine:
         python dev.py -t vecs_dist --db NAUT_test --allgt -w --show
@@ -174,12 +181,14 @@ def vecs_dist(ibs, qaid_list, daid_list=None):
         python dev.py -t vecs_dist --db PZ_Master0 --allgt -w --show
         python dev.py -t vecs_dist --db NNP_Maser3 --allgt -w --show
         python dev.py -t vecs_dist --db GZ_ALL --allgt -w --show
+        python dev.py -t vecs_dist --db PZ_MTEST --allgt -w --show
     """
     print('[dev] vecs_dist')
     allres = results_all.get_allres(ibs, qaid_list)
     # Get the descriptor distances of true matches
     orgtype_list = ['top_false', 'true']
-    disttype = 'L2'
+    #disttype = 'L2'
+    disttype = 'lnbnn'
     # Get descriptor match distances
     orgres2_distmap = results_analyzer.get_orgres_desc_match_dists(allres, orgtype_list)
     results_analyzer.print_desc_distances_map(orgres2_distmap)

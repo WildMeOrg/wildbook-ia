@@ -72,6 +72,14 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true'],
         python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=cos_sift --show
         python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_Master0 --distkeys=fs,lnbnn,bar_L2_sift,cos_sift --show --nosupport
 
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+siam128
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift
+
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift --num-top-fs=2
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift --num-top-fs=10
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+sift --num-top-fs=1000
+        python -m ibeis.experiments.results_analyzer --test-get_orgres_desc_match_dists --db PZ_MTEST --distkeys=lnbnn --show --feat_type=hesaff+siam128 --num-top-fs=1
+
     Example:
         >>> # SLOW_DOCTEST
         >>> from ibeis.experiments.results_analyzer import *  # NOQA
@@ -79,7 +87,10 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true'],
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> qaid_list = ibs.get_valid_aids(hasgt=True)
-        >>> allres = results_all.get_allres(ibs, qaid_list)
+        >>> from ibeis.model import Config
+        >>> cfgdict = ut.argparse_dict(dict(Config.parse_config_items(Config.QueryConfig())), only_specified=True)
+        >>> allres = results_all.get_allres(ibs, qaid_list, cfgdict=cfgdict)
+        >>> # {'feat_type': 'hesaff+siam128'})
         >>> orgtype_list = ['false', 'top_true']
         >>> verbose = True
         >>> distkey_list = ut.get_argval('--distkeys', type_=list, default=['fs', 'lnbnn', 'bar_L2_sift'])
@@ -143,7 +154,7 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true'],
             distances1 = vt.compute_distances(hist1, hist2, distkey_list1)
         else:
             distances1 = {}
-        # DO precomputed distances like fs (true weights)
+        # DO precomputed distances like fs (true weights) or lnbnn
         if len(other_xs) > 0:
             distances2 = ut.odict([(disttype, []) for disttype in distkey_list2])
             for qaid, daid in zip(qaids, aids):
@@ -163,6 +174,13 @@ def get_orgres_desc_match_dists(allres, orgtype_list=['false', 'true'],
                         else:
                             # individual score component
                             pass
+                        #num_top_vec_scores = None
+                        num_top_vec_scores = ut.get_argval('--num-top-fs', type_=int, default=None)
+                        if num_top_vec_scores is not None:
+                            # Take only the best matching descriptor scores for each pair in this analysis
+                            # This tries to see how deperable the BEST descriptor score is for each match
+                            vals = vals[vals.argsort()[::-1][0:num_top_vec_scores]]
+                            vals = vals[vals.argsort()[::-1][0:num_top_vec_scores]]
                         distances2[disttype].extend(vals)
                 except KeyError:
                     continue
