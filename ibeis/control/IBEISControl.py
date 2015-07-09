@@ -188,8 +188,9 @@ def testdata_wildbook_server(dryrun=False):
         tomcat_dpath = join(os.environ['CODE_DIR'], 'Wildbook/apache-tomcat-8.0.24')
     else:
         tomcat_dpath = '/var/lib/tomcat'
-    #wb_target = 'ibeis'
-    wb_target = 'wildbook-5.3.0-RELEASE'
+    wb_target = 'ibeis'
+    #wb_target = 'wildbook-5.3.0-RELEASE'
+    #wb_target = 'wildbook-5.3.0-RELEASE'
     #ut.cmd(catalina_fpath, 'stop')
     if not dryrun:
         if False and ut.is_developer():
