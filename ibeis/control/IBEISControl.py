@@ -188,10 +188,11 @@ def testdata_wildbook_server(dryrun=False):
         tomcat_dpath = join(os.environ['CODE_DIR'], 'Wildbook/apache-tomcat-8.0.24')
     else:
         tomcat_dpath = '/var/lib/tomcat'
-    wb_target = 'ibeis'
+    #wb_target = 'ibeis'
+    wb_target = 'wildbook-5.3.0-RELEASE'
     #ut.cmd(catalina_fpath, 'stop')
     if not dryrun:
-        if ut.is_developer():
+        if False and ut.is_developer():
             catalina_fpath = join(tomcat_dpath, 'bin/catalina.sh')
             ut.assert_exists(catalina_fpath)
             ut.cmd(catalina_fpath, 'stop')
@@ -200,7 +201,7 @@ def testdata_wildbook_server(dryrun=False):
             ut.cmd(catalina_fpath, 'start')
             time.sleep(1)
 
-        login = True
+        login = False
         if login:
             chromedriver_fpath = ut.grab_selenium_chromedriver()
             os.environ['webdriver.chrome.driver'] = chromedriver_fpath
@@ -927,16 +928,17 @@ class IBEISController(object):
 
         CommandLine:
             python -m ibeis.control.IBEISControl --test-wildbook_signal_eid_list
+            python -m ibeis.control.IBEISControl --test-wildbook_signal_eid_list --dryrun
             python -m ibeis.control.IBEISControl --test-wildbook_signal_eid_list --break
 
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> dryrun = False
+            >>> dryrun = ut.get_argflag('--dryrun')
             >>> wb_target, tomcat_dpath = testdata_wildbook_server(dryrun)
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-            >>> gid_list = ibs.get_valid_gids()[0:10]
+            >>> gid_list = ibs.get_valid_gids()[0:4]
             >>> new_eid = ibs.create_new_encounter_from_images(gid_list)  # NOQA
             >>> print('new encounter uuid = %r' % (ibs.get_encounter_uuid(new_eid),))
             >>> print('new encounter text = %r' % (ibs.get_encounter_text(new_eid),))
