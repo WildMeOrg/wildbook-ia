@@ -670,7 +670,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             IBEIS_WIDGET_BASE.setWindowTitle(ibswgt, title)
 
     def _change_enc(ibswgt, eid):
-        print('[newgui] _change_enc(%r)' % eid)
+        print('[newgui] _change_enc(eid=%r, uuid=%r)' % (eid, ibswgt.back.ibs.get_encounter_uuid(eid)))
         for tblname in ibswgt.tblname_list:
             view = ibswgt.views[tblname]
             view.clearSelection()
