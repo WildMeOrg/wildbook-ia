@@ -504,7 +504,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         hack_enabled_machines = [
             'ibeis.cs.uic.edu',
-            'patchy.cs.uic.edu',
+            'pachy.cs.uic.edu',
         ]
         enable_complete = ut.get_computer_name() in hack_enabled_machines
 
