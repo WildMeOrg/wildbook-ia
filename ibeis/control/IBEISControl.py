@@ -1014,6 +1014,7 @@ class IBEISController(object):
             if sudo:
                 wildbook_properteis_dpath = join(wildbook_tomcat_path, 'WEB-INF/classes/bundles/')
                 print('[ibs.wildbook_signal_eid_list()] Wildbook properties=%r' % (wildbook_properteis_dpath, ))
+                # The src file is non-standard. It should be remove here as well
                 wildbook_config_fpath_src = join(wildbook_properteis_dpath, 'commonConfiguration.properties.default')
                 wildbook_config_fpath_dst = join(wildbook_properteis_dpath, 'commonConfiguration.properties')
                 ut.assert_exists(wildbook_properteis_dpath)
@@ -1034,6 +1035,10 @@ class IBEISController(object):
                     content = re.sub('IBEIS_DB_path = .*', 'IBEIS_DB_path = ' + ibs.get_db_core_path(), content)
                     content = re.sub('IBEIS_image_path = .*', 'IBEIS_image_path = ' + ibs.get_imgdir(), content)
                     quoted_content = '"%s"' % (content, )
+                if ut.breakpoint():
+                    print(orig_content)
+                    print(content)
+
                 # Write to the configuration if it is different
                 if orig_content != content:
                     print('[ibs.wildbook_signal_eid_list()] To update the Wildbook configuration, we need sudo privaleges')
