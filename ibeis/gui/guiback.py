@@ -1338,8 +1338,8 @@ class MainWindowBackend(GUIBACK_BASE):
         if eid is not None or all_image_bypass:
             # Set all images to be reviewed
             gid_list = back.ibs.get_valid_gids(eid=eid)
-            flag_list = [1] * len(gid_list)
-            back.ibs.set_image_reviewed(gid_list, flag_list)
+            #gid_list = ibs.get_encounter_gids(eid)
+            back.ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
             # Set encounter to be processed
             back.ibs.set_encounter_processed_flags([eid], [1])
             back.ibs.wildbook_signal_eid_list([eid])

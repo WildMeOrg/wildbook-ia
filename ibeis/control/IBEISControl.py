@@ -931,6 +931,9 @@ class IBEISController(object):
             >>> new_eid = ibs.create_new_encounter_from_images(gid_list)  # NOQA
             >>> print('new encounter uuid = %r' % (ibs.get_encounter_uuid(new_eid),))
             >>> eid_list = [new_eid]
+            >>> ibs.set_encounter_processed_flags([new_eid], [1])
+            >>> gid_list = ibs.get_encounter_gids(new_eid)
+            >>> ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
             >>> set_shipped_flag = True
             >>> open_url = True
             >>> result = ibs.wildbook_signal_eid_list(eid_list, set_shipped_flag, open_url, tomcat_dpath, wb_target, dryrun)
@@ -964,7 +967,7 @@ class IBEISController(object):
             else:
                 payload = None
             if not dryrun:
-                with ut.embed_on_exception_context:
+                #with ut.embed_on_exception_context:
                     response = ibs._send_wildbook_request(submit_url_, payload)
                     if response is None:
                         webbrowser.open_new_tab(submit_url_)
