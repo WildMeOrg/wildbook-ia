@@ -184,29 +184,35 @@ def testdata_wildbook_server(dryrun=False):
     """
     import os
     # Very hacky and specific testdata script.
-    tomcat_dpath = join(os.environ['CODE_DIR'], 'Wildbook/apache-tomcat-8.0.24')
+    if ut.is_developer():
+        tomcat_dpath = join(os.environ['CODE_DIR'], 'Wildbook/apache-tomcat-8.0.24')
+    else:
+        tomcat_dpath = '/var/lib/tomcat'
     wb_target = 'ibeis'
     #ut.cmd(catalina_fpath, 'stop')
     if not dryrun:
-        catalina_fpath = join(tomcat_dpath, 'bin/catalina.sh')
-        ut.assert_exists(catalina_fpath)
-        ut.cmd(catalina_fpath, 'start')
+        if ut.is_developer():
+            catalina_fpath = join(tomcat_dpath, 'bin/catalina.sh')
+            ut.assert_exists(catalina_fpath)
+            ut.cmd(catalina_fpath, 'start')
 
-        chromedriver_fpath = ut.grab_selenium_chromedriver()
-        os.environ['webdriver.chrome.driver'] = chromedriver_fpath
+        login = False
+        if login:
+            chromedriver_fpath = ut.grab_selenium_chromedriver()
+            os.environ['webdriver.chrome.driver'] = chromedriver_fpath
 
-        # Use selenimum to login to wildbook
-        from selenium import webdriver
-        driver = webdriver.Chrome()
-        driver.get('http://localhost:8080/' + wb_target)
-        login_button = driver.find_element_by_partial_link_text('Log in')
-        login_button.click()
-        username_field = driver.find_element_by_name('username')
-        password_field = driver.find_element_by_name('password')
-        username_field.send_keys('tomcat')
-        password_field.send_keys('tomcat123')
-        submit_login_button = driver.find_element_by_name('submit')
-        submit_login_button.click()
+            # Use selenimum to login to wildbook
+            from selenium import webdriver
+            driver = webdriver.Chrome()
+            driver.get('http://localhost:8080/' + wb_target)
+            login_button = driver.find_element_by_partial_link_text('Log in')
+            login_button.click()
+            username_field = driver.find_element_by_name('username')
+            password_field = driver.find_element_by_name('password')
+            username_field.send_keys('tomcat')
+            password_field.send_keys('tomcat123')
+            submit_login_button = driver.find_element_by_name('submit')
+            submit_login_button.click()
     return wb_target, tomcat_dpath
 
 
@@ -917,14 +923,19 @@ class IBEISController(object):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> dryrun = True
+            >>> dryrun = False
             >>> wb_target, tomcat_dpath = testdata_wildbook_server(dryrun)
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-            >>> eid_list = None
+            >>> gid_list = ibs.get_valid_gids()[0:10]
+            >>> new_eid = ibs.create_new_encounter_from_images(gid_list)  # NOQA
+            >>> print('new encounter uuid = %r' % (ibs.get_encounter_uuid(new_eid),))
+            >>> eid_list = [new_eid]
             >>> set_shipped_flag = True
             >>> open_url = True
             >>> result = ibs.wildbook_signal_eid_list(eid_list, set_shipped_flag, open_url, tomcat_dpath, wb_target, dryrun)
+            >>> # cleanup
+            >>> ibs.delete_encounters(new_eid)
             >>> print(result)
         """
 
@@ -981,9 +992,10 @@ class IBEISController(object):
         for eid in eid_list:
             # First, check if encounter can be pushed
             aid_list = ibs.get_encounter_aids(eid)
+            assert len(aid_list) > 0, 'Encounter eid=%r cannot be shipped becuase there are no annotations' % (eid,)
             unknown_flags = ibs.is_aid_unknown(aid_list)
             unnamed_aid_list = ut.list_compress(aid_list, unknown_flags)
-            assert len(unnamed_aid_list) == 0, 'Encounter cannot be shipped becuase annotation(s) %r are not named' % (unnamed_aid_list, )
+            assert len(unnamed_aid_list) == 0, 'Encounter eid=%r cannot be shipped becuase annotation(s) %r are not named' % (eid, unnamed_aid_list, )
 
         # Configuration
         sudo = True
@@ -1005,25 +1017,28 @@ class IBEISController(object):
                 if ut.checkpath(wildbook_config_fpath_src):
                     # Open the default configuration
                     with open(wildbook_config_fpath_src, 'r') as file_:
-                        content = file_.read()
+                        orig_content = file_.read()
+                        content = orig_content
                         content = content.replace('__IBEIS_DB_PATH__', ibs.get_db_core_path())
                         content = content.replace('__IBEIS_IMAGE_PATH__', ibs.get_imgdir())
                         quoted_content = '"%s"' % (content, )
                 else:
                     # for come reason the .default file is not there, that should be ok though
                     with open(wildbook_config_fpath_dst, 'r') as file_:
-                        content = file_.read()
+                        orig_content = file_.read()
                     import re
+                    content = orig_content
                     content = re.sub('IBEIS_DB_path = .*', 'IBEIS_DB_path = ' + ibs.get_db_core_path(), content)
                     content = re.sub('IBEIS_image_path = .*', 'IBEIS_image_path = ' + ibs.get_imgdir(), content)
                     quoted_content = '"%s"' % (content, )
-                # Write to the configuration
-                print('[ibs.wildbook_signal_eid_list()] To update the Wildbook configuration, we need sudo privaleges')
-                command = ['sudo', 'sh', '-c', '\'', 'echo', quoted_content, '>', wildbook_config_fpath_dst, '\'']
-                # ut.cmd(command, sudo=True)
-                command = ' '.join(command)
-                if not dryrun:
-                    system(command)
+                # Write to the configuration if it is different
+                if orig_content != content:
+                    print('[ibs.wildbook_signal_eid_list()] To update the Wildbook configuration, we need sudo privaleges')
+                    command = ['sudo', 'sh', '-c', '\'', 'echo', quoted_content, '>', wildbook_config_fpath_dst, '\'']
+                    # ut.cmd(command, sudo=True)
+                    command = ' '.join(command)
+                    if not dryrun:
+                        system(command)
 
             # Check and push 'done' encounters
             status_list = []
