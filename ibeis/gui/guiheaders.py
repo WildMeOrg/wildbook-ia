@@ -317,7 +317,7 @@ def make_ibeis_headers_dict(ibs):
     # Encounter Iders/Setters/Getters
     SHOW_SHIPPED_ENCOUNTERS = True
     if SHOW_SHIPPED_ENCOUNTERS:
-        iders[ENCOUNTER_TABLE]   = [ partial(ibs.get_valid_eids, shipped=None)]
+        iders[ENCOUNTER_TABLE]   = [ibs.get_valid_eids]
     else:
         iders[ENCOUNTER_TABLE]   = [ partial(ibs.get_valid_eids, shipped=False)]
 

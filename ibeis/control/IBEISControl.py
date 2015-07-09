@@ -919,6 +919,7 @@ class IBEISController(object):
 
         CommandLine:
             python -m ibeis.control.IBEISControl --test-wildbook_signal_eid_list
+            python -m ibeis.control.IBEISControl --test-wildbook_signal_eid_list --break
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -930,6 +931,7 @@ class IBEISController(object):
             >>> gid_list = ibs.get_valid_gids()[0:10]
             >>> new_eid = ibs.create_new_encounter_from_images(gid_list)  # NOQA
             >>> print('new encounter uuid = %r' % (ibs.get_encounter_uuid(new_eid),))
+            >>> print('new encounter text = %r' % (ibs.get_encounter_text(new_eid),))
             >>> eid_list = [new_eid]
             >>> ibs.set_encounter_processed_flags([new_eid], [1])
             >>> gid_list = ibs.get_encounter_gids(new_eid)
@@ -1035,7 +1037,14 @@ class IBEISController(object):
                     content = re.sub('IBEIS_DB_path = .*', 'IBEIS_DB_path = ' + ibs.get_db_core_path(), content)
                     content = re.sub('IBEIS_image_path = .*', 'IBEIS_image_path = ' + ibs.get_imgdir(), content)
                     quoted_content = '"%s"' % (content, )
-                if ut.breakpoint():
+                if ut.breakpoint('wb.properties'):
+                    import os
+                    os.stat(wildbook_config_fpath_dst)
+                    os.access(wildbook_config_fpath_dst, os.W_OK)
+                    os.access(wildbook_config_fpath_dst, os.R_OK)
+
+                    ut.get_textdiff(content, orig_content)
+
                     print(orig_content)
                     print(content)
 
