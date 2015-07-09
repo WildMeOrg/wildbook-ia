@@ -892,7 +892,7 @@ class IBEISController(object):
         wildbook_tomcat_path = join(tomcat_dpath, 'webapps', wb_target)
         # Setup
         print('Looking for WildBook installation: %r' % ( wildbook_tomcat_path, ))
-        ut.assert_exists(wildbook_tomcat_path, 'Wildbook is not installed on this machine')
+        ut.assert_exists(wildbook_tomcat_path, 'Wildbook is not installed on this machine', info=True)
         return wildbook_base_url, wildbook_tomcat_path
 
     @default_decorator

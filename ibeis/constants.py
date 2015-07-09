@@ -331,7 +331,7 @@ VS_EXEMPLARS_KEY = 'vs_exemplars'
 INTRA_ENC_KEY = 'intra_encounter'
 
 HARD_NOTE_TAG = '<HARDCASE>'
-WILDBOOK_TARGET = 'prod'
+WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default='prod', help_='specify the Wildbook target deployment')
 
 
 def get_species_code(species_text_):
