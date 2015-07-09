@@ -888,7 +888,8 @@ class IBEISController(object):
         wb_target = const.WILDBOOK_TARGET if wb_target is None else wb_target
         tomcat_dpath = '/var/lib/tomcat' if tomcat_dpath is None else tomcat_dpath
         hostname = '127.0.0.1'
-        wildbook_base_url = 'http://' + str(hostname)
+        wb_port = 8080
+        wildbook_base_url = 'http://' + str(hostname) + ':' + str(wb_port) + '/' + wb_target
         wildbook_tomcat_path = join(tomcat_dpath, 'webapps', wb_target)
         # Setup
         print('Looking for WildBook installation: %r' % ( wildbook_tomcat_path, ))
