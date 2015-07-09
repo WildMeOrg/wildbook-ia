@@ -979,7 +979,7 @@ class IBEISController(object):
         # Check to make sure encounters are ok:
         for eid in eid_list:
             # First, check if encounter can be pushed
-            aid_list = ibs.get_encounter_nids(eid)
+            aid_list = ibs.get_encounter_aids(eid)
             unknown_flags = ibs.is_aid_unknown(aid_list)
             unnamed_aid_list = ut.list_compress(aid_list, unknown_flags)
             assert len(unnamed_aid_list) == 0, 'Encounter cannot be shipped becuase annotation(s) %r are not named' % (unnamed_aid_list, )

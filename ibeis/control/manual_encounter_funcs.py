@@ -403,6 +403,28 @@ def get_encounter_aids(ibs, eid_list):
     RESTful:
         Method: GET
         URL:    /api/encounter/aids/
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        eid_list (list):
+
+    Returns:
+        list: aids_list
+
+    CommandLine:
+        python -m ibeis.control.manual_encounter_funcs --test-get_encounter_aids
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_encounter_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> ibs.delete_encounters(ibs.get_valid_eids())
+        >>> ibs.compute_encounters()
+        >>> eid_list = ibs.get_valid_eids()
+        >>> aids_list = get_encounter_aids(ibs, eid_list)
+        >>> result = ('aids_list = %s' % (str(aids_list),))
+        >>> print(result)
     """
     gids_list = ibs.get_encounter_gids(eid_list)
     aids_list_ = ibs.unflat_map(ibs.get_image_aids, gids_list)
