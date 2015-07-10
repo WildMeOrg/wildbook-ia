@@ -82,8 +82,32 @@ def hyrule_reset_wildbook():
 
         # RUN TOMCAT SERVER (WE MUST BE IN THE TESTDIR ON STARTUP)
         $CATALINA_HOME/bin/startup.sh
+        #sleep .5
+        #$CATALINA_HOME/bin/shutdown.sh
+        #sleep .5
+        #sed -i 's/\/EncounterSetMarkedIndividual = authc, roles\[admin\]/<!--\/EncounterSetMarkedIndividual = authc, roles\[admin\]-->/' $TOMCAT_DIR/webapps/$WB_TARGET/WEB-INF/web.xml
+        #sleep .5
+        #$CATALINA_HOME/bin/startup.sh
         """
     )
+
+    fix_settings = """
+    # ensure everything is shutdown before we start
+    $CATALINA_HOME/bin/shutdown.sh
+
+    # Fix authentication
+    gvim $TOMCAT_DIR/webapps/$WB_TARGET/WEB-INF/web.xml
+
+    sed 's/\/EncounterSetMarkedIndividual = authc, roles\[admin\]/foo/' $TOMCAT_DIR/webapps/$WB_TARGET/WEB-INF/web.xml
+    sed -i 's/^\(^ *\)\/EncounterSetMarkedIndividual = authc, roles\[admin\]/\1<!--\/EncounterSetMarkedIndividual = authc, roles\[admin\]-->/' $TOMCAT_DIR/webapps/$WB_TARGET/WEB-INF/web.xml  | grep EncounterSetMarkedIndividual
+    sed 's/^\(^ *\)\/EncounterSetMarkedIndividual = authc, roles\[admin\]/\1<!--\/EncounterSetMarkedIndividual = authc, roles\[admin\]-->/' $TOMCAT_DIR/webapps/$WB_TARGET/WEB-INF/web.xml  | grep EncounterSetMarkedIndividual
+
+    # Replace
+    '/EncounterSetMarkedIndividual = authc, roles[admin]'
+    # WITH
+    '<!--/EncounterSetMarkedIndividual = authc, roles[admin]-->'
+    """
+    fix_settings
 
     bash_script = delete_part + '\n' + create_part
     if True:
@@ -215,7 +239,7 @@ def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False):
                 response = requests.get(url, auth=('tomcat', 'tomcat123'))
             else:
                 response = requests.post(url, data=payload)
-                #requests.post(url, data=None, auth=('tomcat', 'tomcat123'))
+                #r = requests.post(url, data=None, auth=('tomcat', 'tomcat123'))
         except requests.ConnectionError as ex:
             ut.printex(ex, 'Could not connect to Wildbook server at url=%r' % url)
             raise
@@ -305,6 +329,7 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:0 --dryrun
         python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:1 --dryrun
         python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:1
+        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:2
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -352,6 +377,8 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> gid_list = ibs.get_valid_gids()[3:5]
         >>> aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        >>> old_nid_list = [1, 2]
+        >>> ibs.set_annot_name_rowids(aid_list, old_nid_list)
         >>> # Signal what currently exists (should put them back to normal)
         >>> dryrun = ut.get_argflag('--dryrun')
         >>> wb_target, tomcat_dpath = testdata_wildbook_server()
@@ -361,11 +388,17 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
 
     wildbook_base_url, wildbook_tomcat_path = ibs.get_wildbook_info(tomcat_dpath, wb_target)
     url_command = 'EncounterSetMarkedIndividual'
+    BASIC_AUTH = False
+    if BASIC_AUTH:
+        #url_command += '=authcBasicWildbook'
+        username = 'tomcat'
+        password = 'tomcat123'
+        wildbook_base_url = 'http://' + username + ':' + password + '@' + wildbook_base_url.replace('http://', '')
     url_args_fmtstr = '&'.join([
         'encounterID={annot_uuid!s}',
         'individualID={name_text!s}',
     ])
-    submit_namchange_url_fmtstr   = wildbook_base_url + '/' + url_command + '?' + url_args_fmtstr
+    submit_namchange_url_fmtstr = wildbook_base_url + '/' + url_command + '?' + url_args_fmtstr
 
     if aid_list is None:
         aid_list = ibs.get_valid_aids(is_known=True)
@@ -382,10 +415,17 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
     # Submit each URL
     status_list = []
     for url in submit_url_list:
-        status, response2 = submit_wildbook_url(url, payload, dryrun=dryrun)
-        ut.embed()
+        status, response = submit_wildbook_url(url, payload, dryrun=dryrun)
         #print(ut.dict_str(response.__dict__, truncate=0))
         status_list.append(status)
+        try:
+            response_json = response.json()
+            # encounter in this message is a wb-encounter not our ia-encounter
+            print(response_json['message'])
+        except Exception as ex:
+            ut.printex(ex, 'Failed getting json from responce. This probably means there is an authentication issue')
+            raise
+        assert response_json['success']
         break
     return status_list
 
