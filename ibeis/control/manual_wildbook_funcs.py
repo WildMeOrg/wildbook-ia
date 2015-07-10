@@ -16,6 +16,11 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
+#PREFERED_BROWSER = 'chrome'
+#PREFERED_BROWSER = 'firefox'
+PREFERED_BROWSER = None
+#webbrowser._tryorder
+
 
 def hyrule_reset_wildbook():
     r"""
@@ -120,11 +125,9 @@ def hyrule_wildbook_login():
     wb_target = 'ibeis'
     wb_url = 'http://localhost:8080/' + wb_target
     if manaul_login:
-        #ut.get_prefered_browser('chrome').open_new_tab(wb_url)
-        ut.get_prefered_browser('firefox').open_new_tab(wb_url)
+        ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)
     else:
-        #driver = ut.grab_selenium_driver('chrome')
-        driver = ut.grab_selenium_driver('firefox')
+        driver = ut.grab_selenium_driver(PREFERED_BROWSER)
         driver.get(wb_url)
         login_button = driver.find_element_by_partial_link_text('Log in')
         login_button.click()
@@ -149,8 +152,9 @@ def hyrule_wildbook_login():
         view_all.click()
 
 
-def testdata_wildbook_server(dryrun=False):
+def testdata_wildbook_server():
     """
+    DEPRICATE
     SeeAlso:
         ~/local/build_scripts/init_wildbook.sh
     """
@@ -165,19 +169,34 @@ def testdata_wildbook_server(dryrun=False):
 
 @register_ibs_method
 def get_wildbook_info(ibs, tomcat_dpath=None, wb_target=None):
-    wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
-    DEFAULT_TOMCAT_PATH = '/var/lib/tomcat'
-    if ut.is_developer():
-        DEFAULT_TOMCAT_PATH = join(os.environ['CODE_DIR'], 'Wildbook/tmp/apache-tomcat-8.0.24')
-    tomcat_dpath = DEFAULT_TOMCAT_PATH if tomcat_dpath is None else tomcat_dpath
-    hostname = '127.0.0.1'
-    wb_port = 8080
-    wildbook_base_url = 'http://' + str(hostname) + ':' + str(wb_port) + '/' + wb_target
-    wildbook_tomcat_path = join(tomcat_dpath, 'webapps', wb_target)
+    # TODO: Clean this up
+    wildbook_base_url = ibs.get_wildbook_base_url(wb_target)
+    wildbook_tomcat_path = ibs.get_wildbook_tomcat_path(tomcat_dpath, wb_target)
     # Setup
     print('Looking for WildBook installation: %r' % ( wildbook_tomcat_path, ))
     ut.assert_exists(wildbook_tomcat_path, 'Wildbook is not installed on this machine', info=True)
     return wildbook_base_url, wildbook_tomcat_path
+
+
+@register_ibs_method
+def get_wildbook_tomcat_path(ibs, tomcat_dpath=None, wb_target=None):
+    if ut.is_developer():
+        DEFAULT_TOMCAT_PATH = join(os.environ['CODE_DIR'], 'Wildbook/tmp/apache-tomcat-8.0.24')
+    else:
+        DEFAULT_TOMCAT_PATH = '/var/lib/tomcat'
+    tomcat_dpath = DEFAULT_TOMCAT_PATH if tomcat_dpath is None else tomcat_dpath
+    wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
+    wildbook_tomcat_path = join(tomcat_dpath, 'webapps', wb_target)
+    return wildbook_tomcat_path
+
+
+@register_ibs_method
+def get_wildbook_base_url(ibs, wb_target=None):
+    wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
+    hostname = '127.0.0.1'
+    wb_port = 8080
+    wildbook_base_url = 'http://' + str(hostname) + ':' + str(wb_port) + '/' + wb_target
+    return wildbook_base_url
 
 
 def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False):
@@ -193,8 +212,10 @@ def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False):
         try:
             if payload is None:
                 response = requests.get(url)
+                response = requests.get(url, auth=('tomcat', 'tomcat123'))
             else:
                 response = requests.post(url, data=payload)
+                #requests.post(url, data=None, auth=('tomcat', 'tomcat123'))
         except requests.ConnectionError as ex:
             ut.printex(ex, 'Could not connect to Wildbook server at url=%r' % url)
             raise
@@ -214,8 +235,7 @@ def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False):
             errmsg = '\n'.join(errmsg_list)
             print(errmsg)
             if browse_on_error:
-                #ut.get_prefered_browser('firefox').open_new_tab(url)
-                ut.get_prefered_browser('chrome').open_new_tab(url)
+                ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(url)
             raise AssertionError(errmsg)
             status = False
     return status, response
@@ -299,7 +319,7 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         >>> new_nid_list = ut.list_roll(old_nid_list, 1)
         >>> ibs.set_annot_name_rowids(aid_list, new_nid_list)
         >>> dryrun = ut.get_argflag('--dryrun')
-        >>> wb_target, tomcat_dpath = testdata_wildbook_server(dryrun)
+        >>> wb_target, tomcat_dpath = testdata_wildbook_server()
         >>> result = ibs.wildbook_signal_annot_name_changes(aid_list, tomcat_dpath, wb_target, dryrun)
         >>> ibs.set_annot_name_rowids(aid_list, old_nid_list)
 
@@ -320,7 +340,7 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         >>> print('new_nid_list = %r' % (new_nid_list,))
         >>> ibs.set_annot_name_rowids(aid_list, new_nid_list)
         >>> dryrun = ut.get_argflag('--dryrun')
-        >>> wb_target, tomcat_dpath = testdata_wildbook_server(dryrun)
+        >>> wb_target, tomcat_dpath = testdata_wildbook_server()
         >>> result = ibs.wildbook_signal_annot_name_changes(aid_list, tomcat_dpath, wb_target, dryrun)
         >>> # Undo changes here (not undone in wildbook)
         >>> #ibs.set_annot_name_rowids(aid_list, old_nid_list)
@@ -334,7 +354,7 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         >>> aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         >>> # Signal what currently exists (should put them back to normal)
         >>> dryrun = ut.get_argflag('--dryrun')
-        >>> wb_target, tomcat_dpath = testdata_wildbook_server(dryrun)
+        >>> wb_target, tomcat_dpath = testdata_wildbook_server()
         >>> result = ibs.wildbook_signal_annot_name_changes(aid_list, tomcat_dpath, wb_target, dryrun)
     """
     print('[ibs.wildbook_signal_eid_list()] signaling any annotation name changes to wildbook')
@@ -361,11 +381,12 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
 
     # Submit each URL
     status_list = []
-    for submit_url_ in submit_url_list:
-        status, response = submit_wildbook_url(submit_url_, payload, dryrun=dryrun)
-        #ut.embed()
+    for url in submit_url_list:
+        status, response2 = submit_wildbook_url(url, payload, dryrun=dryrun)
+        ut.embed()
         #print(ut.dict_str(response.__dict__, truncate=0))
         status_list.append(status)
+        break
     return status_list
 
 
@@ -417,7 +438,7 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url
         >>> # DISABLE_DOCTEST
         >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
         >>> dryrun = ut.get_argflag('--dryrun')
-        >>> wb_target, tomcat_dpath = testdata_wildbook_server(dryrun)
+        >>> wb_target, tomcat_dpath = testdata_wildbook_server()
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> #gid_list = ibs.get_valid_gids()[0:10]
@@ -439,8 +460,8 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url
 
     def _send(eid, use_config_file=False, dryrun=dryrun):
         encounter_uuid = ibs.get_encounter_uuid(eid)
-        submit_url_ = submit_eid_url_fmtstr.format(encounter_uuid=encounter_uuid)
-        print('[_send] URL=%r' % (submit_url_, ))
+        url = submit_eid_url_fmtstr.format(encounter_uuid=encounter_uuid)
+        print('[_send] URL=%r' % (url, ))
         smart_xml_fname = ibs.get_encounter_smart_xml_fnames([eid])[0]
         smart_waypoint_id = ibs.get_encounter_smart_waypoint_ids([eid])[0]
         if smart_xml_fname is not None and smart_waypoint_id is not None:
@@ -462,7 +483,7 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url
                 })
         else:
             payload = None
-        status, response = submit_wildbook_url(submit_url_, payload, dryrun=dryrun)
+        status, response = submit_wildbook_url(url, payload, dryrun=dryrun)
         return status
 
     def _complete(eid):
@@ -470,8 +491,7 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url
         complete_url_ = complete_url_fmtstr.format(encounter_uuid=encounter_uuid)
         print('[_complete] URL=%r' % (complete_url_, ))
         if open_url_on_complete and not dryrun:
-            #ut.get_prefered_browser('firefox').open_new_tab(complete_url_)
-            ut.get_prefered_browser('chrome').open_new_tab(complete_url_)
+            ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(complete_url_)
 
     if eid_list is None:
         eid_list = ibs.get_valid_eids()

@@ -338,6 +338,15 @@ def setup_developer_menu(mainwin, back):
         slot_fn=back.run_tests)
     menu.addSeparator()
     menu.newAction(
+        name='actionLaunchWildbook',
+        text='Launch Wildbook',
+        slot_fn=back.launch_wildbook)
+    menu.newAction(
+        name='actionForceWildbookNameChange',
+        text='Force Wildbook Name Change',
+        slot_fn=back.force_wildbook_namechange)
+    menu.addSeparator()
+    menu.newAction(
         name='actionDeveloper_DumpDB',
         text='Dump SQL Database',
         slot_fn=back.dev_dumpdb)
@@ -499,6 +508,7 @@ def setup_depricated_menu(mainwin, back):
 if __name__ == '__main__':
     """
     CommandLine:
+        python -m ibeis.gui.guimenus --test-setup_dummy_menus
         python -m ibeis.gui.guimenus
         python -m ibeis.gui.guimenus --allexamples
         python -m ibeis.gui.guimenus --allexamples --noface --nosrc

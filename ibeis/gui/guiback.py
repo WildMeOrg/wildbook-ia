@@ -1877,6 +1877,15 @@ class MainWindowBackend(GUIBACK_BASE):
     def reconnect_controller(back):
         back.connect_ibeis_control(back.ibs)
 
+    @slot_()
+    def launch_wildbook(back):
+        wb_base_url = back.ibs.get_wildbook_base_url()
+        ut.get_prefered_browser().open(wb_base_url)
+
+    @slot_()
+    def force_wildbook_namechange(back):
+        back.ibs.wildbook_signal_annot_name_changes()
+
 
 def testdata_guiback(db='testdb2', **kwargs):
     import ibeis
