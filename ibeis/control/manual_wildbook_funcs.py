@@ -426,7 +426,6 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
             ut.printex(ex, 'Failed getting json from responce. This probably means there is an authentication issue')
             raise
         assert response_json['success']
-        break
     return status_list
 
 
