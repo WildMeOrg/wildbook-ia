@@ -17,6 +17,129 @@ register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
+def hyrule_reset_wildbook():
+    r"""
+    CommandLine:
+        python -m ibeis.control.manual_wildbook_funcs --test-hyrule_reset_wildbook
+        ./hyrule_reset_wildbook.sh
+        ./hyrule_delete_wildbook.sh
+        ./hyrule_create_wildbook.sh
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
+        >>> result = hyrule_reset_wildbook()
+        >>> print(result)
+    """
+    assert ut.is_developer()
+    delete_part = ut.codeblock(
+        """
+        #!/bin/bash
+
+        # --- FRESHSTART ---
+        # Make sure that tomcat vars are set
+        export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+
+        export WILDBOOK_TESTDIR=$CODE_DIR/Wildbook/tmp
+        export TOMCAT_DIR=$WILDBOOK_TESTDIR/apache-tomcat-8.0.24
+        export TOMCAT_HOME=$TOMCAT_DIR
+        export CATALINA_HOME=$TOMCAT_DIR
+
+        export WB_TARGET=ibeis
+
+        # ensure everything is shutdown before we start
+        $CATALINA_HOME/bin/shutdown.sh
+
+        # Clean up old tomcat
+        rm -rf $WILDBOOK_TESTDIR/apache-tomcat-8.0.24
+        # REMOVE EVERYTHING.
+        rm -rf $WILDBOOK_TESTDIR
+        mkdir $WILDBOOK_TESTDIR
+        cd $WILDBOOK_TESTDIR
+        """)
+
+    ignore_part = """
+    cd $CODE_DIR/Wildbook
+    """
+    ignore_part
+
+    create_part = ut.codeblock(
+        """
+        #!/bin/bash
+        cd $WILDBOOK_TESTDIR
+        unzip -q $WILDBOOK_TESTDIR/../apache-tomcat-8.0.24.zip -d $WILDBOOK_TESTDIR
+
+        # make catalina runnable
+        chmod +x $CATALINA_HOME/bin/catalina.sh
+        chmod +x $CATALINA_HOME/bin/startup.sh
+        chmod +x $CATALINA_HOME/bin/shutdown.sh
+
+        # Install a wildbook .war file into tomcat webapps
+        # assumes we've already downloaded the war file
+        cp ~/Downloads/$WB_TARGET.war $CATALINA_HOME/webapps/
+
+        # RUN TOMCAT SERVER (WE MUST BE IN THE TESTDIR ON STARTUP)
+        $CATALINA_HOME/bin/startup.sh
+        """
+    )
+
+    bash_script = delete_part + '\n' + create_part
+    if True:
+        print('+-------')
+        print('Executing bash script: ')
+        ut.print_code(bash_script, 'bash')
+        #print(bash_script)
+        print('L______')
+        os.system(bash_script)
+    else:
+        def write_script(fpath_, text):
+            ut.writeto(fpath_, text)
+            ut.chmod_add_executable(fpath_)
+
+        fpath = 'hyrule_reset_wildbook.sh'
+        fpath1 = 'hyrule_delete_wildbook.sh'
+        fpath2 = 'hyrule_create_wildbook.sh'
+        write_script(fpath, bash_script)
+        write_script(fpath1, delete_part)
+        write_script(fpath2, create_part)
+        return fpath
+
+
+def hyrule_wildbook_login():
+    r"""
+    Returns:
+        tuple: (wb_target, tomcat_dpath)
+
+    CommandLine:
+        python -m ibeis.control.manual_wildbook_funcs --test-hyrule_wildbook_login
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
+        >>> hyrule_wildbook_login()
+    """
+    # Use selenimum to login to wildbook
+    wb_target = 'ibeis'
+    wb_url = 'http://localhost:8080/' + wb_target
+    #driver = webdriver.Firefox()
+    #ut.get_prefered_browser('chrome').open_new_tab(wb_url)
+    ut.get_prefered_browser('firefox').open_new_tab(wb_url)
+    return False
+    ut.grab_selenium_chromedriver()
+    from selenium import webdriver
+    #driver = webdriver.Chrome()
+    driver = webdriver.Firefox()
+    driver.get(wb_url)
+    login_button = driver.find_element_by_partial_link_text('Log in')
+    login_button.click()
+    username_field = driver.find_element_by_name('username')
+    password_field = driver.find_element_by_name('password')
+    username_field.send_keys('tomcat')
+    password_field.send_keys('tomcat123')
+    submit_login_button = driver.find_element_by_name('submit')
+    submit_login_button.click()
+
+
 def testdata_wildbook_server(dryrun=False):
     """
     SeeAlso:
@@ -24,40 +147,10 @@ def testdata_wildbook_server(dryrun=False):
     """
     # Very hacky and specific testdata script.
     if ut.is_developer():
-        tomcat_dpath = join(os.environ['CODE_DIR'], 'Wildbook/apache-tomcat-8.0.24')
+        tomcat_dpath = join(os.environ['CODE_DIR'], 'Wildbook/tmp/apache-tomcat-8.0.24')
     else:
         tomcat_dpath = '/var/lib/tomcat'
     wb_target = 'ibeis'
-    #wb_target = 'wildbook-5.3.0-RELEASE'
-    #wb_target = 'wildbook-5.3.0-RELEASE'
-    #ut.cmd(catalina_fpath, 'stop')
-    if not dryrun:
-        if False and ut.is_developer():
-            catalina_fpath = join(tomcat_dpath, 'bin/catalina.sh')
-            ut.assert_exists(catalina_fpath)
-            ut.cmd(catalina_fpath, 'stop')
-            import time
-            time.sleep(1)
-            ut.cmd(catalina_fpath, 'start')
-            time.sleep(1)
-
-        login = False
-        if login:
-            chromedriver_fpath = ut.grab_selenium_chromedriver()
-            os.environ['webdriver.chrome.driver'] = chromedriver_fpath
-
-            # Use selenimum to login to wildbook
-            from selenium import webdriver
-            driver = webdriver.Chrome()
-            driver.get('http://localhost:8080/' + wb_target)
-            login_button = driver.find_element_by_partial_link_text('Log in')
-            login_button.click()
-            username_field = driver.find_element_by_name('username')
-            password_field = driver.find_element_by_name('password')
-            username_field.send_keys('tomcat')
-            password_field.send_keys('tomcat123')
-            submit_login_button = driver.find_element_by_name('submit')
-            submit_login_button.click()
     return wb_target, tomcat_dpath
 
 
@@ -66,7 +159,7 @@ def get_wildbook_info(ibs, tomcat_dpath=None, wb_target=None):
     wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
     DEFAULT_TOMCAT_PATH = '/var/lib/tomcat'
     if ut.is_developer():
-        DEFAULT_TOMCAT_PATH = join(os.environ['CODE_DIR'], 'Wildbook/apache-tomcat-8.0.24')
+        DEFAULT_TOMCAT_PATH = join(os.environ['CODE_DIR'], 'Wildbook/tmp/apache-tomcat-8.0.24')
     tomcat_dpath = DEFAULT_TOMCAT_PATH if tomcat_dpath is None else tomcat_dpath
     hostname = '127.0.0.1'
     wb_port = 8080
@@ -83,7 +176,7 @@ def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False):
     mirroring the one in IBEISController.py, but with changed functionality
     """
     if dryrun:
-        print('[dryrun_submit] URL=%r' % (url, ))
+        print('[DRYrun_submit] URL=%r' % (url, ))
         response = None
         status = True
     else:
@@ -112,7 +205,8 @@ def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False):
             errmsg = '\n'.join(errmsg_list)
             print(errmsg)
             if browse_on_error:
-                ut.get_prefered_browser('firefox').open_new_tab(url)
+                #ut.get_prefered_browser('firefox').open_new_tab(url)
+                ut.get_prefered_browser('chrome').open_new_tab(url)
             raise AssertionError(errmsg)
             status = False
     return status, response
@@ -124,25 +218,11 @@ def update_wildbook_config(ibs, wildbook_tomcat_path, dryrun=False):
     # The src file is non-standard. It should be remove here as well
     wildbook_config_fpath_dst = join(wildbook_properteis_dpath, 'commonConfiguration.properties')
     ut.assert_exists(wildbook_properteis_dpath)
-    USE_DEFAULT_FILE = False
-    if USE_DEFAULT_FILE:
-        # DEPRICATE
-        # Open the default configuration
-        wildbook_config_fpath_src = join(wildbook_properteis_dpath, 'commonConfiguration.properties.default')
-        if ut.checkpath(wildbook_config_fpath_src):
-            with open(wildbook_config_fpath_src, 'r') as file_:
-                orig_content = file_.read()
-                content = orig_content
-                content = content.replace('__IBEIS_DB_PATH__', ibs.get_db_core_path())
-                content = content.replace('__IBEIS_IMAGE_PATH__', ibs.get_imgdir())
-        else:
-            USE_DEFAULT_FILE = False
-    if not USE_DEFAULT_FILE:
-        # for come reason the .default file is not there, that should be ok though
-        orig_content = ut.read_from(wildbook_config_fpath_dst)
-        content = orig_content
-        content = re.sub('IBEIS_DB_path = .*', 'IBEIS_DB_path = ' + ibs.get_db_core_path(), content)
-        content = re.sub('IBEIS_image_path = .*', 'IBEIS_image_path = ' + ibs.get_imgdir(), content)
+    # for come reason the .default file is not there, that should be ok though
+    orig_content = ut.read_from(wildbook_config_fpath_dst)
+    content = orig_content
+    content = re.sub('IBEIS_DB_path = .*', 'IBEIS_DB_path = ' + ibs.get_db_core_path(), content)
+    content = re.sub('IBEIS_image_path = .*', 'IBEIS_image_path = ' + ibs.get_imgdir(), content)
 
     # Write to the configuration if it is different
     if orig_content != content:
@@ -202,7 +282,8 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> gid_list = ibs.get_valid_gids()[0:10]
+        >>> #gid_list = ibs.get_valid_gids()[0:10]
+        >>> gid_list = ibs.get_valid_gids()[3:5]
         >>> aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         >>> # Test case where some names change, some do not. There are no new names.
         >>> old_nid_list = ibs.get_annot_name_rowids(aid_list)
@@ -218,22 +299,40 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> gid_list = ibs.get_valid_gids()[0:10]
+        >>> #gid_list = ibs.get_valid_gids()[0:10]
+        >>> gid_list = ibs.get_valid_gids()[3:5]
         >>> aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         >>> # Test case where all names change to one known name
-        >>> old_nid_list = ibs.get_annot_name_rowids(aid_list)
-        >>> new_nid_list = [old_nid_list[0]] * len(old_nid_list)
+        >>> #old_nid_list = ibs.get_annot_name_rowids(aid_list)
+        >>> #new_nid_list = [old_nid_list[0]] * len(old_nid_list)
+        >>> old_nid_list = [1, 2]
+        >>> new_nid_list = [1, 1]
+        >>> print('old_nid_list = %r' % (old_nid_list,))
+        >>> print('new_nid_list = %r' % (new_nid_list,))
         >>> ibs.set_annot_name_rowids(aid_list, new_nid_list)
         >>> dryrun = ut.get_argflag('--dryrun')
         >>> wb_target, tomcat_dpath = testdata_wildbook_server(dryrun)
         >>> result = ibs.wildbook_signal_annot_name_changes(aid_list, tomcat_dpath, wb_target, dryrun)
-        >>> ibs.set_annot_name_rowids(aid_list, old_nid_list)
+        >>> # Undo changes here (not undone in wildbook)
+        >>> #ibs.set_annot_name_rowids(aid_list, old_nid_list)
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> gid_list = ibs.get_valid_gids()[3:5]
+        >>> aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        >>> # Signal what currently exists (should put them back to normal)
+        >>> dryrun = ut.get_argflag('--dryrun')
+        >>> wb_target, tomcat_dpath = testdata_wildbook_server(dryrun)
+        >>> result = ibs.wildbook_signal_annot_name_changes(aid_list, tomcat_dpath, wb_target, dryrun)
     """
     print('[ibs.wildbook_signal_eid_list()] signaling any annotation name changes to wildbook')
 
     wildbook_base_url, wildbook_tomcat_path = ibs.get_wildbook_info(tomcat_dpath, wb_target)
     url_command = 'EncounterSetMarkedIndividual'
-    url_args_fmtstr = '?'.join([
+    url_args_fmtstr = '&'.join([
         'encounterID={annot_uuid!s}',
         'individualID={name_text!s}',
     ])
@@ -249,12 +348,14 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
         for annot_uuid, name_text in zip(annot_uuid_list, annot_name_text_list)
     ]
 
-    payload = None
+    payload = {}
 
     # Submit each URL
     status_list = []
     for submit_url_ in submit_url_list:
         status, response = submit_wildbook_url(submit_url_, payload, dryrun=dryrun)
+        #ut.embed()
+        #print(ut.dict_str(response.__dict__, truncate=0))
         status_list.append(status)
     return status_list
 
@@ -274,6 +375,30 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url
         Method: PUT
         URL:    /api/core/wildbook_signal_eid_list/
 
+    Ignore:
+        cd $CODE_DIR/Wildbook/tmp
+
+        # Reset IBEIS database
+        python -m ibeis.tests.reset_testdbs --reset_mtest
+
+        # Reset Wildbook database
+        python -m ibeis.control.manual_wildbook_funcs --test-hyrule_reset_wildbook
+
+        # Login to wildbook
+        python -m ibeis.control.manual_wildbook_funcs --test-hyrule_wildbook_login
+
+        # Ship Encounters to wildbook
+        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list
+
+        # Change annotations names to a single name
+        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:1
+
+        # Change annotations names back to normal
+        python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:2
+
+
+
+
     CommandLine:
         python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list
         python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list --dryrun
@@ -289,7 +414,8 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url
         >>> wb_target, tomcat_dpath = testdata_wildbook_server(dryrun)
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> gid_list = ibs.get_valid_gids()[0:10]
+        >>> #gid_list = ibs.get_valid_gids()[0:10]
+        >>> gid_list = ibs.get_valid_gids()[3:5]
         >>> new_eid = ibs.create_new_encounter_from_images(gid_list)  # NOQA
         >>> print('new encounter uuid = %r' % (ibs.get_encounter_uuid(new_eid),))
         >>> print('new encounter text = %r' % (ibs.get_encounter_text(new_eid),))
@@ -338,7 +464,8 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url
         complete_url_ = complete_url_fmtstr.format(encounter_uuid=encounter_uuid)
         print('[_complete] URL=%r' % (complete_url_, ))
         if open_url_on_complete and not dryrun:
-            ut.get_prefered_browser('firefox').open_new_tab(complete_url_)
+            #ut.get_prefered_browser('firefox').open_new_tab(complete_url_)
+            ut.get_prefered_browser('chrome').open_new_tab(complete_url_)
 
     if eid_list is None:
         eid_list = ibs.get_valid_eids()
