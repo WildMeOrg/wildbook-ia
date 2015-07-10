@@ -20,10 +20,7 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 def hyrule_reset_wildbook():
     r"""
     CommandLine:
-        python -m ibeis.control.manual_wildbook_funcs --test-hyrule_reset_wildbook
-        ./hyrule_reset_wildbook.sh
-        ./hyrule_delete_wildbook.sh
-        ./hyrule_create_wildbook.sh
+        python -m ibeis.control.manual_wildbook_funcs --exec-hyrule_reset_wildbook
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -111,7 +108,7 @@ def hyrule_wildbook_login():
         tuple: (wb_target, tomcat_dpath)
 
     CommandLine:
-        python -m ibeis.control.manual_wildbook_funcs --test-hyrule_wildbook_login
+        python -m ibeis.control.manual_wildbook_funcs --exec-hyrule_wildbook_login
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -119,25 +116,37 @@ def hyrule_wildbook_login():
         >>> hyrule_wildbook_login()
     """
     # Use selenimum to login to wildbook
+    manaul_login = False
     wb_target = 'ibeis'
     wb_url = 'http://localhost:8080/' + wb_target
-    #driver = webdriver.Firefox()
-    #ut.get_prefered_browser('chrome').open_new_tab(wb_url)
-    ut.get_prefered_browser('firefox').open_new_tab(wb_url)
-    return False
-    ut.grab_selenium_chromedriver()
-    from selenium import webdriver
-    #driver = webdriver.Chrome()
-    driver = webdriver.Firefox()
-    driver.get(wb_url)
-    login_button = driver.find_element_by_partial_link_text('Log in')
-    login_button.click()
-    username_field = driver.find_element_by_name('username')
-    password_field = driver.find_element_by_name('password')
-    username_field.send_keys('tomcat')
-    password_field.send_keys('tomcat123')
-    submit_login_button = driver.find_element_by_name('submit')
-    submit_login_button.click()
+    if manaul_login:
+        #ut.get_prefered_browser('chrome').open_new_tab(wb_url)
+        ut.get_prefered_browser('firefox').open_new_tab(wb_url)
+    else:
+        #driver = ut.grab_selenium_driver('chrome')
+        driver = ut.grab_selenium_driver('firefox')
+        driver.get(wb_url)
+        login_button = driver.find_element_by_partial_link_text('Log in')
+        login_button.click()
+        # Find login elements
+        username_field = driver.find_element_by_name('username')
+        password_field = driver.find_element_by_name('password')
+        submit_login_button = driver.find_element_by_name('submit')
+        rememberMe_button = driver.find_element_by_name('rememberMe')
+        # Execute elements
+        username_field.send_keys('tomcat')
+        password_field.send_keys('tomcat123')
+        rememberMe_button.click()
+        submit_login_button.click()
+        # Accept agreement
+        accept_aggrement_button = driver.find_element_by_name('acceptUserAgreement')
+        accept_aggrement_button.click()
+
+        # Goto individuals page
+        individuals = driver.find_element_by_partial_link_text('Individuals')
+        individuals.click()
+        view_all = driver.find_element_by_partial_link_text('View All')
+        view_all.click()
 
 
 def testdata_wildbook_server(dryrun=False):
@@ -382,10 +391,10 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url
         python -m ibeis.tests.reset_testdbs --reset_mtest
 
         # Reset Wildbook database
-        python -m ibeis.control.manual_wildbook_funcs --test-hyrule_reset_wildbook
+        python -m ibeis.control.manual_wildbook_funcs --exec-hyrule_reset_wildbook
 
         # Login to wildbook
-        python -m ibeis.control.manual_wildbook_funcs --test-hyrule_wildbook_login
+        python -m ibeis.control.manual_wildbook_funcs --exec-hyrule_wildbook_login
 
         # Ship Encounters to wildbook
         python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list
@@ -395,9 +404,6 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url
 
         # Change annotations names back to normal
         python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_annot_name_changes:2
-
-
-
 
     CommandLine:
         python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list
