@@ -2948,7 +2948,7 @@ def get_aidpair_truths(ibs, aid1_list, aid2_list):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid1_list = ibs.get_valid_aids()
-        >>> aid2_list = ut.list_rotate(ibs.get_valid_aids(), 1)
+        >>> aid2_list = ut.list_roll(ibs.get_valid_aids(), -1)
         >>> # execute function
         >>> truth = get_aidpair_truths(ibs, aid1_list, aid2_list)
         >>> # verify results

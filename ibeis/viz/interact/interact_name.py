@@ -276,7 +276,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             row_offset = self.col_offset_list[rowx]
             row_nonrotate_part = self.get_non_rotating_columns(rowx)
             row_rotate_part_ = self.get_rotating_columns(rowx)
-            row_rotate_part = ut.list_rotate(row_rotate_part_, row_offset)
+            row_rotate_part = ut.list_roll(row_rotate_part_, -row_offset)
             row = row_nonrotate_part + row_rotate_part
             return row
         row_aids_list_ = [get_row(rowx) for rowx in range(self.nRows)]
@@ -290,7 +290,7 @@ class MatchVerificationInteraction(AbstractInteraction):
         """
         modbase = len(self.get_rotating_columns(rowx))
         self.col_offset_list[rowx] = (1 + self.col_offset_list[rowx]) % modbase
-        #self.gts_list[rowx] = list_rotate(self.gts_list[rowx], self.nCols - 1)
+        #self.gts_list[rowx] = list_roll(self.gts_list[rowx], -(self.nCols - 1))
         self.show_page(onlyrows=[rowx], fulldraw=False)
 
     def prepare_page(self, fulldraw=True):
