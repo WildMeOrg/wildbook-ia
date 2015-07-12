@@ -33,6 +33,12 @@ def hyrule_reset_wildbook():
         >>> result = hyrule_reset_wildbook()
         >>> print(result)
     """
+
+    presetup_part = """
+    scp jonc@pachy.cs.uic.edu:/var/lib/tomcat/webapps/ibeis.war ~/Downloads/pachy_ibeis.war
+    # Slightly less volitile location
+    wget http://dev.wildme.org/ibeis_data_dir/ibeis.war -o ~/Downloads/ibeis.war
+    """
     assert ut.is_developer()
     delete_part = ut.codeblock(
         """
