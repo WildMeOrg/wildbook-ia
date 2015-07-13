@@ -37,7 +37,9 @@ def hyrule_reset_wildbook():
     presetup_part = """
     scp jonc@pachy.cs.uic.edu:/var/lib/tomcat/webapps/ibeis.war ~/Downloads/pachy_ibeis.war
     # Slightly less volitile location
-    wget http://dev.wildme.org/ibeis_data_dir/ibeis.war -o ~/Downloads/ibeis.war
+    rm ~/Downloads/ibeis.war
+    wget  -o ~/Downloads/ibeis.war http://dev.wildme.org/ibeis_data_dir/ibeis.war
+    wget http://dev.wildme.org/ibeis_data_dir/ibeis.war
     """
     assert ut.is_developer()
     delete_part = ut.codeblock(
@@ -88,12 +90,15 @@ def hyrule_reset_wildbook():
 
         # RUN TOMCAT SERVER (WE MUST BE IN THE TESTDIR ON STARTUP)
         $CATALINA_HOME/bin/startup.sh
-        #sleep .5
-        #$CATALINA_HOME/bin/shutdown.sh
-        #sleep .5
-        #sed -i 's/\/EncounterSetMarkedIndividual = authc, roles\[admin\]/<!--\/EncounterSetMarkedIndividual = authc, roles\[admin\]-->/' $TOMCAT_DIR/webapps/$WB_TARGET/WEB-INF/web.xml
-        #sleep .5
-        #$CATALINA_HOME/bin/startup.sh
+        sleep .5
+        $CATALINA_HOME/bin/shutdown.sh
+        sleep .5
+        sed -i 's/\/EncounterSetMarkedIndividual = authc, roles\[admin\]/<!--\/EncounterSetMarkedIndividual = authc, roles\[admin\]-->/' $TOMCAT_DIR/webapps/$WB_TARGET/WEB-INF/web.xml
+        sleep .5
+        $CATALINA_HOME/bin/startup.sh
+
+        # google-chrome --new-window http://localhost:8080/$WB_TARGET
+        # firefox http://localhost:8080/$WB_TARGET
         """
     )
 
