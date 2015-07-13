@@ -752,7 +752,7 @@ def test_score_normalization(tp_support, tn_support, with_scores=True,
         python -m vtool.score_normalization --test-test_score_normalization --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # GUI_DOCTEST
         >>> # Shows how score normalization works with gaussian noise
         >>> from vtool.score_normalization import *  # NOQA
         >>> verbose = True
