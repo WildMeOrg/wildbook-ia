@@ -2,6 +2,9 @@
 This module controls the GUI backend.  It is the layer between the GUI frontend
 (newgui.py) and the IBEIS controller.  All the functionality of the nonvisual
 gui components is written or called from here
+
+TODO:
+    open_database should not allow you to open subfolders
 """
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
@@ -1570,7 +1573,28 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def open_database(back, dbdir=None):
-        """ File -> Open Database"""
+        """
+        File -> Open Database
+
+        Args:
+            dbdir (None): (default = None)
+
+        Returns:
+            ?:
+
+        CommandLine:
+            python -m ibeis.gui.guiback --test-open_database
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> back = testdata_guiback(db='testdb1')
+            >>> import ibeis
+            >>> #dbdir = join(ibeis.sysres.get_workdir(), 'PZ_MTEST', '_ibsdb')
+            >>> dbdir = None
+            >>> result = back.open_database(dbdir)
+            >>> print(result)
+        """
         if dbdir is None:
             print('[back] new_database(): SELECT A DIRECTORY')
             #director
@@ -1580,6 +1604,7 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] open_database(dbdir=%r)' % dbdir)
         with ut.Indenter(lbl='    [opendb]'):
             try:
+                # should this use ibeis.opendb?
                 ibs = IBEISControl.IBEISController(dbdir=dbdir)
                 back.connect_ibeis_control(ibs)
             except Exception as ex:
