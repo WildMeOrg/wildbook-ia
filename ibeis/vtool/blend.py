@@ -214,7 +214,7 @@ def gridsearch_addWeighted():
         python -m vtool.blend --test-gridsearch_addWeighted --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # GRIDSEARCH
         >>> from vtool.blend import *  # NOQA
         >>> gridsearch_addWeighted()
         >>> ut.show_if_requested()
