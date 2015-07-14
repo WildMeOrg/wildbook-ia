@@ -199,8 +199,12 @@ def show_if_requested(N=1):
             vals = adjust_list * 3 + [1 - adjust_list[0]] * 2 + adjust_list
         elif len(adjust_list) == 3:
             vals = adjust_list + [1 - adjust_list[0], 1 - adjust_list[1], adjust_list[2]]
+        elif len(adjust_list) == 4:
+            vals = adjust_list[0:3] + [1 - adjust_list[0], 1 - adjust_list[1], adjust_list[3]]
+        elif len(adjust_list) == 6:
+            vals = adjust_list
         else:
-            raise NotImplementedError('vals must be len (1 or 3) not %d, adjust_list=%r' % (len(adjust_list), adjust_list))
+            raise NotImplementedError('vals must be len (1, 3, or 6) not %d, adjust_list=%r' % (len(adjust_list), adjust_list))
         adjust_kw = dict(zip(keys, vals))
         adjust_subplots(**adjust_kw)
 
@@ -1589,7 +1593,7 @@ def draw_line_segments(segments_list, **kwargs):
     #    ax.add_collection(lc)
 
 
-def draw_patches_and_sifts(patch_list, sift_list):
+def draw_patches_and_sifts(patch_list, sift_list, fnum=None, pnum=(1, 1, 1)):
     # Hacked together will not work on inputs of all sizes
     #raise NotImplementedError('unfinished')
     import plottool as pt
@@ -1607,17 +1611,19 @@ def draw_patches_and_sifts(patch_list, sift_list):
     tmp_kpts = np.vstack(
         (xs.flatten(),
          ys.flatten(),
-         width / 2 * np.ones(len(sift_list)),
-         np.zeros(len(sift_list)),
-         height / 2 * np.ones(len(sift_list)),
-         np.zeros(len(sift_list)))).T
+         width / 2 * np.ones(len(patch_list)),
+         np.zeros(len(patch_list)),
+         height / 2 * np.ones(len(patch_list)),
+         np.zeros(len(patch_list)))).T
 
-    pt.figure(fnum=1, doclf=True)
-    pt.imshow(stacked_img)
+    pt.figure(fnum=fnum, pnum=pnum, docla=True)
+    pt.imshow(stacked_img, pnum=pnum, fnum=fnum)
     #ax = pt.gca()
     #ax.invert_yaxis()
     #ax.invert_xaxis()
-    pt.draw_kpts2(tmp_kpts, sifts=sift_list)
+    if sift_list is not None:
+        pt.draw_kpts2(tmp_kpts, sifts=sift_list)
+    return gca()
     #pt.iup()
 
 
