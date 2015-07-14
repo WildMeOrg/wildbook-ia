@@ -102,6 +102,8 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
         ax_list1.append(_ax1)
         if aid in sel_aids:
             df2.draw_border(ax, df2.GREEN, 4)
+        if ut.get_argflag('--numlbl') and not DOBOTH:
+            ax.set_xlabel('(' + str(px + 1) + ')')
         #plot_aid3(ibs, aid)
 
     # HACK to show in image and not in image
@@ -112,10 +114,19 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
         ax_list2 = []
 
         show_chip_kw['in_image'] = not show_chip_kw['in_image']
-        for px, aid in enumerate(aid_list, start=px + 1):
+        start = px + 1
+        for px, aid in enumerate(aid_list, start=start):
             _fig, _ax2 = viz_chip.show_chip(ibs, aid=aid, pnum=pnum_(px), **show_chip_kw)
             ax = df2.gca()
             ax_list2.append(_ax2)
+
+            if ut.get_argflag('--numlbl'):
+                ax.set_xlabel('(' + str(px - start + 1) + ')')
+
+            if ut.get_argflag('--qualtitle'):
+                qualtext = ibs.get_annot_quality_texts(aid)
+                ax.set_title(qualtext)
+
             if aid in sel_aids:
                 df2.draw_border(ax, df2.GREEN, 4)
 

@@ -52,10 +52,7 @@ INSTALL_REQUIRES = [
     'pyrf >= 1.0.0.dev1',
     'guitool >= 1.0.0.dev1',
     'plottool >= 1.0.0.dev1',
-    'matplotlib >= 1.3.1',
     'scipy >= 0.13.2',
-    #'numpy >= 1.8.0',
-    'numpy',    # 1.10 has hard time in comparison
     'Pillow >= 2.4.0',
     'psutil',
     'requests >= 0.8.2',
@@ -69,6 +66,19 @@ INSTALL_REQUIRES = [
     #'gevent',
     #'PyQt 4/5 >= 4.9.1', # cannot include because pyqt4 is not in pip
 ]
+
+NUMPY_VERSION_BUG = False
+if NUMPY_VERSION_BUG:
+    INSTALL_REQUIRES += [
+        'matplotlib',
+        'numpy',    # 1.10 has hard time in comparison
+    ]
+
+else:
+    INSTALL_REQUIRES += [
+        #'numpy >= 1.8.0',
+        'matplotlib >= 1.3.1',
+    ]
 
 INSTALL_OPTIONAL = [
     'tornado',
@@ -98,7 +108,10 @@ if __name__ == '__main__':
         chmod_patterns=CHMOD_PATTERNS,
         clutter_patterns=CLUTTER_PATTERNS,
         clutter_dirs=CLUTTER_DIRS,
-        install_requires=INSTALL_REQUIRES
+        install_requires=INSTALL_REQUIRES,
+        scripts=[
+            '_scripts/ibeis'
+        ],
         #cython_files=CYTHON_FILES,
     )
     setup(**kwargs)

@@ -802,13 +802,20 @@ def get_num_names(ibs, **kwargs):
 @register_api('/api/name/rowids_from_text/', methods=['GET'])
 def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
     r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        name_text_list (list):
+        ensure (bool): adds as new names if non-existant (default = True)
 
     Returns:
-        species_rowid_list (list): Creates one if it doesnt exist
+        name_rowid_list (list): Creates one if it doesnt exist
 
     CommandLine:
         python -m ibeis.control.manual_name_funcs --test-get_name_rowids_from_text:0
         python -m ibeis.control.manual_name_funcs --test-get_name_rowids_from_text:1
+
+    TODO:
+        should ensure be defaulted to False?
 
     RESTful:
         Method: GET
@@ -837,47 +844,45 @@ def get_name_rowids_from_text(ibs, name_text_list, ensure=True):
         >>> print(result)
         [8, 9, 0, 10, 11, 0]
         [1, 2, 3, 4, 5, 6, 7]
+    """
+    if ensure:
+        name_rowid_list = ibs.add_names(name_text_list)
+    else:
+        name_rowid_list = ibs.get_name_rowids_from_text_(name_text_list)
+    return name_rowid_list
 
-    [0, 0, 0, 0, 0, 0]
-    [1, 2, 3, 4, 5, 6, 7]
-    [11, 12, 0, 13, 14, 0]
-    [1, 2, 3, 4, 5, 6, 7]
 
-    Example2:
+@register_ibs_method
+@accessor_decors.getter_1to1
+def get_name_rowids_from_text_(ibs, name_text_list, ensure=True):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        name_text_list (list):
+
+    Returns:
+        name_rowid_list (list):
+
+    CommandLine:
+        python -m ibeis.control.manual_name_funcs --test-get_name_rowids_from_text_
+
+    Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
         >>> import utool as ut  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
         >>> name_text_list = [u'Fred', 'easy', u'Sue', '____', u'zebra_grevys', 'TYPO', 'jeff']
-        >>> ensure = False
-        >>> name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)
+        >>> name_rowid_list = ibs.get_name_rowids_from_text_(name_text_list)
         >>> ibs.print_name_table()
         >>> result = str(name_rowid_list)
         >>> print(result)
         [None, 1, None, 0, None, None, 3]
-
     """
-    if ensure:
-        name_rowid_list = ibs.add_names(name_text_list)
-    else:
-        name_text_list_ = ibs.sanitize_name_texts(name_text_list)
-        #lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]
-        #lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)
-        #name_rowid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, name_text_list_)
-        ## Ugg species and names need their own table
-        #name_rowid_list = [ibs.UNKNOWN_NAME_ROWID if rowid is None else
-        #                      rowid for rowid in name_rowid_list]
-        #val_iter = [(text,) for text in name_text_list_]
-        name_rowid_list = ibs.db.get(const.NAME_TABLE, (NAME_ROWID,), name_text_list_, id_colname=NAME_TEXT)
-        # BIG HACK FOR ENFORCING UNKNOWN NAMES HAVE ROWID 0
-        #name_rowid_list = [ibs.UNKNOWN_NAME_ROWID if rowid is None else
-        #                      rowid for rowid in name_rowid_list]
-        #name_rowid_list = [ibs.UNKNOWN_NAME_ROWID if val is None or val == const.UNKNOWN else rowid
-        #                       for rowid, val in zip(name_rowid_list, name_text_list)]
-        name_rowid_list = [ibs.UNKNOWN_NAME_ROWID if text is None or text == const.UNKNOWN else rowid
-                               for rowid, text in zip(name_rowid_list, name_text_list_)]
-
+    name_text_list_ = ibs.sanitize_name_texts(name_text_list)
+    name_rowid_list = ibs.db.get(const.NAME_TABLE, (NAME_ROWID,), name_text_list_, id_colname=NAME_TEXT)
+    name_rowid_list = [ibs.UNKNOWN_NAME_ROWID if text is None or text == const.UNKNOWN else rowid
+                           for rowid, text in zip(name_rowid_list, name_text_list_)]
     return name_rowid_list
 
 

@@ -100,29 +100,6 @@ def postload_commands(ibs, back):
     if params.args.dump_schema:
         ibs.db.print_schema()
 
-    # Send commands to GUIBack
-    if params.args.select_aid is not None:
-        if back is not None:
-            try:
-                ibsfuncs.assert_valid_aids(ibs, (params.args.select_aid,))
-            except AssertionError:
-                print('Valid RIDs are: %r' % (ibs.get_valid_aids(),))
-                raise
-            back.select_aid(params.args.select_aid)
-    if params.args.query_aid is not None:
-        import ibeis.constants as const
-        qaid_list = params.args.query_aid
-        # fix stride case
-        if len(qaid_list) == 1 and isinstance(qaid_list[0], tuple):
-            qaid_list = list(qaid_list[0])
-        daids_mode = ut.get_argval('--daids-mode', type_=str, default=const.VS_EXEMPLARS_KEY)
-        back.compute_queries(qaid_list=qaid_list,
-                             daids_mode=daids_mode, ranks_lt=10)
-    if params.args.select_gid is not None:
-        back.select_gid(params.args.select_gid)
-    if params.args.select_nid is not None:
-        back.select_nid(params.args.select_nid)
-
     select_eid = ut.get_argval(('--select-eid', '--eid',), int, None)
     if select_eid is not None:
         print('\n+ --- CMD SELECT EID=%r ---' % (select_eid,))
@@ -132,6 +109,34 @@ def postload_commands(ibs, back):
         #back.front._change_enc(select_eid)
         back.front.select_encounter_tab(select_eid)
         print('L ___ CMD SELECT EID=%r ___\n' % (select_eid,))
+    # Send commands to GUIBack
+    if params.args.select_aid is not None:
+        if back is not None:
+            try:
+                ibsfuncs.assert_valid_aids(ibs, (params.args.select_aid,))
+            except AssertionError:
+                print('Valid RIDs are: %r' % (ibs.get_valid_aids(),))
+                raise
+            back.select_aid(params.args.select_aid)
+    if params.args.select_gid is not None:
+        back.select_gid(params.args.select_gid)
+    if params.args.select_nid is not None:
+        back.select_nid(params.args.select_nid)
+
+    select_name = ut.get_argval('--select-name')
+    if select_name is not None:
+        import ibeis.gui.guiheaders as gh
+        back.ibswgt.select_table_indicies_from_text(gh.NAMES_TREE, select_name)
+
+    if params.args.query_aid is not None:
+        import ibeis.constants as const
+        qaid_list = params.args.query_aid
+        # fix stride case
+        if len(qaid_list) == 1 and isinstance(qaid_list[0], tuple):
+            qaid_list = list(qaid_list[0])
+        daids_mode = ut.get_argval('--daids-mode', type_=str, default=const.VS_EXEMPLARS_KEY)
+        back.compute_queries(qaid_list=qaid_list,
+                             daids_mode=daids_mode, ranks_lt=10)
 
     if ut.get_argflag('--inc-query'):
         back.incremental_query()

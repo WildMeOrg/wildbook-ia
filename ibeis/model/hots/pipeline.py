@@ -122,7 +122,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         >>> qaid2_qres = request_ibeis_query_L0(ibs, qreq_, verbose=verbose)
         >>> qres = qaid2_qres[list(qaid2_qres.keys())[0]]
         >>> ut.quit_if_noshow()
-        >>> qres.show_analysis(ibs, fnum=0, make_figtitle=True)
+        >>> qres.ishow_analysis(ibs, fnum=0, make_figtitle=True)
         >>> print(qres.get_inspect_str())
         >>> ut.show_if_requested()
 
@@ -137,7 +137,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         >>> qaid2_qres1 = request_ibeis_query_L0(ibs1, qreq_1)
         >>> qres1 = qaid2_qres1[list(qaid2_qres1.keys())[0]]
         >>> ut.quit_if_noshow()
-        >>> qres1.show_analysis(ibs1, fnum=1, make_figtitle=True)
+        >>> qres1.ishow_analysis(ibs1, fnum=1, make_figtitle=True)
         >>> print(qres1.get_inspect_str())
         >>> ut.show_if_requested()
 

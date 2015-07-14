@@ -1029,6 +1029,7 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
         python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0
         python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:1
         python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:2
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0 --db=PZ_Master0 --aids=97 --exec-mode
 
     RESTful:
         Method: GET
@@ -1037,13 +1038,13 @@ def get_annot_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
     Example:
         >>> # ENABLE_DOCTEST
         >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ut.get_argval('--aids', list, ibs.get_valid_aids())
         >>> is_exemplar, noself, daid_list = None, True, None
         >>> groundtruth_list = ibs.get_annot_groundtruth(aid_list, is_exemplar, noself, daid_list)
-        >>> result = str(groundtruth_list)
+        >>> result = 'groundtruth_list = ' + str(groundtruth_list)
         >>> print(result)
-        [[], [3], [2], [], [6], [5], [], [], [], [], [], [], []]
+        groundtruth_list = [[], [3], [2], [], [6], [5], [], [], [], [], [], [], []]
 
     Example1:
         >>> # ENABLE_DOCTEST

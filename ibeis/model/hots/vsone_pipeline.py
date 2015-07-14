@@ -168,6 +168,11 @@ def vsone_independant(qreq_):
 
     CommandLine:
         python -m ibeis.model.hots.vsone_pipeline --test-vsone_independant
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0 --db=PZ_Master0 --aids=97 --exec-mode
+        python -m ibeis.model.hots.vsone_pipeline --test-vsone_independant --qaid_list=97 --daid_list=all --db PZ_Master0 --species=zebra_plains
+
+        python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show --db PZ_Master0 --qaid_list=97 --daid-list=4813,4815 --species=zebra_plains
+        --daid_list=all
 
     Example:
         >>> # DISABLE_DOCTEST
