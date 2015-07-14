@@ -167,11 +167,14 @@ def vsone_independant(qreq_):
         qreq_ (QueryRequest):  query request object with hyper-parameters
 
     CommandLine:
+        ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains
         python -m ibeis.model.hots.vsone_pipeline --test-vsone_independant
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0 --db=PZ_Master0 --aids=97 --exec-mode
-        python -m ibeis.model.hots.vsone_pipeline --test-vsone_independant --qaid_list=97 --daid_list=all --db PZ_Master0 --species=zebra_plains
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0 --db=PZ_Master0 --aids=117 --exec-mode
 
-        python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show --db PZ_Master0 --qaid_list=97 --daid-list=4813,4815 --species=zebra_plains
+        python -m ibeis.model.hots.vsone_pipeline --test-vsone_independant --qaid_list=97 --daid_list=all --db PZ_Master0 --species=zebra_plains
+        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=118,117
+
+        python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show --db PZ_Master0 --qaid_list=97 --daid-list=4813,4815
         --daid_list=all
 
     Example:
