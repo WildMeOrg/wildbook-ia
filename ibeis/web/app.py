@@ -1314,7 +1314,7 @@ def image_upload(**kwargs):
     return gid_list
 
 
-@register_api('/core/helloworld/')
+@register_api('/api/core/helloworld/')
 def hello_world(*args, **kwargs):
     print('------------------ HELLO WORLD ------------------')
     print('Args:', args)
