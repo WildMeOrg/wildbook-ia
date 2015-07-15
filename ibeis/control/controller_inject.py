@@ -242,8 +242,6 @@ def crossdomain(origin=None, methods=None, headers=None,
     if headers is not None and not isinstance(headers, basestring):
         headers = ', '.join(x.upper() for x in headers)
     if not isinstance(origin, basestring):
-        print(origin)
-        print(type(origin))
         origin = ', '.join(origin)
     if isinstance(max_age, timedelta):
         max_age = max_age.total_seconds()
@@ -289,7 +287,6 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                 # and register it with flask.
                 app = get_flask_app()
                 @app.route(rule, **options)
-                @crossdomain
                 @authentication_either
                 @wraps(func)
                 def translated_call(*args, **kwargs):
@@ -338,7 +335,6 @@ def get_ibeis_flask_route(__name__):
                 # and register it with flask.
                 app = get_flask_app()
                 @app.route(rule, **options)
-                @crossdomain
                 # @authentication_user_only
                 @wraps(func)
                 def translated_call(*args, **kwargs):
