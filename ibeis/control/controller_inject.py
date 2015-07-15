@@ -262,8 +262,10 @@ def crossdomain(origin=None, methods=None, headers=None,
             if not attach_to_all and request.method != 'OPTIONS':
                 return resp
 
+            h = resp.headers
+
             print(origin)
-            # h['Access-Control-Allow-Origin'] = origin
+            h['Access-Control-Allow-Origin'] = origin
             h['Access-Control-Allow-Origin'] = '*'
             h['Access-Control-Allow-Methods'] = get_methods()
             h['Access-Control-Max-Age'] = str(max_age)
