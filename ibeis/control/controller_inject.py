@@ -291,6 +291,9 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                 # make translation function in closure scope
                 # and register it with flask.
                 app = get_flask_app()
+                print(options)
+                if 'methods' in options and 'OPTIONS' not in options['methods']:
+                    options['methods'].append('OPTIONS')
                 @app.route(rule, **options)
                 @crossdomain(origin='*')
                 # @authentication_either
@@ -340,6 +343,9 @@ def get_ibeis_flask_route(__name__):
                 # make translation function in closure scope
                 # and register it with flask.
                 app = get_flask_app()
+                print(options)
+                if 'methods' in options and 'OPTIONS' not in options['methods']:
+                    options['methods'].append('OPTIONS')
                 @app.route(rule, **options)
                 @crossdomain(origin='*')
                 # @authentication_user_only
