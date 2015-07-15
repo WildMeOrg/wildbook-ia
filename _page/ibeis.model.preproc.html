@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.preproc package &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.model.preproc package &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,9 +28,9 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="index.html"/>
         <link rel="up" title="ibeis.model package" href="ibeis.model.html"/>
-        <link rel="next" title="ibeis.templates package" href="ibeis.templates.html"/>
+        <link rel="next" title="ibeis.scripts package" href="ibeis.scripts.html"/>
         <link rel="prev" title="ibeis.model.hots.smk package" href="ibeis.model.hots.smk.html"/> 
 
   
@@ -62,6 +62,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -632,6 +633,43 @@ a group of animals.  Animals are identified within each encounter.</p>
 <div class="section" id="module-ibeis.model.preproc.preproc_feat">
 <span id="ibeis-model-preproc-preproc-feat-module"></span><h2>ibeis.model.preproc.preproc_feat module<a class="headerlink" href="#module-ibeis.model.preproc.preproc_feat" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
+<dt id="ibeis.model.preproc.preproc_feat.extract_hesaff_sift_feats">
+<tt class="descclassname">ibeis.model.preproc.preproc_feat.</tt><tt class="descname">extract_hesaff_sift_feats</tt><big>(</big><em>cfpath_list</em>, <em>hesaff_params={}</em>, <em>cid_list=None</em>, <em>nInput=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_feat.html#extract_hesaff_sift_feats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_feat.extract_hesaff_sift_feats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to be parallelized by multiprocessing / joblib / whatever.
+Must take in one argument to be used by multiprocessing.map_async</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Kwargs:</dt>
+<dd>passed to utool.generate</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">featgen</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Cyth:</dt>
+<dd><dl class="first last docutils">
+<dt>cdef:</dt>
+<dd>list cfpath_list
+long nInput
+object cid_list
+dict hesaff_params
+dict kwargs</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.model.preproc.preproc_feat.gen_feat_openmp">
 <tt class="descclassname">ibeis.model.preproc.preproc_feat.</tt><tt class="descname">gen_feat_openmp</tt><big>(</big><em>cid_list</em>, <em>cfpath_list</em>, <em>hesaff_params</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_feat.html#gen_feat_openmp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_feat.gen_feat_openmp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute features in parallel on the C++ side, return generator here</p>
@@ -671,6 +709,13 @@ this equation. Move the firewall towards the controller</p>
 </tr>
 </tbody>
 </table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.model.preproc.preproc_feat &#8211;test-generate_feat_properties
+python -m ibeis.model.preproc.preproc_feat &#8211;test-generate_feat_properties:1</dd>
+<dt>SeeAlso:</dt>
+<dd>~/code/ibeis_cnn/ibeis_cnn/_plugin.py</dd>
+</dl>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.preproc.preproc_feat</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
@@ -691,43 +736,24 @@ this equation. Move the firewall towards the controller</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">128</span>
 </pre></div>
 </div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.model.preproc.preproc_feat.generate_feats">
-<tt class="descclassname">ibeis.model.preproc.preproc_feat.</tt><tt class="descname">generate_feats</tt><big>(</big><em>cfpath_list</em>, <em>hesaff_params={}</em>, <em>cid_list=None</em>, <em>nInput=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_feat.html#generate_feats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_feat.generate_feats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function to be parallelized by multiprocessing / joblib / whatever.
-Must take in one argument to be used by multiprocessing.map_async</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-</tbody>
-</table>
-<dl class="docutils">
-<dt>Kwargs:</dt>
-<dd>passed to utool.generate</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">featgen</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>Cyth:</dt>
-<dd><dl class="first last docutils">
-<dt>cdef:</dt>
-<dd>list cfpath_list
-long nInput
-object cid_list
-dict hesaff_params
-dict kwargs</dd>
-</dl>
-</dd>
-</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.preproc.preproc_feat</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span><span class="p">[</span><span class="s">&#39;feat_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;hesaff+siam128&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">query_config2</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_config2</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_data_config2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="n">query_config2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nInput</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">featgen</span> <span class="o">=</span> <span class="n">generate_feat_properties</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="p">,</span> <span class="n">nInput</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">featgen</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -902,8 +928,11 @@ pt.update()</p>
 <dt id="ibeis.model.preproc.preproc_image.add_images_params_gen">
 <tt class="descclassname">ibeis.model.preproc.preproc_image.</tt><tt class="descname">add_images_params_gen</tt><big>(</big><em>gpath_list</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_image.html#add_images_params_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_image.add_images_params_gen" title="Permalink to this definition">¶</a></dt>
 <dd><p>generates values for add_images sqlcommands asychronously</p>
-<p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.model.preproc.preproc_image &#8211;test-add_images_params_gen</dd>
+<dt>Example0:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.preproc.preproc_image</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">vtool.tests</span> <span class="kn">import</span> <span class="n">grabdata</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gpath_list</span> <span class="o">=</span> <span class="n">grabdata</span><span class="o">.</span><span class="n">get_test_gpaths</span><span class="p">(</span><span class="n">ndata</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;doesnotexist.jpg&#39;</span><span class="p">]</span>
@@ -913,7 +942,7 @@ pt.update()</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">params_list</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span>
 </pre></div>
 </div>
-<dl class="docutils">
+</dd>
 <dt>Cyth::</dt>
 <dd><dl class="first last docutils">
 <dt>cdef:</dt>
@@ -922,21 +951,6 @@ dict kwargs</dd>
 </dl>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.model.preproc.preproc_image.get_image_uuid">
-<tt class="descclassname">ibeis.model.preproc.preproc_image.</tt><tt class="descname">get_image_uuid</tt><big>(</big><em>pil_img</em><big>)</big><a class="reference internal" href="_modules/ibeis/model/preproc/preproc_image.html#get_image_uuid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.model.preproc.preproc_image.get_image_uuid" title="Permalink to this definition">¶</a></dt>
-<dd><p>DEPRICATE</p>
-<p>Cyth:</p>
-<div class="highlight-python"><div class="highlight"><pre>cdef:
-    UUID uuid_
-    object img_bytes_
-    object bytes_sha1
-    object hashbytes_16
-    object hashbytes_20
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="function">
@@ -1193,7 +1207,8 @@ python -m ibeis.model.preproc.preproc_probchip &#8211;test-get_extramargin_detec
 <p><a class="reference external" href="http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html">http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html</a></p>
 <dl class="docutils">
 <dt>CommandLine:</dt>
-<dd>python -m ibeis.model.preproc.preproc_probchip &#8211;test-postprocess_dev</dd>
+<dd>python -m ibeis.model.preproc.preproc_probchip &#8211;test-postprocess_dev
+python -m ibeis.model.preproc.preproc_probchip &#8211;test-postprocess_dev &#8211;db Elephants_drop1_ears</dd>
 <dt>CommandLine:</dt>
 <dd>python -m ibeis.model.preproc.preproc_probchip &#8211;test-postprocess_dev</dd>
 </dl>
@@ -1264,7 +1279,7 @@ python -m ibeis.model.preproc.preproc_probchip &#8211;test-get_extramargin_detec
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="ibeis.templates.html" class="btn btn-neutral float-right" title="ibeis.templates package"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="ibeis.scripts.html" class="btn btn-neutral float-right" title="ibeis.scripts package"/>Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="ibeis.model.hots.smk.html" class="btn btn-neutral" title="ibeis.model.hots.smk package"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -1296,7 +1311,7 @@ python -m ibeis.model.preproc.preproc_probchip &#8211;test-get_extramargin_detec
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_matches &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.viz.viz_matches &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -327,6 +328,8 @@
     <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
     <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;viztype&#39;</span><span class="p">,</span> <span class="s">&#39;multi_match&#39;</span><span class="p">)</span>
     <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;qaid&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;num_matches&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid_list&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
     <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,),</span> <span class="n">aid</span><span class="p">)</span>
 
@@ -432,19 +435,21 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="n">ax</span><span class="p">,</span> <span class="n">xywh1</span><span class="p">,</span> <span class="n">xywh2</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">show_chipmatch2</span><span class="p">(</span><span class="n">rchip1</span><span class="p">,</span> <span class="n">rchip2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span>
                                                <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span> <span class="n">fm_norm</span><span class="o">=</span><span class="n">fm_norm</span><span class="p">,</span>
-                                               <span class="n">H1</span><span class="o">=</span><span class="n">H1</span><span class="p">,</span> <span class="n">H2</span><span class="o">=</span><span class="n">H2</span><span class="p">,</span> <span class="n">lbl1</span><span class="o">=</span><span class="n">lbl1</span><span class="p">,</span> <span class="n">lbl2</span><span class="o">=</span><span class="n">lbl2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                                               <span class="n">H1</span><span class="o">=</span><span class="n">H1</span><span class="p">,</span> <span class="n">H2</span><span class="o">=</span><span class="n">H2</span><span class="p">,</span> <span class="n">lbl1</span><span class="o">=</span><span class="n">lbl1</span><span class="p">,</span>
+                                              <span class="n">lbl2</span><span class="o">=</span><span class="n">lbl2</span><span class="p">,</span> <span class="n">sel_fm</span><span class="o">=</span><span class="n">sel_fm</span><span class="p">,</span>
+                                              <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;consider qr.remove_corrupted_queries&#39;</span><span class="p">,</span>
                       <span class="s">&#39;[viz_matches]&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
         <span class="k">raise</span>
+    <span class="c"># Moved the code into show_chipmatch</span>
+    <span class="c">#if len(sel_fm) &gt; 0:</span>
+    <span class="c">#    # Draw any selected matches</span>
+    <span class="c">#    sm_kw = dict(rect=True, colors=pt.BLUE)</span>
+    <span class="c">#    pt.plot_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, **sm_kw)</span>
     <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">w1</span><span class="p">,</span> <span class="n">h1</span><span class="p">)</span> <span class="o">=</span> <span class="n">xywh1</span>
     <span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">w2</span><span class="p">,</span> <span class="n">h2</span><span class="p">)</span> <span class="o">=</span> <span class="n">xywh2</span>
-    <span class="c"># TODO: MOVE TO ANNOTATE MATCHES</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_fm</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="c"># Draw any selected matches</span>
-        <span class="n">sm_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">rect</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">BLUE</span><span class="p">)</span>
-        <span class="n">pt</span><span class="o">.</span><span class="n">plot_fmatch</span><span class="p">(</span><span class="n">xywh1</span><span class="p">,</span> <span class="n">xywh2</span><span class="p">,</span> <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">sel_fm</span><span class="p">,</span> <span class="o">**</span><span class="n">sm_kw</span><span class="p">)</span>
     <span class="n">offset1</span> <span class="o">=</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">)</span>
     <span class="n">offset2</span> <span class="o">=</span> <span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
     <span class="n">annotate_matches2</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">xywh2</span><span class="o">=</span><span class="n">xywh2</span><span class="p">,</span> <span class="n">xywh1</span><span class="o">=</span><span class="n">xywh1</span><span class="p">,</span>
@@ -782,7 +787,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

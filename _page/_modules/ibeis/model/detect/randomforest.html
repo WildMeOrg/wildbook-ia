@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.detect.randomforest &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.model.detect.randomforest &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.detect" href="../detect.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -375,7 +376,9 @@
 <span class="c">########################</span>
 
 </div>
-<span class="k">def</span> <span class="nf">_overlap_percentage</span><span class="p">((</span><span class="n">xmin1</span><span class="p">,</span> <span class="n">xmax1</span><span class="p">,</span> <span class="n">ymin1</span><span class="p">,</span> <span class="n">ymax1</span><span class="p">),</span> <span class="p">(</span><span class="n">xmin2</span><span class="p">,</span> <span class="n">xmax2</span><span class="p">,</span> <span class="n">ymin2</span><span class="p">,</span> <span class="n">ymax2</span><span class="p">)):</span>
+<span class="k">def</span> <span class="nf">_overlap_percentage</span><span class="p">(</span><span class="n">minmax_tup1</span><span class="p">,</span> <span class="n">minmax_tup2</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">xmin1</span><span class="p">,</span> <span class="n">xmax1</span><span class="p">,</span> <span class="n">ymin1</span><span class="p">,</span> <span class="n">ymax1</span><span class="p">)</span> <span class="o">=</span> <span class="n">minmax_tup1</span>
+    <span class="p">(</span><span class="n">xmin2</span><span class="p">,</span> <span class="n">xmax2</span><span class="p">,</span> <span class="n">ymin2</span><span class="p">,</span> <span class="n">ymax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">minmax_tup2</span>
     <span class="n">width1</span><span class="p">,</span> <span class="n">height1</span> <span class="o">=</span> <span class="n">xmax1</span> <span class="o">-</span> <span class="n">xmin1</span><span class="p">,</span> <span class="n">ymax1</span> <span class="o">-</span> <span class="n">ymin1</span>
     <span class="n">width2</span><span class="p">,</span> <span class="n">height2</span> <span class="o">=</span> <span class="n">xmax2</span> <span class="o">-</span> <span class="n">xmin2</span><span class="p">,</span> <span class="n">ymax2</span> <span class="o">-</span> <span class="n">ymin2</span>
     <span class="n">x_overlap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">xmax1</span><span class="p">,</span> <span class="n">xmax2</span><span class="p">)</span> <span class="o">-</span> <span class="nb">max</span><span class="p">(</span><span class="n">xmin1</span><span class="p">,</span> <span class="n">xmin2</span><span class="p">))</span>
@@ -458,7 +461,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

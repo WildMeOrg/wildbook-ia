@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control package &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.control package &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.dbio package" href="ibeis.dbio.html"/>
         <link rel="prev" title="ibeis package" href="ibeis.html"/> 
@@ -62,6 +62,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -406,6 +407,11 @@ theta - angle of rotation for a chip</dd>
 </dd></dl>
 
 <dl class="method">
+<dt id="ibeis.control.IBEISControl.IBEISController.clear_table_cache">
+<tt class="descname">clear_table_cache</tt><big>(</big><em>ibs</em>, <em>tablename=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.clear_table_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.clear_table_cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.clone_handle">
 <tt class="descname">clone_handle</tt><big>(</big><em>ibs</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.clone_handle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.clone_handle" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -434,14 +440,14 @@ theta - angle of rotation for a chip</dd>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ungr_eid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_eids_from_text</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">UNGROUPED_IMAGES_ENCTEXT</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ungr_gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">([</span><span class="n">ungr_eid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c">#Now let&#39;s make sure that when we recompute encounters, our non-special eid remains the same</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;PRE COMPUTE: Encounters are </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;Containing: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;PRE COMPUTE: Encounters are </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;Containing: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">compute_encounters</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;COMPUTE: New encounters are </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;Containing: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;COMPUTE: New encounters are </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;Containing: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">update_special_encounters</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;UPDATE SPECIAL: New encounters are </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;Containing: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;UPDATE SPECIAL: New encounters are </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;Containing: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span><span class="p">(</span><span class="n">images_to_remove</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">nonspecial_eids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span>
 </pre></div>
 </div>
@@ -514,28 +520,6 @@ URL:    /api/core/detect_random_forest/</dd>
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.control.IBEISControl.IBEISController.export_to_wildbook">
-<tt class="descname">export_to_wildbook</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.export_to_wildbook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.export_to_wildbook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exports identified chips to wildbook</p>
-<dl class="docutils">
-<dt>Legacy:</dt>
-<dd><p class="first">import ibeis.dbio.export_wb as wb
-print(&#8216;[ibs] exporting to wildbook&#8217;)
-eid_list = ibs.get_valid_eids()
-addr = &#8220;<a class="reference external" href="http://127.0.0.1:8080/wildbook-4.1.0-RELEASE">http://127.0.0.1:8080/wildbook-4.1.0-RELEASE</a>&#8221;
-#addr = &#8220;<a class="reference external" href="http://tomcat:tomcat123&#64;127.0.0.1:8080/wildbook-5.0.0-EXPERIMENTAL">http://tomcat:tomcat123&#64;127.0.0.1:8080/wildbook-5.0.0-EXPERIMENTAL</a>&#8221;
-ibs._init_wb(addr)
-wb.export_ibeis_to_wildbook(ibs, eid_list)</p>
-<p class="last"># compute encounters
-# get encounters by id
-# get ANNOTATIONs by encounter id
-# submit requests to wildbook
-return None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.get_big_cachedir">
 <tt class="descname">get_big_cachedir</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_big_cachedir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_big_cachedir" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
@@ -565,6 +549,12 @@ database directory of all cached files</td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.control.IBEISControl.IBEISController.get_cachestats_str">
+<tt class="descname">get_cachestats_str</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.get_cachestats_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.get_cachestats_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns info about the underlying SQL cache memory</p>
 </dd></dl>
 
 <dl class="method">
@@ -970,6 +960,11 @@ URL:    /api/core/has_species_detector/</dd>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="ibeis.control.IBEISControl.IBEISController.print_cachestats_str">
+<tt class="descname">print_cachestats_str</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.print_cachestats_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.print_cachestats_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.query_all">
 <tt class="descname">query_all</tt><big>(</big><em>ibs</em>, <em>qaid_list</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.query_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.query_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>DEPRICATED</p>
@@ -983,7 +978,7 @@ URL:    /api/core/query_all/</dd>
 
 <dl class="method">
 <dt id="ibeis.control.IBEISControl.IBEISController.query_chips">
-<tt class="descname">query_chips</tt><big>(</big><em>ibs</em>, <em>qaid_list=None</em>, <em>daid_list=None</em>, <em>cfgdict=None</em>, <em>use_cache=None</em>, <em>use_bigcache=None</em>, <em>qreq_=None</em>, <em>return_request=False</em>, <em>verbose=False</em>, <em>save_qcache=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.query_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.query_chips" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">query_chips</tt><big>(</big><em>ibs</em>, <em>qaid_list=None</em>, <em>daid_list=None</em>, <em>cfgdict=None</em>, <em>use_cache=None</em>, <em>use_bigcache=None</em>, <em>qreq_=None</em>, <em>return_request=False</em>, <em>verbose=False</em>, <em>save_qcache=None</em>, <em>prog_hook=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.query_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.query_chips" title="Permalink to this definition">¶</a></dt>
 <dd><p>Submits a query request to the hotspotter recognition pipeline. Returns
 a list of QueryResult objects.</p>
 <div class="admonition note">
@@ -1005,7 +1000,7 @@ objects</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a list of QueryResult objects</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a list of QueryResult objects containing the matching annotations, scores, and feature matches</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
@@ -1087,17 +1082,6 @@ URL:    /api/core/query_exemplars/</dd>
 <tt class="descname">unregister_controller</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.unregister_controller"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.unregister_controller" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="ibeis.control.IBEISControl.IBEISController.wildbook_signal_eid_list">
-<tt class="descname">wildbook_signal_eid_list</tt><big>(</big><em>ibs</em>, <em>eid_list=None</em>, <em>set_shipped_flag=True</em>, <em>open_url=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/IBEISControl.html#IBEISController.wildbook_signal_eid_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.IBEISControl.IBEISController.wildbook_signal_eid_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exports specified encounters to wildbook</p>
-<dl class="docutils">
-<dt>RESTful:</dt>
-<dd>Method: PUT
-URL:    /api/core/wildbook_signal_eid_list/</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="function">
@@ -1114,9 +1098,17 @@ return a memory cached object</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">ibs</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dbdir</strong> (<em>str</em>) &#8211; databse directory</li>
+<li><strong>use_cache</strong> (<em>bool</em>) &#8211; use the global ibeis controller cache. (default=True)</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">IBEISController</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">ibs</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">IBEISController</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -3204,7 +3196,9 @@ varargs are currently unallowed</p>
 <li><strong>tablename</strong> (<em>str</em>) &#8211; the table that the owns the underlying cache</li>
 <li><strong>colnames</strong> (<em>list</em>) &#8211; the list of cached column that this function will invalidate</li>
 <li><strong>rowidx</strong> (<em>int</em>) &#8211; the position (not including self) of the invalidated
-table&#8217;s native rowid in the argument signature.</li>
+table&#8217;s native rowid in the writer function&#8217;s argument
+signature. If this does not exist you should use None.
+(default=None)</li>
 </ul>
 </td>
 </tr>
@@ -3308,11 +3302,6 @@ list and returns a homogenous list of values</p>
 <tt class="descclassname">ibeis.control.accessor_decors.</tt><tt class="descname">setter</tt><big>(</big><em>func</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/accessor_decors.html#setter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.accessor_decors.setter" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="ibeis.control.accessor_decors.setter_general">
-<tt class="descclassname">ibeis.control.accessor_decors.</tt><tt class="descname">setter_general</tt><big>(</big><em>func</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/accessor_decors.html#setter_general"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.accessor_decors.setter_general" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </div>
 <div class="section" id="module-ibeis.control.autowrap_api_decorators">
 <span id="ibeis-control-autowrap-api-decorators-module"></span><h2>ibeis.control.autowrap_api_decorators module<a class="headerlink" href="#module-ibeis.control.autowrap_api_decorators" title="Permalink to this headline">¶</a></h2>
@@ -3400,6 +3389,11 @@ password combination is valid.</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="ibeis.control.controller_inject.crossdomain">
+<tt class="descclassname">ibeis.control.controller_inject.</tt><tt class="descname">crossdomain</tt><big>(</big><em>origin=None</em>, <em>methods=None</em>, <em>headers=None</em>, <em>max_age=21600</em>, <em>attach_to_all=True</em>, <em>automatic_options=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/controller_inject.html#crossdomain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.controller_inject.crossdomain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.control.controller_inject.find_unregistered_methods">
 <tt class="descclassname">ibeis.control.controller_inject.</tt><tt class="descname">find_unregistered_methods</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/control/controller_inject.html#find_unregistered_methods"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.controller_inject.find_unregistered_methods" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
@@ -3422,7 +3416,7 @@ password combination is valid.</p>
 
 <dl class="function">
 <dt id="ibeis.control.controller_inject.get_ibeis_flask_api">
-<tt class="descclassname">ibeis.control.controller_inject.</tt><tt class="descname">get_ibeis_flask_api</tt><big>(</big><em>__name__</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/controller_inject.html#get_ibeis_flask_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.controller_inject.get_ibeis_flask_api" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.control.controller_inject.</tt><tt class="descname">get_ibeis_flask_api</tt><big>(</big><em>__name__</em>, <em>DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/controller_inject.html#get_ibeis_flask_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.controller_inject.get_ibeis_flask_api" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -3458,7 +3452,7 @@ password combination is valid.</p>
 
 <dl class="function">
 <dt id="ibeis.control.controller_inject.translate_ibeis_webreturn">
-<tt class="descclassname">ibeis.control.controller_inject.</tt><tt class="descname">translate_ibeis_webreturn</tt><big>(</big><em>rawreturn</em>, <em>success=True</em>, <em>code=None</em>, <em>message=None</em>, <em>cache=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/controller_inject.html#translate_ibeis_webreturn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.controller_inject.translate_ibeis_webreturn" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.control.controller_inject.</tt><tt class="descname">translate_ibeis_webreturn</tt><big>(</big><em>rawreturn</em>, <em>success=True</em>, <em>code=None</em>, <em>message=None</em>, <em>jQuery_callback=None</em>, <em>cache=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/controller_inject.html#translate_ibeis_webreturn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.controller_inject.translate_ibeis_webreturn" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -3622,6 +3616,57 @@ URL:    /api/annot/speciesids/</dd>
 <dd>Method: DELETE
 URL:    /api/annot/</dd>
 </dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</li>
+<li><strong>aid_list</strong> (<em>int</em>) &#8211; list of annotation ids</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.control.manual_annot_funcs &#8211;test-delete_annots
+python -m ibeis.control.manual_annot_funcs &#8211;test-delete_annots &#8211;debug-api-cache
+python -m ibeis.control.manual_annot_funcs &#8211;test-delete_annots</dd>
+<dt>SeeAlso:</dt>
+<dd>back.delete_annot</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.manual_annot_funcs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_nids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Add some annotations to delete</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">num_add</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="n">num_add</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_add</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">int</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="o">.</span><span class="mi">1</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="o">.</span><span class="mi">6</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="o">.</span><span class="mi">5</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span>  <span class="o">.</span><span class="mi">3</span><span class="p">))</span>
+<span class="gp">... </span>             <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_sizes</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="o">=</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="o">=</span><span class="n">nid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">new_aid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">new_aid_list</span><span class="p">),</span> <span class="n">nid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span> <span class="o">==</span> <span class="n">new_aid_list</span><span class="p">,</span> <span class="s">&#39;annots should all have same name&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">new_aid_list</span> <span class="o">==</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid</span><span class="p">),</span> <span class="s">&#39;inverse name mapping should work&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">before_gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;BEFORE gids: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">before_gids</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annots</span><span class="p">(</span><span class="n">new_aid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span> <span class="o">==</span> <span class="p">[],</span> <span class="s">&#39;annots should be removed&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">after_gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">after_gids</span> <span class="o">!=</span> <span class="n">before_gids</span><span class="p">,</span> <span class="s">&#39;the invalidators must have bugs&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;AFTER gids: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">after_gids</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">valid_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span>  <span class="p">[</span><span class="n">aid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_aids</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">new_aid_list</span><span class="p">],</span> <span class="s">&#39;should no longer be valid aids&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_nids</span><span class="p">()</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -3782,6 +3827,23 @@ URL:    /api/annot/age_months_est_min_texts/</dd>
 <dd>Method: GET
 URL:    /api/annot/age_months_est_texts/</dd>
 </dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_annot_funcs.get_annot_aid">
+<tt class="descclassname">ibeis.control.manual_annot_funcs.</tt><tt class="descname">get_annot_aid</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>eager=True</em>, <em>nInput=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_annot_funcs.html#get_annot_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_annot_funcs.get_annot_aid" title="Permalink to this definition">¶</a></dt>
+<dd><p>self verifier
+.. rubric:: Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.IBEISControl</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10434320432</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aid</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="p">[</span><span class="n">r</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">aid_list_</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="p">[</span><span class="n">r</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">aid_list_</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">3</span><span class="p">]]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -4138,7 +4200,8 @@ a groundtruth.  A list of these is called a groundtruth_list.</td>
 <dt>CommandLine:</dt>
 <dd>python -m ibeis.control.manual_annot_funcs &#8211;test-get_annot_groundtruth:0
 python -m ibeis.control.manual_annot_funcs &#8211;test-get_annot_groundtruth:1
-python -m ibeis.control.manual_annot_funcs &#8211;test-get_annot_groundtruth:2</dd>
+python -m ibeis.control.manual_annot_funcs &#8211;test-get_annot_groundtruth:2
+python -m ibeis.control.manual_annot_funcs &#8211;test-get_annot_groundtruth:0 &#8211;db=PZ_Master0 &#8211;aids=97 &#8211;exec-mode</dd>
 <dt>RESTful:</dt>
 <dd>Method: GET
 URL:    /api/annot/groundtruth/</dd>
@@ -4146,13 +4209,13 @@ URL:    /api/annot/groundtruth/</dd>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--aids&#39;</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">is_exemplar</span><span class="p">,</span> <span class="n">noself</span><span class="p">,</span> <span class="n">daid_list</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">groundtruth_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">is_exemplar</span><span class="p">,</span> <span class="n">noself</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">groundtruth_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s">&#39;groundtruth_list = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">groundtruth_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">[[], [3], [2], [], [6], [5], [], [], [], [], [], [], []]</span>
+<span class="go">groundtruth_list = [[], [3], [2], [], [6], [5], [], [], [], [], [], [], []]</span>
 </pre></div>
 </div>
 <dl class="docutils">
@@ -4812,6 +4875,9 @@ number of other chips with the same name</td>
 </tbody>
 </table>
 <dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: GET
+URL:    /api/annot/num_groundtruth/</dd>
 <dt>CommandLine:</dt>
 <dd>python -m ibeis.control.manual_annot_funcs &#8211;test-get_annot_num_groundtruth
 python -m ibeis.control.manual_annot_funcs &#8211;test-get_annot_num_groundtruth:0
@@ -4842,9 +4908,6 @@ python -m ibeis.control.manual_annot_funcs &#8211;test-get_annot_num_groundtruth
 </pre></div>
 </div>
 </dd>
-<dt>RESTful:</dt>
-<dd>Method: GET
-URL:    /api/annot/num_groundtruth/</dd>
 </dl>
 </dd></dl>
 
@@ -4932,7 +4995,7 @@ URL:    /api/annot/probchip_fpath/</dd>
 <dd>Tgetter_table_column
 col = annot_quality
 tbl = annot</dd>
-<dt>SeeALso:</dt>
+<dt>SeeAlso:</dt>
 <dd>ibeis.const.QUALITY_INT_TO_TEXT</dd>
 <dt>RESTful:</dt>
 <dd>Method: GET
@@ -4959,6 +5022,77 @@ URL:    /api/annot/qualities/</dd>
 <dt>RESTful:</dt>
 <dd>Method: GET
 URL:    /api/annot/quality_texts/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_annot_funcs.get_annot_rotated_verts">
+<tt class="descclassname">ibeis.control.manual_annot_funcs.</tt><tt class="descname">get_annot_rotated_verts</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_annot_funcs.html#get_annot_rotated_verts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_annot_funcs.get_annot_rotated_verts" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>rotated_vert_list</strong> &#8211;
+verticies after rotation by theta.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: GET
+URL:    /api/annot/rotated_verts/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_annot_funcs.get_annot_rowids_from_partial_vuuids">
+<tt class="descclassname">ibeis.control.manual_annot_funcs.</tt><tt class="descname">get_annot_rowids_from_partial_vuuids</tt><big>(</big><em>ibs</em>, <em>partial_vuuid_strs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_annot_funcs.html#get_annot_rowids_from_partial_vuuids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_annot_funcs.get_annot_rowids_from_partial_vuuids" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.control.manual_annot_funcs &#8211;test-get_annots_from_partial_uuids</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.manual_annot_funcs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[::</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vuuids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">partial_vuuid_strs</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">vuuids</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids_list</span> <span class="o">=</span> <span class="n">get_annot_rowids_from_partial_vuuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">partial_uuid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">[[1], [3], [5], [7], [9], [11], [13]]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_annot_funcs.get_annot_rowids_from_visual_uuid">
+<tt class="descclassname">ibeis.control.manual_annot_funcs.</tt><tt class="descname">get_annot_rowids_from_visual_uuid</tt><big>(</big><em>ibs</em>, <em>visual_uuid_list</em><big>)</big><a class="headerlink" href="#ibeis.control.manual_annot_funcs.get_annot_rowids_from_visual_uuid" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">annot rowids</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: GET
+URL:    /api/annot/aids_from_visual_uuid/</dd>
 </dl>
 </dd></dl>
 
@@ -5226,8 +5360,13 @@ URL:    /api/annot/verts/</dd>
 <dl class="function">
 <dt id="ibeis.control.manual_annot_funcs.get_annot_visual_uuid_info">
 <tt class="descclassname">ibeis.control.manual_annot_funcs.</tt><tt class="descname">get_annot_visual_uuid_info</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_annot_funcs.html#get_annot_visual_uuid_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_annot_funcs.get_annot_visual_uuid_info" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns annotation UUID that is unique for the visual qualities
-of the annoation. does not include name ore species information.</p>
+<dd><p>Returns information used to compute annotation UUID.
+The image uuid, annotation verticies, are theta is hashted together to</p>
+<blockquote>
+<div><blockquote>
+<div>compute the visual uuid.</div></blockquote>
+<p>The visual uuid does not include name or species information.</p>
+</div></blockquote>
 <p>get_annot_visual_uuid_info</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -5240,6 +5379,9 @@ of the annoation. does not include name ore species information.</p>
 </tbody>
 </table>
 <dl class="docutils">
+<dt>SeeAlso:</dt>
+<dd>get_annot_visual_uuids
+get_annot_semantic_uuid_info</dd>
 <dt>CommandLine:</dt>
 <dd>python -m ibeis.control.manual_annot_funcs &#8211;test-get_annot_visual_uuid_info</dd>
 <dt>RESTful:</dt>
@@ -5263,7 +5405,10 @@ URL:    /api/annot/visual_uuid_info/</dd>
 <dl class="function">
 <dt id="ibeis.control.manual_annot_funcs.get_annot_visual_uuids">
 <tt class="descclassname">ibeis.control.manual_annot_funcs.</tt><tt class="descname">get_annot_visual_uuids</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_annot_funcs.html#get_annot_visual_uuids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_annot_funcs.get_annot_visual_uuids" title="Permalink to this definition">¶</a></dt>
-<dd><p>annot_visual_uuid_list &lt;- annot.annot_visual_uuid[aid_list]</p>
+<dd><p>The image uuid, annotation verticies, are theta is hashted together to
+compute the visual uuid.  The visual uuid does not include name or species
+information.</p>
+<p>annot_visual_uuid_list &lt;- annot.annot_visual_uuid[aid_list]</p>
 <p>gets data from the &#8220;native&#8221; column &#8220;annot_visual_uuid&#8221; in the &#8220;annot&#8221; table</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -5314,10 +5459,12 @@ URL:    /api/annot/yaw_texts/</dd>
 Viewpoint yaw is inverted. Will be fixed soon.</p>
 <dl class="docutils">
 <dt>The following views have these angles of yaw:</dt>
-<dd>left side  - 0.50 tau radians
+<dd><p class="first">left side  - 0.50 tau radians
 front side - 0.25 tau radians
-right side - 0.00 radians
-back side  - 0.75 tau radians</dd>
+right side - 0.00 tau radians
+back side  - 0.75 tau radians</p>
+<p class="last">tau = 2 * pi</p>
+</dd>
 <dt>SeeAlso:</dt>
 <dd>ibies.const.VIEWTEXT_TO_YAW_RADIANS</dd>
 </dl>
@@ -5376,8 +5523,14 @@ URL:    /api/annot/numations/</dd>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</li>
-<li><strong>include_only_gid_list</strong> (<em>list</em>) &#8211; if specified filters annots not in these gids</li>
-<li><strong>is_exemplar</strong> (<em>bool</em>) &#8211; if specified filters annots to either be or not be exemplars</li>
+<li><strong>eid</strong> (<em>int</em>) &#8211; encounter id (default = None)</li>
+<li><strong>include_only_gid_list</strong> (<em>list</em>) &#8211; if specified filters annots not in these gids (default = None)</li>
+<li><strong>yaw</strong> (<em>str</em>) &#8211; (default = &#8216;no-filter&#8217;)</li>
+<li><strong>is_exemplar</strong> (<em>bool</em>) &#8211; if specified filters annots to either be or not be exemplars (default = None)</li>
+<li><strong>species</strong> (<em>str</em>) &#8211; (default = None)</li>
+<li><strong>is_known</strong> (<em>bool</em>) &#8211; (default = None)</li>
+<li><strong>nojunk</strong> (<em>bool</em>) &#8211; (default = False)</li>
+<li><strong>hasgt</strong> (<em>bool</em>) &#8211; (default = None)</li>
 </ul>
 </td>
 </tr>
@@ -5701,7 +5854,8 @@ URL:    /api/annot/notes/</dd>
 <dl class="function">
 <dt id="ibeis.control.manual_annot_funcs.set_annot_parent_rowid">
 <tt class="descclassname">ibeis.control.manual_annot_funcs.</tt><tt class="descname">set_annot_parent_rowid</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>parent_aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_annot_funcs.html#set_annot_parent_rowid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_annot_funcs.set_annot_parent_rowid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the annotation&#8217;s parent aid</p>
+<dd><p>Sets the annotation&#8217;s parent aid.
+TODO DEPRICATE IN FAVOR OF SEPARATE PARTS TABLE</p>
 <dl class="docutils">
 <dt>RESTful:</dt>
 <dd>Method: PUT
@@ -5825,10 +5979,12 @@ URL:    /api/annot/yaw_texts/</dd>
 Viewpoint yaw is inverted. Will be fixed soon.</p>
 <dl class="docutils">
 <dt>The following views have these angles of yaw:</dt>
-<dd>left side  - 0.00 tau radians
+<dd><p class="first">left side  - 0.00 tau radians
 front side - 0.25 tau radians
-right side - 0.50 radians
-back side  - 0.75 tau radians</dd>
+right side - 0.50 tau radians
+back side  - 0.75 tau radians</p>
+<p class="last">tau = 2 * pi</p>
+</dd>
 <dt>SeeAlso:</dt>
 <dd>ibies.const.VIEWTEXT_TO_YAW_RADIANS</dd>
 <dt>References;</dt>
@@ -6810,6 +6966,35 @@ a list of list of aids in each encounter</td>
 <dd>Method: GET
 URL:    /api/encounter/aids/</dd>
 </dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">aids_list</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.control.manual_encounter_funcs &#8211;test-get_encounter_aids</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.manual_encounter_funcs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_encounters</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">compute_encounters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids_list</span> <span class="o">=</span> <span class="n">get_encounter_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">eid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;aids_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">aids_list</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -7850,43 +8035,47 @@ annotation descriptor keypoints</p>
 python -m ibeis.control.manual_feat_funcs &#8211;test-get_annot_kpts &#8211;show &#8211;darken .9
 python -m ibeis.control.manual_feat_funcs &#8211;test-get_annot_kpts &#8211;show &#8211;darken .9 &#8211;verbose
 python -m ibeis.control.manual_feat_funcs &#8211;test-get_annot_kpts &#8211;show &#8211;darken .9 &#8211;verbose &#8211;no-affine-invariance
-python -m ibeis.control.manual_feat_funcs &#8211;test-get_annot_kpts &#8211;show &#8211;darken .9 &#8211;verbose &#8211;no-affine-invariance &#8211;scale_max=20</dd>
+python -m ibeis.control.manual_feat_funcs &#8211;test-get_annot_kpts &#8211;show &#8211;darken .9 &#8211;verbose &#8211;no-affine-invariance &#8211;scale_max=20
+python -m ibeis.control.manual_feat_funcs &#8211;test-get_annot_kpts &#8211;show &#8211;feat_type=hesaff+siam128
+ipython -i &#8211; &#8211;show &#8211;feat_type=hesaff+siam128</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.manual_feat_funcs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis.viz.interact</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq1_</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">preload</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">rotation_invariance</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq2_</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">get_pipeline_testdata</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">preload</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">rotation_invariance</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">qreq1_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;qreq1 params: &#39;</span> <span class="o">+</span> <span class="n">qreq1_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;qreq2 params: &#39;</span> <span class="o">+</span> <span class="n">qreq2_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;id(qreq1): &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">qreq1_</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;id(qreq2): &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">qreq2_</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;feat_config_rowid1 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_config_rowid</span><span class="p">(</span><span class="n">config2_</span><span class="o">=</span><span class="n">qreq1_</span><span class="p">),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;feat_config_rowid2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_config_rowid</span><span class="p">(</span><span class="n">config2_</span><span class="o">=</span><span class="n">qreq2_</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[TEST_GET_ANNOT_KPTS]&#39;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s">&#39;qreq1 params: &#39;</span> <span class="o">+</span> <span class="n">qreq1_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s">&#39;qreq2 params: &#39;</span> <span class="o">+</span> <span class="n">qreq2_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s">&#39;id(qreq1): &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">qreq1_</span><span class="p">)))</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s">&#39;id(qreq2): &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">qreq2_</span><span class="p">)))</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s">&#39;feat_config_rowid1 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_config_rowid</span><span class="p">(</span><span class="n">config2_</span><span class="o">=</span><span class="n">qreq1_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">()),))</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s">&#39;feat_config_rowid2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_config_rowid</span><span class="p">(</span><span class="n">config2_</span><span class="o">=</span><span class="n">qreq2_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">()),))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># Force recomputation of features</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[DELETE1]&#39;</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_feats</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq1_</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_feats</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq1_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[DELETE2]&#39;</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_feats</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq2_</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_feats</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq2_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">eager</span><span class="p">,</span> <span class="n">ensure</span><span class="p">,</span> <span class="n">nInput</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[GET1]&#39;</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">kpts1_list</span> <span class="o">=</span> <span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="p">,</span> <span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="p">,</span> <span class="n">qreq1_</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">kpts1_list</span> <span class="o">=</span> <span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="p">,</span> <span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="p">,</span> <span class="n">qreq1_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[GET2]&#39;</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">kpts2_list</span> <span class="o">=</span> <span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="p">,</span> <span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="p">,</span> <span class="n">qreq2_</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">kpts2_list</span> <span class="o">=</span> <span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="p">,</span> <span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="p">,</span> <span class="n">qreq2_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">get_oris</span><span class="p">(</span><span class="n">kpts1_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">get_oris</span><span class="p">(</span><span class="n">kpts2_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c">#ibeis.viz.viz_chip.show_chip(ibs, aid_list[0], config2_=qreq1_, ori=True)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibeis</span><span class="o">.</span><span class="n">viz</span><span class="o">.</span><span class="n">interact</span><span class="o">.</span><span class="n">interact_chip</span><span class="o">.</span><span class="n">ishow_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq1_</span><span class="o">.</span><span class="n">qparams</span><span class="p">,</span> <span class="n">ori</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibeis</span><span class="o">.</span><span class="n">viz</span><span class="o">.</span><span class="n">interact</span><span class="o">.</span><span class="n">interact_chip</span><span class="o">.</span><span class="n">ishow_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq2_</span><span class="o">.</span><span class="n">qparams</span><span class="p">,</span> <span class="n">ori</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibeis</span><span class="o">.</span><span class="n">viz</span><span class="o">.</span><span class="n">interact</span><span class="o">.</span><span class="n">interact_chip</span><span class="o">.</span><span class="n">ishow_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq1_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">(),</span> <span class="n">ori</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibeis</span><span class="o">.</span><span class="n">viz</span><span class="o">.</span><span class="n">interact</span><span class="o">.</span><span class="n">interact_chip</span><span class="o">.</span><span class="n">ishow_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq2_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">(),</span> <span class="n">ori</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -7922,7 +8111,7 @@ num descriptors per annotation</td>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nFeats_list</span> <span class="o">=</span> <span class="n">get_annot_num_feats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">nFeats_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_inbounds</span><span class="p">(</span><span class="n">nFeats_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1256</span><span class="p">,</span> <span class="mi">1258</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_inbounds</span><span class="p">(</span><span class="n">nFeats_list</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="mi">910</span><span class="p">,</span>  <span class="mi">921</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_inbounds</span><span class="p">(</span><span class="n">nFeats_list</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="mi">910</span><span class="p">,</span>  <span class="mi">922</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_inbounds</span><span class="p">(</span><span class="n">nFeats_list</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">1340</span><span class="p">,</span> <span class="mi">1343</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -8247,7 +8436,7 @@ tbl = gar</dd>
 <dd>python -m ibeis.control.manual_ibeiscontrol_funcs &#8211;test-get_annot_kpts_distinctiveness</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.manual_ibeiscontrol_funcs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">distinctiveness_normalizer</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
@@ -11454,10 +11643,18 @@ URL:    /api/name/num_exemplar_annotations/</dd>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>species_rowid_list</strong> &#8211;
-Creates one if it doesnt exist</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</li>
+<li><strong>ensure</strong> (<em>bool</em>) &#8211; adds as new names if non-existant (default = True)</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>name_rowid_list</strong> &#8211;
+Creates one if it doesnt exist</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -11465,6 +11662,8 @@ Creates one if it doesnt exist</td>
 <dt>CommandLine:</dt>
 <dd>python -m ibeis.control.manual_name_funcs &#8211;test-get_name_rowids_from_text:0
 python -m ibeis.control.manual_name_funcs &#8211;test-get_name_rowids_from_text:1</dd>
+<dt>TODO:</dt>
+<dd>should ensure be defaulted to False?</dd>
 <dt>RESTful:</dt>
 <dd>Method: GET
 URL:    /api/name/rowids_from_text/</dd>
@@ -11494,28 +11693,41 @@ URL:    /api/name/rowids_from_text/</dd>
 <span class="go">[1, 2, 3, 4, 5, 6, 7]</span>
 </pre></div>
 </div>
-<p>[0, 0, 0, 0, 0, 0]
-[1, 2, 3, 4, 5, 6, 7]
-[11, 12, 0, 13, 14, 0]
-[1, 2, 3, 4, 5, 6, 7]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_name_funcs.get_name_rowids_from_text_">
+<tt class="descclassname">ibeis.control.manual_name_funcs.</tt><tt class="descname">get_name_rowids_from_text_</tt><big>(</big><em>ibs</em>, <em>name_text_list</em>, <em>ensure=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_name_funcs.html#get_name_rowids_from_text_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_name_funcs.get_name_rowids_from_text_" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>name_rowid_list</strong></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
 <dl class="docutils">
-<dt>Example2:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.control.manual_name_funcs &#8211;<a href="#id51"><span class="problematic" id="id52">test-get_name_rowids_from_text_</span></a></dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.manual_name_funcs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">name_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;Fred&#39;</span><span class="p">,</span> <span class="s">&#39;easy&#39;</span><span class="p">,</span> <span class="s">u&#39;Sue&#39;</span><span class="p">,</span> <span class="s">&#39;____&#39;</span><span class="p">,</span> <span class="s">u&#39;zebra_grevys&#39;</span><span class="p">,</span> <span class="s">&#39;TYPO&#39;</span><span class="p">,</span> <span class="s">&#39;jeff&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ensure</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">,</span> <span class="n">ensure</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text_</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_name_table</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">[None, 1, None, 0, None, None, 3]</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="function">
@@ -12045,7 +12257,7 @@ URL:    /api/species/uuids/</dd>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a href="#id51"><span class="problematic" id="id52">species_text_list_</span></a></td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a href="#id53"><span class="problematic" id="id54">species_text_list_</span></a></td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
@@ -12071,6 +12283,258 @@ URL:    /api/species/sanitize</dd>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">species_text_list_</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">[&#39;____&#39;, &#39;____&#39;, &#39;zebra_plains&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.control.manual_wildbook_funcs">
+<span id="ibeis-control-manual-wildbook-funcs-module"></span><h2>ibeis.control.manual_wildbook_funcs module<a class="headerlink" href="#module-ibeis.control.manual_wildbook_funcs" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.control.manual_wildbook_funcs.export_to_wildbook">
+<tt class="descclassname">ibeis.control.manual_wildbook_funcs.</tt><tt class="descname">export_to_wildbook</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_wildbook_funcs.html#export_to_wildbook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_wildbook_funcs.export_to_wildbook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exports identified chips to wildbook</p>
+<dl class="docutils">
+<dt>Legacy:</dt>
+<dd><p class="first">import ibeis.dbio.export_wb as wb
+print(&#8216;[ibs] exporting to wildbook&#8217;)
+eid_list = ibs.get_valid_eids()
+addr = &#8216;<a class="reference external" href="http://127.0.0.1:8080/wildbook-4.1.0-RELEASE">http://127.0.0.1:8080/wildbook-4.1.0-RELEASE</a>&#8216;
+#addr = &#8216;<a class="reference external" href="http://tomcat:tomcat123&#64;127.0.0.1:8080/wildbook-5.0.0-EXPERIMENTAL">http://tomcat:tomcat123&#64;127.0.0.1:8080/wildbook-5.0.0-EXPERIMENTAL</a>&#8216;
+ibs._send_wildbook_request(addr)
+wb.export_ibeis_to_wildbook(ibs, eid_list)</p>
+<p class="last"># compute encounters
+# get encounters by id
+# get ANNOTATIONs by encounter id
+# submit requests to wildbook
+return None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_wildbook_funcs.get_wildbook_base_url">
+<tt class="descclassname">ibeis.control.manual_wildbook_funcs.</tt><tt class="descname">get_wildbook_base_url</tt><big>(</big><em>ibs</em>, <em>wb_target=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_wildbook_funcs.html#get_wildbook_base_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_wildbook_funcs.get_wildbook_base_url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_wildbook_funcs.get_wildbook_info">
+<tt class="descclassname">ibeis.control.manual_wildbook_funcs.</tt><tt class="descname">get_wildbook_info</tt><big>(</big><em>ibs</em>, <em>tomcat_dpath=None</em>, <em>wb_target=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_wildbook_funcs.html#get_wildbook_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_wildbook_funcs.get_wildbook_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_wildbook_funcs.get_wildbook_tomcat_path">
+<tt class="descclassname">ibeis.control.manual_wildbook_funcs.</tt><tt class="descname">get_wildbook_tomcat_path</tt><big>(</big><em>ibs</em>, <em>tomcat_dpath=None</em>, <em>wb_target=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_wildbook_funcs.html#get_wildbook_tomcat_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_wildbook_funcs.get_wildbook_tomcat_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_wildbook_funcs.hyrule_reset_wildbook">
+<tt class="descclassname">ibeis.control.manual_wildbook_funcs.</tt><tt class="descname">hyrule_reset_wildbook</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_wildbook_funcs.html#hyrule_reset_wildbook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_wildbook_funcs.hyrule_reset_wildbook" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.control.manual_wildbook_funcs &#8211;exec-hyrule_reset_wildbook</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.manual_wildbook_funcs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">hyrule_reset_wildbook</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_wildbook_funcs.hyrule_wildbook_login">
+<tt class="descclassname">ibeis.control.manual_wildbook_funcs.</tt><tt class="descname">hyrule_wildbook_login</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_wildbook_funcs.html#hyrule_wildbook_login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_wildbook_funcs.hyrule_wildbook_login" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(wb_target, tomcat_dpath)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.control.manual_wildbook_funcs &#8211;exec-hyrule_wildbook_login</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.manual_wildbook_funcs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hyrule_wildbook_login</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_wildbook_funcs.submit_wildbook_url">
+<tt class="descclassname">ibeis.control.manual_wildbook_funcs.</tt><tt class="descname">submit_wildbook_url</tt><big>(</big><em>url</em>, <em>payload=None</em>, <em>browse_on_error=True</em>, <em>dryrun=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_wildbook_funcs.html#submit_wildbook_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_wildbook_funcs.submit_wildbook_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>mirroring the one in IBEISController.py, but with changed functionality</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_wildbook_funcs.testdata_wildbook_server">
+<tt class="descclassname">ibeis.control.manual_wildbook_funcs.</tt><tt class="descname">testdata_wildbook_server</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_wildbook_funcs.html#testdata_wildbook_server"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_wildbook_funcs.testdata_wildbook_server" title="Permalink to this definition">¶</a></dt>
+<dd><p>DEPRICATE
+SeeAlso:</p>
+<blockquote>
+<div>~/local/build_scripts/init_wildbook.sh</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_wildbook_funcs.update_wildbook_config">
+<tt class="descclassname">ibeis.control.manual_wildbook_funcs.</tt><tt class="descname">update_wildbook_config</tt><big>(</big><em>ibs</em>, <em>wildbook_tomcat_path</em>, <em>dryrun=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_wildbook_funcs.html#update_wildbook_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_wildbook_funcs.update_wildbook_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_wildbook_funcs.wildbook_signal_annot_name_changes">
+<tt class="descclassname">ibeis.control.manual_wildbook_funcs.</tt><tt class="descname">wildbook_signal_annot_name_changes</tt><big>(</big><em>ibs</em>, <em>aid_list=None</em>, <em>tomcat_dpath=None</em>, <em>wb_target=None</em>, <em>dryrun=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_wildbook_funcs.html#wildbook_signal_annot_name_changes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_wildbook_funcs.wildbook_signal_annot_name_changes" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>aid_list</strong> (<em>int</em>) &#8211; list of annotation ids(default = None)</li>
+<li><strong>tomcat_dpath</strong> (<em>None</em>) &#8211; (default = None)</li>
+<li><strong>wb_target</strong> (<em>None</em>) &#8211; (default = None)</li>
+<li><strong>dryrun</strong> (<em>bool</em>) &#8211; (default = False)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.control.manual_wildbook_funcs &#8211;test-wildbook_signal_annot_name_changes:0 &#8211;dryrun
+python -m ibeis.control.manual_wildbook_funcs &#8211;test-wildbook_signal_annot_name_changes:1 &#8211;dryrun
+python -m ibeis.control.manual_wildbook_funcs &#8211;test-wildbook_signal_annot_name_changes:1
+python -m ibeis.control.manual_wildbook_funcs &#8211;test-wildbook_signal_annot_name_changes:2</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.manual_wildbook_funcs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#gid_list = ibs.get_valid_gids()[0:10]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Test case where some names change, some do not. There are no new names.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">old_nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_nid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_roll</span><span class="p">(</span><span class="n">old_nid_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">new_nid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dryrun</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--dryrun&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wb_target</span><span class="p">,</span> <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">testdata_wildbook_server</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">wildbook_signal_annot_name_changes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">tomcat_dpath</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">,</span> <span class="n">dryrun</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">old_nid_list</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.manual_wildbook_funcs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#gid_list = ibs.get_valid_gids()[0:10]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Test case where all names change to one known name</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#old_nid_list = ibs.get_annot_name_rowids(aid_list)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#new_nid_list = [old_nid_list[0]] * len(old_nid_list)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">old_nid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_nid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;old_nid_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old_nid_list</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;new_nid_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_nid_list</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">new_nid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dryrun</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--dryrun&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wb_target</span><span class="p">,</span> <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">testdata_wildbook_server</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">wildbook_signal_annot_name_changes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">tomcat_dpath</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">,</span> <span class="n">dryrun</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Undo changes here (not undone in wildbook)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs.set_annot_name_rowids(aid_list, old_nid_list)</span>
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.manual_wildbook_funcs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">old_nid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">old_nid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Signal what currently exists (should put them back to normal)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dryrun</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--dryrun&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wb_target</span><span class="p">,</span> <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">testdata_wildbook_server</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">wildbook_signal_annot_name_changes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">tomcat_dpath</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">,</span> <span class="n">dryrun</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.control.manual_wildbook_funcs.wildbook_signal_eid_list">
+<tt class="descclassname">ibeis.control.manual_wildbook_funcs.</tt><tt class="descname">wildbook_signal_eid_list</tt><big>(</big><em>ibs</em>, <em>eid_list=None</em>, <em>set_shipped_flag=True</em>, <em>open_url_on_complete=True</em>, <em>tomcat_dpath=None</em>, <em>wb_target=None</em>, <em>dryrun=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/control/manual_wildbook_funcs.html#wildbook_signal_eid_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.control.manual_wildbook_funcs.wildbook_signal_eid_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exports specified encounters to wildbook. This is a synchronous call.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>eid_list</strong> (<em>list</em>) &#8211; (default = None)</li>
+<li><strong>set_shipped_flag</strong> (<em>bool</em>) &#8211; (default = True)</li>
+<li><strong>open_url_on_complete</strong> (<em>bool</em>) &#8211; (default = True)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: PUT
+URL:    /api/core/wildbook_signal_eid_list/</dd>
+<dt>Ignore:</dt>
+<dd><p class="first">cd $CODE_DIR/Wildbook/tmp</p>
+<p># Reset IBEIS database
+python -m ibeis.tests.reset_testdbs &#8211;reset_mtest</p>
+<p># Reset Wildbook database
+python -m ibeis.control.manual_wildbook_funcs &#8211;exec-hyrule_reset_wildbook</p>
+<p># Login to wildbook
+python -m ibeis.control.manual_wildbook_funcs &#8211;exec-hyrule_wildbook_login</p>
+<p># Ship Encounters to wildbook
+python -m ibeis.control.manual_wildbook_funcs &#8211;test-wildbook_signal_eid_list</p>
+<p># Change annotations names to a single name
+python -m ibeis.control.manual_wildbook_funcs &#8211;test-wildbook_signal_annot_name_changes:1</p>
+<p class="last"># Change annotations names back to normal
+python -m ibeis.control.manual_wildbook_funcs &#8211;test-wildbook_signal_annot_name_changes:2</p>
+</dd>
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.control.manual_wildbook_funcs &#8211;test-wildbook_signal_eid_list
+python -m ibeis.control.manual_wildbook_funcs &#8211;test-wildbook_signal_eid_list &#8211;dryrun
+python -m ibeis.control.manual_wildbook_funcs &#8211;test-wildbook_signal_eid_list &#8211;break</dd>
+<dt>SeeAlso:</dt>
+<dd>~/local/build_scripts/init_wildbook.sh</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control.manual_wildbook_funcs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dryrun</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--dryrun&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wb_target</span><span class="p">,</span> <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">testdata_wildbook_server</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#gid_list = ibs.get_valid_gids()[0:10]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_eid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">create_new_encounter_from_images</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;new encounter uuid = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_uuid</span><span class="p">(</span><span class="n">new_eid</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;new encounter text = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">new_eid</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">new_eid</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">set_encounter_processed_flags</span><span class="p">([</span><span class="n">new_eid</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_gids</span><span class="p">(</span><span class="n">new_eid</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">set_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">set_shipped_flag</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">open_url_on_complete</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">wildbook_signal_eid_list</span><span class="p">(</span><span class="n">eid_list</span><span class="p">,</span> <span class="n">set_shipped_flag</span><span class="p">,</span> <span class="n">open_url_on_complete</span><span class="p">,</span> <span class="n">tomcat_dpath</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">,</span> <span class="n">dryrun</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># cleanup</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs.delete_encounters(new_eid)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -12131,7 +12595,7 @@ URL:    /api/species/sanitize</dd>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

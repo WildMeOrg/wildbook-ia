@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_name_funcs &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.control.manual_name_funcs &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -912,13 +913,20 @@
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/name/rowids_from_text/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_name_rowids_from_text"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_funcs.get_name_rowids_from_text">[docs]</a><span class="k">def</span> <span class="nf">get_name_rowids_from_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        name_text_list (list):</span>
+<span class="sd">        ensure (bool): adds as new names if non-existant (default = True)</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        species_rowid_list (list): Creates one if it doesnt exist</span>
+<span class="sd">        name_rowid_list (list): Creates one if it doesnt exist</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.manual_name_funcs --test-get_name_rowids_from_text:0</span>
 <span class="sd">        python -m ibeis.control.manual_name_funcs --test-get_name_rowids_from_text:1</span>
+
+<span class="sd">    TODO:</span>
+<span class="sd">        should ensure be defaulted to False?</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
@@ -947,47 +955,45 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        [8, 9, 0, 10, 11, 0]</span>
 <span class="sd">        [1, 2, 3, 4, 5, 6, 7]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
+        <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text_</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">name_rowid_list</span>
 
-<span class="sd">    [0, 0, 0, 0, 0, 0]</span>
-<span class="sd">    [1, 2, 3, 4, 5, 6, 7]</span>
-<span class="sd">    [11, 12, 0, 13, 14, 0]</span>
-<span class="sd">    [1, 2, 3, 4, 5, 6, 7]</span>
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<div class="viewcode-block" id="get_name_rowids_from_text_"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_name_funcs.get_name_rowids_from_text_">[docs]</a><span class="k">def</span> <span class="nf">get_name_rowids_from_text_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">name_text_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        name_text_list (list):</span>
 
-<span class="sd">    Example2:</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        name_rowid_list (list):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_name_funcs --test-get_name_rowids_from_text_</span>
+
+<span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_name_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; import utool as ut  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; name_text_list = [u&#39;Fred&#39;, &#39;easy&#39;, u&#39;Sue&#39;, &#39;____&#39;, u&#39;zebra_grevys&#39;, &#39;TYPO&#39;, &#39;jeff&#39;]</span>
-<span class="sd">        &gt;&gt;&gt; ensure = False</span>
-<span class="sd">        &gt;&gt;&gt; name_rowid_list = ibs.get_name_rowids_from_text(name_text_list, ensure)</span>
+<span class="sd">        &gt;&gt;&gt; name_rowid_list = ibs.get_name_rowids_from_text_(name_text_list)</span>
 <span class="sd">        &gt;&gt;&gt; ibs.print_name_table()</span>
 <span class="sd">        &gt;&gt;&gt; result = str(name_rowid_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        [None, 1, None, 0, None, None, 3]</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
-        <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">name_text_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sanitize_name_texts</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
-        <span class="c">#lbltype_rowid = ibs.lbltype_ids[const.INDIVIDUAL_KEY]</span>
-        <span class="c">#lbltype_rowid_list = [lbltype_rowid] * len(name_text_list_)</span>
-        <span class="c">#name_rowid_list = ibs.get_lblannot_rowid_from_superkey(lbltype_rowid_list, name_text_list_)</span>
-        <span class="c">## Ugg species and names need their own table</span>
-        <span class="c">#name_rowid_list = [ibs.UNKNOWN_NAME_ROWID if rowid is None else</span>
-        <span class="c">#                      rowid for rowid in name_rowid_list]</span>
-        <span class="c">#val_iter = [(text,) for text in name_text_list_]</span>
-        <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ROWID</span><span class="p">,),</span> <span class="n">name_text_list_</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_TEXT</span><span class="p">)</span>
-        <span class="c"># BIG HACK FOR ENFORCING UNKNOWN NAMES HAVE ROWID 0</span>
-        <span class="c">#name_rowid_list = [ibs.UNKNOWN_NAME_ROWID if rowid is None else</span>
-        <span class="c">#                      rowid for rowid in name_rowid_list]</span>
-        <span class="c">#name_rowid_list = [ibs.UNKNOWN_NAME_ROWID if val is None or val == const.UNKNOWN else rowid</span>
-        <span class="c">#                       for rowid, val in zip(name_rowid_list, name_text_list)]</span>
-        <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
-                               <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_text_list_</span><span class="p">)]</span>
-
+    <span class="n">name_text_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sanitize_name_texts</span><span class="p">(</span><span class="n">name_text_list</span><span class="p">)</span>
+    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">NAME_ROWID</span><span class="p">,),</span> <span class="n">name_text_list_</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">NAME_TEXT</span><span class="p">)</span>
+    <span class="n">name_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span> <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
+                           <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">name_text_list_</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">name_rowid_list</span>
 
 </div>
@@ -1220,6 +1226,8 @@
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.manual_name_funcs</span>
 <span class="sd">        python -m ibeis.control.manual_name_funcs --allexamples</span>
+<span class="sd">        python -c &quot;import utool, ibeis; utool.doctest_funcs(ibeis.control.manual_annot_funcs); utool.doctest_funcs(ibeis.control.manual_name_funcs) &quot; --allexamples</span>
+
 <span class="sd">        python -m ibeis.control.manual_name_funcs --allexamples --noface --nosrc</span>
 
 <span class="sd">    RESTful:</span>
@@ -1260,7 +1268,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

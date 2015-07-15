@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.special_query &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.model.hots.special_query &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -110,6 +111,7 @@
           <div role="main">
             
   <h1>Source code for ibeis.model.hots.special_query</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">TODO: DEPRICATE</span>
 
@@ -211,7 +213,7 @@
 <span class="sd">        python -m ibeis.model.hots.special_query --test-query_vsone_verified</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.special_query import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, valid_aids = testdata_special_query(&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; qaids = valid_aids[0:1]</span>
@@ -326,7 +328,7 @@
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--interupt-case&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">case</span> <span class="ow">in</span> <span class="p">[</span><span class="n">VSMANY_WINS</span><span class="p">,</span> <span class="n">VSMANY_DOMINATES</span><span class="p">]:</span>
             <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;interactive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;use_oracle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
-            <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;PLEASE_STOP&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;STOP&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">():</span>
                 <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>  <span class="c"># NOQA</span>
                 <span class="n">IPYTHON_COMMANDS</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
@@ -523,7 +525,7 @@
 <span class="sd">        python -m ibeis.model.hots.special_query --test-build_vsone_shortlist</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.special_query import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, valid_aids = testdata_special_query()</span>
 <span class="sd">        &gt;&gt;&gt; qaids = valid_aids[0:1]</span>
@@ -572,7 +574,7 @@
 <span class="sd">        python -m ibeis.model.hots.special_query --test-query_vsone_pairs</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.special_query import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; ibs, valid_aids = testdata_special_query()</span>
 <span class="sd">        &gt;&gt;&gt; qaids = valid_aids[0:1]</span>
@@ -650,7 +652,7 @@
 <span class="sd">        python -m ibeis.model.hots.special_query --test-augment_vsone_with_vsmany</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.special_query import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
 <span class="sd">        &gt;&gt;&gt; ibs, valid_aids = testdata_special_query()</span>
@@ -787,7 +789,7 @@
 <span class="sd">        python -m ibeis.model.hots.special_query --test-get_extern_distinctiveness</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.special_query import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
@@ -1037,7 +1039,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

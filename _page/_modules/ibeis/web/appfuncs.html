@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.web.appfuncs &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.web.appfuncs &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -112,7 +113,7 @@
 <span class="kn">import</span> <span class="nn">cStringIO</span> <span class="kn">as</span> <span class="nn">StringIO</span>
 <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">render_template</span><span class="p">,</span> <span class="n">make_response</span>
 <span class="c"># Others</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
 <span class="kn">import</span> <span class="nn">base64</span>
 
@@ -161,9 +162,9 @@
 
 </div>
 <div class="viewcode-block" id="apply_orientation"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.apply_orientation">[docs]</a><span class="k">def</span> <span class="nf">apply_orientation</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">orientation</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This script handles the skimage exif problem.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">orientation</span> <span class="ow">in</span> <span class="n">ORIENTATIONS</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">ORIENTATIONS</span><span class="p">[</span><span class="n">orientation</span><span class="p">]:</span>
             <span class="n">im</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
@@ -171,7 +172,7 @@
 
 </div>
 <div class="viewcode-block" id="embed_image_html"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.embed_image_html">[docs]</a><span class="k">def</span> <span class="nf">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">filter_width</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Creates an image embedded in HTML base64 format.&#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot; Creates an image embedded in HTML base64 format. &quot;&quot;&quot;</span>
     <span class="n">image_pil</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">((</span><span class="mi">255</span> <span class="o">*</span> <span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s">&#39;uint8&#39;</span><span class="p">))</span>
     <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">image_pil</span><span class="o">.</span><span class="n">size</span>
     <span class="k">if</span> <span class="n">filter_width</span><span class="p">:</span>
@@ -220,9 +221,12 @@
         <span class="n">global_args</span><span class="p">[</span><span class="s">&#39;REFER_DST_STR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">decode_refer_url</span><span class="p">(</span><span class="n">refer</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">template_directory</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">template_directory</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="c">#template_directory = abspath(join(dirname(__file__), &#39;templates&#39;))</span>
+        <span class="c">#template_directory = join(dirname(dirname(__file__)))</span>
     <span class="k">if</span> <span class="n">template_filename</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">template_filename</span> <span class="o">=</span> <span class="s">&#39;index&#39;</span>
     <span class="n">template_</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">template_directory</span><span class="p">,</span> <span class="n">template_filename</span> <span class="o">+</span> <span class="s">&#39;.html&#39;</span><span class="p">)</span>
+    <span class="c">#print(&#39;template_ = %r&#39; % (template_,))</span>
     <span class="c"># Update global args with the template&#39;s args</span>
     <span class="n">_global_args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">global_args</span><span class="p">)</span>
     <span class="n">_global_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
@@ -267,7 +271,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

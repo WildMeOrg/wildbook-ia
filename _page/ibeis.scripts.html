@@ -1,0 +1,226 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.scripts package &mdash; ibeis 1.4.4 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 1.4.4 documentation" href="index.html"/>
+        <link rel="up" title="ibeis package" href="ibeis.html"/>
+        <link rel="next" title="ibeis.templates package" href="ibeis.templates.html"/>
+        <link rel="prev" title="ibeis.model.preproc package" href="ibeis.model.preproc.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="ibeis.html">ibeis package</a> &raquo;</li>
+      
+    <li>ibeis.scripts package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/ibeis.scripts.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="ibeis-scripts-package">
+<h1>ibeis.scripts package<a class="headerlink" href="#ibeis-scripts-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.scripts.rsync_ibeisdb">
+<span id="ibeis-scripts-rsync-ibeisdb-module"></span><h2>ibeis.scripts.rsync_ibeisdb module<a class="headerlink" href="#module-ibeis.scripts.rsync_ibeisdb" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.scripts.rsync_ibeisdb
+python -m ibeis.scripts.rsync_ibeisdb &#8211;dryrun</dd>
+</dl>
+<dl class="function">
+<dt id="ibeis.scripts.rsync_ibeisdb.rsync">
+<tt class="descclassname">ibeis.scripts.rsync_ibeisdb.</tt><tt class="descname">rsync</tt><big>(</big><em>src_uri</em>, <em>dst_uri</em>, <em>exclude_dirs=[]</em>, <em>port=22</em>, <em>dryrun=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/scripts/rsync_ibeisdb.html#rsync"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.rsync_ibeisdb.rsync" title="Permalink to this definition">¶</a></dt>
+<dd><p>General function to push or pull a directory from a remote server to a local path</p>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://www.tecmint.com/rsync-local-remote-file-synchronization-commands/">http://www.tecmint.com/rsync-local-remote-file-synchronization-commands/</a>
+<a class="reference external" href="http://serverfault.com/questions/219013/showing-total-progress-in-rsync-is-it-possible">http://serverfault.com/questions/219013/showing-total-progress-in-rsync-is-it-possible</a></p>
+<dl class="docutils">
+<dt>Notes (rsync commandline options):</dt>
+<dd>rsync [OPTION]... SRC [SRC]... DEST
+-v : verbose
+-r : copies data recursively (but dont preserve timestamps and permission while transferring data
+-a : archive mode, allows recursive copying and preserves symlinks, permissions, user and group ownerships, and timestamps
+-z : compress file data
+-h : human-readable, output numbers in a human-readable format
+-P                          same as &#8211;partial &#8211;progress</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.rsync_ibeisdb.rsync_ibsdb_main">
+<tt class="descclassname">ibeis.scripts.rsync_ibeisdb.</tt><tt class="descname">rsync_ibsdb_main</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/scripts/rsync_ibeisdb.html#rsync_ibsdb_main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.rsync_ibeisdb.rsync_ibsdb_main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.rsync_ibeisdb.sync_ibeisdb">
+<tt class="descclassname">ibeis.scripts.rsync_ibeisdb.</tt><tt class="descname">sync_ibeisdb</tt><big>(</big><em>remote_uri</em>, <em>dbname</em>, <em>mode='pull'</em>, <em>workdir=None</em>, <em>port=22</em>, <em>dryrun=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/scripts/rsync_ibeisdb.html#sync_ibeisdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.rsync_ibeisdb.sync_ibeisdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>syncs an ibeisdb without syncing the cache or the chip directory
+(or the top level image directory because it shouldnt exist unless it is an
+old hots database)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.scripts">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.scripts" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ibeis.templates.html" class="btn btn-neutral float-right" title="ibeis.templates package"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ibeis.model.preproc.html" class="btn btn-neutral" title="ibeis.model.preproc package"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.4.4',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

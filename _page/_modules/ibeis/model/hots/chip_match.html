@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.chip_match &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.model.hots.chip_match &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -117,7 +118,7 @@
 <span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">xor</span>
 <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">matching</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="c">#from ibeis.model.hots import hstypes</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
 <span class="c">#from collections import namedtuple, defaultdict</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">old_chip_match</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">scoring</span>
@@ -220,7 +221,13 @@
         <span class="n">fsv_col_lbls</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">filtkey_list</span>
         <span class="c">#ut.embed()</span>
         <span class="n">cm</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">from_cmtup_old</span><span class="p">(</span><span class="n">cmtup_old</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">fsv_col_lbls</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">qres</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span>
-        <span class="n">fs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fsv</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">fsv_col_lbls</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s">&#39;lnbnn&#39;</span><span class="p">)]</span> <span class="k">for</span> <span class="n">fsv</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="p">]</span>
+        <span class="c">#with ut.embed_on_exception_context:</span>
+        <span class="c">#if &#39;lnbnn&#39; in fsv_col_lbls:</span>
+        <span class="c">#    assert &#39;lnbnn&#39; in fsv_col_lbls, &#39;cm.fsv_col_lbls=%r&#39; % (cm.fsv_col_lbls,)</span>
+        <span class="c">#    fs_list = [fsv.T[cm.fsv_col_lbls.index(&#39;lnbnn&#39;)] for fsv in cm.fsv_list]</span>
+        <span class="c">#else:</span>
+        <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">fs_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">aid2_fs</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">))</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">fs_list</span> <span class="o">=</span> <span class="n">fs_list</span>
         <span class="k">return</span> <span class="n">cm</span>
 </div>
@@ -503,7 +510,9 @@
 <span class="sd">            &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_post_sver()</span>
 <span class="sd">            &gt;&gt;&gt; cm = cm_list[0]</span>
 <span class="sd">            &gt;&gt;&gt; cm.score_csum(qreq_)</span>
-<span class="sd">            &gt;&gt;&gt; cm.testshow_ranked(qreq_, figtitle=&#39;score_csum&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">            &gt;&gt;&gt; cm.show_ranked_matches(qreq_, figtitle=&#39;score_csum&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">evaluate_csum_score</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">set_cannonical_annot_score</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">csum_score_list</span><span class="p">)</span>
@@ -531,7 +540,9 @@
 <span class="sd">            &gt;&gt;&gt; gt_score = cm.score_list.compress(cm.get_groundtruth_flags()).max()</span>
 <span class="sd">            &gt;&gt;&gt; cm.print_csv()</span>
 <span class="sd">            &gt;&gt;&gt; assert cm.get_top_nids()[0] == cm.unique_nids[cm.name_score_list.argmax()], &#39;bug in alignment&#39;</span>
-<span class="sd">            &gt;&gt;&gt; cm.testshow_ranked(qreq_, figtitle=&#39;score_nsum&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">            &gt;&gt;&gt; cm.show_ranked_matches(qreq_, figtitle=&#39;score_nsum&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">            &gt;&gt;&gt; assert cm.get_top_nids()[0] == cm.qnid, &#39;is this case truely hard?&#39;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">evaluate_csum_score</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
@@ -558,7 +569,9 @@
 <span class="sd">            &gt;&gt;&gt; cm = cm_list[0]</span>
 <span class="sd">            &gt;&gt;&gt; cm.fs_list = cm.get_fs_list(col=&#39;lnbnn&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; cm.score_annot_coverage(qreq_)</span>
-<span class="sd">            &gt;&gt;&gt; cm.testshow_ranked(qreq_, figtitle=&#39;score_annot_coverage&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">            &gt;&gt;&gt; cm.show_ranked_matches(qreq_, figtitle=&#39;score_annot_coverage&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">evaluate_acov_score</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">set_cannonical_annot_score</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">acov_score_list</span><span class="p">)</span>
@@ -584,7 +597,9 @@
 <span class="sd">            &gt;&gt;&gt; cm = cm_list[0]</span>
 <span class="sd">            &gt;&gt;&gt; cm.fs_list = cm.get_fs_list(col=&#39;lnbnn&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; cm.score_name_coverage(qreq_)</span>
-<span class="sd">            &gt;&gt;&gt; cm.testshow_ranked(qreq_, figtitle=&#39;score_name_coverage&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">            &gt;&gt;&gt; cm.show_ranked_matches(qreq_, figtitle=&#39;score_name_coverage&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">cm</span><span class="o">.</span><span class="n">csum_score_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">cm</span><span class="o">.</span><span class="n">evaluate_csum_score</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
@@ -805,20 +820,6 @@
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[cm] nFeats are ok in fm&#39;</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="ChipMatch2.testshow_single"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.chip_match.ChipMatch2.testshow_single">[docs]</a>    <span class="k">def</span> <span class="nf">testshow_single</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">daid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">lastcall</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">show_was_requested</span><span class="p">():</span>
-            <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-            <span class="n">cm</span><span class="o">.</span><span class="n">show_single_annotmatch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">daid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">lastcall</span><span class="p">:</span>
-                <span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
-</div>
-<div class="viewcode-block" id="ChipMatch2.testshow_ranked"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.chip_match.ChipMatch2.testshow_ranked">[docs]</a>    <span class="k">def</span> <span class="nf">testshow_ranked</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">daid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">lastcall</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">show_was_requested</span><span class="p">():</span>
-            <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-            <span class="n">cm</span><span class="o">.</span><span class="n">show_ranked_matches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">lastcall</span><span class="p">:</span>
-                <span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
-</div>
 <div class="viewcode-block" id="ChipMatch2.show_single_namematch"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.chip_match.ChipMatch2.show_single_namematch">[docs]</a>    <span class="k">def</span> <span class="nf">show_single_namematch</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">dnid</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">homog</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--homog&#39;</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 
@@ -980,7 +981,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

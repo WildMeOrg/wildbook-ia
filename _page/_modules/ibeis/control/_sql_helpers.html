@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control._sql_helpers &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.control._sql_helpers &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -273,7 +274,7 @@
         <span class="n">utool</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">src_fpath</span><span class="p">,</span> <span class="n">dst_fpath</span><span class="p">)</span>
         <span class="c"># Clean-up old database backups</span>
         <span class="n">path_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">backup_dir</span><span class="p">,</span> <span class="s">&#39;*</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ext</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">path_list</span> <span class="o">&gt;</span> <span class="n">max_keep</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_keep</span><span class="p">:</span>
             <span class="n">path_delete_list</span> <span class="o">=</span> <span class="n">path_list</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">max_keep</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">path_delete</span> <span class="ow">in</span> <span class="n">path_delete_list</span><span class="p">:</span>
                 <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ensure_daily_database_backup] Deleting old backup </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">path_delete</span><span class="p">)</span>
@@ -730,7 +731,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

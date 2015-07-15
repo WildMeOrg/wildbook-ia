@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.dbio.ingest_database &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.dbio.ingest_database &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -789,6 +790,15 @@
 
 </div>
 <div class="viewcode-block" id="injest_main"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_database.injest_main">[docs]</a><span class="k">def</span> <span class="nf">injest_main</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.dbio.ingest_database --test-injest_main</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.dbio.ingest_database import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; injest_main()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;__main__ = ingest_database.py&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unindent</span><span class="p">(</span>
         <span class="sd">&#39;&#39;&#39;</span>
@@ -817,7 +827,7 @@
 <span class="sd">        python ibeis/dbio/ingest_database.py --db polar_bears --force_delete</span>
 <span class="sd">        python ibeis/dbio/ingest_database.py --db snails_drop1</span>
 <span class="sd">        python ibeis/dbio/ingest_database.py --db testdb1</span>
-<span class="sd">        python ibeis/dbio/ingest_database.py --db Elephants_drop1</span>
+<span class="sd">        python -m ibeis.dbio.ingest_database --test-injest_main --db Elephants_drop1</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">doctest_was_requested</span><span class="p">():</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
@@ -855,7 +865,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

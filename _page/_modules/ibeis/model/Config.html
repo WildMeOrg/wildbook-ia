@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.Config &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.model.Config &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.model" href="../model.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -267,7 +268,7 @@
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">min_reindex_thresh</span> <span class="o">=</span> <span class="mi">200</span>  <span class="c"># number of annots before a new multi-indexer is built</span>
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">max_subindexers</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c"># number of annots before a new multi-indexer is built</span>
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">valid_index_methods</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;single&#39;</span><span class="p">,</span> <span class="s">&#39;multi&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">]</span>
-        <span class="n">nn_cfg</span><span class="o">.</span><span class="n">index_method</span> <span class="o">=</span> <span class="s">&#39;multi&#39;</span>
+        <span class="c">#nn_cfg.index_method = &#39;multi&#39;</span>
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">index_method</span> <span class="o">=</span> <span class="s">&#39;single&#39;</span>
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">Knorm</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">nn_cfg</span><span class="o">.</span><span class="n">checks</span> <span class="o">=</span> <span class="mi">800</span>
@@ -305,6 +306,7 @@
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">scale_thresh</span> <span class="o">=</span> <span class="mf">2.0</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">ori_thresh</span>   <span class="o">=</span> <span class="n">tau</span> <span class="o">/</span> <span class="mf">4.0</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">min_nInliers</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">sv_cfg</span><span class="o">.</span><span class="n">full_homog_checks</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">nNameShortlistSVER</span> <span class="o">=</span> <span class="mi">50</span>
         <span class="n">sv_cfg</span><span class="o">.</span><span class="n">nAnnotPerNameSVER</span> <span class="o">=</span> <span class="mi">6</span>
         <span class="c">#sv_cfg.prescore_method = &#39;csum&#39;</span>
@@ -329,6 +331,7 @@
             <span class="s">&#39;cdl,&#39;</span> <span class="o">*</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">use_chip_extent</span><span class="p">,</span>  <span class="c"># chip diag len</span>
             <span class="s">&#39;+ow,&#39;</span> <span class="o">*</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">sver_output_weighting</span><span class="p">,</span>  <span class="c"># chip diag len</span>
             <span class="s">&#39;+wi,&#39;</span> <span class="o">*</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">weight_inliers</span><span class="p">,</span>  <span class="c"># chip diag len</span>
+            <span class="s">&#39;+fc,&#39;</span> <span class="o">*</span> <span class="n">sv_cfg</span><span class="o">.</span><span class="n">full_homog_checks</span><span class="p">,</span>
             <span class="s">&#39;)&#39;</span><span class="p">,</span>
         <span class="p">]</span>
         <span class="k">return</span> <span class="n">sv_cfgstr</span>
@@ -416,8 +419,6 @@
         <span class="n">flann_cfgstrs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_FLANN(&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">==</span> <span class="s">&#39;kdtree&#39;</span><span class="p">:</span>
             <span class="n">flann_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;</span><span class="si">%d</span><span class="s">_kdtrees&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">trees</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">==</span> <span class="s">&#39;linear&#39;</span><span class="p">:</span>
-            <span class="n">flann_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span><span class="p">]</span>
         <span class="k">elif</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">==</span> <span class="s">&#39;kdtree&#39;</span><span class="p">:</span>
             <span class="n">flann_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span>
                 <span class="s">&#39;</span><span class="si">%s</span><span class="s">_&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span><span class="p">,</span>
@@ -425,6 +426,8 @@
                 <span class="s">&#39;cb=</span><span class="si">%s</span><span class="s">_&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">cb_index</span><span class="p">,</span>
                 <span class="s">&#39;branch=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">branching</span><span class="p">,</span>
             <span class="p">]</span>
+        <span class="k">elif</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">==</span> <span class="s">&#39;linear&#39;</span><span class="p">:</span>
+            <span class="n">flann_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">flann_cfgstrs</span> <span class="o">+=</span> <span class="p">[</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">flann_cfg</span><span class="o">.</span><span class="n">algorithm</span><span class="p">]</span>
         <span class="c">#flann_cfgstrs += [&#39;checks=%r&#39; % flann_cfg.checks]</span>
@@ -609,6 +612,7 @@
                 <span class="c">#ut.ParamInfoBool(&#39;dist_on&#39;, False,  hideif=False),</span>
                 <span class="c">#ut.ParamInfoBool(&#39;normonly_on&#39;, False,  hideif=False),</span>
                 <span class="c">#ut.ParamInfoBool(&#39;loglnbnn_on&#39;, False,  hideif=False),</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s">&#39;bar_l2_on&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>  <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s">&#39;cos_on&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>  <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoBool</span><span class="p">(</span><span class="s">&#39;fg_on&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
                 <span class="c">#</span>
@@ -1186,12 +1190,14 @@
         <span class="n">other_cfg</span><span class="o">.</span><span class="n">exemplar_distinctiveness_thresh</span>  <span class="o">=</span> <span class="o">.</span><span class="mi">95</span>
         <span class="n">other_cfg</span><span class="o">.</span><span class="n">detect_add_after</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="c"># other_cfg.detect_use_chunks = True</span>
-        <span class="n">other_cfg</span><span class="o">.</span><span class="n">use_more_special_encounters</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">use_more_special_encounters</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">other_cfg</span><span class="o">.</span><span class="n">location_for_names</span> <span class="o">=</span> <span class="s">&#39;IBEIS&#39;</span>
         <span class="c">#other_cfg.location_for_names = &#39;MUGU&#39;</span>
         <span class="n">other_cfg</span><span class="o">.</span><span class="n">smart_enabled</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="n">other_cfg</span><span class="o">.</span><span class="n">enable_custom_filter</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="n">other_cfg</span><span class="o">.</span><span class="n">hots_batch_size</span> <span class="o">=</span> <span class="mi">256</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">use_augmented_indexer</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">other_cfg</span><span class="o">.</span><span class="n">show_shipped_encounters</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">()</span>
         <span class="n">other_cfg</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c">#def get_cfgstr_list(nn_cfg):</span>
@@ -1436,7 +1442,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.scoring &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.model.hots.scoring &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -148,7 +149,9 @@
 <span class="sd">        &gt;&gt;&gt; score_chipmatch_list(qreq_, cm_list, score_method)</span>
 <span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
 <span class="sd">        &gt;&gt;&gt; assert cm.score_list.argmax() == 0</span>
-<span class="sd">        &gt;&gt;&gt; cm.testshow_single(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 
 <span class="sd">    Example2:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -159,7 +162,9 @@
 <span class="sd">        &gt;&gt;&gt; score_method = qreq_.qparams.score_method</span>
 <span class="sd">        &gt;&gt;&gt; score_chipmatch_list(qreq_, cm_list, score_method)</span>
 <span class="sd">        &gt;&gt;&gt; assert cm.score_list.argmax() == 0</span>
-<span class="sd">        &gt;&gt;&gt; cm.testshow_single(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Choose the appropriate scoring mechanism</span>
     <span class="k">if</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s">&#39;csum&#39;</span><span class="p">:</span>
@@ -278,7 +283,9 @@
 <span class="sd">        &gt;&gt;&gt; max_num_rerank = nNameShortList * nAnnotPerName</span>
 <span class="sd">        &gt;&gt;&gt; min_num_rerank = nNameShortList</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(len(top_nid_list), min_num_rerank, max_num_rerank, &#39;incorrect number in shortlist&#39;, eq=True)</span>
-<span class="sd">        &gt;&gt;&gt; cm.testshow_single(qreq_, daid=top_aid_list[0])</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_, daid=top_aid_list[0])</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[scoring] Making shortlist nNameShortList=</span><span class="si">%r</span><span class="s">, nAnnotPerName=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nNameShortList</span><span class="p">,</span> <span class="n">nAnnotPerName</span><span class="p">))</span>
     <span class="n">cm_shortlist</span> <span class="o">=</span> <span class="p">[]</span>
@@ -404,7 +411,7 @@
 <span class="sd">        python -m ibeis.model.hots.scoring --test-compute_annot_coverage_score:0</span>
 
 <span class="sd">    Example0:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.scoring import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; qreq_, cm = plh.testdata_scoring()</span>
 <span class="sd">        &gt;&gt;&gt; config = qreq_.qparams</span>
@@ -730,7 +737,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

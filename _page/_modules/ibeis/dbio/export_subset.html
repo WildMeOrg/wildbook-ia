@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.dbio.export_subset &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.dbio.export_subset &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -1289,8 +1290,8 @@
     <span class="c"># TODO: ensure images are localized</span>
     <span class="c"># otherwise this wont work</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;BEGIN MERGE OF </span><span class="si">%r</span><span class="s"> into </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()))</span>
-    <span class="c">#ibs_src.check_consistency()</span>
-    <span class="c">#ibs_dst.check_consistency()</span>
+    <span class="c">#ibs_src.run_integrity_checks()</span>
+    <span class="c">#ibs_dst.run_integrity_checks()</span>
     <span class="n">ibs_dst</span><span class="o">.</span><span class="n">update_annot_visual_uuids</span><span class="p">(</span><span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
     <span class="n">ibs_src</span><span class="o">.</span><span class="n">update_annot_visual_uuids</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
     <span class="n">ibs_src</span><span class="o">.</span><span class="n">ensure_contributor_rowids</span><span class="p">()</span>
@@ -1318,7 +1319,7 @@
     <span class="n">tag_hash</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr</span><span class="p">(</span><span class="n">id_list</span><span class="p">,</span> <span class="n">hashlen</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">alphabet</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">ALPHABET_27</span><span class="p">)</span>
     <span class="n">base_fmtstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">id_label</span> <span class="o">+</span> <span class="s">&#39;s=&#39;</span> <span class="o">+</span> <span class="n">tag_hash</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;(&#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;)&#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_</span><span class="si">%d</span><span class="s">&#39;</span>
     <span class="n">dpath</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
-    <span class="n">new_dbpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_nonconflicting_path</span><span class="p">(</span><span class="n">base_fmtstr</span><span class="p">,</span> <span class="n">dpath</span><span class="p">)</span>
+    <span class="n">new_dbpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_nonconflicting_path_old</span><span class="p">(</span><span class="n">base_fmtstr</span><span class="p">,</span> <span class="n">dpath</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">new_dbpath</span>
 
 </div>
@@ -1659,7 +1660,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

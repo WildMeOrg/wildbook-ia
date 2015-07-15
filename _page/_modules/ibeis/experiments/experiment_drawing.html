@@ -1,0 +1,719 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.experiments.experiment_drawing &mdash; ibeis 1.4.4 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.experiments" href="../experiments.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../experiments.html">ibeis.experiments</a> &raquo;</li>
+      
+    <li>ibeis.experiments.experiment_drawing</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for ibeis.experiments.experiment_drawing</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10 --guiview</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">from</span> <span class="nn">ibeis.experiments</span> <span class="kn">import</span> <span class="n">experiment_storage</span>
+<span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">match_chips4</span> <span class="k">as</span> <span class="n">mc4</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
+<span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">input</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_drawres]&#39;</span><span class="p">)</span>
+<span class="n">SKIP_TO</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--skip-to&#39;</span><span class="p">,</span> <span class="s">&#39;--skipto&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="c">#SAVE_FIGURES = ut.get_argflag((&#39;--save-figures&#39;, &#39;--sf&#39;))</span>
+<span class="n">SAVE_FIGURES</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nosave-figures&#39;</span><span class="p">,</span> <span class="s">&#39;--nosf&#39;</span><span class="p">))</span>
+
+<span class="n">QUALITY</span>              <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--quality&#39;</span><span class="p">)</span>
+<span class="n">SHOW</span>                 <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--show&#39;</span><span class="p">)</span>
+
+<span class="c"># only triggered if dump_extra is on</span>
+<span class="n">DUMP_PROBCHIP</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">DUMP_REGCHIP</span> <span class="o">=</span> <span class="bp">False</span>
+
+
+<div class="viewcode-block" id="make_metadata_custom_api"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_drawing.make_metadata_custom_api">[docs]</a><span class="k">def</span> <span class="nf">make_metadata_custom_api</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.experiments.experiment_drawing --test-make_metadata_custom_api --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.experiments.experiment_drawing import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import guitool</span>
+<span class="sd">        &gt;&gt;&gt; guitool.ensure_qapp()</span>
+<span class="sd">        &gt;&gt;&gt; metadata_fpath = &#39;/media/raid/work/Elephants_drop1_ears/_ibsdb/figures/result_metadata.shelf&#39;</span>
+<span class="sd">        &gt;&gt;&gt; metadata = experiment_storage.ResultMetadata(metadata_fpath, autoconnect=True)</span>
+<span class="sd">        &gt;&gt;&gt; wgt = make_metadata_custom_api(metadata)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; wgt.show()</span>
+<span class="sd">        &gt;&gt;&gt; wgt.raise_()</span>
+<span class="sd">        &gt;&gt;&gt; guitool.qtapp_loop(wgt, frequency=100)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">guitool</span>
+    <span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtCore</span>
+
+    <span class="k">class</span> <span class="nc">MetadataViewer</span><span class="p">(</span><span class="n">guitool</span><span class="o">.</span><span class="n">APIItemWidget</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">wgt</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tblnice</span><span class="o">=</span><span class="s">&#39;Result Metadata Viewer&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">guitool</span><span class="o">.</span><span class="n">APIItemWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">wgt</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span> <span class="n">tblnice</span><span class="o">=</span><span class="n">tblnice</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">wgt</span><span class="o">.</span><span class="n">connect_signals_and_slots</span><span class="p">()</span>
+
+        <span class="nd">@guitool.slot_</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">_on_doubleclick</span><span class="p">(</span><span class="n">wgt</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[wgt] _on_doubleclick: &#39;</span><span class="p">)</span>
+            <span class="n">col</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">column</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">wgt</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">col_edit_list</span><span class="p">[</span><span class="n">col</span><span class="p">]:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;do nothing special for editable columns&#39;</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">qtindex</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
+            <span class="n">colname</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_name</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">colname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;fpath&#39;</span><span class="p">):</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;showing fpath&#39;</span><span class="p">)</span>
+                <span class="n">fpath</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_header_data</span><span class="p">(</span><span class="n">colname</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">connect_signals_and_slots</span><span class="p">(</span><span class="n">wgt</span><span class="p">):</span>
+            <span class="c">#wgt.view.clicked.connect(wgt._on_click)</span>
+            <span class="n">wgt</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">doubleClicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">wgt</span><span class="o">.</span><span class="n">_on_doubleclick</span><span class="p">)</span>
+            <span class="c">#wgt.view.pressed.connect(wgt._on_pressed)</span>
+            <span class="c">#wgt.view.activated.connect(wgt._on_activated)</span>
+
+    <span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
+    <span class="c">#cfgstr_list = metadata</span>
+    <span class="n">col_name_list</span><span class="p">,</span> <span class="n">column_list</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get_square_data</span><span class="p">()</span>
+
+    <span class="c"># Priority of column names</span>
+    <span class="n">colname_priority</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;qaids&#39;</span><span class="p">,</span> <span class="s">&#39;qx2_gt_rank&#39;</span><span class="p">,</span> <span class="s">&#39;qx2_gt_timedelta&#39;</span><span class="p">,</span> <span class="s">&#39;qx2_gf_timedelta&#39;</span><span class="p">,</span>  <span class="s">&#39;analysis_fpath&#39;</span><span class="p">,</span> <span class="s">&#39;qx2_gt_raw_score&#39;</span><span class="p">,</span> <span class="s">&#39;qx2_gf_raw_score&#39;</span><span class="p">]</span>
+    <span class="n">colname_priority</span> <span class="o">+=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">colname_priority</span><span class="p">))</span>
+    <span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">priority_argsort</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">colname_priority</span><span class="p">)</span>
+    <span class="n">col_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+    <span class="n">column_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">column_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+
+    <span class="n">col_lens</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">column_list</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;col_name_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col_name_list</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;col_lens = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col_lens</span><span class="p">,))</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_lens</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;no columns&#39;</span>
+    <span class="k">assert</span> <span class="n">col_lens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;no rows&#39;</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">len_</span> <span class="o">==</span> <span class="n">col_lens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">len_</span> <span class="ow">in</span> <span class="n">col_lens</span><span class="p">]),</span> <span class="s">&#39;inconsistant data&#39;</span>
+    <span class="n">col_types_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_getter_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">col_name_list</span><span class="p">,</span> <span class="n">column_list</span><span class="p">))</span>
+    <span class="n">col_bgrole_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_ider_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_setter_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_nice_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;qx2_&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">col_name_list</span><span class="p">}</span>
+    <span class="n">col_nice_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+        <span class="s">&#39;qx2_gt_timedelta&#39;</span><span class="p">:</span> <span class="s">&#39;GT TimeDelta&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qx2_gf_timedelta&#39;</span><span class="p">:</span> <span class="s">&#39;GF TimeDelta&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qx2_gt_rank&#39;</span><span class="p">:</span> <span class="s">&#39;GT Rank&#39;</span><span class="p">,</span>
+    <span class="p">})</span>
+    <span class="n">editable_colnames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">sortby</span> <span class="o">=</span> <span class="s">&#39;qaids&#39;</span>
+    <span class="n">get_thumb_size</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="mi">128</span>
+    <span class="n">col_width_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">custom_api</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">CustomAPI</span><span class="p">(</span>
+        <span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_types_dict</span><span class="p">,</span> <span class="n">col_getter_dict</span><span class="p">,</span>
+        <span class="n">col_bgrole_dict</span><span class="p">,</span> <span class="n">col_ider_dict</span><span class="p">,</span> <span class="n">col_setter_dict</span><span class="p">,</span>
+        <span class="n">editable_colnames</span><span class="p">,</span> <span class="n">sortby</span><span class="p">,</span> <span class="n">get_thumb_size</span><span class="p">,</span>
+        <span class="n">sort_reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="n">col_width_dict</span><span class="o">=</span><span class="n">col_width_dict</span><span class="p">,</span>
+        <span class="n">col_nice_dict</span><span class="o">=</span><span class="n">col_nice_dict</span>
+    <span class="p">)</span>
+    <span class="c">#headers = custom_api.make_headers(tblnice=&#39;results&#39;)</span>
+    <span class="c">#print(ut.dict_str(headers))</span>
+    <span class="n">wgt</span> <span class="o">=</span> <span class="n">MetadataViewer</span><span class="p">()</span>
+    <span class="n">wgt</span><span class="o">.</span><span class="n">connect_api</span><span class="p">(</span><span class="n">custom_api</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wgt</span>
+
+</div>
+<div class="viewcode-block" id="make_test_result_custom_api"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_drawing.make_test_result_custom_api">[docs]</a><span class="k">def</span> <span class="nf">make_test_result_custom_api</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_result</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">guitool</span>
+    <span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
+    <span class="n">cfgx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">cfgres_info</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">cfgx2_cfgresinfo</span><span class="p">[</span><span class="n">cfgx</span><span class="p">]</span>
+    <span class="n">qaids</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">qaids</span>
+    <span class="n">gt_aids</span> <span class="o">=</span> <span class="n">cfgres_info</span><span class="p">[</span><span class="s">&#39;qx2_gt_aid&#39;</span><span class="p">]</span>
+    <span class="n">gf_aids</span> <span class="o">=</span> <span class="n">cfgres_info</span><span class="p">[</span><span class="s">&#39;qx2_gf_aid&#39;</span><span class="p">]</span>
+    <span class="n">qx2_gt_timedelta</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_pair_timdelta</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">gt_aids</span><span class="p">)</span>
+    <span class="n">qx2_gf_timedelta</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_pair_timdelta</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">gf_aids</span><span class="p">)</span>
+    <span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;qaids&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qx2_gt_aid&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qx2_gf_aid&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qx2_gt_timedelta&#39;</span><span class="p">,</span>
+        <span class="s">&#39;qx2_gf_timedelta&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">col_types_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_getter_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_getter_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">cfgres_info</span><span class="p">)</span>
+    <span class="n">col_getter_dict</span><span class="p">[</span><span class="s">&#39;qaids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">qaids</span>
+    <span class="n">col_getter_dict</span><span class="p">[</span><span class="s">&#39;qx2_gt_timedelta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qx2_gt_timedelta</span>
+    <span class="n">col_getter_dict</span><span class="p">[</span><span class="s">&#39;qx2_gf_timedelta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qx2_gf_timedelta</span>
+    <span class="n">col_bgrole_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_ider_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">col_setter_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">editable_colnames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">sortby</span> <span class="o">=</span> <span class="s">&#39;qaids&#39;</span>
+    <span class="n">get_thumb_size</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="mi">128</span>
+    <span class="n">col_width_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">custom_api</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">CustomAPI</span><span class="p">(</span>
+        <span class="n">col_name_list</span><span class="p">,</span> <span class="n">col_types_dict</span><span class="p">,</span> <span class="n">col_getter_dict</span><span class="p">,</span>
+        <span class="n">col_bgrole_dict</span><span class="p">,</span> <span class="n">col_ider_dict</span><span class="p">,</span> <span class="n">col_setter_dict</span><span class="p">,</span>
+        <span class="n">editable_colnames</span><span class="p">,</span> <span class="n">sortby</span><span class="p">,</span> <span class="n">get_thumb_size</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="n">col_width_dict</span><span class="p">)</span>
+    <span class="c">#headers = custom_api.make_headers(tblnice=&#39;results&#39;)</span>
+    <span class="c">#print(ut.dict_str(headers))</span>
+    <span class="n">wgt</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">APIItemWidget</span><span class="p">()</span>
+    <span class="n">wgt</span><span class="o">.</span><span class="n">connect_api</span><span class="p">(</span><span class="n">custom_api</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wgt</span>
+
+</div>
+<div class="viewcode-block" id="get_diffranks"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_drawing.get_diffranks">[docs]</a><span class="k">def</span> <span class="nf">get_diffranks</span><span class="p">(</span><span class="n">rank_mat</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Find rows which scored differently over the various configs</span>
+<span class="sd">    FIXME: duplicated</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">isdiff_flags</span> <span class="o">=</span> <span class="p">[</span><span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">row</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rank_mat</span><span class="p">]</span>
+    <span class="n">diff_aids</span>    <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">isdiff_flags</span><span class="p">)</span>
+    <span class="n">diff_rank</span>    <span class="o">=</span> <span class="n">rank_mat</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">isdiff_flags</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">diff_qxs</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">isdiff_flags</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">diff_aids</span><span class="p">,</span> <span class="n">diff_rank</span><span class="p">,</span> <span class="n">diff_qxs</span>
+
+</div>
+<div class="viewcode-block" id="get_interesting_ranks"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_drawing.get_interesting_ranks">[docs]</a><span class="k">def</span> <span class="nf">get_interesting_ranks</span><span class="p">(</span><span class="n">rank_mat</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
+    <span class="c"># find the rows that vary greatest with the parameter settings</span>
+    <span class="n">diff_aids</span><span class="p">,</span> <span class="n">diff_rank</span><span class="p">,</span> <span class="n">diff_qxs</span> <span class="o">=</span> <span class="n">get_diffranks</span><span class="p">(</span><span class="n">rank_mat</span><span class="p">,</span> <span class="n">qaids</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">rankcategory</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">diff_rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rankcategory</span> <span class="o">=</span> <span class="n">diff_rank</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">rankcategory</span><span class="p">[</span><span class="n">diff_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>  <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">rankcategory</span><span class="p">[</span><span class="n">diff_rank</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>   <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">rankcategory</span><span class="p">[</span><span class="n">diff_rank</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">]</span>   <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">rankcategory</span><span class="p">[</span><span class="n">diff_rank</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">]</span>   <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">rankcategory</span><span class="p">[</span><span class="n">diff_rank</span> <span class="o">&gt;</span> <span class="mi">50</span><span class="p">]</span>  <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">rankcategory</span><span class="p">[</span><span class="n">diff_rank</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">row_rankcategory_std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">rankcategory</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">row_rankcategory_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">rankcategory</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">row_sortx</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">argsort_multiarray</span><span class="p">([</span><span class="n">row_rankcategory_std</span><span class="p">,</span> <span class="n">row_rankcategory_mean</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="n">interesting_qx_list</span> <span class="o">=</span> <span class="n">diff_qxs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">row_sortx</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="c">#print(&quot;INTERSETING MEASURE&quot;)</span>
+    <span class="c">#print(interesting_qx_list)</span>
+    <span class="c">#print(row_rankcategory_std)</span>
+    <span class="c">#print(ut.list_take(qaids, row_sortx))</span>
+    <span class="c">#print(diff_rank.take(row_sortx, axis=0))</span>
+    <span class="k">return</span> <span class="n">interesting_qx_list</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">individual_results_figdir</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">seen</span><span class="o">=</span><span class="nb">set</span><span class="p">([]),</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">dumpkw</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[PRINT_RESULTS] show_chip(aid=</span><span class="si">%r</span><span class="s">) prefix=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">prefix</span><span class="p">))</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
+    <span class="c"># only dump a chip that hasn&#39;t been dumped yet</span>
+    <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[PRINT_RESULTS] SEEN SKIPPING&#39;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">fulldir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">individual_results_figdir</span><span class="p">,</span> <span class="n">dumpkw</span><span class="p">[</span><span class="s">&#39;subdir&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">DUMP_PROBCHIP</span><span class="p">:</span>
+        <span class="c"># just copy it</span>
+        <span class="n">probchip_fpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_probchip_fpath</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">fulldir</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">DUMP_REGCHIP</span><span class="p">:</span>
+        <span class="n">chip_fpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">chip_fpath</span><span class="p">,</span> <span class="n">fulldir</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="n">viz</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="n">in_image</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">prefix</span> <span class="o">+=</span> <span class="s">&#39;rank</span><span class="si">%d</span><span class="s">_&#39;</span> <span class="o">%</span> <span class="n">rank</span>
+    <span class="n">df2</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">annotstr</span><span class="p">(</span><span class="n">aid</span><span class="p">))</span>
+    <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[expt] dumping fig to individual_results_figdir=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">individual_results_figdir</span><span class="p">)</span>
+
+    <span class="n">fpath_clean</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">dump_figure</span><span class="p">(</span><span class="n">individual_results_figdir</span><span class="p">,</span> <span class="o">**</span><span class="n">dumpkw</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fpath_clean</span>
+
+
+<div class="viewcode-block" id="IndividualResultsCopyTaskQueue"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_drawing.IndividualResultsCopyTaskQueue">[docs]</a><span class="k">class</span> <span class="nc">IndividualResultsCopyTaskQueue</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cp_task_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="IndividualResultsCopyTaskQueue.append_copy_task"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_drawing.IndividualResultsCopyTaskQueue.append_copy_task">[docs]</a>    <span class="k">def</span> <span class="nf">append_copy_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpath_orig</span><span class="p">,</span> <span class="n">dstdir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; helper which copies a summary figure to root dir &quot;&quot;&quot;</span>
+        <span class="n">fname_orig</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fpath_orig</span><span class="p">))</span>
+        <span class="n">outdir</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">fpath_orig</span><span class="p">)</span>
+        <span class="n">fdir_clean</span><span class="p">,</span> <span class="n">cfgdir</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dstdir</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">dstdir</span> <span class="o">=</span> <span class="n">fdir_clean</span>
+        <span class="c">#aug = cfgdir[0:min(len(cfgdir), 10)]</span>
+        <span class="n">aug</span> <span class="o">=</span> <span class="n">cfgdir</span>
+        <span class="n">fname_fmt</span> <span class="o">=</span> <span class="s">&#39;{aug}_{fname_orig}{ext}&#39;</span>
+        <span class="n">fmt_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;aug&#39;</span><span class="p">:</span> <span class="n">aug</span><span class="p">,</span> <span class="s">&#39;fname_orig&#39;</span><span class="p">:</span> <span class="n">fname_orig</span><span class="p">,</span> <span class="s">&#39;ext&#39;</span><span class="p">:</span> <span class="n">ext</span><span class="p">}</span>
+        <span class="n">fname_clean</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">long_fname_format</span><span class="p">(</span><span class="n">fname_fmt</span><span class="p">,</span> <span class="n">fmt_dict</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;fname_orig&#39;</span><span class="p">],</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+        <span class="n">fdst_clean</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dstdir</span><span class="p">,</span> <span class="n">fname_clean</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cp_task_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fpath_orig</span><span class="p">,</span> <span class="n">fdst_clean</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="IndividualResultsCopyTaskQueue.flush_copy_tasks"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_drawing.IndividualResultsCopyTaskQueue.flush_copy_tasks">[docs]</a>    <span class="k">def</span> <span class="nf">flush_copy_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Execute all copy tasks and empty the lists</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[DRAW_RESULT] copying </span><span class="si">%r</span><span class="s"> summaries&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cp_task_list</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">src</span><span class="p">,</span> <span class="n">dst</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cp_task_list</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">cp_task_list</span><span class="p">[:]</span>
+
+</div></div>
+<span class="nd">@profile</span>
+<div class="viewcode-block" id="draw_results"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_drawing.draw_results">[docs]</a><span class="k">def</span> <span class="nf">draw_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_result</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Draws results from an experiment harness run.</span>
+<span class="sd">    Rows store different qaids (query annotation ids)</span>
+<span class="sd">    Cols store different configurations (algorithm parameters)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python dev.py -t custom:rrvsone_on=True,constrained_coeff=0 custom --qaid 12 --db PZ_MTEST --show --va</span>
+<span class="sd">        python dev.py -t custom:rrvsone_on=True,constrained_coeff=.3 custom --qaid 12 --db PZ_MTEST --show --va --noqcache</span>
+<span class="sd">        python dev.py -t custom:rrvsone_on=True custom --qaid 4 --db PZ_MTEST --show --va --noqcache</span>
+
+<span class="sd">        python dev.py -t custom:rrvsone_on=True,grid_scale_factor=1 custom --qaid 12 --db PZ_MTEST --show --va --noqcache</span>
+<span class="sd">        python dev.py -t custom:rrvsone_on=True,grid_scale_factor=1,grid_steps=1 custom --qaid 12 --db PZ_MTEST --show --va --noqcache</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python dev.py -t best --db seals2 --allgt --vz --fig-dname query_analysis_easy --show</span>
+<span class="sd">        python dev.py -t best --db seals2 --allgt --vh --fig-dname query_analysis_hard --show</span>
+
+<span class="sd">        python dev.py -t pyrscale --db PZ_MTEST --allgt --vn --fig-dname query_analysis_interesting --show</span>
+<span class="sd">        python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf</span>
+<span class="sd">        python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf --quality</span>
+
+
+<span class="sd">        python -m ibeis.experiments.experiment_printres --test-draw_results --show --vn</span>
+<span class="sd">        python -m ibeis.experiments.experiment_printres --test-draw_results --show --vn --db PZ_MTEST</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.experiments.experiment_printres import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.experiments import experiment_harness</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; # build test data</span>
+<span class="sd">        &gt;&gt;&gt; species = ibeis.const.Species.ZEB_PLAIN</span>
+<span class="sd">        &gt;&gt;&gt; #ibs = ibeis.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb3&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; test_cfg_name_list = [&#39;pyrscale&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; qaids = ibs.get_valid_aids(species=species, hasgt=True)</span>
+<span class="sd">        &gt;&gt;&gt; daids = ibs.get_valid_aids(species=species)</span>
+<span class="sd">        &gt;&gt;&gt; test_result = experiment_harness.run_test_configurations(ibs, qaids, daids, test_cfg_name_list)</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; result = draw_results(ibs, test_result)</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39; --- DRAW RESULTS ---&#39;</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+
+    <span class="c"># It is very inefficient to turn off caching when view_all is true</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mc4</span><span class="o">.</span><span class="n">USE_CACHE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: view_all specified with USE_CACHE == False&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: we will try to turn cache on when reloading results&#39;</span><span class="p">)</span>
+        <span class="c">#mc4.USE_CACHE = True</span>
+
+    <span class="n">qaids</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">qaids</span>
+    <span class="n">daids</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">daids</span>
+    <span class="n">rank_mat</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_mat</span><span class="p">()</span>
+    <span class="n">interesting_qx_list</span> <span class="o">=</span> <span class="n">get_interesting_ranks</span><span class="p">(</span><span class="n">rank_mat</span><span class="p">,</span> <span class="n">qaids</span><span class="p">)</span>
+
+    <span class="p">(</span><span class="n">cfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">,</span> <span class="n">cfgx2_qreq_</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span>
+        <span class="n">test_result</span><span class="o">.</span><span class="n">__dict__</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;cfg_list&#39;</span><span class="p">,</span> <span class="s">&#39;cfgx2_lbl&#39;</span><span class="p">,</span> <span class="s">&#39;cfgx2_qreq_&#39;</span><span class="p">])</span>
+
+    <span class="n">figdir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_fig_dir</span><span class="p">()</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">figdir</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--view-fig-directory&#39;</span><span class="p">,</span> <span class="s">&#39;--vf&#39;</span><span class="p">)):</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">figdir</span><span class="p">)</span>
+
+    <span class="n">figdir_suffix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--fig-dname&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">figdir_suffix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">figdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">figdir_suffix</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">figdir</span><span class="p">)</span>
+
+    <span class="n">individual_results_figdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="s">&#39;individual_results&#39;</span><span class="p">)</span>
+    <span class="n">aggregate_results_figdir</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="s">&#39;aggregate_results&#39;</span><span class="p">)</span>
+    <span class="n">blind_results_figdir</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="s">&#39;blind_results&#39;</span><span class="p">)</span>
+    <span class="n">top_rank_analysis_dir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="s">&#39;top_rank_analysis&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">individual_results_figdir</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">aggregate_results_figdir</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">top_rank_analysis_dir</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">blind_results_figdir</span><span class="p">)</span>
+    <span class="c">#gx2_gt_timedelta</span>
+    <span class="c">#    cfgres_info[&#39;qx2_gf_timedelta&#39;] = qx2_gf_timedelta</span>
+
+    <span class="n">metadata_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="s">&#39;result_metadata.shelf&#39;</span><span class="p">)</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">experiment_storage</span><span class="o">.</span><span class="n">ResultMetadata</span><span class="p">(</span><span class="n">metadata_fpath</span><span class="p">)</span>
+    <span class="c">#metadata.rrr()</span>
+    <span class="n">metadata</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+    <span class="n">metadata</span><span class="o">.</span><span class="n">sync_test_results</span><span class="p">(</span><span class="n">test_result</span><span class="p">)</span>
+    <span class="c">#cfgstr = qreq_.get_cfgstr()</span>
+    <span class="c">#cfg_metadata = ensure_item(metadata, cfgstr, {})</span>
+    <span class="c">#avuuids = ibs.get_annot_visual_uuids(qaids)</span>
+    <span class="c">#avuuid2_ax = ensure_item(cfg_metadata, &#39;avuuid2_ax&#39;, {})</span>
+    <span class="c">#cfg_columns = ensure_item(cfg_metadata, &#39;columns&#39;, {})</span>
+    <span class="c">#import guitool</span>
+
+    <span class="n">VIZ_INDIVIDUAL_RESULTS</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">if</span> <span class="n">VIZ_INDIVIDUAL_RESULTS</span><span class="p">:</span>
+        <span class="c">#_viewkw = dict(view_interesting=True)</span>
+        <span class="n">_viewkw</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c"># Get selected rows and columns for individual rank investigation</span>
+        <span class="n">new_hard_qx_list</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_new_hard_qx_list</span><span class="p">()</span>
+        <span class="n">sel_rows</span><span class="p">,</span> <span class="n">sel_cols</span> <span class="o">=</span> <span class="n">get_sel_rows_and_cols</span><span class="p">(</span>
+            <span class="n">qaids</span><span class="p">,</span> <span class="n">cfg_list</span><span class="p">,</span> <span class="n">new_hard_qx_list</span><span class="p">,</span> <span class="n">interesting_qx_list</span><span class="p">,</span> <span class="n">test_result</span><span class="p">,</span> <span class="o">**</span><span class="n">_viewkw</span><span class="p">)</span>
+
+        <span class="n">show_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;N&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s">&#39;ori&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;ell_alpha&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">dumpkw</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;quality&#39;</span>   <span class="p">:</span> <span class="n">QUALITY</span><span class="p">,</span>
+            <span class="s">&#39;overwrite&#39;</span> <span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s">&#39;verbose&#39;</span>   <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">cpq</span> <span class="o">=</span> <span class="n">IndividualResultsCopyTaskQueue</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">load_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Load / Execute the query w/ correct config &quot;&quot;&quot;</span>
+            <span class="c"># TODO: try to get away with not reloading query results or loading</span>
+            <span class="c"># them in batch if possible</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">set_external_qaids</span><span class="p">([</span><span class="n">qaid</span><span class="p">])</span>
+            <span class="n">qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">qaid</span><span class="p">],</span> <span class="n">daids</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)[</span><span class="n">qaid</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">qres</span>
+
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">InteractiveIter</span><span class="p">(</span><span class="n">sel_rows</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">SHOW</span><span class="p">)):</span>
+            <span class="n">qreq_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">cfgx2_qreq_</span><span class="p">,</span> <span class="n">sel_cols</span><span class="p">)</span>
+            <span class="n">qres_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">load_qres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">[</span><span class="n">r</span><span class="p">],</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span> <span class="k">for</span> <span class="n">qreq_</span> <span class="ow">in</span> <span class="n">qreq_list</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">cfgx</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sel_cols</span><span class="p">,</span> <span class="n">qres_list</span><span class="p">,</span> <span class="n">qreq_list</span><span class="p">):</span>
+                <span class="n">fnum</span> <span class="o">=</span> <span class="n">cfgx</span> <span class="k">if</span> <span class="n">SHOW</span> <span class="k">else</span> <span class="mi">1</span>
+                <span class="c"># Get row and column index</span>
+                <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">cfgx</span><span class="p">)</span>
+                <span class="n">query_lbl</span> <span class="o">=</span> <span class="n">cfgx2_lbl</span><span class="p">[</span><span class="n">cfgx</span><span class="p">]</span>
+                <span class="n">qres_cfg</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_fname</span><span class="p">(</span><span class="n">ext</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">subdir</span> <span class="o">=</span> <span class="n">qres_cfg</span>
+                <span class="c"># Draw Result</span>
+                <span class="c"># try to shorten query labels a bit</span>
+                <span class="n">query_lbl</span> <span class="o">=</span> <span class="n">query_lbl</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+                <span class="c">#qres.show(ibs, &#39;analysis&#39;, figtitle=query_lbl, fnum=fnum, **show_kwargs)</span>
+
+                <span class="c"># SHOW ANALYSIS</span>
+                <span class="n">DRAW_ANALYSIS</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">if</span> <span class="n">DRAW_ANALYSIS</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">SHOW</span><span class="p">:</span>
+                        <span class="c">#show_kwargs[&#39;show_query&#39;] = False</span>
+                        <span class="n">show_kwargs</span><span class="p">[</span><span class="s">&#39;viz_name_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                        <span class="n">show_kwargs</span><span class="p">[</span><span class="s">&#39;show_timedelta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                        <span class="n">qres</span><span class="o">.</span><span class="n">ishow_analysis</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="n">query_lbl</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">annot_mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">show_kwargs</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">show_kwargs</span><span class="p">[</span><span class="s">&#39;show_query&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+                        <span class="c">#show_kwargs[&#39;viz_name_score&#39;] = False</span>
+                        <span class="n">show_kwargs</span><span class="p">[</span><span class="s">&#39;viz_name_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                        <span class="n">show_kwargs</span><span class="p">[</span><span class="s">&#39;show_timedelta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                        <span class="n">qres</span><span class="o">.</span><span class="n">show_analysis</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="n">query_lbl</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">annot_mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">show_kwargs</span><span class="p">)</span>
+                    <span class="n">analysis_fpath</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">dump_figure</span><span class="p">(</span><span class="n">individual_results_figdir</span><span class="p">,</span> <span class="n">reset</span><span class="o">=</span><span class="ow">not</span> <span class="n">SHOW</span><span class="p">,</span> <span class="n">subdir</span><span class="o">=</span><span class="n">subdir</span><span class="p">,</span> <span class="o">**</span><span class="n">dumpkw</span><span class="p">)</span>
+                    <span class="n">metadata</span><span class="o">.</span><span class="n">set_global_data</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">,</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="s">&#39;analysis_fpath&#39;</span><span class="p">,</span> <span class="n">analysis_fpath</span><span class="p">)</span>
+                    <span class="n">cpq</span><span class="o">.</span><span class="n">append_copy_task</span><span class="p">(</span><span class="n">analysis_fpath</span><span class="p">,</span> <span class="n">top_rank_analysis_dir</span><span class="p">)</span>
+
+                <span class="c"># BLIND CASES - draws results without labels to see if we can determine what happened using doubleblind methods</span>
+                <span class="n">DRAW_BLIND</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">SHOW</span>
+                <span class="k">if</span> <span class="n">DRAW_BLIND</span><span class="p">:</span>
+                    <span class="n">pt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+                    <span class="n">best_gt_aid</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_top_groundtruth_aid</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+                    <span class="n">qres</span><span class="o">.</span><span class="n">show_name_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">best_gt_aid</span><span class="p">,</span>
+                                           <span class="n">show_matches</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                           <span class="n">show_name_score</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                           <span class="n">show_name_rank</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                           <span class="n">show_annot_score</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span>
+                                           <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="n">show_kwargs</span><span class="p">)</span>
+                    <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="s">&#39;BLIND &#39;</span> <span class="o">+</span> <span class="n">query_lbl</span><span class="p">)</span>
+                    <span class="n">blind_fpath</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">dump_figure</span><span class="p">(</span><span class="n">individual_results_figdir</span><span class="p">,</span> <span class="n">reset</span><span class="o">=</span><span class="ow">not</span> <span class="n">SHOW</span><span class="p">,</span> <span class="n">subdir</span><span class="o">=</span><span class="n">subdir</span><span class="p">,</span> <span class="o">**</span><span class="n">dumpkw</span><span class="p">)</span>
+                    <span class="n">cpq</span><span class="o">.</span><span class="n">append_copy_task</span><span class="p">(</span><span class="n">blind_fpath</span><span class="p">,</span> <span class="n">blind_results_figdir</span><span class="p">)</span>
+                    <span class="n">metadata</span><span class="o">.</span><span class="n">set_global_data</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">,</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="s">&#39;blind_fpath&#39;</span><span class="p">,</span> <span class="n">blind_fpath</span><span class="p">)</span>
+
+                <span class="n">DUMP_EXTRA</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--dump-extra&#39;</span><span class="p">)</span>
+                <span class="n">DRAW_QUERY_CHIP</span> <span class="o">=</span> <span class="n">DUMP_EXTRA</span>
+                <span class="n">extra_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">(),</span> <span class="n">subdir</span><span class="o">=</span><span class="n">subdir</span><span class="p">,</span> <span class="o">**</span><span class="n">dumpkw</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">DRAW_QUERY_CHIP</span><span class="p">:</span>
+                    <span class="n">_show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">individual_results_figdir</span><span class="p">,</span> <span class="s">&#39;QUERY_&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">extra_kw</span><span class="p">)</span>
+                    <span class="n">_show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">individual_results_figdir</span><span class="p">,</span> <span class="s">&#39;QUERY_CXT_&#39;</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">extra_kw</span><span class="p">)</span>
+
+                <span class="n">DRAW_QUERY_GROUNDTRUTH</span> <span class="o">=</span> <span class="n">DUMP_EXTRA</span>
+                <span class="k">if</span> <span class="n">DRAW_QUERY_GROUNDTRUTH</span><span class="p">:</span>
+                    <span class="n">gtaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">qaid</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">gtaids</span><span class="p">:</span>
+                        <span class="n">rank</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aid_ranks</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+                        <span class="n">_show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">individual_results_figdir</span><span class="p">,</span> <span class="s">&#39;GT_CXT_&#39;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">rank</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">extra_kw</span><span class="p">)</span>
+
+                <span class="n">DRAW_QUERY_RESULT_CONTEXT</span>  <span class="o">=</span> <span class="n">DUMP_EXTRA</span>
+                <span class="k">if</span> <span class="n">DRAW_QUERY_RESULT_CONTEXT</span><span class="p">:</span>
+                    <span class="n">topids</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">topids</span><span class="p">:</span>
+                        <span class="n">rank</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_aid_ranks</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+                        <span class="n">_show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">individual_results_figdir</span><span class="p">,</span> <span class="s">&#39;TOP_CXT_&#39;</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">rank</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">extra_kw</span><span class="p">)</span>
+
+            <span class="c"># if some condition of of batch sizes</span>
+            <span class="n">flush_freq</span> <span class="o">=</span> <span class="mi">4</span>
+            <span class="k">if</span> <span class="n">count</span> <span class="o">%</span> <span class="n">flush_freq</span> <span class="o">==</span> <span class="p">(</span><span class="n">flush_freq</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">cpq</span><span class="o">.</span><span class="n">flush_copy_tasks</span><span class="p">()</span>
+
+        <span class="c"># Copy summary images to query_analysis folder</span>
+        <span class="n">cpq</span><span class="o">.</span><span class="n">flush_copy_tasks</span><span class="p">()</span>
+
+    <span class="n">metadata</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+    <span class="c">#ut.embed()</span>
+    <span class="c">#if ut.is_developer():</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--guiview&#39;</span><span class="p">,</span> <span class="s">&#39;--gv&#39;</span><span class="p">)):</span>
+        <span class="kn">import</span> <span class="nn">guitool</span>
+        <span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
+        <span class="c">#wgt = make_test_result_custom_api(ibs, test_result)</span>
+        <span class="n">wgt</span> <span class="o">=</span> <span class="n">make_metadata_custom_api</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="n">wgt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">wgt</span><span class="o">.</span><span class="n">raise_</span><span class="p">()</span>
+        <span class="n">guitool</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">wgt</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="c">#ut.embed()</span>
+    <span class="n">metadata</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[DRAW_RESULT] EXIT EXPERIMENT HARNESS&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_sel_rows_and_cols"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_drawing.get_sel_rows_and_cols">[docs]</a><span class="k">def</span> <span class="nf">get_sel_rows_and_cols</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">cfg_list</span><span class="p">,</span> <span class="n">new_hard_qx_list</span><span class="p">,</span> <span class="n">interesting_qx_list</span><span class="p">,</span> <span class="n">test_result</span><span class="p">,</span>
+                          <span class="n">view_all</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--view-all&#39;</span><span class="p">,</span> <span class="s">&#39;--va&#39;</span><span class="p">)),</span>
+                          <span class="n">view_hard</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--view-hard&#39;</span><span class="p">,</span> <span class="s">&#39;--vh&#39;</span><span class="p">)),</span>
+                          <span class="n">view_easy</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--view-easy&#39;</span><span class="p">,</span> <span class="s">&#39;--vz&#39;</span><span class="p">)),</span>
+                          <span class="n">view_interesting</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--view-interesting&#39;</span><span class="p">,</span> <span class="s">&#39;--vn&#39;</span><span class="p">)),</span>
+                          <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The selected rows are the query annotation you are interested in viewing</span>
+<span class="sd">    The selected cols are the parameter configuration you are interested in viewing</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sel_cols</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">sel_cols</span>  <span class="c"># FIXME</span>
+    <span class="n">sel_rows</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">sel_rows</span>  <span class="c"># FIXME</span>
+    <span class="n">sel_cols</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">sel_cols</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">sel_cols</span>
+    <span class="n">sel_rows</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">sel_rows</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">sel_rows</span>
+    <span class="c">#sel_rows = []</span>
+    <span class="c">#sel_cols = []</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;remember to inspect with --show --sel-rows (-r) and --sel-cols (-c) &#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;other options:&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;   --vf - view figure dir&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;   --va - view all&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;   --vh - view hard&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;   --ve - view easy&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;   --vn - view iNteresting&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;   --hs - hist sample&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;   --gv, --guiview - gui result inspection&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">sel_cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_cols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_rows</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">sel_rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">view_all</span><span class="p">:</span>
+        <span class="n">sel_rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)))</span>
+        <span class="n">sel_cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">view_hard</span><span class="p">:</span>
+        <span class="n">sel_rows</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_hard_qx_list</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="n">sel_cols</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">))))</span>
+    <span class="k">if</span> <span class="n">view_easy</span><span class="p">:</span>
+        <span class="n">new_easy_qx_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)),</span> <span class="n">new_hard_qx_list</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">sel_rows</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">new_easy_qx_list</span><span class="p">)</span>
+        <span class="n">sel_cols</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">))))</span>
+    <span class="k">if</span> <span class="n">view_interesting</span><span class="p">:</span>
+        <span class="n">sel_rows</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">interesting_qx_list</span><span class="p">)</span>
+        <span class="c"># TODO: grab the best scoring and most interesting configs</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sel_cols</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">))))</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;hist_sample&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--hs&#39;</span><span class="p">,</span> <span class="s">&#39;--hist-sample&#39;</span><span class="p">))):</span>
+        <span class="c"># Careful if there is more than one config</span>
+        <span class="n">config_rand_bin_qxs</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_histogram_qx_sample</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">sel_rows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">config_rand_bin_qxs</span><span class="p">))</span>
+        <span class="c"># TODO: grab the best scoring and most interesting configs</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sel_cols</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">))))</span>
+    <span class="n">sel_rows</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order2</span><span class="p">(</span><span class="n">sel_rows</span><span class="p">)</span>
+    <span class="n">sel_cols</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order2</span><span class="p">(</span><span class="n">sel_cols</span><span class="p">)</span>
+    <span class="n">sel_cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sel_cols</span><span class="p">)</span>
+    <span class="n">sel_rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sel_rows</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sel_rows</span><span class="p">,</span> <span class="n">sel_cols</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.experiments.experiment_drawing</span>
+<span class="sd">        python -m ibeis.experiments.experiment_drawing --allexamples</span>
+<span class="sd">        python -m ibeis.experiments.experiment_drawing --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.4',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

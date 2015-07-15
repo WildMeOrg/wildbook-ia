@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.distinctiveness_normalizer &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.model.hots.distinctiveness_normalizer &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -154,7 +155,7 @@
 <div class="viewcode-block" id="testdata_distinctiveness"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.distinctiveness_normalizer.testdata_distinctiveness">[docs]</a><span class="k">def</span> <span class="nf">testdata_distinctiveness</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; dstcnvs_normer, qreq_ = testdata_distinctiveness()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -272,7 +273,7 @@
 <span class="sd">            python -m ibeis.model.hots.distinctiveness_normalizer --test-exists</span>
 
 <span class="sd">        Example:</span>
-<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; # build test data</span>
 <span class="sd">            &gt;&gt;&gt; dstcnvs_normer = testdata_distinctiveness()[0]</span>
@@ -304,9 +305,11 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">flann</span> <span class="o">=</span> <span class="n">pyflann</span><span class="o">.</span><span class="n">FLANN</span><span class="p">()</span>
                 <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">flann</span><span class="o">.</span><span class="n">load_index</span><span class="p">(</span><span class="n">flann_fpath</span><span class="p">,</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">vecs</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">flann</span><span class="o">.</span><span class="n">_FLANN__curindex</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
                 <span class="c">#load_success = True</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;... cannot load distinctiveness flann&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">rebuild</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">ensure_flann</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
             <span class="c">#raise IOError(&#39;cannot load distinctiveness flann&#39;)</span>
@@ -365,7 +368,7 @@
 <span class="sd">            python -m ibeis.model.hots.distinctiveness_normalizer --test-get_distinctiveness --show --dcvs_K 3&amp;</span>
 
 <span class="sd">        Example:</span>
-<span class="sd">            &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">            &gt;&gt;&gt; from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA</span>
 <span class="sd">            &gt;&gt;&gt; dstcnvs_normer, qreq_ = testdata_distinctiveness()</span>
 <span class="sd">            &gt;&gt;&gt; qaid = qreq_.get_external_qaids()[0]</span>
@@ -376,20 +379,21 @@
 <span class="sd">            &gt;&gt;&gt; ut.assert_eq(len(qfx2_dstncvs.shape), 1)</span>
 <span class="sd">            &gt;&gt;&gt; assert np.all(qfx2_dstncvs) &lt;= 1</span>
 <span class="sd">            &gt;&gt;&gt; assert np.all(qfx2_dstncvs) &gt;= 0</span>
-<span class="sd">            &gt;&gt;&gt; if ut.show_was_requested():</span>
-<span class="sd">            &gt;&gt;&gt;     # Show distinctivness on an animal and a corresponding graph</span>
-<span class="sd">            &gt;&gt;&gt;     import plottool as pt</span>
-<span class="sd">            &gt;&gt;&gt;     chip = qreq_.ibs.get_annot_chips(qaid)</span>
-<span class="sd">            &gt;&gt;&gt;     qfx2_kpts = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.qparams)</span>
-<span class="sd">            &gt;&gt;&gt;     show_chip_distinctiveness_plot(chip, qfx2_kpts, qfx2_dstncvs)</span>
-<span class="sd">            &gt;&gt;&gt;     #pt.figure(2)</span>
-<span class="sd">            &gt;&gt;&gt;     #pt.show_all_colormaps()</span>
-<span class="sd">            &gt;&gt;&gt;     pt.show_if_requested()</span>
+<span class="sd">            &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">            &gt;&gt;&gt; # Show distinctivness on an animal and a corresponding graph</span>
+<span class="sd">            &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">            &gt;&gt;&gt; chip = qreq_.ibs.get_annot_chips(qaid)</span>
+<span class="sd">            &gt;&gt;&gt; qfx2_kpts = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.qparams)</span>
+<span class="sd">            &gt;&gt;&gt; show_chip_distinctiveness_plot(chip, qfx2_kpts, qfx2_dstncvs)</span>
+<span class="sd">            &gt;&gt;&gt; #pt.figure(2)</span>
+<span class="sd">            &gt;&gt;&gt; #pt.show_all_colormaps()</span>
+<span class="sd">            &gt;&gt;&gt; pt.show_if_requested()</span>
 
 <span class="sd">        Ignore:</span>
 <span class="sd">            %s/\(^ *\)\(.*\)/\1&gt;&gt;&gt; \2/c</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#ut.embed()</span>
         <span class="k">assert</span> <span class="n">dcvs_K</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">dcvs_K</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">vecs</span><span class="p">),</span> <span class="s">&#39;dcvs_K=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dcvs_K</span><span class="p">,)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c">#(qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.empty_neighbors(0, dcvs_K)</span>
@@ -490,7 +494,7 @@
 <span class="sd">        python -m ibeis.model.hots.distinctiveness_normalizer --test-request_ibeis_distinctiveness_normalizer</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
@@ -551,7 +555,7 @@
 <span class="sd">        python -m ibeis.model.hots.distinctiveness_normalizer --test-list_published_distinctivness</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.distinctiveness_normalizer import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; published_fpaths = list_published_distinctivness()</span>
 <span class="sd">        &gt;&gt;&gt; print(ut.list_str(published_fpaths))</span>
@@ -782,7 +786,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

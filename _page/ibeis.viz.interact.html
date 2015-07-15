@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.interact package &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.viz.interact package &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="index.html"/>
         <link rel="up" title="ibeis.viz package" href="ibeis.viz.html"/>
         <link rel="next" title="ibeis.web package" href="ibeis.web.html"/>
         <link rel="prev" title="ibeis.viz package" href="ibeis.viz.html"/> 
@@ -62,6 +62,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -240,7 +241,7 @@ Used in other interactions like name_interaction and interact_query_decision</p>
 <span id="ibeis-viz-interact-interact-image-module"></span><h2>ibeis.viz.interact.interact_image module<a class="headerlink" href="#module-ibeis.viz.interact.interact_image" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="ibeis.viz.interact.interact_image.ishow_image">
-<tt class="descclassname">ibeis.viz.interact.interact_image.</tt><tt class="descname">ishow_image</tt><big>(</big><em>ibs</em>, <em>gid</em>, <em>sel_aids=[]</em>, <em>fnum=1</em>, <em>select_callback=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_image.html#ishow_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_image.ishow_image" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.viz.interact.interact_image.</tt><tt class="descname">ishow_image</tt><big>(</big><em>ibs</em>, <em>gid</em>, <em>sel_aids=[]</em>, <em>fnum=None</em>, <em>select_callback=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_image.html#ishow_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_image.ishow_image" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -751,8 +752,8 @@ python -m ibeis.viz.interact.interact_qres &#8211;test-ishow_analysis:1 &#8211;s
 <dl class="function">
 <dt id="ibeis.viz.interact.interact_qres.ishow_qres">
 <tt class="descclassname">ibeis.viz.interact.interact_qres.</tt><tt class="descname">ishow_qres</tt><big>(</big><em>ibs</em>, <em>qres</em>, <em>analysis=False</em>, <em>dodraw=True</em>, <em>qreq_=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/viz/interact/interact_qres.html#ishow_qres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.viz.interact.interact_qres.ishow_qres" title="Permalink to this definition">¶</a></dt>
-<dd><p>Displays query chip, groundtruth matches, and top matches
-TODO: make this a class
+<dd><p>Displays query chip, groundtruth matches, and top matches</p>
+<p>TODO: make this a class
 TODO; dodraw should be false by default</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -768,10 +769,12 @@ TODO; dodraw should be false by default</p>
 </table>
 <dl class="docutils">
 <dt>CommandLine:</dt>
-<dd>python -m ibeis.viz.interact.interact_qres &#8211;test-ishow_qres &#8211;show</dd>
+<dd>python -m ibeis.viz.interact.interact_qres &#8211;test-ishow_qres &#8211;show
+python -m ibeis.viz.interact.interact_qres &#8211;test-ishow_qres</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># UNSTABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># EN-ABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_qres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
@@ -1087,7 +1090,7 @@ visualiztion</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

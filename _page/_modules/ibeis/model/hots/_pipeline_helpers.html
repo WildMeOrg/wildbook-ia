@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots._pipeline_helpers &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.model.hots._pipeline_helpers &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -125,6 +126,11 @@
 
 <div class="viewcode-block" id="testdata_hs2"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots._pipeline_helpers.testdata_hs2">[docs]</a><span class="k">def</span> <span class="nf">testdata_hs2</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">qaids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">daids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">stop_node</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">argnames</span><span class="o">=</span><span class="p">[]):</span>
     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots._pipeline_helpers --test-testdata_hs2</span>
+
+<span class="sd">    Example0:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots._pipeline_helpers import *</span>
 <span class="sd">        &gt;&gt;&gt; defaultdb = &#39;testdb1&#39;</span>
 <span class="sd">        &gt;&gt;&gt; qaids = None</span>
@@ -219,18 +225,28 @@
     <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 
 </div>
-<div class="viewcode-block" id="get_pipeline_testdata"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots._pipeline_helpers.get_pipeline_testdata">[docs]</a><span class="k">def</span> <span class="nf">get_pipeline_testdata</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                          <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">cmdline_ok</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+<div class="viewcode-block" id="get_pipeline_testdata"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots._pipeline_helpers.get_pipeline_testdata">[docs]</a><span class="k">def</span> <span class="nf">get_pipeline_testdata</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">qaid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">daid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span>
+                          <span class="n">cmdline_ok</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                           <span class="n">preload</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Gets testdata for pipeline defined by tests / and or command line</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        cmdline_ok : if false does not check command line</span>
 
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: ibs, qreq_</span>
+
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata</span>
 <span class="sd">        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata --daid_list 39 --qaid 41 --db PZ_MTEST</span>
+<span class="sd">        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata --daids 39 --qaid 41 --db PZ_MTEST</span>
+<span class="sd">        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata --qaid 41 --db PZ_MTEST</span>
+<span class="sd">        python -m ibeis.model.hots._pipeline_helpers --test-get_pipeline_testdata --controlled_daids --qaids=41 --db PZ_MTEST --verb-testdata</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -238,9 +254,15 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import _pipeline_helpers as plh</span>
 <span class="sd">        &gt;&gt;&gt; cfgdict = dict(pipeline_root=&#39;vsone&#39;, codename=&#39;vsone&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict)</span>
-<span class="sd">        &gt;&gt;&gt; print(qreq_.get_external_daids())</span>
-<span class="sd">        &gt;&gt;&gt; print(qreq_.get_external_qaids())</span>
-<span class="sd">        &gt;&gt;&gt; print(qreq_.qparams.query_cfgstr)</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict)</span>
+<span class="sd">        &gt;&gt;&gt; result = &#39;&#39;</span>
+<span class="sd">        &gt;&gt;&gt; result += (&#39;daids = %r\n&#39; % (qreq_.get_external_daids(),))</span>
+<span class="sd">        &gt;&gt;&gt; result += (&#39;qaids = %r&#39; % (qreq_.get_external_qaids(),))</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;cfgstr %s&#39;  % (qreq_.qparams.query_cfgstr,))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+
+<span class="sd">        daids = array([1, 2, 3, 4, 5])</span>
+<span class="sd">        qaids = array([1])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
@@ -248,62 +270,69 @@
     <span class="k">if</span> <span class="n">cfgdict</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{}</span>
 
+    <span class="k">assert</span> <span class="n">cmdline_ok</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;cmdline_ok should always be True&#39;</span>
+
     <span class="k">if</span> <span class="n">cmdline_ok</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>
         <span class="c"># Allow specification of db and qaids/daids</span>
         <span class="k">if</span> <span class="n">dbname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">defaultdb</span> <span class="o">=</span> <span class="n">dbname</span>
-        <span class="n">dbname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">defaultdb</span><span class="p">)</span>
+        <span class="n">dbname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
 
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">dbname</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">qaid_list</span> <span class="o">==</span> <span class="s">&#39;all&#39;</span><span class="p">:</span>
-        <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">default_qaid_list</span> <span class="o">=</span> <span class="n">qaid_list</span>
+    <span class="n">default_daid_list</span> <span class="o">=</span> <span class="n">daid_list</span>
+
+    <span class="c"># setup special defautls</span>
+
+    <span class="k">if</span> <span class="n">default_qaid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">default_qaid_list</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;testdb1&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s">&#39;GZ_ALL&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">1032</span><span class="p">],</span>
+            <span class="s">&#39;PZ_ALL&#39;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span>
+        <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">default_daid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--daids&#39;</span><span class="p">,</span> <span class="s">&#39;--daid-list&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default_daid_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">default_daid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;testdb1&#39;</span><span class="p">:</span>
-            <span class="n">daid_list</span> <span class="o">=</span> <span class="n">daid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">min</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">daid_list</span><span class="p">))]</span>
-    <span class="k">elif</span> <span class="n">daid_list</span> <span class="o">==</span> <span class="s">&#39;all&#39;</span><span class="p">:</span>
-        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-    <span class="k">elif</span> <span class="n">daid_list</span> <span class="o">==</span> <span class="s">&#39;gt&#39;</span><span class="p">:</span>
-        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">))</span>
-
-    <span class="k">if</span> <span class="n">qaid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;testdb1&#39;</span><span class="p">:</span>
-            <span class="n">default_qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;GZ_ALL&#39;</span><span class="p">:</span>
-            <span class="n">default_qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1032</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;PZ_ALL&#39;</span><span class="p">:</span>
-            <span class="n">default_qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">9</span><span class="p">]</span>
+            <span class="n">default_daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">default_qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">default_qaid_list</span> <span class="o">=</span> <span class="n">qaid_list</span>
+            <span class="n">default_daid_list</span> <span class="o">=</span> <span class="s">&#39;all&#39;</span>
+
+    <span class="c"># Use commmand line parsing for custom values</span>
 
     <span class="k">if</span> <span class="n">cmdline_ok</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">main_helpers</span>
-        <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">get_test_qaids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">default_qaid_list</span><span class="p">)</span>
-        <span class="c">#qaid_list = ut.get_argval((&#39;--qaid_list&#39;, &#39;--qaid&#39;), list, qaid_list)</span>
-        <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--daid_list&#39;</span><span class="p">,</span> <span class="s">&#39;--daids&#39;</span><span class="p">),</span> <span class="nb">list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
-        <span class="c">#if &#39;codename&#39; not in cfgdict:</span>
+        <span class="n">qaid_list_</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">get_test_qaids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">default_qaids</span><span class="o">=</span><span class="n">default_qaid_list</span><span class="p">)</span>
+        <span class="n">daid_list_</span> <span class="o">=</span> <span class="n">main_helpers</span><span class="o">.</span><span class="n">get_test_daids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">default_daids</span><span class="o">=</span><span class="n">default_daid_list</span><span class="p">,</span> <span class="n">qaid_list</span><span class="o">=</span><span class="n">qaid_list_</span><span class="p">)</span>
+        <span class="c">#</span>
         <span class="c"># Allow commond line specification of all query params</span>
         <span class="n">default_cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">parse_config_items</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">()))</span>
         <span class="n">default_cfgdict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">)</span>
         <span class="n">_orig_cfgdict</span> <span class="o">=</span> <span class="n">cfgdict</span>
         <span class="n">force_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">_orig_cfgdict</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-        <span class="n">cfgdict_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_arg</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">(</span><span class="n">default_cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="ow">not</span>
-                                             <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">,</span> <span class="n">only_specified</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                                             <span class="n">force_keys</span><span class="o">=</span><span class="n">force_keys</span><span class="p">)</span>
+        <span class="n">cfgdict_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_arg</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">(</span>
+            <span class="n">default_cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">,</span> <span class="n">only_specified</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+            <span class="n">force_keys</span><span class="o">=</span><span class="n">force_keys</span><span class="p">)</span>
         <span class="c">#ut.embed()</span>
         <span class="k">if</span> <span class="n">VERB_PIPELINE</span> <span class="ow">or</span> <span class="n">VERB_TESTDATA</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;[plh] cfgdict_ = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">cfgdict_</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
+        <span class="n">qaid_list_</span> <span class="o">=</span> <span class="n">qaid_list</span>
+        <span class="n">daid_list_</span> <span class="o">=</span> <span class="n">daid_list</span>
         <span class="n">cfgdict_</span> <span class="o">=</span> <span class="n">cfgdict</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">test_main</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">dbname</span><span class="p">)</span>
+
+    <span class="c">#ibs = ibeis.test_main(db=dbname)</span>
+
+    <span class="k">if</span> <span class="n">VERB_TESTDATA</span><span class="p">:</span>
+        <span class="c">#ibeis.dev.dbinfo.print_qd_info(ibs, qaid_list_, daid_list_, verbose=True)</span>
+        <span class="n">ibeis</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">dbinfo</span><span class="o">.</span><span class="n">print_qd_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list_</span><span class="p">,</span> <span class="n">daid_list_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="s">&#39;with_metadata&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfgdict</span><span class="p">:</span>
         <span class="n">cfgdict_</span><span class="p">[</span><span class="s">&#39;with_metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
-    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict_</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list_</span><span class="p">,</span> <span class="n">daid_list_</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict_</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">preload</span><span class="p">:</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_load</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span>
@@ -467,9 +496,9 @@
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.model.hots._pipline_helpers</span>
-<span class="sd">        python -m ibeis.model.hots._pipline_helpers --allexamples</span>
-<span class="sd">        python -m ibeis.model.hots._pipline_helpers --allexamples --noface --nosrc</span>
+<span class="sd">        python -m ibeis.model.hots._pipeline_helpers</span>
+<span class="sd">        python -m ibeis.model.hots._pipeline_helpers --allexamples</span>
+<span class="sd">        python -m ibeis.model.hots._pipeline_helpers --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
@@ -505,7 +534,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

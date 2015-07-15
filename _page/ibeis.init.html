@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.init package &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.init package &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.model package" href="ibeis.model.html"/>
         <link rel="prev" title="ibeis.gui package" href="ibeis.gui.html"/> 
@@ -62,6 +62,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -167,18 +168,109 @@
 
 <dl class="function">
 <dt id="ibeis.init.main_helpers.get_test_daids">
-<tt class="descclassname">ibeis.init.main_helpers.</tt><tt class="descname">get_test_daids</tt><big>(</big><em>ibs</em>, <em>qaid_list=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#get_test_daids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.get_test_daids" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ibeis.init.main_helpers.</tt><tt class="descname">get_test_daids</tt><big>(</big><em>ibs</em>, <em>default_daids='all'</em>, <em>qaid_list=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#get_test_daids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.get_test_daids" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets database annot_rowids based on command line arguments</p>
 <dl class="docutils">
 <dt>CommandLine:</dt>
 <dd>python dev.py &#8211;db PZ_MTEST -t best &#8211;exclude-query &#8211;qaid 72 -r 0 -c 0 &#8211;show &#8211;va &#8211;vf &#8211;dump-extra</dd>
 </dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</li>
+<li><strong>default_daids</strong> (<em>str</em>) &#8211; (default = &#8216;all&#8217;)</li>
+<li><strong>qaid_list</strong> (<em>list</em>) &#8211; (default = None)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">available_daids</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.main_helpers &#8211;test-get_test_daids
+python -m ibeis.init.main_helpers &#8211;test-get_test_daids &#8211;db PZ_MTEST  &#8211;verbmhelp
+python -m ibeis.init.main_helpers &#8211;test-get_test_daids &#8211;db PZ_MTEST &#8211;exclude-query
+python -m ibeis.init.main_helpers &#8211;test-get_test_daids &#8211;db PZ_MTEST &#8211;daid-exclude 2 3 4
+python -m ibeis.init.main_helpers &#8211;test-get_test_daids &#8211;db PZ_MTEST &#8211;species=zebra_grevys
+python -m ibeis.init.main_helpers &#8211;test-get_test_daids &#8211;db PZ_Master0 &#8211;species=zebra_grevys
+python -m ibeis.init.main_helpers &#8211;test-get_test_daids &#8211;db PZ_Master0 &#8211;controlled &#8211;verbmhelp
+python -m ibeis.init.main_helpers &#8211;exec-get_test_daids &#8211;controlled &#8211;db PZ_Master0 &#8211;exec-mode</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">default_daids</span> <span class="o">=</span> <span class="s">&#39;all&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">available_daids</span> <span class="o">=</span> <span class="n">get_test_daids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">default_daids</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibeis</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">dbinfo</span><span class="o">.</span><span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">available_daids</span><span class="p">,</span> <span class="n">with_contrib</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s">&#39;available_daids = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">obj_str</span><span class="p">(</span><span class="n">available_daids</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;len(available_daids) </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_daids</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">available_daids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.init.main_helpers.get_test_qaids">
 <tt class="descclassname">ibeis.init.main_helpers.</tt><tt class="descname">get_test_qaids</tt><big>(</big><em>ibs</em>, <em>default_qaids=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/init/main_helpers.html#get_test_qaids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.main_helpers.get_test_qaids" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets test annot_rowids based on command line arguments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</li>
+<li><strong>default_qaids</strong> (<em>None</em>) &#8211; if list then used only if no other aids are available (default = [1])
+as a string it mimics the command line</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">available_qaids</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.main_helpers &#8211;test-get_test_qaids
+python -m ibeis.init.main_helpers &#8211;test-get_test_qaids &#8211;controlled &#8211;db PZ_Master0
+python -m ibeis.init.main_helpers &#8211;test-get_test_qaids &#8211;controlled &#8211;db PZ_Master0 &#8211;qaid 1
+python -m ibeis.init.main_helpers &#8211;test-get_test_qaids &#8211;allgt &#8211;db PZ_MTEST
+python -m ibeis.init.main_helpers &#8211;test-get_test_qaids &#8211;qaid 4 5 8  &#8211;verbmhelp
+python -m ibeis.init.main_helpers &#8211;test-get_test_qaids &#8211;controlled &#8211;db PZ_MTEST
+python -m ibeis.init.main_helpers &#8211;test-get_test_qaids &#8211;controlled &#8211;db PZ_MTEST &#8211;qaid 2 &#8211;verbmhelp
+python -m ibeis.init.main_helpers &#8211;test-get_test_qaids &#8211;controlled &#8211;db PZ_MTEST &#8211;qaid 2
+python -m ibeis.init.main_helpers &#8211;test-get_test_qaids &#8211;controlled &#8211;db PZ_Master0 &#8211;qindex 0:10 &#8211;verbmhelp
+python -m ibeis.init.main_helpers &#8211;exec-get_test_qaids &#8211;controlled &#8211;db PZ_Master0 &#8211;exec-mode</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.main_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">default_qaids</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">available_qaids</span> <span class="o">=</span> <span class="n">get_test_qaids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">default_qaids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibeis</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">dbinfo</span><span class="o">.</span><span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">available_qaids</span><span class="p">,</span> <span class="n">with_contrib</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s">&#39;available_qaids = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">obj_str</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;len(available_qaids) = </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_qaids</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">available_qaids = [1]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -217,6 +309,21 @@ but without the need for an actual IBEIS Controller</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="ibeis.init.sysres.ensure_pz_mtest_mergesplit_test">
+<tt class="descclassname">ibeis.init.sysres.</tt><tt class="descname">ensure_pz_mtest_mergesplit_test</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/init/sysres.html#ensure_pz_mtest_mergesplit_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.ensure_pz_mtest_mergesplit_test" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.init.sysres &#8211;test-ensure_pz_mtest_mergesplit_test</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ensure_pz_mtest_mergesplit_test</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.init.sysres.get_args_dbdir">
 <tt class="descclassname">ibeis.init.sysres.</tt><tt class="descname">get_args_dbdir</tt><big>(</big><em>defaultdb=None</em>, <em>allow_newdir=False</em>, <em>db=None</em>, <em>dbdir=None</em>, <em>cache_priority=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/init/sysres.html#get_args_dbdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.get_args_dbdir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Machinery for finding a database directory</p>
@@ -250,7 +357,7 @@ but without the need for an actual IBEIS Controller</p>
 <dl class="function">
 <dt id="ibeis.init.sysres.get_ibsdb_list">
 <tt class="descclassname">ibeis.init.sysres.</tt><tt class="descname">get_ibsdb_list</tt><big>(</big><em>workdir=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/init/sysres.html#get_ibsdb_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.init.sysres.get_ibsdb_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Lists the available ibeis database inside of a work directory</p>
+<dd><p>Lists the available valid ibeis databases inside of a work directory</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -268,12 +375,9 @@ but without the need for an actual IBEIS Controller</p>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init.sysres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">workdir</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibsdb_list</span> <span class="o">=</span> <span class="n">get_ibsdb_list</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibsdb_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ibsdb_list</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -443,7 +547,7 @@ a dialog will ask a user to specify the workdir if it does not exist.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.constants &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.constants &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -169,9 +170,10 @@
 
 <span class="n">QUALITY_TEXT_TO_INT</span>       <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="p">)</span>
 <span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>    <span class="o">=</span> <span class="n">QUAL_JUNK</span>
-<span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 <span class="c">#QUALITY_TEXT_TO_INTS      = ut.invert_dict(QUALITY_INT_TO_TEXT)</span>
 <span class="n">QUALITY_TEXT_TO_INTS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="nb">list</span><span class="p">(</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+<span class="n">QUALITY_TEXT_TO_INTS</span><span class="p">[</span><span class="n">QUAL_UNKNOWN</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
 
 <span class="n">SEX_INT_TO_TEXT</span> <span class="o">=</span> <span class="p">{</span>
@@ -195,6 +197,7 @@
     <span class="n">flann</span>      <span class="o">=</span> <span class="s">&#39;flann&#39;</span>
     <span class="n">images</span>     <span class="o">=</span> <span class="s">&#39;images&#39;</span>
     <span class="n">trees</span>      <span class="o">=</span> <span class="s">&#39;trees&#39;</span>
+    <span class="n">nets</span>       <span class="o">=</span> <span class="s">&#39;nets&#39;</span>
     <span class="n">uploads</span>    <span class="o">=</span> <span class="s">&#39;uploads&#39;</span>
     <span class="n">qres</span>       <span class="o">=</span> <span class="s">&#39;qres&#39;</span>
     <span class="n">bigcache</span>   <span class="o">=</span> <span class="s">&#39;qres_bigcache&#39;</span>
@@ -216,6 +219,7 @@
     <span class="n">chips</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">chips</span><span class="p">)</span>
     <span class="n">images</span>   <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">images</span><span class="p">)</span>
     <span class="n">trees</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">trees</span><span class="p">)</span>
+    <span class="n">nets</span>     <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">nets</span><span class="p">)</span>
     <span class="n">uploads</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">uploads</span><span class="p">)</span>
     <span class="c"># All computed dirs live in &lt;dbdir&gt;/_ibsdb/_ibeis_cache</span>
     <span class="n">thumbs</span>   <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">thumbs</span><span class="p">)</span>
@@ -225,9 +229,22 @@
     <span class="n">distinctdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">distinctdir</span><span class="p">)</span>
 
 
+<span class="c"># Directories that should be excluded from copy operations</span></div>
+<span class="n">EXCLUDE_COPY_REL_DIRS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">chips</span><span class="p">,</span>
+    <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">cache</span><span class="p">,</span>
+    <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">backups</span><span class="p">,</span>
+    <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">figures</span><span class="p">,</span>
+    <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">nets</span><span class="p">,</span>
+    <span class="c">#&#39;_ibsdb/_ibeis_cache&#39;,</span>
+    <span class="c">#&#39;_ibsdb/chips&#39;,</span>
+    <span class="s">&#39;./images&#39;</span><span class="p">,</span>  <span class="c"># the hotspotter images dir</span>
+<span class="p">]</span>
+
+
 <span class="c"># TODO: Remove anything under this block completely</span>
 
-</div>
+
 <span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">UNKNOWN_NAME_ROWID</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">UNKNOWN_SPECIES_ROWID</span> <span class="o">=</span> <span class="mi">0</span>
@@ -318,11 +335,11 @@
 <span class="n">NAME_RED_RGBA01</span>       <span class="o">=</span> <span class="n">NAME_RED_RGBA255</span> <span class="o">/</span> <span class="mf">255.0</span>
 <span class="n">NEW_YELLOW_RGBA01</span>     <span class="o">=</span> <span class="n">NEW_YELLOW_RGBA255</span> <span class="o">/</span> <span class="mf">255.0</span>
 
-<span class="n">EXEMPLAR_ENCTEXT</span>         <span class="o">=</span> <span class="s">&#39;Exemplars&#39;</span>
-<span class="n">ALL_IMAGE_ENCTEXT</span>        <span class="o">=</span> <span class="s">&#39;All Images&#39;</span>
-<span class="n">UNREVIEWED_IMAGE_ENCTEXT</span> <span class="o">=</span> <span class="s">&#39;Unreviewed Images&#39;</span>
-<span class="n">REVIEWED_IMAGE_ENCTEXT</span>   <span class="o">=</span> <span class="s">&#39;Reviewed Images&#39;</span>
-<span class="n">UNGROUPED_IMAGES_ENCTEXT</span> <span class="o">=</span> <span class="s">&#39;Ungrouped Images&#39;</span>
+<span class="n">EXEMPLAR_ENCTEXT</span>         <span class="o">=</span> <span class="s">&#39;*Exemplars&#39;</span>
+<span class="n">ALL_IMAGE_ENCTEXT</span>        <span class="o">=</span> <span class="s">&#39;*All Images&#39;</span>
+<span class="n">UNREVIEWED_IMAGE_ENCTEXT</span> <span class="o">=</span> <span class="s">&#39;*Unreviewed Images&#39;</span>
+<span class="n">REVIEWED_IMAGE_ENCTEXT</span>   <span class="o">=</span> <span class="s">&#39;*Reviewed Images&#39;</span>
+<span class="n">UNGROUPED_IMAGES_ENCTEXT</span> <span class="o">=</span> <span class="s">&#39;*Ungrouped Images&#39;</span>
 <span class="n">SPECIAL_ENCOUNTER_LABELS</span> <span class="o">=</span> <span class="p">[</span><span class="n">EXEMPLAR_ENCTEXT</span><span class="p">,</span>
                             <span class="n">ALL_IMAGE_ENCTEXT</span><span class="p">,</span>
                             <span class="n">UNREVIEWED_IMAGE_ENCTEXT</span><span class="p">,</span>
@@ -423,7 +440,11 @@
 <span class="n">INTRA_ENC_KEY</span> <span class="o">=</span> <span class="s">&#39;intra_encounter&#39;</span>
 
 <span class="n">HARD_NOTE_TAG</span> <span class="o">=</span> <span class="s">&#39;&lt;HARDCASE&gt;&#39;</span>
-<span class="n">WILDBOOK_TARGET</span> <span class="o">=</span> <span class="s">&#39;prod&#39;</span>
+
+<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;ibeis.cs.uic.edu&#39;</span><span class="p">:</span>
+    <span class="n">WILDBOOK_TARGET</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--wildbook-target&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;prod&#39;</span><span class="p">,</span> <span class="n">help_</span><span class="o">=</span><span class="s">&#39;specify the Wildbook target deployment&#39;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">WILDBOOK_TARGET</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--wildbook-target&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="n">help_</span><span class="o">=</span><span class="s">&#39;specify the Wildbook target deployment&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_species_code"><a class="viewcode-back" href="../../ibeis.html#ibeis.constants.get_species_code">[docs]</a><span class="k">def</span> <span class="nf">get_species_code</span><span class="p">(</span><span class="n">species_text_</span><span class="p">):</span>
@@ -458,9 +479,9 @@
     <span class="n">TRUTH_MATCH</span>     <span class="p">:</span> <span class="s">&#39;Matched&#39;</span><span class="p">,</span>
 <span class="p">}</span>
 
-<span class="c"># clean namespace</span>
-<span class="c">#del utool</span>
-<span class="c">#del np</span>
+
+<span class="c"># Turn off features at Lewa :(</span>
+<span class="n">SIMPLIFY_INTERFACE</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;ibeis.cs.uic.edu&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--simplify&#39;</span><span class="p">)</span>
 </pre></div>
 
           </div>
@@ -491,7 +512,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

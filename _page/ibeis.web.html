@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.web package &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.web package &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="prev" title="ibeis.viz.interact package" href="ibeis.viz.interact.html"/> 
 
@@ -61,6 +61,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -245,6 +246,11 @@ URL:    /api/annot/&lt;aid&gt;/</dd>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="ibeis.web.app.hello_world">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">hello_world</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#hello_world"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.hello_world" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.web.app.image_src">
 <tt class="descclassname">ibeis.web.app.</tt><tt class="descname">image_src</tt><big>(</big><em>gid=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#image_src"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.image_src" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -263,6 +269,33 @@ URL:    /api/image/&lt;gid&gt;/</dd>
 <dl class="function">
 <dt id="ibeis.web.app.image_upload">
 <tt class="descclassname">ibeis.web.app.</tt><tt class="descname">image_upload</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#image_upload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.image_upload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the gid for an uploaded image.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>image</strong> &#8211; the POST variable containing the binary
+(multi-form) image data</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>gid</strong> &#8211;
+gid corresponding to the image submitted.<blockquote>
+<div>lexigraphical order.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">rowids</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: POST
+URL:    /api/image/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.image_upload_zip">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">image_upload_zip</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#image_upload_zip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.image_upload_zip" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the gid_list for image files submitted in a ZIP archive.  The image
 archive should be flat (no folders will be scanned for images) and must be smaller
 than 100 MB.  The archive can submit multiple images, ideally in JPEG format to save
@@ -288,7 +321,7 @@ lexigraphical order.</div></blockquote>
 <dl class="docutils">
 <dt>RESTful:</dt>
 <dd>Method: POST
-URL:    /api/image/</dd>
+URL:    /api/image/zip</dd>
 </dl>
 </dd></dl>
 
@@ -306,6 +339,11 @@ URL:    /api/image/</dd>
 <dt id="ibeis.web.app.start_from_ibeis">
 <tt class="descclassname">ibeis.web.app.</tt><tt class="descname">start_from_ibeis</tt><big>(</big><em>ibs</em>, <em>port=None</em>, <em>browser=False</em>, <em>precache=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#start_from_ibeis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.start_from_ibeis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse command line options and start the server.</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis &#8211;db PZ_MTEST &#8211;web
+python -m ibeis &#8211;db PZ_MTEST &#8211;web &#8211;browser</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -531,7 +569,7 @@ URL:    /api/image/</dd>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

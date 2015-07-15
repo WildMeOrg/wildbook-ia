@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.web.app &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.web.app &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -199,7 +200,7 @@
 
 </div>
 <div class="viewcode-block" id="convert_old_viewpoint_to_yaw"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.convert_old_viewpoint_to_yaw">[docs]</a><span class="k">def</span> <span class="nf">convert_old_viewpoint_to_yaw</span><span class="p">(</span><span class="n">view_angle</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; we initially had viewpoint coordinates inverted</span>
+    <span class="sd">&quot;&quot;&quot; we initially had viewpoint coordinates inverted</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; import math</span>
@@ -217,7 +218,7 @@
 <span class="sd">        &gt;&gt;&gt; fmtstr = &#39;old %15r %.2f -&gt; new %15r %.2f&#39;</span>
 <span class="sd">        &gt;&gt;&gt; for lbl, angle, radians in old_viewpoint_labels:</span>
 <span class="sd">        &gt;&gt;&gt;     print(fmtstr % (lbl, angle, lbl, convert_old_viewpoint_to_yaw(angle)))</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">view_angle</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
     <span class="n">view_angle</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">deg_to_rad</span><span class="p">(</span><span class="n">view_angle</span><span class="p">)</span>
@@ -226,7 +227,7 @@
 
 </div>
 <div class="viewcode-block" id="convert_yaw_to_old_viewpoint"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.convert_yaw_to_old_viewpoint">[docs]</a><span class="k">def</span> <span class="nf">convert_yaw_to_old_viewpoint</span><span class="p">(</span><span class="n">yaw</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; we initially had viewpoint coordinates inverted</span>
+    <span class="sd">&quot;&quot;&quot; we initially had viewpoint coordinates inverted</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; import math</span>
@@ -246,7 +247,7 @@
 <span class="sd">        &gt;&gt;&gt;     yaw = convert_old_viewpoint_to_yaw(angle)</span>
 <span class="sd">        &gt;&gt;&gt;     reconstructed_angle = convert_yaw_to_old_viewpoint(yaw)</span>
 <span class="sd">        &gt;&gt;&gt;     print(fmtstr % (lbl, angle, lbl, yaw, lbl, reconstructed_angle))</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">yaw</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
     <span class="n">view_angle</span> <span class="o">=</span> <span class="p">((</span><span class="n">TAU</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">yaw</span><span class="p">)</span> <span class="o">%</span> <span class="n">TAU</span>
@@ -892,7 +893,10 @@
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">src_aid_list</span>
         <span class="n">reviewed_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">src_aid</span> <span class="ow">in</span> <span class="n">dst_aid_list</span> <span class="k">for</span> <span class="n">src_aid</span> <span class="ow">in</span> <span class="n">src_aid_list</span> <span class="p">]</span>
 
-    <span class="n">progress</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%0.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%0.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="s">&#39;0.00&#39;</span>
     <span class="n">aid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">aid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
@@ -945,7 +949,10 @@
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">eid</span><span class="o">=</span><span class="n">eid</span><span class="p">)</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
     <span class="n">reviewed_list</span> <span class="o">=</span> <span class="n">encounter_annot_quality_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">progress</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%0.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%0.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="s">&#39;0.00&#39;</span>
 
     <span class="n">enctext</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">eid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
     <span class="n">aid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
@@ -1001,7 +1008,10 @@
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
     <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">reviewed_list</span> <span class="o">=</span> <span class="n">encounter_annot_additional_processed</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
-    <span class="n">progress</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%0.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%0.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="s">&#39;0.00&#39;</span>
 
     <span class="n">enctext</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">eid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_text</span><span class="p">(</span><span class="n">eid</span><span class="p">)</span>
     <span class="n">aid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
@@ -1360,8 +1370,8 @@
     <span class="k">return</span> <span class="n">image_src</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
 
 </div>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
-<div class="viewcode-block" id="image_upload"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.image_upload">[docs]</a><span class="k">def</span> <span class="nf">image_upload</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/zip&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="image_upload_zip"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.image_upload_zip">[docs]</a><span class="k">def</span> <span class="nf">image_upload_zip</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns the gid_list for image files submitted in a ZIP archive.  The image</span>
 <span class="sd">    archive should be flat (no folders will be scanned for images) and must be smaller</span>
@@ -1382,7 +1392,7 @@
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: POST</span>
-<span class="sd">        URL:    /api/image/</span>
+<span class="sd">        URL:    /api/image/zip</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
     <span class="c"># Get image archive</span>
@@ -1410,6 +1420,57 @@
     <span class="n">gpath_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">gid_list</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="image_upload"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.image_upload">[docs]</a><span class="k">def</span> <span class="nf">image_upload</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns the gid for an uploaded image.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image (image binary): the POST variable containing the binary</span>
+<span class="sd">            (multi-form) image data</span>
+<span class="sd">        **kwargs: Arbitrary keyword arguments; the kwargs are passed down to</span>
+<span class="sd">            the add_images function</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        gid (rowids): gid corresponding to the image submitted.</span>
+<span class="sd">            lexigraphical order.</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: POST</span>
+<span class="sd">        URL:    /api/image/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="c"># Get image archive</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">)</span>
+
+    <span class="n">filestore</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;image&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">filestore</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&#39;Image not given&#39;</span><span class="p">)</span>
+
+    <span class="c"># If the directory already exists, delete it</span>
+    <span class="n">uploadsdir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_uploadsdir</span><span class="p">()</span>
+    <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y_%m_</span><span class="si">%d</span><span class="s">_%H_%M_%S&#39;</span><span class="p">)</span>
+    <span class="n">upload_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">uploadsdir</span><span class="p">,</span> <span class="n">current_time</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">upload_path</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">upload_path</span><span class="p">)</span>
+    <span class="n">upload_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">upload_path</span><span class="p">,</span> <span class="s">&#39;temp.png&#39;</span><span class="p">)</span>
+
+    <span class="n">filestore</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">upload_filepath</span><span class="p">)</span>
+
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">([</span><span class="n">upload_filepath</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">gid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">gid</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/helloworld/&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="hello_world"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.hello_world">[docs]</a><span class="k">def</span> <span class="nf">hello_world</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;------------------ HELLO WORLD ------------------&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Args:&#39;</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Kwargs:&#39;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;request.args:&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;request.form&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/group_review/&#39;</span><span class="p">)</span>
@@ -1474,6 +1535,7 @@
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">complete</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;complete&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
     <span class="n">sightings</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">report_sightings_str</span><span class="p">(</span><span class="n">complete</span><span class="o">=</span><span class="n">complete</span><span class="p">)</span>
+    <span class="n">sightings</span> <span class="o">=</span> <span class="n">sightings</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&lt;br/&gt;&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">sightings</span>
 
 </div>
@@ -1491,8 +1553,11 @@
 </div>
 <span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/dbinfo&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="dbinfo"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.dbinfo">[docs]</a><span class="k">def</span> <span class="nf">dbinfo</span><span class="p">():</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
-    <span class="n">dbinfo_str</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbinfo_str</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+        <span class="n">dbinfo_str</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbinfo_str</span><span class="p">()</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">dbinfo_str</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
     <span class="n">dbinfo_str_formatted</span> <span class="o">=</span> <span class="s">&#39;&lt;pre&gt;</span><span class="si">%s</span><span class="s">&lt;/pre&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbinfo_str</span><span class="p">,</span> <span class="p">)</span>
     <span class="k">return</span> <span class="n">dbinfo_str_formatted</span>
 
@@ -1546,9 +1611,9 @@
 
 </div>
 <div class="viewcode-block" id="start_tornado"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.start_tornado">[docs]</a><span class="k">def</span> <span class="nf">start_tornado</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="n">BROWSER</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the web server</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">_start_tornado</span><span class="p">(</span><span class="n">ibs_</span><span class="p">,</span> <span class="n">port_</span><span class="p">):</span>
         <span class="c"># Get Flask app</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_flask_app</span><span class="p">()</span>
@@ -1582,9 +1647,13 @@
 
 </div>
 <div class="viewcode-block" id="start_from_ibeis"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.start_from_ibeis">[docs]</a><span class="k">def</span> <span class="nf">start_from_ibeis</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="n">BROWSER</span><span class="p">,</span> <span class="n">precache</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parse command line options and start the server.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis --db PZ_MTEST --web</span>
+<span class="sd">        python -m ibeis --db PZ_MTEST --web --browser</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">precache</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] Pre-computing all image thumbnails (with annots)...&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">preprocess_image_thumbs</span><span class="p">()</span>
@@ -1624,7 +1693,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

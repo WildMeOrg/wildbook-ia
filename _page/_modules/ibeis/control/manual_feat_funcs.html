@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_feat_funcs &mdash; ibeis 1.4.3 documentation</title>
+  <title>ibeis.control.manual_feat_funcs &mdash; ibeis 1.4.4 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.4.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
@@ -108,6 +109,7 @@
           <div role="main">
             
   <h1>Source code for ibeis.control.manual_feat_funcs</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">python -c &quot;import utool as ut; ut.write_modscript_alias(&#39;Tgen.sh&#39;, &#39;ibeis.templates.template_generator&#39;)&quot;</span>
 <span class="sd">sh Tgen.sh --key feat --Tcfg with_setters=False with_getters=True  with_adders=True --modfname manual_feat_funcs</span>
@@ -122,7 +124,7 @@
                                            <span class="n">getter_1to1</span><span class="p">,</span> <span class="n">getter_1toM</span><span class="p">,</span> <span class="n">deleter</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_feats]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_feats]&#39;</span><span class="p">)</span>
 
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
@@ -212,42 +214,46 @@
 <span class="sd">        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose</span>
 <span class="sd">        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose --no-affine-invariance</span>
 <span class="sd">        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --darken .9 --verbose --no-affine-invariance --scale_max=20</span>
+<span class="sd">        python -m ibeis.control.manual_feat_funcs --test-get_annot_kpts --show --feat_type=hesaff+siam128</span>
+<span class="sd">        ipython -i -- --show --feat_type=hesaff+siam128</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_feat_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import _pipeline_helpers as plh  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import vtool as vt</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis.viz.interact</span>
 <span class="sd">        &gt;&gt;&gt; # build test data</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq1_ = plh.get_pipeline_testdata(defaultdb=&#39;testdb1&#39;, preload=False, cfgdict=dict(rotation_invariance=True))</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq2_ = plh.get_pipeline_testdata(defaultdb=&#39;testdb1&#39;, preload=False, cfgdict=dict(rotation_invariance=False))</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = qreq1_.get_external_qaids()</span>
-<span class="sd">        &gt;&gt;&gt; print(&#39;qreq1 params: &#39; + qreq1_.qparams.feat_cfgstr)</span>
-<span class="sd">        &gt;&gt;&gt; print(&#39;qreq2 params: &#39; + qreq2_.qparams.feat_cfgstr)</span>
-<span class="sd">        &gt;&gt;&gt; print(&#39;id(qreq1): &#39; + str(id(qreq1_)))</span>
-<span class="sd">        &gt;&gt;&gt; print(&#39;id(qreq2): &#39; + str(id(qreq2_)))</span>
-<span class="sd">        &gt;&gt;&gt; print(&#39;feat_config_rowid1 = %r&#39; % (ibs.get_feat_config_rowid(config2_=qreq1_),))</span>
-<span class="sd">        &gt;&gt;&gt; print(&#39;feat_config_rowid2 = %r&#39; % (ibs.get_feat_config_rowid(config2_=qreq2_),))</span>
+<span class="sd">        &gt;&gt;&gt; with ut.Indenter(&#39;[TEST_GET_ANNOT_KPTS]&#39;):</span>
+<span class="sd">        ...     print(&#39;qreq1 params: &#39; + qreq1_.qparams.feat_cfgstr)</span>
+<span class="sd">        ...     print(&#39;qreq2 params: &#39; + qreq2_.qparams.feat_cfgstr)</span>
+<span class="sd">        ...     print(&#39;id(qreq1): &#39; + str(id(qreq1_)))</span>
+<span class="sd">        ...     print(&#39;id(qreq2): &#39; + str(id(qreq2_)))</span>
+<span class="sd">        ...     print(&#39;feat_config_rowid1 = %r&#39; % (ibs.get_feat_config_rowid(config2_=qreq1_.get_external_query_config2()),))</span>
+<span class="sd">        ...     print(&#39;feat_config_rowid2 = %r&#39; % (ibs.get_feat_config_rowid(config2_=qreq2_.get_external_query_config2()),))</span>
 <span class="sd">        &gt;&gt;&gt; # Force recomputation of features</span>
 <span class="sd">        &gt;&gt;&gt; with ut.Indenter(&#39;[DELETE1]&#39;):</span>
-<span class="sd">        ...     ibs.delete_annot_feats(aid_list, config2_=qreq1_)</span>
+<span class="sd">        ...     ibs.delete_annot_feats(aid_list, config2_=qreq1_.get_external_query_config2())</span>
 <span class="sd">        &gt;&gt;&gt; with ut.Indenter(&#39;[DELETE2]&#39;):</span>
-<span class="sd">        ...     ibs.delete_annot_feats(aid_list, config2_=qreq2_)</span>
+<span class="sd">        ...     ibs.delete_annot_feats(aid_list, config2_=qreq2_.get_external_query_config2())</span>
 <span class="sd">        &gt;&gt;&gt; eager, ensure, nInput = True, True, None</span>
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
 <span class="sd">        &gt;&gt;&gt; with ut.Indenter(&#39;[GET1]&#39;):</span>
-<span class="sd">        ...     kpts1_list = get_annot_kpts(ibs, aid_list, ensure, eager, nInput, qreq1_)</span>
+<span class="sd">        ...     kpts1_list = get_annot_kpts(ibs, aid_list, ensure, eager, nInput, qreq1_.get_external_query_config2())</span>
 <span class="sd">        &gt;&gt;&gt; with ut.Indenter(&#39;[GET2]&#39;):</span>
-<span class="sd">        ...     kpts2_list = get_annot_kpts(ibs, aid_list, ensure, eager, nInput, qreq2_)</span>
+<span class="sd">        ...     kpts2_list = get_annot_kpts(ibs, aid_list, ensure, eager, nInput, qreq2_.get_external_query_config2())</span>
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; assert not np.all(vt.get_oris(kpts1_list[0]) == 0)</span>
 <span class="sd">        &gt;&gt;&gt; assert np.all(vt.get_oris(kpts2_list[0]) == 0)</span>
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
 <span class="sd">        &gt;&gt;&gt; #ibeis.viz.viz_chip.show_chip(ibs, aid_list[0], config2_=qreq1_, ori=True)</span>
-<span class="sd">        &gt;&gt;&gt; ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq1_.qparams, ori=True, fnum=1)</span>
-<span class="sd">        &gt;&gt;&gt; ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq2_.qparams, ori=True, fnum=2)</span>
+<span class="sd">        &gt;&gt;&gt; ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq1_.get_external_query_config2(), ori=True, fnum=1)</span>
+<span class="sd">        &gt;&gt;&gt; ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq2_.get_external_query_config2(), ori=True, fnum=2)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">fid_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_feat_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
@@ -294,7 +300,7 @@
 <span class="sd">        &gt;&gt;&gt; nFeats_list = get_annot_num_feats(ibs, aid_list, ensure=True)</span>
 <span class="sd">        &gt;&gt;&gt; assert len(nFeats_list) == 3</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nFeats_list[0], 1256, 1258)</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nFeats_list[1],  910,  921)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nFeats_list[1],  910,  922)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nFeats_list[2], 1340, 1343)</span>
 
 <span class="sd">    [1257, 920, 1342]</span>
@@ -711,7 +717,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.4.3',
+            VERSION:'1.4.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
