@@ -242,8 +242,6 @@ def crossdomain(origin=None, methods=None, headers=None,
     if headers is not None and not isinstance(headers, basestring):
         headers = ', '.join(x.upper() for x in headers)
     if not isinstance(origin, basestring):
-        print(origin)
-        print(type(origin))
         origin = ', '.join(origin)
     if isinstance(max_age, timedelta):
         max_age = max_age.total_seconds()
