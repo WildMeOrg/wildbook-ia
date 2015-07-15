@@ -1341,31 +1341,22 @@ def image_upload(**kwargs):
     # Get image archive
     print(request.files)
 
-    # image = request.files.get('image_zip_archive', None)
-    # if image_archive is None:
-    #     raise IOError('Image archive not given')
+    filestore = request.files.get('image', None)
+    if filestore is None:
+        raise IOError('Image not given')
 
-    # # If the directory already exists, delete it
-    # uploadsdir = ibs.get_uploadsdir()
-    # current_time = time.strftime('%Y_%m_%d_%H_%M_%S')
-    # upload_path = join(uploadsdir, current_time)
-    # print(upload_path)
-    # ut.ensuredir(upload_path)
+    # If the directory already exists, delete it
+    uploadsdir = ibs.get_uploadsdir()
+    current_time = time.strftime('%Y_%m_%d_%H_%M_%S')
+    upload_path = join(uploadsdir, current_time)
+    print(upload_path)
+    ut.ensuredir(upload_path)
+    upload_filepath = join(upload_path, 'temp.png')
 
-    # # Extract the content
-    # try:
-    #     with zipfile.ZipFile(image_archive, 'r') as zfile:
-    #         zfile.extractall(upload_path)
-    # except Exception:
-    #     ut.remove_dirs(upload_path)
-    #     raise IOError('Image archive extracton failed')
+    filestore.save(upload_filepath)
 
-    # direct = Directory(upload_path, include_file_extensions='images', recursive=False)
-    # gpath_list = direct.files()
-    # gpath_list = sorted(gpath_list)
-    # gid_list = ibs.add_images(gpath_list, **kwargs)
-    # return gid_list
-    return ['temp']
+    gid_list = ibs.add_images([upload_filepath], **kwargs)
+    return gid_list
 
 
 @register_api('/api/core/helloworld/')
