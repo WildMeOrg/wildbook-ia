@@ -288,7 +288,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                 app = get_flask_app()
                 @app.route(rule, **options)
                 @crossdomain(origin='*')
-                # @authentication_either
+                @authentication_either
                 @wraps(func)
                 def translated_call(*args, **kwargs):
                     #from flask import make_response
