@@ -26,6 +26,68 @@ from collections import namedtuple
 Metrics = namedtuple('Metrics', ('wx2_nMembers', 'wx2_pdist_stats', 'wx2_wdist_stats',))
 
 
+def vizualize_vocabulary(ibs, invindex):
+    """
+    cleaned up version of dump_word_patches. Makes idf scatter plots and dumps
+    the patches that contributed to each word.
+
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_plots --test-vizualize_vocabulary
+        python -m ibeis.model.hots.smk.smk_plots --test-vizualize_vocabulary --vf
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_plots import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> from ibeis.model.hots.smk import smk_repr
+        >>> #tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
+        >>> #tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=8000)
+        >>> tup = smk_debug.testdata_raw_internals0(db='PZ_Master0', nWords=64000)
+        >>> #tup = smk_debug.testdata_raw_internals0(db='PZ_Mothers', nWords=8000)
+        >>> ibs, annots_df, daids, qaids, invindex, qreq_ = tup
+        >>> smk_repr.compute_data_internals_(invindex, qreq_.qparams, delete_rawvecs=False)
+        >>> vizualize_vocabulary(ibs, invindex)
+    """
+    invindex.idx2_wxs = np.array(invindex.idx2_wxs)
+
+    print('[smk_plots] Vizualizing vocabulary')
+
+    # DUMPING PART --- dumps patches to disk
+    figdir = ibs.get_fig_dir()
+    ut.ensuredir(figdir)
+    if ut.get_argflag('--vf'):
+        ut.view_directory(figdir)
+
+    # Compute Word Statistics
+    metrics = compute_word_metrics(invindex)
+    wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats = metrics
+    #(wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats) = metrics
+
+    #wx2_prad = {wx: pdist_stats['max'] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if 'max' in pdist_stats}
+    #wx2_wrad = {wx: wdist_stats['max'] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if 'max' in wdist_stats}
+
+    wx2_prad = {wx: stats['max'] for wx, stats in wx2_pdist_stats.items() if 'max' in stats}
+    wx2_wrad = {wx: stats['max'] for wx, stats in wx2_wdist_stats.items() if 'max' in stats}
+    #wx2_prad = get_metric(metrics, 'wx2_pdist_stats', 'max')
+    #wx2_wrad = get_metric(metrics, 'wx2_wdist_stats', 'max')
+
+    wx_sample1 = select_by_metric(wx2_nMembers)
+    wx_sample2 = select_by_metric(wx2_prad)
+    wx_sample3 = select_by_metric(wx2_wrad)
+
+    wx_sample = wx_sample1 + wx_sample2 + wx_sample3
+    overlap123 = len(wx_sample) - len(set(wx_sample))
+    print('overlap123 = %r' % overlap123)
+    wx_sample  = set(wx_sample)
+    print('len(wx_sample) = %r' % len(wx_sample))
+
+    #make_scatterplots(ibs, figdir, invindex, metrics)
+
+    vocabdir = join(figdir, 'vocab_patches2')
+    wx2_dpath = get_word_dpaths(vocabdir, wx_sample, metrics)
+
+    make_wordfigures(ibs, metrics, invindex, figdir, wx_sample, wx2_dpath)
+
+
 def metric_clamped_stat(metrics, wx_list, key):
     """
     if key is a tuple it specifies a statdict and a chosen stat
@@ -183,68 +245,6 @@ def get_metric(metrics, tupkey, statkey=None):
 
 #{wx: pdist_stats['max'] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if 'max' in pdist_stats}
 #wx2_wrad = {wx: wdist_stats['max'] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if 'max' in wdist_stats}
-
-
-def vizualize_vocabulary(ibs, invindex):
-    """
-    cleaned up version of dump_word_patches. Makes idf scatter plots and dumps
-    the patches that contributed to each word.
-
-    CommandLine:
-        python -m ibeis.model.hots.smk.smk_plots --test-vizualize_vocabulary
-        python -m ibeis.model.hots.smk.smk_plots --test-vizualize_vocabulary --vf
-
-    Example:
-        >>> from ibeis.model.hots.smk.smk_plots import *  # NOQA
-        >>> from ibeis.model.hots.smk import smk_debug
-        >>> from ibeis.model.hots.smk import smk_repr
-        >>> #tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=64000)
-        >>> #tup = smk_debug.testdata_raw_internals0(db='GZ_ALL', nWords=8000)
-        >>> #tup = smk_debug.testdata_raw_internals0(db='PZ_Master0', nWords=64000)
-        >>> tup = smk_debug.testdata_raw_internals0(db='PZ_Mothers', nWords=8000)
-        >>> ibs, annots_df, daids, qaids, invindex, qreq_ = tup
-        >>> smk_repr.compute_data_internals_(invindex, qreq_.qparams, delete_rawvecs=False)
-        >>> vizualize_vocabulary(ibs, invindex)
-    """
-    invindex.idx2_wxs = np.array(invindex.idx2_wxs)
-
-    print('[smk_plots] Vizualizing vocabulary')
-
-    # DUMPING PART --- dumps patches to disk
-    figdir = ibs.get_fig_dir()
-    ut.ensuredir(figdir)
-    if ut.get_argflag('--vf'):
-        ut.view_directory(figdir)
-
-    # Compute Word Statistics
-    metrics = compute_word_metrics(invindex)
-    wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats = metrics
-    #(wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats) = metrics
-
-    #wx2_prad = {wx: pdist_stats['max'] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if 'max' in pdist_stats}
-    #wx2_wrad = {wx: wdist_stats['max'] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if 'max' in wdist_stats}
-
-    wx2_prad = {wx: stats['max'] for wx, stats in wx2_pdist_stats.items() if 'max' in stats}
-    wx2_wrad = {wx: stats['max'] for wx, stats in wx2_wdist_stats.items() if 'max' in stats}
-    #wx2_prad = get_metric(metrics, 'wx2_pdist_stats', 'max')
-    #wx2_wrad = get_metric(metrics, 'wx2_wdist_stats', 'max')
-
-    wx_sample1 = select_by_metric(wx2_nMembers)
-    wx_sample2 = select_by_metric(wx2_prad)
-    wx_sample3 = select_by_metric(wx2_wrad)
-
-    wx_sample = wx_sample1 + wx_sample2 + wx_sample3
-    overlap123 = len(wx_sample) - len(set(wx_sample))
-    print('overlap123 = %r' % overlap123)
-    wx_sample  = set(wx_sample)
-    print('len(wx_sample) = %r' % len(wx_sample))
-
-    #make_scatterplots(ibs, figdir, invindex, metrics)
-
-    vocabdir = join(figdir, 'vocab_patches2')
-    wx2_dpath = get_word_dpaths(vocabdir, wx_sample, metrics)
-
-    make_wordfigures(ibs, metrics, invindex, figdir, wx_sample, wx2_dpath)
 
 
 def make_scatterplots(ibs, figdir, invindex, metrics):
