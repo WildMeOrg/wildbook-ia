@@ -1314,6 +1314,15 @@ def image_upload(**kwargs):
     return gid_list
 
 
+@register_api('/core/helloworld/')
+def hello_world(*args, **kwargs):
+    print('------------------ HELLO WORLD ------------------')
+    print('Args:', args)
+    print('Kwargs:', kwargs)
+    print('request.args:', request.args)
+    print('request.form', request.form)
+
+
 @register_route('/group_review/')
 def group_review():
     prefill = request.args.get('prefill', '')
