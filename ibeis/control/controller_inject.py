@@ -1,9 +1,12 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 #import sys
+# <flask>
+# TODO: allow optional flask import
 import flask
 from flask import current_app, request, make_response
 from flask.ext.cors import CORS
+# </flask>
 from datetime import timedelta
 from functools import update_wrapper
 from functools import wraps
