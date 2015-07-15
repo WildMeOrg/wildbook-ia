@@ -1261,8 +1261,7 @@ def image_src_api(gid=None):
     return image_src(gid)
 
 
-# @register_api('/api/image/', methods=['POST', 'OPTIONS'])
-@register_api('/api/image/')
+@register_api('/api/image/', methods=['POST'])
 def image_upload(**kwargs):
     r"""
     Returns the gid_list for image files submitted in a ZIP archive.  The image

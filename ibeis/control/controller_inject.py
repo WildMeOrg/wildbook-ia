@@ -3,6 +3,7 @@ import utool as ut
 #import sys
 import flask
 from flask import current_app, request, make_response
+from flask.ext.cors import CORS
 from datetime import timedelta
 from functools import update_wrapper
 from functools import wraps
@@ -25,6 +26,7 @@ GLOBAL_APP_NAME = 'IBEIS'
 GLOBAL_APP_SECRET = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
 
 GLOBAL_APP = None
+GLOBAL_CORS = None
 JSON_PYTHON_OBJECT_TAG = '__PYTHON_OBJECT__'
 
 
@@ -35,6 +37,7 @@ def get_flask_app():
         tempalte_dpath = join(root_dpath, 'web', 'templates')
         static_dpath = join(root_dpath, 'web', 'static')
         GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME, template_folder=tempalte_dpath, static_folder=static_dpath)
+        GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA
     return GLOBAL_APP
 
 
@@ -291,11 +294,8 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                 # make translation function in closure scope
                 # and register it with flask.
                 app = get_flask_app()
-                print(options)
-                if 'methods' in options and 'OPTIONS' not in options['methods']:
-                    options['methods'].append('OPTIONS')
                 @app.route(rule, **options)
-                @crossdomain(origin='*')
+                # @crossdomain(origin='*')
                 # @authentication_either
                 @wraps(func)
                 def translated_call(*args, **kwargs):
@@ -343,11 +343,8 @@ def get_ibeis_flask_route(__name__):
                 # make translation function in closure scope
                 # and register it with flask.
                 app = get_flask_app()
-                print(options)
-                if 'methods' in options and 'OPTIONS' not in options['methods']:
-                    options['methods'].append('OPTIONS')
                 @app.route(rule, **options)
-                @crossdomain(origin='*')
+                # @crossdomain(origin='*')
                 # @authentication_user_only
                 @wraps(func)
                 def translated_call(*args, **kwargs):
