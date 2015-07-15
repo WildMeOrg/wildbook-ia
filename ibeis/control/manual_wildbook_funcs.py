@@ -151,7 +151,7 @@ def hyrule_wildbook_login():
         python -m ibeis.control.manual_wildbook_funcs --exec-hyrule_wildbook_login
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
         >>> hyrule_wildbook_login()
     """
