@@ -1283,7 +1283,7 @@ def image_upload_zip(**kwargs):
 
     RESTful:
         Method: POST
-        URL:    /api/image/
+        URL:    /api/image/zip
     """
     ibs = current_app.ibs
     # Get image archive
@@ -1316,21 +1316,16 @@ def image_upload_zip(**kwargs):
 @register_api('/api/image/', methods=['POST'])
 def image_upload(**kwargs):
     r"""
-    Returns the gid_list for image files submitted in a ZIP archive.  The image
-    archive should be flat (no folders will be scanned for images) and must be smaller
-    than 100 MB.  The archive can submit multiple images, ideally in JPEG format to save
-    space.  Duplicate image uploads will result in the duplicate images receiving
-    the same gid based on the hashed pixel values.
+    Returns the gid for an uploaded image.
 
     Args:
-        image_zip_archive (binary): the POST variable containing the binary
-            (multi-form) image archive data
+        image (image binary): the POST variable containing the binary
+            (multi-form) image data
         **kwargs: Arbitrary keyword arguments; the kwargs are passed down to
             the add_images function
 
     Returns:
-        gid_list (list if rowids): the list of gids corresponding to the images
-            submitted.  The gids correspond to the image names sorted in
+        gid (rowids): gid corresponding to the image submitted.
             lexigraphical order.
 
     RESTful:
@@ -1356,7 +1351,8 @@ def image_upload(**kwargs):
     filestore.save(upload_filepath)
 
     gid_list = ibs.add_images([upload_filepath], **kwargs)
-    return gid_list
+    gid = gid_list[0]
+    return gid
 
 
 @register_api('/api/core/helloworld/')

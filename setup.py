@@ -83,6 +83,7 @@ else:
 INSTALL_OPTIONAL = [
     'tornado',
     'flask',
+    'flask-cors',
     'autopep8',
     'pyfiglet',
 ]
