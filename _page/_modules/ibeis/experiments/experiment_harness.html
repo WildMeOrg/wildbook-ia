@@ -60,14 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -121,7 +121,8 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">ibeis.experiments</span> <span class="kn">import</span> <span class="n">experiment_helpers</span> <span class="k">as</span> <span class="n">eh</span>
 <span class="kn">from</span> <span class="nn">ibeis.experiments</span> <span class="kn">import</span> <span class="n">experiment_printres</span>
-
+<span class="kn">from</span> <span class="nn">ibeis.experiments</span> <span class="kn">import</span> <span class="n">experiment_drawing</span>
+<span class="kn">from</span> <span class="nn">ibeis.experiments</span> <span class="kn">import</span> <span class="n">experiment_storage</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
     <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_harn]&#39;</span><span class="p">)</span>
 
@@ -151,12 +152,22 @@
     <span class="n">gf_rank</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">is_negative</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">is_negative</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">gt_rank</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">gf_rank</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">gt_aid</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">NEW</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">NEW</span><span class="p">:</span>
+            <span class="c"># Should a random groundtruth result be chosen if it exists here?</span>
+            <span class="n">gt_aids</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">get_groundtruth_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">gt_aid</span> <span class="o">=</span> <span class="n">gt_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">gt_aid</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gt_aid</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">gf_aid</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">gt_raw_score</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">gf_raw_score</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">scorediff</span> <span class="o">=</span> <span class="n">scorefactor</span> <span class="o">=</span> <span class="n">scorelogfactor</span> <span class="o">=</span> <span class="n">scoreexpdiff</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">else</span><span class="p">:</span>
+
         <span class="n">gt_aid</span> <span class="o">=</span> <span class="n">sorted_aids</span><span class="p">[</span><span class="n">gt_rank</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">gf_aid</span> <span class="o">=</span> <span class="n">sorted_aids</span><span class="p">[</span><span class="n">gf_rank</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">gt_raw_score</span> <span class="o">=</span> <span class="n">sorted_nscores</span><span class="p">[</span><span class="n">gt_rank</span><span class="p">]</span>
@@ -293,108 +304,9 @@
         <span class="k">return</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">experiment_printres</span><span class="o">.</span><span class="n">print_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_result</span><span class="p">)</span>
-        <span class="n">experiment_printres</span><span class="o">.</span><span class="n">draw_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_result</span><span class="p">)</span>
-</div>
-<span class="kn">import</span> <span class="nn">six</span>
+        <span class="n">experiment_drawing</span><span class="o">.</span><span class="n">draw_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_result</span><span class="p">)</span>
 
-
-<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
-<div class="viewcode-block" id="TestResult"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_harness.TestResult">[docs]</a><span class="k">class</span> <span class="nc">TestResult</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">test_result</span><span class="p">,</span> <span class="n">cfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">testnameid</span><span class="p">,</span> <span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="n">cfgx2_qreq_</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
-        <span class="n">test_result</span><span class="o">.</span><span class="n">qaids</span> <span class="o">=</span> <span class="n">qaids</span>
-        <span class="n">test_result</span><span class="o">.</span><span class="n">daids</span> <span class="o">=</span> <span class="n">daids</span>
-        <span class="n">test_result</span><span class="o">.</span><span class="n">cfg_list</span>         <span class="o">=</span> <span class="n">cfg_list</span>
-        <span class="n">test_result</span><span class="o">.</span><span class="n">cfgx2_lbl</span>        <span class="o">=</span> <span class="n">cfgx2_lbl</span>
-        <span class="n">test_result</span><span class="o">.</span><span class="n">lbl</span>              <span class="o">=</span> <span class="n">lbl</span>
-        <span class="n">test_result</span><span class="o">.</span><span class="n">testnameid</span>       <span class="o">=</span> <span class="n">testnameid</span>
-        <span class="n">test_result</span><span class="o">.</span><span class="n">cfgx2_cfgresinfo</span> <span class="o">=</span> <span class="n">cfgx2_cfgresinfo</span>
-        <span class="n">test_result</span><span class="o">.</span><span class="n">cfgx2_qreq_</span>      <span class="o">=</span> <span class="n">cfgx2_qreq_</span>
-
-    <span class="nd">@ut.memoize</span>
-<div class="viewcode-block" id="TestResult.get_rank_mat"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_harness.TestResult.get_rank_mat">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank_mat</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
-        <span class="c"># Ranks of Best Results</span>
-        <span class="n">cfgx2_bestranks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">test_result</span><span class="o">.</span><span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="s">&#39;qx2_bestranks&#39;</span><span class="p">)</span>
-        <span class="n">rank_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">cfgx2_bestranks</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>  <span class="c"># concatenate each query rank across configs</span>
-        <span class="c"># Set invalid ranks to the worse possible rank</span>
-        <span class="n">worst_possible_rank</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_worst_possible_rank</span><span class="p">()</span>
-        <span class="n">rank_mat</span><span class="p">[</span><span class="n">rank_mat</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span>  <span class="n">worst_possible_rank</span>
-        <span class="k">return</span> <span class="n">rank_mat</span>
 </div>
-<div class="viewcode-block" id="TestResult.get_worst_possible_rank"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_harness.TestResult.get_worst_possible_rank">[docs]</a>    <span class="k">def</span> <span class="nf">get_worst_possible_rank</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
-        <span class="c">#worst_possible_rank = max(9001, len(test_result.daids) + 1)</span>
-        <span class="n">worst_possible_rank</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_result</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-        <span class="k">return</span> <span class="n">worst_possible_rank</span>
-</div>
-    <span class="nd">@ut.memoize</span>
-<div class="viewcode-block" id="TestResult.get_new_hard_qx_list"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_harness.TestResult.get_new_hard_qx_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_new_hard_qx_list</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Mark any query as hard if it didnt get everything correct &quot;&quot;&quot;</span>
-        <span class="n">rank_mat</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_mat</span><span class="p">()</span>
-        <span class="n">is_new_hard_list</span> <span class="o">=</span> <span class="n">rank_mat</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
-        <span class="n">new_hard_qx_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">is_new_hard_list</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">new_hard_qx_list</span>
-</div>
-<div class="viewcode-block" id="TestResult.get_rank_histograms"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_harness.TestResult.get_rank_histograms">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank_histograms</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
-        <span class="n">rank_mat</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_mat</span><span class="p">()</span>
-        <span class="n">bins</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_histogram_bins</span><span class="p">()</span>
-        <span class="n">config_hists</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">ranks</span> <span class="ow">in</span> <span class="n">rank_mat</span><span class="o">.</span><span class="n">T</span><span class="p">:</span>
-            <span class="n">bin_values</span><span class="p">,</span> <span class="n">bin_edges</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">ranks</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">)</span>
-            <span class="n">bin_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bin_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
-            <span class="n">hist_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">bin_keys</span><span class="p">,</span> <span class="n">bin_values</span><span class="p">))</span>
-            <span class="n">config_hists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hist_dict</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">config_hists</span>
-</div>
-<div class="viewcode-block" id="TestResult.get_rank_histogram_bins"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_harness.TestResult.get_rank_histogram_bins">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank_histogram_bins</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
-        <span class="n">worst_possible_rank</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_worst_possible_rank</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">worst_possible_rank</span> <span class="o">&gt;</span> <span class="mi">50</span><span class="p">:</span>
-            <span class="n">bins</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="n">worst_possible_rank</span><span class="p">,</span> <span class="n">worst_possible_rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">worst_possible_rank</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
-            <span class="n">bins</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">worst_possible_rank</span><span class="p">,</span> <span class="n">worst_possible_rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">bins</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">bins</span>
-</div>
-<div class="viewcode-block" id="TestResult.get_rank_histogram_bin_edges"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_harness.TestResult.get_rank_histogram_bin_edges">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank_histogram_bin_edges</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
-        <span class="n">bins</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_histogram_bins</span><span class="p">()</span>
-        <span class="n">bin_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
-        <span class="k">return</span> <span class="n">bin_keys</span>
-</div>
-<div class="viewcode-block" id="TestResult.get_rank_histogram_qx_binxs"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_harness.TestResult.get_rank_histogram_qx_binxs">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank_histogram_qx_binxs</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
-        <span class="n">rank_mat</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_mat</span><span class="p">()</span>
-        <span class="n">config_hists</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_histograms</span><span class="p">()</span>
-        <span class="n">config_binxs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">bin_keys</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_histogram_bin_edges</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">hist_dict</span><span class="p">,</span> <span class="n">ranks</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">config_hists</span><span class="p">,</span> <span class="n">rank_mat</span><span class="o">.</span><span class="n">T</span><span class="p">):</span>
-            <span class="n">bin_qxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">low</span> <span class="o">&lt;=</span> <span class="n">ranks</span><span class="p">,</span> <span class="n">ranks</span> <span class="o">&lt;</span> <span class="n">high</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
-                       <span class="k">for</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="ow">in</span> <span class="n">bin_keys</span><span class="p">]</span>
-            <span class="n">qx2_binx</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ranks</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">binx</span><span class="p">,</span> <span class="n">qxs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bin_qxs</span><span class="p">):</span>
-                <span class="n">qx2_binx</span><span class="p">[</span><span class="n">qxs</span><span class="p">]</span> <span class="o">=</span> <span class="n">binx</span>
-            <span class="n">config_binxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qx2_binx</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">config_binxs</span>
-</div>
-<div class="viewcode-block" id="TestResult.get_rank_histogram_qx_sample"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_harness.TestResult.get_rank_histogram_qx_sample">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank_histogram_qx_sample</span><span class="p">(</span><span class="n">test_result</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
-        <span class="n">size</span> <span class="o">=</span> <span class="mi">10</span>
-        <span class="n">rank_mat</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_mat</span><span class="p">()</span>
-        <span class="n">config_hists</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_histograms</span><span class="p">()</span>
-        <span class="n">config_rand_bin_qxs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">bins</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_histogram_bins</span><span class="p">()</span>
-        <span class="n">bin_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
-        <span class="n">randstate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">hist_dict</span><span class="p">,</span> <span class="n">ranks</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">config_hists</span><span class="p">,</span> <span class="n">rank_mat</span><span class="o">.</span><span class="n">T</span><span class="p">):</span>
-            <span class="n">bin_qxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">low</span> <span class="o">&lt;=</span> <span class="n">ranks</span><span class="p">,</span> <span class="n">ranks</span> <span class="o">&lt;</span> <span class="n">high</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
-                       <span class="k">for</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="ow">in</span> <span class="n">bin_keys</span><span class="p">]</span>
-            <span class="n">rand_bin_qxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qxs</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qxs</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">size</span> <span class="k">else</span>
-                            <span class="n">randstate</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">qxs</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-                            <span class="k">for</span> <span class="n">qxs</span> <span class="ow">in</span> <span class="n">bin_qxs</span><span class="p">]</span>
-            <span class="n">config_rand_bin_qxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rand_bin_qxs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">config_rand_bin_qxs</span>
-
-    <span class="c">#def get_full_cfgstr(test_result, cfgx):</span>
-    <span class="c">#    full_cfgstr = test_result.cfgx2_qreq_[cfgx].get_full_cfgstr()</span>
-    <span class="c">#    return full_cfgstr</span>
-
-</div></div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="run_test_configurations"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_harness.run_test_configurations">[docs]</a><span class="k">def</span> <span class="nf">run_test_configurations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">):</span>
     <span class="c"># Grab list of algorithm configurations to test</span>
@@ -425,7 +337,7 @@
         <span class="c"># Query Config / Col Loop</span>
         <span class="c">#for cfgx, query_cfg in enumerate(cfg_list):</span>
         <span class="k">for</span> <span class="n">cfgx</span><span class="p">,</span> <span class="n">query_cfg</span> <span class="ow">in</span> <span class="n">cfgiter</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;+--- REQUESTING CONFIG ---&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;+--- REQUESTING TEST CONFIG ---&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;L____&#39;</span><span class="p">)</span>
             <span class="c"># Set data to the current config</span>
@@ -448,7 +360,7 @@
     <span class="c"># TODO: should probably just use a cfgdict to build a list of QueryRequest</span>
     <span class="c"># objects. That would avoid the entire problem</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_query_cfg</span><span class="p">(</span><span class="n">orig_query_cfg</span><span class="p">)</span>
-    <span class="n">test_result</span> <span class="o">=</span> <span class="n">TestResult</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">testnameid</span><span class="p">,</span> <span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="n">cfgx2_qreq_</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">)</span>
+    <span class="n">test_result</span> <span class="o">=</span> <span class="n">experiment_storage</span><span class="o">.</span><span class="n">TestResult</span><span class="p">(</span><span class="n">cfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">testnameid</span><span class="p">,</span> <span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="n">cfgx2_qreq_</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">test_result</span>
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>

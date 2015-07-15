@@ -60,14 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -209,23 +209,6 @@
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">dump_schema</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">print_schema</span><span class="p">()</span>
 
-    <span class="c"># Send commands to GUIBack</span>
-    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_aid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">back</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_aid</span><span class="p">,))</span>
-            <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Valid RIDs are: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(),))</span>
-                <span class="k">raise</span>
-            <span class="n">back</span><span class="o">.</span><span class="n">select_aid</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_aid</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">query_aid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">ibeis.constants</span> <span class="kn">as</span> <span class="nn">const</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">(</span><span class="n">qaid_list</span><span class="o">=</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">query_aid</span><span class="p">],</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_gid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_gid</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_nid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">select_nid</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_nid</span><span class="p">)</span>
-
     <span class="n">select_eid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--select-eid&#39;</span><span class="p">,</span> <span class="s">&#39;--eid&#39;</span><span class="p">,),</span> <span class="nb">int</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">select_eid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">+ --- CMD SELECT EID=</span><span class="si">%r</span><span class="s"> ---&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">select_eid</span><span class="p">,))</span>
@@ -235,9 +218,78 @@
         <span class="c">#back.front._change_enc(select_eid)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">select_encounter_tab</span><span class="p">(</span><span class="n">select_eid</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;L ___ CMD SELECT EID=</span><span class="si">%r</span><span class="s"> ___</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">select_eid</span><span class="p">,))</span>
+    <span class="c"># Send commands to GUIBack</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_aid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">back</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_aid</span><span class="p">,))</span>
+            <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Valid RIDs are: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(),))</span>
+                <span class="k">raise</span>
+            <span class="n">back</span><span class="o">.</span><span class="n">select_aid</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_aid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_gid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">select_gid</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_gid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_nid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">select_nid</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_nid</span><span class="p">)</span>
+
+    <span class="n">select_name</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--select-name&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">select_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">ibeis.gui.guiheaders</span> <span class="kn">as</span> <span class="nn">gh</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">select_table_indicies_from_text</span><span class="p">(</span><span class="n">gh</span><span class="o">.</span><span class="n">NAMES_TREE</span><span class="p">,</span> <span class="n">select_name</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">query_aid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">ibeis.constants</span> <span class="kn">as</span> <span class="nn">const</span>
+        <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">query_aid</span>
+        <span class="c"># fix stride case</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">qaid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">daids_mode</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--daids-mode&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">)</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">(</span><span class="n">qaid_list</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span>
+                             <span class="n">daids_mode</span><span class="o">=</span><span class="n">daids_mode</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--inc-query&#39;</span><span class="p">):</span>
         <span class="n">back</span><span class="o">.</span><span class="n">incremental_query</span><span class="p">()</span>
+
+    <span class="c">#screengrab_fpath = ut.get_argval(&#39;--screengrab&#39;)</span>
+    <span class="c">#if screengrab_fpath:</span>
+    <span class="c">#    from guitool.__PYQT__.QtGui import QPixmap</span>
+    <span class="c">#    from PyQt4.QtTest import QTest</span>
+    <span class="c">#    from PyQt4.QtCore import Qt</span>
+    <span class="c">#    fpath = ut.truepath(screengrab_fpath)</span>
+    <span class="c">#    import guitool</span>
+    <span class="c">#    #ut.embed()</span>
+    <span class="c">#    timer2 = guitool.__PYQT__.QtCore.QTimer()</span>
+    <span class="c">#    done = [1000]</span>
+    <span class="c">#    def delayed_screenshot_func():</span>
+    <span class="c">#        if done[0] == 500:</span>
+    <span class="c">#            #back.mainwin.menubar.triggered.emit(back.mainwin.menuFile)</span>
+    <span class="c">#            print(&#39;Mouseclick&#39;)</span>
+    <span class="c">#            QTest.mouseClick(back.mainwin.menuFile, Qt.LeftButton)</span>
+    <span class="c">#            # This works</span>
+    <span class="c">#            #QTest.mouseClick(back.front.import_button, Qt.LeftButton)</span>
+    <span class="c">#        if done[0] == 1:</span>
+    <span class="c">#            timer2.stop()</span>
+    <span class="c">#            print(&#39;screengrab to %r&#39; % (fpath,))</span>
+    <span class="c">#            screenimg = QPixmap.grabWindow(back.mainwin.winId())</span>
+    <span class="c">#            screenimg.save(fpath, &#39;jpg&#39;)</span>
+    <span class="c">#            ut.startfile(fpath)</span>
+    <span class="c">#            print(&#39;lub dub2&#39;)</span>
+    <span class="c">#        done[0] -= 1</span>
+    <span class="c">#        return None</span>
+    <span class="c">#    CLICK_FILE_MENU = True</span>
+    <span class="c">#    if CLICK_FILE_MENU:</span>
+    <span class="c">#        #ut.embed()</span>
+    <span class="c">#        #QTest::keyClick(menu, Qt::Key_Down)</span>
+    <span class="c">#        pass</span>
+    <span class="c">#    timer2.delayed_screenshot_func = delayed_screenshot_func</span>
+    <span class="c">#    timer2.timeout.connect(timer2.delayed_screenshot_func)</span>
+    <span class="c">#    timer2.start(1)</span>
+    <span class="c">#    back.mainwin.timer2 = timer2</span>
+    <span class="c">#    guitool.activate_qwindow(back.mainwin)</span>
+    <span class="c">#    #QPixmap.grabWindow(back.mainwin.winId()).save(fpath, &#39;jpg&#39;)</span>
+    <span class="c">#    #ut.startfile(fpath)</span>
+    <span class="c">#    #ut.embed()</span>
+    <span class="c">#    pass</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">postload_exit</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_cmd] postload exit&#39;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>

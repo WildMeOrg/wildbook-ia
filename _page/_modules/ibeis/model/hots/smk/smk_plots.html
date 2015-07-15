@@ -60,14 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -141,6 +141,68 @@
 <span class="n">Metrics</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;Metrics&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;wx2_nMembers&#39;</span><span class="p">,</span> <span class="s">&#39;wx2_pdist_stats&#39;</span><span class="p">,</span> <span class="s">&#39;wx2_wdist_stats&#39;</span><span class="p">,))</span>
 
 
+<div class="viewcode-block" id="vizualize_vocabulary"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_plots.vizualize_vocabulary">[docs]</a><span class="k">def</span> <span class="nf">vizualize_vocabulary</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">invindex</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    cleaned up version of dump_word_patches. Makes idf scatter plots and dumps</span>
+<span class="sd">    the patches that contributed to each word.</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.model.hots.smk.smk_plots --test-vizualize_vocabulary</span>
+<span class="sd">        python -m ibeis.model.hots.smk.smk_plots --test-vizualize_vocabulary --vf</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_plots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_repr</span>
+<span class="sd">        &gt;&gt;&gt; #tup = smk_debug.testdata_raw_internals0(db=&#39;GZ_ALL&#39;, nWords=64000)</span>
+<span class="sd">        &gt;&gt;&gt; #tup = smk_debug.testdata_raw_internals0(db=&#39;GZ_ALL&#39;, nWords=8000)</span>
+<span class="sd">        &gt;&gt;&gt; tup = smk_debug.testdata_raw_internals0(db=&#39;PZ_Master0&#39;, nWords=64000)</span>
+<span class="sd">        &gt;&gt;&gt; #tup = smk_debug.testdata_raw_internals0(db=&#39;PZ_Mothers&#39;, nWords=8000)</span>
+<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, qreq_ = tup</span>
+<span class="sd">        &gt;&gt;&gt; smk_repr.compute_data_internals_(invindex, qreq_.qparams, delete_rawvecs=False)</span>
+<span class="sd">        &gt;&gt;&gt; vizualize_vocabulary(ibs, invindex)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_plots] Vizualizing vocabulary&#39;</span><span class="p">)</span>
+
+    <span class="c"># DUMPING PART --- dumps patches to disk</span>
+    <span class="n">figdir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_fig_dir</span><span class="p">()</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">figdir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--vf&#39;</span><span class="p">):</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">figdir</span><span class="p">)</span>
+
+    <span class="c"># Compute Word Statistics</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="n">compute_word_metrics</span><span class="p">(</span><span class="n">invindex</span><span class="p">)</span>
+    <span class="n">wx2_nMembers</span><span class="p">,</span> <span class="n">wx2_pdist_stats</span><span class="p">,</span> <span class="n">wx2_wdist_stats</span> <span class="o">=</span> <span class="n">metrics</span>
+    <span class="c">#(wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats) = metrics</span>
+
+    <span class="c">#wx2_prad = {wx: pdist_stats[&#39;max&#39;] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if &#39;max&#39; in pdist_stats}</span>
+    <span class="c">#wx2_wrad = {wx: wdist_stats[&#39;max&#39;] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if &#39;max&#39; in wdist_stats}</span>
+
+    <span class="n">wx2_prad</span> <span class="o">=</span> <span class="p">{</span><span class="n">wx</span><span class="p">:</span> <span class="n">stats</span><span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="n">wx2_pdist_stats</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s">&#39;max&#39;</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">}</span>
+    <span class="n">wx2_wrad</span> <span class="o">=</span> <span class="p">{</span><span class="n">wx</span><span class="p">:</span> <span class="n">stats</span><span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="n">wx2_wdist_stats</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s">&#39;max&#39;</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">}</span>
+    <span class="c">#wx2_prad = get_metric(metrics, &#39;wx2_pdist_stats&#39;, &#39;max&#39;)</span>
+    <span class="c">#wx2_wrad = get_metric(metrics, &#39;wx2_wdist_stats&#39;, &#39;max&#39;)</span>
+
+    <span class="n">wx_sample1</span> <span class="o">=</span> <span class="n">select_by_metric</span><span class="p">(</span><span class="n">wx2_nMembers</span><span class="p">)</span>
+    <span class="n">wx_sample2</span> <span class="o">=</span> <span class="n">select_by_metric</span><span class="p">(</span><span class="n">wx2_prad</span><span class="p">)</span>
+    <span class="n">wx_sample3</span> <span class="o">=</span> <span class="n">select_by_metric</span><span class="p">(</span><span class="n">wx2_wrad</span><span class="p">)</span>
+
+    <span class="n">wx_sample</span> <span class="o">=</span> <span class="n">wx_sample1</span> <span class="o">+</span> <span class="n">wx_sample2</span> <span class="o">+</span> <span class="n">wx_sample3</span>
+    <span class="n">overlap123</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx_sample</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">wx_sample</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;overlap123 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">overlap123</span><span class="p">)</span>
+    <span class="n">wx_sample</span>  <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">wx_sample</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(wx_sample) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx_sample</span><span class="p">))</span>
+
+    <span class="c">#make_scatterplots(ibs, figdir, invindex, metrics)</span>
+
+    <span class="n">vocabdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="s">&#39;vocab_patches2&#39;</span><span class="p">)</span>
+    <span class="n">wx2_dpath</span> <span class="o">=</span> <span class="n">get_word_dpaths</span><span class="p">(</span><span class="n">vocabdir</span><span class="p">,</span> <span class="n">wx_sample</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span>
+
+    <span class="n">make_wordfigures</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">figdir</span><span class="p">,</span> <span class="n">wx_sample</span><span class="p">,</span> <span class="n">wx2_dpath</span><span class="p">)</span>
+
+</div>
 <div class="viewcode-block" id="metric_clamped_stat"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_plots.metric_clamped_stat">[docs]</a><span class="k">def</span> <span class="nf">metric_clamped_stat</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">wx_list</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    if key is a tuple it specifies a statdict and a chosen stat</span>
@@ -298,68 +360,6 @@
 
 <span class="c">#{wx: pdist_stats[&#39;max&#39;] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if &#39;max&#39; in pdist_stats}</span>
 <span class="c">#wx2_wrad = {wx: wdist_stats[&#39;max&#39;] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if &#39;max&#39; in wdist_stats}</span>
-
-</div>
-<div class="viewcode-block" id="vizualize_vocabulary"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_plots.vizualize_vocabulary">[docs]</a><span class="k">def</span> <span class="nf">vizualize_vocabulary</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">invindex</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    cleaned up version of dump_word_patches. Makes idf scatter plots and dumps</span>
-<span class="sd">    the patches that contributed to each word.</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.model.hots.smk.smk_plots --test-vizualize_vocabulary</span>
-<span class="sd">        python -m ibeis.model.hots.smk.smk_plots --test-vizualize_vocabulary --vf</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk.smk_plots import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_debug</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.smk import smk_repr</span>
-<span class="sd">        &gt;&gt;&gt; #tup = smk_debug.testdata_raw_internals0(db=&#39;GZ_ALL&#39;, nWords=64000)</span>
-<span class="sd">        &gt;&gt;&gt; #tup = smk_debug.testdata_raw_internals0(db=&#39;GZ_ALL&#39;, nWords=8000)</span>
-<span class="sd">        &gt;&gt;&gt; #tup = smk_debug.testdata_raw_internals0(db=&#39;PZ_Master0&#39;, nWords=64000)</span>
-<span class="sd">        &gt;&gt;&gt; tup = smk_debug.testdata_raw_internals0(db=&#39;PZ_Mothers&#39;, nWords=8000)</span>
-<span class="sd">        &gt;&gt;&gt; ibs, annots_df, daids, qaids, invindex, qreq_ = tup</span>
-<span class="sd">        &gt;&gt;&gt; smk_repr.compute_data_internals_(invindex, qreq_.qparams, delete_rawvecs=False)</span>
-<span class="sd">        &gt;&gt;&gt; vizualize_vocabulary(ibs, invindex)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span><span class="p">)</span>
-
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_plots] Vizualizing vocabulary&#39;</span><span class="p">)</span>
-
-    <span class="c"># DUMPING PART --- dumps patches to disk</span>
-    <span class="n">figdir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_fig_dir</span><span class="p">()</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">figdir</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--vf&#39;</span><span class="p">):</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">figdir</span><span class="p">)</span>
-
-    <span class="c"># Compute Word Statistics</span>
-    <span class="n">metrics</span> <span class="o">=</span> <span class="n">compute_word_metrics</span><span class="p">(</span><span class="n">invindex</span><span class="p">)</span>
-    <span class="n">wx2_nMembers</span><span class="p">,</span> <span class="n">wx2_pdist_stats</span><span class="p">,</span> <span class="n">wx2_wdist_stats</span> <span class="o">=</span> <span class="n">metrics</span>
-    <span class="c">#(wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats) = metrics</span>
-
-    <span class="c">#wx2_prad = {wx: pdist_stats[&#39;max&#39;] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if &#39;max&#39; in pdist_stats}</span>
-    <span class="c">#wx2_wrad = {wx: wdist_stats[&#39;max&#39;] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if &#39;max&#39; in wdist_stats}</span>
-
-    <span class="n">wx2_prad</span> <span class="o">=</span> <span class="p">{</span><span class="n">wx</span><span class="p">:</span> <span class="n">stats</span><span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="n">wx2_pdist_stats</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s">&#39;max&#39;</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">}</span>
-    <span class="n">wx2_wrad</span> <span class="o">=</span> <span class="p">{</span><span class="n">wx</span><span class="p">:</span> <span class="n">stats</span><span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="n">wx2_wdist_stats</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s">&#39;max&#39;</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">}</span>
-    <span class="c">#wx2_prad = get_metric(metrics, &#39;wx2_pdist_stats&#39;, &#39;max&#39;)</span>
-    <span class="c">#wx2_wrad = get_metric(metrics, &#39;wx2_wdist_stats&#39;, &#39;max&#39;)</span>
-
-    <span class="n">wx_sample1</span> <span class="o">=</span> <span class="n">select_by_metric</span><span class="p">(</span><span class="n">wx2_nMembers</span><span class="p">)</span>
-    <span class="n">wx_sample2</span> <span class="o">=</span> <span class="n">select_by_metric</span><span class="p">(</span><span class="n">wx2_prad</span><span class="p">)</span>
-    <span class="n">wx_sample3</span> <span class="o">=</span> <span class="n">select_by_metric</span><span class="p">(</span><span class="n">wx2_wrad</span><span class="p">)</span>
-
-    <span class="n">wx_sample</span> <span class="o">=</span> <span class="n">wx_sample1</span> <span class="o">+</span> <span class="n">wx_sample2</span> <span class="o">+</span> <span class="n">wx_sample3</span>
-    <span class="n">overlap123</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx_sample</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">wx_sample</span><span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;overlap123 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">overlap123</span><span class="p">)</span>
-    <span class="n">wx_sample</span>  <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">wx_sample</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(wx_sample) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx_sample</span><span class="p">))</span>
-
-    <span class="c">#make_scatterplots(ibs, figdir, invindex, metrics)</span>
-
-    <span class="n">vocabdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="s">&#39;vocab_patches2&#39;</span><span class="p">)</span>
-    <span class="n">wx2_dpath</span> <span class="o">=</span> <span class="n">get_word_dpaths</span><span class="p">(</span><span class="n">vocabdir</span><span class="p">,</span> <span class="n">wx_sample</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span>
-
-    <span class="n">make_wordfigures</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">figdir</span><span class="p">,</span> <span class="n">wx_sample</span><span class="p">,</span> <span class="n">wx2_dpath</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="make_scatterplots"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_plots.make_scatterplots">[docs]</a><span class="k">def</span> <span class="nf">make_scatterplots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">figdir</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">metrics</span><span class="p">):</span>

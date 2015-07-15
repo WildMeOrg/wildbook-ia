@@ -62,14 +62,14 @@
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -113,17 +113,324 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="ibeis-dev-dbinfo-module">
-<h2>ibeis.dev.dbinfo module<a class="headerlink" href="#ibeis-dev-dbinfo-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ibeis.dev.dbinfo">
+<span id="ibeis-dev-dbinfo-module"></span><h2>ibeis.dev.dbinfo module<a class="headerlink" href="#module-ibeis.dev.dbinfo" title="Permalink to this headline">¶</a></h2>
+<p>get_dbinfo is probably the only usefull funciton in here
+# This is not the cleanest module</p>
+<dl class="function">
+<dt id="ibeis.dev.dbinfo.cache_memory_stats">
+<tt class="descclassname">ibeis.dev.dbinfo.</tt><tt class="descname">cache_memory_stats</tt><big>(</big><em>ibs</em>, <em>cid_list</em>, <em>fnum=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/dbinfo.html#cache_memory_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.dbinfo.cache_memory_stats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.dbinfo.dbstats">
+<tt class="descclassname">ibeis.dev.dbinfo.</tt><tt class="descname">dbstats</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/dbinfo.html#dbstats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.dbinfo.dbstats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.dbinfo.get_dbinfo">
+<tt class="descclassname">ibeis.dev.dbinfo.</tt><tt class="descname">get_dbinfo</tt><big>(</big><em>ibs</em>, <em>verbose=True</em>, <em>with_imgsize=False</em>, <em>with_bytes=False</em>, <em>with_contrib=True</em>, <em>with_agesex=True</em>, <em>with_header=True</em>, <em>short=False</em>, <em>tag='dbinfo'</em>, <em>aid_list=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/dbinfo.html#get_dbinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.dbinfo.get_dbinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns dictionary of digestable database information
+Infostr is a string summary of all the stats. Prints infostr in addition to
+returning locals</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.dev.dbinfo &#8211;test-get_dbinfo:0
+python -m ibeis.dev.dbinfo &#8211;test-get_dbinfo:1
+python -m ibeis.dev.dbinfo &#8211;test-get_dbinfo:1  &#8211;db NNP_Master3</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">short</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;GZ_ALL&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;PZ_Master0&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_contributors</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_contrib_rowids</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_nids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;PZ_MTEST&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">with_contrib</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">short</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s">&#39;info_str&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">+============================</span>
+<span class="go">DB Info:  testdb1</span>
+<span class="go">DB Notes: None</span>
+<span class="go">DB NumContrib: 0</span>
+<span class="go">----------</span>
+<span class="go"># Names                      = 7</span>
+<span class="go"># Names (unassociated)       = 0</span>
+<span class="go"># Names (singleton)          = 5</span>
+<span class="go"># Names (multiton)           = 2</span>
+<span class="go">----------</span>
+<span class="go"># Annots                     = 13</span>
+<span class="go"># Annots (unknown)           = 4</span>
+<span class="go"># Annots (singleton)         = 5</span>
+<span class="go"># Annots (multiton)          = 4</span>
+<span class="go"># Annots per Viewpoint = {</span>
+<span class="go">    None : 13,</span>
+<span class="go">}</span>
+<span class="go"># Annots per Quality = {</span>
+<span class="go">    &#39;UNKNOWN&#39; : 13,</span>
+<span class="go">}</span>
+<span class="go">----------</span>
+<span class="go"># Img                        = 13</span>
+<span class="go"># Img reviewed               = 0</span>
+<span class="go"># Img with gps               = 12</span>
+<span class="go">Img Time Stats               = {</span>
+<span class="go">    &#39;max&#39;     : &#39;1969/12/31 21:30:13&#39;,</span>
+<span class="go">    &#39;mean&#39;    : &#39;1969/12/31 20:10:15&#39;,</span>
+<span class="go">    &#39;min&#39;     : &#39;1969/12/31 19:01:41&#39;,</span>
+<span class="go">    &#39;nMax&#39;    : 1,</span>
+<span class="go">    &#39;nMin&#39;    : 1,</span>
+<span class="go">    &#39;num_nan&#39; : 0,</span>
+<span class="go">    &#39;range&#39;   : &#39;2:28:32&#39;,</span>
+<span class="go">    &#39;shape&#39;   : (13,),</span>
+<span class="go">    &#39;std&#39;     : &#39;1:13:57&#39;,</span>
+<span class="go">}</span>
+<span class="go">L============================</span>
+</pre></div>
 </div>
-<div class="section" id="ibeis-dev-duct-tape-module">
-<h2>ibeis.dev.duct_tape module<a class="headerlink" href="#ibeis-dev-duct-tape-module" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>Example1:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;testdb2&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;NNP_Master3&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">get_dbinfo</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s">&#39;info_str&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
 </div>
-<div class="section" id="ibeis-dev-optimize-k-module">
-<h2>ibeis.dev.optimize_k module<a class="headerlink" href="#ibeis-dev-optimize-k-module" title="Permalink to this headline">¶</a></h2>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.dbinfo.get_keypoint_stats">
+<tt class="descclassname">ibeis.dev.dbinfo.</tt><tt class="descname">get_keypoint_stats</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/dbinfo.html#get_keypoint_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.dbinfo.get_keypoint_stats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.dbinfo.get_short_infostr">
+<tt class="descclassname">ibeis.dev.dbinfo.</tt><tt class="descname">get_short_infostr</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/dbinfo.html#get_short_infostr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.dbinfo.get_short_infostr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns printable database information</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">infostr</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.dev.dbinfo &#8211;test-get_short_infostr</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.dbinfo</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">infostr</span> <span class="o">=</span> <span class="n">get_short_infostr</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">infostr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">dbname = &#39;testdb1&#39;</span>
+<span class="go">num_images = 13</span>
+<span class="go">num_annotations = 13</span>
+<span class="go">num_names = 7</span>
+</pre></div>
 </div>
-<div class="section" id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.dbinfo.print_qd_info">
+<tt class="descclassname">ibeis.dev.dbinfo.</tt><tt class="descname">print_qd_info</tt><big>(</big><em>ibs</em>, <em>qaid_list</em>, <em>daid_list</em>, <em>verbose=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/dbinfo.html#print_qd_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.dbinfo.print_qd_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>information for a query/database aid configuration</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.dbinfo.test_name_consistency">
+<tt class="descclassname">ibeis.dev.dbinfo.</tt><tt class="descname">test_name_consistency</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/dbinfo.html#test_name_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.dbinfo.test_name_consistency" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_Master0&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(db=&#39;GZ_ALL&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dev.duct_tape">
+<span id="ibeis-dev-duct-tape-module"></span><h2>ibeis.dev.duct_tape module<a class="headerlink" href="#module-ibeis.dev.duct_tape" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.dev.duct_tape.enforce_unkonwn_name_is_explicit">
+<tt class="descclassname">ibeis.dev.duct_tape.</tt><tt class="descname">enforce_unkonwn_name_is_explicit</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/duct_tape.html#enforce_unkonwn_name_is_explicit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.duct_tape.enforce_unkonwn_name_is_explicit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.duct_tape.fix_compname_configs">
+<tt class="descclassname">ibeis.dev.duct_tape.</tt><tt class="descname">fix_compname_configs</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/duct_tape.html#fix_compname_configs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.duct_tape.fix_compname_configs" title="Permalink to this definition">¶</a></dt>
+<dd><p>duct tape to keep version in check</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.duct_tape.fix_nulled_yaws">
+<tt class="descclassname">ibeis.dev.duct_tape.</tt><tt class="descname">fix_nulled_yaws</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/duct_tape.html#fix_nulled_yaws"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.duct_tape.fix_nulled_yaws" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.duct_tape.remove_database_slag">
+<tt class="descclassname">ibeis.dev.duct_tape.</tt><tt class="descname">remove_database_slag</tt><big>(</big><em>ibs</em>, <em>delete_empty_names=False</em>, <em>delete_empty_encounters=False</em>, <em>delete_annotations_for_missing_images=False</em>, <em>delete_image_labels_for_missing_types=False</em>, <em>delete_annot_labels_for_missing_types=False</em>, <em>delete_chips_for_missing_annotations=False</em>, <em>delete_features_for_missing_annotations=False</em>, <em>delete_invalid_eg_relations=False</em>, <em>delete_invalid_gl_relations=False</em>, <em>delete_invalid_al_relations=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/duct_tape.html#remove_database_slag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.duct_tape.remove_database_slag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dev.optimize_k">
+<span id="ibeis-dev-optimize-k-module"></span><h2>ibeis.dev.optimize_k module<a class="headerlink" href="#module-ibeis.dev.optimize_k" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.dev.optimize_k.collect_ibeis_training_annotations">
+<tt class="descclassname">ibeis.dev.optimize_k.</tt><tt class="descname">collect_ibeis_training_annotations</tt><big>(</big><em>ibs</em>, <em>nDaids_basis</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/optimize_k.html#collect_ibeis_training_annotations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.optimize_k.collect_ibeis_training_annotations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.optimize_k.compute_K">
+<tt class="descclassname">ibeis.dev.optimize_k.</tt><tt class="descname">compute_K</tt><big>(</big><em>nDaids</em>, <em>model_params</em>, <em>force_int=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/optimize_k.html#compute_K"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.optimize_k.compute_K" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nDaids</strong> (<em>int</em>) &#8211; number of database annotations to compute K for</li>
+<li><strong>model_params</strong> (<em>list</em>) &#8211; coefficients of the n-degree polynomial</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.dev.optimize_k &#8211;test-compute_K &#8211;show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.optimize_k</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nDaids_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_params</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">K_list</span> <span class="o">=</span> <span class="n">compute_K</span><span class="p">(</span><span class="n">nDaids_list</span><span class="p">,</span> <span class="n">model_params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">plot2</span><span class="p">(</span><span class="n">nDaids_list</span><span class="p">,</span> <span class="n">K_list</span><span class="p">,</span> <span class="n">x_label</span><span class="o">=</span><span class="s">&#39;num_names&#39;</span><span class="p">,</span> <span class="n">y_label</span><span class="o">=</span><span class="s">&#39;K&#39;</span><span class="p">,</span>
+<span class="gp">... </span>         <span class="n">equal_aspect</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;g-&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dark</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.optimize_k.compute_interpolation_grid">
+<tt class="descclassname">ibeis.dev.optimize_k.</tt><tt class="descname">compute_interpolation_grid</tt><big>(</big><em>known_nd_data</em>, <em>pad_steps=0</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/optimize_k.html#compute_interpolation_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.optimize_k.compute_interpolation_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>use gcd to get the number of steps to take in each dimension</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.optimize_k.evaluate_training_data">
+<tt class="descclassname">ibeis.dev.optimize_k.</tt><tt class="descname">evaluate_training_data</tt><big>(</big><em>ibs</em>, <em>qaids</em>, <em>daids_list</em>, <em>varydict</em>, <em>nDaids_basis</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/optimize_k.html#evaluate_training_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.optimize_k.evaluate_training_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.optimize_k.interpolate_error">
+<tt class="descclassname">ibeis.dev.optimize_k.</tt><tt class="descname">interpolate_error</tt><big>(</big><em>known_nd_data</em>, <em>known_targets</em>, <em>unknown_nd_data</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/optimize_k.html#interpolate_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.optimize_k.interpolate_error" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">References</p>
+<p><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.interpolate.griddata.html">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.interpolate.griddata.html</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.optimize_k.learn_k">
+<tt class="descclassname">ibeis.dev.optimize_k.</tt><tt class="descname">learn_k</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/dev/optimize_k.html#learn_k"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.optimize_k.learn_k" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.dev.optimize_k &#8211;test-learn_k
+python -m ibeis.dev.optimize_k &#8211;test-learn_k &#8211;show
+python -m ibeis.dev.optimize_k &#8211;test-learn_k &#8211;show &#8211;dummy</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dev.optimize_k</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">known_nd_data</span><span class="p">,</span> <span class="n">known_target_points</span><span class="p">,</span> <span class="n">given_data_dims</span><span class="p">,</span> <span class="n">opt_model_params</span> <span class="o">=</span> <span class="n">learn_k</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_search_surface</span><span class="p">(</span><span class="n">known_nd_data</span><span class="p">,</span> <span class="n">known_target_points</span><span class="p">,</span> <span class="n">given_data_dims</span><span class="p">,</span> <span class="n">opt_model_params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">all_figures_bring_to_front</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.optimize_k.minimize_compute_K_params">
+<tt class="descclassname">ibeis.dev.optimize_k.</tt><tt class="descname">minimize_compute_K_params</tt><big>(</big><em>known_nd_data</em>, <em>known_target_points</em>, <em>given_data_dims</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/optimize_k.html#minimize_compute_K_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.optimize_k.minimize_compute_K_params" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">References</p>
+<p><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/optimize.html">http://docs.scipy.org/doc/scipy-0.14.0/reference/optimize.html</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.optimize_k.plot_search_surface">
+<tt class="descclassname">ibeis.dev.optimize_k.</tt><tt class="descname">plot_search_surface</tt><big>(</big><em>known_nd_data</em>, <em>known_target_points</em>, <em>given_data_dims</em>, <em>opt_model_params=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/optimize_k.html#plot_search_surface"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.optimize_k.plot_search_surface" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.optimize_k.test_training_data">
+<tt class="descclassname">ibeis.dev.optimize_k.</tt><tt class="descname">test_training_data</tt><big>(</big><em>varydict</em>, <em>nDaids_basis</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev/optimize_k.html#test_training_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.optimize_k.test_training_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.dev">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.dev" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="ibeis.dev.IMPORT_TUPLES">
+<tt class="descclassname">ibeis.dev.</tt><tt class="descname">IMPORT_TUPLES</tt><em class="property"> = [('dbinfo', None), ('duct_tape', None), ('optimize_k', None)]</em><a class="headerlink" href="#ibeis.dev.IMPORT_TUPLES" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Regen Command:</dt>
+<dd>cd /home/joncrall/code/ibeis/ibeis/dev
+makeinit.py</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.reassign_submodule_attributes">
+<tt class="descclassname">ibeis.dev.</tt><tt class="descname">reassign_submodule_attributes</tt><big>(</big><em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>why reloading all the modules doesnt do this I don&#8217;t know</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.reload_subs">
+<tt class="descclassname">ibeis.dev.</tt><tt class="descname">reload_subs</tt><big>(</big><em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/dev.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dev.reload_subs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.init.and submodules</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.dev.rrrr">
+<tt class="descclassname">ibeis.dev.</tt><tt class="descname">rrrr</tt><big>(</big><em>verbose=True</em><big>)</big><a class="headerlink" href="#ibeis.dev.rrrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.init.and submodules</p>
+</dd></dl>
+
 </div>
 </div>
 

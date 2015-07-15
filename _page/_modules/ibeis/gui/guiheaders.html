@@ -60,14 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -120,15 +120,15 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="c">#from ibeis.control import</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[headers]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[headers]&#39;</span><span class="p">)</span>
 
-<span class="n">ENCOUNTER_TABLE</span>  <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span>
-<span class="n">IMAGE_TABLE</span>      <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">IMAGE_TABLE</span>
-<span class="n">ANNOTATION_TABLE</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span>
+<span class="n">ENCOUNTER_TABLE</span>  <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span>
+<span class="n">IMAGE_TABLE</span>      <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span>
+<span class="n">ANNOTATION_TABLE</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span>
 <span class="n">IMAGE_GRID</span>       <span class="o">=</span> <span class="s">&#39;image_grid&#39;</span>
 <span class="n">NAME_TABLE</span>       <span class="o">=</span> <span class="s">&#39;names&#39;</span>
 <span class="n">NAMES_TREE</span>       <span class="o">=</span> <span class="s">&#39;names_tree&#39;</span>
@@ -139,234 +139,256 @@
 <span class="c"># Define the tables</span>
 <span class="c">#-----------------</span>
 
-<span class="c"># available tables</span>
-<span class="n">TABLENAME_LIST</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">IMAGE_TABLE</span><span class="p">,</span>
-    <span class="n">ANNOTATION_TABLE</span><span class="p">,</span>
-    <span class="c">#NAME_TABLE,</span>
-    <span class="n">ENCOUNTER_TABLE</span><span class="p">,</span>
-    <span class="n">IMAGE_GRID</span><span class="p">,</span>
-    <span class="n">THUMB_TABLE</span><span class="p">,</span>
-    <span class="n">NAMES_TREE</span>
-<span class="p">]</span>
 
-<span class="c"># table nice names</span>
-<span class="n">TABLE_NICE</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">IMAGE_TABLE</span>      <span class="p">:</span> <span class="s">&#39;Image Table&#39;</span><span class="p">,</span>
-    <span class="n">ANNOTATION_TABLE</span> <span class="p">:</span> <span class="s">&#39;Annotations Table&#39;</span><span class="p">,</span>
-    <span class="n">NAME_TABLE</span>       <span class="p">:</span> <span class="s">&#39;Name Table&#39;</span><span class="p">,</span>
-    <span class="n">QRES_TABLE</span>       <span class="p">:</span> <span class="s">&#39;Query Results Table&#39;</span><span class="p">,</span>
-    <span class="n">ENCOUNTER_TABLE</span>  <span class="p">:</span> <span class="s">&#39;Encounter Table&#39;</span><span class="p">,</span>
-    <span class="n">IMAGE_GRID</span>       <span class="p">:</span> <span class="s">&#39;Thumbnail Grid&#39;</span><span class="p">,</span>
-    <span class="n">THUMB_TABLE</span>      <span class="p">:</span> <span class="s">&#39;Thumbnail Table&#39;</span><span class="p">,</span>
-    <span class="n">NAMES_TREE</span>       <span class="p">:</span> <span class="s">&#39;Tree of Names&#39;</span><span class="p">,</span>
-<span class="p">}</span>
+<div class="viewcode-block" id="make_table_declarations"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiheaders.make_table_declarations">[docs]</a><span class="k">def</span> <span class="nf">make_table_declarations</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    these used to be global variables, hopefully we can make them a little more configurable</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># available tables</span>
+    <span class="n">TABLENAME_LIST</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">IMAGE_TABLE</span><span class="p">,</span>
+        <span class="n">ANNOTATION_TABLE</span><span class="p">,</span>
+        <span class="c">#NAME_TABLE,</span>
+        <span class="n">ENCOUNTER_TABLE</span><span class="p">,</span>
+        <span class="n">IMAGE_GRID</span><span class="p">,</span>
+        <span class="n">THUMB_TABLE</span><span class="p">,</span>
+        <span class="n">NAMES_TREE</span>
+    <span class="p">]</span>
 
-<span class="c"># COLUMN DEFINITIONS</span>
-<span class="c"># the columns each ibeis table has,</span>
-<span class="n">TABLE_COLNAMES</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">IMAGE_TABLE</span>     <span class="p">:</span> <span class="p">[</span>
-        <span class="s">&#39;gid&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;image_uuid&#39;,</span>
-        <span class="s">&#39;thumb&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;nAids&#39;,</span>
-        <span class="s">&#39;img_gname&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;ext&#39;,</span>
-        <span class="s">&#39;reviewed&#39;</span><span class="p">,</span>  <span class="c"># detection reviewed flag is not fullyused</span>
-        <span class="s">&#39;datetime&#39;</span><span class="p">,</span>
-        <span class="s">&#39;gps&#39;</span><span class="p">,</span>
-        <span class="s">&#39;party_tag&#39;</span><span class="p">,</span>
-        <span class="s">&#39;contributor_tag&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;gdconf&#39;,</span>
-        <span class="s">&#39;imgnotes&#39;</span><span class="p">,</span>
-    <span class="p">],</span>
+    <span class="c"># table nice names</span>
+    <span class="n">TABLE_NICE</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">IMAGE_TABLE</span>      <span class="p">:</span> <span class="s">&#39;Image Table&#39;</span><span class="p">,</span>
+        <span class="n">ANNOTATION_TABLE</span> <span class="p">:</span> <span class="s">&#39;Annotations Table&#39;</span><span class="p">,</span>
+        <span class="n">NAME_TABLE</span>       <span class="p">:</span> <span class="s">&#39;Name Table&#39;</span><span class="p">,</span>
+        <span class="n">QRES_TABLE</span>       <span class="p">:</span> <span class="s">&#39;Query Results Table&#39;</span><span class="p">,</span>
+        <span class="n">ENCOUNTER_TABLE</span>  <span class="p">:</span> <span class="s">&#39;Encounter Table&#39;</span><span class="p">,</span>
+        <span class="n">IMAGE_GRID</span>       <span class="p">:</span> <span class="s">&#39;Thumbnail Grid&#39;</span><span class="p">,</span>
+        <span class="n">THUMB_TABLE</span>      <span class="p">:</span> <span class="s">&#39;Thumbnail Table&#39;</span><span class="p">,</span>
+        <span class="n">NAMES_TREE</span>       <span class="p">:</span> <span class="s">&#39;Tree of Names&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
 
-    <span class="c"># debug with</span>
-    <span class="c"># --noannottbl</span>
-    <span class="c"># --nonametree</span>
-    <span class="c"># even just aid seems to be very slow</span>
-    <span class="n">ANNOTATION_TABLE</span>       <span class="p">:</span> <span class="p">[</span>
-        <span class="c">#&#39;annotation_uuid&#39;,</span>
-        <span class="s">&#39;aid&#39;</span><span class="p">,</span>
-        <span class="s">&#39;thumb&#39;</span><span class="p">,</span>
-        <span class="s">&#39;annot_gname&#39;</span><span class="p">,</span>
-        <span class="s">&#39;name&#39;</span><span class="p">,</span>
-        <span class="s">&#39;exemplar&#39;</span><span class="p">,</span>
-        <span class="s">&#39;species&#39;</span><span class="p">,</span>  <span class="c"># &lt;put back in</span>
-        <span class="s">&#39;yaw_text&#39;</span><span class="p">,</span>
-        <span class="s">&#39;quality_text&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;rdconf&#39;,</span>
-        <span class="c">#&#39;nGt&#39;,  # ## &lt;put back in</span>
-        <span class="s">&#39;annotnotes&#39;</span><span class="p">,</span>  <span class="c"># ## &lt;put back in</span>
-        <span class="c">#&#39;annot_visual_uuid&#39;,</span>
-        <span class="c">#&#39;annot_semantic_uuid&#39;,</span>
-        <span class="c">#&#39;nFeats&#39;,</span>
-        <span class="c">#&#39;bbox&#39;,</span>
-        <span class="c">#&#39;theta&#39;,</span>
-        <span class="c">#&#39;verts&#39;,</span>
-        <span class="c">#&#39;num_verts&#39;,</span>
-    <span class="p">],</span>
+    <span class="c"># COLUMN DEFINITIONS</span>
+    <span class="c"># the columns each ibeis table has,</span>
+    <span class="n">TABLE_COLNAMES</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">IMAGE_TABLE</span>     <span class="p">:</span> <span class="p">[</span>
+            <span class="s">&#39;gid&#39;</span><span class="p">,</span>
+            <span class="s">&#39;thumb&#39;</span><span class="p">,</span>
+            <span class="c">#&#39;nAids&#39;,</span>
+            <span class="s">&#39;img_gname&#39;</span><span class="p">,</span>
+            <span class="c">#&#39;ext&#39;,</span>
+            <span class="s">&#39;reviewed&#39;</span><span class="p">,</span>  <span class="c"># detection reviewed flag is not fullyused</span>
+            <span class="s">&#39;datetime&#39;</span><span class="p">,</span>
+            <span class="s">&#39;gps&#39;</span><span class="p">,</span>
+            <span class="s">&#39;party_tag&#39;</span><span class="p">,</span>
+            <span class="s">&#39;contributor_tag&#39;</span><span class="p">,</span>
+            <span class="c">#&#39;gdconf&#39;,</span>
+            <span class="s">&#39;imgnotes&#39;</span><span class="p">,</span>
+            <span class="s">&#39;image_uuid&#39;</span><span class="p">,</span>
+        <span class="p">],</span>
 
-    <span class="n">NAME_TABLE</span>      <span class="p">:</span> <span class="p">[</span>
-        <span class="s">&#39;nid&#39;</span><span class="p">,</span>
-        <span class="s">&#39;name&#39;</span><span class="p">,</span>
-        <span class="s">&#39;nAids&#39;</span><span class="p">,</span>
-        <span class="s">&#39;namenotes&#39;</span>
-    <span class="p">],</span>
+        <span class="c"># debug with</span>
+        <span class="c"># --noannottbl</span>
+        <span class="c"># --nonametree</span>
+        <span class="c"># even just aid seems to be very slow</span>
+        <span class="n">ANNOTATION_TABLE</span>       <span class="p">:</span> <span class="p">[</span>
+            <span class="c">#&#39;annotation_uuid&#39;,</span>
+            <span class="s">&#39;aid&#39;</span><span class="p">,</span>
+            <span class="s">&#39;thumb&#39;</span><span class="p">,</span>
+            <span class="s">&#39;annot_gname&#39;</span><span class="p">,</span>
+            <span class="s">&#39;name&#39;</span><span class="p">,</span>
+            <span class="s">&#39;exemplar&#39;</span><span class="p">,</span>
+            <span class="s">&#39;species&#39;</span><span class="p">,</span>  <span class="c"># &lt;put back in</span>
+            <span class="s">&#39;yaw_text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;quality_text&#39;</span><span class="p">,</span>
+            <span class="c">#&#39;rdconf&#39;,</span>
+            <span class="c">#&#39;nGt&#39;,  # ## &lt;put back in</span>
+            <span class="s">&#39;annotnotes&#39;</span><span class="p">,</span>  <span class="c"># ## &lt;put back in</span>
+            <span class="c">#&#39;annot_visual_uuid&#39;,</span>
+            <span class="c">#&#39;annot_semantic_uuid&#39;,</span>
+            <span class="c">#&#39;nFeats&#39;,</span>
+            <span class="c">#&#39;bbox&#39;,</span>
+            <span class="c">#&#39;theta&#39;,</span>
+            <span class="c">#&#39;verts&#39;,</span>
+            <span class="c">#&#39;num_verts&#39;,</span>
+        <span class="p">],</span>
 
-    <span class="n">QRES_TABLE</span>      <span class="p">:</span> <span class="p">[</span>
-        <span class="s">&#39;rank&#39;</span><span class="p">,</span>
-        <span class="s">&#39;score&#39;</span><span class="p">,</span>
-        <span class="s">&#39;name&#39;</span><span class="p">,</span>
-        <span class="s">&#39;aid&#39;</span>
-    <span class="p">],</span>
+        <span class="n">NAME_TABLE</span>      <span class="p">:</span> <span class="p">[</span>
+            <span class="s">&#39;nid&#39;</span><span class="p">,</span>
+            <span class="s">&#39;name&#39;</span><span class="p">,</span>
+            <span class="s">&#39;nAids&#39;</span><span class="p">,</span>
+            <span class="s">&#39;namenotes&#39;</span>
+        <span class="p">],</span>
 
-    <span class="n">ENCOUNTER_TABLE</span> <span class="p">:</span> <span class="p">[</span>
-        <span class="c">#&#39;eid&#39;,</span>
-        <span class="s">&#39;enctext&#39;</span><span class="p">,</span>
-        <span class="s">&#39;nImgs&#39;</span><span class="p">,</span>
-        <span class="s">&#39;percent_annotmatch_reviewed_str&#39;</span><span class="p">,</span>
-        <span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;percent_imgs_reviewed_str&#39;,</span>
-        <span class="s">&#39;encounter_start_datetime&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;num_imgs_reviewed&#39;,</span>
-        <span class="c">#&#39;num_annotmatch_reviewed&#39;,</span>
-        <span class="c">#&#39;encounter_end_datetime&#39;,</span>
-        <span class="c"># &#39;encounter_processed_flag&#39;,</span>
-        <span class="c"># &#39;encounter_shipped_flag&#39;,</span>
-    <span class="p">],</span>
+        <span class="n">QRES_TABLE</span>      <span class="p">:</span> <span class="p">[</span>
+            <span class="s">&#39;rank&#39;</span><span class="p">,</span>
+            <span class="s">&#39;score&#39;</span><span class="p">,</span>
+            <span class="s">&#39;name&#39;</span><span class="p">,</span>
+            <span class="s">&#39;aid&#39;</span>
+        <span class="p">],</span>
 
-    <span class="n">NAMES_TREE</span>      <span class="p">:</span> <span class="p">[</span>
-        <span class="s">&#39;name&#39;</span><span class="p">,</span>
-        <span class="s">&#39;nAids&#39;</span><span class="p">,</span>
-        <span class="s">&#39;thumb&#39;</span><span class="p">,</span>
-        <span class="s">&#39;nid&#39;</span><span class="p">,</span>
-        <span class="s">&#39;exemplar&#39;</span><span class="p">,</span>
-        <span class="s">&#39;nExAids&#39;</span><span class="p">,</span>
-        <span class="s">&#39;aid&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;annot_gname&#39;,</span>
-        <span class="s">&#39;yaw_text&#39;</span><span class="p">,</span>
-        <span class="s">&#39;quality_text&#39;</span><span class="p">,</span>
-        <span class="s">&#39;datetime&#39;</span><span class="p">,</span>
-        <span class="s">&#39;max_hourdiff&#39;</span><span class="p">,</span>
-        <span class="s">&#39;max_speed&#39;</span><span class="p">,</span>
-        <span class="s">&#39;namenotes&#39;</span><span class="p">,</span>
-    <span class="p">],</span>
+        <span class="n">ENCOUNTER_TABLE</span> <span class="p">:</span> <span class="p">[</span>
+            <span class="c">#&#39;eid&#39;,</span>
+            <span class="s">&#39;enctext&#39;</span><span class="p">,</span>
+            <span class="s">&#39;nImgs&#39;</span><span class="p">,</span>
+            <span class="c">#&#39;num_imgs_reviewed&#39;,</span>
+            <span class="c">#&#39;num_annotmatch_reviewed&#39;,</span>
+            <span class="c">#&#39;encounter_end_datetime&#39;,</span>
+            <span class="c"># &#39;encounter_processed_flag&#39;,</span>
+            <span class="c"># &#39;encounter_shipped_flag&#39;,</span>
+        <span class="p">],</span>
 
-    <span class="n">IMAGE_GRID</span>     <span class="p">:</span> <span class="p">[</span>
-        <span class="s">&#39;thumb&#39;</span><span class="p">,</span>
-    <span class="p">],</span>
+        <span class="n">NAMES_TREE</span>      <span class="p">:</span> <span class="p">[</span>
+            <span class="s">&#39;name&#39;</span><span class="p">,</span>
+            <span class="s">&#39;nAids&#39;</span><span class="p">,</span>
+            <span class="s">&#39;thumb&#39;</span><span class="p">,</span>
+            <span class="s">&#39;nid&#39;</span><span class="p">,</span>
+            <span class="s">&#39;exemplar&#39;</span><span class="p">,</span>
+            <span class="s">&#39;nExAids&#39;</span><span class="p">,</span>
+            <span class="s">&#39;aid&#39;</span><span class="p">,</span>
+            <span class="c">#&#39;annot_gname&#39;,</span>
+            <span class="s">&#39;yaw_text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;quality_text&#39;</span><span class="p">,</span>
+            <span class="s">&#39;datetime&#39;</span><span class="p">,</span>
+            <span class="s">&#39;max_hourdiff&#39;</span><span class="p">,</span>
+            <span class="s">&#39;max_speed&#39;</span><span class="p">,</span>
+            <span class="s">&#39;namenotes&#39;</span><span class="p">,</span>
+        <span class="p">],</span>
 
-    <span class="c"># TEST TABLE</span>
-    <span class="n">THUMB_TABLE</span>     <span class="p">:</span> <span class="p">[</span>
-        <span class="s">&#39;img_gname&#39;</span><span class="p">,</span>
-        <span class="s">&#39;thumb&#39;</span><span class="p">,</span>
-    <span class="p">],</span>
+        <span class="n">IMAGE_GRID</span>     <span class="p">:</span> <span class="p">[</span>
+            <span class="s">&#39;thumb&#39;</span><span class="p">,</span>
+        <span class="p">],</span>
+
+        <span class="c"># TEST TABLE</span>
+        <span class="n">THUMB_TABLE</span>     <span class="p">:</span> <span class="p">[</span>
+            <span class="s">&#39;img_gname&#39;</span><span class="p">,</span>
+            <span class="s">&#39;thumb&#39;</span><span class="p">,</span>
+        <span class="p">],</span>
 
 
-<span class="p">}</span>
+    <span class="p">}</span>
 
-<span class="c">#THUMB_TABLE     : [&#39;thumb&#39; &#39;thumb&#39; &#39;thumb&#39; &#39;thumb&#39;],</span>
-<span class="c">#NAMES_TREE      : {(&#39;name&#39; &#39;nid&#39; &#39;nAids&#39;) : [&#39;aid&#39; &#39;bbox&#39; &#39;thumb&#39;]}</span>
+    <span class="c"># dynamicly defined headers</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">const</span><span class="o">.</span><span class="n">SIMPLIFY_INTERFACE</span><span class="p">:</span>
+        <span class="n">TABLE_COLNAMES</span><span class="p">[</span><span class="n">ENCOUNTER_TABLE</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="s">&#39;percent_annotmatch_reviewed_str&#39;</span><span class="p">,</span>
+            <span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">,</span>
+            <span class="c">#&#39;percent_imgs_reviewed_str&#39;,</span>
+            <span class="s">&#39;encounter_start_datetime&#39;</span><span class="p">,</span>
+        <span class="p">])</span>
 
-<span class="n">TABLE_TREE_LEVELS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">NAMES_TREE</span> <span class="p">:</span>
-    <span class="p">{</span>
-        <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s">&#39;namenotes&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s">&#39;nid&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s">&#39;nAids&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s">&#39;nExAids&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s">&#39;exemplar&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s">&#39;thumb&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s">&#39;annot_gname&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s">&#39;yaw_text&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s">&#39;quality_text&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s">&#39;aid&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s">&#39;datetime&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s">&#39;max_hourdiff&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s">&#39;max_speed&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="p">},</span>
-<span class="p">}</span>
+    <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">show_shipped_encounters</span><span class="p">:</span>
+        <span class="n">TABLE_COLNAMES</span><span class="p">[</span><span class="n">ENCOUNTER_TABLE</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="s">&#39;encounter_processed_flag&#39;</span><span class="p">,</span>
+            <span class="s">&#39;encounter_shipped_flag&#39;</span><span class="p">,</span>
+        <span class="p">])</span>
 
-<span class="c"># the columns which are editable</span>
-<span class="n">TABLE_EDITSET</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">IMAGE_TABLE</span>      <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;reviewed&#39;</span><span class="p">,</span> <span class="s">&#39;imgnotes&#39;</span><span class="p">]),</span>
-    <span class="n">ANNOTATION_TABLE</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;species&#39;</span><span class="p">,</span> <span class="s">&#39;annotnotes&#39;</span><span class="p">,</span> <span class="s">&#39;exemplar&#39;</span><span class="p">,</span> <span class="s">&#39;yaw&#39;</span><span class="p">,</span> <span class="s">&#39;yaw_text&#39;</span><span class="p">,</span> <span class="s">&#39;quality_text&#39;</span><span class="p">]),</span>
-    <span class="n">NAME_TABLE</span>       <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;namenotes&#39;</span><span class="p">]),</span>
-    <span class="n">QRES_TABLE</span>       <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;name&#39;</span><span class="p">]),</span>
-    <span class="n">ENCOUNTER_TABLE</span>  <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;enctext&#39;</span><span class="p">,</span> <span class="s">&#39;encounter_shipped_flag&#39;</span><span class="p">,</span> <span class="s">&#39;encounter_processed_flag&#39;</span><span class="p">]),</span>
-    <span class="n">IMAGE_GRID</span>       <span class="p">:</span> <span class="nb">set</span><span class="p">([]),</span>
-    <span class="n">THUMB_TABLE</span>      <span class="p">:</span> <span class="nb">set</span><span class="p">([]),</span>
-    <span class="n">NAMES_TREE</span>       <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;exemplar&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;namenotes&#39;</span><span class="p">,</span> <span class="s">&#39;yaw&#39;</span><span class="p">,</span> <span class="s">&#39;yaw_text&#39;</span><span class="p">,</span> <span class="s">&#39;quality_text&#39;</span><span class="p">]),</span>
-<span class="p">}</span>
+    <span class="c">#THUMB_TABLE     : [&#39;thumb&#39; &#39;thumb&#39; &#39;thumb&#39; &#39;thumb&#39;],</span>
+    <span class="c">#NAMES_TREE      : {(&#39;name&#39; &#39;nid&#39; &#39;nAids&#39;) : [&#39;aid&#39; &#39;bbox&#39; &#39;thumb&#39;]}</span>
 
-<span class="n">TABLE_HIDDEN_LIST</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="c">#IMAGE_TABLE      : [False, True, False, False, False, True, False, False, False, False, False],</span>
-    <span class="c">#ANNOTATION_TABLE : [False, False, False, False, False, False, False, True, True, True, True, True, True],</span>
-    <span class="c">#NAMES_TREE       : [False, False, False, False, False, False],</span>
-    <span class="c">#NAME_TABLE       : [False, False, False, False],</span>
-<span class="p">}</span>
+    <span class="n">TABLE_TREE_LEVELS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">NAMES_TREE</span> <span class="p">:</span>
+        <span class="p">{</span>
+            <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s">&#39;namenotes&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s">&#39;nid&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s">&#39;nAids&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s">&#39;nExAids&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s">&#39;exemplar&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&#39;thumb&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&#39;annot_gname&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&#39;yaw_text&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&#39;quality_text&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&#39;aid&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&#39;datetime&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s">&#39;max_hourdiff&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s">&#39;max_speed&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
 
-<span class="n">TABLE_STRIPE_LIST</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">IMAGE_GRID</span> <span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
-<span class="p">}</span>
+    <span class="c"># the columns which are editable</span>
+    <span class="n">TABLE_EDITSET</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">IMAGE_TABLE</span>      <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;reviewed&#39;</span><span class="p">,</span> <span class="s">&#39;imgnotes&#39;</span><span class="p">]),</span>
+        <span class="n">ANNOTATION_TABLE</span> <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;species&#39;</span><span class="p">,</span> <span class="s">&#39;annotnotes&#39;</span><span class="p">,</span> <span class="s">&#39;exemplar&#39;</span><span class="p">,</span> <span class="s">&#39;yaw&#39;</span><span class="p">,</span> <span class="s">&#39;yaw_text&#39;</span><span class="p">,</span> <span class="s">&#39;quality_text&#39;</span><span class="p">]),</span>
+        <span class="n">NAME_TABLE</span>       <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;namenotes&#39;</span><span class="p">]),</span>
+        <span class="n">QRES_TABLE</span>       <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;name&#39;</span><span class="p">]),</span>
+        <span class="n">ENCOUNTER_TABLE</span>  <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;enctext&#39;</span><span class="p">,</span> <span class="s">&#39;encounter_shipped_flag&#39;</span><span class="p">,</span> <span class="s">&#39;encounter_processed_flag&#39;</span><span class="p">]),</span>
+        <span class="n">IMAGE_GRID</span>       <span class="p">:</span> <span class="nb">set</span><span class="p">([]),</span>
+        <span class="n">THUMB_TABLE</span>      <span class="p">:</span> <span class="nb">set</span><span class="p">([]),</span>
+        <span class="n">NAMES_TREE</span>       <span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;exemplar&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;namenotes&#39;</span><span class="p">,</span> <span class="s">&#39;yaw&#39;</span><span class="p">,</span> <span class="s">&#39;yaw_text&#39;</span><span class="p">,</span> <span class="s">&#39;quality_text&#39;</span><span class="p">]),</span>
+    <span class="p">}</span>
 
-<span class="c"># Define the valid columns a table could have</span>
-<span class="n">COL_DEF</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([</span>
-    <span class="p">(</span><span class="s">&#39;annot_semantic_uuid&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Annot Semantic UUID&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;annot_visual_uuid&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Annot Visual UUID&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;image_uuid&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Image UUID&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;gid&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;Image ID&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;Annotation ID&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;nid&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;Name ID&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;eid&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;Encounter ID&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;nAids&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;#Annots&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;nExAids&#39;</span><span class="p">,</span>     <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;#Exemplars&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;nGt&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;#GT&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;nImgs&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;#Imgs&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;nFeats&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;#Features&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;quality_text&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Quality&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;rank&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Rank&#39;</span><span class="p">)),</span>  <span class="c"># needs to be a string for !Query</span>
-    <span class="p">(</span><span class="s">&#39;unixtime&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="nb">float</span><span class="p">,</span>    <span class="s">&#39;unixtime&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;species&#39;</span><span class="p">,</span>     <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Species&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;yaw&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Yaws&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;yaw_text&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Viewpoint&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;img_gname&#39;</span><span class="p">,</span>   <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Image Name&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;annot_gname&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span>     <span class="s">&#39;Source Image&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;gdconf&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Detection Confidence&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;rdconf&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="nb">float</span><span class="p">,</span>    <span class="s">&#39;Detection Confidence&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Name&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;annotnotes&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Annot Notes&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;namenotes&#39;</span><span class="p">,</span>   <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Name Notes&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;imgnotes&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Image Notes&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;match_name&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Matching Name&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;bbox&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;BBOX (x, y, w, h))&#39;</span><span class="p">)),</span>  <span class="c"># Non editables are safe as strs</span>
-    <span class="p">(</span><span class="s">&#39;num_verts&#39;</span><span class="p">,</span>   <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;NumVerts&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;verts&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Verts&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;score&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Confidence&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;theta&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Theta&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;reviewed&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="nb">bool</span><span class="p">,</span>     <span class="s">&#39;Detection Reviewed&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;exemplar&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="nb">bool</span><span class="p">,</span>     <span class="s">&#39;Is Exemplar&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;enctext&#39;</span><span class="p">,</span>     <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Encounter Text&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;datetime&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Date / Time&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;ext&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;EXT&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;thumb&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="s">&#39;PIXMAP&#39;</span><span class="p">,</span> <span class="s">&#39;Thumb&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;gps&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;GPS&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;encounter_processed_flag&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">bool</span><span class="p">,</span>      <span class="s">&#39;Processed&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;encounter_shipped_flag&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">bool</span><span class="p">,</span>      <span class="s">&#39;Commited&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;encounter_start_datetime&#39;</span><span class="p">,</span>     <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Start Time&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;encounter_end_datetime&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;End Time&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;party_tag&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s">&#39;Party&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;contributor_tag&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s">&#39;Contributor&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;percent_imgs_reviewed_str&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s">&#39;%Imgs Reviewed&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;percent_annotmatch_reviewed_str&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s">&#39;%Queried&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;num_imgs_reviewed&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s">&#39;#Imgs Reviewed&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;num_annotmatch_reviewed&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s">&#39;#Matches Reviewed&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s">&#39;%Names with Exemplar&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;max_speed&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="s">&#39;Max Speed km/h&#39;</span><span class="p">)),</span>
-    <span class="p">(</span><span class="s">&#39;max_hourdiff&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="s">&#39;Max Hour Diff&#39;</span><span class="p">)),</span>
-<span class="p">])</span>
+    <span class="k">if</span> <span class="n">const</span><span class="o">.</span><span class="n">SIMPLIFY_INTERFACE</span><span class="p">:</span>
+        <span class="n">TABLE_EDITSET</span><span class="p">[</span><span class="n">NAMES_TREE</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">)</span>
+
+    <span class="n">TABLE_HIDDEN_LIST</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c">#IMAGE_TABLE      : [False, True, False, False, False, True, False, False, False, False, False],</span>
+        <span class="c">#ANNOTATION_TABLE : [False, False, False, False, False, False, False, True, True, True, True, True, True],</span>
+        <span class="c">#NAMES_TREE       : [False, False, False, False, False, False],</span>
+        <span class="c">#NAME_TABLE       : [False, False, False, False],</span>
+    <span class="p">}</span>
+
+    <span class="n">TABLE_STRIPE_LIST</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">IMAGE_GRID</span> <span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c"># Define the valid columns a table could have</span>
+    <span class="n">COL_DEF</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([</span>
+        <span class="p">(</span><span class="s">&#39;annot_semantic_uuid&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Annot Semantic UUID&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;annot_visual_uuid&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Annot Visual UUID&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;image_uuid&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Image UUID&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;gid&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;Image ID&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;Annotation ID&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;nid&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;Name ID&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;eid&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;Encounter ID&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;nAids&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;#Annots&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;nExAids&#39;</span><span class="p">,</span>     <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;#Exemplars&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;nGt&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;#GT&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;nImgs&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;#Imgs&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;nFeats&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;#Features&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;quality_text&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Quality&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;rank&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Rank&#39;</span><span class="p">)),</span>  <span class="c"># needs to be a string for !Query</span>
+        <span class="p">(</span><span class="s">&#39;unixtime&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="nb">float</span><span class="p">,</span>    <span class="s">&#39;unixtime&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;species&#39;</span><span class="p">,</span>     <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Species&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;yaw&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Yaws&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;yaw_text&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Viewpoint&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;img_gname&#39;</span><span class="p">,</span>   <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Image Name&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;annot_gname&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span>     <span class="s">&#39;Source Image&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;gdconf&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Detection Confidence&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;rdconf&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="nb">float</span><span class="p">,</span>    <span class="s">&#39;Detection Confidence&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Name&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;annotnotes&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Annot Notes&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;namenotes&#39;</span><span class="p">,</span>   <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Name Notes&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;imgnotes&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Image Notes&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;match_name&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Matching Name&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;bbox&#39;</span><span class="p">,</span>        <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;BBOX (x, y, w, h))&#39;</span><span class="p">)),</span>  <span class="c"># Non editables are safe as strs</span>
+        <span class="p">(</span><span class="s">&#39;num_verts&#39;</span><span class="p">,</span>   <span class="p">(</span><span class="nb">int</span><span class="p">,</span>      <span class="s">&#39;NumVerts&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;verts&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Verts&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;score&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Confidence&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;theta&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Theta&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;reviewed&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="nb">bool</span><span class="p">,</span>     <span class="s">&#39;Detection Reviewed&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;exemplar&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="nb">bool</span><span class="p">,</span>     <span class="s">&#39;Is Exemplar&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;enctext&#39;</span><span class="p">,</span>     <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Encounter Text&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;datetime&#39;</span><span class="p">,</span>    <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Date / Time&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;ext&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;EXT&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;thumb&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="s">&#39;PIXMAP&#39;</span><span class="p">,</span> <span class="s">&#39;Thumb&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;gps&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;GPS&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;encounter_processed_flag&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">bool</span><span class="p">,</span>      <span class="s">&#39;Processed&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;encounter_shipped_flag&#39;</span><span class="p">,</span>         <span class="p">(</span><span class="nb">bool</span><span class="p">,</span>      <span class="s">&#39;Commited&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;encounter_start_datetime&#39;</span><span class="p">,</span>     <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;Start Time&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;encounter_end_datetime&#39;</span><span class="p">,</span>       <span class="p">(</span><span class="nb">str</span><span class="p">,</span>      <span class="s">&#39;End Time&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;party_tag&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s">&#39;Party&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;contributor_tag&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s">&#39;Contributor&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;percent_imgs_reviewed_str&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s">&#39;%Imgs Reviewed&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;percent_annotmatch_reviewed_str&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s">&#39;%Queried&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;num_imgs_reviewed&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s">&#39;#Imgs Reviewed&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;num_annotmatch_reviewed&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s">&#39;#Matches Reviewed&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="s">&#39;%Names with Exemplar&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;max_speed&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="s">&#39;Max Speed km/h&#39;</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s">&#39;max_hourdiff&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="s">&#39;Max Hour Diff&#39;</span><span class="p">)),</span>
+    <span class="p">])</span>
+
+    <span class="n">declare_tup</span> <span class="o">=</span> <span class="n">TABLENAME_LIST</span><span class="p">,</span> <span class="n">TABLE_NICE</span><span class="p">,</span> <span class="n">TABLE_COLNAMES</span><span class="p">,</span> <span class="n">TABLE_TREE_LEVELS</span><span class="p">,</span> <span class="n">TABLE_EDITSET</span><span class="p">,</span> <span class="n">TABLE_HIDDEN_LIST</span><span class="p">,</span> <span class="n">TABLE_STRIPE_LIST</span><span class="p">,</span> <span class="n">COL_DEF</span>
+    <span class="k">return</span> <span class="n">declare_tup</span>
 
 <span class="c">#----</span>
 <span class="c"># Define the special metadata for annotation</span>
@@ -381,26 +403,29 @@
 <span class="c">#        else:</span>
 <span class="c">#            type_ = valid</span>
 <span class="c">#        COL_DEF[name] = (type_, nice)</span>
-<span class="c">#expand_special_colnames(constants.ROSEMARY_ANNOT_METADATA)</span>
+<span class="c">#expand_special_colnames(const.ROSEMARY_ANNOT_METADATA)</span>
 
 <span class="c">#-----</span>
 
 
-<div class="viewcode-block" id="get_redirects"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiheaders.get_redirects">[docs]</a><span class="k">def</span> <span class="nf">get_redirects</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Allows one to specify a column in a particular table to redirect the view</span>
-<span class="sd">        to a different view (like a link in HTML to a different page)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">redirects</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="c"># Annotation redirects</span>
-    <span class="c"># redirects[ANNOTATION_TABLE] = {</span>
-    <span class="c">#     &#39;annot_gname&#39; : (IMAGE_TABLE, ibs.get_annot_gids),</span>
-    <span class="c"># }</span>
-    <span class="c"># Return the redirects dictionary</span>
-    <span class="k">return</span> <span class="n">redirects</span>
+<span class="c">#def get_redirects(ibs):</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#        Allows one to specify a column in a particular table to redirect the view</span>
+<span class="c">#        to a different view (like a link in HTML to a different page)</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#    redirects = {}</span>
+<span class="c">#    # Annotation redirects</span>
+<span class="c">#    # redirects[ANNOTATION_TABLE] = {</span>
+<span class="c">#    #     &#39;annot_gname&#39; : (IMAGE_TABLE, ibs.get_annot_gids),</span>
+<span class="c">#    # }</span>
+<span class="c">#    # Return the redirects dictionary</span>
+<span class="c">#    return redirects</span>
 
 </div>
 <div class="viewcode-block" id="make_ibeis_headers_dict"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.guiheaders.make_ibeis_headers_dict">[docs]</a><span class="k">def</span> <span class="nf">make_ibeis_headers_dict</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="n">declare_tup</span> <span class="o">=</span> <span class="n">make_table_declarations</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">TABLENAME_LIST</span><span class="p">,</span> <span class="n">TABLE_NICE</span><span class="p">,</span> <span class="n">TABLE_COLNAMES</span><span class="p">,</span> <span class="n">TABLE_TREE_LEVELS</span><span class="p">,</span> <span class="n">TABLE_EDITSET</span><span class="p">,</span> <span class="n">TABLE_HIDDEN_LIST</span><span class="p">,</span> <span class="n">TABLE_STRIPE_LIST</span><span class="p">,</span> <span class="n">COL_DEF</span> <span class="o">=</span> <span class="n">declare_tup</span>
+
     <span class="n">partial_imap_1to1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">partial_imap_1to1</span>
     <span class="c">#</span>
     <span class="c"># Table Iders/Setters/Getters</span>
@@ -412,10 +437,18 @@
         <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">TABLE_COLNAMES</span><span class="p">[</span><span class="n">tablename</span><span class="p">]:</span>
             <span class="k">if</span> <span class="n">colname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">getters</span><span class="p">[</span><span class="n">tablename</span><span class="p">]:</span>
                 <span class="n">getters</span><span class="p">[</span><span class="n">tablename</span><span class="p">][</span><span class="n">colname</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s">&#39;get_&#39;</span> <span class="o">+</span> <span class="n">shortname</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">colname</span><span class="p">)</span>
-                <span class="k">print</span><span class="p">(</span><span class="n">getters</span><span class="p">[</span><span class="n">tablename</span><span class="p">][</span><span class="n">colname</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[guiheaders] infering </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">getters</span><span class="p">[</span><span class="n">tablename</span><span class="p">][</span><span class="n">colname</span><span class="p">],))</span>
     <span class="c"># +--------------------------</span>
     <span class="c"># Encounter Iders/Setters/Getters</span>
-    <span class="n">iders</span><span class="p">[</span><span class="n">ENCOUNTER_TABLE</span><span class="p">]</span>   <span class="o">=</span> <span class="p">[</span> <span class="n">partial</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">,</span> <span class="n">shipped</span><span class="o">=</span><span class="bp">False</span><span class="p">)]</span>
+    <span class="c">#ibs.cfg.other_cfg.ensure_attr(show_shipped_encounters, ut.is_developer())</span>
+    <span class="n">SHOW_SHIPPED_ENCOUNTERS</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">show_shipped_encounters</span>
+    <span class="c">#SHOW_SHIPPED_ENCOUNTERS = True</span>
+    <span class="k">if</span> <span class="n">SHOW_SHIPPED_ENCOUNTERS</span><span class="p">:</span>
+        <span class="n">iders</span><span class="p">[</span><span class="n">ENCOUNTER_TABLE</span><span class="p">]</span>   <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">iders</span><span class="p">[</span><span class="n">ENCOUNTER_TABLE</span><span class="p">]</span>   <span class="o">=</span> <span class="p">[</span> <span class="n">partial</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">,</span> <span class="n">shipped</span><span class="o">=</span><span class="bp">False</span><span class="p">)]</span>
+
     <span class="n">getters</span><span class="p">[</span><span class="n">ENCOUNTER_TABLE</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&#39;eid&#39;</span>        <span class="p">:</span> <span class="k">lambda</span> <span class="n">eids</span><span class="p">:</span> <span class="n">eids</span><span class="p">,</span>
         <span class="s">&#39;nImgs&#39;</span>      <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_encounter_num_gids</span><span class="p">,</span>
@@ -622,7 +655,7 @@
         <span class="k">return</span> <span class="n">header</span>
 
     <span class="n">header_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">tblname</span><span class="p">:</span> <span class="n">make_header</span><span class="p">(</span><span class="n">tblname</span><span class="p">)</span> <span class="k">for</span> <span class="n">tblname</span> <span class="ow">in</span> <span class="n">TABLENAME_LIST</span><span class="p">}</span>
-    <span class="k">return</span> <span class="n">header_dict</span></div>
+    <span class="k">return</span> <span class="n">header_dict</span><span class="p">,</span> <span class="n">declare_tup</span></div>
 </pre></div>
 
           </div>

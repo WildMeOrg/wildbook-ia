@@ -60,14 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -119,33 +119,218 @@
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">exists</span>  <span class="c"># NOQA</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">neighbor_index</span>
+<span class="c">#import mem_top</span>
+
 <span class="c">#import vtool.nearest_neighbors as nntool</span>
 <span class="c">#from ibeis.model.hots import hstypes</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[neighbor_experiment]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="flann_add_time_experiment"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots._neighbor_experiment.flann_add_time_experiment">[docs]</a><span class="k">def</span> <span class="nf">flann_add_time_experiment</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="augment_nnindexer_experiment"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots._neighbor_experiment.augment_nnindexer_experiment">[docs]</a><span class="k">def</span> <span class="nf">augment_nnindexer_experiment</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    python -c &quot;import utool; print(utool.auto_docstr(&#39;ibeis.model.hots._neighbor_experiment&#39;, &#39;augment_nnindexer_experiment&#39;))&quot;</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://answers.opencv.org/question/44592/flann-index-in-python-training-fails-with-segfault/</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        utprof.py -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment</span>
+<span class="sd">        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment</span>
+
+<span class="sd">        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_MTEST --diskshow --adjust=.1 --save &quot;augment_experiment_{db}.png&quot; --dpath=&#39;.&#39; --dpi=180 --figsize=9,6</span>
+<span class="sd">        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save &quot;augment_experiment_{db}.png&quot; --dpath=&#39;.&#39; --dpi=180 --figsize=9,6 --nosave-flann --show</span>
+<span class="sd">        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save &quot;augment_experiment_{db}.png&quot; --dpath=&#39;.&#39; --dpi=180 --figsize=9,6 --nosave-flann --show</span>
+
+
+<span class="sd">        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save &quot;augment_experiment_{db}.png&quot; --dpath=&#39;.&#39; --dpi=180 --figsize=9,6 --nosave-flann --no-api-cache --nocache-uuids</span>
+
+<span class="sd">        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_MTEST --show</span>
+<span class="sd">        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show</span>
+
+<span class="sd">        # RUNS THE SEGFAULTING CASE</span>
+<span class="sd">        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show</span>
+<span class="sd">        # Debug it</span>
+<span class="sd">        gdb python</span>
+<span class="sd">        run -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --show</span>
+<span class="sd">        gdb python</span>
+<span class="sd">        run -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment --db PZ_Master0 --diskshow --adjust=.1 --save &quot;augment_experiment_{db}.png&quot; --dpath=&#39;.&#39; --dpi=180 --figsize=9,6</span>
+
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots._neighbor_experiment import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; # execute function</span>
+<span class="sd">        &gt;&gt;&gt; augment_nnindexer_experiment()</span>
+<span class="sd">        &gt;&gt;&gt; # verify results</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="c"># build test data</span>
+    <span class="n">ZEB_PLAIN</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
+    <span class="c">#ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_Master0&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">:</span>
+        <span class="n">initial</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">addition_stride</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">max_ceiling</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="k">elif</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;PZ_Master0&#39;</span><span class="p">:</span>
+        <span class="n">initial</span> <span class="o">=</span> <span class="mi">128</span>
+        <span class="c">#addition_stride = 64</span>
+        <span class="c">#addition_stride = 128</span>
+        <span class="n">addition_stride</span> <span class="o">=</span> <span class="mi">256</span>
+        <span class="n">max_ceiling</span> <span class="o">=</span> <span class="mi">10000</span>
+        <span class="c">#max_ceiling = 4000</span>
+        <span class="c">#max_ceiling = 2000</span>
+        <span class="c">#max_ceiling = 600</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">False</span>
+    <span class="n">all_daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">ZEB_PLAIN</span><span class="p">)</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">all_daids</span><span class="p">,</span> <span class="n">all_daids</span><span class="p">)</span>
+    <span class="n">max_num</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_ceiling</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_daids</span><span class="p">))</span>
+
+    <span class="c"># Clear Caches</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_flann_cachedir</span><span class="p">()</span>
+    <span class="n">neighbor_index</span><span class="o">.</span><span class="n">clear_memcache</span><span class="p">()</span>
+    <span class="n">neighbor_index</span><span class="o">.</span><span class="n">clear_uuid_cache</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
+
+    <span class="c"># Setup</span>
+    <span class="n">all_randomize_daids_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">deterministic_shuffle</span><span class="p">(</span><span class="n">all_daids</span><span class="p">[:])</span>
+    <span class="c"># ensure all features are computed</span>
+    <span class="c">#ibs.get_annot_vecs(all_randomize_daids_, ensure=True)</span>
+    <span class="c">#ibs.get_annot_fgweights(all_randomize_daids_, ensure=True)</span>
+
+    <span class="n">nnindexer_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">addition_lbl</span> <span class="o">=</span> <span class="s">&#39;Addition&#39;</span>
+    <span class="n">_addition_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">initial</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_num</span><span class="p">,</span> <span class="n">addition_stride</span><span class="p">))</span>
+    <span class="n">addition_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">_addition_iter</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">addition_lbl</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">autoadjust</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+    <span class="n">time_list_addition</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c">#time_list_reindex = []</span>
+    <span class="n">addition_count_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tmp_cfgstr_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c">#for _ in range(80):</span>
+    <span class="c">#    next(addition_iter)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">memtrack</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">MemoryTracker</span><span class="p">(</span><span class="n">disable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">addition_iter</span><span class="p">:</span>
+            <span class="n">aid_list_</span> <span class="o">=</span> <span class="n">all_randomize_daids_</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">count</span><span class="p">]</span>
+            <span class="c"># Request an indexer which could be an augmented version of an existing indexer.</span>
+            <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+                <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s">&#39;BEFORE AUGMENT&#39;</span><span class="p">)</span>
+                <span class="n">nnindexer_</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_augmented_ibeis_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid_list_</span><span class="p">)</span>
+                <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s">&#39;AFTER AUGMENT&#39;</span><span class="p">)</span>
+            <span class="n">nnindexer_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nnindexer_</span><span class="p">)</span>
+            <span class="n">addition_count_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+            <span class="n">time_list_addition</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">ellapsed</span><span class="p">)</span>
+            <span class="n">tmp_cfgstr_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nnindexer_</span><span class="o">.</span><span class="n">cfgstr</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;===============</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">time_list_addition</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">nnindexer_list</span><span class="p">))))</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">tmp_cfgstr_list</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">list</span><span class="p">([</span><span class="n">nnindxer</span><span class="o">.</span><span class="n">cfgstr</span> <span class="k">for</span> <span class="n">nnindxer</span> <span class="ow">in</span> <span class="n">nnindexer_list</span><span class="p">])))</span>
+
+        <span class="n">IS_SMALL</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="n">IS_SMALL</span><span class="p">:</span>
+            <span class="n">nnindexer_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">reindex_label</span> <span class="o">=</span> <span class="s">&#39;Reindex&#39;</span>
+        <span class="n">_reindex_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">initial</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_num</span><span class="p">,</span> <span class="n">addition_stride</span><span class="p">))[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c"># go backwards for reindex</span>
+        <span class="n">reindex_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">_reindex_iter</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">reindex_label</span><span class="p">)</span>
+        <span class="n">time_list_reindex</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c">#time_list_reindex = []</span>
+        <span class="n">reindex_count_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">reindex_iter</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">+===PREDONE====================</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="c"># check only a single size for memory leaks</span>
+            <span class="c">#count = max_num // 16 + ((x % 6) * 1)</span>
+            <span class="c">#x += 1</span>
+
+            <span class="n">aid_list_</span> <span class="o">=</span> <span class="n">all_randomize_daids_</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">count</span><span class="p">]</span>
+            <span class="c"># Call the same code, but force rebuilds</span>
+            <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s">&#39;BEFORE REINDEX&#39;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+                <span class="n">nnindexer_</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_augmented_ibeis_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid_list_</span><span class="p">,</span> <span class="n">force_rebuild</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">memtrack</span><span class="o">=</span><span class="n">memtrack</span><span class="p">)</span>
+            <span class="n">memtrack</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="s">&#39;AFTER REINDEX&#39;</span><span class="p">)</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">print_cachestats_str</span><span class="p">()</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nnindex.MEMCACHE] size(NEIGHBOR_CACHE) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">neighbor_index</span><span class="o">.</span><span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">items</span><span class="p">()),))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nnindex.MEMCACHE] len(NEIGHBOR_CACHE) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">neighbor_index</span><span class="o">.</span><span class="n">NEIGHBOR_CACHE</span><span class="o">.</span><span class="n">items</span><span class="p">()),))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nnindex.MEMCACHE] size(UUID_MAP_CACHE) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">neighbor_index</span><span class="o">.</span><span class="n">UUID_MAP_CACHE</span><span class="p">),))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;totalsize(nnindexer) = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">nnindexer_</span><span class="p">))</span>
+            <span class="n">memtrack</span><span class="o">.</span><span class="n">report_type</span><span class="p">(</span><span class="n">neighbor_index</span><span class="o">.</span><span class="n">NeighborIndex</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">print_object_size_tree</span><span class="p">(</span><span class="n">nnindexer_</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;nnindexer_&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">IS_SMALL</span><span class="p">:</span>
+                <span class="n">nnindexer_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nnindexer_</span><span class="p">)</span>
+            <span class="n">reindex_count_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+            <span class="n">time_list_reindex</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">ellapsed</span><span class="p">)</span>
+            <span class="c">#import cv2</span>
+            <span class="c">#import matplotlib as mpl</span>
+            <span class="c">#print(mem_top.mem_top(limit=30, width=120,</span>
+            <span class="c">#                      #exclude_refs=[cv2.__dict__, mpl.__dict__]</span>
+            <span class="c">#     ))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;L___________________</span><span class="se">\n\n\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">time_list_reindex</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">IS_SMALL</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">nnindexer_list</span><span class="p">))))</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">list</span><span class="p">([</span><span class="n">nnindxer</span><span class="o">.</span><span class="n">cfgstr</span> <span class="k">for</span> <span class="n">nnindxer</span> <span class="ow">in</span> <span class="n">nnindexer_list</span><span class="p">])))</span>
+    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[train] Caught CRTL+C&#39;</span><span class="p">)</span>
+            <span class="n">resolution</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+            <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">input</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="p">(</span><span class="n">resolution</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()):</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[train] What do you want to do?&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[train]     0 - Continue&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[train]     1 - Embed&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[train]  ELSE - Stop network training&#39;</span><span class="p">)</span>
+                <span class="n">resolution</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;[train] Resolution: &#39;</span><span class="p">)</span>
+            <span class="n">resolution</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">resolution</span><span class="p">)</span>
+            <span class="c"># We have a resolution</span>
+            <span class="k">if</span> <span class="n">resolution</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&#39;resuming training...&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">resolution</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+
+    <span class="n">next_fnum</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">next</span>  <span class="c"># python3 PY3</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">next_fnum</span><span class="p">())</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">addition_count_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">plot2</span><span class="p">(</span><span class="n">addition_count_list</span><span class="p">,</span> <span class="n">time_list_addition</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;-o&#39;</span><span class="p">,</span> <span class="n">equal_aspect</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">x_label</span><span class="o">=</span><span class="s">&#39;num_annotations&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">addition_lbl</span> <span class="o">+</span> <span class="s">&#39; Time&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">reindex_count_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">plot2</span><span class="p">(</span><span class="n">reindex_count_list</span><span class="p">,</span> <span class="n">time_list_reindex</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;-o&#39;</span><span class="p">,</span> <span class="n">equal_aspect</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">x_label</span><span class="o">=</span><span class="s">&#39;num_annotations&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">reindex_label</span> <span class="o">+</span> <span class="s">&#39; Time&#39;</span><span class="p">)</span>
+
+    <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="s">&#39;Augmented indexer experiment&#39;</span><span class="p">)</span>
+
+    <span class="n">pt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="flann_add_time_experiment"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots._neighbor_experiment.flann_add_time_experiment">[docs]</a><span class="k">def</span> <span class="nf">flann_add_time_experiment</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    builds plot of number of annotations vs indexer build time.</span>
 
 <span class="sd">    TODO: time experiment</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment</span>
-<span class="sd">        utprof.py -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment</span>
+<span class="sd">        python -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_MTEST --show</span>
+<span class="sd">        python -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_Master0 --show</span>
+<span class="sd">        utprof.py -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment --show</span>
+
+<span class="sd">        valgrind --tool=memcheck --suppressions=valgrind-python.supp python -m ibeis.model.hots._neighbor_experiment --test-flann_add_time_experiment --db PZ_MTEST --no-with-reindex</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots._neighbor_experiment import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; #ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; update = True</span>
-<span class="sd">        &gt;&gt;&gt; result = flann_add_time_experiment(update)</span>
+<span class="sd">        &gt;&gt;&gt; result = flann_add_time_experiment()</span>
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        &gt;&gt;&gt; from matplotlib import pyplot as plt</span>
-<span class="sd">        &gt;&gt;&gt; plt.show()</span>
-<span class="sd">        #&gt;&gt;&gt; ibeis.main_loop({&#39;ibs&#39;: ibs, &#39;back&#39;: None})</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
@@ -158,21 +343,23 @@
         <span class="n">flann</span><span class="o">.</span><span class="n">build_index</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="o">**</span><span class="n">flann_params</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">flann</span>
 
+    <span class="n">db</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">db</span><span class="p">)</span>
+
     <span class="c"># Input</span>
-    <span class="n">mode</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">:</span>
         <span class="n">initial</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">reindex_stride</span> <span class="o">=</span> <span class="mi">16</span>
         <span class="n">addition_stride</span> <span class="o">=</span> <span class="mi">4</span>
         <span class="n">max_ceiling</span> <span class="o">=</span> <span class="mi">120</span>
-    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;PZ_Master0&#39;</span><span class="p">:</span>
         <span class="c">#ibs = ibeis.opendb(db=&#39;GZ_ALL&#39;)</span>
-        <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_Master0&#39;</span><span class="p">)</span>
         <span class="n">initial</span> <span class="o">=</span> <span class="mi">32</span>
         <span class="n">reindex_stride</span> <span class="o">=</span> <span class="mi">32</span>
         <span class="n">addition_stride</span> <span class="o">=</span> <span class="mi">16</span>
         <span class="n">max_ceiling</span> <span class="o">=</span> <span class="mi">300001</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">False</span>
     <span class="c">#max_ceiling = 32</span>
     <span class="n">all_daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">max_num</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_ceiling</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_daids</span><span class="p">))</span>
@@ -210,12 +397,14 @@
         <span class="n">flann</span> <span class="o">=</span> <span class="n">make_flann_index</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">flann_params</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">flann</span>
 
-    <span class="c"># Reindex Part</span>
-    <span class="n">reindex_lbl</span> <span class="o">=</span> <span class="s">&#39;Reindexing&#39;</span>
-    <span class="n">_reindex_iter</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_num</span><span class="p">,</span> <span class="n">reindex_stride</span><span class="p">)</span>
-    <span class="n">reindex_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">_reindex_iter</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">reindex_lbl</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">reindex_iter</span><span class="p">:</span>
-        <span class="n">reindex_step</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">count_list</span><span class="p">,</span> <span class="n">time_list_reindex</span><span class="p">)</span>
+    <span class="n">WITH_REINDEX</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-with-reindex&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">WITH_REINDEX</span><span class="p">:</span>
+        <span class="c"># Reindex Part</span>
+        <span class="n">reindex_lbl</span> <span class="o">=</span> <span class="s">&#39;Reindexing&#39;</span>
+        <span class="n">_reindex_iter</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_num</span><span class="p">,</span> <span class="n">reindex_stride</span><span class="p">)</span>
+        <span class="n">reindex_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">_reindex_iter</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">reindex_lbl</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">reindex_iter</span><span class="p">:</span>
+            <span class="n">reindex_step</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">count_list</span><span class="p">,</span> <span class="n">time_list_reindex</span><span class="p">)</span>
 
     <span class="c"># Add Part</span>
     <span class="n">flann</span> <span class="o">=</span> <span class="n">make_initial_index</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span>
@@ -239,8 +428,9 @@
 
     <span class="n">next_fnum</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">next</span>  <span class="c"># python3 PY3</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">next_fnum</span><span class="p">())</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">plot2</span><span class="p">(</span><span class="n">count_list</span><span class="p">,</span> <span class="n">time_list_reindex</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;-o&#39;</span><span class="p">,</span> <span class="n">equal_aspect</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-             <span class="n">x_label</span><span class="o">=</span><span class="s">&#39;num_annotations&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">reindex_lbl</span> <span class="o">+</span> <span class="s">&#39; Time&#39;</span><span class="p">,</span> <span class="n">dark</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">WITH_REINDEX</span><span class="p">:</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">plot2</span><span class="p">(</span><span class="n">count_list</span><span class="p">,</span> <span class="n">time_list_reindex</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;-o&#39;</span><span class="p">,</span> <span class="n">equal_aspect</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                 <span class="n">x_label</span><span class="o">=</span><span class="s">&#39;num_annotations&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">reindex_lbl</span> <span class="o">+</span> <span class="s">&#39; Time&#39;</span><span class="p">,</span> <span class="n">dark</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
     <span class="c">#pt.figure(fnum=next_fnum())</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">plot2</span><span class="p">(</span><span class="n">count_list2</span><span class="p">,</span> <span class="n">time_list_addition</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;-o&#39;</span><span class="p">,</span> <span class="n">equal_aspect</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
@@ -248,95 +438,6 @@
 
     <span class="n">pt</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">update</span><span class="p">:</span>
-        <span class="n">pt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
-
-</div>
-<div class="viewcode-block" id="augment_nnindexer_experiment"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots._neighbor_experiment.augment_nnindexer_experiment">[docs]</a><span class="k">def</span> <span class="nf">augment_nnindexer_experiment</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="sd">    python -c &quot;import utool; print(utool.auto_docstr(&#39;ibeis.model.hots._neighbor_experiment&#39;, &#39;augment_nnindexer_experiment&#39;))&quot;</span>
-
-<span class="sd">    References:</span>
-<span class="sd">        http://answers.opencv.org/question/44592/flann-index-in-python-training-fails-with-segfault/</span>
-
-<span class="sd">    CommandLine:</span>
-<span class="sd">        utprof.py -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment</span>
-<span class="sd">        python -m ibeis.model.hots._neighbor_experiment --test-augment_nnindexer_experiment</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots._neighbor_experiment import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; # build test data</span>
-<span class="sd">        &gt;&gt;&gt; show = ut.get_argflag(&#39;--show&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; update = show</span>
-<span class="sd">        &gt;&gt;&gt; # execute function</span>
-<span class="sd">        &gt;&gt;&gt; augment_nnindexer_experiment(update)</span>
-<span class="sd">        &gt;&gt;&gt; # verify results</span>
-<span class="sd">        &gt;&gt;&gt; if show:</span>
-<span class="sd">        ...     from matplotlib import pyplot as plt</span>
-<span class="sd">        ...     plt.show()</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-    <span class="c"># build test data</span>
-    <span class="n">ZEB_PLAIN</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
-    <span class="c">#ibs = ibeis.opendb(&#39;PZ_MTEST&#39;)</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_Master0&#39;</span><span class="p">)</span>
-    <span class="n">mode</span> <span class="o">=</span> <span class="mi">2</span>
-    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
-        <span class="n">initial</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">addition_stride</span> <span class="o">=</span> <span class="mi">4</span>
-        <span class="n">max_ceiling</span> <span class="o">=</span> <span class="mi">10000</span>
-    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="c">#ibs = ibeis.opendb(db=&#39;GZ_ALL&#39;)</span>
-        <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_Master0&#39;</span><span class="p">)</span>
-        <span class="n">initial</span> <span class="o">=</span> <span class="mi">128</span>
-        <span class="n">addition_stride</span> <span class="o">=</span> <span class="mi">64</span>
-        <span class="n">max_ceiling</span> <span class="o">=</span> <span class="mi">10000</span>
-    <span class="n">all_daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">ZEB_PLAIN</span><span class="p">)</span>
-    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">all_daids</span><span class="p">,</span> <span class="n">all_daids</span><span class="p">)</span>
-    <span class="n">max_num</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_ceiling</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_daids</span><span class="p">))</span>
-
-    <span class="c"># Clear Caches</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_flann_cachedir</span><span class="p">()</span>
-    <span class="n">neighbor_index</span><span class="o">.</span><span class="n">clear_memcache</span><span class="p">()</span>
-    <span class="n">neighbor_index</span><span class="o">.</span><span class="n">clear_uuid_cache</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
-
-    <span class="c"># Setup</span>
-    <span class="n">all_randomize_daids_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">deterministic_shuffle</span><span class="p">(</span><span class="n">all_daids</span><span class="p">[:])</span>
-    <span class="c"># ensure all features are computed</span>
-    <span class="c">#ibs.get_annot_vecs(all_randomize_daids_, ensure=True)</span>
-    <span class="c">#ibs.get_annot_fgweights(all_randomize_daids_, ensure=True)</span>
-
-    <span class="n">nnindexer_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">addition_lbl</span> <span class="o">=</span> <span class="s">&#39;Addition&#39;</span>
-    <span class="n">_addition_iter</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">initial</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_num</span><span class="p">,</span> <span class="n">addition_stride</span><span class="p">)</span>
-    <span class="n">addition_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">_addition_iter</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">addition_lbl</span><span class="p">)</span>
-    <span class="n">time_list_addition</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c">#time_list_reindex = []</span>
-    <span class="n">count_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">addition_iter</span><span class="p">:</span>
-        <span class="n">aid_list_</span> <span class="o">=</span> <span class="n">all_randomize_daids_</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">count</span><span class="p">]</span>
-        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
-            <span class="n">nnindexer_</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_augmented_ibeis_nnindexer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid_list_</span><span class="p">)</span>
-        <span class="n">nnindexer_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nnindexer_</span><span class="p">)</span>
-        <span class="n">count_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
-        <span class="n">time_list_addition</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">ellapsed</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;===============</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">time_list_addition</span><span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">nnindexer_list</span><span class="p">))))</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">list</span><span class="p">([</span><span class="n">nnindxer</span><span class="o">.</span><span class="n">cfgstr</span> <span class="k">for</span> <span class="n">nnindxer</span> <span class="ow">in</span> <span class="n">nnindexer_list</span><span class="p">])))</span>
-
-    <span class="n">next_fnum</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">next</span>  <span class="c"># python3 PY3</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">next_fnum</span><span class="p">())</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">plot2</span><span class="p">(</span><span class="n">count_list</span><span class="p">,</span> <span class="n">time_list_addition</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;-o&#39;</span><span class="p">,</span> <span class="n">equal_aspect</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-             <span class="n">x_label</span><span class="o">=</span><span class="s">&#39;num_annotations&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">addition_lbl</span> <span class="o">+</span> <span class="s">&#39; Time&#39;</span><span class="p">)</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">update</span><span class="p">:</span>
-        <span class="n">pt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 
 </div>
 <div class="viewcode-block" id="subindexer_time_experiment"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots._neighbor_experiment.subindexer_time_experiment">[docs]</a><span class="k">def</span> <span class="nf">subindexer_time_experiment</span><span class="p">():</span>
@@ -368,7 +469,7 @@
     <span class="n">time_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">time_list</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">plot2</span><span class="p">(</span><span class="n">count_arr</span><span class="p">,</span> <span class="n">time_arr</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="n">equal_aspect</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
              <span class="n">x_label</span><span class="o">=</span><span class="s">&#39;num_annotations&#39;</span><span class="p">,</span> <span class="n">y_label</span><span class="o">=</span><span class="s">&#39;FLANN build time&#39;</span><span class="p">)</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+    <span class="c">#pt.update()</span>
 
 </div>
 <div class="viewcode-block" id="test_incremental_add"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots._neighbor_experiment.test_incremental_add">[docs]</a><span class="k">def</span> <span class="nf">test_incremental_add</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -377,7 +478,7 @@
 <span class="sd">        ibs (IBEISController):</span>
 
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.model.hots.neighbor_index --test-test_incremental_add</span>
+<span class="sd">        python -m ibeis.model.hots._neighbor_experiment --test-test_incremental_add</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
@@ -393,8 +494,8 @@
     <span class="n">aids3</span> <span class="o">=</span> <span class="n">sample_aids</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c"># NOQA</span>
     <span class="n">daid_list</span> <span class="o">=</span> <span class="n">aids1</span>  <span class="c"># NOQA</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids1</span><span class="p">)</span>
-    <span class="n">nnindexer1</span> <span class="o">=</span> <span class="n">request_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids1</span><span class="p">))</span>  <span class="c"># NOQA</span>
-    <span class="n">nnindexer2</span> <span class="o">=</span> <span class="n">request_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">aids2</span><span class="p">,</span> <span class="n">aids2</span><span class="p">))</span>  <span class="c"># NOQA</span>
+    <span class="n">nnindexer1</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids1</span><span class="p">))</span>  <span class="c"># NOQA</span>
+    <span class="n">nnindexer2</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">aids2</span><span class="p">,</span> <span class="n">aids2</span><span class="p">))</span>  <span class="c"># NOQA</span>
 
     <span class="c"># TODO: SYSTEM use visual uuids</span>
     <span class="c">#daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()</span>
@@ -409,7 +510,7 @@
     <span class="n">covered_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_visual_uuid</span><span class="p">(</span><span class="n">covered_items</span><span class="p">))</span>
     <span class="n">uncovered_aids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_visual_uuid</span><span class="p">(</span><span class="n">uncovered_items</span><span class="p">))</span>
 
-    <span class="n">nnindexer3</span> <span class="o">=</span> <span class="n">request_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">uncovered_aids</span><span class="p">,</span> <span class="n">uncovered_aids</span><span class="p">))</span>  <span class="c"># NOQA</span>
+    <span class="n">nnindexer3</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">request_ibeis_nnindexer</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">uncovered_aids</span><span class="p">,</span> <span class="n">uncovered_aids</span><span class="p">))</span>  <span class="c"># NOQA</span>
 
     <span class="c"># TODO: SYSTEM use visual uuids</span>
     <span class="c">#daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()</span>
@@ -430,8 +531,8 @@
     <span class="c">#uuid_map[daids_hashid] = visual_uuid_list</span>
     <span class="c">#visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)</span>
     <span class="c">#visual_uuid_list</span>
-    <span class="c">#%timeit request_ibeis_nnindexer(qreq_, use_memcache=False)</span>
-    <span class="c">#%timeit request_ibeis_nnindexer(qreq_, use_memcache=True)</span>
+    <span class="c">#%timeit neighbor_index.request_ibeis_nnindexer(qreq_, use_memcache=False)</span>
+    <span class="c">#%timeit neighbor_index.request_ibeis_nnindexer(qreq_, use_memcache=True)</span>
 
     <span class="c">#for uuids in uuid_set</span>
     <span class="c">#    if</span>
@@ -447,7 +548,13 @@
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--test-augment_nnindexer_experiment&#39;</span><span class="p">):</span>
+        <span class="c"># See if exec has something to do with memory leaks</span>
+        <span class="n">augment_nnindexer_experiment</span><span class="p">()</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
           </div>

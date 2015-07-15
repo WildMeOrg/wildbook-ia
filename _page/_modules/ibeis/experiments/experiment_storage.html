@@ -1,0 +1,361 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.experiments.experiment_storage &mdash; ibeis 1.4.4 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="ibeis 1.4.4 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.experiments" href="../experiments.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../../index.html" class="fa fa-home"> ibeis</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../experiments.html">ibeis.experiments</a> &raquo;</li>
+      
+    <li>ibeis.experiments.experiment_storage</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <h1>Source code for ibeis.experiments.experiment_storage</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="c">#import six</span>
+<span class="kn">import</span> <span class="nn">utool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_harn]&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<div class="viewcode-block" id="TestResult"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.TestResult">[docs]</a><span class="k">class</span> <span class="nc">TestResult</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">test_result</span><span class="p">,</span> <span class="n">cfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">testnameid</span><span class="p">,</span> <span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="n">cfgx2_qreq_</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
+        <span class="n">test_result</span><span class="o">.</span><span class="n">qaids</span> <span class="o">=</span> <span class="n">qaids</span>
+        <span class="n">test_result</span><span class="o">.</span><span class="n">daids</span> <span class="o">=</span> <span class="n">daids</span>
+        <span class="n">test_result</span><span class="o">.</span><span class="n">cfg_list</span>         <span class="o">=</span> <span class="n">cfg_list</span>
+        <span class="n">test_result</span><span class="o">.</span><span class="n">cfgx2_lbl</span>        <span class="o">=</span> <span class="n">cfgx2_lbl</span>
+        <span class="n">test_result</span><span class="o">.</span><span class="n">lbl</span>              <span class="o">=</span> <span class="n">lbl</span>
+        <span class="n">test_result</span><span class="o">.</span><span class="n">testnameid</span>       <span class="o">=</span> <span class="n">testnameid</span>
+        <span class="n">test_result</span><span class="o">.</span><span class="n">cfgx2_cfgresinfo</span> <span class="o">=</span> <span class="n">cfgx2_cfgresinfo</span>
+        <span class="n">test_result</span><span class="o">.</span><span class="n">cfgx2_qreq_</span>      <span class="o">=</span> <span class="n">cfgx2_qreq_</span>
+
+    <span class="nd">@ut.memoize</span>
+<div class="viewcode-block" id="TestResult.get_rank_mat"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.TestResult.get_rank_mat">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank_mat</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
+        <span class="c"># Ranks of Best Results</span>
+        <span class="n">cfgx2_bestranks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">test_result</span><span class="o">.</span><span class="n">cfgx2_cfgresinfo</span><span class="p">,</span> <span class="s">&#39;qx2_bestranks&#39;</span><span class="p">)</span>
+        <span class="n">rank_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">cfgx2_bestranks</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>  <span class="c"># concatenate each query rank across configs</span>
+        <span class="c"># Set invalid ranks to the worse possible rank</span>
+        <span class="n">worst_possible_rank</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_worst_possible_rank</span><span class="p">()</span>
+        <span class="n">rank_mat</span><span class="p">[</span><span class="n">rank_mat</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span>  <span class="n">worst_possible_rank</span>
+        <span class="k">return</span> <span class="n">rank_mat</span>
+</div>
+<div class="viewcode-block" id="TestResult.get_worst_possible_rank"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.TestResult.get_worst_possible_rank">[docs]</a>    <span class="k">def</span> <span class="nf">get_worst_possible_rank</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
+        <span class="c">#worst_possible_rank = max(9001, len(test_result.daids) + 1)</span>
+        <span class="n">worst_possible_rank</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_result</span><span class="o">.</span><span class="n">daids</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">worst_possible_rank</span>
+</div>
+    <span class="nd">@ut.memoize</span>
+<div class="viewcode-block" id="TestResult.get_new_hard_qx_list"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.TestResult.get_new_hard_qx_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_new_hard_qx_list</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Mark any query as hard if it didnt get everything correct &quot;&quot;&quot;</span>
+        <span class="n">rank_mat</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_mat</span><span class="p">()</span>
+        <span class="n">is_new_hard_list</span> <span class="o">=</span> <span class="n">rank_mat</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">new_hard_qx_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">is_new_hard_list</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">new_hard_qx_list</span>
+</div>
+<div class="viewcode-block" id="TestResult.get_rank_histograms"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.TestResult.get_rank_histograms">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank_histograms</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
+        <span class="n">rank_mat</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_mat</span><span class="p">()</span>
+        <span class="n">bins</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_histogram_bins</span><span class="p">()</span>
+        <span class="n">config_hists</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ranks</span> <span class="ow">in</span> <span class="n">rank_mat</span><span class="o">.</span><span class="n">T</span><span class="p">:</span>
+            <span class="n">bin_values</span><span class="p">,</span> <span class="n">bin_edges</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">ranks</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">)</span>
+            <span class="n">bin_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">bin_edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bin_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+            <span class="n">hist_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">bin_keys</span><span class="p">,</span> <span class="n">bin_values</span><span class="p">))</span>
+            <span class="n">config_hists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hist_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config_hists</span>
+</div>
+<div class="viewcode-block" id="TestResult.get_rank_histogram_bins"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.TestResult.get_rank_histogram_bins">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank_histogram_bins</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
+        <span class="n">worst_possible_rank</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_worst_possible_rank</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">worst_possible_rank</span> <span class="o">&gt;</span> <span class="mi">50</span><span class="p">:</span>
+            <span class="n">bins</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="n">worst_possible_rank</span><span class="p">,</span> <span class="n">worst_possible_rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">worst_possible_rank</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="n">bins</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">worst_possible_rank</span><span class="p">,</span> <span class="n">worst_possible_rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bins</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">bins</span>
+</div>
+<div class="viewcode-block" id="TestResult.get_rank_histogram_bin_edges"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.TestResult.get_rank_histogram_bin_edges">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank_histogram_bin_edges</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
+        <span class="n">bins</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_histogram_bins</span><span class="p">()</span>
+        <span class="n">bin_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+        <span class="k">return</span> <span class="n">bin_keys</span>
+</div>
+<div class="viewcode-block" id="TestResult.get_rank_histogram_qx_binxs"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.TestResult.get_rank_histogram_qx_binxs">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank_histogram_qx_binxs</span><span class="p">(</span><span class="n">test_result</span><span class="p">):</span>
+        <span class="n">rank_mat</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_mat</span><span class="p">()</span>
+        <span class="n">config_hists</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_histograms</span><span class="p">()</span>
+        <span class="n">config_binxs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">bin_keys</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_histogram_bin_edges</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">hist_dict</span><span class="p">,</span> <span class="n">ranks</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">config_hists</span><span class="p">,</span> <span class="n">rank_mat</span><span class="o">.</span><span class="n">T</span><span class="p">):</span>
+            <span class="n">bin_qxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">low</span> <span class="o">&lt;=</span> <span class="n">ranks</span><span class="p">,</span> <span class="n">ranks</span> <span class="o">&lt;</span> <span class="n">high</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+                       <span class="k">for</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="ow">in</span> <span class="n">bin_keys</span><span class="p">]</span>
+            <span class="n">qx2_binx</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ranks</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">binx</span><span class="p">,</span> <span class="n">qxs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bin_qxs</span><span class="p">):</span>
+                <span class="n">qx2_binx</span><span class="p">[</span><span class="n">qxs</span><span class="p">]</span> <span class="o">=</span> <span class="n">binx</span>
+            <span class="n">config_binxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qx2_binx</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config_binxs</span>
+</div>
+<div class="viewcode-block" id="TestResult.get_rank_histogram_qx_sample"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.TestResult.get_rank_histogram_qx_sample">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank_histogram_qx_sample</span><span class="p">(</span><span class="n">test_result</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">rank_mat</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_mat</span><span class="p">()</span>
+        <span class="n">config_hists</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_histograms</span><span class="p">()</span>
+        <span class="n">config_rand_bin_qxs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">bins</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_rank_histogram_bins</span><span class="p">()</span>
+        <span class="n">bin_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+        <span class="n">randstate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">hist_dict</span><span class="p">,</span> <span class="n">ranks</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">config_hists</span><span class="p">,</span> <span class="n">rank_mat</span><span class="o">.</span><span class="n">T</span><span class="p">):</span>
+            <span class="n">bin_qxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">low</span> <span class="o">&lt;=</span> <span class="n">ranks</span><span class="p">,</span> <span class="n">ranks</span> <span class="o">&lt;</span> <span class="n">high</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+                       <span class="k">for</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="ow">in</span> <span class="n">bin_keys</span><span class="p">]</span>
+            <span class="n">rand_bin_qxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qxs</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qxs</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">size</span> <span class="k">else</span>
+                            <span class="n">randstate</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">qxs</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">qxs</span> <span class="ow">in</span> <span class="n">bin_qxs</span><span class="p">]</span>
+            <span class="n">config_rand_bin_qxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rand_bin_qxs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config_rand_bin_qxs</span>
+</div>
+<div class="viewcode-block" id="TestResult.get_full_cfgstr"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.TestResult.get_full_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_full_cfgstr</span><span class="p">(</span><span class="n">test_result</span><span class="p">,</span> <span class="n">cfgx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; both qaids and daids included &quot;&quot;&quot;</span>
+        <span class="n">full_cfgstr</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">cfgx2_qreq_</span><span class="p">[</span><span class="n">cfgx</span><span class="p">]</span><span class="o">.</span><span class="n">get_full_cfgstr</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">full_cfgstr</span>
+</div>
+<div class="viewcode-block" id="TestResult.get_cfgstr"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.TestResult.get_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="n">test_result</span><span class="p">,</span> <span class="n">cfgx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; just daids and config_str &quot;&quot;&quot;</span>
+        <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">cfgx2_qreq_</span><span class="p">[</span><span class="n">cfgx</span><span class="p">]</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">cfgstr</span>
+
+</div></div>
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<div class="viewcode-block" id="ResultMetadata"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.ResultMetadata">[docs]</a><span class="k">class</span> <span class="nc">ResultMetadata</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">fpath</span><span class="p">,</span> <span class="n">autoconnect</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        metadata_fpath = join(figdir, &#39;result_metadata.shelf&#39;)</span>
+<span class="sd">        metadata = ResultMetadata(metadata_fpath)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">fpath</span> <span class="o">=</span> <span class="n">fpath</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;query_cfgstr&#39;</span><span class="p">,</span> <span class="s">&#39;qaid&#39;</span><span class="p">]</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">autoconnect</span><span class="p">:</span>
+            <span class="n">metadata</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ResultMetadata.connect"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.ResultMetadata.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">shelve</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span> <span class="o">=</span> <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">fpath</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&#39;dictstore&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="p">:</span>
+            <span class="n">dictstore</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">AutoVivification</span><span class="p">()</span>
+            <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="p">[</span><span class="s">&#39;dictstore&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dictstore</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="p">[</span><span class="s">&#39;dictstore&#39;</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="ResultMetadata.clear"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.ResultMetadata.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="n">dictstore</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">AutoVivification</span><span class="p">()</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="p">[</span><span class="s">&#39;dictstore&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dictstore</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="p">[</span><span class="s">&#39;dictstore&#39;</span><span class="p">]</span>
+</div>
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ResultMetadata.close"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.ResultMetadata.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ResultMetadata.write"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.ResultMetadata.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="p">[</span><span class="s">&#39;dictstore&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">_shelf</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ResultMetadata.set_global_data"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.ResultMetadata.set_global_data">[docs]</a>    <span class="k">def</span> <span class="nf">set_global_data</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span><span class="p">[</span><span class="n">cfgstr</span><span class="p">][</span><span class="n">qaid</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+</div>
+<div class="viewcode-block" id="ResultMetadata.sync_test_results"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.ResultMetadata.sync_test_results">[docs]</a>    <span class="k">def</span> <span class="nf">sync_test_results</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">test_result</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; store all test results in the shelf &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">cfgx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_result</span><span class="o">.</span><span class="n">cfgx2_qreq_</span><span class="p">)):</span>
+            <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">cfgx</span><span class="p">)</span>
+            <span class="n">qaids</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">qaids</span>
+            <span class="n">cfgresinfo</span> <span class="o">=</span> <span class="n">test_result</span><span class="o">.</span><span class="n">cfgx2_cfgresinfo</span><span class="p">[</span><span class="n">cfgx</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val_list</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">cfgresinfo</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">val_list</span><span class="p">):</span>
+                    <span class="n">metadata</span><span class="o">.</span><span class="n">set_global_data</span><span class="p">(</span><span class="n">cfgstr</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="n">metadata</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ResultMetadata.get_cfgstr_list"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.ResultMetadata.get_cfgstr_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr_list</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">cfgstr_list</span>
+</div>
+<div class="viewcode-block" id="ResultMetadata.get_column_keys"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.ResultMetadata.get_column_keys">[docs]</a>    <span class="k">def</span> <span class="nf">get_column_keys</span><span class="p">(</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="n">unflat_colname_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="n">cols</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">for</span> <span class="n">cols</span> <span class="ow">in</span> <span class="n">qaid2_cols</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+            <span class="k">for</span> <span class="n">qaid2_cols</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">colname_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">unflat_colname_list</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">colname_list</span>
+</div>
+<div class="viewcode-block" id="ResultMetadata.get_square_data"><a class="viewcode-back" href="../../../ibeis.experiments.html#ibeis.experiments.experiment_storage.ResultMetadata.get_square_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_square_data</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">cfgstr</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c"># can only support one config at a time right now</span>
+        <span class="k">if</span> <span class="n">cfgstr</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get_cfgstr_list</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">qaid2_cols</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">dictstore</span><span class="p">[</span><span class="n">cfgstr</span><span class="p">]</span>
+        <span class="n">qaids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qaid2_cols</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">col_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_keep_order2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">cols</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">for</span> <span class="n">cols</span> <span class="ow">in</span> <span class="n">qaid2_cols</span><span class="o">.</span><span class="n">values</span><span class="p">()]))</span>
+        <span class="c">#col_name_list = [&#39;qx2_scoreexpdiff&#39;, &#39;qx2_gt_aid&#39;]</span>
+        <span class="c">#colname2_colvals = [None for colname in col_name_list]</span>
+        <span class="n">column_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="n">colvals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">colname</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">colvals</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">qaid2_cols</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="n">col_name_list</span><span class="p">]</span>
+        <span class="n">col_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;qaids&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_name_list</span>
+        <span class="n">column_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qaids</span><span class="p">]</span> <span class="o">+</span> <span class="n">column_list</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;depth_profile(column_list) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">column_list</span><span class="p">),))</span>
+        <span class="k">return</span> <span class="n">col_name_list</span><span class="p">,</span> <span class="n">column_list</span></div></div>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Jon Crall.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.4.4',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

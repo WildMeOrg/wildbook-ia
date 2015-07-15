@@ -60,14 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -295,8 +295,12 @@
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">_visual_uuid_list1</span><span class="p">,</span> <span class="n">visual_uuid_list1</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">_visual_uuid_list2</span><span class="p">,</span> <span class="n">visual_uuid_list2</span><span class="p">)</span>
 
-    <span class="n">ibs1_dup_annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">debug_duplicate_items</span><span class="p">(</span><span class="n">visual_uuid_list1</span><span class="p">)</span>
-    <span class="n">ibs2_dup_annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">debug_duplicate_items</span><span class="p">(</span><span class="n">visual_uuid_list2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="n">ibs1_dup_annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">debug_duplicate_items</span><span class="p">(</span><span class="n">visual_uuid_list1</span><span class="p">)</span>
+        <span class="n">ibs2_dup_annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">debug_duplicate_items</span><span class="p">(</span><span class="n">visual_uuid_list2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ibs1_dup_annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_duplicate_items</span><span class="p">(</span><span class="n">visual_uuid_list1</span><span class="p">)</span>
+        <span class="n">ibs2_dup_annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_duplicate_items</span><span class="p">(</span><span class="n">visual_uuid_list2</span><span class="p">)</span>
 
     <span class="c"># if these fail try ibsfuncs.fix_remove_visual_dupliate_annotations</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs1_dup_annots</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
@@ -413,7 +417,7 @@
 
 </div>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="setup_incremental_test"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_helpers.setup_incremental_test">[docs]</a><span class="k">def</span> <span class="nf">setup_incremental_test</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">clear_names</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="setup_incremental_test"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_helpers.setup_incremental_test">[docs]</a><span class="k">def</span> <span class="nf">setup_incremental_test</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">clear_names</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">aid_order</span><span class="o">=</span><span class="s">&#39;shuffle&#39;</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots.automated_helpers --test-setup_incremental_test:0</span>
@@ -471,12 +475,12 @@
     <span class="c"># Add aids in a random order</span>
     <span class="n">VALID_ORDERS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;shuffle&#39;</span><span class="p">,</span> <span class="s">&#39;stagger&#39;</span><span class="p">,</span> <span class="s">&#39;same&#39;</span><span class="p">]</span>
     <span class="c">#AID_ORDER = &#39;shuffle&#39;</span>
-    <span class="n">AID_ORDER</span> <span class="o">=</span> <span class="s">&#39;stagger&#39;</span>
-    <span class="k">assert</span> <span class="n">VALID_ORDERS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">AID_ORDER</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">aid_order</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--aid-order&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">aid_order</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">VALID_ORDERS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">aid_order</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span>
 
-    <span class="k">if</span> <span class="n">AID_ORDER</span> <span class="o">==</span> <span class="s">&#39;shuffle&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">aid_order</span> <span class="o">==</span> <span class="s">&#39;shuffle&#39;</span><span class="p">:</span>
         <span class="n">aid_list1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">deterministic_shuffle</span><span class="p">(</span><span class="n">aid_list1_</span><span class="p">[:])</span>
-    <span class="k">elif</span> <span class="n">AID_ORDER</span> <span class="o">==</span> <span class="s">&#39;stagger&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">aid_order</span> <span class="o">==</span> <span class="s">&#39;stagger&#39;</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">zip_longest</span><span class="p">,</span> <span class="nb">filter</span>
         <span class="n">aid_groups</span><span class="p">,</span> <span class="n">unique_nid_list</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">group_annots_by_name</span><span class="p">(</span><span class="n">aid_list1_</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">stagger_group</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
@@ -485,7 +489,7 @@
         <span class="n">aid_list1</span> <span class="o">=</span> <span class="n">stagger_group</span><span class="p">(</span><span class="n">aid_multiton_group</span><span class="p">)</span>
         <span class="c">#aid_list1 = ibs_gt.get_annot_rowid_sample(per_name=10, aid_list=aid_list1_, stagger_names=True)</span>
         <span class="k">pass</span>
-    <span class="k">elif</span> <span class="n">AID_ORDER</span> <span class="o">==</span> <span class="s">&#39;same&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">aid_order</span> <span class="o">==</span> <span class="s">&#39;same&#39;</span><span class="p">:</span>
         <span class="n">aid_list1</span> <span class="o">=</span> <span class="n">aid_list1_</span>
 
     <span class="c"># If reset is true the test database is started completely from scratch</span>

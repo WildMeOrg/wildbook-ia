@@ -60,14 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -113,7 +113,7 @@
           <div role="main">
             
   <h1>Source code for ibeis.model.hots.smk.smk_debug</h1><div class="highlight"><pre>
-<span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
@@ -130,13 +130,7 @@
 
 <span class="c"># &lt;TESTDATA&gt;</span>
 
-<div class="viewcode-block" id="testdata_printops"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.testdata_printops">[docs]</a><span class="k">def</span> <span class="nf">testdata_printops</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; test print options. doesnt take up too much screen</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] testdata_printops&#39;</span><span class="p">)</span>
-    <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
-</div>
 <div class="viewcode-block" id="testdata_ibeis"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.testdata_ibeis">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibeis</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Step 1</span>
@@ -148,11 +142,10 @@
 <span class="sd">        &gt;&gt;&gt; kwargs = {}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39; === Test Data IBEIS ===&#39;</span><span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
-    <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_printops</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;kwargs = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] testdata_ibeis&#39;</span><span class="p">)</span>
     <span class="n">db</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;db&#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">))</span>
+    <span class="c">#with ut.Indenter(&#39;ENSURE&#39;):</span>
     <span class="k">if</span> <span class="n">db</span> <span class="o">==</span> <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">:</span>
         <span class="n">ibeis</span><span class="o">.</span><span class="n">ensure_pz_mtest</span><span class="p">()</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">db</span><span class="p">)</span>
@@ -167,7 +160,8 @@
     <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">smk_thresh</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabtrain_cfg</span><span class="o">.</span><span class="n">nWords</span> <span class="o">=</span> <span class="n">nWords</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabassign_cfg</span><span class="o">.</span><span class="n">nAssign</span> <span class="o">=</span> <span class="n">nAssign</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">ibs</span>
 
 </div>
@@ -237,7 +231,6 @@
     <span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_raw_internals0</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">qparams</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] testdata_raw_internals1&#39;</span><span class="p">)</span>
-    <span class="c">#ibs.cfg.query_cfg.smk_cfg.printme3()</span>
     <span class="n">words</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">words</span>
     <span class="n">wordflann</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wordflann</span>
     <span class="n">idx2_vec</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dvec</span>
@@ -265,7 +258,6 @@
     <span class="kn">from</span> <span class="nn">ibeis.model.hots.smk</span> <span class="kn">import</span> <span class="n">smk_debug</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">qparams</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_raw_internals1</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_debug] testdata_raw_internals1_5&#39;</span><span class="p">)</span>
-    <span class="c">#ibs.cfg.query_cfg.smk_cfg.printme3()</span>
     <span class="n">words</span>     <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">words</span>
     <span class="n">wx_series</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">))</span>
     <span class="n">idx2_aid</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_daid</span>
@@ -386,6 +378,7 @@
     <span class="n">idx2_vec</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dvec</span>
     <span class="n">wx2_dmaws</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_dmaws</span>
     <span class="n">idx2_daid</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_daid</span>
+    <span class="c"># wx_sublist denotes which words are used</span>
     <span class="n">wx_sublist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
     <span class="n">idxs_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">wx2_idxs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
     <span class="n">maws_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">wx2_dmaws</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
@@ -393,17 +386,17 @@
     <span class="k">return</span> <span class="n">words</span><span class="p">,</span> <span class="n">wx_sublist</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span> <span class="n">idxs_list</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">maws_list</span>
 
 </div>
-<div class="viewcode-block" id="get_test_float_norm_rvecs"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.get_test_float_norm_rvecs">[docs]</a><span class="k">def</span> <span class="nf">get_test_float_norm_rvecs</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_test_float_norm_rvecs"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.get_test_float_norm_rvecs">[docs]</a><span class="k">def</span> <span class="nf">get_test_float_norm_rvecs</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">numpy.linalg</span> <span class="kn">as</span> <span class="nn">npl</span>
     <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
     <span class="k">if</span> <span class="n">dim</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">dim</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">VEC_DIM</span>
-    <span class="n">rvecs_float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">dim</span><span class="p">))</span>
+    <span class="n">rvecs_float</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">dim</span><span class="p">))</span>
     <span class="n">rvecs_norm_float</span> <span class="o">=</span> <span class="n">rvecs_float</span> <span class="o">/</span> <span class="n">npl</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">rvecs_float</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">rvecs_norm_float</span>
 
 </div>
-<div class="viewcode-block" id="get_test_rvecs"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.get_test_rvecs">[docs]</a><span class="k">def</span> <span class="nf">get_test_rvecs</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nanrows</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_test_rvecs"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.get_test_rvecs">[docs]</a><span class="k">def</span> <span class="nf">get_test_rvecs</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nanrows</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
     <span class="n">max_</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">RVEC_MAX</span>
     <span class="n">min_</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">RVEC_MIN</span>
@@ -411,7 +404,7 @@
     <span class="k">if</span> <span class="n">dim</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">dim</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">VEC_DIM</span>
     <span class="n">dtype_range</span> <span class="o">=</span> <span class="n">max_</span> <span class="o">-</span> <span class="n">min_</span>
-    <span class="n">rvecs_float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">dim</span><span class="p">))</span>
+    <span class="n">rvecs_float</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">dim</span><span class="p">))</span>
     <span class="n">rvecs</span> <span class="o">=</span> <span class="p">((</span><span class="n">dtype_range</span> <span class="o">*</span> <span class="n">rvecs_float</span><span class="p">)</span> <span class="o">-</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">RVEC_MIN</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">nanrows</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">rvecs</span><span class="p">[</span><span class="n">nanrows</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
@@ -433,9 +426,9 @@
     <span class="k">return</span> <span class="n">rvecs</span>
 
 </div>
-<div class="viewcode-block" id="get_test_maws"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.get_test_maws">[docs]</a><span class="k">def</span> <span class="nf">get_test_maws</span><span class="p">(</span><span class="n">rvecs</span><span class="p">):</span>
+<div class="viewcode-block" id="get_test_maws"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.get_test_maws">[docs]</a><span class="k">def</span> <span class="nf">get_test_maws</span><span class="p">(</span><span class="n">rvecs</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="testdata_match_kernel_L0"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_debug.testdata_match_kernel_L0">[docs]</a><span class="k">def</span> <span class="nf">testdata_match_kernel_L0</span><span class="p">():</span>
@@ -1232,22 +1225,6 @@
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;finished main&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 
-
-<span class="c">#if __name__ == &#39;__main__&#39;:</span>
-<span class="c">#    print(&#39;\n\n\n\n\n\n&#39;)</span>
-<span class="c">#    from ibeis.model.hots.smk import smk_plots</span>
-<span class="c">#    import multiprocessing</span>
-<span class="c">#    from plottool import draw_func2 as df2</span>
-<span class="c">#    mode = ut.get_argval(&#39;--mode&#39;, int, default=0)</span>
-<span class="c">#    if mode == 0 or ut.get_argflag(&#39;--view-vocabs&#39;):</span>
-<span class="c">#        smk_plots.view_vocabs()</span>
-<span class="c">#    else:</span>
-<span class="c">#        np.set_printoptions(precision=2)</span>
-<span class="c">#        multiprocessing.freeze_support()  # for win32</span>
-<span class="c">#        main_locals = main_smk_debug()</span>
-<span class="c">#        main_execstr = ut.execstr_dict(main_locals, &#39;main_locals&#39;)</span>
-<span class="c">#        exec(main_execstr)</span>
-<span class="c">#    exec(df2.present())</span>
 </div>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>

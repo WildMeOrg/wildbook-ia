@@ -60,14 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -149,7 +149,9 @@
 <span class="sd">        &gt;&gt;&gt; score_chipmatch_list(qreq_, cm_list, score_method)</span>
 <span class="sd">        &gt;&gt;&gt; cm = cm_list[0]</span>
 <span class="sd">        &gt;&gt;&gt; assert cm.score_list.argmax() == 0</span>
-<span class="sd">        &gt;&gt;&gt; cm.testshow_single(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 
 <span class="sd">    Example2:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -160,7 +162,9 @@
 <span class="sd">        &gt;&gt;&gt; score_method = qreq_.qparams.score_method</span>
 <span class="sd">        &gt;&gt;&gt; score_chipmatch_list(qreq_, cm_list, score_method)</span>
 <span class="sd">        &gt;&gt;&gt; assert cm.score_list.argmax() == 0</span>
-<span class="sd">        &gt;&gt;&gt; cm.testshow_single(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># Choose the appropriate scoring mechanism</span>
     <span class="k">if</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s">&#39;csum&#39;</span><span class="p">:</span>
@@ -279,7 +283,9 @@
 <span class="sd">        &gt;&gt;&gt; max_num_rerank = nNameShortList * nAnnotPerName</span>
 <span class="sd">        &gt;&gt;&gt; min_num_rerank = nNameShortList</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(len(top_nid_list), min_num_rerank, max_num_rerank, &#39;incorrect number in shortlist&#39;, eq=True)</span>
-<span class="sd">        &gt;&gt;&gt; cm.testshow_single(qreq_, daid=top_aid_list[0])</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_, daid=top_aid_list[0])</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">print</span><span class="p">(</span><span class="s">&#39;[scoring] Making shortlist nNameShortList=</span><span class="si">%r</span><span class="s">, nAnnotPerName=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nNameShortList</span><span class="p">,</span> <span class="n">nAnnotPerName</span><span class="p">))</span>
     <span class="n">cm_shortlist</span> <span class="o">=</span> <span class="p">[]</span>
@@ -405,7 +411,7 @@
 <span class="sd">        python -m ibeis.model.hots.scoring --test-compute_annot_coverage_score:0</span>
 
 <span class="sd">    Example0:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.scoring import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; qreq_, cm = plh.testdata_scoring()</span>
 <span class="sd">        &gt;&gt;&gt; config = qreq_.qparams</span>

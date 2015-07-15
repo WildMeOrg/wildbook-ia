@@ -60,14 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -207,12 +207,14 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        ibs (IBEISController):  ibeis controller object</span>
-<span class="sd">        eid (None):</span>
-<span class="sd">        include_only_gid_list (list): if specified filters annots not in these gids</span>
-<span class="sd">        yaw (str):</span>
-<span class="sd">        is_exemplar (bool): if specified filters annots to either be or not be exemplars</span>
-<span class="sd">        species (None):</span>
-<span class="sd">        is_known (None):</span>
+<span class="sd">        eid (int): encounter id (default = None)</span>
+<span class="sd">        include_only_gid_list (list): if specified filters annots not in these gids (default = None)</span>
+<span class="sd">        yaw (str): (default = &#39;no-filter&#39;)</span>
+<span class="sd">        is_exemplar (bool): if specified filters annots to either be or not be exemplars (default = None)</span>
+<span class="sd">        species (str): (default = None)</span>
+<span class="sd">        is_known (bool): (default = None)</span>
+<span class="sd">        nojunk (bool): (default = False)</span>
+<span class="sd">        hasgt (bool): (default = None)</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        list: aid_list - a list of valid ANNOTATION unique ids</span>
@@ -318,6 +320,27 @@
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">hasgt_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">aid_list</span>
 
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<div class="viewcode-block" id="get_annot_aid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_aid">[docs]</a><span class="k">def</span> <span class="nf">get_annot_aid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; self verifier</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.IBEISControl import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids() + [None, -1, 10434320432]</span>
+<span class="sd">        &gt;&gt;&gt; aid_list_ = ibs.get_annot_aid(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert [r is None for r in aid_list_[-3:]]</span>
+<span class="sd">        &gt;&gt;&gt; assert [r is not None for r in aid_list_[0:-3]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_iter</span> <span class="o">=</span> <span class="n">aid_list</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span>
+                          <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">aid_list</span>
+
 
 <span class="c"># ==========</span>
 <span class="c"># ADDERS</span>
@@ -326,7 +349,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.adder</span>
-<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="n">ANNOT_ROWIDS</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="n">ANNOT_ROWIDS</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 <span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="n">ANNOT_ROWIDS</span><span class="p">])</span>
 <span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">])</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
@@ -626,8 +649,8 @@
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.deleter</span>
 <span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">rowidx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="n">ANNOT_ROWIDS</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="n">ANNOT_ROWIDS</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="n">ANNOT_ROWIDS</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NAME_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="n">ANNOT_ROWIDS</span><span class="p">],</span> <span class="n">rowidx</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 <span class="nd">@accessor_decors.cache_invalidator</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ENCOUNTER_TABLE</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;percent_names_with_exemplar_str&#39;</span><span class="p">])</span>
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;DELETE&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="delete_annots"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.delete_annots">[docs]</a><span class="k">def</span> <span class="nf">delete_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
@@ -637,6 +660,49 @@
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: DELETE</span>
 <span class="sd">        URL:    /api/annot/</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        aid_list (int):  list of annotation ids</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_annot_funcs --test-delete_annots</span>
+<span class="sd">        python -m ibeis.control.manual_annot_funcs --test-delete_annots --debug-api-cache</span>
+<span class="sd">        python -m ibeis.control.manual_annot_funcs --test-delete_annots</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        back.delete_annot</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_empty_nids()</span>
+<span class="sd">        &gt;&gt;&gt; # Add some annotations to delete</span>
+<span class="sd">        &gt;&gt;&gt; num_add = 2</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:num_add]</span>
+<span class="sd">        &gt;&gt;&gt; nid = ibs.make_next_nids(1)[0]</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = [nid] * num_add</span>
+<span class="sd">        &gt;&gt;&gt; bbox_list = [(int(w * .1), int(h * .6), int(w * .5), int(h *  .3))</span>
+<span class="sd">        ...              for (w, h) in ibs.get_image_sizes(gid_list)]</span>
+<span class="sd">        &gt;&gt;&gt; new_aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, nid_list=nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.get_annot_nids(new_aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_lists_eq(ibs.get_annot_nids(new_aid_list), nid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert ibs.get_name_aids(nid) == new_aid_list, &#39;annots should all have same name&#39;</span>
+<span class="sd">        &gt;&gt;&gt; assert new_aid_list == ibs.get_name_aids(nid), &#39;inverse name mapping should work&#39;</span>
+<span class="sd">        &gt;&gt;&gt; before_gids = ibs.get_image_aids(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;BEFORE gids: &#39; + str(before_gids))</span>
+<span class="sd">        &gt;&gt;&gt; result = ibs.delete_annots(new_aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert ibs.get_name_aids(nid) == [], &#39;annots should be removed&#39;</span>
+<span class="sd">        &gt;&gt;&gt; after_gids = ibs.get_image_aids(gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; assert after_gids != before_gids, &#39;the invalidators must have bugs&#39;</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;AFTER gids: &#39; + str(after_gids))</span>
+<span class="sd">        &gt;&gt;&gt; valid_aids = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; assert  [aid not in valid_aids for aid in new_aid_list], &#39;should no longer be valid aids&#39;</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ibs.delete_empty_nids()</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s"> annotations&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
@@ -645,7 +711,7 @@
     <span class="n">preproc_annot</span><span class="o">.</span><span class="n">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="c"># TODO:</span>
     <span class="c"># delete parent rowid column if exists in annot table</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
 
 
 <span class="c"># ==========</span>
@@ -710,8 +776,10 @@
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">ANNOT_ROWID</span><span class="p">,),</span>
                            <span class="n">visual_uuid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">ANNOT_VISUAL_UUID</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">aids_list</span>
-
 </div>
+<span class="n">get_annot_rowids_from_visual_uuid</span> <span class="o">=</span> <span class="n">get_annot_aids_from_visual_uuid</span>
+
+
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@ut.accepts_numpy</span>
 <span class="nd">@accessor_decors.getter_1toM</span>
@@ -967,6 +1035,7 @@
     <span class="n">check_intersection</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">if</span> <span class="n">check_intersection</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">shapely.geometry</span>
+        <span class="c"># TODO: might not be accounting for rotated verticies</span>
         <span class="n">verts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">other_verts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">,</span> <span class="n">other_aids_list</span><span class="p">)</span>
         <span class="n">poly_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Polygon</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span> <span class="k">for</span> <span class="n">verts</span> <span class="ow">in</span> <span class="n">verts_list</span><span class="p">]</span>
@@ -1071,6 +1140,7 @@
 <span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0</span>
 <span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:1</span>
 <span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:2</span>
+<span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0 --db=PZ_Master0 --aids=97 --exec-mode</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
@@ -1079,13 +1149,13 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ut.get_argval(&#39;--aids&#39;, list, ibs.get_valid_aids())</span>
 <span class="sd">        &gt;&gt;&gt; is_exemplar, noself, daid_list = None, True, None</span>
 <span class="sd">        &gt;&gt;&gt; groundtruth_list = ibs.get_annot_groundtruth(aid_list, is_exemplar, noself, daid_list)</span>
-<span class="sd">        &gt;&gt;&gt; result = str(groundtruth_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = &#39;groundtruth_list = &#39; + str(groundtruth_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        [[], [3], [2], [], [6], [5], [], [], [], [], [], [], []]</span>
+<span class="sd">        groundtruth_list = [[], [3], [2], [], [6], [5], [], [], [], [], [], [], []]</span>
 
 <span class="sd">    Example1:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -1324,6 +1394,10 @@
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/visual_uuids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_annot_visual_uuids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_visual_uuids">[docs]</a><span class="k">def</span> <span class="nf">get_annot_visual_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    The image uuid, annotation verticies, are theta is hashted together to</span>
+<span class="sd">    compute the visual uuid.  The visual uuid does not include name or species</span>
+<span class="sd">    information.</span>
+
 <span class="sd">    annot_visual_uuid_list &lt;- annot.annot_visual_uuid[aid_list]</span>
 
 <span class="sd">    gets data from the &quot;native&quot; column &quot;annot_visual_uuid&quot; in the &quot;annot&quot; table</span>
@@ -1375,7 +1449,33 @@
     <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_annot</span>
     <span class="n">vertstr_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;annot_verts&#39;</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="n">vert_list</span> <span class="o">=</span> <span class="n">preproc_annot</span><span class="o">.</span><span class="n">postget_annot_verts</span><span class="p">(</span><span class="n">vertstr_list</span><span class="p">)</span>
+    <span class="c">#vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]</span>
     <span class="k">return</span> <span class="n">vert_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter_1to1</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/rotated_verts/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_rotated_verts"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_rotated_verts">[docs]</a><span class="k">def</span> <span class="nf">get_annot_rotated_verts</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        rotated_vert_list (list): verticies after rotation by theta.</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/annot/rotated_verts/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="n">vert_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">theta_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="c"># Convex bounding boxes for verticies</span>
+    <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">bboxes_from_vert_list</span><span class="p">(</span><span class="n">vert_list</span><span class="p">)</span>
+    <span class="n">rot_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">rotation_around_bbox_mat3x3</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">bbox</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">theta</span><span class="p">,</span> <span class="n">bbox</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">theta_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">)]</span>
+    <span class="n">rotated_vert_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">transform_points_with_homography</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                         <span class="k">for</span> <span class="n">rot</span><span class="p">,</span> <span class="n">verts</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rot_list</span><span class="p">,</span> <span class="n">vert_list</span><span class="p">)]</span>
+    <span class="c">#vert_list = [eval(vertstr, {}, {}) for vertstr in vertstr_list]</span>
+    <span class="k">return</span> <span class="n">rotated_vert_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -1390,8 +1490,10 @@
 <span class="sd">    The following views have these angles of yaw:</span>
 <span class="sd">        left side  - 0.50 tau radians</span>
 <span class="sd">        front side - 0.25 tau radians</span>
-<span class="sd">        right side - 0.00 radians</span>
+<span class="sd">        right side - 0.00 tau radians</span>
 <span class="sd">        back side  - 0.75 tau radians</span>
+
+<span class="sd">        tau = 2 * pi</span>
 
 <span class="sd">    SeeAlso:</span>
 <span class="sd">        ibies.const.VIEWTEXT_TO_YAW_RADIANS</span>
@@ -1436,8 +1538,10 @@
 <span class="sd">    The following views have these angles of yaw:</span>
 <span class="sd">        left side  - 0.00 tau radians</span>
 <span class="sd">        front side - 0.25 tau radians</span>
-<span class="sd">        right side - 0.50 radians</span>
+<span class="sd">        right side - 0.50 tau radians</span>
 <span class="sd">        back side  - 0.75 tau radians</span>
+
+<span class="sd">        tau = 2 * pi</span>
 
 <span class="sd">    SeeAlso:</span>
 <span class="sd">        ibies.const.VIEWTEXT_TO_YAW_RADIANS</span>
@@ -1485,6 +1589,10 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        list_ (list): number of other chips with the same name</span>
 
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/annot/num_groundtruth/</span>
+
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth</span>
 <span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annot_num_groundtruth:0</span>
@@ -1511,11 +1619,6 @@
 <span class="sd">        &gt;&gt;&gt; result = get_annot_num_groundtruth(ibs, aid_list, noself=noself)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        [1, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1]</span>
-
-
-<span class="sd">    RESTful:</span>
-<span class="sd">        Method: GET</span>
-<span class="sd">        URL:    /api/annot/num_groundtruth/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># TODO: Optimize</span>
     <span class="n">groundtruth_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span>
@@ -1939,8 +2042,11 @@
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/visual_uuid_info/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_annot_visual_uuid_info"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_visual_uuid_info">[docs]</a><span class="k">def</span> <span class="nf">get_annot_visual_uuid_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Returns annotation UUID that is unique for the visual qualities</span>
-<span class="sd">    of the annoation. does not include name ore species information.</span>
+
+<span class="sd">    Returns information used to compute annotation UUID.</span>
+<span class="sd">    The image uuid, annotation verticies, are theta is hashted together to</span>
+<span class="sd">      compute the visual uuid.</span>
+<span class="sd">     The visual uuid does not include name or species information.</span>
 
 <span class="sd">    get_annot_visual_uuid_info</span>
 
@@ -1949,6 +2055,10 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        tuple: visual_infotup (image_uuid_list, verts_list, theta_list)</span>
+
+<span class="sd">    SeeAlso:</span>
+<span class="sd">        get_annot_visual_uuids</span>
+<span class="sd">        get_annot_semantic_uuid_info</span>
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annot_visual_uuid_info</span>
@@ -2173,6 +2283,7 @@
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">name_rowid_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
     <span class="c"># postset nids</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">update_annot_semantic_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="c"># TODO: flag name rowid update</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -2282,7 +2393,8 @@
 <span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/parent_rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="set_annot_parent_rowid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.set_annot_parent_rowid">[docs]</a><span class="k">def</span> <span class="nf">set_annot_parent_rowid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">parent_aid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Sets the annotation&#39;s parent aid</span>
+<span class="sd">    Sets the annotation&#39;s parent aid.</span>
+<span class="sd">    TODO DEPRICATE IN FAVOR OF SEPARATE PARTS TABLE</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: PUT</span>
@@ -2394,7 +2506,7 @@
 <span class="sd">        col = annot_quality</span>
 <span class="sd">        tbl = annot</span>
 
-<span class="sd">    SeeALso:</span>
+<span class="sd">    SeeAlso:</span>
 <span class="sd">        ibeis.const.QUALITY_INT_TO_TEXT</span>
 
 <span class="sd">    RESTful:</span>
@@ -3245,6 +3357,78 @@
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">contrib_tag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_contributor_tag</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">contrib_tag_list</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
+<span class="nd">@accessor_decors.getter</span>
+<div class="viewcode-block" id="get_annot_rowids_from_partial_vuuids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_annot_funcs.get_annot_rowids_from_partial_vuuids">[docs]</a><span class="k">def</span> <span class="nf">get_annot_rowids_from_partial_vuuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">partial_vuuid_strs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        partial_uuid_list (list):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annots_from_partial_uuids</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_annot_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()[::2]</span>
+<span class="sd">        &gt;&gt;&gt; vuuids = ibs.get_annot_visual_uuids(aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; partial_vuuid_strs = [u[0:4] for u in map(str, vuuids)]</span>
+<span class="sd">        &gt;&gt;&gt; aids_list = get_annot_rowids_from_partial_vuuids(ibs, partial_uuid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        [[1], [3], [5], [7], [9], [11], [13]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Hackyway because I can&#39;t figure out startswith in sqlite for UUID blobs</span>
+    <span class="c"># just need to figure out how to convert a string into its corresponding byte</span>
+    <span class="c"># value, then I can do it with the referecence provided</span>
+    <span class="c"># References:</span>
+    <span class="c"># # search like with blobs</span>
+    <span class="c"># http://sqlite.1065341.n5.nabble.com/LIKE-with-BLOB-td48050.html</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">vuuids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">vuuid_strs</span> <span class="o">=</span> <span class="p">[</span><span class="n">_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">vuuids</span><span class="p">)]</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">aid</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">vuuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">vuuid_strs</span><span class="p">)</span> <span class="k">if</span> <span class="n">vuuid</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">partial_vuuid</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">partial_vuuid</span> <span class="ow">in</span> <span class="n">partial_vuuid_strs</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">aids_list</span>
+
+    <span class="c">#partial_vuuid = partial_vuuid_strs[0]</span>
+
+    <span class="c">#res = ibs.db.cur.execute(</span>
+    <span class="c">#    &#39;&#39;&#39;</span>
+    <span class="c">#    SELECT annot_rowid from ANNOTATIONS</span>
+    <span class="c">#    WHERE annot_visual_uuid LIKE ? || &#39;%&#39;</span>
+    <span class="c">#    &#39;&#39;&#39;, (bytes(partial_vuuid),))</span>
+    <span class="c">#print(res.fetchall())</span>
+
+    <span class="c">#res = ibs.db.cur.execute(</span>
+    <span class="c">#    &#39;&#39;&#39;</span>
+    <span class="c">#    SELECT annot_rowid from ANNOTATIONS</span>
+    <span class="c">#    WHERE annot_visual_uuid LIKE ? || &#39;%&#39;</span>
+    <span class="c">#    &#39;&#39;&#39;, (partial_vuuid,))</span>
+    <span class="c">#print(res.fetchall())</span>
+
+    <span class="c">#res = ibs.db.cur.execute(</span>
+    <span class="c">#    &#39;&#39;&#39;</span>
+    <span class="c">#    SELECT annot_rowid from ANNOTATIONS</span>
+    <span class="c">#    WHERE annot_visual_uuid LIKE ? || &#39;%&#39;</span>
+    <span class="c">#    &#39;&#39;&#39;, (bytes(partial_vuuid),))</span>
+    <span class="c">#print(res.fetchall())</span>
+
+    <span class="c">## || - is used to concat strings</span>
+
+    <span class="c">#res = ibs.db.cur.execute(</span>
+    <span class="c">#    &#39;&#39;&#39;</span>
+    <span class="c">#    SELECT annot_rowid from ANNOTATIONS</span>
+    <span class="c">#    WHERE annot_note LIKE ? || &#39;%&#39;</span>
+    <span class="c">#    &#39;&#39;&#39;, (&#39;very&#39;,))</span>
+    <span class="c">#print(res.fetchall())</span>
+    <span class="c">#pass</span>
 
 
 <span class="c">#==========</span>

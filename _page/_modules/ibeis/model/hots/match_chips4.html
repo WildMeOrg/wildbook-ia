@@ -60,14 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -124,7 +124,8 @@
 
 
 <span class="c"># TODO: Move to params</span>
-<span class="n">USE_CACHE</span>    <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nocache-query&#39;</span><span class="p">,</span> <span class="s">&#39;--noqcache&#39;</span><span class="p">))</span>
+<span class="n">USE_HOTSPOTTER_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-hs&#39;</span><span class="p">)</span>
+<span class="n">USE_CACHE</span>    <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nocache-query&#39;</span><span class="p">,</span> <span class="s">&#39;--noqcache&#39;</span><span class="p">))</span>  <span class="ow">and</span> <span class="n">USE_HOTSPOTTER_CACHE</span>
 <span class="n">USE_BIGCACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nocache-big&#39;</span><span class="p">,</span> <span class="s">&#39;--no-bigcache-query&#39;</span><span class="p">,</span> <span class="s">&#39;--noqcache&#39;</span><span class="p">,</span> <span class="s">&#39;--nobigcache&#39;</span><span class="p">))</span>
 <span class="n">SAVE_CACHE</span>   <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-save&#39;</span><span class="p">)</span>
 <span class="c">#MIN_BIGCACHE_BUNDLE = 20</span>
@@ -192,7 +193,8 @@
 <div class="viewcode-block" id="submit_query_request"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.match_chips4.submit_query_request">[docs]</a><span class="k">def</span> <span class="nf">submit_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                          <span class="n">use_bigcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                          <span class="n">cfgdict</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                         <span class="n">verbose</span><span class="o">=</span><span class="n">pipeline</span><span class="o">.</span><span class="n">VERB_PIPELINE</span><span class="p">,</span> <span class="n">save_qcache</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                         <span class="n">verbose</span><span class="o">=</span><span class="n">pipeline</span><span class="o">.</span><span class="n">VERB_PIPELINE</span><span class="p">,</span> <span class="n">save_qcache</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                         <span class="n">prog_hook</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The standard query interface.</span>
 
@@ -241,6 +243,8 @@
     <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span>
                                       <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="o">=</span> <span class="n">prog_hook</span>
     <span class="c"># --- BIG CACHE ---</span>
     <span class="c"># Do not use bigcache single queries</span>
     <span class="n">use_bigcache_</span> <span class="o">=</span> <span class="p">(</span><span class="n">use_bigcache</span> <span class="ow">and</span> <span class="n">use_cache</span> <span class="ow">and</span>
@@ -258,10 +262,10 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cache</span><span class="p">(</span><span class="n">bc_dpath</span><span class="p">,</span> <span class="n">bc_fname</span><span class="p">,</span> <span class="n">bc_cfgstr</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;... qaid2_qres bigcache miss: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bc_fname</span><span class="p">,))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">verbose</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
                     <span class="k">print</span><span class="p">(</span><span class="s">&#39;... qaid2_qres bigcache hit: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bc_fname</span><span class="p">,))</span>
                 <span class="k">if</span> <span class="n">return_request</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span>
@@ -348,14 +352,18 @@
     <span class="n">all_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
     <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="c"># vsone must have a chunksize of 1</span>
-    <span class="n">chunksize</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsone</span> <span class="k">else</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">hots_batch_size</span>
+    <span class="n">hots_batch_size</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--hots-batch-size&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">hots_batch_size</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">hots_batch_size</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span><span class="o">.</span><span class="n">hots_batch_size</span>
+    <span class="n">chunksize</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsone</span> <span class="k">else</span> <span class="n">hots_batch_size</span>
     <span class="c"># Iterate over vsone queries in chunks. This ensures that we dont lose</span>
     <span class="c"># too much time if a qreq_ crashes after the 2000th nn index.</span>
     <span class="n">nTotalChunks</span>    <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_nTotalChunks</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_qaids</span><span class="p">),</span> <span class="n">chunksize</span><span class="p">)</span>
     <span class="n">qaid_chunk_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">all_qaids</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
     <span class="n">_qreq_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">shallowcopy</span><span class="p">(</span><span class="n">qaids</span><span class="o">=</span><span class="n">qaids</span><span class="p">)</span> <span class="k">for</span> <span class="n">qaids</span> <span class="ow">in</span> <span class="n">qaid_chunk_iter</span><span class="p">)</span>
     <span class="n">qreq_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">_qreq_iter</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="n">nTotalChunks</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                                <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;[mc4] query chunk: &#39;</span><span class="p">,</span> <span class="n">backspace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                                <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;[mc4] query chunk: &#39;</span><span class="p">,</span> <span class="n">backspace</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                <span class="n">prog_hook</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">__qreq</span> <span class="ow">in</span> <span class="n">qreq_iter</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&#39;Generating vsmany chunk&#39;</span><span class="p">)</span>

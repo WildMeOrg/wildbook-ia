@@ -60,14 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -277,6 +277,8 @@
 <span class="sd">        &gt;&gt;&gt; # verify results</span>
 <span class="sd">        &gt;&gt;&gt; result = str(timedelta_str)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        td(+2:28:22)</span>
+
 <span class="sd">        td(02:28:22)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">gid1</span><span class="p">,</span> <span class="n">gid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
@@ -285,7 +287,8 @@
         <span class="n">timedelta_str_</span> <span class="o">=</span> <span class="s">&#39;NA&#39;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">unixtime_diff</span> <span class="o">=</span> <span class="n">unixtime2</span> <span class="o">-</span> <span class="n">unixtime1</span>
-        <span class="n">timedelta_str_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_posix_timedelta_str</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">)</span>
+        <span class="c">#timedelta_str_ = ut.get_posix_timedelta_str(unixtime_diff)</span>
+        <span class="n">timedelta_str_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_unix_timedelta_str</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">)</span>
     <span class="c">#timedelta_str = &#39;timedelta(%s)&#39; % (timedelta_str_)</span>
     <span class="n">timedelta_str</span> <span class="o">=</span> <span class="s">&#39;td(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timedelta_str_</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">timedelta_str</span>

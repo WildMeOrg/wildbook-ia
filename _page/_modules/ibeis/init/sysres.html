@@ -60,14 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -339,46 +339,13 @@
 </div>
 <div class="viewcode-block" id="get_args_dbdir"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.sysres.get_args_dbdir">[docs]</a><span class="k">def</span> <span class="nf">get_args_dbdir</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cache_priority</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Machinery for finding a database directory &quot;&quot;&quot;</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        # LEGACY DB ARG PARSING:</span>
-<span class="sd">        if dbdir is None and db is not None:</span>
-<span class="sd">            printDBG(&#39;[sysres] use command line dbdir&#39;)</span>
-<span class="sd">            dbdir = params.args.dbdir</span>
-<span class="sd">        if db is None and dbdir is not None:</span>
-<span class="sd">            printDBG(&#39;[sysres] use command line db&#39;)</span>
-<span class="sd">            db = params.args.db</span>
-<span class="sd">        if dbdir == &#39;None&#39; or db == &#39;None&#39;:</span>
-<span class="sd">            print(&#39;Forcing no dbdir&#39;)</span>
-<span class="sd">            # If specified as the string none, the user forces no db</span>
-<span class="sd">            return None</span>
-<span class="sd">        # Force absolute path</span>
-<span class="sd">        if dbdir is not None:</span>
-<span class="sd">            dbdir = realpath(dbdir)</span>
-<span class="sd">            printDBG(&#39;[sysres] realpath dbdir: %r&#39; % dbdir)</span>
-<span class="sd">        # Invalidate bad values</span>
-<span class="sd">        if dbdir is None or dbdir in [&#39;&#39;, &#39; &#39;, &#39;.&#39;]:  # or not exists(dbdir):</span>
-<span class="sd">            dbdir = None</span>
-<span class="sd">            printDBG(&#39;[sysres] Invalidate dbdir: %r&#39; % dbdir)</span>
-<span class="sd">        # Fallback onto args.db</span>
-<span class="sd">        if dbdir is None:</span>
-<span class="sd">            printDBG(&#39;[sysres] Trying cache&#39;)</span>
-<span class="sd">            # Try a cached / commandline / default db</span>
-<span class="sd">            if db is None and defaultdb == &#39;cache&#39; and not params.args.nocache_db:</span>
-<span class="sd">                dbdir = get_default_dbdir()</span>
-<span class="sd">                #if not utool.QUIET and utool.VERBOSE:</span>
-<span class="sd">                printDBG(&#39;[sysres] Loading dbdir from cache.&#39;)</span>
-<span class="sd">                printDBG(&#39;[sysres] dbdir=%r&#39; % (dbdir,))</span>
-<span class="sd">            elif db is not None:</span>
-<span class="sd">                dbdir = db_to_dbdir(db, allow_newdir=allow_newdir)</span>
-<span class="sd">            elif defaultdb is not None:</span>
-<span class="sd">                dbdir = db_to_dbdir(defaultdb, allow_newdir=allow_newdir)</span>
-<span class="sd">        printDBG(&#39;[sysres] return get_args_dbdir: dbdir=%r&#39; % (dbdir,))</span>
-<span class="sd">        return dbdir</span>
-<span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">utool</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">and</span> <span class="n">utool</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sysres] get_args_dbdir: parsing commandline for dbdir&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sysres] defaultdb=</span><span class="si">%r</span><span class="s">, allow_newdir=</span><span class="si">%r</span><span class="s">, cache_priority=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">defaultdb</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="p">,</span> <span class="n">cache_priority</span><span class="p">))</span>
         <span class="k">print</span><span class="p">(</span><span class="s">&#39;[sysres] db=</span><span class="si">%r</span><span class="s">, dbdir=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">dbdir</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nodbcache&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">None</span>
 
     <span class="k">def</span> <span class="nf">_db_arg_priorty</span><span class="p">(</span><span class="n">dbdir_</span><span class="p">,</span> <span class="n">db_</span><span class="p">):</span>
         <span class="n">invalid</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">,</span> <span class="s">&#39;.&#39;</span><span class="p">,</span> <span class="s">&#39;None&#39;</span><span class="p">]</span>
@@ -451,7 +418,7 @@
 </div>
 <div class="viewcode-block" id="get_ibsdb_list"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.sysres.get_ibsdb_list">[docs]</a><span class="k">def</span> <span class="nf">get_ibsdb_list</span><span class="p">(</span><span class="n">workdir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Lists the available ibeis database inside of a work directory</span>
+<span class="sd">    Lists the available valid ibeis databases inside of a work directory</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        workdir (None):</span>
@@ -465,12 +432,9 @@
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.init.sysres import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; # build test data</span>
 <span class="sd">        &gt;&gt;&gt; workdir = None</span>
-<span class="sd">        &gt;&gt;&gt; # execute function</span>
 <span class="sd">        &gt;&gt;&gt; ibsdb_list = get_ibsdb_list(workdir)</span>
-<span class="sd">        &gt;&gt;&gt; # verify results</span>
-<span class="sd">        &gt;&gt;&gt; result = str(ibsdb_list)</span>
+<span class="sd">        &gt;&gt;&gt; result = str(&#39;\n&#39;.join(ibsdb_list))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
@@ -505,11 +469,111 @@
     <span class="n">valid_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">119</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">update_annot_semantic_uuids</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">print_annotation_table</span><span class="p">()</span>
-
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">print_annotation_table</span><span class="p">()</span>
     <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_rowids_from_text</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">nid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_name_texts</span><span class="p">([</span><span class="n">nid</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;lostname&#39;</span><span class="p">])</span>
+
+</div>
+<div class="viewcode-block" id="ensure_pz_mtest_mergesplit_test"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.sysres.ensure_pz_mtest_mergesplit_test">[docs]</a><span class="k">def</span> <span class="nf">ensure_pz_mtest_mergesplit_test</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.init.sysres --test-ensure_pz_mtest_mergesplit_test</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.init.sysres import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ensure_pz_mtest_mergesplit_test()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibeis</span><span class="o">.</span><span class="n">ensure_pz_mtest</span><span class="p">()</span>
+    <span class="n">workdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
+    <span class="n">dbpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;PZ_MERGESPLIT_MTEST&#39;</span><span class="p">)</span>
+    <span class="n">mtest_dbpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">dbpath</span><span class="p">):</span>
+        <span class="k">return</span>
+
+    <span class="n">source_dbdir</span> <span class="o">=</span> <span class="n">mtest_dbpath</span>
+    <span class="n">dest_dbdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;PZ_MERGESPLIT_MTEST&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">dest_dbdir</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">copy_ibeisdb</span><span class="p">(</span><span class="n">source_dbdir</span><span class="p">,</span> <span class="n">dest_dbdir</span><span class="p">):</span>
+        <span class="c"># TODO; rectify with rsycn script</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">normpath</span>
+        <span class="n">exclude_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">ensure_unixslash</span><span class="p">(</span><span class="n">normpath</span><span class="p">(</span><span class="n">rel</span><span class="p">))</span> <span class="k">for</span> <span class="n">rel</span> <span class="ow">in</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">EXCLUDE_COPY_REL_DIRS</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;_hsdb&#39;</span><span class="p">,</span> <span class="s">&#39;.hs_internals&#39;</span><span class="p">]]</span>
+
+        <span class="n">rel_tocopy</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">source_dbdir</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">,</span> <span class="n">exclude_dirs</span><span class="o">=</span><span class="n">exclude_dirs</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">with_files</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">with_dirs</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">fullpath</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">rel_tocopy_dirs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">source_dbdir</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">,</span> <span class="n">exclude_dirs</span><span class="o">=</span><span class="n">exclude_dirs</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">with_files</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">with_dirs</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">fullpath</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="n">src_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">source_dbdir</span><span class="p">,</span> <span class="n">relpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">relpath</span> <span class="ow">in</span> <span class="n">rel_tocopy</span><span class="p">]</span>
+        <span class="n">dst_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">dest_dbdir</span><span class="p">,</span> <span class="n">relpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">relpath</span> <span class="ow">in</span> <span class="n">rel_tocopy</span><span class="p">]</span>
+
+        <span class="c"># ensure directories exist</span>
+        <span class="n">rel_tocopy_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">dest_dbdir</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">dest_dbdir</span><span class="p">,</span> <span class="n">dpath_</span><span class="p">)</span> <span class="k">for</span> <span class="n">dpath_</span> <span class="ow">in</span> <span class="n">rel_tocopy_dirs</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">dpath</span> <span class="ow">in</span> <span class="n">rel_tocopy_dirs</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span>
+        <span class="c"># copy files</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">src_list</span><span class="p">,</span> <span class="n">dst_list</span><span class="p">)</span>
+
+    <span class="n">copy_ibeisdb</span><span class="p">(</span><span class="n">source_dbdir</span><span class="p">,</span> <span class="n">dest_dbdir</span><span class="p">)</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MERGESPLIT_MTEST&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span> <span class="o">==</span> <span class="mi">119</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">())</span> <span class="o">==</span> <span class="mi">41</span>
+
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+    <span class="n">aids_list</span><span class="p">,</span> <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">group_annots_by_name</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">num_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">))</span>
+
+    <span class="c"># num cases wanted</span>
+    <span class="n">num_merge</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">num_split</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">num_combo</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c"># num inputs needed</span>
+    <span class="n">num_merge_names</span> <span class="o">=</span> <span class="n">num_merge</span>
+    <span class="n">num_split_names</span> <span class="o">=</span> <span class="n">num_split</span> <span class="o">*</span> <span class="mi">2</span>
+    <span class="n">num_combo_names</span> <span class="o">=</span> <span class="n">num_combo</span> <span class="o">*</span> <span class="mi">3</span>
+
+    <span class="n">total_names</span> <span class="o">=</span> <span class="n">num_merge_names</span> <span class="o">+</span> <span class="n">num_split_names</span> <span class="o">+</span> <span class="n">num_combo_names</span>
+
+    <span class="n">modify_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_take</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argsort</span><span class="p">(</span><span class="n">num_aids</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="n">total_names</span><span class="p">])</span>
+
+    <span class="n">merge_nids1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num_merge</span><span class="p">,</span> <span class="n">location_text</span><span class="o">=</span><span class="s">&#39;XMERGE&#39;</span><span class="p">)</span>
+    <span class="n">merge_nids2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num_merge</span><span class="p">,</span> <span class="n">location_text</span><span class="o">=</span><span class="s">&#39;XMERGE&#39;</span><span class="p">)</span>
+    <span class="n">split_nid</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num_split</span><span class="p">,</span> <span class="n">location_text</span><span class="o">=</span><span class="s">&#39;XSPLIT&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">combo_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num_combo</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">location_text</span><span class="o">=</span><span class="s">&#39;XCOMBO&#39;</span><span class="p">)</span>
+
+    <span class="c"># the first 3 become merge cases</span>
+    <span class="c">#left = 0</span>
+    <span class="c">#right = left + num_merge</span>
+    <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">modify_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">merge_nids1</span><span class="p">,</span> <span class="n">merge_nids2</span><span class="p">):</span>
+        <span class="c">#ibs.get_annot_nids(aids)</span>
+        <span class="n">aids_</span> <span class="o">=</span> <span class="n">aids</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aids_</span><span class="p">,</span> <span class="p">[</span><span class="n">nid1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids_</span><span class="p">))</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aids_</span><span class="p">,</span> <span class="p">[</span><span class="n">nid2</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids_</span><span class="p">))</span>
+
+    <span class="c"># the next 2 become split cases</span>
+    <span class="c">#left = right</span>
+    <span class="c">#right = left + num_split_names</span>
+    <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">modify_aids</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">5</span><span class="p">]:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="p">[</span><span class="n">split_nid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
+
+    <span class="c">#left = right</span>
+    <span class="c">#right = left + num_combo_names</span>
+    <span class="c"># The final 3 are a combination case</span>
+    <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">modify_aids</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">8</span><span class="p">]:</span>
+        <span class="n">aids_even</span> <span class="o">=</span> <span class="n">aids</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">aids_odd</span> <span class="o">=</span> <span class="n">aids</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aids_even</span><span class="p">,</span> <span class="p">[</span><span class="n">combo_nids</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids_even</span><span class="p">))</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aids_odd</span><span class="p">,</span> <span class="p">[</span><span class="n">combo_nids</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids_odd</span><span class="p">))</span>
+
+    <span class="n">final_result</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">,</span> <span class="n">modify_aids</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;final_result = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">final_result</span><span class="p">),))</span>
 
 </div>
 <div class="viewcode-block" id="ensure_nauts"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.sysres.ensure_nauts">[docs]</a><span class="k">def</span> <span class="nf">ensure_nauts</span><span class="p">():</span>

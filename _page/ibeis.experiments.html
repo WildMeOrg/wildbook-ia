@@ -62,14 +62,14 @@
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -113,35 +113,1096 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="ibeis-experiments-experiment-configs-module">
-<h2>ibeis.experiments.experiment_configs module<a class="headerlink" href="#ibeis-experiments-experiment-configs-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ibeis.experiments.experiment_configs">
+<span id="ibeis-experiments-experiment-configs-module"></span><h2>ibeis.experiments.experiment_configs module<a class="headerlink" href="#module-ibeis.experiments.experiment_configs" title="Permalink to this headline">¶</a></h2>
+<p>In this file dicts specify all possible combinations of the varied parameters
+and lists specify the union of parameters</p>
+<dl class="function">
+<dt id="ibeis.experiments.experiment_configs.augbase">
+<tt class="descclassname">ibeis.experiments.experiment_configs.</tt><tt class="descname">augbase</tt><big>(</big><em>basedict</em>, <em>updatedict</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_configs.html#augbase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_configs.augbase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
-<div class="section" id="ibeis-experiments-experiment-drawing-module">
-<h2>ibeis.experiments.experiment_drawing module<a class="headerlink" href="#ibeis-experiments-experiment-drawing-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ibeis.experiments.experiment_drawing">
+<span id="ibeis-experiments-experiment-drawing-module"></span><h2>ibeis.experiments.experiment_drawing module<a class="headerlink" href="#module-ibeis.experiments.experiment_drawing" title="Permalink to this headline">¶</a></h2>
+<p>./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False &#8211;db Elephants_drop1_ears &#8211;allgt &#8211;index=0:10 &#8211;guiview</p>
+<dl class="class">
+<dt id="ibeis.experiments.experiment_drawing.IndividualResultsCopyTaskQueue">
+<em class="property">class </em><tt class="descclassname">ibeis.experiments.experiment_drawing.</tt><tt class="descname">IndividualResultsCopyTaskQueue</tt><a class="reference internal" href="_modules/ibeis/experiments/experiment_drawing.html#IndividualResultsCopyTaskQueue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_drawing.IndividualResultsCopyTaskQueue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="ibeis.experiments.experiment_drawing.IndividualResultsCopyTaskQueue.append_copy_task">
+<tt class="descname">append_copy_task</tt><big>(</big><em>fpath_orig</em>, <em>dstdir=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_drawing.html#IndividualResultsCopyTaskQueue.append_copy_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_drawing.IndividualResultsCopyTaskQueue.append_copy_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>helper which copies a summary figure to root dir</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_drawing.IndividualResultsCopyTaskQueue.flush_copy_tasks">
+<tt class="descname">flush_copy_tasks</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_drawing.html#IndividualResultsCopyTaskQueue.flush_copy_tasks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_drawing.IndividualResultsCopyTaskQueue.flush_copy_tasks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_drawing.draw_results">
+<tt class="descclassname">ibeis.experiments.experiment_drawing.</tt><tt class="descname">draw_results</tt><big>(</big><em>ibs</em>, <em>test_result</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_drawing.html#draw_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_drawing.draw_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draws results from an experiment harness run.
+Rows store different qaids (query annotation ids)
+Cols store different configurations (algorithm parameters)</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd><p class="first">python dev.py -t custom:rrvsone_on=True,constrained_coeff=0 custom &#8211;qaid 12 &#8211;db PZ_MTEST &#8211;show &#8211;va
+python dev.py -t custom:rrvsone_on=True,constrained_coeff=.3 custom &#8211;qaid 12 &#8211;db PZ_MTEST &#8211;show &#8211;va &#8211;noqcache
+python dev.py -t custom:rrvsone_on=True custom &#8211;qaid 4 &#8211;db PZ_MTEST &#8211;show &#8211;va &#8211;noqcache</p>
+<p class="last">python dev.py -t custom:rrvsone_on=True,grid_scale_factor=1 custom &#8211;qaid 12 &#8211;db PZ_MTEST &#8211;show &#8211;va &#8211;noqcache
+python dev.py -t custom:rrvsone_on=True,grid_scale_factor=1,grid_steps=1 custom &#8211;qaid 12 &#8211;db PZ_MTEST &#8211;show &#8211;va &#8211;noqcache</p>
+</dd>
+<dt>CommandLine:</dt>
+<dd><p class="first">python dev.py -t best &#8211;db seals2 &#8211;allgt &#8211;vz &#8211;fig-dname query_analysis_easy &#8211;show
+python dev.py -t best &#8211;db seals2 &#8211;allgt &#8211;vh &#8211;fig-dname query_analysis_hard &#8211;show</p>
+<p>python dev.py -t pyrscale &#8211;db PZ_MTEST &#8211;allgt &#8211;vn &#8211;fig-dname query_analysis_interesting &#8211;show
+python dev.py -t pyrscale &#8211;db testdb3 &#8211;allgt &#8211;vn &#8211;fig-dname query_analysis_interesting &#8211;vf
+python dev.py -t pyrscale &#8211;db testdb3 &#8211;allgt &#8211;vn &#8211;fig-dname query_analysis_interesting &#8211;vf &#8211;quality</p>
+<p class="last">python -m ibeis.experiments.experiment_printres &#8211;test-draw_results &#8211;show &#8211;vn
+python -m ibeis.experiments.experiment_printres &#8211;test-draw_results &#8211;show &#8211;vn &#8211;db PZ_MTEST</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.experiment_printres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments</span> <span class="kn">import</span> <span class="n">experiment_harness</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;pyrscale&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span> <span class="n">hasgt</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_result</span> <span class="o">=</span> <span class="n">experiment_harness</span><span class="o">.</span><span class="n">run_test_configurations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">draw_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
 </div>
-<div class="section" id="ibeis-experiments-experiment-harness-module">
-<h2>ibeis.experiments.experiment_harness module<a class="headerlink" href="#ibeis-experiments-experiment-harness-module" title="Permalink to this headline">¶</a></h2>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_drawing.get_diffranks">
+<tt class="descclassname">ibeis.experiments.experiment_drawing.</tt><tt class="descname">get_diffranks</tt><big>(</big><em>rank_mat</em>, <em>qaids</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_drawing.html#get_diffranks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_drawing.get_diffranks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find rows which scored differently over the various configs
+FIXME: duplicated</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_drawing.get_interesting_ranks">
+<tt class="descclassname">ibeis.experiments.experiment_drawing.</tt><tt class="descname">get_interesting_ranks</tt><big>(</big><em>rank_mat</em>, <em>qaids</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_drawing.html#get_interesting_ranks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_drawing.get_interesting_ranks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_drawing.get_sel_rows_and_cols">
+<tt class="descclassname">ibeis.experiments.experiment_drawing.</tt><tt class="descname">get_sel_rows_and_cols</tt><big>(</big><em>qaids</em>, <em>cfg_list</em>, <em>new_hard_qx_list</em>, <em>interesting_qx_list</em>, <em>test_result</em>, <em>view_all=False</em>, <em>view_hard=False</em>, <em>view_easy=False</em>, <em>view_interesting=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_drawing.html#get_sel_rows_and_cols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_drawing.get_sel_rows_and_cols" title="Permalink to this definition">¶</a></dt>
+<dd><p>The selected rows are the query annotation you are interested in viewing
+The selected cols are the parameter configuration you are interested in viewing</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_drawing.make_metadata_custom_api">
+<tt class="descclassname">ibeis.experiments.experiment_drawing.</tt><tt class="descname">make_metadata_custom_api</tt><big>(</big><em>metadata</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_drawing.html#make_metadata_custom_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_drawing.make_metadata_custom_api" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.experiments.experiment_drawing &#8211;test-make_metadata_custom_api &#8211;show</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.experiment_drawing</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">guitool</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metadata_fpath</span> <span class="o">=</span> <span class="s">&#39;/media/raid/work/Elephants_drop1_ears/_ibsdb/figures/result_metadata.shelf&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metadata</span> <span class="o">=</span> <span class="n">experiment_storage</span><span class="o">.</span><span class="n">ResultMetadata</span><span class="p">(</span><span class="n">metadata_fpath</span><span class="p">,</span> <span class="n">autoconnect</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wgt</span> <span class="o">=</span> <span class="n">make_metadata_custom_api</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wgt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wgt</span><span class="o">.</span><span class="n">raise_</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">guitool</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">wgt</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</pre></div>
 </div>
-<div class="section" id="ibeis-experiments-experiment-helpers-module">
-<h2>ibeis.experiments.experiment_helpers module<a class="headerlink" href="#ibeis-experiments-experiment-helpers-module" title="Permalink to this headline">¶</a></h2>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_drawing.make_test_result_custom_api">
+<tt class="descclassname">ibeis.experiments.experiment_drawing.</tt><tt class="descname">make_test_result_custom_api</tt><big>(</big><em>ibs</em>, <em>test_result</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_drawing.html#make_test_result_custom_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_drawing.make_test_result_custom_api" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
-<div class="section" id="ibeis-experiments-experiment-printres-module">
-<h2>ibeis.experiments.experiment_printres module<a class="headerlink" href="#ibeis-experiments-experiment-printres-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ibeis.experiments.experiment_harness">
+<span id="ibeis-experiments-experiment-harness-module"></span><h2>ibeis.experiments.experiment_harness module<a class="headerlink" href="#module-ibeis.experiments.experiment_harness" title="Permalink to this headline">¶</a></h2>
+<p>Runs many queries and keeps track of some results</p>
+<dl class="function">
+<dt id="ibeis.experiments.experiment_harness.get_config_result_info">
+<tt class="descclassname">ibeis.experiments.experiment_harness.</tt><tt class="descname">get_config_result_info</tt><big>(</big><em>ibs</em>, <em>qaids</em>, <em>daids</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_harness.html#get_config_result_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_harness.get_config_result_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function.</p>
+<p>Runs queries of a specific configuration returns the best rank of each query</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>qaids</strong> (<em>list</em>) &#8211; query annotation ids</li>
+<li><strong>daids</strong> (<em>list</em>) &#8211; database annotation ids</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">qx2_bestranks</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.experiment_harness</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qresinfotup</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">get_config_result_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+</pre></div>
 </div>
-<div class="section" id="ibeis-experiments-experiment-storage-module">
-<h2>ibeis.experiments.experiment_storage module<a class="headerlink" href="#ibeis-experiments-experiment-storage-module" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.experiment_harness</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">codename</span><span class="o">=</span><span class="s">&#39;vsone&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># ibs.cfg.query_cfg.codename = &#39;vsone&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qresinfotup</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">get_config_result_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span>
+</pre></div>
 </div>
-<div class="section" id="ibeis-experiments-results-all-module">
-<h2>ibeis.experiments.results_all module<a class="headerlink" href="#ibeis-experiments-results-all-module" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>Ignore:</dt>
+<dd><dl class="first last docutils">
+<dt>for qaid, qres in six.iteritems(qaid2_qres):</dt>
+<dd>break</dd>
+<dt>for qaid, qres in six.iteritems(qaid2_qres):</dt>
+<dd>qres.ishow_top(ibs)</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_harness.get_qres_name_result_info">
+<tt class="descclassname">ibeis.experiments.experiment_harness.</tt><tt class="descname">get_qres_name_result_info</tt><big>(</big><em>ibs</em>, <em>qres</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_harness.html#get_qres_name_result_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_harness.get_qres_name_result_info" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>these are results per query we care about</dt>
+<dd><ul class="first last simple">
+<li>gt and gf rank, their score and the difference</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_harness.run_test_configurations">
+<tt class="descclassname">ibeis.experiments.experiment_harness.</tt><tt class="descname">run_test_configurations</tt><big>(</big><em>ibs</em>, <em>qaids</em>, <em>daids</em>, <em>test_cfg_name_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_harness.html#run_test_configurations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_harness.run_test_configurations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_harness.test_configurations">
+<tt class="descclassname">ibeis.experiments.experiment_harness.</tt><tt class="descname">test_configurations</tt><big>(</big><em>ibs</em>, <em>qaids</em>, <em>daids</em>, <em>test_cfg_name_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_harness.html#test_configurations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_harness.test_configurations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test harness driver function</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.experiments.experiment_harness &#8211;test-test_configurations</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.experiment_harness</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[::</span><span class="mi">40</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#test_cfg_name_list = [&#39;best&#39;, &#39;smk2&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;custom&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_configurations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">)</span>
+</pre></div>
 </div>
-<div class="section" id="ibeis-experiments-results-analyzer-module">
-<h2>ibeis.experiments.results_analyzer module<a class="headerlink" href="#ibeis-experiments-results-analyzer-module" title="Permalink to this headline">¶</a></h2>
+</dd></dl>
+
 </div>
-<div class="section" id="ibeis-experiments-results-organizer-module">
-<h2>ibeis.experiments.results_organizer module<a class="headerlink" href="#ibeis-experiments-results-organizer-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ibeis.experiments.experiment_helpers">
+<span id="ibeis-experiments-experiment-helpers-module"></span><h2>ibeis.experiments.experiment_helpers module<a class="headerlink" href="#module-ibeis.experiments.experiment_helpers" title="Permalink to this headline">¶</a></h2>
+<p>Helper module that helps expand parameters for grid search</p>
+<dl class="function">
+<dt id="ibeis.experiments.experiment_helpers.format_cfgstr_list">
+<tt class="descclassname">ibeis.experiments.experiment_helpers.</tt><tt class="descname">format_cfgstr_list</tt><big>(</big><em>cfgstr_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_helpers.html#format_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_helpers.format_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_helpers.get_cfg_list">
+<tt class="descclassname">ibeis.experiments.experiment_helpers.</tt><tt class="descname">get_cfg_list</tt><big>(</big><em>test_cfg_name_list</em>, <em>ibs=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_helpers.html#get_cfg_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_helpers.get_cfg_list" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(cfg_list, cfgx2_lbl)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.experiments.experiment_helpers &#8211;test-get_cfg_list</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.experiment_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;best&#39;</span><span class="p">,</span> <span class="s">&#39;custom&#39;</span><span class="p">,</span> <span class="s">&#39;custom:sv_on=False&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">cfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_cfg_list</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">query_cfg0</span> <span class="o">=</span> <span class="n">cfg_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">query_cfg1</span> <span class="o">=</span> <span class="n">cfg_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">query_cfg0</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">sv_on</span> <span class="ow">is</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">query_cfg1</span><span class="o">.</span><span class="n">sv_cfg</span><span class="o">.</span><span class="n">sv_on</span> <span class="ow">is</span> <span class="bp">False</span>
+</pre></div>
 </div>
-<div class="section" id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_helpers.get_cfg_list_and_lbls">
+<tt class="descclassname">ibeis.experiments.experiment_helpers.</tt><tt class="descname">get_cfg_list_and_lbls</tt><big>(</big><em>test_cfg_name_list</em>, <em>ibs=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_helpers.html#get_cfg_list_and_lbls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_helpers.get_cfg_list_and_lbls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Driver function</p>
+<p>Returns a list of varied query configurations. Only custom configs depend on
+IBEIS</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<em>IBEISController</em>) &#8211; optional for custom configs</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(cfg_list, cfgx2_lbl)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.experiment_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments</span> <span class="kn">import</span> <span class="n">experiment_helpers</span> <span class="k">as</span> <span class="n">eh</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;lnbnn2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="bp">None</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_helpers.get_cfg_list_helper">
+<tt class="descclassname">ibeis.experiments.experiment_helpers.</tt><tt class="descname">get_cfg_list_helper</tt><big>(</big><em>test_cfg_name_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_helpers.html#get_cfg_list_helper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_helpers.get_cfg_list_helper" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><dl class="docutils">
+<dt>Example:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.experiment_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;lnbnn2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfg_list</span><span class="p">,</span> <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="n">get_cfg_list_helper</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgstr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span> <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">cfg_list</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>&#8216;.join(cfgstr_list))</dt>
+<dd><blockquote class="first">
+<div><blockquote>
+<div>_vsmany_NN(K4+1,last,cks1024)_FILT()_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)
+_vsmany_NN(K4+1,last,cks1024)_FILT(logdist_1.0)_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)
+_vsmany_NN(K4+1,last,cks1024)_FILT(normonly_1.0)_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)
+_vsmany_NN(K4+1,last,cks1024)_FILT(lnbnn_1.0)_SV(50,0.01_2_1.57,csum)_AGG(csum)_FLANN(4_kdtrees)_FEAT(hesaff+sift,0_9001)_CHIP(sz450)</div></blockquote>
+<dl class="docutils">
+<dt>Ignore:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">cfg_list</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s">&#39;____&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">cfg</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="last docutils">
+<dt>CommandLine:</dt>
+<dd>python dev.py &#8211;allgt -t lnbnn2 &#8211;db PZ_Mothers &#8211;noqcache</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_helpers.get_varied_params_list">
+<tt class="descclassname">ibeis.experiments.experiment_helpers.</tt><tt class="descname">get_varied_params_list</tt><big>(</big><em>test_cfg_name_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_helpers.html#get_varied_params_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_helpers.get_varied_params_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>builds all combinations from dicts defined in experiment_configs</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.experiments.experiment_helpers &#8211;test-get_varied_params_list</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.experiment_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;lnbnn2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;elph&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">varied_params_list</span><span class="p">,</span> <span class="n">varied_param_lbls</span> <span class="o">=</span> <span class="n">get_varied_params_list</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">varied_params_list</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">varied_param_lbls</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_helpers.get_vary_dicts">
+<tt class="descclassname">ibeis.experiments.experiment_helpers.</tt><tt class="descname">get_vary_dicts</tt><big>(</big><em>test_cfg_name_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_helpers.html#get_vary_dicts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_helpers.get_vary_dicts" title="Permalink to this definition">¶</a></dt>
+<dd><p>build varydicts from experiment_configs.
+recomputes test_cfg_name_list_out in case there are any nested lists specified in it</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.experiments.experiment_helpers &#8211;test-get_vary_dicts</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.experiment_helpers</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;lnbnn2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vary_dicts</span><span class="p">,</span> <span class="n">test_cfg_name_list_out</span> <span class="o">=</span> <span class="n">get_vary_dicts</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">vary_dicts</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">[</span>
+<span class="go">    {&#39;lnbnn_weight&#39;: [0.0], &#39;loglnbnn_weight&#39;: [0.0, 1.0], &#39;normonly_weight&#39;: [0.0], &#39;pipeline_root&#39;: [&#39;vsmany&#39;], &#39;sv_on&#39;: [True],},</span>
+<span class="go">    {&#39;lnbnn_weight&#39;: [0.0], &#39;loglnbnn_weight&#39;: [0.0], &#39;normonly_weight&#39;: [0.0, 1.0], &#39;pipeline_root&#39;: [&#39;vsmany&#39;], &#39;sv_on&#39;: [True],},</span>
+<span class="go">    {&#39;lnbnn_weight&#39;: [0.0, 1.0], &#39;loglnbnn_weight&#39;: [0.0], &#39;normonly_weight&#39;: [0.0], &#39;pipeline_root&#39;: [&#39;vsmany&#39;], &#39;sv_on&#39;: [True],},</span>
+<span class="go">]</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>[</dt>
+<dd>{&#8216;sv_on&#8217;: [True], &#8216;logdist_weight&#8217;: [0.0, 1.0], &#8216;lnbnn_weight&#8217;: [0.0], &#8216;pipeline_root&#8217;: [&#8216;vsmany&#8217;], &#8216;normonly_weight&#8217;: [0.0]},
+{&#8216;sv_on&#8217;: [True], &#8216;logdist_weight&#8217;: [0.0], &#8216;lnbnn_weight&#8217;: [0.0], &#8216;pipeline_root&#8217;: [&#8216;vsmany&#8217;], &#8216;normonly_weight&#8217;: [0.0, 1.0]},
+{&#8216;sv_on&#8217;: [True], &#8216;logdist_weight&#8217;: [0.0], &#8216;lnbnn_weight&#8217;: [0.0, 1.0], &#8216;pipeline_root&#8217;: [&#8216;vsmany&#8217;], &#8216;normonly_weight&#8217;: [0.0]},</dd>
+</dl>
+<p>]</p>
+<dl class="docutils">
+<dt>Ignore:</dt>
+<dd>print(utool.indent(utool.list_str(vary_dicts), &#8216; &#8216; * 8))</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_helpers.rankscore_str">
+<tt class="descclassname">ibeis.experiments.experiment_helpers.</tt><tt class="descname">rankscore_str</tt><big>(</big><em>thresh</em>, <em>nLess</em>, <em>total</em>, <em>withlbl=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_helpers.html#rankscore_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_helpers.rankscore_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_helpers.wrap_cfgstr">
+<tt class="descclassname">ibeis.experiments.experiment_helpers.</tt><tt class="descname">wrap_cfgstr</tt><big>(</big><em>cfgstr</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_helpers.html#wrap_cfgstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_helpers.wrap_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.experiments.experiment_printres">
+<span id="ibeis-experiments-experiment-printres-module"></span><h2>ibeis.experiments.experiment_printres module<a class="headerlink" href="#module-ibeis.experiments.experiment_printres" title="Permalink to this headline">¶</a></h2>
+<p>displays results from experiment_harness</p>
+<dl class="function">
+<dt id="ibeis.experiments.experiment_printres.get_diffmat_str">
+<tt class="descclassname">ibeis.experiments.experiment_printres.</tt><tt class="descname">get_diffmat_str</tt><big>(</big><em>rank_mat</em>, <em>qaids</em>, <em>nConfig</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_printres.html#get_diffmat_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_printres.get_diffmat_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_printres.get_diffranks">
+<tt class="descclassname">ibeis.experiments.experiment_printres.</tt><tt class="descname">get_diffranks</tt><big>(</big><em>rank_mat</em>, <em>qaids</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_printres.html#get_diffranks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_printres.get_diffranks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find rows which scored differently over the various configs
+FIXME: duplicated</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.experiment_printres.print_results">
+<tt class="descclassname">ibeis.experiments.experiment_printres.</tt><tt class="descname">print_results</tt><big>(</big><em>ibs</em>, <em>test_result</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_printres.html#print_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_printres.print_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints results from an experiment harness run.
+Rows store different qaids (query annotation ids)
+Cols store different configurations (algorithm parameters)</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd><p class="first">python dev.py -t best &#8211;db seals2 &#8211;allgt &#8211;vz</p>
+<p>python dev.py &#8211;db PZ_MTEST &#8211;allgt -t custom &#8211;print-confusion-stats</p>
+<p>python dev.py &#8211;db PZ_MTEST &#8211;allgt &#8211;noqcache &#8211;index 0:10:2 -t custom:rrvsone_on=True &#8211;print-scorediff-mat-stats
+python dev.py &#8211;db PZ_MTEST &#8211;allgt &#8211;noqcache &#8211;index 0:10:2 -t custom:rrvsone_on=True &#8211;print-scorediff-mat-stats
+python dev.py &#8211;db PZ_MTEST &#8211;allgt &#8211;noqcache &#8211;index 0:10:2 -t custom:rrvsone_on=True &#8211;print-confusion-stats &#8211;print-scorediff-mat-stats</p>
+<p class="last">python dev.py &#8211;db PZ_MTEST &#8211;allgt &#8211;noqcache &#8211;index 0:10:2 -t custom:rrvsone_on=True &#8211;print-confusion-stats
+python dev.py &#8211;db PZ_MTEST &#8211;allgt &#8211;noqcache &#8211;qaid4 -t custom:rrvsone_on=True &#8211;print-confusion-stats</p>
+</dd>
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.experiments.experiment_printres &#8211;test-print_results
+utprof.py -m ibeis.experiments.experiment_printres &#8211;test-print_results</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.experiment_printres</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments</span> <span class="kn">import</span> <span class="n">experiment_harness</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">Species</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;pyrscale&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span> <span class="n">hasgt</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_result</span> <span class="o">=</span> <span class="n">experiment_harness</span><span class="o">.</span><span class="n">run_test_configurations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">test_cfg_name_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">print_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">test_result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.experiments.experiment_storage">
+<span id="ibeis-experiments-experiment-storage-module"></span><h2>ibeis.experiments.experiment_storage module<a class="headerlink" href="#module-ibeis.experiments.experiment_storage" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ibeis.experiments.experiment_storage.ResultMetadata">
+<em class="property">class </em><tt class="descclassname">ibeis.experiments.experiment_storage.</tt><tt class="descname">ResultMetadata</tt><big>(</big><em>metadata</em>, <em>fpath</em>, <em>autoconnect=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#ResultMetadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.ResultMetadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.ResultMetadata.clear">
+<tt class="descname">clear</tt><big>(</big><em>metadata</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#ResultMetadata.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.ResultMetadata.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.ResultMetadata.close">
+<tt class="descname">close</tt><big>(</big><em>metadata</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#ResultMetadata.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.ResultMetadata.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.ResultMetadata.connect">
+<tt class="descname">connect</tt><big>(</big><em>metadata</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#ResultMetadata.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.ResultMetadata.connect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.ResultMetadata.get_cfgstr_list">
+<tt class="descname">get_cfgstr_list</tt><big>(</big><em>metadata</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#ResultMetadata.get_cfgstr_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.ResultMetadata.get_cfgstr_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.ResultMetadata.get_column_keys">
+<tt class="descname">get_column_keys</tt><big>(</big><em>metadata</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#ResultMetadata.get_column_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.ResultMetadata.get_column_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.ResultMetadata.get_square_data">
+<tt class="descname">get_square_data</tt><big>(</big><em>metadata</em>, <em>cfgstr=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#ResultMetadata.get_square_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.ResultMetadata.get_square_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.ResultMetadata.rrr">
+<tt class="descname">rrr</tt><big>(</big><em>verbose=True</em><big>)</big><a class="headerlink" href="#ibeis.experiments.experiment_storage.ResultMetadata.rrr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.ResultMetadata.set_global_data">
+<tt class="descname">set_global_data</tt><big>(</big><em>metadata</em>, <em>cfgstr</em>, <em>qaid</em>, <em>key</em>, <em>val</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#ResultMetadata.set_global_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.ResultMetadata.set_global_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.ResultMetadata.sync_test_results">
+<tt class="descname">sync_test_results</tt><big>(</big><em>metadata</em>, <em>test_result</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#ResultMetadata.sync_test_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.ResultMetadata.sync_test_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>store all test results in the shelf</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.ResultMetadata.write">
+<tt class="descname">write</tt><big>(</big><em>metadata</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#ResultMetadata.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.ResultMetadata.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ibeis.experiments.experiment_storage.TestResult">
+<em class="property">class </em><tt class="descclassname">ibeis.experiments.experiment_storage.</tt><tt class="descname">TestResult</tt><big>(</big><em>test_result</em>, <em>cfg_list</em>, <em>cfgx2_lbl</em>, <em>lbl</em>, <em>testnameid</em>, <em>cfgx2_cfgresinfo</em>, <em>cfgx2_qreq_</em>, <em>daids</em>, <em>qaids</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#TestResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.TestResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.TestResult.get_cfgstr">
+<tt class="descname">get_cfgstr</tt><big>(</big><em>test_result</em>, <em>cfgx</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#TestResult.get_cfgstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.TestResult.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>just daids and config_str</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.TestResult.get_full_cfgstr">
+<tt class="descname">get_full_cfgstr</tt><big>(</big><em>test_result</em>, <em>cfgx</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#TestResult.get_full_cfgstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.TestResult.get_full_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>both qaids and daids included</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.TestResult.get_new_hard_qx_list">
+<tt class="descname">get_new_hard_qx_list</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#TestResult.get_new_hard_qx_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.TestResult.get_new_hard_qx_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark any query as hard if it didnt get everything correct</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.TestResult.get_rank_histogram_bin_edges">
+<tt class="descname">get_rank_histogram_bin_edges</tt><big>(</big><em>test_result</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#TestResult.get_rank_histogram_bin_edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.TestResult.get_rank_histogram_bin_edges" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.TestResult.get_rank_histogram_bins">
+<tt class="descname">get_rank_histogram_bins</tt><big>(</big><em>test_result</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#TestResult.get_rank_histogram_bins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.TestResult.get_rank_histogram_bins" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.TestResult.get_rank_histogram_qx_binxs">
+<tt class="descname">get_rank_histogram_qx_binxs</tt><big>(</big><em>test_result</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#TestResult.get_rank_histogram_qx_binxs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.TestResult.get_rank_histogram_qx_binxs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.TestResult.get_rank_histogram_qx_sample">
+<tt class="descname">get_rank_histogram_qx_sample</tt><big>(</big><em>test_result</em>, <em>size=10</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#TestResult.get_rank_histogram_qx_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.TestResult.get_rank_histogram_qx_sample" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.TestResult.get_rank_histograms">
+<tt class="descname">get_rank_histograms</tt><big>(</big><em>test_result</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#TestResult.get_rank_histograms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.TestResult.get_rank_histograms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.TestResult.get_rank_mat">
+<tt class="descname">get_rank_mat</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#TestResult.get_rank_mat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.TestResult.get_rank_mat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.TestResult.get_worst_possible_rank">
+<tt class="descname">get_worst_possible_rank</tt><big>(</big><em>test_result</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/experiment_storage.html#TestResult.get_worst_possible_rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.experiment_storage.TestResult.get_worst_possible_rank" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.experiment_storage.TestResult.rrr">
+<tt class="descname">rrr</tt><big>(</big><em>verbose=True</em><big>)</big><a class="headerlink" href="#ibeis.experiments.experiment_storage.TestResult.rrr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.experiments.results_all">
+<span id="ibeis-experiments-results-all-module"></span><h2>ibeis.experiments.results_all module<a class="headerlink" href="#module-ibeis.experiments.results_all" title="Permalink to this headline">¶</a></h2>
+<p>not really used
+most things in here can be depricated</p>
+<dl class="class">
+<dt id="ibeis.experiments.results_all.AllResults">
+<em class="property">class </em><tt class="descclassname">ibeis.experiments.results_all.</tt><tt class="descname">AllResults</tt><big>(</big><em>allres</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_all.html#AllResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_all.AllResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">utool.DynamicStruct.DynStruct</span></tt></p>
+<p>Data container for all compiled results</p>
+<dl class="method">
+<dt id="ibeis.experiments.results_all.AllResults.get_cfgstr">
+<tt class="descname">get_cfgstr</tt><big>(</big><em>allres</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_all.html#AllResults.get_cfgstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_all.AllResults.get_cfgstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.results_all.AllResults.get_orgres_annotationmatch_scores">
+<tt class="descname">get_orgres_annotationmatch_scores</tt><big>(</big><em>allres</em>, <em>orgtype_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_all.html#AllResults.get_orgres_annotationmatch_scores"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_all.AllResults.get_orgres_annotationmatch_scores" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.results_all.AllResults.get_orgres_desc_match_dists">
+<tt class="descname">get_orgres_desc_match_dists</tt><big>(</big><em>allres</em>, <em>orgtype_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_all.html#AllResults.get_orgres_desc_match_dists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_all.AllResults.get_orgres_desc_match_dists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.results_all.AllResults.get_orgtype">
+<tt class="descname">get_orgtype</tt><big>(</big><em>allres</em>, <em>orgtype</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_all.html#AllResults.get_orgtype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_all.AllResults.get_orgtype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.results_all.AllResults.get_qres">
+<tt class="descname">get_qres</tt><big>(</big><em>allres</em>, <em>qaid</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_all.html#AllResults.get_qres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_all.AllResults.get_qres" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.results_all.AllResults.make_title">
+<tt class="descname">make_title</tt><big>(</big><em>allres</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_all.html#AllResults.make_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_all.AllResults.make_title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.results_all.build_cache_key">
+<tt class="descclassname">ibeis.experiments.results_all.</tt><tt class="descname">build_cache_key</tt><big>(</big><em>ibs</em>, <em>qaid_list</em>, <em>daid_list</em>, <em>cfgdict</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_all.html#build_cache_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_all.build_cache_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.results_all.get_allres">
+<tt class="descclassname">ibeis.experiments.results_all.</tt><tt class="descname">get_allres</tt><big>(</big><em>ibs</em>, <em>qaid_list</em>, <em>daid_list=None</em>, <em>cfgdict=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_all.html#get_allres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_all.get_allres" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>qaid_list</strong> (<em>int</em>) &#8211; query annotation id</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">allres</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">AllResults</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dev</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allres</span> <span class="o">=</span> <span class="n">get_allres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">allres</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allres</span><span class="o">.</span><span class="n">allorg</span><span class="p">[</span><span class="s">&#39;top_true&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.results_all.get_qres_and_qreq_">
+<tt class="descclassname">ibeis.experiments.results_all.</tt><tt class="descname">get_qres_and_qreq_</tt><big>(</big><em>ibs</em>, <em>qaid_list</em>, <em>daid_list=None</em>, <em>cfgdict=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_all.html#get_qres_and_qreq_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_all.get_qres_and_qreq_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.results_all.init_allres">
+<tt class="descclassname">ibeis.experiments.results_all.</tt><tt class="descname">init_allres</tt><big>(</big><em>ibs</em>, <em>qaid2_qres</em>, <em>qreq_=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_all.html#init_allres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_all.init_allres" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.experiments.results_analyzer">
+<span id="ibeis-experiments-results-analyzer-module"></span><h2>ibeis.experiments.results_analyzer module<a class="headerlink" href="#module-ibeis.experiments.results_analyzer" title="Permalink to this headline">¶</a></h2>
+<p>not really used
+most things in here can be depricated</p>
+<dl class="function">
+<dt id="ibeis.experiments.results_analyzer.get_matching_descriptors">
+<tt class="descclassname">ibeis.experiments.results_analyzer.</tt><tt class="descname">get_matching_descriptors</tt><big>(</big><em>allres</em>, <em>qaid_list</em>, <em>daid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_analyzer.html#get_matching_descriptors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_analyzer.get_matching_descriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a set of matching descriptors from queries to database annotations
+in allres</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>allres</strong> (<em>AllResults</em>) &#8211; all results object</li>
+<li><strong>qaid_list</strong> (<em>list</em>) &#8211; query annotation id list</li>
+<li><strong>daid_list</strong> (<em>list</em>) &#8211; database annotation id list</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">(stacked_qvecs, stacked_dvecs)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.results_analyzer</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allres</span> <span class="o">=</span> <span class="n">results_all</span><span class="o">.</span><span class="n">get_allres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">hasgt</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orgres</span> <span class="o">=</span> <span class="n">allres</span><span class="o">.</span><span class="n">get_orgtype</span><span class="p">(</span><span class="s">&#39;top_true&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">orgres</span><span class="o">.</span><span class="n">qaids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span>  <span class="o">=</span> <span class="n">orgres</span><span class="o">.</span><span class="n">aids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">stacked_qvecs</span><span class="p">,</span> <span class="n">stacked_dvecs</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_matching_descriptors</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">((</span><span class="n">stacked_qvecs</span><span class="p">,</span> <span class="n">stacked_dvecs</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.results_analyzer.get_orgres_annotationmatch_scores">
+<tt class="descclassname">ibeis.experiments.results_analyzer.</tt><tt class="descname">get_orgres_annotationmatch_scores</tt><big>(</big><em>allres, orgtype_list=['false', 'true'], verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_analyzer.html#get_orgres_annotationmatch_scores"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_analyzer.get_orgres_annotationmatch_scores" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.results_analyzer.get_orgres_desc_match_dists">
+<tt class="descclassname">ibeis.experiments.results_analyzer.</tt><tt class="descname">get_orgres_desc_match_dists</tt><big>(</big><em>allres, orgtype_list=['false', 'true'], distkey_list=['L2'], verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_analyzer.html#get_orgres_desc_match_dists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_analyzer.get_orgres_desc_match_dists" title="Permalink to this definition">¶</a></dt>
+<dd><p>computes distances between matching descriptors of orgtypes in allres</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>allres</strong> (<em>AllResults</em>) &#8211; AllResults object</li>
+<li><strong>orgtype_list</strong> (<em>list</em>) &#8211; of strings denoting the type of results to compare</li>
+<li><strong>distkey_list</strong> (<em>list</em>) &#8211; list of requested distance types</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">orgres2_descmatch_dists mapping from orgtype to dicts of distances (ndarrays)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Just SIFT distance seems to have a very interesting property</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd><p class="first">python -m ibeis.experiments.results_analyzer &#8211;test-get_orgres_desc_match_dists
+python -m ibeis.experiments.results_analyzer &#8211;test-get_orgres_desc_match_dists &#8211;show
+python -m ibeis.experiments.results_analyzer &#8211;test-get_orgres_desc_match_dists &#8211;db PZ_Master0 &#8211;show
+python -m ibeis.experiments.results_analyzer &#8211;test-get_orgres_desc_match_dists &#8211;db PZ_Master0 &#8211;distkeys=fs,lnbnn,bar_L2_sift &#8211;show
+python -m ibeis.experiments.results_analyzer &#8211;test-get_orgres_desc_match_dists &#8211;db PZ_MTEST &#8211;distkeys=fs,lnbnn,bar_L2_sift,cos_sift &#8211;show
+python -m ibeis.experiments.results_analyzer &#8211;test-get_orgres_desc_match_dists &#8211;db PZ_Master0 &#8211;distkeys=fs,lnbnn,bar_L2_sift,cos_sift &#8211;show
+python -m ibeis.experiments.results_analyzer &#8211;test-get_orgres_desc_match_dists &#8211;db PZ_MTEST &#8211;distkeys=cos_sift &#8211;show
+python -m ibeis.experiments.results_analyzer &#8211;test-get_orgres_desc_match_dists &#8211;db PZ_Master0 &#8211;distkeys=fs,lnbnn,bar_L2_sift,cos_sift &#8211;show &#8211;nosupport</p>
+<p>python -m ibeis.experiments.results_analyzer &#8211;test-get_orgres_desc_match_dists &#8211;db PZ_MTEST &#8211;distkeys=lnbnn &#8211;show &#8211;feat_type=hesaff+siam128
+python -m ibeis.experiments.results_analyzer &#8211;test-get_orgres_desc_match_dists &#8211;db PZ_MTEST &#8211;distkeys=lnbnn &#8211;show &#8211;feat_type=hesaff+sift</p>
+<p class="last">python -m ibeis.experiments.results_analyzer &#8211;test-get_orgres_desc_match_dists &#8211;db PZ_MTEST &#8211;distkeys=lnbnn &#8211;show &#8211;feat_type=hesaff+sift &#8211;num-top-fs=2
+python -m ibeis.experiments.results_analyzer &#8211;test-get_orgres_desc_match_dists &#8211;db PZ_MTEST &#8211;distkeys=lnbnn &#8211;show &#8211;feat_type=hesaff+sift &#8211;num-top-fs=10
+python -m ibeis.experiments.results_analyzer &#8211;test-get_orgres_desc_match_dists &#8211;db PZ_MTEST &#8211;distkeys=lnbnn &#8211;show &#8211;feat_type=hesaff+sift &#8211;num-top-fs=1000
+python -m ibeis.experiments.results_analyzer &#8211;test-get_orgres_desc_match_dists &#8211;db PZ_MTEST &#8211;distkeys=lnbnn &#8211;show &#8211;feat_type=hesaff+siam128 &#8211;num-top-fs=1</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.results_analyzer</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments</span> <span class="kn">import</span> <span class="n">results_all</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">hasgt</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">parse_config_items</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">())),</span> <span class="n">only_specified</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allres</span> <span class="o">=</span> <span class="n">results_all</span><span class="o">.</span><span class="n">get_allres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># {&#39;feat_type&#39;: &#39;hesaff+siam128&#39;})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orgtype_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;false&#39;</span><span class="p">,</span> <span class="s">&#39;top_true&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">distkey_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--distkeys&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;fs&#39;</span><span class="p">,</span> <span class="s">&#39;lnbnn&#39;</span><span class="p">,</span> <span class="s">&#39;bar_L2_sift&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#distkey_list = [&#39;hist_isect&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#distkey_list = [&#39;L2_sift&#39;, &#39;bar_L2_sift&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orgres2_descmatch_dists</span> <span class="o">=</span> <span class="n">get_orgres_desc_match_dists</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="p">,</span> <span class="n">distkey_list</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#print(&#39;orgres2_descmatch_dists = &#39; + ut.dict_str(orgres2_descmatch_dists, truncate=-1, precision=3))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stats_</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_val_map</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">orgres2_descmatch_dists</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;orgres2_descmatch_dists = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">stats_</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># ------ VISUALIZE ------------</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># If viewing a large amount of data this might help on OverFlowError</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#ut.embed()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># http://stackoverflow.com/questions/20330475/matplotlib-overflowerror-allocated-too-many-blocks</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># http://matplotlib.org/1.3.1/users/customizing.html</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">limit_</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">100</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">limit_</span> <span class="ow">or</span> <span class="bp">True</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="kn">as</span> <span class="nn">mpl</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s">&#39;agg.path.chunksize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># visualize the descriptor scores</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">distkey</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">distkey_list</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">encoder</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ScoreNormalizer</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">tn_scores</span><span class="p">,</span> <span class="n">tp_scores</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">orgres2_descmatch_dists</span><span class="p">,</span> <span class="n">orgtype_list</span><span class="p">),</span> <span class="n">distkey</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">encoder</span><span class="o">.</span><span class="n">fit_partitioned</span><span class="p">(</span><span class="n">tp_scores</span><span class="p">,</span> <span class="n">tn_scores</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">figtitle</span> <span class="o">=</span> <span class="s">&#39;Descriptor Distance: </span><span class="si">%r</span><span class="s">. db=</span><span class="si">%r</span><span class="se">\n</span><span class="s">orgtype_list=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">distkey</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="n">orgtype_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">use_support</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nosupport&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">encoder</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span><span class="n">figtitle</span><span class="o">=</span><span class="n">figtitle</span><span class="p">,</span> <span class="n">use_stems</span><span class="o">=</span><span class="ow">not</span> <span class="n">limit_</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">with_normscore</span><span class="o">=</span><span class="n">use_support</span><span class="p">,</span> <span class="n">with_scores</span><span class="o">=</span><span class="n">use_support</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.results_analyzer.print_annotationmatch_scores_map">
+<tt class="descclassname">ibeis.experiments.results_analyzer.</tt><tt class="descname">print_annotationmatch_scores_map</tt><big>(</big><em>orgres2_scores</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_analyzer.html#print_annotationmatch_scores_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_analyzer.print_annotationmatch_scores_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.results_analyzer.print_desc_distances_map">
+<tt class="descclassname">ibeis.experiments.results_analyzer.</tt><tt class="descname">print_desc_distances_map</tt><big>(</big><em>orgres2_distmap</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_analyzer.html#print_desc_distances_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_analyzer.print_desc_distances_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.experiments.results_organizer">
+<span id="ibeis-experiments-results-organizer-module"></span><h2>ibeis.experiments.results_organizer module<a class="headerlink" href="#module-ibeis.experiments.results_organizer" title="Permalink to this headline">¶</a></h2>
+<p>not really used
+most things in here can be depricated</p>
+<dl class="class">
+<dt id="ibeis.experiments.results_organizer.OrganizedResult">
+<em class="property">class </em><tt class="descclassname">ibeis.experiments.results_organizer.</tt><tt class="descname">OrganizedResult</tt><big>(</big><em>orgtype=''</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_organizer.html#OrganizedResult"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_organizer.OrganizedResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">utool.DynamicStruct.DynStruct</span></tt></p>
+<p>What chips are populated depends on the type of organization</p>
+<p class="rubric">Notes</p>
+<dl class="docutils">
+<dt>Maintains an organized list of:</dt>
+<dd><ul class="first last simple">
+<li>query annotation indexes</li>
+<li>their top matching result</li>
+<li>their score</li>
+<li>their rank</li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="ibeis.experiments.results_organizer.OrganizedResult.append">
+<tt class="descname">append</tt><big>(</big><em>qaid</em>, <em>aid</em>, <em>rank</em>, <em>score</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_organizer.html#OrganizedResult.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_organizer.OrganizedResult.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.results_organizer.OrganizedResult.freeze">
+<tt class="descname">freeze</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_organizer.html#OrganizedResult.freeze"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_organizer.OrganizedResult.freeze" title="Permalink to this definition">¶</a></dt>
+<dd><p>No more appending</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.results_organizer.OrganizedResult.iter">
+<tt class="descname">iter</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_organizer.html#OrganizedResult.iter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_organizer.OrganizedResult.iter" title="Permalink to this definition">¶</a></dt>
+<dd><p>useful for plotting</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.results_organizer.OrganizedResult.iter_sorted">
+<tt class="descname">iter_sorted</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_organizer.html#OrganizedResult.iter_sorted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_organizer.OrganizedResult.iter_sorted" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.results_organizer.OrganizedResult.printme3">
+<tt class="descname">printme3</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_organizer.html#OrganizedResult.printme3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_organizer.OrganizedResult.printme3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.experiments.results_organizer.OrganizedResult.where_ranks_lt">
+<tt class="descname">where_ranks_lt</tt><big>(</big><em>orgres</em>, <em>num</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_organizer.html#OrganizedResult.where_ranks_lt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_organizer.OrganizedResult.where_ranks_lt" title="Permalink to this definition">¶</a></dt>
+<dd><p>get new orgres where all the ranks are less or equal to</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.results_organizer.get_automatch_candidates">
+<tt class="descclassname">ibeis.experiments.results_organizer.</tt><tt class="descname">get_automatch_candidates</tt><big>(</big><em>qaid2_qres</em>, <em>ranks_lt=5</em>, <em>directed=True</em>, <em>name_scoring=False</em>, <em>ibs=None</em>, <em>filter_reviewed=False</em>, <em>filter_duplicate_namepair_matches=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_organizer.html#get_automatch_candidates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_organizer.get_automatch_candidates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of matches that should be inspected
+This function is more lightweight than orgres or allres.
+Used in inspect_gui and interact_qres2</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>qaid2_qres</strong> (<em>dict</em>) &#8211; mapping from query annotaiton id to query result object</li>
+<li><strong>ranks_lt</strong> (<em>int</em>) &#8211; put all ranks less than this number into the graph</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">candidate_matches = (qaid_arr, daid_arr, score_arr, rank_arr)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.experiments.results_organizer &#8211;test-get_automatch_candidates:2</dd>
+<dt>Example0:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># UNSTABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.results_organizer</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">directed</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name_scoring</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">candidate_matches</span> <span class="o">=</span> <span class="n">get_automatch_candidates</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="p">,</span> <span class="n">directed</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">candidate_matches</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>Example1:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># UNSTABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.results_organizer</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">directed</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name_scoring</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_reviewed</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_duplicate_namepair_matches</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">candidate_matches</span> <span class="o">=</span> <span class="n">get_automatch_candidates</span><span class="p">(</span>
+<span class="gp">... </span>   <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="p">,</span> <span class="n">directed</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">filter_reviewed</span><span class="o">=</span><span class="n">filter_reviewed</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">filter_duplicate_namepair_matches</span><span class="o">=</span><span class="n">filter_duplicate_namepair_matches</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">candidate_matches</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>Example3:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># UNSTABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.results_organizer</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">10</span><span class="p">:</span><span class="mi">100</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">directed</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name_scoring</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_reviewed</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_duplicate_namepair_matches</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">candidate_matches</span> <span class="o">=</span> <span class="n">get_automatch_candidates</span><span class="p">(</span>
+<span class="gp">... </span>   <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="p">,</span> <span class="n">directed</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">filter_reviewed</span><span class="o">=</span><span class="n">filter_reviewed</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">filter_duplicate_namepair_matches</span><span class="o">=</span><span class="n">filter_duplicate_namepair_matches</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">candidate_matches</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>Example4:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># UNSTABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.results_organizer</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">directed</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">name_scoring</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_reviewed</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_duplicate_namepair_matches</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">candidate_matches</span> <span class="o">=</span> <span class="n">get_automatch_candidates</span><span class="p">(</span>
+<span class="gp">... </span>   <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="p">,</span> <span class="n">directed</span><span class="p">,</span> <span class="n">name_scoring</span><span class="o">=</span><span class="n">name_scoring</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">filter_reviewed</span><span class="o">=</span><span class="n">filter_reviewed</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">filter_duplicate_namepair_matches</span><span class="o">=</span><span class="n">filter_duplicate_namepair_matches</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">candidate_matches</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.results_organizer.organize_results">
+<tt class="descclassname">ibeis.experiments.results_organizer.</tt><tt class="descname">organize_results</tt><big>(</big><em>ibs</em>, <em>qaid2_qres</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_organizer.html#organize_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_organizer.organize_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sorts query result annotations, score, and ranks.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">orgres - contains OrganizedResult object of various types</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>ib
+python dev.py -t scores &#8211;db PZ_MTEST &#8211;allgt -w &#8211;show
+python dev.py -t scores &#8211;db PZ_MTEST &#8211;allgt -w &#8211;show &#8211;cfg codename=&#8217;vsone&#8217; fg_on:True &#8211;index 0:3
+python dev.py -t scores &#8211;db PZ_MTEST &#8211;allgt -w &#8211;show &#8211;cfg fg_on:True
+python dev.py -t scores &#8211;db GZ_ALL &#8211;allgt -w &#8211;show &#8211;cfg fg_on:True
+python dev.py -t scores &#8211;db GZ_ALL &#8211;allgt -w &#8211;show</dd>
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.experiments.results_organizer &#8211;test-organize_results</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.results_organizer</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">daid_list</span><span class="p">[</span><span class="mi">20</span><span class="p">:</span><span class="mi">60</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orgres</span> <span class="o">=</span> <span class="n">organize_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#orgres[&#39;true&#39;].printme3()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#orgres[&#39;false&#39;].printme3()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orgres</span><span class="p">[</span><span class="s">&#39;top_true&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orgres</span><span class="p">[</span><span class="s">&#39;top_false&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orgres</span><span class="p">[</span><span class="s">&#39;rank0_true&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orgres</span><span class="p">[</span><span class="s">&#39;rank0_false&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">printme3</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.results_organizer.qres2_true_and_false">
+<tt class="descclassname">ibeis.experiments.results_organizer.</tt><tt class="descname">qres2_true_and_false</tt><big>(</big><em>ibs</em>, <em>qres</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments/results_organizer.html#qres2_true_and_false"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.results_organizer.qres2_true_and_false" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO: generic metrics such as columns of fsv or num feature matches</p>
+<p>Organizes chip-vs-chip results into true positive set and false positive set
+a set is a query, its best match, and a score</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ibs</strong> (<em>IBEISController</em>) &#8211; ibeis controller object</li>
+<li><strong>qres</strong> (<em>QueryResult</em>) &#8211; object of feature correspondences and scores</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">(true_tup, false_tup)
+true_tup (tuple): (true_aids,  true_scores,  true_ranks)
+false_tup (tuple): (false_aids, false_scores, false_ranks)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.experiments.results_organizer &#8211;test-qres2_true_and_false</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.experiments.results_organizer</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">true_tup</span><span class="p">,</span> <span class="n">false_tup</span><span class="p">)</span> <span class="o">=</span> <span class="n">qres2_true_and_false</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">true_tup</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">false_tup</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.experiments">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.experiments" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.experiments.reassign_submodule_attributes">
+<tt class="descclassname">ibeis.experiments.</tt><tt class="descname">reassign_submodule_attributes</tt><big>(</big><em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>why reloading all the modules doesnt do this I don&#8217;t know</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.reload_subs">
+<tt class="descclassname">ibeis.experiments.</tt><tt class="descname">reload_subs</tt><big>(</big><em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/experiments.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.experiments.reload_subs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.experiments and submodules</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.experiments.rrrr">
+<tt class="descclassname">ibeis.experiments.</tt><tt class="descname">rrrr</tt><big>(</big><em>verbose=True</em><big>)</big><a class="headerlink" href="#ibeis.experiments.rrrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.experiments and submodules</p>
+</dd></dl>
+
 </div>
 </div>
 

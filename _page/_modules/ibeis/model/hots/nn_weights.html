@@ -60,14 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -171,6 +171,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">arr1</span> <span class="o">=</span> <span class="n">qfx2_qvec</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">)</span>
     <span class="n">arr2</span> <span class="o">=</span> <span class="n">qfx2_dvec</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FS_DTYPE</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">qfx2_qvec</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="s">&#39;must have normalized sift descriptors here&#39;</span>
     <span class="n">cosangle</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">componentwise_dot</span><span class="p">(</span><span class="n">arr1</span><span class="p">,</span> <span class="n">arr2</span><span class="p">)</span> <span class="o">/</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">PSEUDO_UINT8_MAX_SQRD</span>
     <span class="k">return</span> <span class="n">cosangle</span>
 
@@ -277,7 +278,7 @@
 <div class="viewcode-block" id="distinctiveness_match_weighter"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.distinctiveness_match_weighter">[docs]</a><span class="k">def</span> <span class="nf">distinctiveness_match_weighter</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; # SLOW_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.nn_weights import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import nn_weights</span>
 <span class="sd">        &gt;&gt;&gt; tup = plh.testdata_pre_weight_neighbors(&#39;PZ_MTEST&#39;, codename=&#39;vsone_dist_extern_distinctiveness&#39;)</span>
@@ -639,6 +640,12 @@
 <div class="viewcode-block" id="dist_fn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.dist_fn">[docs]</a><span class="k">def</span> <span class="nf">dist_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; just use straight up distance &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">vdist</span>
+
+</div>
+<span class="nd">@_register_nn_normalized_weight_func</span>
+<div class="viewcode-block" id="bar_l2_fn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.nn_weights.bar_l2_fn">[docs]</a><span class="k">def</span> <span class="nf">bar_l2_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; one - distnce. no normalizer &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">vdist</span>
 
 </div>
 <span class="nd">@_register_nn_normalized_weight_func</span>

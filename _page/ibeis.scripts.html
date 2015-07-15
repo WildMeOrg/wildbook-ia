@@ -62,14 +62,14 @@
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -113,11 +113,48 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="ibeis-scripts-rsync-ibeisdb-module">
-<h2>ibeis.scripts.rsync_ibeisdb module<a class="headerlink" href="#ibeis-scripts-rsync-ibeisdb-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ibeis.scripts.rsync_ibeisdb">
+<span id="ibeis-scripts-rsync-ibeisdb-module"></span><h2>ibeis.scripts.rsync_ibeisdb module<a class="headerlink" href="#module-ibeis.scripts.rsync_ibeisdb" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.scripts.rsync_ibeisdb
+python -m ibeis.scripts.rsync_ibeisdb &#8211;dryrun</dd>
+</dl>
+<dl class="function">
+<dt id="ibeis.scripts.rsync_ibeisdb.rsync">
+<tt class="descclassname">ibeis.scripts.rsync_ibeisdb.</tt><tt class="descname">rsync</tt><big>(</big><em>src_uri</em>, <em>dst_uri</em>, <em>exclude_dirs=[]</em>, <em>port=22</em>, <em>dryrun=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/scripts/rsync_ibeisdb.html#rsync"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.rsync_ibeisdb.rsync" title="Permalink to this definition">¶</a></dt>
+<dd><p>General function to push or pull a directory from a remote server to a local path</p>
+<p class="rubric">References</p>
+<p><a class="reference external" href="http://www.tecmint.com/rsync-local-remote-file-synchronization-commands/">http://www.tecmint.com/rsync-local-remote-file-synchronization-commands/</a>
+<a class="reference external" href="http://serverfault.com/questions/219013/showing-total-progress-in-rsync-is-it-possible">http://serverfault.com/questions/219013/showing-total-progress-in-rsync-is-it-possible</a></p>
+<dl class="docutils">
+<dt>Notes (rsync commandline options):</dt>
+<dd>rsync [OPTION]... SRC [SRC]... DEST
+-v : verbose
+-r : copies data recursively (but dont preserve timestamps and permission while transferring data
+-a : archive mode, allows recursive copying and preserves symlinks, permissions, user and group ownerships, and timestamps
+-z : compress file data
+-h : human-readable, output numbers in a human-readable format
+-P                          same as &#8211;partial &#8211;progress</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.rsync_ibeisdb.rsync_ibsdb_main">
+<tt class="descclassname">ibeis.scripts.rsync_ibeisdb.</tt><tt class="descname">rsync_ibsdb_main</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/scripts/rsync_ibeisdb.html#rsync_ibsdb_main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.rsync_ibeisdb.rsync_ibsdb_main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.rsync_ibeisdb.sync_ibeisdb">
+<tt class="descclassname">ibeis.scripts.rsync_ibeisdb.</tt><tt class="descname">sync_ibeisdb</tt><big>(</big><em>remote_uri</em>, <em>dbname</em>, <em>mode='pull'</em>, <em>workdir=None</em>, <em>port=22</em>, <em>dryrun=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/scripts/rsync_ibeisdb.html#sync_ibeisdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.rsync_ibeisdb.sync_ibeisdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>syncs an ibeisdb without syncing the cache or the chip directory
+(or the top level image directory because it shouldnt exist unless it is an
+old hots database)</p>
+</dd></dl>
+
 </div>
-<div class="section" id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ibeis.scripts">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.scripts" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 

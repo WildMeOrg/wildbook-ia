@@ -61,14 +61,14 @@
 <li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -112,17 +112,424 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="ibeis-web-app-module">
-<h2>ibeis.web.app module<a class="headerlink" href="#ibeis-web-app-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ibeis.web.app">
+<span id="ibeis-web-app-module"></span><h2>ibeis.web.app module<a class="headerlink" href="#module-ibeis.web.app" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.web.app.annotation_src">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">annotation_src</tt><big>(</big><em>aid=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#annotation_src"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.annotation_src" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.annotation_src_api">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">annotation_src_api</tt><big>(</big><em>aid=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#annotation_src_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.annotation_src_api" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the base64 encoded image of annotation &lt;aid&gt;</p>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: GET
+URL:    /api/annot/&lt;aid&gt;/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.api">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">api</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.api" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.convert_old_viewpoint_to_yaw">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">convert_old_viewpoint_to_yaw</tt><big>(</big><em>view_angle</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#convert_old_viewpoint_to_yaw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.convert_old_viewpoint_to_yaw" title="Permalink to this definition">¶</a></dt>
+<dd><p>we initially had viewpoint coordinates inverted</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TAU</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">old_viewpoint_labels</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;left&#39;</span>       <span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mf">0.000</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;frontleft&#39;</span>  <span class="p">,</span>  <span class="mi">45</span><span class="p">,</span> <span class="mf">0.125</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;front&#39;</span>      <span class="p">,</span>  <span class="mi">90</span><span class="p">,</span> <span class="mf">0.250</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;frontright&#39;</span> <span class="p">,</span> <span class="mi">135</span><span class="p">,</span> <span class="mf">0.375</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;right&#39;</span>      <span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mf">0.500</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;backright&#39;</span>  <span class="p">,</span> <span class="mi">225</span><span class="p">,</span> <span class="mf">0.625</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;back&#39;</span>       <span class="p">,</span> <span class="mi">270</span><span class="p">,</span> <span class="mf">0.750</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;backleft&#39;</span>   <span class="p">,</span> <span class="mi">315</span><span class="p">,</span> <span class="mf">0.875</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fmtstr</span> <span class="o">=</span> <span class="s">&#39;old </span><span class="si">%15r</span><span class="s"> </span><span class="si">%.2f</span><span class="s"> -&gt; new </span><span class="si">%15r</span><span class="s"> </span><span class="si">%.2f</span><span class="s">&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">radians</span> <span class="ow">in</span> <span class="n">old_viewpoint_labels</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">print</span><span class="p">(</span><span class="n">fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">convert_old_viewpoint_to_yaw</span><span class="p">(</span><span class="n">angle</span><span class="p">)))</span>
+</pre></div>
 </div>
-<div class="section" id="ibeis-web-appfuncs-module">
-<h2>ibeis.web.appfuncs module<a class="headerlink" href="#ibeis-web-appfuncs-module" title="Permalink to this headline">¶</a></h2>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.convert_yaw_to_old_viewpoint">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">convert_yaw_to_old_viewpoint</tt><big>(</big><em>yaw</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#convert_yaw_to_old_viewpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.convert_yaw_to_old_viewpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>we initially had viewpoint coordinates inverted</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">math</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TAU</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">old_viewpoint_labels</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;left&#39;</span>       <span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mf">0.000</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;frontleft&#39;</span>  <span class="p">,</span>  <span class="mi">45</span><span class="p">,</span> <span class="mf">0.125</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;front&#39;</span>      <span class="p">,</span>  <span class="mi">90</span><span class="p">,</span> <span class="mf">0.250</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;frontright&#39;</span> <span class="p">,</span> <span class="mi">135</span><span class="p">,</span> <span class="mf">0.375</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;right&#39;</span>      <span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mf">0.500</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;backright&#39;</span>  <span class="p">,</span> <span class="mi">225</span><span class="p">,</span> <span class="mf">0.625</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;back&#39;</span>       <span class="p">,</span> <span class="mi">270</span><span class="p">,</span> <span class="mf">0.750</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="s">&#39;backleft&#39;</span>   <span class="p">,</span> <span class="mi">315</span><span class="p">,</span> <span class="mf">0.875</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fmtstr</span> <span class="o">=</span> <span class="s">&#39;original_angle </span><span class="si">%15r</span><span class="s"> </span><span class="si">%.2f</span><span class="s"> -&gt; yaw </span><span class="si">%15r</span><span class="s"> </span><span class="si">%.2f</span><span class="s"> -&gt; reconstructed_angle </span><span class="si">%15r</span><span class="s"> </span><span class="si">%.2f</span><span class="s">&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">radians</span> <span class="ow">in</span> <span class="n">old_viewpoint_labels</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">yaw</span> <span class="o">=</span> <span class="n">convert_old_viewpoint_to_yaw</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">reconstructed_angle</span> <span class="o">=</span> <span class="n">convert_yaw_to_old_viewpoint</span><span class="p">(</span><span class="n">yaw</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">print</span><span class="p">(</span><span class="n">fmtstr</span> <span class="o">%</span> <span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">yaw</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">reconstructed_angle</span><span class="p">))</span>
+</pre></div>
 </div>
-<div class="section" id="ibeis-web-test-api-module">
-<h2>ibeis.web.test_api module<a class="headerlink" href="#ibeis-web-test-api-module" title="Permalink to this headline">¶</a></h2>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.dbinfo">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">dbinfo</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#dbinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.dbinfo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.default_species">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">default_species</tt><big>(</big><em>ibs</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#default_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.default_species" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.display_sightings">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">display_sightings</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#display_sightings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.display_sightings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.download_sightings">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">download_sightings</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#download_sightings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.download_sightings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.encounter_annot_additional_processed">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">encounter_annot_additional_processed</tt><big>(</big><em>ibs</em>, <em>aid_list</em>, <em>nid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#encounter_annot_additional_processed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.encounter_annot_additional_processed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.encounter_annot_quality_processed">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">encounter_annot_quality_processed</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#encounter_annot_quality_processed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.encounter_annot_quality_processed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.encounter_annot_viewpoint_processed">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">encounter_annot_viewpoint_processed</tt><big>(</big><em>ibs</em>, <em>aid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#encounter_annot_viewpoint_processed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.encounter_annot_viewpoint_processed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.encounter_image_processed">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">encounter_image_processed</tt><big>(</big><em>ibs</em>, <em>gid_list</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#encounter_image_processed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.encounter_image_processed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.error404">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">error404</tt><big>(</big><em>exception=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#error404"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.error404" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.graph_sightings">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">graph_sightings</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#graph_sightings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.graph_sightings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.group_review">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">group_review</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#group_review"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.group_review" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.group_review_submit">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">group_review_submit</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#group_review_submit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.group_review_submit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.hello_world">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">hello_world</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#hello_world"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.hello_world" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.image_src">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">image_src</tt><big>(</big><em>gid=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#image_src"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.image_src" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.image_src_api">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">image_src_api</tt><big>(</big><em>gid=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#image_src_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.image_src_api" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the base64 encoded image of image &lt;gid&gt;</p>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: GET
+URL:    /api/image/&lt;gid&gt;/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.image_upload">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">image_upload</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#image_upload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.image_upload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the gid for an uploaded image.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>image</strong> &#8211; the POST variable containing the binary
+(multi-form) image data</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>gid</strong> &#8211;
+gid corresponding to the image submitted.<blockquote>
+<div>lexigraphical order.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">rowids</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: POST
+URL:    /api/image/</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.image_upload_zip">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">image_upload_zip</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#image_upload_zip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.image_upload_zip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the gid_list for image files submitted in a ZIP archive.  The image
+archive should be flat (no folders will be scanned for images) and must be smaller
+than 100 MB.  The archive can submit multiple images, ideally in JPEG format to save
+space.  Duplicate image uploads will result in the duplicate images receiving
+the same gid based on the hashed pixel values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>image_zip_archive</strong> &#8211; the POST variable containing the binary
+(multi-form) image archive data</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>gid_list</strong> &#8211;
+the list of gids corresponding to the images<blockquote>
+<div>submitted.  The gids correspond to the image names sorted in
+lexigraphical order.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list if rowids</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>RESTful:</dt>
+<dd>Method: POST
+URL:    /api/image/zip</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.root">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">root</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#root"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.root" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.set_cookie">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">set_cookie</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#set_cookie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.set_cookie" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.start_from_ibeis">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">start_from_ibeis</tt><big>(</big><em>ibs</em>, <em>port=None</em>, <em>browser=False</em>, <em>precache=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#start_from_ibeis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.start_from_ibeis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse command line options and start the server.</p>
+<dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis &#8211;db PZ_MTEST &#8211;web
+python -m ibeis &#8211;db PZ_MTEST &#8211;web &#8211;browser</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.start_tornado">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">start_tornado</tt><big>(</big><em>ibs</em>, <em>port=None</em>, <em>browser=False</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#start_tornado"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.start_tornado" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the web server</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.submit_additional">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">submit_additional</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#submit_additional"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.submit_additional" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.submit_detection">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">submit_detection</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#submit_detection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.submit_detection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.submit_quality">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">submit_quality</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#submit_quality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.submit_quality" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.submit_viewpoint">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">submit_viewpoint</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#submit_viewpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.submit_viewpoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.turk">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">turk</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#turk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.turk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.turk_additional">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">turk_additional</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#turk_additional"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.turk_additional" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.turk_detection">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">turk_detection</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#turk_detection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.turk_detection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.turk_quality">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">turk_quality</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#turk_quality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.turk_quality" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.turk_viewpoint">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">turk_viewpoint</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#turk_viewpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.turk_viewpoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.upload">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">upload</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#upload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.upload" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.view">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">view</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.view" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.view_annotations">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">view_annotations</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#view_annotations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.view_annotations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.view_encounters">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">view_encounters</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#view_encounters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.view_encounters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.view_images">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">view_images</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#view_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.view_images" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.app.view_names">
+<tt class="descclassname">ibeis.web.app.</tt><tt class="descname">view_names</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/app.html#view_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.app.view_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
-<div class="section" id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ibeis.web.appfuncs">
+<span id="ibeis-web-appfuncs-module"></span><h2>ibeis.web.appfuncs module<a class="headerlink" href="#module-ibeis.web.appfuncs" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ibeis.web.appfuncs.NavbarClass">
+<em class="property">class </em><tt class="descclassname">ibeis.web.appfuncs.</tt><tt class="descname">NavbarClass</tt><big>(</big><em>nav</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#NavbarClass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.NavbarClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.apply_orientation">
+<tt class="descclassname">ibeis.web.appfuncs.</tt><tt class="descname">apply_orientation</tt><big>(</big><em>im</em>, <em>orientation</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#apply_orientation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.apply_orientation" title="Permalink to this definition">¶</a></dt>
+<dd><p>This script handles the skimage exif problem.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.check_valid_function_name">
+<tt class="descclassname">ibeis.web.appfuncs.</tt><tt class="descname">check_valid_function_name</tt><big>(</big><em>string</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#check_valid_function_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.check_valid_function_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.decode_refer_url">
+<tt class="descclassname">ibeis.web.appfuncs.</tt><tt class="descname">decode_refer_url</tt><big>(</big><em>encode</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#decode_refer_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.decode_refer_url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.embed_image_html">
+<tt class="descclassname">ibeis.web.appfuncs.</tt><tt class="descname">embed_image_html</tt><big>(</big><em>image</em>, <em>filter_width=True</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#embed_image_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.embed_image_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an image embedded in HTML base64 format.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.encode_refer_url">
+<tt class="descclassname">ibeis.web.appfuncs.</tt><tt class="descname">encode_refer_url</tt><big>(</big><em>url</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#encode_refer_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.encode_refer_url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.open_oriented_image">
+<tt class="descclassname">ibeis.web.appfuncs.</tt><tt class="descname">open_oriented_image</tt><big>(</big><em>im_path</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#open_oriented_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.open_oriented_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.return_src">
+<tt class="descclassname">ibeis.web.appfuncs.</tt><tt class="descname">return_src</tt><big>(</big><em>gpath</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#return_src"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.return_src" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.send_file">
+<tt class="descclassname">ibeis.web.appfuncs.</tt><tt class="descname">send_file</tt><big>(</big><em>string</em>, <em>filename</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#send_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.send_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.appfuncs.template">
+<tt class="descclassname">ibeis.web.appfuncs.</tt><tt class="descname">template</tt><big>(</big><em>template_directory=None</em>, <em>template_filename=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/appfuncs.html#template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.appfuncs.template" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.web.test_api">
+<span id="ibeis-web-test-api-module"></span><h2>ibeis.web.test_api module<a class="headerlink" href="#module-ibeis.web.test_api" title="Permalink to this headline">¶</a></h2>
+<p>This is a proof of concept for connecting to an authenticated Qubica Server</p>
+<dl class="function">
+<dt id="ibeis.web.test_api.get_api_result">
+<tt class="descclassname">ibeis.web.test_api.</tt><tt class="descname">get_api_result</tt><big>(</big><em>uri</em>, <em>user_email=None</em>, <em>user_enc_pass=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/test_api.html#get_api_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.test_api.get_api_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a GET API request to the server</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.test_api.get_authorization_header">
+<tt class="descclassname">ibeis.web.test_api.</tt><tt class="descname">get_authorization_header</tt><big>(</big><em>uri</em>, <em>user_email=None</em>, <em>user_enc_pass=None</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/test_api.html#get_authorization_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.test_api.get_authorization_header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.test_api.get_signature">
+<tt class="descclassname">ibeis.web.test_api.</tt><tt class="descname">get_signature</tt><big>(</big><em>key</em>, <em>message</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/test_api.html#get_signature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.test_api.get_signature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.test_api.post_api_result">
+<tt class="descclassname">ibeis.web.test_api.</tt><tt class="descname">post_api_result</tt><big>(</big><em>uri</em>, <em>user_email=None</em>, <em>user_enc_pass=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/ibeis/web/test_api.html#post_api_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.test_api.post_api_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a GET API request to the server</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.web.test_api.run_test_api">
+<tt class="descclassname">ibeis.web.test_api.</tt><tt class="descname">run_test_api</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/ibeis/web/test_api.html#run_test_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.web.test_api.run_test_api" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>CommandLine:</dt>
+<dd>python -m ibeis.web.test_api &#8211;test-run_test_api</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.web.test_api</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">run_test_api</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;Server response: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">response</span>
+<span class="go">(200, u&#39;{&quot;status&quot;: {&quot;cache&quot;: -1, &quot;message&quot;: &quot;&quot;, &quot;code&quot;: 200, &quot;success&quot;: true}, &quot;response&quot;: &quot;testdb1&quot;}&#39;, &lt;bound method Response.json of &lt;Response [200]&gt;&gt;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.web">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.web" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 

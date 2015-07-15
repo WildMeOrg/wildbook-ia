@@ -60,14 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#subpackages">Subpackages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module">ibeis.__main__ module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-all-imports-module">ibeis.all_imports module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-constants-module">ibeis.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-ibsfuncs-module">ibeis.ibsfuncs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-main-module-module">ibeis.main_module module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-params-module">ibeis.params module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#ibeis-species-module">ibeis.species module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -135,6 +135,10 @@
 <span class="sd">     dict keys / vals are being messed up. very inoccuous</span>
 
 <span class="sd">    Visualization to &quot;prove&quot; that vsone works</span>
+
+
+<span class="sd">TestCases:</span>
+<span class="sd">    PZ_Master0 - aids 1801, 4792 - near-miss</span>
 
 
 <span class="sd">TestFuncs:</span>
@@ -246,11 +250,11 @@
 <span class="sd">        &gt;&gt;&gt; # cm_list_SVER = ut.dict_subset(cm_list_SVER, [6])</span>
 <span class="sd">        &gt;&gt;&gt; cm_list_VSONE = vsone_reranking(qreq_, cm_list_SVER)</span>
 <span class="sd">        &gt;&gt;&gt; #cm_list = cm_list_VSONE</span>
-<span class="sd">        &gt;&gt;&gt; if ut.show_was_requested():</span>
-<span class="sd">        ...     import plottool as pt</span>
-<span class="sd">        ...     figtitle = &#39;FIXME USE SUBSET OF CFGDICT&#39;  # ut.dict_str(rrvsone_cfgdict, newlines=False)</span>
-<span class="sd">        ...     show_all_ranked_matches(qreq_.ibs, cm_list_VSONE, figtitle=figtitle)</span>
-<span class="sd">        ...     pt.show_if_requested()</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; figtitle = &#39;FIXME USE SUBSET OF CFGDICT&#39;  # ut.dict_str(rrvsone_cfgdict, newlines=False)</span>
+<span class="sd">        &gt;&gt;&gt; show_all_ranked_matches(qreq_.ibs, cm_list_VSONE, figtitle=figtitle)</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
     <span class="c"># Filter down to a shortlist</span>
@@ -268,6 +272,60 @@
         <span class="k">for</span> <span class="n">prior_cm</span> <span class="ow">in</span> <span class="n">_prog</span><span class="p">(</span><span class="n">cm_shortlist</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="k">return</span> <span class="n">cm_list_VSONE</span>
+
+</div>
+<div class="viewcode-block" id="vsone_independant"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.vsone_independant">[docs]</a><span class="k">def</span> <span class="nf">vsone_independant</span><span class="p">(</span><span class="n">qreq_</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-vsone_independant</span>
+<span class="sd">        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0 --db=PZ_Master0 --aids=117 --exec-mode</span>
+
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-vsone_independant --qaid_list=97 --daid_list=all --db PZ_Master0 --species=zebra_plains</span>
+<span class="sd">        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=118,117</span>
+
+<span class="sd">        python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show --db PZ_Master0 --qaid_list=97 --daid-list=4813,4815</span>
+<span class="sd">        --daid_list=all</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.model.hots import _pipeline_helpers as plh</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = dict(pipeline_root=&#39;vsone&#39;, codename=&#39;vsone&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qreq_ = plh.get_pipeline_testdata(cfgdict=cfgdict, qaid_list=[1], daid_list=[2, 5])</span>
+<span class="sd">        &gt;&gt;&gt; result = vsone_independant(qreq_)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># test script</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="c"># ./dev.py --db lewa_grevys --cmd</span>
+    <span class="c"># Get matches that have some property (scenerymatch)</span>
+    <span class="c"># HACK TEST SCRIPT</span>
+
+    <span class="k">def</span> <span class="nf">get_scenery_match_aid_pairs</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+        <span class="n">annotmatch_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_annotmatch_rowids</span><span class="p">()</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_is_scenerymatch</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)</span>
+        <span class="n">annotmatch_rowids_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_compress</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+        <span class="n">aid1_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aid1</span><span class="p">(</span><span class="n">annotmatch_rowids_</span><span class="p">)</span>
+        <span class="n">aid2_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aid2</span><span class="p">(</span><span class="n">annotmatch_rowids_</span><span class="p">)</span>
+        <span class="n">aid_pair_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid1_list</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">aid_pair_list</span>
+    <span class="n">aid_pair_list</span> <span class="o">=</span> <span class="n">get_scenery_match_aid_pairs</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="n">aid_pair_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">info_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">aid_pair_list</span><span class="p">):</span>
+        <span class="n">rchip_fpath1</span><span class="p">,</span> <span class="n">rchip_fpath2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
+        <span class="n">matches</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">matching</span><span class="o">.</span><span class="n">vsone_image_fpath_matching</span><span class="p">(</span><span class="n">rchip_fpath1</span><span class="p">,</span> <span class="n">rchip_fpath2</span><span class="p">)</span>
+        <span class="n">info_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">matches</span><span class="p">,</span> <span class="n">metadata</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&#39;So Far&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">matches</span><span class="p">[</span><span class="s">&#39;RAT+SV&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">matches</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span> <span class="ow">in</span> <span class="n">info_list</span><span class="p">]))</span>  <span class="c"># NOQA</span>
+    <span class="c"># nnp_master had 15621 background examples</span>
+    <span class="n">vt</span><span class="o">.</span><span class="n">matching</span><span class="o">.</span><span class="n">show_matching_dict</span><span class="p">(</span><span class="n">matches</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
+    <span class="c"># TODO</span>
+    <span class="k">pass</span>
 
 </div>
 <div class="viewcode-block" id="marge_matches_lists"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.vsone_pipeline.marge_matches_lists">[docs]</a><span class="k">def</span> <span class="nf">marge_matches_lists</span><span class="p">(</span><span class="n">fmfs_A</span><span class="p">,</span> <span class="n">fmfs_B</span><span class="p">):</span>
@@ -349,6 +407,10 @@
 <span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show --homog --sver_constrained&amp;</span>
 <span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-refine_matches --show --homog --sver_constrained --sver_unconstrained&amp;</span>
 
+<span class="sd">        # CONTROLLED EXAMPLES</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --exec-refine_matches --show --qaid 1801 --controlled_daids --db PZ_Master0 --sv_on=False --present</span>
+
+<span class="sd">        # WITH DEV HARNESS</span>
 <span class="sd">        python dev.py -t custom:rrvsone_on=True --allgt --index 0:40 --db PZ_MTEST --print-confusion-stats --print-scorediff-mat-stats</span>
 <span class="sd">        python dev.py -t custom:rrvsone_on=True custom --allgt --index 0:40 --db PZ_MTEST --print-confusion-stats --print-scorediff-mat-stats</span>
 
@@ -361,6 +423,7 @@
 <span class="sd">        python dev.py -t custom:rrvsone_on=True,maskscore_mode=kpts --qaid 12 --db PZ_MTEST \</span>
 <span class="sd">                --print-confusion-stats --print-scorediff-mat-stats --show --va</span>
 
+
 <span class="sd">        use_kptscov_scoring</span>
 
 <span class="sd">    Example1:</span>
@@ -371,7 +434,9 @@
 <span class="sd">        &gt;&gt;&gt; unscored_cm = refine_matches(qreq_, prior_cm, config)</span>
 <span class="sd">        &gt;&gt;&gt; unscored_cm.print_csv(ibs=ibs)</span>
 <span class="sd">        &gt;&gt;&gt; prior_cm.print_csv(ibs=ibs)</span>
-<span class="sd">        &gt;&gt;&gt; prior_cm.testshow_ranked(qreq_, figtitle=qreq_.qparams.query_cfgstr)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; prior_cm.show_ranked_matches(qreq_, figtitle=qreq_.qparams.query_cfgstr)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c"># THIS CAUSES THE ISSUE</span>
     <span class="c">#prior_cm.fs_list = prior_cm.fsv_list</span>
@@ -454,6 +519,14 @@
 <span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank</span>
 <span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank --show</span>
 <span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank --show --qaid 18</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank --show --qaid 18</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank --show --qaid 1801 --db PZ_Master0 --controlled --verb-testdata</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --test-single_vsone_rerank --show --qaid 1801 --controlled_daids --db PZ_Master0 --verb-testdata</span>
+
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --exec-single_vsone_rerank --show --qaid 1801 --controlled_daids --db PZ_Master0 --verb-testdata</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --exec-single_vsone_rerank --show --qaid 1801 --controlled_daids --db PZ_Master0 --verb-testdata --sv_on=False --present</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --exec-single_vsone_rerank --show --qaid 1801 --controlled_daids --db PZ_Master0 --verb-testdata --sv_on=False --present --affine-invariance=False</span>
+<span class="sd">        python -m ibeis.model.hots.vsone_pipeline --exec-single_vsone_rerank --show --qaid 1801 --controlled_daids --db PZ_Master0 --verb-testdata --sv_on=False --present --affine-invariance=False --rotation-invariant=True</span>
 
 <span class="sd">    Example1:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -462,7 +535,7 @@
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_, prior_cm = plh.testdata_matching(&#39;PZ_MTEST&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; config = qreq_.qparams</span>
 <span class="sd">        &gt;&gt;&gt; rerank_cm = single_vsone_rerank(qreq_, prior_cm, config)</span>
-<span class="sd">        &gt;&gt;&gt; rerank_cm.print_rawinfostr()</span>
+<span class="sd">        &gt;&gt;&gt; #rerank_cm.print_rawinfostr()</span>
 <span class="sd">        &gt;&gt;&gt; rerank_cm.print_csv()</span>
 <span class="sd">        &gt;&gt;&gt; print(rerank_cm.score_list)</span>
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
@@ -699,7 +772,7 @@
 <span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.model.hots.vsone_pipeline import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
-<span class="sd">        &gt;&gt;&gt; gridsearch_unconstrained_matches()</span>
+<span class="sd">        &gt;&gt;&gt; gridsearch_single_vsone_rerank()</span>
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">prior_cm</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testdata_matching</span><span class="p">()</span>
