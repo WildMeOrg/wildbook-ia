@@ -1409,7 +1409,8 @@ def api():
         methods = rule.methods
         url = str(rule)
         if '/api/' in url:
-            methods -= set(['HEAD', 'OPTIONS'])
+            # methods -= set(['HEAD', 'OPTIONS'])
+            methods -= set(['HEAD'])
             if len(methods) == 0:
                 continue
             if len(methods) > 1:
