@@ -59,6 +59,11 @@ view.selectRow(row)
 
 
 class APITabWidget(QtGui.QTabWidget):
+    """
+    Holds the table-tabs
+
+    use setCurrentIndex to change the selection
+    """
     def __init__(tabwgt, parent=None, horizontalStretch=1):
         QtGui.QTabWidget.__init__(tabwgt, parent)
         tabwgt.ibswgt = parent
@@ -91,6 +96,9 @@ class APITabWidget(QtGui.QTabWidget):
 
 
 class EncoutnerTabWidget(QtGui.QTabWidget):
+    """
+    Handles the super-tabs for the encounters that hold the table-tabs
+    """
     def __init__(enc_tabwgt, parent=None, horizontalStretch=1):
         QtGui.QTabWidget.__init__(enc_tabwgt, parent)
         enc_tabwgt.ibswgt = parent
@@ -234,6 +242,12 @@ class IBEISMainWindow(QtGui.QMainWindow):
 
 
 class IBEISGuiWidget(IBEIS_WIDGET_BASE):
+    """
+    CommandLine:
+        # Testing
+        python -m ibies --db NNP_Master3 --onlyimgtbl
+
+    """
     def __init__(ibswgt, back=None, ibs=None, parent=None):
         IBEIS_WIDGET_BASE.__init__(ibswgt, parent)
         ibswgt.ibs = ibs
@@ -362,18 +376,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         #tblview.selectionModel().selectedIndexes()
 
-    def select_table_id(ibswgt, table_key, level, id_, eid):
-        select_func_dict = {
-            (IMAGE_TABLE, 0)         : ibswgt.back.select_gid,
-            (IMAGE_GRID, 0)          : ibswgt.back.select_gid,
-            (gh.ANNOTATION_TABLE, 0) : ibswgt.back.select_aid,
-            (NAME_TABLE, 0)          : ibswgt.back.select_nid,
-            (NAMES_TREE, 0)          : ibswgt.back.select_nid,
-            (NAMES_TREE, 1)          : ibswgt.back.select_aid,
-        }
-        select_func = select_func_dict[(table_key, level)]
-        select_func(id_, eid, show=False)
-
     def _init_components(ibswgt):
         """ Defines gui components """
         # Layout
@@ -385,7 +387,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         #ibswgt.vsplitter = guitool.newWidget(ibswgt)
         #
         # Tables Tab
-        ibswgt._tab_table_wgt = APITabWidget(ibswgt, horizontalStretch=81)
+        ibswgt._table_tab_wgt = APITabWidget(ibswgt, horizontalStretch=81)
         #guitool.newTabWidget(ibswgt, horizontalStretch=81)
         for tblname, WidgetClass, ModelClass, ViewClass in ibswgt.modelview_defs:
             #widget = WidgetClass(parent=ibswgt)
@@ -400,8 +402,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt.views[tblname].setModel(ibswgt.models[tblname])
         # Add Image, ANNOTATION, and Names as tabs
         for tblname in ibswgt.tblname_list:
-            #ibswgt._tab_table_wgt.addTab(ibswgt.widgets[tblname], tblname)
-            ibswgt._tab_table_wgt.addTab(ibswgt.views[tblname], tblname)
+            #ibswgt._table_tab_wgt.addTab(ibswgt.widgets[tblname], tblname)
+            ibswgt._table_tab_wgt.addTab(ibswgt.views[tblname], tblname)
         # Custom Encounter Tab Wiget
         ibswgt.enc_tabwgt = EncoutnerTabWidget(parent=ibswgt, horizontalStretch=19)
         # Other components
@@ -546,7 +548,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.vsplitter.addWidget(ibswgt.status_wgt)
         # Horizontal Upper
         ibswgt.hsplitter.addWidget(ibswgt.views[ENCOUNTER_TABLE])
-        ibswgt.hsplitter.addWidget(ibswgt._tab_table_wgt)
+        ibswgt.hsplitter.addWidget(ibswgt._table_tab_wgt)
         # Horizontal Lower
         ibswgt.status_wgt.addWidget(ibswgt.outputLog)
         ibswgt.status_wgt.addWidget(ibswgt.progressBar)
@@ -616,7 +618,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt.setWindowTitle(title)
             if ut.VERBOSE:
                 print('[newgui] Calling model _update_headers')
-            #block_wgt_flag = ibswgt._tab_table_wgt.blockSignals(True)
+            #block_wgt_flag = ibswgt._table_tab_wgt.blockSignals(True)
 
             with ut.Timer('[newgui] update models'):
                 #for tblname in ibswgt.changing_models_gen(ibswgt.super_tblname_list):
@@ -643,7 +645,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     #    print(view)
                     #    continue
                     view.hide_cols()
-            #ibswgt._tab_table_wgt.blockSignals(block_wgt_flag)
+            #ibswgt._table_tab_wgt.blockSignals(block_wgt_flag)
 
             # FIXME: bad code
             # TODO: load previously loaded encounter or nothing
@@ -714,7 +716,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     def get_table_tab_index(ibswgt, tblname):
         view = ibswgt.views[tblname]
-        index = ibswgt._tab_table_wgt.indexOf(view)
+        index = ibswgt._table_tab_wgt.indexOf(view)
         return index
 
     def set_status_text(ibswgt, key, text):
@@ -724,11 +726,19 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     def set_table_tab(ibswgt, tblname):
         """
-        Programmatically change to Image, ImageGrid, Annotation, or Names table tab
+        Programmatically change to the table-tab to either:
+        Image, ImageGrid, Annotation, or Names table/tree
+
+        Example:
+            >>> # GUI_DOCTEST
+            >>> from ibeis.gui.newgui import *  # NOQA
+            >>> # build test data
+            >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
+            >>> ibswgt.set_table_tab(gh.ANNOTATION_TABLE)
         """
         print('[newgui] set_table_tab: %r ' % (tblname,))
         index = ibswgt.get_table_tab_index(tblname)
-        ibswgt._tab_table_wgt.setCurrentIndex(index)
+        ibswgt._table_tab_wgt.setCurrentIndex(index)
 
     def select_encounter_tab(ibswgt, eid):
         if False:
@@ -910,8 +920,22 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     def select_table_indicies_from_text(ibswgt, tblname, text):
         """
-        text = '[1, 2,  3,]'
-           text = '51e10019-968b-5f2e-2287-8432464d7547 '
+        Args:
+            tblname - tablename of the id to parse from text
+
+        Ignore:
+            text = '[1, 2,  3,]'
+               text = '51e10019-968b-5f2e-2287-8432464d7547 '
+
+        Example:
+            >>> # GUI_DOCTEST
+            >>> from ibeis.gui.newgui import *  # NOQA
+            >>> # build test data
+            >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
+            >>> ibswgt.set_table_tab(gh.ANNOTATION_TABLE)
+            >>> tblname = gh.NAMES_TREE
+            >>> text = 'lena'
+            >>> ibswgt.select_table_indicies_from_text(tblname, text)
         """
         if not ut.QUIET:
             print('[newgui] select_table_indicies_from_text')
@@ -928,19 +952,27 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if text == '':
             text = '[]'
         try:
-            MODE1 = True
-            if MODE1:
-                id_list_ = text.lstrip('[').rstrip(']').split(',')
-                id_list = [id_.strip() for id_ in id_list_]
-                id_list = [id_ for id_ in id_list if len(id_) > 0]
+            #MODE1 = True
+            #if MODE1:
+            id_list_ = text.lstrip('[').rstrip(']').split(',')
+            id_list = [id_.strip() for id_ in id_list_]
+            id_list = [id_ for id_ in id_list if len(id_) > 0]
+            try:
+                id_list = list(map(int, id_list))
+            except ValueError:
+                import uuid
                 try:
-                    id_list = list(map(int, id_list))
-                except ValueError:
-                    import uuid
+                    # First check to see if the text is a UUID
                     id_list = list(map(uuid.UUID, id_list))
-            else:
-                id_list_ = eval(text, globals(), locals())
-                id_list = ut.ensure_iterable(id_list_)  # NOQA
+                except ValueError:
+                    if tblname != gh.NAMES_TREE:
+                        raise
+                    else:
+                        # then maybe it was a name that was selected
+                        id_list = list(map(str, id_list))
+            #else:
+            #    id_list_ = eval(text, globals(), locals())
+            #    id_list = ut.ensure_iterable(id_list_)  # NOQA
         except Exception as ex:
             ut.printex(ex, iswarning=True, keys=['text'])
         else:
@@ -950,7 +982,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             id_list = ibswgt.back._set_selection3(backend_tablename, id_list, mode='set')
 
         # Select the index if we are in the right table tab
-        if len(id_list) == 1 and ibswgt._tab_table_wgt.current_tblname == tblname:
+        if len(id_list) == 1 and ibswgt._table_tab_wgt.current_tblname == tblname:
             if not ut.QUIET:
                 print('[newgui]  * attempting to select from rowid')
             #view = ibswgt.views[tblname]
@@ -958,6 +990,11 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt.goto_table_id(tblname, id_list[0])
 
             pass
+        else:
+            # TODO: convert the id into the ids corresponding with this tablename and move
+            # to the first one
+            pass
+
         #if goto_table_id:
         #    pass
         ibswgt.back.update_selection_texts()
@@ -981,7 +1018,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         text = tblnice + ' ' + str(nRows)
         #printDBG('Rows updated in index=%r, text=%r' % (index, text))
         # CHANGE TAB NAME TO SHOW NUMBER OF ROWS
-        ibswgt._tab_table_wgt.setTabText(index, text)
+        ibswgt._table_tab_wgt.setTabText(index, text)
 
     def goto_table_id(ibswgt, tablename, _id):
         print('[newgui] goto_table_id(tablenamd=%r, _id=%r)' % (tablename, _id))
@@ -1385,6 +1422,18 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 level = model._get_level(qtindex)
             eid = model.eid
             ibswgt.select_table_id(table_key, level, id_, eid)
+
+    def select_table_id(ibswgt, table_key, level, id_, eid):
+        select_func_dict = {
+            (IMAGE_TABLE, 0)         : ibswgt.back.select_gid,
+            (IMAGE_GRID, 0)          : ibswgt.back.select_gid,
+            (gh.ANNOTATION_TABLE, 0) : ibswgt.back.select_aid,
+            (NAME_TABLE, 0)          : ibswgt.back.select_nid,
+            (NAMES_TREE, 0)          : ibswgt.back.select_nid,
+            (NAMES_TREE, 1)          : ibswgt.back.select_aid,
+        }
+        select_func = select_func_dict[(table_key, level)]
+        select_func(id_, eid, show=False)
 
 
 ######################

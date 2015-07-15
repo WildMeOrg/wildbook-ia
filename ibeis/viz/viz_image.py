@@ -1,14 +1,13 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from six.moves import zip
 import utool as ut
-import plottool as pt  # NOQA
-import plottool.draw_func2 as df2
+import plottool as pt
 from plottool import plot_helpers as ph
 from plottool import viz_image2
 import numpy as np
 from ibeis.viz import viz_helpers as vh
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[viz_img]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[viz_img]')
 
 
 def draw_image_overlay(ibs, ax, gid, sel_aids, draw_lbls=True, annote=True):
@@ -85,9 +84,76 @@ def drive_test_script(ibs):
         pt.show_if_requested()
 
 
+def show_multi_images(ibs, gid_list, fnum=None, **kwargs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        gid_list (list):
+        fnum (int):  figure number(default = None)
+
+    CommandLine:
+        python -m ibeis.viz.viz_image --test-show_multi_images --db NNP_Master3 --gids=7409,7448,4670,7497,7496,7464,7446,7442 --show
+        python -m ibeis.viz.viz_image --test-show_multi_images --db NNP_Master3 --gids=1,2,3 --show
+
+    Ignore:
+        >>> # print to 8 gids sorted by num aids
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('NNP_Master3')
+        >>> gid_list = ibs.get_valid_gids()
+        >>> aids_list = ibs.get_image_aids(gid_list)
+        >>> index_list = ut.list_argsort(list(map(len, aids_list)))[::-1]
+        >>> gid_list = ut.list_take(gid_list, index_list[0:8])
+        >>> print(','.join(map(str, gid_list)))
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_image import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> gid_list = ut.get_argval('--gids', list, default=[1, 2])
+        >>> fnum = None
+        >>> result = show_multi_images(ibs, gid_list, fnum, draw_lbls=False, notitle=True, sel_aids='all')
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    fnum = pt.ensure_fnum(fnum)
+    nGids = len(gid_list)
+    if nGids == 0:
+        fig = pt.figure(fnum=fnum, pnum=(1, 1, 1), **kwargs)
+        pt.imshow_null(fnum=fnum, **kwargs)
+        return fig
+    # Trigger computation of all chips in parallel
+    #ibsfuncs.ensure_annotation_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)
+
+    rc = ut.get_argval('--rc', type_=list, default=None)
+    if rc is None:
+        nRows, nCols = ph.get_square_row_cols(nGids)
+    else:
+        nRows, nCols = rc
+    #notitle = ut.get_argflag('--notitle')
+    #draw_lbls = not ut.get_argflag('--no-draw_lbls')
+    #show_chip_kw = dict(annote=annote, in_image=in_image, notitle=notitle, draw_lbls=draw_lbls)
+    #print('[viz_name] * r=%r, c=%r' % (nRows, nCols))
+    #gs2 = gridspec.GridSpec(nRows, nCols)
+    pnum_ = pt.get_pnum_func(nRows, nCols)
+    fig = pt.figure(fnum=fnum, pnum=pnum_(0), **kwargs)
+    fig.clf()
+    for px, gid in enumerate(gid_list):
+        print(pnum_(px))
+        _fig, _ax1 = show_image(ibs, gid, fnum=fnum, pnum=pnum_(px), **kwargs)
+        #ax = pt.gca()
+        #if aid in sel_aids:
+        #    pt.draw_border(ax, pt.GREEN, 4)
+        #if ut.get_argflag('--numlbl') and not DOBOTH:
+        #    ax.set_xlabel('(' + str(px + 1) + ')')
+        #plot_aid3(ibs, aid)
+    pass
+
+
 #@ut.indent_func
-def show_image(ibs, gid, sel_aids=[], fnum=None,
-               annote=True, draw_lbls=True, rich_title=False, **kwargs):
+def show_image(ibs, gid, sel_aids=[], fnum=None, annote=True, draw_lbls=True,
+               notitle=False,
+               rich_title=False, pnum=(1, 1, 1), **kwargs):
     """
     Driver function to show images
 
@@ -135,10 +201,12 @@ def show_image(ibs, gid, sel_aids=[], fnum=None,
         >>> pt.show_if_requested()
     """
     if fnum is None:
-        fnum = df2.next_fnum()
+        fnum = pt.next_fnum()
     # Read Image
     img = ibs.get_images(gid)
     aid_list = ibs.get_image_aids(gid)
+    if sel_aids == 'all':
+        sel_aids = aid_list
     annotekw = get_annot_annotations(ibs, aid_list, sel_aids, draw_lbls)
     annotation_centers = vh.get_bbox_centers(annotekw['bbox_list'])
     title = vh.get_image_titles(ibs, gid)
@@ -149,7 +217,10 @@ def show_image(ibs, gid, sel_aids=[], fnum=None,
         'title'      : title,
         'annote'     : annote,
         'fnum'       : fnum,
+        'pnum'       : pnum,
     }
+    if notitle:
+        del showkw['title']
     showkw.update(annotekw)
     fig, ax = viz_image2.show_image(img, **showkw)
     # Label the axis with data

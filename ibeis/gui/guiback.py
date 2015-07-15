@@ -414,6 +414,10 @@ class MainWindowBackend(GUIBACK_BASE):
             if len(id_list) > 0 and isinstance(id_list[0], uuid.UUID):
                 id_list = uuid_to_id_fn(id_list)
             return id_list
+        def ensure_texts_are_ids(id_list, text_to_id_fn):
+            if len(id_list) > 0 and isinstance(id_list[0], six.string_types):
+                id_list = text_to_id_fn(id_list)
+            return id_list
         if tablename == const.ANNOTATION_TABLE:
             id_list = ensure_uuids_are_ids(id_list, back.ibs.get_annot_aids_from_visual_uuid)
             aid_list = ut.ensure_iterable(id_list)
@@ -432,6 +436,7 @@ class MainWindowBackend(GUIBACK_BASE):
             aid_list = ut.filterfalse_items(aid_list, flag_list)
             aid_list = ut.filterfalse_items(aid_list, flag_list)
         elif tablename == const.NAME_TABLE:
+            id_list = ensure_texts_are_ids(id_list, back.ibs.get_name_rowids_from_text_)
             nid_list = ut.ensure_iterable(id_list)
             aid_list = ut.flatten(back.ibs.get_name_aids(nid_list))
             gid_list = back.ibs.get_annot_gids(aid_list)
