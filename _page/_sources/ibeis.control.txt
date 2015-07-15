@@ -236,6 +236,14 @@ ibeis.control.manual_species_funcs module
     :undoc-members:
     :show-inheritance:
 
+ibeis.control.manual_wildbook_funcs module
+------------------------------------------
+
+.. automodule:: ibeis.control.manual_wildbook_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

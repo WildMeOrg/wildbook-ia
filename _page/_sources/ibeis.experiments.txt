@@ -12,6 +12,14 @@ ibeis.experiments.experiment_configs module
     :undoc-members:
     :show-inheritance:
 
+ibeis.experiments.experiment_drawing module
+-------------------------------------------
+
+.. automodule:: ibeis.experiments.experiment_drawing
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.experiments.experiment_harness module
 -------------------------------------------
 
@@ -32,6 +40,14 @@ ibeis.experiments.experiment_printres module
 --------------------------------------------
 
 .. automodule:: ibeis.experiments.experiment_printres
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.experiments.experiment_storage module
+-------------------------------------------
+
+.. automodule:: ibeis.experiments.experiment_storage
     :members:
     :undoc-members:
     :show-inheritance:
