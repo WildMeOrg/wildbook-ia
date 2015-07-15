@@ -262,9 +262,9 @@ def crossdomain(origin=None, methods=None, headers=None,
             if not attach_to_all and request.method != 'OPTIONS':
                 return resp
 
-            h = resp.headers
-
-            h['Access-Control-Allow-Origin'] = origin
+            print(origin)
+            # h['Access-Control-Allow-Origin'] = origin
+            h['Access-Control-Allow-Origin'] = '*'
             h['Access-Control-Allow-Methods'] = get_methods()
             h['Access-Control-Max-Age'] = str(max_age)
             if headers is not None:
@@ -272,7 +272,6 @@ def crossdomain(origin=None, methods=None, headers=None,
             return resp
 
         f.provide_automatic_options = False
-        f.required_methods = ['OPTIONS']
         return update_wrapper(wrapped_function, f)
     return decorator
 
@@ -317,10 +316,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                             rawreturn = 'HINT: the input for this call is most likely expected to be a list.  Try adding a comma at the end of the input (to cast the conversion into a list) or encapsualte the input with [].'  # NOQA
                         jQuery_callback = None
                     webreturn = translate_ibeis_webreturn(rawreturn, success, code, message, jQuery_callback)
-                    response = flask.make_response(webreturn, code)
-                    response.headers['Access-Control-Allow-Origin'] = '*'
-                    return response
-
+                    return flask.make_response(webreturn, code)
                 # return the original unmodified function
                 return func
             return regsiter_closure
