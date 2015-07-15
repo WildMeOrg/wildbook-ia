@@ -1426,6 +1426,7 @@ def display_sightings():
     ibs = current_app.ibs
     complete = request.args.get('complete', None) is not None
     sightings = ibs.report_sightings_str(complete=complete)
+    sightings = sightings.replace('\n', '<br/>')
     return sightings
 
 
