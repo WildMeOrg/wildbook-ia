@@ -1425,7 +1425,7 @@ def annotation_src_api(aid=None):
 def display_sightings(html_encode=True):
     ibs = current_app.ibs
     complete = request.args.get('complete', None) is not None
-    sightings = ibs.report_sightings_str(complete=complete)
+    sightings = ibs.report_sightings_str(complete=complete, include_images=True)
     if html_encode:
         sightings = sightings.replace('\n', '<br/>')
     return sightings

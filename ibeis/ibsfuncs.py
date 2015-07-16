@@ -3654,7 +3654,7 @@ def _split_car_contrib_tag(contrib_tag, distinguish_invalids=True):
 
 
 @__injectable
-def report_sightings(ibs, complete=True):
+def report_sightings(ibs, complete=True, include_images=False, **kwargs):
     def sanitize_list(data_list):
         data_list = [ str(data).replace(',', '<COMMA>') for data in list(data_list) ]
         return_str = (','.join(data_list))
@@ -3665,6 +3665,48 @@ def report_sightings(ibs, complete=True):
         return_str = return_str.replace(',-1.0,', ',UNKNOWN,')
         return_str = return_str.replace(',-1.0,', ',UNKNOWN,')
         return return_str
+
+    def construct():
+        if complete:
+            cols_list      = [
+                ('annotation_id',        aid_list),
+                ('annotation_species',   species_list),
+                ('annotation_viewpoint', viewpoint_list),
+                ('annotation_qualities', quality_list),
+                ('annotation_sex',       sex_list),
+                ('annotation_age_min',   age_min_list),
+                ('annotation_age_max',   age_max_list),
+                ('annotation_name',      name_list),
+                ('image_id',             gid_list),
+                ('image_contributor',    contrib_list),
+                ('image_car',            car_list),
+                ('image_filename',       uri_list),
+                ('image_unixtime',       unixtime_list),
+                ('image_time_str',       time_list),
+                ('image_date_str',       date_list),
+                ('image_lat',            lat_list),
+                ('image_lon',            lon_list),
+                ('flag_first_seen',      seen_list),
+                ('flag_marked',          marked_list),
+            ]
+        else:
+            cols_list      = [
+                ('annotation_id',        aid_list),
+                ('image_time_str',       time_list),
+                ('image_date_str',       date_list),
+                ('flag_first_seen',      seen_list),
+                ('image_lat',            lat_list),
+                ('image_lon',            lon_list),
+                ('image_car',            car_list),
+                ('annotation_age_min',   age_min_list),
+                ('annotation_age_max',   age_max_list),
+                ('annotation_sex',       sex_list),
+            ]
+        header_list    = [ sanitize_list([ cols[0] for cols in cols_list ]) ]
+        data_list      = zip(*[ cols[1] for cols in cols_list ])
+        line_list      = [ sanitize_list(data) for data in list(data_list) ]
+        return header_list, line_list
+
     # Grab primitives
     if complete:
         aid_list   = ibs.get_valid_aids()
@@ -3681,7 +3723,7 @@ def report_sightings(ibs, complete=True):
     age_min_list   = ibs.get_annot_age_months_est_min(aid_list)
     age_max_list   = ibs.get_annot_age_months_est_max(aid_list)
     name_list      = ibs.get_annot_names(aid_list)
-    unixtime_list      = ibs.get_image_unixtime(gid_list)
+    unixtime_list  = ibs.get_image_unixtime(gid_list)
     datetime_list = [
         ut.unixtime_to_datetime(unixtime)
         if unixtime is not None else
@@ -3702,50 +3744,52 @@ def report_sightings(ibs, complete=True):
             seen_set.add(name)
             continue
         seen_list.append(False)
-    if complete:
-        cols_list      = [
-            ('annotation_id',        aid_list),
-            ('annotation_species',   species_list),
-            ('annotation_viewpoint', viewpoint_list),
-            ('annotation_qualities', quality_list),
-            ('annotation_sex',       sex_list),
-            ('annotation_age_min',   age_min_list),
-            ('annotation_age_max',   age_max_list),
-            ('annotation_name',      name_list),
-            ('image_id',             gid_list),
-            ('image_contributor',    contrib_list),
-            ('image_car',            car_list),
-            ('image_filename',       uri_list),
-            ('image_unixtime',       unixtime_list),
-            ('image_time_str',       time_list),
-            ('image_date_str',       date_list),
-            ('image_lat',            lat_list),
-            ('image_lon',            lon_list),
-            ('flag_first_seen',      seen_list),
-            ('flag_marked',          marked_list),
+
+    return_list, line_list = construct()
+    return_list.extend(line_list)
+
+    if include_images:
+        all_gid_set = set(ibs.get_valid_gids())
+        gid_set = set(gid_list)
+        missing_gid_list = sorted(list(all_gid_set - gid_set))
+        filler = [''] * len(missing_gid_list)
+
+        aid_list       = filler
+        species_list   = filler
+        viewpoint_list = filler
+        quality_list   = filler
+        sex_list       = filler
+        age_min_list   = filler
+        age_max_list   = filler
+        name_list      = filler
+        gid_list       = missing_gid_list
+        contrib_list   = ibs.get_image_contributor_tag(missing_gid_list)
+        car_list       = [ _split_car_contrib_tag(contrib_tag) for contrib_tag in contrib_list ]
+        uri_list       = ibs.get_image_uris(missing_gid_list)
+        unixtime_list  = ibs.get_image_unixtime(missing_gid_list)
+        datetime_list = [
+            ut.unixtime_to_datetime(unixtime)
+            if unixtime is not None else
+            'UNKNOWN'
+            for unixtime in unixtime_list
         ]
-    else:
-        cols_list      = [
-            ('annotation_id',        aid_list),
-            ('image_time_str',       time_list),
-            ('image_date_str',       date_list),
-            ('flag_first_seen',      seen_list),
-            ('image_lat',            lat_list),
-            ('image_lon',            lon_list),
-            ('image_car',            car_list),
-            ('annotation_age_min',   age_min_list),
-            ('annotation_age_max',   age_max_list),
-            ('annotation_sex',       sex_list),
-        ]
-    header_list    = [[ cols[0] for cols in cols_list ]]
-    data_list      = zip(*[ cols[1] for cols in cols_list ])
-    line_list      = [ sanitize_list(data) for data in header_list + list(data_list) ]
-    return line_list
+        datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
+        date_list      = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+        time_list      = [ datetime_split[1] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+        lat_list       = ibs.get_image_lat(missing_gid_list)
+        lon_list       = ibs.get_image_lon(missing_gid_list)
+        seen_list      = filler
+        marked_list    = filler
+
+        header_list, line_list = construct()  # NOTE: discard the header list returned here
+        return_list.extend(line_list)
+
+    return return_list
 
 
 @__injectable
-def report_sightings_str(ibs, complete=True):
-    line_list = ibs.report_sightings(complete=complete)
+def report_sightings_str(ibs, **kwargs):
+    line_list = ibs.report_sightings(**kwargs)
     return '\n'.join(line_list)
 
 
