@@ -1,7 +1,36 @@
+# -*- coding: utf-8 -*-
+"""
+Displays the matching graph of individuals
+
+WindowsDepends:
+    pip install networkx
+    wget http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi
+    graphviz-2.38.msi
+"""
+from __future__ import absolute_import, division, print_function
 import utool as ut
-import networkx as netx
 import plottool as pt
 import vtool as vt
+#import sys
+#from os.path import join
+try:
+    import networkx as netx
+    #if ut.WIN32:
+    #    # Make sure graphviz is in the path
+    #    win32_graphviz_bin_paths = [
+    #        r'C:\Program Files (x86)\Graphviz2.38\bin',
+    #        r'C:\Program Files\Graphviz2.38\bin',
+    #    ]
+    #    found_dot_exe = False
+    #    for path in win32_graphviz_bin_paths:
+    #        if ut.checkpath(path):
+    #            if ut.checkpath(join(path, 'dot.exe')):
+    #                sys.path.append(path)
+    #                found_dot_exe = True
+    #                break
+    #    assert found_dot_exe, 'could not find graphviz'
+except ImportError as ex:
+    ut.printex(ex, 'Cannot import networkx', iswarning=True)
 #import itertools
 
 
@@ -11,6 +40,9 @@ def show_chipmatch_graph(ibs, cm_list, qreq_, fnum=None, pnum=None, **kwargs):
     CommandLine:
         python -m ibeis.viz.viz_graph --test-show_chipmatch_graph:0 --show
         python -m ibeis.viz.viz_graph --test-show_chipmatch_graph:1 --show
+        python -m ibeis.viz.viz_graph --test-show_chipmatch_graph:1 --show --zoom=.15
+        python -m ibeis.viz.viz_graph --test-show_chipmatch_graph:1 --zoom=.25 --save foo.jpg --diskshow --figsize=12,6 --dpath=. --dpi=280
+
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -20,7 +52,8 @@ def show_chipmatch_graph(ibs, cm_list, qreq_, fnum=None, pnum=None, **kwargs):
         >>> [cm.score_nsum(qreq_) for cm in cm_list]
         >>> ut.quit_if_noshow()
         >>> daid = cm.get_groundtruth_daids()[0]
-        >>> show_chipmatch_graph(ibs, cm_list, qreq_)
+        >>> zoom = ut.get_argval('--zoom', float, .4)
+        >>> show_chipmatch_graph(ibs, cm_list, qreq_, zoom=zoom)
         >>> #cm.show_single_annotmatch(qreq_, daid)
         >>> ut.show_if_requested()
 
@@ -28,11 +61,13 @@ def show_chipmatch_graph(ibs, cm_list, qreq_, fnum=None, pnum=None, **kwargs):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph import *  # NOQA
         >>> from ibeis.model.hots.chip_match import *  # NOQA
-        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list='all')
+        >>> #ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list='all')
+        >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list='all')
         >>> [cm.score_nsum(qreq_) for cm in cm_list]
         >>> ut.quit_if_noshow()
         >>> daid = cm.get_groundtruth_daids()[0]
-        >>> show_chipmatch_graph(ibs, cm_list, qreq_)
+        >>> zoom = ut.get_argval('--zoom', float, .4)
+        >>> show_chipmatch_graph(ibs, cm_list, qreq_, zoom=zoom)
         >>> #cm.show_single_annotmatch(qreq_, daid)
         >>> ut.show_if_requested()
 
@@ -48,7 +83,8 @@ def show_chipmatch_graph(ibs, cm_list, qreq_, fnum=None, pnum=None, **kwargs):
     # FDSFDS!!!
     netx_graph = make_ibeis_matching_graph(ibs, qaid_list, daids_list, scores_list)
     fnum = None
-    viz_netx_chipgraph(ibs, netx_graph, fnum=fnum, with_images=True)
+    zoom = kwargs.get('zoom', .4)
+    viz_netx_chipgraph(ibs, netx_graph, fnum=fnum, with_images=True, zoom=zoom)
 
 
 def make_ibeis_matching_graph(ibs, qaid_list, daids_list, scores_list):
@@ -80,7 +116,7 @@ def make_netx_graph(nodes, edges, node_lbls=[], edge_lbls=[]):
     return netx_graph
 
 
-def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False):
+def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False, zoom=.4):
     if fnum is None:
         fnum = pt.next_fnum()
     print('[encounter] drawing chip graph')
@@ -98,10 +134,10 @@ def viz_netx_chipgraph(ibs, netx_graph, fnum=None, with_images=False):
         img_list = ibs.get_annot_chips(aid_list)
         img_list = [vt.resize_thumb(img, (220, 220)) for img in img_list]
         img_list = [cv2.cvtColor(img, cv2.COLOR_BGR2RGB) for img in img_list]
-        netx_draw_images_at_positions(img_list, pos_list)
+        netx_draw_images_at_positions(img_list, pos_list, zoom=zoom)
 
 
-def netx_draw_images_at_positions(img_list, pos_list):
+def netx_draw_images_at_positions(img_list, pos_list, zoom=.4):
     """
     References:
         https://gist.github.com/shobhit/3236373
@@ -124,24 +160,26 @@ def netx_draw_images_at_positions(img_list, pos_list):
     for pos, img in zip(pos_list, img_list):
         FIG_COORDS = False
         if FIG_COORDS:
-            x, y = trans_data_to_figure(pos)
-            height, width = trans_data_to_figure(img.shape[0:2])
-            # Hack to get the sizes correct
-            height *= .17
-            width *= .17
-            tlx = x - (width / 2.0)
-            tly = y - (height / 2.0)
-            img_bbox = [tlx, tly, width, height]
-            # Make new axis for the image
-            img_ax = pt.plt.axes(img_bbox)
-            img_ax.imshow(img)
-            pt.draw_border(img_ax)
-            img_ax.set_aspect('equal')
-            img_ax.axis('off')
+            pass
+            #x, y = trans_data_to_figure(pos)
+            #height, width = trans_data_to_figure(img.shape[0:2])
+            ## Hack to get the sizes correct
+            #height *= .17
+            #width *= .17
+            #tlx = x - (width / 2.0)
+            #tly = y - (height / 2.0)
+            #img_bbox = [tlx, tly, width, height]
+            ## Make new axis for the image
+            #img_ax = pt.plt.axes(img_bbox)
+            #img_ax.imshow(img)
+            #pt.draw_border(img_ax)
+            #img_ax.set_aspect('equal')
+            #img_ax.axis('off')
         else:
             x, y = pos
             height, width = img.shape[0:2]
-            offset_img = OffsetImage(img, zoom=.4)
+            #offset_img = OffsetImage(img, zoom=.4)
+            offset_img = OffsetImage(img, zoom=zoom)
             artist = AnnotationBbox(
                 offset_img,
                 (x, y),
