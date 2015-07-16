@@ -1422,18 +1422,19 @@ def annotation_src_api(aid=None):
 
 
 @register_route('/display/sightings')
-def display_sightings():
+def display_sightings(html_encode=True):
     ibs = current_app.ibs
     complete = request.args.get('complete', None) is not None
     sightings = ibs.report_sightings_str(complete=complete)
-    sightings = sightings.replace('\n', '<br/>')
+    if html_encode:
+        sightings = sightings.replace('\n', '<br/>')
     return sightings
 
 
 @register_route('/download/sightings')
 def download_sightings():
     filename = 'sightings.csv'
-    sightings = display_sightings()
+    sightings = display_sightings(html_encode=False)
     return ap.send_file(sightings, filename)
 
 
