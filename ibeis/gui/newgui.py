@@ -6,7 +6,12 @@ logic.
 
 
 BUGS:
-    * On opening new database the tables are refreshed for the closing database.
+    * Copying the ungrouped encounter raises an error. Should have the option
+    to copy or move it. Other special encounter should not have this option.
+
+    Should gray out an option if it is not available.
+
+
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, filter  # NOQA
