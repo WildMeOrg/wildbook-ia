@@ -1635,6 +1635,8 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
     """
     thin wrapper around mpl_keypoint.draw_keypoints
 
+    FIXME: seems to be off by (.5, .5) translation
+
     Args:
         kpts (?):
         offset (tuple):
@@ -1765,6 +1767,34 @@ def draw_keypoint_gradient_orientations(rchip, kpt, sift=None, mode='vec',
 
 #@ut.indent_func('[df2.dkp]')
 def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwargs):
+    r"""
+    Args:
+        rchip (ndarray[uint8_t, ndim=2]):  rotated annotation image data
+        kp (ndarray[float32_t, ndim=1]):  a single keypoint
+        sift (None): (default = None)
+        warped (bool): (default = False)
+        patch_dict (dict): (default = {})
+
+    Returns:
+        ?: ax
+
+    CommandLine:
+        python -m plottool.draw_func2 --test-draw_keypoint_patch --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import vtool as vt
+        >>> rchip = vt.imread(ut.grab_test_imgpath('lena.png'))
+        >>> kp = [100, 100, 20, 0, 20, 0]
+        >>> sift = None
+        >>> warped = True
+        >>> patch_dict = {}
+        >>> ax = draw_keypoint_patch(rchip, kp, sift, warped, patch_dict)
+        >>> result = ('ax = %s' % (str(ax),))
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
     #print('--------------------')
     #printDBG('[df2] draw_keypoint_patch()')
     kpts = np.array([kp])
@@ -1778,7 +1808,7 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
     patch = patches[0]
     subkpts_ = np.array(subkpts)
     patch_dict_ = {
-        'sifts': np.array([sift]),
+        'sifts': None if sift is None else np.array([sift]),
         'ell_color':  (0, 0, 1),
         'pts': kwargs.get('pts', True),
         'ori': kwargs.get('ori', True),
