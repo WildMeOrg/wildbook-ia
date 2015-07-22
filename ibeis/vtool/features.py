@@ -33,8 +33,8 @@ def extract_features(img_or_fpath, feat_type='hesaff+sift', **kwargs):
         >>> import vtool as vt
         >>> # build test data
         >>> img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='lena.png'))
-        >>> feat_type = ut.get_argval('--feat_type', default='hesaff+sift')
         >>> imgBGR = vt.imread(img_fpath)
+        >>> feat_type = ut.get_argval('--feat_type', default='hesaff+sift')
         >>> import pyhesaff
         >>> kwargs = ut.parse_dict_from_argv(pyhesaff.get_hesaff_default_params())
         >>> # execute function
@@ -92,6 +92,41 @@ def get_extract_features_default_params():
     import pyhesaff
     param_dict = pyhesaff.get_hesaff_default_params()
     return param_dict
+
+
+def detect_opencv_keypoints():
+    """
+    import cv2
+    import vtool as vt
+    img_fpath = ut.grab_test_imgpath(ut.get_argval('--fname', default='lena.png'))
+    imgBGR = vt.imread(img_fpath)
+    gray = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2GRAY)
+    x = cv2.cornerHarris(gray,2,3,0.04)
+
+    orb = cv2.ORB()
+    kp1, des1 = orb.detectAndCompute(gray, None)
+
+    [name for name in dir(cv2) if 'detect' in name.lower()]
+    [name for name in dir(cv2) if 'extract' in name.lower()]
+    [name for name in dir(cv2) if 'ellip' in name.lower()]
+
+    sift = cv2.xfeatures2d.SIFT_create()
+    cv2_kpts = sift.detect(gray)
+    desc = sift.compute(gray, cv2_kpts)[1]
+
+    freak = cv2.xfeatures2d.FREAK_create()
+    cv2_kpts = freak.detect(gray)
+    desc = freak.compute(gray, cv2_kpts)[1]
+
+    blober = cv2.SimpleBlobDetector_create()
+
+    def convert_cv2_keypoint(cv2_kp):
+        kp = (cv2_kp.pt[0], cv2_kp.pt[1], cv2_kp.size, 0, cv2_kp.size, cv2_kp.angle)
+        return kp
+    kpts = np.array(map(convert_cv2_keypoint, cv2_kpts))
+
+    """
+    pass
 
 
 if __name__ == '__main__':

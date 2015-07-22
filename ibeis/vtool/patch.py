@@ -495,8 +495,13 @@ def get_unwarped_patches(img, kpts):
 def get_warped_patches(img, kpts,
                        flags=cv2.INTER_LANCZOS4,
                        borderMode=cv2.BORDER_REPLICATE,
-                       patch_size=41):
+                       patch_size=41, use_cpp=False):
     """ Returns warped (into a unit circle) patch around a keypoint
+
+    FIXME:
+        there is a slight translation difference in the way Python extracts
+        patches and the way C++ extracts patches. C++ should be correct.
+        TODO: have C++ able to extract color.
 
     Args:
         img (ndarray): array representing an image
@@ -516,26 +521,31 @@ def get_warped_patches(img, kpts,
         tuple: (warped_patches, warped_subkpts)
 
     CommandLine:
-        python -m vtool.patch --test-get_warped_patches
+        python -m vtool.patch --test-get_warped_patches --show --use_cpp
+        python -m vtool.patch --test-get_warped_patches --show --use_python
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.patch import *  # NOQA
         >>> import vtool as vt
         >>> # build test data
-        >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
+        >>> img_fpath = ut.grab_test_imgpath('lena.png')
         >>> img = vt.imread(img_fpath)
+        >>> use_cpp = ut.get_argflag('--use_cpp')
         >>> kpts, desc = vt.extract_features(img_fpath)
         >>> kpts = kpts[0:1]
         >>> flags = cv2.INTER_LANCZOS4
         >>> borderMode = cv2.BORDER_REPLICATE
         >>> # execute function
-        >>> (warped_patches, warped_subkpts) = get_warped_patches(img, kpts, flags, borderMode)
+        >>> (warped_patches, warped_subkpts) = get_warped_patches(img, kpts, flags, borderMode, use_cpp=use_cpp)
         >>> # verify results
-        >>> result = str((warped_patches, warped_subkpts))
-        >>> print(result)
+        >>> print(np.array(warped_patches).shape)
+        >>> print(ut.numpy_str(np.array(warped_subkpts), precision=2))
         >>> ut.quit_if_noshow()
+        >>> import plottool as pt
         >>> pt.imshow(warped_patches[0])
+        >>> #pt.draw_kpts2(warped_subkpts, pts=True, rect=True)
+        >>> pt.set_title('use_cpp = %r' % (use_cpp,))
         >>> pt.show_if_requested()
     """
     # TODO: CLEAN ME
@@ -556,15 +566,23 @@ def get_warped_patches(img, kpts,
     #}
     #flags = cv2.INTER_CUBIC,
     #borderMode = cv2.BORDER_REPLICATE,
-    for x, y, V, ori in kpts_iter:
-        warped_patch, wkp = intern_warp_single_patch(img, x, y, ori, V,
-                                                     patch_size,
-                                                     flags=flags,
-                                                     borderMode=borderMode)
-        ## Build warped keypoints
-        #wkp = np.array((patch_size / 2, patch_size / 2, ss, 0., ss, 0))
-        warped_patches.append(warped_patch)
-        warped_subkpts.append(wkp)
+    if use_cpp:
+        import pyhesaff
+        warped_patches = pyhesaff.extract_patches(img, kpts)
+        # FIXME:
+        ss = np.sqrt(patch_size) * 3.0
+        half_patch_size = patch_size / 2.0
+        warped_subkpts.append(np.array((half_patch_size, half_patch_size, ss, 0., ss, 0)))
+    else:
+        for x, y, V, ori in kpts_iter:
+            warped_patch, wkp = intern_warp_single_patch(img, x, y, ori, V,
+                                                         patch_size,
+                                                         flags=flags,
+                                                         borderMode=borderMode)
+            ## Build warped keypoints
+            #wkp = np.array((patch_size / 2, patch_size / 2, ss, 0., ss, 0))
+            warped_patches.append(warped_patch)
+            warped_subkpts.append(wkp)
     return warped_patches, warped_subkpts
 
 
