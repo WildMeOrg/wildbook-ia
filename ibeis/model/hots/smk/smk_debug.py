@@ -1,4 +1,29 @@
 # -*- coding: utf-8 -*-
+"""
+TODO:
+    Define easy to use classes functions for the following concepts
+
+    Vocabulary / Dictionary / Codebook -
+        centroids that partition descriptor space.  Many methods can be used to
+        define a vocabulary.  The simplest technique is K-Means clustering.  Other
+        learning algorithms can be implemented.
+
+    Vocabulary Quantizer -
+        Quantizes / Codes a raw descriptor by assigning it to one or more visual words with assignment weights.
+        Can be implemented using simple approximate nearest neighbor to centroids or via tree partitioning or
+        some other method.
+
+    Inverted Index -
+        Uses the vocabulary to index quantized descriptors.
+        Needs add / remove methods that add and remove images as sets of descriptors.
+        Needs to update the vocabulary and recompute any internal image representations.
+        Needs to encode individual images or subimages.
+
+    Vocabulary Matching -
+        Uses the inverted index to match individual or aggregated features between query and database images
+
+
+"""
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import numpy as np
