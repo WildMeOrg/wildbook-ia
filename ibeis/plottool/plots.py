@@ -461,6 +461,66 @@ def plot_score_histograms(scores_list,
     #return fig
 
 
+def plot_rank_cumhist(cdf_list, lbl_list, edges=None, fnum=None, pnum=None, figtitle=None):
+    """
+
+    CommandLine:
+        python -m plottool.plots --test-plot_rank_cumhist --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> cdf_list = np.array(
+        >>>     [[ 88,  92,  93,  96,  96,  96,  96,  98,  99,  99, 100, 100, 100],
+        >>>      [ 79,  82,  82,  85,  86,  87,  87,  87,  88,  89,  90,  90,  90]])
+        >>> edges = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+        >>> lbl_list = ['custom', 'custom:sv_on=False']
+        >>> fnum = None
+        >>> pnum = None
+        >>> result = plot_rank_cumhist(cdf_list, lbl_list, edges, fnum, pnum)
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+
+    if fnum is None:
+        fnum = df2.next_fnum()
+
+    fig = df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
+
+    ax = df2.gca()
+    num_cdfs = len(cdf_list)
+    num_data = len(cdf_list[0])
+    color_list = df2.distinct_colors(num_cdfs)
+
+    if edges is None:
+        x_data = np.arange(num_data)
+    else:
+        x_data = np.array(edges[1:])
+    max_y = 0
+    for ix in range(num_cdfs):
+        y_data = cdf_list[ix]
+        color = color_list[ix]
+        label = lbl_list[ix]
+        max_y = max(np.max(y_data), max_y)
+        ax.plot(x_data, y_data, color=color, label=label)
+
+    ax.set_ylim(0, max_y * 1.05)
+    ax.set_xlim(x_data.min(), x_data.max()  * 1.05)
+
+    if figtitle is not None:
+        df2.set_figtitle(figtitle)
+    else:
+        df2.set_title('Cumulative Histogram of GT-Ranks')
+
+    df2.set_xlabel('rank')
+    df2.set_ylabel('# queries < rank')
+    #df2.dark_background()
+
+    df2.legend(loc='lower right')
+    df2.dark_background()
+    return fig
+
+
 def set_logyscale_from_data(y_data):
     if len(y_data) == 1:
         print('Warning: not enough information to infer yscale')

@@ -223,6 +223,7 @@ def show_if_requested(N=1):
     fpath_ = ut.get_argval('--save', type_=str, default=None)
 
     if fpath_ is not None:
+        print('Figure save was requested')
         arg_dict = ut.get_arg_dict()
         #import sys
         from os.path import basename, splitext, join
@@ -260,8 +261,11 @@ def show_if_requested(N=1):
             vt.imwrite(absfpath_, cropped_img)
 
         default_label = splitext(basename(fpath))[0]  # [0].replace('_', '')
-        caption_list = ut.get_argval('--caption', type_=list, default=basename(fpath).replace('_', ' '))
-        caption_str = ' '.join(caption_list)
+        caption_list = ut.get_argval('--caption', type_=str, default=basename(fpath).replace('_', ' '))
+        if isinstance(caption_list, six.string_types):
+            caption_str = caption_list
+        else:
+            caption_str = ' '.join(caption_list)
         #caption_str = ut.get_argval('--caption', type_=str, default=basename(fpath).replace('_', ' '))
         label_str   = ut.get_argval('--label', type_=str, default=default_label)
         width_str = ut.get_argval('--width', type_=str, default=r'\textwidth')
@@ -279,13 +283,14 @@ def show_if_requested(N=1):
         #import sys
         #print(sys.argv)
         latex_block = figure_str
-        latex_block = ut.codeblock(
-            r'''
-            \newcommand{\%s}{
-            %s
-            }
-            '''
-        ) % (label_str, latex_block,)
+        latex_block = ut.latex_newcommand(label_str, latex_block)
+        #latex_block = ut.codeblock(
+        #    r'''
+        #    \newcommand{\%s}{
+        #    %s
+        #    }
+        #    '''
+        #) % (label_str, latex_block,)
         try:
             import os
             import psutil
