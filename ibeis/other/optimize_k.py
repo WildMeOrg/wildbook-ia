@@ -150,11 +150,11 @@ def compute_K(nDaids, model_params, force_int=True):
         model_params (list): coefficients of the n-degree polynomial
 
     CommandLine:
-        python -m ibeis.dev.optimize_k --test-compute_K --show
+        python -m ibeis.other.optimize_k --test-compute_K --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.dev.optimize_k import *  # NOQA
+        >>> from ibeis.other.optimize_k import *  # NOQA
         >>> import plottool as pt
         >>> nDaids_list = np.arange(0, 1000)
         >>> model_params = [.2, .5]
@@ -304,13 +304,13 @@ def plot_search_surface(known_nd_data, known_target_points, given_data_dims, opt
 def learn_k():
     r"""
     CommandLine:
-        python -m ibeis.dev.optimize_k --test-learn_k
-        python -m ibeis.dev.optimize_k --test-learn_k --show
-        python -m ibeis.dev.optimize_k --test-learn_k --show --dummy
+        python -m ibeis.other.optimize_k --test-learn_k
+        python -m ibeis.other.optimize_k --test-learn_k --show
+        python -m ibeis.other.optimize_k --test-learn_k --show --dummy
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.dev.optimize_k import *  # NOQA
+        >>> from ibeis.other.optimize_k import *  # NOQA
         >>> import plottool as pt
         >>> # build test data
         >>> # execute function
@@ -359,9 +359,9 @@ def learn_k():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.dev.optimize_k
-        python -m ibeis.dev.optimize_k --allexamples
-        python -m ibeis.dev.optimize_k --allexamples --noface --nosrc
+        python -m ibeis.other.optimize_k
+        python -m ibeis.other.optimize_k --allexamples
+        python -m ibeis.other.optimize_k --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

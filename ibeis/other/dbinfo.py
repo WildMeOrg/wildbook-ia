@@ -61,13 +61,13 @@ def get_dbinfo(ibs, verbose=True,
         dict:
 
     CommandLine:
-        python -m ibeis.dev.dbinfo --test-get_dbinfo:0
-        python -m ibeis.dev.dbinfo --test-get_dbinfo:1
-        python -m ibeis.dev.dbinfo --test-get_dbinfo:1  --db NNP_Master3
+        python -m ibeis.other.dbinfo --test-get_dbinfo:0
+        python -m ibeis.other.dbinfo --test-get_dbinfo:1
+        python -m ibeis.other.dbinfo --test-get_dbinfo:1  --db NNP_Master3
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dev.dbinfo import *  # NOQA
+        >>> from ibeis.other.dbinfo import *  # NOQA
         >>> import ibeis
         >>> verbose = True
         >>> short = True
@@ -119,7 +119,7 @@ def get_dbinfo(ibs, verbose=True,
 
     Example1:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.dev.dbinfo import *  # NOQA
+        >>> from ibeis.other.dbinfo import *  # NOQA
         >>> import ibeis
         >>> verbose = True
         >>> ibs = ibeis.opendb(db=ut.get_argval('--db', default='testdb2'))
@@ -531,11 +531,11 @@ def get_short_infostr(ibs):
         str: infostr
 
     CommandLine:
-        python -m ibeis.dev.dbinfo --test-get_short_infostr
+        python -m ibeis.other.dbinfo --test-get_short_infostr
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.dev.dbinfo import *  # NOQA
+        >>> from ibeis.other.dbinfo import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> infostr = get_short_infostr(ibs)
@@ -714,9 +714,9 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.dev.dbinfo
-        python -m ibeis.dev.dbinfo --allexamples
-        python -m ibeis.dev.dbinfo --allexamples --noface --nosrc
+        python -m ibeis.other.dbinfo
+        python -m ibeis.other.dbinfo --allexamples
+        python -m ibeis.other.dbinfo --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

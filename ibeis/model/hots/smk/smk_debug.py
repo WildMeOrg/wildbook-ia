@@ -784,7 +784,7 @@ def wx_len_stats(wx2_xxx):
 def display_info(ibs, invindex, annots_df):
     from vtool import clustering2 as clustertool
     ################
-    from ibeis.dev import dbinfo
+    from ibeis.other import dbinfo
     print(ibs.get_infostr())
     dbinfo.get_dbinfo(ibs, verbose=True)
     ################

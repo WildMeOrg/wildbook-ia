@@ -39,7 +39,7 @@ from ibeis import constants as const
 from ibeis import params
 from ibeis import main_module
 from ibeis import species
-from ibeis import dev
+from ibeis import other
 from ibeis.init import sysres
 #main_module._preload()
 
@@ -106,7 +106,7 @@ def reload_subs(verbose=True):
     getattr(ibsfuncs, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(main_module, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(params, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(dev, 'reload_subs', lambda verbose: None)(verbose=verbose)
+    getattr(other, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(dbio, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(model, 'reload_subs', lambda verbose: None)(verbose=verbose)
     getattr(control, 'reload_subs', lambda verbose: None)(verbose=verbose)
@@ -133,7 +133,7 @@ Regen Command:
     Kinda have to work with the output of these. This module is hard to
     autogenerate correctly.
 
-    cd /home/joncrall/code/ibeis/ibeis/dev
+    cd /home/joncrall/code/ibeis/ibeis/other
     makeinit.py -x web viz tests gui all_imports
-    makeinit.py -x constants params main_module dev control ibsfuncs dbio tests all_imports
+    makeinit.py -x constants params main_module other control ibsfuncs dbio tests all_imports
 """

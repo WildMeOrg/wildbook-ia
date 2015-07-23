@@ -214,8 +214,8 @@ def get_pipeline_testdata(dbname=None,
     #ibs = ibeis.test_main(db=dbname)
 
     if VERB_TESTDATA:
-        #ibeis.dev.dbinfo.print_qd_info(ibs, qaid_list_, daid_list_, verbose=True)
-        ibeis.dev.dbinfo.print_qd_info(ibs, qaid_list_, daid_list_, verbose=False)
+        #ibeis.other.dbinfo.print_qd_info(ibs, qaid_list_, daid_list_, verbose=True)
+        ibeis.other.dbinfo.print_qd_info(ibs, qaid_list_, daid_list_, verbose=False)
 
     if 'with_metadata' not in cfgdict:
         cfgdict_['with_metadata'] = True

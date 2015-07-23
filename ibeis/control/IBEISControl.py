@@ -363,7 +363,7 @@ class IBEISController(object):
     @default_decorator
     def _init_sql(ibs):
         """ Load or create sql database """
-        from ibeis.dev import duct_tape  # NOQA
+        from ibeis.other import duct_tape  # NOQA
         ibs._init_sqldbcore()
         ibs._init_sqldbcache()
         # ibs.db.dump_schema()

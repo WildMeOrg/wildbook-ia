@@ -3,6 +3,7 @@ displays results from experiment_harness
 """
 from __future__ import absolute_import, division, print_function
 import numpy as np
+import re
 import six
 import utool as ut
 from ibeis import ibsfuncs
@@ -106,8 +107,9 @@ def print_results(ibs, test_result):
     scoreexpdiff_mat   = np.array(ut.replace_nones(cfgx2_scoreexpdiff, np.nan))
 
     print(' --- PRINT RESULTS ---')
+    print(' use --rank-lt-list=1,5 to specify X_LIST')
     # Num of ranks less than to score
-    X_LIST = [1]
+    X_LIST = ut.get_argval('--rank-lt-list', type_=list, default=[1])
     #X_LIST = [1, 5]
 
     nConfig = len(cfg_list)
@@ -311,17 +313,24 @@ def print_results(ibs, test_result):
         cfg_score_title = dbname + ' rank scores'
         cfgscores = np.array([nLessX_dict[int(X)] for X in X_LIST]).T
 
+        # For mat row labels
+        row_lbls = cfgx2_lbl[:]
         replace_rowlbl = [(' *cfgx *', ' ')]
-        tabular_kwargs = dict(title=cfg_score_title, out_of=nQuery,
-                              bold_best=True, replace_rowlbl=replace_rowlbl,
-                              flip=True)
-        tabular_str = ut.util_latex.make_score_tabular(cfgx2_lbl,
-                                                          criteria_lbls,
-                                                          cfgscores,
-                                                          **tabular_kwargs)
+        for ser, rep in replace_rowlbl:
+            row_lbls = [re.sub(ser, rep, lbl) for lbl in row_lbls]
+
+        tabular_kwargs = dict(
+            title=cfg_score_title,
+            out_of=nQuery,
+            bold_best=True,
+            flip=True
+        )
+        col_lbls = criteria_lbls
+        tabular_str = ut.util_latex.make_score_tabular(
+            row_lbls, col_lbls, cfgscores, **tabular_kwargs)
         #latex_formater.render(tabular_str)
         print(tabular_str)
-    #print_latexsum()
+    print_latexsum()
 
     #------------
     best_rankscore_summary = []
@@ -565,7 +574,7 @@ def print_results(ibs, test_result):
     print_diffmat()
 
     @ut.argv_flag_dec
-    def print_rankhist():
+    def print_rankhist_time():
         print('A rank histogram is a dictionary. '
               'The keys denote the range of the ranks that the values fall in')
         # TODO: rectify this code with other hist code
@@ -596,9 +605,20 @@ def print_results(ibs, test_result):
             timedelta_stats = [ut.get_stats(deltas, use_nan=True, datacast=ut.get_posix_timedelta_str2) for deltas in timedelta_groups]
             print('Time statistics for each rank range:')
             print(ut.dict_str(dict(zip(bin_edges, timedelta_stats)), sorted_=True))
+    print_rankhist_time()
 
-            #timedelta_str_list = get_annot_pair_timdelta(ibs, aid_list1, aid_list2)
+    @ut.argv_flag_dec
+    def print_rankhist():
+        print('A rank histogram is a dictionary. '
+              'The keys denote the range of the ranks that the values fall in')
+        # TODO: rectify this code with other hist code
+        agg_hist_dict = test_result.get_rank_histograms()
 
+        config_gt_aids = ut.get_list_column(test_result.cfgx2_cfgresinfo, 'qx2_gt_aid')
+        config_rand_bin_qxs = test_result.get_rank_histogram_qx_binxs()
+
+        _iter = enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs))
+        for cfgx, (ranks, agg_hist_dict, qx2_gt_aid, config_binxs) in _iter:
             print('Frequency of rank ranges:')
             ut.print_dict(agg_hist_dict, 'agg rank histogram', sorted_=True)
     print_rankhist()

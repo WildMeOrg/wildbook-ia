@@ -82,7 +82,7 @@ def get_test_qaids(ibs, default_qaids=None):
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> default_qaids = None
         >>> available_qaids = get_test_qaids(ibs, default_qaids)
-        >>> ibeis.dev.dbinfo.get_dbinfo(ibs, aid_list=available_qaids, with_contrib=False)
+        >>> ibeis.other.dbinfo.get_dbinfo(ibs, aid_list=available_qaids, with_contrib=False)
         >>> result = 'available_qaids = ' + ut.obj_str(available_qaids, truncate=True, nl=False)
         >>> print('len(available_qaids) = %d' % len(available_qaids))
         >>> print(result)
@@ -243,7 +243,7 @@ def get_test_daids(ibs, default_daids='all', qaid_list=None):
         >>> default_daids = 'all'
         >>> qaid_list = [1]
         >>> available_daids = get_test_daids(ibs, default_daids, qaid_list)
-        >>> ibeis.dev.dbinfo.get_dbinfo(ibs, aid_list=available_daids, with_contrib=False)
+        >>> ibeis.other.dbinfo.get_dbinfo(ibs, aid_list=available_daids, with_contrib=False)
         >>> result = 'available_daids = ' + ut.obj_str(available_daids, truncate=True, nl=False)
         >>> print('len(available_daids) %d' % len(available_daids))
         >>> print(result)

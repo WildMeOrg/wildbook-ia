@@ -140,7 +140,7 @@ from ibeis.model import preproc
 from ibeis import params
 from ibeis import ibsfuncs
 from ibeis.init import main_commands
-from ibeis.dev import dbinfo
+from ibeis.other import dbinfo
 from ibeis.init import sysres
 from ibeis.experiments import results_organizer
 from ibeis.experiments import results_analyzer

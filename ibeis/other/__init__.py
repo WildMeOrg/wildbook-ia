@@ -3,9 +3,9 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 ut.noinject(__name__, '[ibeis.init.__init__]', DEBUG=False)
-from ibeis.dev import dbinfo
-from ibeis.dev import duct_tape
-from ibeis.dev import optimize_k
+from ibeis.other import dbinfo
+from ibeis.other import duct_tape
+from ibeis.other import optimize_k
 #print, print_, printDBG, rrr, profile = ut.inject(
 #    __name__, '[ibeis.init.')
 
@@ -16,9 +16,9 @@ def reassign_submodule_attributes(verbose=True):
     """
     import sys
     if verbose and '--quiet' not in sys.argv:
-        print('dev reimport')
+        print('other reimport')
     # Self import
-    import ibeis.dev
+    import ibeis.other
     # Implicit reassignment.
     seen_ = set([])
     for tup in IMPORT_TUPLES:
@@ -62,7 +62,7 @@ IMPORT_TUPLES = [
 ]
 """
 Regen Command:
-    cd /home/joncrall/code/ibeis/ibeis/dev
+    cd /home/joncrall/code/ibeis/ibeis/other
     makeinit.py
 """
 

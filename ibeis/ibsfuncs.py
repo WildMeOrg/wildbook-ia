@@ -1781,13 +1781,13 @@ def _get_exemplar_gids(ibs):
 
 @__injectable
 def print_stats(ibs):
-    from ibeis.dev import dbinfo
+    from ibeis.other import dbinfo
     dbinfo.dbstats(ibs)
 
 
 @__injectable
 def print_dbinfo(ibs, **kwargs):
-    from ibeis.dev import dbinfo
+    from ibeis.other import dbinfo
     dbinfo.get_dbinfo(ibs, *kwargs)
 
 
@@ -2710,7 +2710,7 @@ def get_two_annots_per_name_and_singletons(ibs, onlygt=False):
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_Master0')
         >>> aid_subset = get_two_annots_per_name_and_singletons(ibs, onlygt=ut.get_argflag('--onlygt'))
-        >>> ibeis.dev.dbinfo.get_dbinfo(ibs, aid_list=aid_subset, with_contrib=False)
+        >>> ibeis.other.dbinfo.get_dbinfo(ibs, aid_list=aid_subset, with_contrib=False)
         >>> result = str(aid_subset)
         >>> print(result)
     """
@@ -2983,7 +2983,7 @@ def get_title(ibs):
 
 @__injectable
 def get_dbinfo_str(ibs):
-    from ibeis.dev import dbinfo
+    from ibeis.other import dbinfo
     return dbinfo.get_dbinfo(ibs, verbose=False)['info_str']
 
 
@@ -2997,7 +2997,7 @@ def get_infostr(ibs):
     Returns:
         str: infostr
     """
-    from ibeis.dev import dbinfo
+    from ibeis.other import dbinfo
     return dbinfo.get_short_infostr(ibs)
 
 

@@ -48,7 +48,7 @@ if __name__ == '__main__':
 from _devcmds_ibeis import *  # NOQA
 # IBEIS
 from ibeis.init import main_helpers
-from ibeis.dev import dbinfo
+from ibeis.other import dbinfo
 from ibeis.experiments import experiment_configs
 from ibeis.experiments import experiment_harness
 from ibeis.experiments import results_all
@@ -882,7 +882,7 @@ def run_dev(main_locals):
         print('[run_def] Test Annotations:')
         #print('[run_dev] * qaid_list = %s' % ut.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
         verbose_info = True
-        ibeis.dev.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=verbose_info)
+        ibeis.other.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=verbose_info)
         # Warn on no test cases
         try:
             assert len(qaid_list) > 0, 'assert!'
