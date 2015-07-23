@@ -1037,6 +1037,34 @@ def weighted_geometic_mean(data, weights):
     return gmean_
 
 
+def grab_webcam_image():
+    """
+    References:
+        http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
+
+    CommandLine:
+        python -m vtool.other --test-grab_webcam_image --show
+
+    Example:
+        >>> # SCRIPT
+        >>> from vtool.other import *  # NOQA
+        >>> import vtool as vt
+        >>> img = grab_webcam_image()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(img)
+        >>> #vt.imwrite('webcap.jpg', img)
+        >>> ut.show_if_requested()
+    """
+    import cv2
+    cap = cv2.VideoCapture(0)
+    # Capture frame-by-frame
+    ret, img = cap.read()
+    # When everything done, release the capture
+    cap.release()
+    return img
+
+
 #def xor_swap(arr1, arr2, inplace=True):
 #    if not inplace:
 #        arr1 = arr1.copy()
