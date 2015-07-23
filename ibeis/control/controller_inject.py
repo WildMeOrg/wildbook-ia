@@ -118,6 +118,16 @@ def translate_ibeis_webcall(func, *args, **kwargs):
                     converted = converted.strip().split(',')
                 else:
                     converted = [converted]
+            # Allow JSON formatted strings to be placed into note fields
+            if (arg.endswith('note_list') or arg.endswith('notes_list')) and isinstance(converted, (list, tuple)):
+                type_ = type(converted)
+                temp_list = []
+                for _ in converted:
+                    if isinstance(_, dict):
+                        temp_list.append('%s' % (_, ))
+                    else:
+                        temp_list.append(_)
+                converted = type_(temp_list)
             kwargs[arg] = converted
     # Pipe web input into Python web call
     _process_input(request.args)
