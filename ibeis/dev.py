@@ -9,10 +9,7 @@ interactions.
 dev.py is supposed to be a developer non-gui interface into the IBEIS software.
 dev.py runs experiments and serves as a scratchpad for new code and quick scripts
 
-
 TODO:
-    Cache nearest neighbors so different parameters later in the pipeline dont
-    take freaking forever.
 
     Test to find typical "good" descriptor scores.  Find nearest neighbors and
     noramlizers for each feature in a query image.  Based on ground truth and
@@ -20,6 +17,10 @@ TODO:
     feature scores of good matches vs bad matches. Lowe shows the pdf of
     correct matches and the PDF for incorrect matches. We should also show the
     same thing.
+
+Done:
+    Cache nearest neighbors so different parameters later in the pipeline dont
+    take freaking forever.
 
 CommandLine:
     python dev.py --wshow -t query --db PZ_MTEST --qaid 110 --cfg score_method:nsum prescore_method:nsum
@@ -31,7 +32,8 @@ CommandLine:
 from __future__ import absolute_import, division, print_function
 import multiprocessing
 # Dev
-from _devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
+import sys
+from ibeis._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
 import utool as ut
 from utool.util_six import get_funcname
 import utool
@@ -45,7 +47,7 @@ if __name__ == '__main__':
     from ibeis.all_imports import *  # NOQA
 #utool.util_importer.dynamic_import(__name__, ('_devcmds_ibeis', None),
 #                                   developing=True)
-from _devcmds_ibeis import *  # NOQA
+from ibeis._devcmds_ibeis import *  # NOQA
 # IBEIS
 from ibeis.init import main_helpers
 from ibeis.other import dbinfo
@@ -222,7 +224,7 @@ def tune_flann(ibs, qaid_list, daid_list=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from _devscript import *  # NOQA
+        >>> from ibeis._devscript import *  # NOQA
         >>> # build test data
         >>> # execute function
         >>> result = func_wrapper()
@@ -964,19 +966,17 @@ python dev.py --hard -t best vsone nsum
 #L______________
 
 
-if __name__ == '__main__':
+def devmain():
     """
-        The Developer Script
-            A command line interface to almost everything
+    The Developer Script
+        A command line interface to almost everything
 
-            -w     # wait / show the gui / figures are visible
-            --cmd  # ipython shell to play with variables
-            -t     # run list of tests
+        -w     # wait / show the gui / figures are visible
+        --cmd  # ipython shell to play with variables
+        -t     # run list of tests
 
-            Examples:
+        Examples:
     """
-
-    multiprocessing.freeze_support()  # for win32
 
     helpstr = ut.codeblock(
         '''
@@ -1058,6 +1058,12 @@ if __name__ == '__main__':
         utool.memory_profile()
 
     print('exiting dev')
+
+
+if __name__ == '__main__':
+    multiprocessing.freeze_support()  # for win32
+    devmain()
+
 
 r"""
 CurrentExperiments:

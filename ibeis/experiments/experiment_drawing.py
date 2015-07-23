@@ -255,10 +255,13 @@ class IndividualResultsCopyTaskQueue(object):
 
 @profile
 def draw_results(ibs, test_result):
-    """
+    r"""
     Draws results from an experiment harness run.
     Rows store different qaids (query annotation ids)
     Cols store different configurations (algorithm parameters)
+
+    Args:
+        test_result (experiment_storage.TestResult):
 
     CommandLine:
         python dev.py -t custom:rrvsone_on=True,constrained_coeff=0 custom --qaid 12 --db PZ_MTEST --show --va
@@ -277,8 +280,9 @@ def draw_results(ibs, test_result):
         python dev.py -t pyrscale --db testdb3 --allgt --vn --fig-dname query_analysis_interesting --vf --quality
 
 
-        python -m ibeis.experiments.experiment_printres --test-draw_results --show --vn
-        python -m ibeis.experiments.experiment_printres --test-draw_results --show --vn --db PZ_MTEST
+        python -m ibeis.experiments.experiment_drawing --test-draw_results --show --vn
+        python -m ibeis.experiments.experiment_drawing --test-draw_results --show --vn --db PZ_MTEST
+        python -m ibeis.experiments.experiment_drawing --test-draw_results --show --db PZ_MTEST --draw-rank-cdf
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -289,7 +293,8 @@ def draw_results(ibs, test_result):
         >>> species = ibeis.const.Species.ZEB_PLAIN
         >>> #ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> ibs = ibeis.opendb(defaultdb='testdb3')
-        >>> test_cfg_name_list = ['pyrscale']
+        >>> #test_cfg_name_list = ['pyrscale']
+        >>> test_cfg_name_list = ['custom', 'custom:sv_on=False']
         >>> qaids = ibs.get_valid_aids(species=species, hasgt=True)
         >>> daids = ibs.get_valid_aids(species=species)
         >>> test_result = experiment_harness.run_test_configurations(ibs, qaids, daids, test_cfg_name_list)
@@ -349,6 +354,30 @@ def draw_results(ibs, test_result):
     #cfg_columns = ensure_item(cfg_metadata, 'columns', {})
     #import guitool
 
+    dumpkw = {
+        'quality'   : QUALITY,
+        'overwrite' : True,
+        'verbose'   : 0,
+    }
+
+    @ut.argv_flag_dec
+    def draw_rank_cdf():
+        cdf_list, edges = test_result.get_rank_cumhist(bins='dense')
+        lbl_list = test_result.get_short_cfglbls()
+        figtitle = 'Cumulative Histogram of GT-Ranks'
+        #cdf_list = config_cdfs
+        if ut.get_argflag('--clip50'):
+            cdf_list = cdf_list[:, 0:min(len(cdf_list.T), 50)]
+            edges = edges[0:min(len(edges), 51)]
+        fig = pt.plot_rank_cumhist(cdf_list, lbl_list, edges=edges, figtitle=figtitle)  # NOQA
+        ut.show_if_requested()
+        #rank_cdf_fpath = ph.dump_figure(aggregate_results_figdir, reset=not SHOW, subdir=None, **dumpkw)
+        #print(rank_cdf_fpath)
+        #rank_cdf_fpath  # NOQA
+        #if SHOW:
+        #    pt.plt.show()
+    draw_rank_cdf()
+
     VIZ_INDIVIDUAL_RESULTS = True
     if VIZ_INDIVIDUAL_RESULTS:
         #_viewkw = dict(view_interesting=True)
@@ -362,11 +391,6 @@ def draw_results(ibs, test_result):
             'N': 3,
             'ori': True,
             'ell_alpha': .9,
-        }
-        dumpkw = {
-            'quality'   : QUALITY,
-            'overwrite' : True,
-            'verbose'   : 0,
         }
 
         cpq = IndividualResultsCopyTaskQueue()

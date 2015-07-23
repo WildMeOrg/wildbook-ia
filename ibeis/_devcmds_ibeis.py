@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 # This is supposed to be pristine, it turns out to be mostly clutter
 from __future__ import absolute_import, division, print_function
 import six
-from _devscript import devcmd, devprecmd
+from ibeis._devscript import devcmd, devprecmd
 from six.moves import zip
 from os.path import split, join, expanduser
 from plottool import draw_func2 as df2

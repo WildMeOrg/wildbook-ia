@@ -521,6 +521,110 @@ def get_dbinfo(ibs, verbose=True,
     return locals_
 
 
+def dbstats(ibs):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+
+    CommandLine:
+        python -m ibeis.other.dbinfo --test-dbstats --db testdb1
+        python -m ibeis.other.dbinfo --test-dbstats --db PZ_Master0 --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.other.dbinfo import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> tabular_str = dbstats(ibs)
+        >>> print(ut.latex_newcommand(ut.latex_sanatize_command_name(ibs.get_dbname() + 'Info'), tabular_str))
+        >>> ut.quit_if_noshow()
+        >>> ut.render_latex_text(tabular_str)
+    """
+    # Chip / Name / Image stats
+    dbinfo_locals = get_dbinfo(ibs, with_contrib=False)
+    db_name = ibs.get_dbname()
+    # num_images = dbinfo_locals['num_images']
+    # num_annots = dbinfo_locals['num_annots']
+    #num_names = len(dbinfo_locals['valid_nids'])
+    #num_singlenames = len(dbinfo_locals['singleton_nxs'])
+    #num_multinames = len(dbinfo_locals['multiton_nxs'])
+    #num_multiannots = len(dbinfo_locals['multiton_aids'])
+    #multiton_nid2_nannots = dbinfo_locals['multiton_nid2_nannots']
+
+    #(num_names, num_names_singleton, num_names_multiton, num_annots, num_singleton_annots, num_multiton_annots) = ut.dict_take(
+    #    dbinfo_locals, 'num_names, num_names_singleton, num_names_multiton, num_annots, num_singleton_annots, num_multiton_annots')
+
+    # tex_nImage = util_latex.latex_scalar(r'\# images', num_images)
+    # tex_nChip = util_latex.latex_scalar(r'\# annots', num_annots)
+    #tex_multi_stats = util_latex.latex_get_stats(r'\# Annots per Name (multiton)', multiton_nid2_nannots)
+
+    title = db_name + ' database statistics'
+    #tex_kpts_scale_thresh = util_latex.latex_multicolumn('Scale Threshold (%d %d)' %
+    #                                                          (ibs.cfg.feat_cfg.scale_min,
+    #                                                           ibs.cfg.feat_cfg.scale_max)) + r'\\' + '\n'
+
+    #(tex_nKpts, tex_kpts_stats, tex_scale_stats) = get_keypoint_stats(ibs)
+    #tex_title = util_latex.latex_multicolumn(db_name + ' database statistics') + r'\\' + '\n'
+    #tabular_body_list = [
+    #    tex_title,
+    #    '',
+    #    util_latex.latex_scalar(r'\# Names (multiton)',   dbinfo_locals['num_names_multiton']),
+    #    util_latex.latex_scalar(r'\# Names (singleton)',  dbinfo_locals['num_names_singleton']),
+    #    util_latex.latex_scalar(r'\# Names',              dbinfo_locals['num_names']),
+    #    '',
+    #    util_latex.latex_scalar(r'\# Annots (multiton)',  dbinfo_locals['num_multiton_annots']),
+    #    util_latex.latex_scalar(r'\# Annots (singleton)', dbinfo_locals['num_singleton_annots']),
+    #    util_latex.latex_scalar(r'\# Annots',             dbinfo_locals['num_names_singleton']),
+    #    #tex_multi_stats,
+    #    #'',
+    #    #tex_kpts_scale_thresh,
+    #    #tex_nKpts,
+    #    #tex_kpts_stats,
+    #    #tex_scale_stats,
+    #]
+
+    multicol_lbls = [('# Names', 3), ('# Annots', 3)]
+
+    col_lbls = [
+        '# multiton',
+        '# singleton',
+        '# total',
+        '# multiton',
+        '# singleton',
+        '# total',
+    ]
+
+    row_lbls = ['']
+
+    values = [[
+        dbinfo_locals['num_names_multiton'],
+        dbinfo_locals['num_names_singleton'],
+        dbinfo_locals['num_names'],
+
+        dbinfo_locals['num_multiton_annots'],
+        dbinfo_locals['num_singleton_annots'],
+        dbinfo_locals['num_annots'],
+    ]]
+
+    #tabular_str = util_latex.tabular_join(tabular_body_list)
+
+    tabular_str = ut.util_latex.make_score_tabular(
+        row_lbls, col_lbls, values, title=title, multicol_lbls=multicol_lbls)
+
+    #ut.embed()
+    # Make a table of statistics
+    multiton_annot_stats = ut.get_stats(dbinfo_locals['multiton_nid2_nannots'])
+    col_lbls = ['max', 'min', 'mean', 'std', 'nMin', 'nMax']
+    row_lbls = ['# Annot per Name (multiton)']
+    values = [[multiton_annot_stats[col] for col in col_lbls]]
+
+    tabular_str += '\\\\\n%--\n' + ut.util_latex.make_score_tabular(
+        row_lbls, col_lbls, values, title='# Annot per Name (multiton)', FORCE_INT=False, precision=2)
+    #print('[dev stats]')
+    #print(tabular_str)
+    return tabular_str
+
+
 def get_short_infostr(ibs):
     """ Returns printable database information
 
@@ -592,6 +696,9 @@ def test_name_consistency(ibs):
 
 
 def get_keypoint_stats(ibs):
+    """
+    kp info
+    """
     # from ut import util_latex
     #from hsdev import dev_consistency
     #dev_consistency.check_keypoint_consistency(ibs)
@@ -619,51 +726,6 @@ def get_keypoint_stats(ibs):
     #np.set_printoptions(**_printopts)
     print('[dbinfo] ---/LaTeX --- ')
     return (tex_nKpts, tex_kpts_stats, tex_scale_stats)
-
-
-def dbstats(ibs):
-    # Chip / Name / Image stats
-    dbinfo_locals = get_dbinfo(ibs)
-    db_name = ibs.get_dbname()
-    # num_images = dbinfo_locals['num_images']
-    # num_annots = dbinfo_locals['num_annots']
-    num_names = len(dbinfo_locals['valid_nids'])
-    num_singlenames = len(dbinfo_locals['singleton_nxs'])
-    num_multinames = len(dbinfo_locals['multiton_nxs'])
-    num_multiannots = len(dbinfo_locals['multiton_aids'])
-    multiton_nid2_nannots = dbinfo_locals['multiton_nid2_nannots']
-
-    # tex_nImage = util_latex.latex_scalar(r'\# images', num_images)
-    # tex_nChip = util_latex.latex_scalar(r'\# annots', num_annots)
-    tex_nName = util_latex.latex_scalar(r'\# names', num_names)
-    tex_nSingleName = util_latex.latex_scalar(r'\# singlenames', num_singlenames)
-    tex_nMultiName  = util_latex.latex_scalar(r'\# multinames', num_multinames)
-    tex_nMultiChip  = util_latex.latex_scalar(r'\# multiannots', num_multiannots)
-    tex_multi_stats = util_latex.latex_get_stats(r'\# multistats', multiton_nid2_nannots)
-
-    tex_kpts_scale_thresh = util_latex.latex_multicolumn('Scale Threshold (%d %d)' %
-                                                              (ibs.cfg.feat_cfg.scale_min,
-                                                               ibs.cfg.feat_cfg.scale_max)) + r'\\' + '\n'
-
-    (tex_nKpts, tex_kpts_stats, tex_scale_stats) = get_keypoint_stats(ibs)
-    tex_title = util_latex.latex_multicolumn(db_name + ' database statistics') + r'\\' + '\n'
-    tabular_body_list = [
-        tex_title,
-        # tex_nChip,
-        tex_nName,
-        tex_nSingleName,
-        tex_nMultiName,
-        tex_nMultiChip,
-        tex_multi_stats,
-        '',
-        tex_kpts_scale_thresh,
-        tex_nKpts,
-        tex_kpts_stats,
-        tex_scale_stats,
-    ]
-    tabular = util_latex.tabular_join(tabular_body_list)
-    print('[dev stats]')
-    print(tabular)
 
 
 def cache_memory_stats(ibs, cid_list, fnum=None):

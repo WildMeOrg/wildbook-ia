@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+TODO:
+    save and load TestResult classes
+"""
 from __future__ import absolute_import, division, print_function
 import six
 import numpy as np
@@ -43,18 +48,45 @@ class TestResult(object):
         new_hard_qx_list = np.where(is_new_hard_list)[0]
         return new_hard_qx_list
 
-    def get_rank_histograms(test_result):
+    def get_rank_histograms(test_result, bins=None, asdict=True):
         rank_mat = test_result.get_rank_mat()
-        bins = test_result.get_rank_histogram_bins()
-        config_hists = []
-        for ranks in rank_mat.T:
+        if bins is None:
+            bins = test_result.get_rank_histogram_bins()
+        elif bins == 'dense':
+            bins = np.arange(test_result.get_worst_possible_rank() + 1)
+        if not asdict:
+            # Use numpy histogram repr
+            config_hists = np.zeros((len(rank_mat.T), len(bins) - 1), dtype=np.int32)
+        else:
+            config_hists = []
+            pass
+        bin_sum = None
+        for cfgx, ranks in enumerate(rank_mat.T):
             bin_values, bin_edges  = np.histogram(ranks, bins=bins)
-            bin_keys = list(zip(bin_edges[:-1], bin_edges[1:]))
-            hist_dict = dict(zip(bin_keys, bin_values))
-            config_hists.append(hist_dict)
-        return config_hists
+            if bin_sum is None:
+                bin_sum = bin_values.sum()
+            else:
+                assert bin_sum == bin_values.sum(), 'should sum to be equal'
+            if asdict:
+                # Use dictionary histogram repr
+                bin_keys = list(zip(bin_edges[:-1], bin_edges[1:]))
+                hist_dict = dict(zip(bin_keys, bin_values))
+                config_hists.append(hist_dict)
+            else:
+                config_hists[cfgx] = bin_values
+        if not asdict:
+            return config_hists, bin_edges
+        else:
+            return config_hists
+
+    def get_rank_cumhist(test_result, bins='dense'):
+        #test_result.rrr()
+        hist_list, edges = test_result.get_rank_histograms(bins, asdict=False)
+        config_cdfs = np.cumsum(hist_list, axis=1)
+        return config_cdfs, edges
 
     def get_rank_histogram_bins(test_result):
+        """ easy to see histogram bins """
         worst_possible_rank = test_result.get_worst_possible_rank()
         if worst_possible_rank > 50:
             bins = [0, 1, 5, 50, worst_possible_rank, worst_possible_rank + 1]
@@ -109,6 +141,26 @@ class TestResult(object):
         """ just daids and config_str """
         cfgstr = test_result.cfgx2_qreq_[cfgx].get_cfgstr()
         return cfgstr
+
+    def get_short_cfglbls(test_result):
+        """
+        Labels for published tables
+        """
+
+        repl_list = [
+            ('custom', 'default'),
+            ('fg_on', 'FG'),
+            ('sv_on', 'SV'),
+            ('rotation_invariance', 'RI'),
+            ('affine_invariance', 'AI'),
+            ('augment_queryside_hack', 'AQH'),
+            ('nNameShortlistSVER', 'nRR'),
+        ]
+        import re
+        cfg_lbls = test_result.cfgx2_lbl[:]
+        for ser, rep in repl_list:
+            cfg_lbls = [re.sub(ser, rep, lbl) for lbl in cfg_lbls]
+        return cfg_lbls
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)

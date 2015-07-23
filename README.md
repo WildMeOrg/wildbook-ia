@@ -287,6 +287,11 @@ python dev.py <optional-arguments> [--help]
 # main is the standard entry point to the program
 # dev is a more advanced developer entry point
 
+# ** NEW 7-23-2015 **: the following commands are now equivalent and do not
+# have to be specified from the ibeis source dir if ibeis is installed
+python -m ibeis <optional-arguments> [--help]
+python -m ibeis.dev <optional-arguments> [--help]
+
 # Useful flags.
 # Read code comments in dev.py for more info.
 # Careful some commands don't work. Most do.

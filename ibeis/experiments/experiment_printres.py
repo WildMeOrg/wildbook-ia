@@ -1,9 +1,10 @@
 """
 displays results from experiment_harness
+
+TODO: save a test_result variable so reloading and regenration becomes easier.
 """
 from __future__ import absolute_import, division, print_function
 import numpy as np
-import re
 import six
 import utool as ut
 from ibeis import ibsfuncs
@@ -46,6 +47,10 @@ def print_results(ibs, test_result):
     Prints results from an experiment harness run.
     Rows store different qaids (query annotation ids)
     Cols store different configurations (algorithm parameters)
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        test_result (experiment_storage.TestResult):
 
     CommandLine:
         python dev.py -t best --db seals2 --allgt --vz
@@ -308,28 +313,28 @@ def print_results(ibs, test_result):
         print('[harn] LaTeX: %s' % testnameid)
         print('==========================')
         # Create configuration latex table
-        criteria_lbls = ['#ranks < %d' % X for X in X_LIST]
+        criteria_lbls = [r'#ranks $\leq$ %d' % X for X in X_LIST]
         dbname = ibs.get_dbname()
         cfg_score_title = dbname + ' rank scores'
         cfgscores = np.array([nLessX_dict[int(X)] for X in X_LIST]).T
 
         # For mat row labels
-        row_lbls = cfgx2_lbl[:]
-        replace_rowlbl = [(' *cfgx *', ' ')]
-        for ser, rep in replace_rowlbl:
-            row_lbls = [re.sub(ser, rep, lbl) for lbl in row_lbls]
+        row_lbls = test_result.get_short_cfglbls()
 
         tabular_kwargs = dict(
             title=cfg_score_title,
             out_of=nQuery,
             bold_best=True,
-            flip=True
+            flip=False,
+            SHORTEN_ROW_LBLS=False
         )
         col_lbls = criteria_lbls
         tabular_str = ut.util_latex.make_score_tabular(
             row_lbls, col_lbls, cfgscores, **tabular_kwargs)
         #latex_formater.render(tabular_str)
-        print(tabular_str)
+        cmdname = ut.latex_sanatize_command_name('Expmt' + ibs.get_dbname() + 'Table')
+        tabular_str2 = ut.latex_newcommand(cmdname, tabular_str)
+        print(tabular_str2)
     print_latexsum()
 
     #------------

@@ -226,9 +226,9 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
         # Query Config / Col Loop
         #for cfgx, query_cfg in enumerate(cfg_list):
         for cfgx, query_cfg in cfgiter:
-            print('+--- REQUESTING TEST CONFIG ---')
-            print(query_cfg.get_cfgstr())
-            print('L____')
+            #print('+--- REQUESTING TEST CONFIG ---')
+            #print(query_cfg.get_cfgstr())
+            ut.colorprint(query_cfg.get_cfgstr(), 'turquoise')
             # Set data to the current config
             ibs.set_query_cfg(query_cfg)
             # Run the test / read cache
@@ -239,6 +239,7 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
                 # Store the results
                 cfgx2_cfgresinfo.append(cfgres_info)
                 cfgx2_qreq_.append(qreq_)
+            print('\n +------ \n')
     if not utool.QUIET:
         ut.colorprint('[harn] Completed running test configurations', 'white')
         #print(msg)
