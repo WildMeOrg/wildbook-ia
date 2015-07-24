@@ -1923,6 +1923,11 @@ class MainWindowBackend(GUIBACK_BASE):
         ibeis.control.manual_wildbook_funcs.startup_wildbook_server()
 
     @slot_()
+    def shutdown_wildbook(back):
+        import ibeis
+        ibeis.control.manual_wildbook_funcs.shutdown_wildbook_server()
+
+    @slot_()
     def force_wildbook_namechange(back):
         back.ibs.wildbook_signal_annot_name_changes()
 

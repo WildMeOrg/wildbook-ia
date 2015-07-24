@@ -1,5 +1,8 @@
 """
 TODO: DEPRICATE QRES IN FAVOR OF CHIP_MATCH
+
+SeeAlso:
+    ibeis/model/hots/chip_match.py
 """
 from __future__ import absolute_import, division, print_function
 import utool

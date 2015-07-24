@@ -4,6 +4,7 @@ CommandLine;
     # Reset IBEIS database (can skip if done)
     python -m ibeis.tests.reset_testdbs --reset_mtest
 
+CommandLine;
     # Reset Wildbook database
     python -m ibeis.control.manual_wildbook_funcs --exec-reset_local_wildbook
 
@@ -292,7 +293,7 @@ def install_wildbook(verbose=ut.NOT_QUIET):
 
             # wait for the war to be unpacked
             for retry_count in range(0, 6):
-                time.sleep(.5)
+                time.sleep(1)
                 if ut.checkpath(unpacked_war_dpath, verbose=True):
                     break
                 else:
@@ -374,7 +375,7 @@ def startup_wildbook_server(verbose=ut.NOT_QUIET):
     with ut.ChdirContext(get_tomcat_startup_tmpdir()):
         startup_fpath  = join(tomcat_dpath, 'bin', 'startup.sh')
         ut.cmd(ut.quote_single_command(startup_fpath))
-        time.sleep(.5)
+        time.sleep(1)
     wb_url = 'http://localhost:8080/' + ibeis.const.WILDBOOK_TARGET
     return wb_url
 
