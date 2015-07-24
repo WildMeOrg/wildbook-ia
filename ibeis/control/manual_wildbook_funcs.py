@@ -143,6 +143,9 @@ def find_java_jvm():
 
 
 def find_or_download_wilbook_warfile():
+    #scp jonc@pachy.cs.uic.edu:/var/lib/tomcat/webapps/ibeis.war ~/Downloads/pachy_ibeis.war
+    #wget http://dev.wildme.org/ibeis_data_dir/ibeis.war
+
     war_url = 'http://dev.wildme.org/ibeis_data_dir/ibeis.war'
     war_fpath = ut.grab_file_url(war_url, appname='ibeis')
     return war_fpath
@@ -189,6 +192,8 @@ def install_wildbook(verbose=ut.NOT_QUIET):
     """
     # TODO: allow custom specified tomcat directory
     from os.path import basename, splitext, join
+    import time
+    import re
     tomcat_dpath = find_or_download_tomcat()
     assert tomcat_dpath is not None, 'Could not find tomcat'
     war_fpath = find_or_download_wilbook_warfile()
@@ -200,18 +205,16 @@ def install_wildbook(verbose=ut.NOT_QUIET):
     os.environ['TOMCAT_HOME'] = tomcat_dpath
     os.environ['CATALINA_HOME'] = tomcat_dpath
 
-    webapps_dpath = join(tomcat_dpath, 'webapps')
     # Move the war file to tomcat webapps if not there
+    webapps_dpath = join(tomcat_dpath, 'webapps')
     deploy_war_fpath = join(webapps_dpath, war_fname)
     if not ut.checkpath(deploy_war_fpath, verbose=verbose):
         ut.copy(war_fpath, deploy_war_fpath)
 
+    # Ensure that the war file has been unpacked
     startup_fpath  = join(tomcat_dpath, 'bin', 'startup.sh')
     shutdown_fpath = join(tomcat_dpath, 'bin', 'shutdown.sh')
-
-    # Ensure that the war file has been unpacked
     unpacked_war_dpath = join(webapps_dpath, wb_target)
-    import time
     if not ut.checkpath(unpacked_war_dpath, verbose=verbose):
         # Starting and stoping catalina should be sufficient to unpack the war
         ut.cmd(startup_fpath)
@@ -220,17 +223,15 @@ def install_wildbook(verbose=ut.NOT_QUIET):
         time.sleep(.5)
         ut.assertpath(unpacked_war_dpath, 'wildbook war was not unpacked correctly')
 
+    # Make sure permissions are correctly set in wildbook
     permission_fpath = join(unpacked_war_dpath, 'WEB-INF/web.xml')
     ut.assertpath(permission_fpath)
-
-    # Make sure permissions are correctly set in wildbook
     permission_text = ut.readfrom(permission_fpath)
-    import re
-    bad_lines = [
+    lines_to_remove = [
         '/EncounterSetMarkedIndividual = authc, roles[admin]'
     ]
     new_permission_text = permission_text[:]
-    for line in bad_lines:
+    for line in lines_to_remove:
         re.search(re.escape(line), permission_text)
         pattern = '^' + ut.named_field('prefix', '\\s*') + re.escape(line) + ut.named_field('suffix', '\\s*\n')
         match = re.search(pattern, permission_text, flags=re.MULTILINE | re.DOTALL)
@@ -246,24 +247,6 @@ def install_wildbook(verbose=ut.NOT_QUIET):
         print('Permission file seems to be ok')
 
     print('Wildbook is installed and waiting to be started')
-    #import xml.etree.ElementTree as ET
-    #tree = ET.parse(permission_fpath)
-    #root = tree.getroot()
-    #xmlstr = ET.tostring(root, encoding='ISO-8859-1', method='xml')
-    #print(xmlstr)
-    #root.find('ns0:filter')
-
-    #$CATALINA_HOME/bin/startup.sh
-    #sleep .5
-    #$CATALINA_HOME/bin/shutdown.sh
-    #sleep .5
-    #sed -i 's/\/EncounterSetMarkedIndividual = authc, roles\[admin\]/<!--\/EncounterSetMarkedIndividual = authc, roles\[admin\]-->/' $TOMCAT_DIR/webapps/$WB_TARGET/WEB-INF/web.xml
-    #sleep .5
-
-    #cp ~/Downloads/$WB_TARGET.war $CATALINA_HOME/webapps/
-
-    # Find or download required files
-    # Need to find the tomcat install and the ibeis .war
 
 
 def startup_wildbook_server(verbose=ut.NOT_QUIET):
@@ -346,148 +329,23 @@ def shutdown_wildbook_server(verbose=ut.NOT_QUIET):
     time.sleep(.5)
 
 
-# ^^^^^^ New scripts ^^^^^^^
-# TODO: remove old scripts and incorporate new ones into robust tests
-
-
-def hyrule_reset_wildbook():
-    r"""
-    CommandLine:
-        python -m ibeis.control.manual_wildbook_funcs --exec-hyrule_reset_wildbook
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
-        >>> result = hyrule_reset_wildbook()
-        >>> print(result)
-    """
-
-    presetup_part = """
-    scp jonc@pachy.cs.uic.edu:/var/lib/tomcat/webapps/ibeis.war ~/Downloads/pachy_ibeis.war
-    # Slightly less volitile location
-    rm ~/Downloads/ibeis.war
-    wget  -o ~/Downloads/ibeis.war http://dev.wildme.org/ibeis_data_dir/ibeis.war
-    wget http://dev.wildme.org/ibeis_data_dir/ibeis.war
-    """
-    presetup_part
-
-    assert ut.is_developer()
-    delete_part = ut.codeblock(
-        """
-        #!/bin/bash
-
-        # --- FRESHSTART ---
-        # Make sure that tomcat vars are set
-        export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
-
-        export WILDBOOK_TESTDIR=$CODE_DIR/Wildbook/tmp
-        export TOMCAT_DIR=$WILDBOOK_TESTDIR/apache-tomcat-8.0.24
-        export TOMCAT_HOME=$TOMCAT_DIR
-        export CATALINA_HOME=$TOMCAT_DIR
-
-        export WB_TARGET=ibeis
-
-        # ensure everything is shutdown before we start
-        $CATALINA_HOME/bin/shutdown.sh
-
-        # Clean up old tomcat
-        rm -rf $WILDBOOK_TESTDIR/apache-tomcat-8.0.24
-        # REMOVE EVERYTHING.
-        rm -rf $WILDBOOK_TESTDIR
-        mkdir $WILDBOOK_TESTDIR
-        cd $WILDBOOK_TESTDIR
-        """)
-
-    ignore_part = """
-    cd $CODE_DIR/Wildbook
-    """
-    ignore_part
-
-    create_part = ut.codeblock(
-        """
-        #!/bin/bash
-        cd $WILDBOOK_TESTDIR
-        unzip -q $WILDBOOK_TESTDIR/../apache-tomcat-8.0.24.zip -d $WILDBOOK_TESTDIR
-
-        # make catalina runnable
-        chmod +x $CATALINA_HOME/bin/catalina.sh
-        chmod +x $CATALINA_HOME/bin/startup.sh
-        chmod +x $CATALINA_HOME/bin/shutdown.sh
-
-        # Install a wildbook .war file into tomcat webapps
-        # assumes we've already downloaded the war file
-        cp ~/Downloads/$WB_TARGET.war $CATALINA_HOME/webapps/
-
-        # RUN TOMCAT SERVER (WE MUST BE IN THE TESTDIR ON STARTUP)
-        $CATALINA_HOME/bin/startup.sh
-        sleep .5
-        $CATALINA_HOME/bin/shutdown.sh
-        sleep .5
-        sed -i 's/\/EncounterSetMarkedIndividual = authc, roles\[admin\]/<!--\/EncounterSetMarkedIndividual = authc, roles\[admin\]-->/' $TOMCAT_DIR/webapps/$WB_TARGET/WEB-INF/web.xml
-        sleep .5
-        $CATALINA_HOME/bin/startup.sh
-
-        # google-chrome --new-window http://localhost:8080/$WB_TARGET
-        # firefox http://localhost:8080/$WB_TARGET
-        """
-    )
-
-    fix_settings = """
-    # ensure everything is shutdown before we start
-    $CATALINA_HOME/bin/shutdown.sh
-
-    # Fix authentication
-    gvim $TOMCAT_DIR/webapps/$WB_TARGET/WEB-INF/web.xml
-
-    sed 's/\/EncounterSetMarkedIndividual = authc, roles\[admin\]/foo/' $TOMCAT_DIR/webapps/$WB_TARGET/WEB-INF/web.xml
-    sed -i 's/^\(^ *\)\/EncounterSetMarkedIndividual = authc, roles\[admin\]/\1<!--\/EncounterSetMarkedIndividual = authc, roles\[admin\]-->/' $TOMCAT_DIR/webapps/$WB_TARGET/WEB-INF/web.xml  | grep EncounterSetMarkedIndividual
-    sed 's/^\(^ *\)\/EncounterSetMarkedIndividual = authc, roles\[admin\]/\1<!--\/EncounterSetMarkedIndividual = authc, roles\[admin\]-->/' $TOMCAT_DIR/webapps/$WB_TARGET/WEB-INF/web.xml  | grep EncounterSetMarkedIndividual
-
-    # Replace
-    '/EncounterSetMarkedIndividual = authc, roles[admin]'
-    # WITH
-    '<!--/EncounterSetMarkedIndividual = authc, roles[admin]-->'
-    """
-    fix_settings
-
-    bash_script = delete_part + '\n' + create_part
-    if True:
-        print('+-------')
-        print('Executing bash script: ')
-        ut.print_code(bash_script, 'bash')
-        #print(bash_script)
-        print('L______')
-        os.system(bash_script)
-    else:
-        def write_script(fpath_, text):
-            ut.writeto(fpath_, text)
-            ut.chmod_add_executable(fpath_)
-
-        fpath = 'hyrule_reset_wildbook.sh'
-        fpath1 = 'hyrule_delete_wildbook.sh'
-        fpath2 = 'hyrule_create_wildbook.sh'
-        write_script(fpath, bash_script)
-        write_script(fpath1, delete_part)
-        write_script(fpath2, create_part)
-        return fpath
-
-
-def hyrule_wildbook_login():
+def test_wildbook_login():
     r"""
     Returns:
         tuple: (wb_target, tomcat_dpath)
 
     CommandLine:
-        python -m ibeis.control.manual_wildbook_funcs --exec-hyrule_wildbook_login
+        python -m ibeis.control.manual_wildbook_funcs --exec-test_wildbook_login
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
-        >>> hyrule_wildbook_login()
+        >>> test_wildbook_login()
     """
     # Use selenimum to login to wildbook
+    import ibeis
     manaul_login = False
-    wb_target = 'ibeis'
+    wb_target = ibeis.const.WILDBOOK_TARGET
     wb_url = 'http://localhost:8080/' + wb_target
     if manaul_login:
         ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)
@@ -528,9 +386,10 @@ def testdata_wildbook_server():
     #    tomcat_dpath = join(os.environ['CODE_DIR'], 'Wildbook/tmp/apache-tomcat-8.0.24')
     #else:
     #    tomcat_dpath = '/var/lib/tomcat'
+    import ibeis
     tomcat_dpath = find_tomcat()
     ut.assertpath(tomcat_dpath, 'Cannot find tomcat install')
-    wb_target = 'ibeis'
+    wb_target = ibeis.const.WILDBOOK_TARGET
     return wb_target, tomcat_dpath
 
 
@@ -552,10 +411,7 @@ def get_wildbook_info(ibs, tomcat_dpath=None, wb_target=None):
 
 @register_ibs_method
 def get_wildbook_tomcat_path(ibs, tomcat_dpath=None, wb_target=None):
-    if ut.is_developer():
-        DEFAULT_TOMCAT_PATH = join(os.environ['CODE_DIR'], 'Wildbook/tmp/apache-tomcat-8.0.24')
-    else:
-        DEFAULT_TOMCAT_PATH = '/var/lib/tomcat'
+    DEFAULT_TOMCAT_PATH = find_tomcat()
     tomcat_dpath = DEFAULT_TOMCAT_PATH if tomcat_dpath is None else tomcat_dpath
     wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
     wildbook_tomcat_path = join(tomcat_dpath, 'webapps', wb_target)
@@ -799,10 +655,16 @@ def wildbook_signal_eid_list(ibs, eid_list=None, set_shipped_flag=True, open_url
         python -m ibeis.tests.reset_testdbs --reset_mtest
 
         # Reset Wildbook database
-        python -m ibeis.control.manual_wildbook_funcs --exec-hyrule_reset_wildbook
+        python -m ibeis.control.manual_wildbook_funcs --exec-reset_local_wildbook
+
+        # Install Wildbook
+        python -m ibeis.control.manual_wildbook_funcs --test-install_wildbook
+
+        # Startup Wildbook
+        python -m ibeis.control.manual_wildbook_funcs --test-startup_wildbook_server
 
         # Login to wildbook
-        python -m ibeis.control.manual_wildbook_funcs --exec-hyrule_wildbook_login
+        python -m ibeis.control.manual_wildbook_funcs --exec-test_wildbook_login
 
         # Ship Encounters to wildbook
         python -m ibeis.control.manual_wildbook_funcs --test-wildbook_signal_eid_list
