@@ -338,9 +338,18 @@ def setup_developer_menu(mainwin, back):
         slot_fn=back.run_tests)
     menu.addSeparator()
     menu.newAction(
-        name='actionLaunchWildbook',
-        text='Launch Wildbook',
-        slot_fn=back.launch_wildbook)
+        name='actionBrowseWildbook',
+        text='Browse Wildbook',
+        slot_fn=back.browse_wildbook)
+    menu.newAction(
+        name='actionInstallWildbook',
+        text='Install Wildbook',
+        slot_fn=back.install_wildbook)
+    menu.newAction(
+        name='actionStartupWildbook',
+        text='Startup Wildbook',
+        slot_fn=back.startup_wildbook)
+    menu.addSeparator()
     menu.newAction(
         name='actionForceWildbookNameChange',
         text='Force Wildbook Name Change',

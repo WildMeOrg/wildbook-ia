@@ -1908,9 +1908,19 @@ class MainWindowBackend(GUIBACK_BASE):
         back.connect_ibeis_control(back.ibs)
 
     @slot_()
-    def launch_wildbook(back):
+    def browse_wildbook(back):
         wb_base_url = back.ibs.get_wildbook_base_url()
         ut.get_prefered_browser().open(wb_base_url)
+
+    @slot_()
+    def install_wildbook(back):
+        import ibeis
+        ibeis.control.manual_wildbook_funcs.install_wildbook()
+
+    @slot_()
+    def startup_wildbook(back):
+        import ibeis
+        ibeis.control.manual_wildbook_funcs.startup_wildbook_server()
 
     @slot_()
     def force_wildbook_namechange(back):

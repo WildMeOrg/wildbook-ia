@@ -17,9 +17,337 @@ register_api   = controller_inject.get_ibeis_flask_api(__name__)
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 #PREFERED_BROWSER = 'chrome'
-#PREFERED_BROWSER = 'firefox'
 PREFERED_BROWSER = None
+PREFERED_BROWSER = 'firefox'
 #webbrowser._tryorder
+
+
+def find_tomcat(verbose=ut.NOT_QUIET):
+    r"""
+    Returns:
+        str: tomcat_dpath
+
+    CommandLine:
+        python -m ibeis.control.manual_wildbook_funcs --test-find_tomcat
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
+        >>> tomcat_dpath = find_tomcat()
+        >>> result = ('tomcat_dpath = %s' % (str(tomcat_dpath),))
+        >>> print(result)
+    """
+    import utool as ut
+    import os
+    fname_list = ['Tomcat', 'tomcat']
+    # Places for system install of tomcat
+    if ut.WIN32:
+        dpath_list = ['C:/Program Files (x86)', 'C:/Program Files']
+    else:
+        dpath_list = ['/var/lib', '/usr/share', '/opt', '/lib']
+    if ut.DARWIN:
+        dpath_list = ['/Library'] + dpath_list
+
+    priority_paths = [
+        # Numberone preference is the CATALINA_HOME directory
+        os.environ.get('CATALINA_HOME', None),
+        # We put tomcat here if we can't find it
+        ut.get_app_resource_dir('ibeis', 'tomcat')
+    ]
+
+    required_subpaths = [
+        'webapps',
+        'bin',
+        'bin/catalina.sh',
+    ]
+
+    return_path = ut.search_candidate_paths(dpath_list, fname_list, priority_paths, required_subpaths, verbose=verbose)
+    tomcat_dpath = return_path
+    print('tomcat_dpath = %r ' % (tomcat_dpath,))
+    return tomcat_dpath
+
+
+def download_tomcat():
+    """
+    Put tomcat into a directory controlled by ibeis
+
+    CommandLine:
+        # Reset
+        python -c "import utool as ut; ut.delete(ut.unixjoin(ut.get_app_resource_dir('ibeis'), 'tomcat'))"
+    """
+    from os.path import splitext, dirname
+    if ut.WIN32:
+        tomcat_binary_url = 'http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24-windows-x86.zip'
+    else:
+        tomcat_binary_url = 'http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24.zip'
+    zip_fpath = ut.grab_file_url(tomcat_binary_url, appname='ibeis')
+    tomcat_dpath = join(dirname(zip_fpath), 'tomcat')
+    if not ut.checkpath(tomcat_dpath, verbose=True):
+        # hack because unzipping is still weird
+        ut.unzip_file(zip_fpath)
+        tomcat_dpath_tmp = splitext(zip_fpath)[0]
+        ut.move(tomcat_dpath_tmp, tomcat_dpath)
+    if ut.checkpath(join(tomcat_dpath, 'bin'), verbose=True):
+        scriptnames = ['catalina.sh', 'startup.sh', 'shutdown.sh']
+        for fname in scriptnames:
+            fpath = join(tomcat_dpath, 'bin', fname)
+            if not ut.is_file_executable(fpath):
+                print('Adding executable bits to script %r' % (fpath,))
+                ut.chmod_add_executable(fpath)
+    return tomcat_dpath
+
+
+def find_or_download_tomcat():
+    r"""
+    Returns:
+        str: tomcat_dpath
+
+    CommandLine:
+        # Reset
+        python -m ibeis.control.manual_wildbook_funcs --test-reset_local_wildbook
+        python -m ibeis.control.manual_wildbook_funcs --test-find_or_download_tomcat
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
+        >>> tomcat_dpath = find_or_download_tomcat()
+        >>> result = ('tomcat_dpath = %s' % (str(tomcat_dpath),))
+        >>> print(result)
+    """
+    tomcat_dpath = find_tomcat()
+    if tomcat_dpath is None:
+        tomcat_dpath = download_tomcat()
+    else:
+        ut.assertpath(tomcat_dpath)
+    return tomcat_dpath
+
+
+def find_java_jvm():
+    r"""
+    CommandLine:
+        python -m ibeis.control.manual_wildbook_funcs --test-find_java_jvm
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
+        >>> result = find_java_jvm()
+        >>> print(result)
+    """
+    candidate_path_list = [
+        os.environ.get('JAVA_HOME', None),
+        '/usr/lib/jvm/java-7-openjdk-amd64',
+    ]
+    jvm_fpath = ut.search_candidate_paths(candidate_path_list, verbose=True)
+    ut.assertpath(jvm_fpath, 'IBEIS cannot find Java Runtime Environment')
+    return jvm_fpath
+
+
+def find_or_download_wilbook_warfile():
+    war_url = 'http://dev.wildme.org/ibeis_data_dir/ibeis.war'
+    war_fpath = ut.grab_file_url(war_url, appname='ibeis')
+    return war_fpath
+
+
+def reset_local_wildbook():
+    r"""
+    CommandLine:
+        python -m ibeis.control.manual_wildbook_funcs --test-reset_local_wildbook
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
+        >>> reset_local_wildbook()
+    """
+    import utool as ut
+    try:
+        shutdown_wildbook_server()
+    except ImportError:
+        pass
+    ut.delete(ut.unixjoin(ut.get_app_resource_dir('ibeis'), 'tomcat'))
+
+
+def install_wildbook(verbose=ut.NOT_QUIET):
+    """
+    Script to setup wildbook on a unix based system
+    (hopefully eventually this will generalize to win32)
+
+    CommandLine:
+        # Reset
+        python -m ibeis.control.manual_wildbook_funcs --test-reset_local_wildbook
+        # Setup
+        python -m ibeis.control.manual_wildbook_funcs --test-install_wildbook
+        # Startup
+        python -m ibeis.control.manual_wildbook_funcs --test-startup_wildbook_server --show --exec-mode
+
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
+        >>> verbose = True
+        >>> result = install_wildbook()
+        >>> print(result)
+    """
+    # TODO: allow custom specified tomcat directory
+    from os.path import basename, splitext, join
+    tomcat_dpath = find_or_download_tomcat()
+    assert tomcat_dpath is not None, 'Could not find tomcat'
+    war_fpath = find_or_download_wilbook_warfile()
+    war_fname = basename(war_fpath)
+    wb_target = splitext(war_fname)[0]
+
+    # Ensure environment variables
+    os.environ['JAVA_HOME'] = find_java_jvm()
+    os.environ['TOMCAT_HOME'] = tomcat_dpath
+    os.environ['CATALINA_HOME'] = tomcat_dpath
+
+    webapps_dpath = join(tomcat_dpath, 'webapps')
+    # Move the war file to tomcat webapps if not there
+    deploy_war_fpath = join(webapps_dpath, war_fname)
+    if not ut.checkpath(deploy_war_fpath, verbose=verbose):
+        ut.copy(war_fpath, deploy_war_fpath)
+
+    startup_fpath  = join(tomcat_dpath, 'bin', 'startup.sh')
+    shutdown_fpath = join(tomcat_dpath, 'bin', 'shutdown.sh')
+
+    # Ensure that the war file has been unpacked
+    unpacked_war_dpath = join(webapps_dpath, wb_target)
+    import time
+    if not ut.checkpath(unpacked_war_dpath, verbose=verbose):
+        # Starting and stoping catalina should be sufficient to unpack the war
+        ut.cmd(startup_fpath)
+        time.sleep(.5)
+        ut.cmd(shutdown_fpath)
+        time.sleep(.5)
+        ut.assertpath(unpacked_war_dpath, 'wildbook war was not unpacked correctly')
+
+    permission_fpath = join(unpacked_war_dpath, 'WEB-INF/web.xml')
+    ut.assertpath(permission_fpath)
+
+    # Make sure permissions are correctly set in wildbook
+    permission_text = ut.readfrom(permission_fpath)
+    import re
+    bad_lines = [
+        '/EncounterSetMarkedIndividual = authc, roles[admin]'
+    ]
+    new_permission_text = permission_text[:]
+    for line in bad_lines:
+        re.search(re.escape(line), permission_text)
+        pattern = '^' + ut.named_field('prefix', '\\s*') + re.escape(line) + ut.named_field('suffix', '\\s*\n')
+        match = re.search(pattern, permission_text, flags=re.MULTILINE | re.DOTALL)
+        if match is None:
+            continue
+        repl = ut.bref_field('prefix') + '<!--' + line + ' -->' + ut.bref_field('suffix')
+        new_permission_text = re.sub(pattern, repl, permission_text, flags=re.MULTILINE | re.DOTALL)
+        assert new_permission_text != permission_text, 'text should have changed'
+    if new_permission_text != permission_text:
+        print('Need to write new permission texts')
+        ut.writeto(permission_fpath, new_permission_text)
+    else:
+        print('Permission file seems to be ok')
+
+    print('Wildbook is installed and waiting to be started')
+    #import xml.etree.ElementTree as ET
+    #tree = ET.parse(permission_fpath)
+    #root = tree.getroot()
+    #xmlstr = ET.tostring(root, encoding='ISO-8859-1', method='xml')
+    #print(xmlstr)
+    #root.find('ns0:filter')
+
+    #$CATALINA_HOME/bin/startup.sh
+    #sleep .5
+    #$CATALINA_HOME/bin/shutdown.sh
+    #sleep .5
+    #sed -i 's/\/EncounterSetMarkedIndividual = authc, roles\[admin\]/<!--\/EncounterSetMarkedIndividual = authc, roles\[admin\]-->/' $TOMCAT_DIR/webapps/$WB_TARGET/WEB-INF/web.xml
+    #sleep .5
+
+    #cp ~/Downloads/$WB_TARGET.war $CATALINA_HOME/webapps/
+
+    # Find or download required files
+    # Need to find the tomcat install and the ibeis .war
+
+
+def startup_wildbook_server(verbose=ut.NOT_QUIET):
+    r"""
+    Args:
+        verbose (bool):  verbosity flag(default = True)
+
+    CommandLine:
+        python -m ibeis.control.manual_wildbook_funcs --test-startup_wildbook_server --show --exec-mode
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
+        >>> verbose = True
+        >>> wb_url = startup_wildbook_server()
+        >>> ut.quit_if_noshow()
+        >>> ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)
+    """
+    # TODO: allow custom specified tomcat directory
+    from os.path import join
+    import ibeis
+    tomcat_dpath = find_tomcat()
+    if tomcat_dpath is None:
+        raise ImportError('Cannot find tomcat')
+    wb_target = ibeis.const.WILDBOOK_TARGET
+    webapps_dpath = join(tomcat_dpath, 'webapps')
+    unpacked_war_dpath = join(webapps_dpath, wb_target)
+    ut.assertpath(unpacked_war_dpath)
+
+    # Ensure environment variables
+    os.environ['JAVA_HOME'] = find_java_jvm()
+    os.environ['TOMCAT_HOME'] = tomcat_dpath
+    os.environ['CATALINA_HOME'] = tomcat_dpath
+
+    startup_fpath  = join(tomcat_dpath, 'bin', 'startup.sh')
+
+    import time
+    ut.cmd(startup_fpath)
+    time.sleep(.5)
+    wb_url = 'http://localhost:8080/' + wb_target
+    return wb_url
+
+
+def shutdown_wildbook_server(verbose=ut.NOT_QUIET):
+    r"""
+    Args:
+        verbose (bool):  verbosity flag(default = True)
+
+    CommandLine:
+        python -m ibeis.control.manual_wildbook_funcs --test-shutdown_wildbook_server --exec-mode
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
+        >>> verbose = True
+        >>> wb_url = shutdown_wildbook_server()
+        >>> ut.quit_if_noshow()
+        >>> ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)
+    """
+    # TODO: allow custom specified tomcat directory
+    from os.path import join
+    import ibeis
+    tomcat_dpath = find_tomcat()
+    if tomcat_dpath is None:
+        raise ImportError('Cannot find tomcat')
+    wb_target = ibeis.const.WILDBOOK_TARGET
+    webapps_dpath = join(tomcat_dpath, 'webapps')
+    unpacked_war_dpath = join(webapps_dpath, wb_target)
+    ut.assertpath(unpacked_war_dpath)
+
+    # Ensure environment variables
+    os.environ['JAVA_HOME'] = find_java_jvm()
+    os.environ['TOMCAT_HOME'] = tomcat_dpath
+    os.environ['CATALINA_HOME'] = tomcat_dpath
+
+    shutdown_fpath = join(tomcat_dpath, 'bin', 'shutdown.sh')
+
+    import time
+    ut.cmd(shutdown_fpath)
+    time.sleep(.5)
+
+
+# ^^^^^^ New scripts ^^^^^^^
+# TODO: remove old scripts and incorporate new ones into robust tests
 
 
 def hyrule_reset_wildbook():
@@ -41,6 +369,8 @@ def hyrule_reset_wildbook():
     wget  -o ~/Downloads/ibeis.war http://dev.wildme.org/ibeis_data_dir/ibeis.war
     wget http://dev.wildme.org/ibeis_data_dir/ibeis.war
     """
+    presetup_part
+
     assert ut.is_developer()
     delete_part = ut.codeblock(
         """
@@ -194,12 +524,19 @@ def testdata_wildbook_server():
         ~/local/build_scripts/init_wildbook.sh
     """
     # Very hacky and specific testdata script.
-    if ut.is_developer():
-        tomcat_dpath = join(os.environ['CODE_DIR'], 'Wildbook/tmp/apache-tomcat-8.0.24')
-    else:
-        tomcat_dpath = '/var/lib/tomcat'
+    #if ut.is_developer():
+    #    tomcat_dpath = join(os.environ['CODE_DIR'], 'Wildbook/tmp/apache-tomcat-8.0.24')
+    #else:
+    #    tomcat_dpath = '/var/lib/tomcat'
+    tomcat_dpath = find_tomcat()
+    ut.assertpath(tomcat_dpath, 'Cannot find tomcat install')
     wb_target = 'ibeis'
     return wb_target, tomcat_dpath
+
+
+@register_ibs_method
+def get_wildbook_target(ibs):
+    return ibs.const.WILDBOOK_TARGET
 
 
 @register_ibs_method
