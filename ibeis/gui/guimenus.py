@@ -61,6 +61,7 @@ def setup_menus(mainwin, back=None):
     setup_option_menu(mainwin, back)
     setup_refresh_menu(mainwin, back)
     setup_help_menu(mainwin, back)
+    setup_wildbook_menu(mainwin, back)
     setup_developer_menu(mainwin, back)
     setup_depricated_menu(mainwin, back)
 
@@ -323,6 +324,29 @@ def setup_help_menu(mainwin, back):
         slot_fn=back.fix_and_clean_database)
 
 
+def setup_wildbook_menu(mainwin, back):
+    mainwin.menuWildbook = guitool.newMenu(mainwin, mainwin.menubar, 'menuWildbook', 'Wildbook')
+    menu = mainwin.menuWildbook
+    menu.newAction(
+        name='actionBrowseWildbook',
+        text='Browse Wildbook',
+        slot_fn=back.browse_wildbook)
+    menu.addSeparator()
+    menu.newAction(
+        name='actionForceWildbookNameChange',
+        text='Force Wildbook Name Change',
+        slot_fn=back.force_wildbook_namechange)
+    menu.addSeparator()
+    menu.newAction(
+        name='actionInstallWildbook',
+        text='Install Wildbook',
+        slot_fn=back.install_wildbook)
+    menu.newAction(
+        name='actionStartupWildbook',
+        text='Startup Wildbook',
+        slot_fn=back.startup_wildbook)
+
+
 def setup_developer_menu(mainwin, back):
     """ DEV MENU """
     mainwin.menuDev = guitool.newMenu(mainwin, mainwin.menubar, 'menuDev', 'Dev')
@@ -336,24 +360,6 @@ def setup_developer_menu(mainwin, back):
         name='actionDevRunTests',
         text='Run Developer Tests',
         slot_fn=back.run_tests)
-    menu.addSeparator()
-    menu.newAction(
-        name='actionBrowseWildbook',
-        text='Browse Wildbook',
-        slot_fn=back.browse_wildbook)
-    menu.newAction(
-        name='actionInstallWildbook',
-        text='Install Wildbook',
-        slot_fn=back.install_wildbook)
-    menu.newAction(
-        name='actionStartupWildbook',
-        text='Startup Wildbook',
-        slot_fn=back.startup_wildbook)
-    menu.addSeparator()
-    menu.newAction(
-        name='actionForceWildbookNameChange',
-        text='Force Wildbook Name Change',
-        slot_fn=back.force_wildbook_namechange)
     menu.addSeparator()
     menu.newAction(
         name='actionDeveloper_DumpDB',
