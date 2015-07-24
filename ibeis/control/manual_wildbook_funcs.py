@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 CommandLine;
-    # Reset IBEIS database
+    # Reset IBEIS database (can skip if done)
     python -m ibeis.tests.reset_testdbs --reset_mtest
 
     # Reset Wildbook database
@@ -13,7 +13,7 @@ CommandLine;
     # Startup Wildbook
     python -m ibeis.control.manual_wildbook_funcs --exec-startup_wildbook_server
 
-    # Login to wildbook
+    # Login to wildbook (can skip)
     python -m ibeis.control.manual_wildbook_funcs --exec-test_wildbook_login
 
     # Ship Encounters to wildbook
@@ -279,7 +279,7 @@ def install_wildbook(verbose=ut.NOT_QUIET):
             time.sleep(.5)
             ut.cmd(ut.quote_single_command(shutdown_fpath))
             time.sleep(.5)
-            ut.assertpath(unpacked_war_dpath, 'wildbook war was not unpacked correctly')
+            ut.assertpath(unpacked_war_dpath, 'wildbook war was not unpacked correctly. Try again, and if it fails there is a problem.')
 
     # Make sure permissions are correctly set in wildbook
     permission_fpath = join(unpacked_war_dpath, 'WEB-INF/web.xml')
