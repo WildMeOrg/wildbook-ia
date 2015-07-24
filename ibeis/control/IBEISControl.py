@@ -1068,7 +1068,8 @@ class IBEISController(object):
                     return_request=False,
                     verbose=pipeline.VERB_PIPELINE,
                     save_qcache=None,
-                    prog_hook=None):
+                    prog_hook=None,
+                    return_cm=False):
         r"""
         Submits a query request to the hotspotter recognition pipeline. Returns
         a list of QueryResult objects.
@@ -1086,6 +1087,7 @@ class IBEISController(object):
             qreq_ (QueryRequest): optional, a QueryRequest object that overrides all previous settings
             return_request (bool): returns the request which will be created if one is not already specified
             verbose (bool): default=False, turns on verbose printing
+            return_cm (bool): default=False, if true converts QueryResult objects into serializable ChipMatch2 objects
 
         Returns:
             list: a list of QueryResult objects containing the matching annotations, scores, and feature matches
@@ -1111,8 +1113,12 @@ class IBEISController(object):
         """
         # The qaid and daid objects are allowed to be None if qreq_ is
         # specified
+        was_scalar = False
         if qaid_list is None:
             qaid_list = qreq_.get_external_qaids()
+        else:
+            qaid_list = ut.ensure_iterable(qaid_list)
+            was_scalar = True
         if daid_list is None:
             if qreq_ is not None:
                 daid_list = qreq_.get_external_daids()
@@ -1134,6 +1140,16 @@ class IBEISController(object):
         # Return a list of query results instead of that awful dictionary
         # that will be depricated in future version of hotspotter.
         qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
+
+        if return_cm:
+            from ibeis.model.hots import chip_match
+            # Convert to cm_list
+            qres_list = [chip_match.ChipMatch2.from_qres(qres) for qres in qres_list]
+
+        if was_scalar:
+            # hack for scalar input
+            assert len(qres_list) == 1
+            qres_list = qres_list[0]
 
         if return_request:
             return qres_list, qreq_

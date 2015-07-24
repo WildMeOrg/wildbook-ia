@@ -19,21 +19,40 @@ DEBUG_CHIPMATCH = False
 #import six
 
 
-def test_from_qres(qres):
-    """
+def testdata_qres():
+    import ibeis
+    ibs = ibeis.opendb(defaultdb='testdb1')
+    qres, qreq_ = ibs.query_chips(1, [2, 3, 4, 5], cfgdict=dict(), verbose=True, return_request=True)
+    return qres, qreq_
+
+
+def testdata_cm():
+    r"""
     CommandLine:
-        python -m ibeis.model.hots.chip_match --test-test_from_qres
+        python -m ibeis.model.hots.chip_match --test-testdata_cm --show
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.hots.chip_match import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qres = ibs._query_chips4([1], [2, 3, 4, 5], cfgdict=dict(), verbose=True)[1]
-        >>> cm = ChipMatch2.from_qres(qres)
-        >>> cm.print_csv(ibs=ibs)
+        >>> cm, qreq_ = testdata_cm()
+        >>> cm.print_csv(ibs=qreq_.ibs)
+        >>> ut.quit_if_noshow()
+        >>> cm.show_single_annotmatch(qreq_, 2)
+        >>> ut.show_if_requested()
+
+        # qaid = 1
+        # qnid = -1
+        # fsv_col_lbls = ['lnbnn', 'fg']
+        # num_rows=4
+        #   daid,  dnid,    score,  num_matches,  fm_depth,  fsv_depth
+               3,     1,  5637.58,          229,  (229; 2),   (229; 2)
+               5,     2,  1997.63,          142,  (142; 2),   (142; 2)
+               4,    -4,   274.97,           36,   (36; 2),    (36; 2)
+               2,     1,     0.00,          105,  (105; 2),   (105; 2)
     """
-    pass
+    qres, qreq_ = testdata_qres()
+    cm = ChipMatch2.from_qres(qres)
+    return cm, qreq_
 
 
 def timing_vsmany_match_tup():
@@ -172,6 +191,166 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         fk_list  = ut.get_list_column(valid_match_tup_list, 4)
         cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list, fsv_col_lbls=fsv_col_lbls)
         return cm
+
+    @classmethod
+    def from_json(cls, json_str):
+        r"""
+        Convert json string back to ChipMatch object
+
+        CommandLine:
+            # FIXME; util_test is broken with classmethods
+            python -m ibeis.model.hots.chip_match --test-from_json --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> cls = ChipMatch2
+            >>> cm1, qreq_ = testdata_cm()
+            >>> json_str = cm1.to_json()
+            >>> cm = ChipMatch2.from_json(json_str)
+            >>> ut.quit_if_noshow()
+            >>> cm.score_nsum(qreq_)
+            >>> cm.show_single_namematch(qreq_, 1)
+            >>> ut.show_if_requested()
+        """
+
+        def convert_numpy_lists(arr_list, dtype):
+            return [np.array(arr, dtype=dtype) for arr in arr_list]
+
+        def convert_numpy(arr, dtype):
+            return np.array(ut.replace_nones(arr, np.nan), dtype=dtype)
+
+        class_dict = ut.from_json(json_str)
+        key_list = ut.get_kwargs(cls.__init__)[0]
+        if ut.VERBOSE:
+            other_keys = list(set(class_dict.keys()) - set(key_list))
+            if len(other_keys) > 0:
+                print('Not unserializing extra attributes: %s' % (ut.list_str(other_keys)))
+        dict_subset = ut.dict_subset(class_dict, key_list)
+        dict_subset['fm_list'] = convert_numpy_lists(dict_subset['fm_list'], hstypes.FM_DTYPE)
+        dict_subset['fsv_list'] = convert_numpy_lists(dict_subset['fsv_list'], hstypes.FS_DTYPE)
+        dict_subset['score_list'] = convert_numpy(dict_subset['score_list'], hstypes.FS_DTYPE)
+        cm = cls(**dict_subset)
+        return cm
+
+    def to_json(cm):
+        r"""
+        Serialize ChipMatch object as JSON string
+
+        CommandLine:
+            python -m ibeis.model.hots.chip_match --test-ChipMatch2.to_json:0
+            python -m ibeis.model.hots.chip_match --test-ChipMatch2.to_json
+            python -m ibeis.model.hots.chip_match --test-ChipMatch2.to_json:1 --show
+            python -m ibeis.model.hots.chip_match --test-ChipMatch2.to_json:1
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> # Simple doctest demonstrating the json format
+            >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> cm, qreq_ = ibs.query_chips(1, [2, 3, 4, 5], return_cm=True, return_request=True)
+            >>> cm.compress_feature_matches(num=4, rng=np.random.RandomState(0))
+            >>> # Serialize
+            >>> print('\n\nRaw ChipMatch2 JSON:\n')
+            >>> json_str = cm.to_json()
+            >>> print(json_str)
+            >>> print('\n\nPretty ChipMatch2 JSON:\n')
+            >>> # Pretty String Formatting
+            >>> dictrep = ut.from_json(json_str)
+            >>> dictrep = ut.delete_dict_keys(dictrep, [key for key, val in dictrep.items() if val is None])
+            >>> result  = ut.dict_str(dictrep, nl=2, precision=2, hack_liststr=True, key_order_metric='strlen')
+            >>> result = result.replace('u\'', '"').replace('\'', '"')
+            >>> print(result)
+
+            {
+                u'qaid': 1,
+                u'daid_list': [
+                    2,
+                    3,
+                    4,
+                    5,
+                ],
+                u'fsv_col_lbls': [
+                    u'lnbnn',
+                    u'fg',
+                ],
+                u'score_list': [
+                    0.00,
+                    5637.58,
+                    274.97,
+                    1997.63,
+                ],
+                u'daid2_idx': {
+                    u'2': 0,
+                    u'3': 1,
+                    u'4': 2,
+                    u'5': 3,
+                },
+                u'fk_list': [
+                    [0, 0],
+                    [0, 0, 0],
+                    [0, 0, 1],
+                    [0, 3],
+                ],
+                u'fm_list': [
+                    [[583, 223], [854, 513]],
+                    [[609, 857], [187, 604], [610, 855]],
+                    [[155, 28], [635, 249], [605, 288]],
+                    [[607, 244], [994, 878]],
+                ],
+                u'fsv_list': [
+                    [[129.09, 0.87], [109.55, 0.88]],
+                    [[174.96, 0.76], [172.95, 0.75], [166.49, 0.74]],
+                    [[70.60, 0.57], [60.86, 0.42], [43.11, 0.51]],
+                    [[91.08, 0.75], [79.19, 0.72]],
+                ],
+            }
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> # test to convert back and forth from json
+            >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> cm, qreq_ = testdata_cm()
+            >>> cm1 = cm
+            >>> # Serialize
+            >>> json_str = cm.to_json()
+            >>> print(repr(json_str))
+            >>> # Unserialize
+            >>> cm = ChipMatch2.from_json(json_str)
+            >>> # Show if it works
+            >>> ut.quit_if_noshow()
+            >>> cm.score_nsum(qreq_)
+            >>> cm.show_single_namematch(qreq_, 1)
+            >>> ut.show_if_requested()
+            >>> # result = ('json_str = \n%s' % (str(json_str),))
+            >>> # print(result)
+
+        """
+        ut.to_json(ut.dict_subset(cm.__dict__, ['qaid', 'daid_list', 'score_list']))
+        json_str = ut.to_json(cm.__dict__)
+        return json_str
+
+    def compress_feature_matches(cm, num=10, rng=np.random, use_random=True):
+        """
+        Removes all but the best feature matches for testing purposes
+        rng = np.random.RandomState(0)
+        """
+        #num = 10
+        fs_list = cm.get_fsv_prod_list()
+        score_sortx = [fs.argsort()[::-1] for fs in fs_list]
+        if use_random:
+            # keep jagedness
+            score_sortx_filt = [sortx[0:min(rng.randint(num // 2, num), len(sortx))] for sortx in score_sortx]
+        else:
+            score_sortx_filt = [sortx[0:min(num, len(sortx))] for sortx in score_sortx]
+        cm.fsv_list = vt.ziptake(cm.fsv_list, score_sortx_filt, axis=0)
+        cm.fm_list = vt.ziptake(cm.fm_list, score_sortx_filt, axis=0)
+        cm.fk_list = vt.ziptake(cm.fk_list, score_sortx_filt, axis=0)
+        if cm.fs_list is not None:
+            cm.fs_list = vt.ziptake(cm.fs_list, score_sortx_filt, axis=0)
+        cm.H_list = None
+        cm.fs_list = None
 
     # Standard Contstructor
 
@@ -577,18 +756,39 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         return infostr
 
     def get_cvs_str(cm,  numtop=6, ibs=None, sort=True):
-        """
+        r"""
+        Args:
+            numtop (int): (default = 6)
+            ibs (IBEISController):  ibeis controller object(default = None)
+            sort (bool): (default = True)
+
+        Returns:
+            str: csv_str
+
         Notes:
-        Very weird that it got a score
+            Very weird that it got a score
+            qaid 6 vs 41 has
+                [72, 79, 0, 17, 6, 60, 15, 36, 63]
+                [72, 79, 0, 17, 6, 60, 15, 36, 63]
+                [72, 79, 0, 17, 6, 60, 15, 36, 63]
+                [0.060, 0.053, 0.0497, 0.040, 0.016, 0, 0, 0, 0]
+                [7, 40, 41, 86, 103, 88, 8, 101, 35]
+            makes very little sense
 
-        qaid 6 vs 41 has
-            [72, 79, 0, 17, 6, 60, 15, 36, 63]
-            [72, 79, 0, 17, 6, 60, 15, 36, 63]
-            [72, 79, 0, 17, 6, 60, 15, 36, 63]
-            [0.060, 0.053, 0.0497, 0.040, 0.016, 0, 0, 0, 0]
-            [7, 40, 41, 86, 103, 88, 8, 101, 35]
+        CommandLine:
+            python -m ibeis.model.hots.chip_match --test-get_cvs_str --force-serial
 
-        makes very little sense
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.model.hots.chip_match import *  # NOQA
+            >>> ibs, qreq_, cm_list = plh.testdata_post_sver()
+            >>> cm = cm_list[0]
+            >>> numtop = 6
+            >>> ibs = None
+            >>> sort = True
+            >>> csv_str = cm.get_cvs_str(numtop, ibs, sort)
+            >>> result = ('csv_str = \n%s' % (str(csv_str),))
+            >>> print(result)
         """
         if not sort or cm.score_list is None:
             if sort:
@@ -729,6 +929,9 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
         """
         from ibeis.viz import viz_matches
         qaid = cm.qaid
+        if cm.nid2_nidx is None:
+            raise AssertionError('cm.nid2_nidx has not been evaluated yet')
+            #cm.score_nsum(qreq_)
         # <GET NAME GROUPXS>
         nidx = cm.nid2_nidx[dnid]
         groupxs = cm.name_groupxs[nidx]
