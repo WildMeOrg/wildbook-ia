@@ -104,7 +104,7 @@ testdb*
 
 # Place to store all the local data you want to ignore
 localdata
-
+screenshot*.jpg
 
 # More dubuious ignores
 _ibeis_setup.py
