@@ -12,13 +12,17 @@ import traceback
 from hashlib import sha1
 import os
 import hmac
+import string
+import random
 # <flask>
 # TODO: allow optional flask import
 try:
     import flask
     from flask import current_app, request, make_response
     from flask.ext.cors import CORS
+    HAS_FLASK = True
 except Exception as ex:
+    HAS_FLASK = False
     ut.printex(ex, 'Missing flask modules', iswarning=True)
 # </flask>
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[controller_inject]')
@@ -38,6 +42,10 @@ JSON_PYTHON_OBJECT_TAG = '__PYTHON_OBJECT__'
 
 def get_flask_app():
     global GLOBAL_APP
+    global GLOBAL_CORS
+    if not HAS_FLASK:
+        print('flask is not installed')
+        return None
     if GLOBAL_APP is None:
         root_dpath = abspath(dirname(dirname(__file__)))
         tempalte_dpath = join(root_dpath, 'web', 'templates')
@@ -187,8 +195,6 @@ def authentication_user_only(func):
 
 
 def create_key():
-    import string
-    import random
     hyphen_list = [8, 13, 18, 23]
     key_list = [ '-' if _ in hyphen_list else random.choice(string.hexdigits) for _ in xrange(36) ]
     return ''.join(key_list).upper()
@@ -330,14 +336,20 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                         jQuery_callback = None
                     except Exception as ex:
                         rawreturn = ''
-                        print(traceback.format_exc())
+                        ut.printex(ex)
+                        #print(traceback.format_exc())
                         if DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE:
                             rawreturn = str(traceback.format_exc())
                         success = False
                         code = 500
                         message = 'API error, Python Exception thrown: %r' % (str(ex))
                         if "'int' object is not iterable" in message:
-                            rawreturn = 'HINT: the input for this call is most likely expected to be a list.  Try adding a comma at the end of the input (to cast the conversion into a list) or encapsualte the input with [].'  # NOQA
+                            rawreturn = (
+                                'HINT: the input for this call is most likely '
+                                'expected to be a list.  Try adding a comma at '
+                                'the end of the input (to cast the conversion '
+                                'into a list) or encapsualte the input with '
+                                '[].')
                         jQuery_callback = None
                     webreturn = translate_ibeis_webreturn(rawreturn, success, code, message, jQuery_callback)
                     return flask.make_response(webreturn, code)
