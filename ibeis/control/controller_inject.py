@@ -1,12 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
 #import sys
-# <flask>
-# TODO: allow optional flask import
-import flask
-from flask import current_app, request, make_response
-from flask.ext.cors import CORS
-# </flask>
 from datetime import timedelta
 from functools import update_wrapper
 from functools import wraps
@@ -18,6 +12,15 @@ import traceback
 from hashlib import sha1
 import os
 import hmac
+# <flask>
+# TODO: allow optional flask import
+try:
+    import flask
+    from flask import current_app, request, make_response
+    from flask.ext.cors import CORS
+except Exception as ex:
+    ut.printex(ex, 'Missing flask modules', iswarning=True)
+# </flask>
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[controller_inject]')
 
 
