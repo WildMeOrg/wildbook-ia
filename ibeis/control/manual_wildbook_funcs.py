@@ -248,6 +248,18 @@ def install_wildbook(verbose=ut.NOT_QUIET):
     from os.path import basename, splitext, join
     import time
     import re
+    import subprocess
+    try:
+        output = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT)
+        java_version = output.split('\n')[0].replace('java version ', '').replace('"', '')
+        print('java_version = %r' % (java_version,))
+        if not java_version.startswith('1.7'):
+            print('Warning wildbook is only supported for java 1.7')
+    except OSError:
+        output = None
+    if output is None:
+        raise ImportError('Cannot find java on this machine. Please install java: http://www.java.com/en/download/')
+
     tomcat_dpath = find_or_download_tomcat()
     assert tomcat_dpath is not None, 'Could not find tomcat'
     war_fpath = find_or_download_wilbook_warfile()
@@ -276,10 +288,26 @@ def install_wildbook(verbose=ut.NOT_QUIET):
             startup_fpath  = join(tomcat_dpath, 'bin', 'startup.sh')
             shutdown_fpath = join(tomcat_dpath, 'bin', 'shutdown.sh')
             ut.cmd(ut.quote_single_command(startup_fpath))
-            time.sleep(.5)
+            print('It is NOT ok if the startup.sh fails\n')
+            for retry_count in range(0, 6):
+                time.sleep(.5)
+                if ut.checkpath(unpacked_war_dpath, verbose=True):
+                    break
+            import requests
+            print('Checking if we can ping the server')
+            response = requests.get('http://localhost:8080')
+            if response is None or response.status_code != 200:
+                print('There may be an error starting the server')
+            else:
+                print('Seem able to ping the server')
+
+            ut.assertpath(unpacked_war_dpath, (
+                'Wildbook war might have not unpacked correctly.  This may '
+                'be ok. Try again. If it fails a second time, then there is a '
+                'problem.'), verbose=True)
             ut.cmd(ut.quote_single_command(shutdown_fpath))
+            print('It is ok if the shutdown.sh fails')
             time.sleep(.5)
-            ut.assertpath(unpacked_war_dpath, 'wildbook war was not unpacked correctly. Try again, and if it fails there is a problem.')
 
     # Make sure permissions are correctly set in wildbook
     permission_fpath = join(unpacked_war_dpath, 'WEB-INF/web.xml')
