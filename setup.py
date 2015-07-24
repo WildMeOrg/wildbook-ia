@@ -85,12 +85,17 @@ INSTALL_OPTIONAL = [
     'tornado',
     'flask',
     'flask-cors',
+]
+
+INSTALL_OPTIONAL_DEV = [
     'autopep8',
     'pyfiglet',
 ]
 
 if six.PY2:
     INSTALL_REQUIRES.append('requests >= 0.8.2')
+
+INSTALL_REQUIRES += INSTALL_OPTIONAL
 
 
 if __name__ == '__main__':
