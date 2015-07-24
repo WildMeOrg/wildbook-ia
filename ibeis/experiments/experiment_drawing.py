@@ -366,7 +366,7 @@ def draw_results(ibs, test_result):
         lbl_list = test_result.get_short_cfglbls()
         figtitle = 'Cumulative Histogram of GT-Ranks'
         #cdf_list = config_cdfs
-        if ut.get_argflag('--clip50'):
+        if ut.get_argflag('--zoom50'):
             cdf_list = cdf_list[:, 0:min(len(cdf_list.T), 50)]
             edges = edges[0:min(len(edges), 51)]
         fig = pt.plot_rank_cumhist(cdf_list, lbl_list, edges=edges, figtitle=figtitle)  # NOQA
