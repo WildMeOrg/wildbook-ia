@@ -275,9 +275,9 @@ def install_wildbook(verbose=ut.NOT_QUIET):
             # Starting and stoping catalina should be sufficient to unpack the war
             startup_fpath  = join(tomcat_dpath, 'bin', 'startup.sh')
             shutdown_fpath = join(tomcat_dpath, 'bin', 'shutdown.sh')
-            ut.cmd((startup_fpath,))
+            ut.cmd(ut.quote_single_command(startup_fpath))
             time.sleep(.5)
-            ut.cmd((shutdown_fpath,))
+            ut.cmd(ut.quote_single_command(shutdown_fpath))
             time.sleep(.5)
             ut.assertpath(unpacked_war_dpath, 'wildbook war was not unpacked correctly')
 
@@ -336,7 +336,7 @@ def startup_wildbook_server(verbose=ut.NOT_QUIET):
 
     with ut.ChdirContext(get_tomcat_startup_tmpdir()):
         startup_fpath  = join(tomcat_dpath, 'bin', 'startup.sh')
-        ut.cmd((startup_fpath,))
+        ut.cmd(ut.quote_single_command(startup_fpath))
         time.sleep(.5)
     wb_url = 'http://localhost:8080/' + ibeis.const.WILDBOOK_TARGET
     return wb_url
@@ -371,7 +371,7 @@ def shutdown_wildbook_server(verbose=ut.NOT_QUIET):
     with ut.ChdirContext(get_tomcat_startup_tmpdir()):
         shutdown_fpath = join(tomcat_dpath, 'bin', 'shutdown.sh')
         #ut.cmd(shutdown_fpath)
-        ut.cmd((shutdown_fpath,))
+        ut.cmd(ut.quote_single_command(shutdown_fpath))
         time.sleep(.5)
 
 
