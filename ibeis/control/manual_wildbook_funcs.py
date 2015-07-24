@@ -289,10 +289,16 @@ def install_wildbook(verbose=ut.NOT_QUIET):
             shutdown_fpath = join(tomcat_dpath, 'bin', 'shutdown.sh')
             ut.cmd(ut.quote_single_command(startup_fpath))
             print('It is NOT ok if the startup.sh fails\n')
+
+            # wait for the war to be unpacked
             for retry_count in range(0, 6):
                 time.sleep(.5)
                 if ut.checkpath(unpacked_war_dpath, verbose=True):
                     break
+                else:
+                    print('Retrying')
+
+            # ensure that the server is ruuning
             import requests
             print('Checking if we can ping the server')
             response = requests.get('http://localhost:8080')
@@ -301,10 +307,13 @@ def install_wildbook(verbose=ut.NOT_QUIET):
             else:
                 print('Seem able to ping the server')
 
+            # assert tht the war was unpacked
             ut.assertpath(unpacked_war_dpath, (
                 'Wildbook war might have not unpacked correctly.  This may '
                 'be ok. Try again. If it fails a second time, then there is a '
                 'problem.'), verbose=True)
+
+            # shutdown the server
             ut.cmd(ut.quote_single_command(shutdown_fpath))
             print('It is ok if the shutdown.sh fails')
             time.sleep(.5)
