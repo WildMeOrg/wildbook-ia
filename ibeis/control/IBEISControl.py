@@ -1046,6 +1046,31 @@ class IBEISController(object):
     #-----------------------
 
     @default_decorator
+    @register_api('/api/core/get_current_log_text/', methods=['GET'])
+    def get_current_log_text(ibs):
+        """
+
+        Example:
+            >>> # WEB_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import time
+            >>> import ibeis
+            >>> import requests
+            >>> # Start up the web instance
+            >>> web_instance = ibeis.opendb_in_background(db='testdb1', web=True, browser=False)
+            >>> time.sleep(.5)
+            >>> baseurl = 'http://127.0.1.1:5000'
+            >>> resp = requests.get(baseurl + '/api/core/get_current_log_text/')
+            >>> print(resp)
+            >>> web_instance.terminate()
+            >>> json_dict = resp.json()
+            >>> text = json_dict['response']
+            >>> print(text)
+        """
+        text = ut.get_current_log_text()
+        return text
+
+    @default_decorator
     @register_api('/api/core/recognition_query_aids/', methods=['GET'])
     def get_recognition_query_aids(ibs, is_known, species=None):
         """

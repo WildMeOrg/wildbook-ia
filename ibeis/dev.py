@@ -54,6 +54,7 @@ from ibeis.other import dbinfo
 from ibeis.experiments import experiment_configs
 from ibeis.experiments import experiment_harness
 from ibeis.experiments import results_all
+from ibeis import params, constants
 print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 
 
