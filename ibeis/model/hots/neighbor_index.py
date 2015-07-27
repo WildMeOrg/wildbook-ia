@@ -817,6 +817,10 @@ class NeighborIndex(object):
         nnindexer.idx2_ax  = idx2_ax   # (M x 1) Index into the aid_list
         nnindexer.idx2_fx  = idx2_fx   # (M x 1) Index into the annot's features
         nnindexer.num_indexed = nnindexer.idx2_vec.shape[0]
+        """
+        arr = np.array([1, 2, 3], dtype=np.uint8)
+        arr.dtype == np.uint8
+        """
         if nnindexer.idx2_vec.dtype == hstypes.VEC_TYPE:
             # these are sift descriptors
             nnindexer.max_distance_sqrd = hstypes.VEC_PSEUDO_MAX_DISTANCE
