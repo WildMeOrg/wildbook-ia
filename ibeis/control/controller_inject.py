@@ -82,8 +82,11 @@ class JSONPythonObjectEncoder(json.JSONEncoder):
             >>> obj_list = [1, [1], {}, 'foobar']
             >>> result_list = []
             >>> for obj in obj_list:
-            ...     encoded = self.default(obj)
-            ...     print(encoded)
+            ...     try:
+            ...         encoded = self.default(obj)
+            ...         print(encoded)
+            ...     except Exception as ex:
+            ...         ut.printex(ex)
         """
         if isinstance(obj, (list, dict, str, unicode, int, float, bool, type(None))):
             return json.JSONEncoder.default(self, obj)
