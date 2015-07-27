@@ -9,6 +9,53 @@ from six.moves import zip, range  # NOQA
 (print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[other]', DEBUG=False)
 
 
+def check_sift_validity(sift_uint8, lbl=None, verbose=ut.NOT_QUIET):
+    """
+    checks if a SIFT descriptor is valid
+    """
+    if lbl is None:
+        lbl = ut.get_varname_from_stack(sift_uint8, N=1)
+    print('[checksift] Checking valididty of %d SIFT descriptors. lbl=%s' % (sift_uint8.shape[0], lbl))
+    is_correct_shape = len(sift_uint8.shape) == 2 and sift_uint8.shape[1] == 128
+    is_correct_dtype = sift_uint8.dtype == np.uint8
+    if not is_correct_shape:
+        print('[checksift]  * incorrect shape = %r' % (sift_uint8.shape,))
+    elif verbose:
+        print('[checksift]  * correct shape = %r' % (sift_uint8.shape,))
+
+    if not is_correct_dtype:
+        print('[checksift]  * incorrect dtype = %r' % (sift_uint8.dtype,))
+    elif verbose:
+        print('[checksift]  * correct dtype = %r' % (sift_uint8.dtype,))
+
+    num_sifts = sift_uint8.shape[0]
+    sift_float01 = sift_uint8 / 512.0
+
+    # Check L2 norm
+    sift_norm = np.linalg.norm(sift_float01, axis=1)
+    is_normal = np.isclose(sift_norm, 1.0, atol=.04)
+    bad_locs_norm = np.where(np.logical_not(is_normal))[0]
+    if len(bad_locs_norm) > 0:
+        print('[checksift]  * bad norm   = %4d/%d' % (len(bad_locs_norm), num_sifts))
+    else:
+        print('[checksift]  * correctly normalized')
+
+    # Check less than thresh=.2
+    # This check actually is not valid because the SIFT descriptors is
+    # normalized after it is thresholded
+    #bad_locs_thresh = np.where((sift_float01 > .2).sum(axis=1))[0]
+    #print('[checksift]  * bad thresh = %4d/%d' % (len(bad_locs_thresh), num_sifts))
+    #if len(bad_locs_thresh) > 0:
+    #    above_thresh = sift_float01[(sift_float01 > .2)]
+    #    print('[checksift]  * components under thresh = %d' % (sift_float01 <= 2).sum())
+    #    print('[checksift]  * components above thresh stats = ' + ut.get_stats_str(above_thresh, precision=2))
+
+    isok = len(bad_locs_norm) == 0 and is_correct_shape and is_correct_dtype
+    if not isok:
+        print('[checksift] ERROR. SIFT CHECK FAILED')
+    return isok
+
+
 def pdist_argsort(x):
     """
     Sorts 2d indicies by their distnace matrix output from scipy.spatial.distance

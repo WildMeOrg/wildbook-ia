@@ -174,13 +174,11 @@ def det_distance(det1, det2):
     return det_dist
 
 
-@profile
 def L1(hist1, hist2):
     """ returns L1 (aka manhatten or grid) distance between two histograms """
     return (np.abs(hist1 - hist2)).sum(-1)
 
 
-@profile
 def L2_sqrd(hist1, hist2):
     """ returns the squared L2 distance
 
@@ -225,15 +223,108 @@ def L2_sqrd(hist1, hist2):
     #np.abs(temp, temp)
     #np.power(temp, 2, temp)
     #out = temp.sum(-1)
-    return ((hist1 - hist2) ** 2).sum(-1)  # this is faster
+    # Carefull, this will not return the correct result if the types are unsigned.
+    #return ((hist1 - hist2) ** 2).sum(-1)  # this is faster
+    return ((hist1.astype(TEMP_VEC_DTYPE) - hist2.astype(TEMP_VEC_DTYPE)) ** 2).sum(-1)  # this is faster
     #return out
 
 
-@profile
+def understanding_pseudomax_props(mode=2):
+    """
+    Function showing some properties of distances between normalized pseudomax vectors
+
+    CommandLine:
+        python -m vtool.distance --test-understanding_pseudomax_props
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.distance import *  # NOQA
+        >>> for mode in [0, 1, 2, 3]:
+        ...     print('+---')
+        ...     print('mode = %r' % (mode,))
+        ...     result = understanding_pseudomax_props(mode)
+        ...     print('L___')
+        >>> print(result)
+    """
+    import vtool as vt
+    pseudo_max = 512
+    rng = np.random.RandomState(0)
+    num = 10
+    if mode == 0:
+        dim = 2
+        p1_01 = (vt.normalize_rows(rng.rand(num, dim)))
+        p2_01 = (vt.normalize_rows(rng.rand(num, dim)))
+    elif mode == 1:
+        p1_01 = vt.dummy.testdata_dummy_sift(num, rng) / pseudo_max
+        p2_01 = vt.dummy.testdata_dummy_sift(num, rng) / pseudo_max
+    elif mode == 2:
+        # Build theoretically maximally distant normalized vectors (type 1)
+        dim = 128
+        p1_01 = np.zeros((1, dim))
+        p2_01 = np.zeros((1, dim))
+        p2_01[:, 0::2] = 1
+        p1_01[:, 1::2] = 1
+        p1_01 = vt.normalize_rows(p1_01)
+        p2_01 = vt.normalize_rows(p2_01)
+    elif mode == 3:
+        # Build theoretically maximally distant vectors (type 2)
+        # This mode will clip if cast to uint8, thus failing the test
+        dim = 128
+        p1_01 = np.zeros((1, dim))
+        p2_01 = np.zeros((1, dim))
+        p2_01[:, 0] = 1
+        p1_01[:, 1:] = 1
+        p1_01 = vt.normalize_rows(p1_01)
+        p2_01 = vt.normalize_rows(p2_01)
+        pass
+    print('ndims = %r' % (p1_01.shape[1]))
+
+    p1_01 = p1_01.astype(TEMP_VEC_DTYPE)
+    p2_01 = p2_01.astype(TEMP_VEC_DTYPE)
+
+    p1_256 = p1_01 * pseudo_max
+    p2_256 = p2_01 * pseudo_max
+
+    dist_sqrd_01 = vt.L2_sqrd(p1_01, p2_01)
+    dist_sqrd_256 = vt.L2_sqrd(p1_256, p2_256)
+
+    dist_01 = np.sqrt(dist_sqrd_01)
+    dist_256 = np.sqrt(dist_sqrd_256)
+
+    print('dist_sqrd_01  = %s' % (ut.numpy_str(dist_sqrd_01, precision=2),))
+    print('dist_sqrd_256 = %s' % (ut.numpy_str(dist_sqrd_256, precision=2),))
+    print('dist_01       = %s' % (ut.numpy_str(dist_01, precision=2),))
+    print('dist_256      = %s' % (ut.numpy_str(dist_256, precision=2),))
+
+    assert np.all(dist_01 == vt.L2(p1_01, p2_01))
+    assert np.all(dist_256 == vt.L2(p1_256, p2_256))
+
+    const_sqrd = dist_sqrd_256 / dist_sqrd_01
+    const = dist_256 / dist_01
+
+    print('const = %r' % (const[0],))
+    print('const_sqrd = %r' % (const_sqrd[0],))
+    print('1 / const = %r' % (1 / const[0],))
+    print('1 / const_sqrd = %r' % (1 / const_sqrd[0],))
+
+    assert ut.list_allsame(const)
+    assert ut.list_allsame(const_sqrd)
+
+    assert np.all(const == np.sqrt(const_sqrd))
+
+    # Assert that distance conversions work
+    assert np.all(dist_256 / const == dist_01)
+    assert np.all(dist_sqrd_256 / const_sqrd == dist_sqrd_01)
+    print('Conversions work')
+
+    print('Maximal L2 distance between any two L2-NORMALIZED vectors should always be sqrt(2)')
+
+
 def L2(hist1, hist2):
     """ returns L2 (aka euclidean or standard) distance between two histograms """
     #return np.sqrt((np.abs(hist1 - hist2) ** 2).sum(-1))
-    return np.sqrt(((hist1 - hist2) ** 2).sum(-1))
+    #((hist1.astype(TEMP_VEC_DTYPE) - hist2.astype(TEMP_VEC_DTYPE)) ** 2).sum(-1))
+    return np.sqrt(L2_sqrd(hist1, hist2))
 
 
 @profile
@@ -342,7 +433,7 @@ def L2_sift(hist1, hist2):
         hist2 (ndarray): Nx128 array of uint8 with pseudomax trick
 
     Returns:
-        ndarray:
+        ndarray: squared euclidean distance between 0-1 normalized sift descriptors
 
     CommandLine:
         python -m vtool.distance --test-L2_sift
@@ -365,7 +456,9 @@ def L2_sift(hist1, hist2):
         _assert_siftvec(sift2)
     #sift1 /= np.linalg.norm(sift1, axis=-1)
     #sift2 /= np.linalg.norm(sift2, axis=-1)
-    return L2(sift1, sift2)
+    l2_dist = L2(sift1, sift2)
+    max_l2_dist = np.sqrt(2)  # maximum L2 distance should always be sqrt 2
+    return l2_dist / max_l2_dist
 
 
 def bar_cos_sift(hist1, hist2):
@@ -403,9 +496,11 @@ def cos_sift(hist1, hist2):
 
 
 def _assert_siftvec(sift):
-    norm = (sift ** 2).sum(axis=-1)
-    isvalid = np.allclose(norm, 1.0, rtol=.05)
-    assert np.all(isvalid), norm[np.logical_not(isvalid)]
+    import vtool as vt
+    assert vt.check_sift_validity(sift)
+    #norm = (sift ** 2).sum(axis=-1)
+    #isvalid = np.allclose(norm, 1.0, rtol=.05)
+    #assert np.all(isvalid), norm[np.logical_not(isvalid)]
 
 
 def emd(hist1, hist2):

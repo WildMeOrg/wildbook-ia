@@ -24,18 +24,25 @@ def testdata_dummy_sift(nPts=10, rng=np.random):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.tests.dummy import *  # NOQA
+        >>> import vtool as vt
         >>> nPts = 10
         >>> rng = np.random.RandomState(0)
         >>> sift = testdata_dummy_sift(nPts, rng)
-        >>> assert np.allclose(((sift / 512) ** 2).sum(axis=1), 1, rtol=.01), 'bad SIFT property'
-        >>> assert np.all(sift / 512 < .2), 'bad SIFT property'
+        >>> assert vt.check_sift_validity(sift), 'bad SIFT properties'
+        >>> #assert np.allclose(((sift / 512) ** 2).sum(axis=1), 1, rtol=.01), 'bad SIFT property'
+        >>> #assert np.all(sift / 512 < .2), 'bad SIFT property'
     """
     import vtool as vt
     sift_ = rng.rand(nPts, 128)
+    # normalize
     sift_ = vt.normalize_rows(rng.rand(nPts, 128))
+    # clip bin values
     sift_[sift_ > .2] = .2
+    # renormalize
     sift_ = vt.normalize_rows(rng.rand(nPts, 128))
-    sift = (sift_ * 512).round().astype(np.uint8)
+    # compress into uint8
+    #sift = (sift_ * 512).round().astype(np.uint8)
+    sift = (sift_ * 512).astype(np.uint8)
     return sift
 
 
