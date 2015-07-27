@@ -91,7 +91,7 @@ class JSONPythonObjectEncoder(json.JSONEncoder):
         if isinstance(obj, (list, dict, str, unicode, int, float, bool, type(None))):
             return json.JSONEncoder.default(self, obj)
         elif isinstance(obj, self.numpy_type_tuple):
-            #return json.JSONEncoder.default(self, obj.tolist())
+            return json.JSONEncoder.default(self, obj.tolist())
             return obj.tolist()
         pickled_obj = pickle.dumps(obj)
         return {JSON_PYTHON_OBJECT_TAG: pickled_obj}
