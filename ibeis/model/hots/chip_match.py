@@ -241,7 +241,6 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             python -m ibeis.model.hots.chip_match --test-ChipMatch2.to_json:0
             python -m ibeis.model.hots.chip_match --test-ChipMatch2.to_json
             python -m ibeis.model.hots.chip_match --test-ChipMatch2.to_json:1 --show
-            python -m ibeis.model.hots.chip_match --test-ChipMatch2.to_json:1
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -263,50 +262,6 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> result = result.replace('u\'', '"').replace('\'', '"')
             >>> print(result)
 
-            {
-                u'qaid': 1,
-                u'daid_list': [
-                    2,
-                    3,
-                    4,
-                    5,
-                ],
-                u'fsv_col_lbls': [
-                    u'lnbnn',
-                    u'fg',
-                ],
-                u'score_list': [
-                    0.00,
-                    5637.58,
-                    274.97,
-                    1997.63,
-                ],
-                u'daid2_idx': {
-                    u'2': 0,
-                    u'3': 1,
-                    u'4': 2,
-                    u'5': 3,
-                },
-                u'fk_list': [
-                    [0, 0],
-                    [0, 0, 0],
-                    [0, 0, 1],
-                    [0, 3],
-                ],
-                u'fm_list': [
-                    [[583, 223], [854, 513]],
-                    [[609, 857], [187, 604], [610, 855]],
-                    [[155, 28], [635, 249], [605, 288]],
-                    [[607, 244], [994, 878]],
-                ],
-                u'fsv_list': [
-                    [[129.09, 0.87], [109.55, 0.88]],
-                    [[174.96, 0.76], [172.95, 0.75], [166.49, 0.74]],
-                    [[70.60, 0.57], [60.86, 0.42], [43.11, 0.51]],
-                    [[91.08, 0.75], [79.19, 0.72]],
-                ],
-            }
-
         Example:
             >>> # ENABLE_DOCTEST
             >>> # test to convert back and forth from json
@@ -327,9 +282,15 @@ class ChipMatch2(old_chip_match._OldStyleChipMatchSimulator):
             >>> # print(result)
 
         """
-        ut.to_json(ut.dict_subset(cm.__dict__, ['qaid', 'daid_list', 'score_list']))
         json_str = ut.to_json(cm.__dict__)
         return json_str
+
+    def to_dict(cm):
+        return cm.__dict__
+
+    def to_simple_dict(cm):
+        simple_dict = ut.dict_subset(cm.__dict__, ['qaid', 'daid_list', 'score_list'])
+        return simple_dict
 
     def compress_feature_matches(cm, num=10, rng=np.random, use_random=True):
         """

@@ -11,6 +11,7 @@ import pickle
 import traceback
 from hashlib import sha1
 import os
+import numpy as np
 import hmac
 import string
 import random
@@ -57,12 +58,37 @@ def get_flask_app():
 
 class JSONPythonObjectEncoder(json.JSONEncoder):
     """
-        Reference: http://stackoverflow.com/questions/8230315/python-sets-are-not-json-serializable
-        Reference: https://github.com/jsonpickle/jsonpickle
+        References:
+            http://stackoverflow.com/questions/8230315/python-sets-are-not-json-serializable
+            http://stackoverflow.com/questions/11561932/why-does-json-dumpslistnp-arange5-fail-while-json-dumpsnp-arange5-tolis
+            https://github.com/jsonpickle/jsonpickle
     """
+    numpy_type_tuple = tuple([np.ndarray] + list(set(np.typeDict.values())))
     def default(self, obj):
+        r"""
+        Args:
+            obj (?):
+
+        Returns:
+            ?:
+
+        CommandLine:
+            python -m ibeis.control.controller_inject --test-JSONPythonObjectEncoder.default
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.controller_inject import *  # NOQA
+            >>> self = JSONPythonObjectEncoder()
+            >>> obj_list = [1, [1], {}, 'foobar']
+            >>> result_list = []
+            >>> for obj in obj_list:
+            ...     encoded = self.default(obj)
+            ...     print(encoded)
+        """
         if isinstance(obj, (list, dict, str, unicode, int, float, bool, type(None))):
             return json.JSONEncoder.default(self, obj)
+        elif isinstance(obj, self.numpy_type_tuple):
+            return obj.tolist()
         pickled_obj = pickle.dumps(obj)
         return {JSON_PYTHON_OBJECT_TAG: pickled_obj}
 

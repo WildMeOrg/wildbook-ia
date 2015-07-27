@@ -1058,7 +1058,60 @@ class IBEISController(object):
         qaid_list = ibs.get_valid_aids(is_known=is_known, species=species)
         return qaid_list
 
-    @register_api('/api/core/query_chips/', methods=['PUT'])
+    @register_api('/api/core/query_chips_simple_dict/', methods=['GET'])
+    def query_chips_simple_dict(ibs, *args, **kwargs):
+        """
+        Runs query_chips, but returns a json compatible dictionary
+
+        Args:
+            same as query_chips
+
+        Ignore:
+            args = tuple([])
+            kwargs = {'qaid_list': [1]}
+
+        SeeAlso:
+            query_chips
+
+        Ignore:
+            # test restfull call
+
+            # Start in one terminal
+            python -m ibeis --web
+
+            # New terminal
+            ipython
+
+            import requests
+            baseurl = 'http://127.0.1.1:5000'
+            data = dict(qaid_list=[1])
+            resp = requests.get(baseurl + '/api/core/query_chips_simple_dict/', data=data)
+            json_dict = resp.json()
+            resp = requests.get(baseurl + '/api/core/query_chips_dict/', data=data)
+            json_dict = resp.json()
+
+
+        Example:
+            >>> # SLOW_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> qaid = ibs.get_valid_aids()[0]
+            >>> result = ibs.query_chips_simple_json(qaid, return_cm=True)
+            >>> print(result)
+        """
+        kwargs['return_cm_simple_dict'] = True
+        return ibs.query_chips(*args, **kwargs)
+
+    @register_api('/api/core/query_chips_dict/', methods=['GET'])
+    def query_chips_dict(ibs, *args, **kwargs):
+        """
+        Runs query_chips, but returns a json compatible dictionary
+        """
+        kwargs['return_cm_dict'] = True
+        return ibs.query_chips(*args, **kwargs)
+
+    @register_api('/api/core/query_chips/', methods=['GET'])
     def query_chips(ibs, qaid_list=None,
                     daid_list=None,
                     cfgdict=None,
@@ -1069,7 +1122,10 @@ class IBEISController(object):
                     verbose=pipeline.VERB_PIPELINE,
                     save_qcache=None,
                     prog_hook=None,
-                    return_cm=False):
+                    return_cm=False,
+                    return_cm_dict=False,
+                    return_cm_simple_dict=False,
+                    ):
         r"""
         Submits a query request to the hotspotter recognition pipeline. Returns
         a list of QueryResult objects.
@@ -1087,7 +1143,7 @@ class IBEISController(object):
             qreq_ (QueryRequest): optional, a QueryRequest object that overrides all previous settings
             return_request (bool): returns the request which will be created if one is not already specified
             verbose (bool): default=False, turns on verbose printing
-            return_cm (bool): default=False, if true converts QueryResult objects into serializable ChipMatch2 objects
+            return_cm (bool): default=False, if true converts QueryResult objects into serializable ChipMatch2 objects (in the future this will be defaulted to True)
 
         Returns:
             list: a list of QueryResult objects containing the matching annotations, scores, and feature matches
@@ -1110,6 +1166,7 @@ class IBEISController(object):
             >>> qaids = ibs.get_valid_aids()[0:1]
             >>> qres = ibs.query_chips(qaids)[0]
             >>> assert qres.qaid == qaids[0]
+
         """
         # The qaid and daid objects are allowed to be None if qreq_ is
         # specified
@@ -1139,10 +1196,16 @@ class IBEISController(object):
         # that will be depricated in future version of hotspotter.
         qres_list = [qaid2_qres[qaid] for qaid in qaid_list]
 
-        if return_cm:
+        if return_cm or return_cm_dict or return_cm_simple_dict:
             from ibeis.model.hots import chip_match
+            cm_list = [chip_match.ChipMatch2.from_qres(qres) for qres in qres_list]
             # Convert to cm_list
-            qres_list = [chip_match.ChipMatch2.from_qres(qres) for qres in qres_list]
+            if return_cm_simple_dict:
+                qres_list = [cm.to_simple_dict() for cm in cm_list]
+            elif return_cm_dict:
+                qres_list = [cm.to_dict() for cm in cm_list]
+            else:
+                qres_list = cm_list
 
         if was_scalar:
             # hack for scalar input
