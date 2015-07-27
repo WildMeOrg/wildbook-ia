@@ -79,11 +79,11 @@ class JSONPythonObjectEncoder(json.JSONEncoder):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.control.controller_inject import *  # NOQA
             >>> self = JSONPythonObjectEncoder()
-            >>> obj_list = [1, [1], {}, 'foobar']
+            >>> obj_list = [1, [1], {}, 'foobar', np.array([1, 2, 3])]
             >>> result_list = []
             >>> for obj in obj_list:
             ...     try:
-            ...         encoded = self.default(obj)
+            ...         encoded = json.dumps(obj, cls=JSONPythonObjectEncoder)
             ...         print(encoded)
             ...     except Exception as ex:
             ...         ut.printex(ex)
@@ -91,6 +91,7 @@ class JSONPythonObjectEncoder(json.JSONEncoder):
         if isinstance(obj, (list, dict, str, unicode, int, float, bool, type(None))):
             return json.JSONEncoder.default(self, obj)
         elif isinstance(obj, self.numpy_type_tuple):
+            #return json.JSONEncoder.default(self, obj.tolist())
             return obj.tolist()
         pickled_obj = pickle.dumps(obj)
         return {JSON_PYTHON_OBJECT_TAG: pickled_obj}
