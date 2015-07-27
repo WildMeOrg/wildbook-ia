@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
+"""
+Computes patch based features based on Hesaff, SIFT, or convnets.
+"""
 from __future__ import absolute_import, division, print_function
-# Python
 from six.moves import zip, range
-# Science
 import pyhesaff
-# UTool
 import utool
 import utool as ut
-
-
-# Inject utool functions
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[preproc_feat]')
 
 
-USE_OPENMP = not utool.WIN32
+#USE_OPENMP = not utool.WIN32
 USE_OPENMP = False  # do not use openmp until we have the gravity vector
 
 
@@ -120,7 +117,8 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
     cfpath_list       = ibs.get_chip_fpath(cid_list)
     if ut.NOT_QUIET:
         print('[preproc_feat] feat_cfgstr = %s' % feat_cfgstr)
-        print('hesaff_params = ' + ut.dict_str(hesaff_params))
+        if ut.VERYVERBOSE:
+            print('hesaff_params = ' + ut.dict_str(hesaff_params))
 
     if feat_type == 'hesaff+sift':
         if USE_OPENMP:

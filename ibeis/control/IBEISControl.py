@@ -1113,17 +1113,15 @@ class IBEISController(object):
         """
         # The qaid and daid objects are allowed to be None if qreq_ is
         # specified
-        was_scalar = False
         if qaid_list is None:
             qaid_list = qreq_.get_external_qaids()
-        else:
-            qaid_list = ut.ensure_iterable(qaid_list)
-            was_scalar = True
         if daid_list is None:
             if qreq_ is not None:
                 daid_list = qreq_.get_external_daids()
             else:
                 daid_list = ibs.get_valid_aids()
+
+        qaid_list, was_scalar = ut.wrap_iterable(qaid_list)
 
         # Wrapped call to the main entrypoint in the API to the hotspotter pipeline
         _res = ibs._query_chips4(

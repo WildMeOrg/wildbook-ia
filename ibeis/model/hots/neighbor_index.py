@@ -819,7 +819,7 @@ class NeighborIndex(object):
         nnindexer.num_indexed = nnindexer.idx2_vec.shape[0]
         if nnindexer.idx2_vec.dtype == hstypes.VEC_TYPE:
             # these are sift descriptors
-            nnindexer.max_distance_sqrd = hstypes.VEC_PSEUDO_MAX_DISTANCE
+            nnindexer.max_distance_sqrd = hstypes.VEC_PSEUDO_MAX_DISTANCE_SQRD
         else:
             # FIXME: hacky way to support siam128 descriptors.
             #raise AssertionError('NNindexer should get uint8s right now unless the algorithm has changed')
@@ -1073,7 +1073,7 @@ class NeighborIndex(object):
 
     #@profile
     def knn(nnindexer, qfx2_vec, K):
-        """
+        r"""
         Returns the indices and squared distance to the nearest K neighbors.
         The distance is noramlized between zero and one using
         VEC_PSEUDO_MAX_DISTANCE = (np.sqrt(2) * VEC_PSEUDO_MAX)
@@ -1084,12 +1084,16 @@ class NeighborIndex(object):
             K: number of approximate nearest neighbors to find
 
         Returns: tuple of (qfx2_idx, qfx2_dist)
-            qfx2_idx : (N x K) qfx2_idx[n][k] is the index of the kth
+            ndarray : qfx2_idx[n][k] (N x K) is the index of the kth
                         approximate nearest data vector w.r.t qfx2_vec[n]
 
-            qfx2_dist : (N x K) qfx2_dist[n][k] is the distance to the kth
+            ndarray : qfx2_dist[n][k] (N x K) is the distance to the kth
                         approximate nearest data vector w.r.t. qfx2_vec[n]
                         distance is normalized squared euclidean distance.
+
+        CommandLine:
+            python -m ibeis.model.hots.neighbor_index --test-knn:0
+            python -m ibeis.model.hots.neighbor_index --test-knn:1
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1097,9 +1101,19 @@ class NeighborIndex(object):
             >>> nnindexer, qreq_, ibs = test_nnindexer()
             >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> K = 2
+            >>> nnindexer.debug_nnindexer()
+            >>> assert vt.check_sift_validity(qfx2_vec), 'bad SIFT properties'
             >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K)
             >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
-            >>> assert np.all(qfx2_dist < 1.0), 'distance should be less than 1'
+            >>> print('qfx2_vec.dtype = %r' % (qfx2_vec.dtype,))
+            >>> print('nnindexer.max_distance_sqrd = %r' % (nnindexer.max_distance_sqrd,))
+            >>> assert np.all(qfx2_dist < 1.0), 'distance should be less than 1. got %r' % (qfx2_dist,)
+            >>> # Ensure distance calculations are correct
+            >>> qfx2_dvec = nnindexer.idx2_vec[qfx2_idx.T]
+            >>> targetdist = vt.L2_sift(qfx2_vec, qfx2_dvec).T ** 2
+            >>> rawdist    = vt.L2_sqrd(qfx2_vec, qfx2_dvec).T
+            >>> assert np.all(qfx2_dist * nnindexer.max_distance_sqrd == rawdist), 'inconsistant distance calculations'
+            >>> assert np.allclose(targetdist, qfx2_dist), 'inconsistant distance calculations'
             >>> print(result)
             (1257, 2) (1257, 2)
 
@@ -1132,20 +1146,46 @@ class NeighborIndex(object):
         else:
             try:
                 # perform nearest neighbors
-                (qfx2_idx, qfx2_dist) = nnindexer.flann.nn_index(
+                (qfx2_idx, qfx2_raw_dist) = nnindexer.flann.nn_index(
                     qfx2_vec, K, checks=nnindexer.checks, cores=nnindexer.cores)
             except pyflann.FLANNException as ex:
                 ut.printex(ex, 'probably misread the cached flann_fpath=%r' % (nnindexer.flann_fpath,))
-                raise
                 #ut.embed()
+                # Uncommend and use if the flan index needs to be deleted
                 #ibs = ut.search_stack_for_localvar('ibs')
                 #cachedir = ibs.get_flann_cachedir()
                 #flann_fpath = nnindexer.get_fpath(cachedir)
+                raise
             # Ensure that distance returned are between 0 and 1
             if nnindexer.max_distance_sqrd is not None:
-                qfx2_dist = np.divide(qfx2_dist, nnindexer.max_distance_sqrd)
+                qfx2_dist = np.divide(qfx2_raw_dist, nnindexer.max_distance_sqrd)
+            else:
+                qfx2_dist = qfx2_raw_dist
+            if ut.DEBUG2:
+                # Ensure distance calculations are correct
+                qfx2_dvec = nnindexer.idx2_vec[qfx2_idx.T]
+                targetdist = vt.L2_sift(qfx2_vec, qfx2_dvec).T ** 2
+                rawdist    = vt.L2_sqrd(qfx2_vec, qfx2_dvec).T
+                assert np.all(qfx2_raw_dist == rawdist), 'inconsistant distance calculations'
+                assert np.allclose(targetdist, qfx2_dist), 'inconsistant distance calculations'
             #qfx2_dist = np.sqrt(qfx2_dist) / nnindexer.max_distance_sqrd
         return (qfx2_idx, qfx2_dist)
+
+    def debug_nnindexer(nnindexer):
+        """
+        Makes sure the indexer has valid SIFT descriptors
+        """
+        # FIXME: they might not agree if data has been added / removed
+        init_data, extra_data = nnindexer.flann.get_indexed_data()
+        with ut.Indenter('[NNINDEX_DEBUG]'):
+            print('extra_data = %r' % (extra_data,))
+            print('init_data = %r' % (init_data,))
+            print('nnindexer.max_distance_sqrd = %r' % (nnindexer.max_distance_sqrd,))
+            data_agrees = nnindexer.idx2_vec is nnindexer.flann.get_indexed_data()[0]
+            if data_agrees:
+                print('indexed_data agrees')
+            assert vt.check_sift_validity(init_data), 'bad SIFT properties'
+            assert data_agrees, 'indexed data does not agree'
 
     def empty_neighbors(nnindexer, nQfx, K):
         qfx2_idx  = np.empty((0, K), dtype=np.int32)

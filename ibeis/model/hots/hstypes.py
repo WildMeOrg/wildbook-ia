@@ -72,6 +72,12 @@ else:
 PSEUDO_UINT8_MAX_SQRD = float(VEC_PSEUDO_MAX) ** 2
 
 
+"""
+SeeAlso:
+    vt.distance.understanding_pseudomax_props
+"""
+
+
 RVEC_TYPE = np.int8
 #RVEC_TYPE = np.float16
 if RVEC_TYPE == np.int8:
