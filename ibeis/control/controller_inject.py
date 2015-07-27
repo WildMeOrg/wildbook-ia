@@ -64,13 +64,14 @@ class JSONPythonObjectEncoder(json.JSONEncoder):
             https://github.com/jsonpickle/jsonpickle
     """
     numpy_type_tuple = tuple([np.ndarray] + list(set(np.typeDict.values())))
+
     def default(self, obj):
         r"""
         Args:
-            obj (?):
+            obj (object):
 
         Returns:
-            ?:
+            str: json string
 
         CommandLine:
             python -m ibeis.control.controller_inject --test-JSONPythonObjectEncoder.default

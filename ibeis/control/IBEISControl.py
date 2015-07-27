@@ -1073,23 +1073,8 @@ class IBEISController(object):
         SeeAlso:
             query_chips
 
-        Ignore:
-            # test restfull call
-
-            # Start in one terminal
-            python -m ibeis --web
-
-            # New terminal
-            ipython
-
-            import requests
-            baseurl = 'http://127.0.1.1:5000'
-            data = dict(qaid_list=[1])
-            resp = requests.get(baseurl + '/api/core/query_chips_simple_dict/', data=data)
-            json_dict = resp.json()
-            resp = requests.get(baseurl + '/api/core/query_chips_dict/', data=data)
-            json_dict = resp.json()
-
+        CommandLine:
+            python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:1
 
         Example:
             >>> # SLOW_DOCTEST
@@ -1099,6 +1084,25 @@ class IBEISController(object):
             >>> qaid = ibs.get_valid_aids()[0]
             >>> result = ibs.query_chips_simple_json(qaid, return_cm=True)
             >>> print(result)
+
+        Example:
+            >>> # WEB_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import time
+            >>> import ibeis
+            >>> import requests
+            >>> # Start up the web instance
+            >>> web_instance = ibeis.opendb_in_background(db='testdb1', web=True, browser=False)
+            >>> time.sleep(.5)
+            >>> baseurl = 'http://127.0.1.1:5000'
+            >>> data = dict(qaid_list=[1])
+            >>> resp = requests.get(baseurl + '/api/core/query_chips_simple_dict/', data=data)
+            >>> print(resp)
+            >>> web_instance.terminate()
+            >>> json_dict = resp.json()
+            >>> cmdict_list = json_dict['response']
+            >>> assert 'score_list' in cmdict_list[0]
+
         """
         kwargs['return_cm_simple_dict'] = True
         return ibs.query_chips(*args, **kwargs)
