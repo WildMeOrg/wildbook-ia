@@ -174,12 +174,12 @@ def det_distance(det1, det2):
     return det_dist
 
 
-def L1(hist1, hist2):
+def L1(hist1, hist2, dtype=TEMP_VEC_DTYPE):
     """ returns L1 (aka manhatten or grid) distance between two histograms """
     return (np.abs(hist1 - hist2)).sum(-1)
 
 
-def L2_sqrd(hist1, hist2):
+def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
     """ returns the squared L2 distance
 
     SeeAlso:
@@ -194,7 +194,7 @@ def L2_sqrd(hist1, hist2):
         >>> l2dist = L2_sqrd(hist1, hist2)
         >>> result = ut.numpy_str(l2dist, precision=2, threshold=2)
         >>> print(result)
-        np.array([ 0.77,  0.27,  0.11, ...,  0.14,  0.3 ,  0.66], dtype=np.float64)
+        np.array([ 0.77,  0.27,  0.11, ...,  0.14,  0.3 ,  0.66], dtype=np.float32)
 
     Cyth::
         #CYTH_INLINE
@@ -225,7 +225,7 @@ def L2_sqrd(hist1, hist2):
     #out = temp.sum(-1)
     # Carefull, this will not return the correct result if the types are unsigned.
     #return ((hist1 - hist2) ** 2).sum(-1)  # this is faster
-    return ((hist1.astype(TEMP_VEC_DTYPE) - hist2.astype(TEMP_VEC_DTYPE)) ** 2).sum(-1)  # this is faster
+    return ((hist1.astype(dtype) - hist2.astype(dtype)) ** 2).sum(-1)  # this is faster
     #return out
 
 
@@ -419,7 +419,7 @@ def bar_L2_sift(hist1, hist2):
         >>> barl2_dist = bar_L2_sift(hist1, hist2)
         >>> result = ut.numpy_str(barl2_dist, precision=2)
         >>> print(result)
-        np.array([ 0.36,  0.3 ,  0.28,  0.3 ,  0.27,  0.32,  0.27,  0.27,  0.3 ,  0.23], dtype=np.float32)
+        np.array([ 0.55,  0.51,  0.49,  0.51,  0.49,  0.52,  0.48,  0.48,  0.51,  0.45], dtype=np.float32)
     """
     return 1.0 - L2_sift(hist1, hist2)
 
@@ -445,7 +445,7 @@ def L2_sift(hist1, hist2):
         >>> l2_dist = L2_sift(hist1, hist2)
         >>> result = ut.numpy_str(l2_dist, precision=2)
         >>> print(result)
-        np.array([ 0.64,  0.7 ,  0.72,  0.7 ,  0.73,  0.68,  0.73,  0.73,  0.7 ,  0.77], dtype=np.float32)
+        np.array([ 0.45,  0.49,  0.51,  0.49,  0.51,  0.48,  0.52,  0.52,  0.49,  0.55], dtype=np.float32)
     """
     # remove the pseudo max hack
     psuedo_max = 512.0
@@ -480,7 +480,7 @@ def cos_sift(hist1, hist2):
         >>> l2_dist = cos_sift(hist1, hist2)
         >>> result = ut.numpy_str(l2_dist, precision=2)
         >>> print(result)
-        np.array([ 0.8 ,  0.76,  0.74,  0.75,  0.74,  0.77,  0.73,  0.73,  0.76,  0.7 ], dtype=np.float32)
+        np.array([ 0.77,  0.74,  0.72,  0.74,  0.72,  0.75,  0.71,  0.72,  0.74,  0.68], dtype=np.float32)
     """
     psuedo_max = 512.0
     sift1 = hist1.astype(TEMP_VEC_DTYPE) / psuedo_max

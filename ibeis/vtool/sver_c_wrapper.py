@@ -161,9 +161,11 @@ def assert_output_equal(output1, output2, thresh=1E-8, nestpath=None, level=0, l
             passed, error = ut.almost_eq(output1, output2, thresh, ret_error=True)
             assert np.all(passed), 'ndarrays are unequal.'
         except AssertionError as ex:
+            ut.embed()
             error_stats = ut.get_stats_str(error)  # NOQA
+            bad_error_stats = ut.get_stats_str(error[error >= thresh])  # NOQA
             keys = common_keys + ndarray_keys + [
-                (len, 'output1'), (len, 'output2'), ('error_stats')
+                (len, 'output1'), (len, 'output2'), ('error_stats'), ('bad_error_stats'), ('thresh'),
             ]
             ut.printex(ex, 'FAILED NUMPY CHECKS.', keys=keys)
             raise
@@ -173,7 +175,7 @@ def assert_output_equal(output1, output2, thresh=1E-8, nestpath=None, level=0, l
             # recursive call
             try:
                 assert_output_equal(
-                    item1, item2, lbl1=lbl2, lbl2=lbl1, nestpath=nestpath + [count], level=level + 1)
+                    item1, item2, lbl1=lbl2, lbl2=lbl1, thresh=thresh, nestpath=nestpath + [count], level=level + 1)
             except AssertionError as ex:
                 ut.printex(ex, 'recursive call failed', keys=common_keys + ['item1', 'item2', 'count'])
                 raise

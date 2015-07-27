@@ -520,7 +520,7 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     _det1_mt  = ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
     _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
     ## Check for projection errors
-    xy_err    = dtool.L2_sqrd(xy2_m.T, _xy1_mt.T)
+    xy_err    = dtool.L2_sqrd(xy2_m.T, _xy1_mt.T, dtype=SV_DTYPE)
     scale_err = dtool.det_distance(_det1_mt, det2_m)
     ori_err   = dtool.ori_distance(_ori1_mt, ori2_m)
 
@@ -939,7 +939,7 @@ def get_homography_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd, scale_
         homog_inliers = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32)
         homog_errors = (
                            np.array([   4.36,    5.28,    3.29,   13.05,  114.46,   48.97,   17.66,
-                                       25.83,    3.82], dtype=np.float64),
+                                       25.83,    3.82], dtype=np.float32),
                            np.array([ 0.1 ,  0.02,  0.44,  0.36,  0.18,  0.25,  0.04,  0.33,  0.47], dtype=np.float64),
                            np.array([ 1.13,  1.11,  1.68,  1.89,  1.13,  1.42,  1.08,  1.01,  1.43], dtype=np.float64),
                        )

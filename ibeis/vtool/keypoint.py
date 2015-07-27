@@ -1435,7 +1435,7 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
                   [ 387.563,  378.93 ,  126.389,  292.391],
                   [ 419.246,  176.668,  400.175,  167.411],
                   [ 174.269,  274.289,  281.03 ,   33.521],
-                  [  54.083,  269.645,   94.711,  277.706]], dtype=np.float64)
+                  [  54.083,  269.645,   94.711,  277.706]], dtype=np.float32)
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -1461,7 +1461,7 @@ def get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1):
         >>> print(result)
         np.array([[  0.   ,  16.125,  10.44 ],
                   [  7.616,  13.153,   3.   ],
-                  [  4.   ,  12.166,   6.708]], dtype=np.float64)
+                  [  4.   ,  12.166,   6.708]], dtype=np.float32)
     """
     DEBUG = True
     if DEBUG:
