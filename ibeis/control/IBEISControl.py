@@ -1060,20 +1060,21 @@ class IBEISController(object):
 
     @register_api('/api/core/query_chips_simple_dict/', methods=['GET'])
     def query_chips_simple_dict(ibs, *args, **kwargs):
-        """
+        r"""
         Runs query_chips, but returns a json compatible dictionary
 
         Args:
             same as query_chips
 
-        Ignore:
-            args = tuple([])
-            kwargs = {'qaid_list': [1]}
+        RESTful:
+            Method: GET
+            URL:    /api/core/query_chips_simple_dict/
 
         SeeAlso:
             query_chips
 
         CommandLine:
+            python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:0
             python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:1
 
         Example:
@@ -1081,8 +1082,10 @@ class IBEISController(object):
             >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
-            >>> qaid = ibs.get_valid_aids()[0]
-            >>> result = ibs.query_chips_simple_json(qaid, return_cm=True)
+            >>> qaid = ibs.get_valid_aids()[0:3]
+            >>> dict_list = ibs.query_chips_simple_dict(qaid, return_cm=True)
+            >>> result  = ut.list_str(dict_list, nl=2, precision=2, hack_liststr=True)
+            >>> result = result.replace('u\'', '"').replace('\'', '"')
             >>> print(result)
 
         Example:
@@ -1111,6 +1114,10 @@ class IBEISController(object):
     def query_chips_dict(ibs, *args, **kwargs):
         """
         Runs query_chips, but returns a json compatible dictionary
+
+        RESTful:
+            Method: GET
+            URL:    /api/core/query_chips_dict/
         """
         kwargs['return_cm_dict'] = True
         return ibs.query_chips(*args, **kwargs)
