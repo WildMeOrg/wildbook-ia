@@ -484,6 +484,7 @@
     var pointArray = new google.maps.MVCArray(heatmap_data_all);
     heatmap = new google.maps.visualization.HeatmapLayer({
         data: pointArray,
+        useLocalMaximum: true,
         opacity: 0.5,
         gradient: {
             0.20: "rgb(000,000,255)",
@@ -492,7 +493,7 @@
             0.80: "rgb(255,255,000)",
             1.00: "rgb(255,000,000)",
         },
-        maxIntensity: 150,
+        // maxIntensity: 150,
         radius: 20,
     });
     heatmap.setMap(map4);
