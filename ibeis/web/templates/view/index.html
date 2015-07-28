@@ -484,19 +484,22 @@
     var pointArray = new google.maps.MVCArray(heatmap_data_all);
     heatmap = new google.maps.visualization.HeatmapLayer({
         data: pointArray,
-        useLocalMaximum: true,
         opacity: 0.5,
-        gradient: {
-            0.20: "rgb(000,000,255)",
-            0.40: "rgb(000,255,255)",
-            0.60: "rgb(000,255,000)",
-            0.80: "rgb(255,255,000)",
-            1.00: "rgb(255,000,000)",
-        },
-        // maxIntensity: 150,
+        maxIntensity: 200,
         radius: 20,
     });
     heatmap.setMap(map4);
+
+    var gradient = [
+      'rgba(255, 255, 0, 0.8)',
+      'rgba(0, 255, 0, 0.8)',
+      'rgba(173, 255, 47, 0.8)',
+      'rgba(152, 251, 152, 0.8)',
+      'rgba(0, 0, 238, 0.8)',
+      'rgba(186, 85, 211, 0.8)',
+      'rgba(255, 0, 0, 0.8)',
+    ]
+    heatmap.set('gradient', gradient);
 
     for (var index1 in tracks)
     {
