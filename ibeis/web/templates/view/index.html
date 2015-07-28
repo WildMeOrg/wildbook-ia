@@ -19,7 +19,7 @@
       margin: 0px 10px;
       /*color: #23527c;*/
   }
-  
+
   #gps-map-canvas1, #gps-map-canvas2, #gps-map-canvas3, #gps-map-canvas4, #gps-map-canvas5
   {
       width: 100%;
@@ -38,7 +38,7 @@
       <br/>
       <h4 class="total-label" id="encounter-total"></h4>
     </div> -->
-    
+
     <div class="col-lg-4">
       <a href="{{ url_for('view_images') }}"><h4>Images</h4></a>
       <br/>
@@ -47,7 +47,7 @@
       <h4>(<span id="image-total"></span> Total from <span id="contrib-total"></span> Contributors)</h4>
       <h4>(<span id="image-used"></span> Used from <span id="contrib-used"></span> Contributors)</h4>
     </div>
-    
+
     <div class="col-lg-4">
       <a href="{{ url_for('view_annotations') }}"><h4>Annotations</h4></a>
       <br/>
@@ -55,7 +55,7 @@
       <br/>
       <h4>(<span id="annotation-total"></span> Total)</h4>
     </div>
-    
+
     <div class="col-lg-4">
       <a href="{{ url_for('view_names') }}"><h4>Names</h4></a>
       <br/>
@@ -67,13 +67,13 @@
 
   <div class="row marketing" style="margin-top: 40px; text-align: center;">
     <div class="col-lg-1"></div>
-    
+
     <div class="col-lg-10">
       <h4>Petersen-Lincoln Index</h4>
       <br/>
       <h4 class="total-label" id="pl-total"></h4><h4 class="plusmn">&plusmn;</h4><h4 class="total-label" id="error-total">
     </div>
-    
+
     <div class="col-lg-1"></div>
   </div>
 
@@ -101,7 +101,7 @@
           (Blue - Female, Green - Male, Grey - Unknown)
         </div>
     </div>
-    <div class="col-lg-1"></div>    
+    <div class="col-lg-1"></div>
   </div>
 
   <div class="row" style="margin-top: 50px; text-align: center; height: 375px;">
@@ -109,7 +109,7 @@
     <div class="col-lg-10" style="height: 100%;">
         <div id="gps-map-canvas1"></div>
     </div>
-    <div class="col-lg-1"></div>    
+    <div class="col-lg-1"></div>
   </div>
     <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
       Locations of named animals
@@ -120,7 +120,7 @@
     <div class="col-lg-10" style="height: 100%;">
         <div id="gps-map-canvas2"></div>
     </div>
-    <div class="col-lg-1"></div>    
+    <div class="col-lg-1"></div>
   </div>
     <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
       Heatmap of named animals
@@ -131,7 +131,7 @@
     <div class="col-lg-10" style="height: 100%;">
         <div id="gps-map-canvas3"></div>
     </div>
-    <div class="col-lg-1"></div>    
+    <div class="col-lg-1"></div>
   </div>
     <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
         Locations of all taken images (including images with no animals)
@@ -142,7 +142,7 @@
     <div class="col-lg-10" style="height: 100%;">
         <div id="gps-map-canvas4"></div>
     </div>
-    <div class="col-lg-1"></div>    
+    <div class="col-lg-1"></div>
   </div>
     <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
       Heatmap of all taken images (including images with no animals)
@@ -153,12 +153,12 @@
     <div class="col-lg-10" style="height: 100%;">
         <div id="gps-map-canvas5"></div>
     </div>
-    <div class="col-lg-1"></div>    
+    <div class="col-lg-1"></div>
   </div>
     <div style="color: #999; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
       Tracks for all named animals
     </div>
-    
+
   <div class="jumbotron" id="source" style="margin-top: 60px;">
       {% autoescape false %}
           {{ dbinfo_str }}
@@ -351,7 +351,7 @@
     loadGPSMap(tracks, markers, center);
   };
 
-  
+
 
   function loadGPSMap(tracks, markers, center)
   {
@@ -485,10 +485,28 @@
     heatmap = new google.maps.visualization.HeatmapLayer({
         data: pointArray,
         opacity: 0.5,
-        maxIntensity: 50,
+        // maxIntensity: 50,
         radius: 20,
     });
     heatmap.setMap(map4);
+
+    var gradient = [
+      'rgba(0, 255, 255, 0)',
+      'rgba(0, 255, 255, 1)',
+      'rgba(0, 191, 255, 1)',
+      'rgba(0, 127, 255, 1)',
+      'rgba(0, 63, 255, 1)',
+      'rgba(0, 0, 255, 1)',
+      'rgba(0, 0, 223, 1)',
+      'rgba(0, 0, 191, 1)',
+      'rgba(0, 0, 159, 1)',
+      'rgba(0, 0, 127, 1)',
+      'rgba(63, 0, 91, 1)',
+      'rgba(127, 0, 63, 1)',
+      'rgba(191, 0, 31, 1)',
+      'rgba(255, 0, 0, 1)'
+    ]
+    heatmap.set('gradient', gradient);
 
     for (var index1 in tracks)
     {
@@ -537,5 +555,5 @@
     }
   }
 
-</script>  
+</script>
 {% endblock %}
