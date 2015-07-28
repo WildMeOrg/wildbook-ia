@@ -3670,6 +3670,10 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
         if complete:
             cols_list      = [
                 ('annotation_id',        aid_list),
+                ('annotation_xtl',       xtl_list),
+                ('annotation_ytl',       ytl_list),
+                ('annotation_width',     width_list),
+                ('annotation_height',    height_list),
                 ('annotation_species',   species_list),
                 ('annotation_viewpoint', viewpoint_list),
                 ('annotation_qualities', quality_list),
@@ -3713,6 +3717,11 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
     else:
         aid_list   = ibs.filter_aids_count(pre_unixtime_sort=False)
     gid_list       = ibs.get_annot_gids(aid_list)
+    bbox_list      = ibs.get_annot_bboxes(aid_list)
+    xtl_list       = [ bbox[0] for bbox in bbox_list ]
+    ytl_list       = [ bbox[1] for bbox in bbox_list ]
+    width_list     = [ bbox[2] for bbox in bbox_list ]
+    height_list    = [ bbox[3] for bbox in bbox_list ]
     species_list   = ibs.get_annot_species_texts(aid_list)
     viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
     quality_list   = ibs.get_annot_quality_texts(aid_list)
