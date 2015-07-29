@@ -61,7 +61,7 @@ def checkinfo(target=None):
         @functools.wraps(func)
         def wrapper2(*args, **kwargs):
             funcname = get_funcname(func)
-            packagename = funcname.replace('__version__', '')
+            packagename = funcname.replace('_version', '')
             try:
                 infodict = func(*args, **kwargs)
             except ImportError as ex:
@@ -183,23 +183,33 @@ def check_modules_exists():
     if len(failed_list) > 0:
         print('The following modules are not installed')
         print('\n'.join(failed_list))
+    return ''
 
 
 def assert_modules():
     """
     checkinfo functions return info_dict
 
+    CommandLine:
+        python -m ibeis.tests.assert_modules --test-assert_modules
+
     Example:
         >>> # DOCTEST_ENABLE
         >>> from ibeis.tests.assert_modules import *   # NOQA
-        >>> assert_modules()
+        >>> detailed_msg = assert_modules()
+        >>> print(detailed_msg)
     """
 
     MACHINE_NAME = utool.get_computer_name()
-    print('PATH = ' + ut.list_str(ut.get_path_dirs()))
-    print('\n\n\n============================')
-    print('Begining assert modules main')
-    print('* MACHINE_NAME = %r' % MACHINE_NAME)
+
+    machine_info_lines = []
+
+    machine_info_lines.append('PATH = ' + ut.list_str(ut.get_path_dirs()))
+    machine_info_lines.append('\n\n\n============================')
+    machine_info_lines.append('Begining assert modules main')
+    machine_info_lines.append('* MACHINE_NAME = %r' % MACHINE_NAME)
+    machine_info_text = '\n'.join(machine_info_lines)
+    print(machine_info_text)
 
     line_list = []
     failed_list = []
@@ -218,12 +228,26 @@ def assert_modules():
             line_list.append(get_funcname(func) + ' passed')
             line_list.append('')
     output_text = '\n'.join(line_list)
+    failed_text = '\n'.join(failed_list)
     print(output_text)
-    print('\n'.join(failed_list))
-    check_modules_exists()
+    print(failed_text)
+    check_exist_text = check_modules_exists()
+    print(check_exist_text)
+    fix_text = ''
     if len(fix_list) > 0:
-        print('suggested fixes:')
-        print('\n'.join(fix_list))
+        fix_text += ('suggested fixes:\n')
+        fix_text += ('\n'.join(fix_list) + '\n')
+        print(fix_text)
+
+    detailed_msg = '\n'.join([
+        machine_info_text,
+        output_text,
+        failed_text,
+        check_exist_text,
+        fix_text,
+    ])
+
+    return detailed_msg
 
 
 if __name__ == '__main__':

@@ -364,6 +364,10 @@ def setup_developer_menu(mainwin, back):
         name='actionDevRunTests',
         text='Run Developer Tests',
         slot_fn=back.run_tests)
+    menu.newAction(
+        name='actionAssertModules',
+        text='Assert Modules',
+        slot_fn=back.assert_modules)
     menu.addSeparator()
     menu.newAction(
         name='actionDeveloper_DumpDB',

@@ -1864,6 +1864,12 @@ class MainWindowBackend(GUIBACK_BASE):
         run_tests.run_tests()
 
     @slot_()
+    def assert_modules(back):
+        from ibeis.tests import assert_modules
+        detailed_msg = assert_modules.assert_modules()
+        guitool.msgbox(msg="Running checks", title="Module Checks", detailed_msg=detailed_msg)
+
+    @slot_()
     def display_dbinfo(back):
         r"""
         CommandLine:
