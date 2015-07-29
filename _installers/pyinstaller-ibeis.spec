@@ -169,7 +169,8 @@ if APPLE:
     libbsddb_src = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-dynload/_bsddb.so'
     libbsddb_dst = join(ibsbuild, '_bsddb.so')
     DATATUP_LIST.append((libbsddb_dst, libbsddb_src))
-    libgomp_src = '/opt/local/lib/libgomp.dylib'
+    #libgomp_src = '/opt/local/lib/libgomp.dylib'
+    libgomp_src = '/opt/local/lib/gcc48/libgomp.dylib'
     BINARYTUP_LIST.append(('libgomp.1.dylib', libgomp_src, 'BINARY'))
     libgomp_src = '/Users/bluemellophone/code/libomp_oss/exports/mac_32e/lib.thin/libiomp5.dylib'
     BINARYTUP_LIST.append(('libiomp5.dylib', libgomp_src, 'BINARY'))
