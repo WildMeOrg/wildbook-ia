@@ -1,4 +1,9 @@
 # -*- mode: python -*-
+"""
+CommandLine:
+    python %CODE_DIR%/ibeis/_installers/ibeis_pyinstaller_data_helper.py --test-get_data_list
+
+"""
 from __future__ import absolute_import, division, print_function
 import os
 import sys
@@ -178,6 +183,14 @@ def get_data_list():
     libflann_dst = join(ibsbuild, 'pyflann', 'lib', libflann_fname)
     DATATUP_LIST.append((libflann_dst, libflann_src))
 
+    # VTool
+    vtool_libs = ['libsver']
+    for libname in vtool_libs:
+        lib_fname = libname + LIB_EXT
+        vtlib_src = realpath(join(root_dir, '..', 'vtool', 'vtool', lib_fname))
+        vtlib_dst = join(ibsbuild, 'vtool', lib_fname)
+        DATATUP_LIST.append((vtlib_dst, vtlib_src))
+
     linux_lib_dpaths = [
         '/usr/lib/x86_64-linux-gnu',
         '/usr/lib',
@@ -309,7 +322,7 @@ def get_data_list():
         for (dst, src) in DATATUP_LIST:
             assert ut.checkpath(src, verbose=True), 'checkpath for src=%r failed' % (src,)
     except Exception as ex:
-        ut.printex(ex, 'Checking data failed DATATUP_LIST=%s' + ut.list_str(DATATUP_LIST))
+        ut.printex(ex, 'Checking data failed DATATUP_LIST=' + ut.list_str(DATATUP_LIST))
         raise
 
     return DATATUP_LIST, BINARYTUP_LIST, iconfile
