@@ -34,6 +34,7 @@ def checkinfo(target=None):
             try:
                 infodict = func(*args, **kwargs)
             except ImportError:
+                return False, None, None, None, None, 'need to install'
                 pass
             current_version = infodict['__version__']
             msg = utool.dict_str(infodict) + '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
