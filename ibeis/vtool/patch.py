@@ -1,6 +1,6 @@
+# -*- coding: utf-8 -*-
 # LICENCE
 from __future__ import absolute_import, division, print_function
-# Python
 import six  # NOQA
 from six.moves import zip
 #import itertools
@@ -8,10 +8,8 @@ from six.moves import zip
 #    from functools32 import lru_cache  # Python2.7 support
 #elif six.PY3:
 #    from functools import lru_cache  # Python3 only
-# Science
 import cv2
 import numpy as np
-# VTool
 from vtool import histogram as htool
 from vtool import keypoint as ktool
 from vtool import linalg as ltool
@@ -590,6 +588,44 @@ def intern_warp_single_patch(img, x, y, ori, V,
                              patch_size,
                              flags=cv2.INTER_CUBIC,
                              borderMode=cv2.BORDER_REPLICATE):
+    """
+    Sympy:
+        from vtool.patch import *  # NOQA
+        import sympy
+        from sympy.abc import theta
+        ori = theta
+        x, y, a, c, d, patch_size = sympy.symbols('x y a c d S')
+        half_patch_size = patch_size / 2
+
+        def sympy_rotation_mat3x3(radians):
+            # TODO: handle array impouts
+            sin_ = sympy.sin(radians)
+            cos_ = sympy.cos(radians)
+            R = np.array(((cos_, -sin_,  0),
+                          (sin_,  cos_,  0),
+                          (   0,     0,  1),))
+            return sympy.Matrix(R)
+
+        kpts = np.array([[x, y, a, c, d, ori]])
+        kp = ktool.get_invV_mats(kpts, with_trans=True)[0]
+        invV = sympy.Matrix(kp)
+        V = invV.inv()
+        ss = sympy.sqrt(patch_size) * 3.0
+        T = sympy.Matrix(ltool.translation_mat3x3(-x, -y, None))  # Center the patch
+        R = sympy_rotation_mat3x3(-ori)  # Rotate the centered unit circle patch
+        S = sympy.Matrix(ltool.scale_mat3x3(ss, dtype=None))  # scale from unit circle to the patch size
+        X = sympy.Matrix(ltool.translation_mat3x3(half_patch_size, half_patch_size, None))  # Translate back to patch-image coordinates
+        M = X.multiply(S).multiply(R).multiply(V).multiply(T)
+
+        V_full = R.multiply(V).multiply(T)
+        sympy.latex(V_full)
+        print(sympy.latex(R.multiply(V).multiply(T)))
+        print(sympy.latex(X))
+        print(sympy.latex(S))
+        print(sympy.latex(R))
+        print(sympy.latex(invV) + '^{-1}')
+        print(sympy.latex(T))
+    """
     cv2_warp_kwargs = {
         #'flags': cv2.INTER_LINEAR,
         #'flags': cv2.INTER_NEAREST,
