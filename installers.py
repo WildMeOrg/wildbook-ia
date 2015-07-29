@@ -257,7 +257,10 @@ def build_pyinstaller():
     #os.environ['PYTHONPATH'] = os.pathsep.join([utool_python_path] + os.environ['PYTHONPATH'].strip(os.pathsep).split(os.pathsep))
     import os
     sys.path.insert(1, utool_python_path)
-    pathcmd = 'export PYTHONPATH=%s%s$PYTHONPATH && ' % (utool_python_path, os.pathsep)
+    if not ut.WIN32:
+        pathcmd = 'export PYTHONPATH=%s%s$PYTHONPATH && ' % (utool_python_path, os.pathsep)
+    else:
+        pathcmd = ''
     installcmd = 'pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-ibeis.spec -y'
     ut.cmd(pathcmd + installcmd)
     #ut.cmd(installcmd)
@@ -334,9 +337,9 @@ def ensure_inno_script():
         AppVersion=1
         ;AppVerName=IBEIS 1
         AppPublisher=Rensselaer Polytechnic Institute
-        AppPublisherURL=www.rpi.edu/~crallj/
-        AppSupportURL=www.rpi.edu/~crallj/
-        AppUpdatesURL=www.rpi.edu/~crallj/
+        AppPublisherURL=ibeis.org ;www.rpi.edu/~crallj/
+        AppSupportURL=ibeis.org ;ww.rpi.edu/~crallj/
+        AppUpdatesURL=ibeis.org ;www.rpi.edu/~crallj/
         DefaultDirName={pf}\IBEIS
         DefaultGroupName=IBEIS
         OutputBaseFilename=ibeis-win32-setup
