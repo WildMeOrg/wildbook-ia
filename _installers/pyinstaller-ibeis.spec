@@ -99,7 +99,7 @@ module_repos = [
     'guitool.__PYQT__',
     'plottool',
     'pyrf',
-    'pyflann',
+    'flann/src/python',
     #'pygist',
     'ibeis',
     'hesaff',
@@ -147,13 +147,15 @@ libflann_fname = 'libflann' + LIB_EXT
 #if WIN32 or LINUX:
 # FLANN
 #libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
-libflann_src = realpath(join(root_dir, '..', 'flann', 'build', 'lib', libflann_fname))
-libflann_dst = join(ibsbuild, libflann_fname)
+#libflann_dst = join(ibsbuild, libflann_fname)
 #elif APPLE:
 #    # libflann_src = '/pyflann/lib/libflann.dylib'
 #    # libflann_dst = join(ibsbuild, libflann_fname)
 #    libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
 #    libflann_dst = join(ibsbuild, libflann_fname)
+# This path is when pyflann was built using setup.py develop
+libflann_src = realpath(join(root_dir, '..', 'flann', 'build', 'lib', libflann_fname))
+libflann_dst = join(ibsbuild, 'pyflann', 'lib', libflann_fname)
 DATATUP_LIST.append((libflann_dst, libflann_src))
 
 
@@ -264,25 +266,27 @@ icon_dst = join(ibsbuild, iconfile)
 DATATUP_LIST.append((icon_dst, icon_src))
 
 # Web Assets
-web_root = join('ibeis', 'web/')
-walk_path = join(web_root, 'static')
-for root, dirs, files in os.walk(walk_path):
-    root2 = root.replace(web_root, '')
-    for icon_fname in files:
-        if '.DS_Store' not in icon_fname:
-            toc_src = join(abspath(root), icon_fname)
-            toc_dst = join(root2, icon_fname)
-            DATATUP_LIST.append((toc_dst, toc_src))
+INSTALL_WEB = False
+if INSTALL_WEB:
+    web_root = join('ibeis', 'web/')
+    walk_path = join(web_root, 'static')
+    for root, dirs, files in os.walk(walk_path):
+        root2 = root.replace(web_root, '')
+        for icon_fname in files:
+            if '.DS_Store' not in icon_fname:
+                toc_src = join(abspath(root), icon_fname)
+                toc_dst = join(root2, icon_fname)
+                DATATUP_LIST.append((toc_dst, toc_src))
 
-web_root = join('ibeis', 'web/')
-walk_path = join(web_root, 'templates')
-for root, dirs, files in os.walk(walk_path):
-    root2 = root.replace(web_root, '')
-    for icon_fname in files:
-        if '.DS_Store' not in icon_fname:
-            toc_src = join(abspath(root), icon_fname)
-            toc_dst = join(root2, icon_fname)
-            DATATUP_LIST.append((toc_dst, toc_src))
+    web_root = join('ibeis', 'web/')
+    walk_path = join(web_root, 'templates')
+    for root, dirs, files in os.walk(walk_path):
+        root2 = root.replace(web_root, '')
+        for icon_fname in files:
+            if '.DS_Store' not in icon_fname:
+                toc_src = join(abspath(root), icon_fname)
+                toc_dst = join(root2, icon_fname)
+                DATATUP_LIST.append((toc_dst, toc_src))
 
 ##################################
 # Build executable

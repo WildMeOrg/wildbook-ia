@@ -335,6 +335,7 @@ def main():
         python installers.py --build
         python installers.py --test
         python installers.py --clean --build --test
+        python installers.py --build --test
 
     """
     print('For a full run use: python installers.py --all')

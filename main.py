@@ -34,6 +34,7 @@ def dependencies_for_myprogram():
     #import lru  # NOQA
     # Workaround for mpl_toolkits
     import importlib
+    import pyflann  # NOQA
     importlib.import_module('mpl_toolkits').__path__
 
 if __name__ == '__main__':
