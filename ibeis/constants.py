@@ -261,7 +261,7 @@ class Species(object):
     LION          = 'lion'
     WILDDOG       = 'wild_dog'
     WHALESHARK    = 'whale_shark'
-    SNAILS        = 'snails'
+    SNAIL         = 'snail'
     SEALS_SPOTTED = 'seals_spotted'
     SEALS_RINGED  = 'seals_saimma_ringed'
     POLAR_BEAR    = 'bear_polar'
@@ -276,6 +276,7 @@ class Species(object):
     TIGER         = 'tiger'
     HYENA         = 'hyena'
     NAUT          = 'nautilus'
+    OTHER         = 'other'
     UNKNOWN       = UNKNOWN
 
 # TODO: allow for custom species
@@ -304,6 +305,8 @@ SPECIES_TUPS = [
     SpeciesTuple(Species.SEALS_SPOTTED,   'SEAL1', 'Seal (spotted)'),
     SpeciesTuple(Species.SEALS_RINGED,    'SEAL2', 'Seal (Siamaa Ringed)'),
     SpeciesTuple(Species.NAUT,             'NAUT', 'Nautilus'),
+    SpeciesTuple(Species.SNAIL,           'SNAIL', 'Snail'),
+    SpeciesTuple(Species.OTHER,           'OTHER', 'Other'),
     SpeciesTuple(Species.UNKNOWN,       'UNKNOWN', 'Unknown'),
 ]
 

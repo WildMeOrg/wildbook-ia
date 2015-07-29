@@ -307,7 +307,7 @@ def ingest_snails_drop1(dbname):
     return Ingestable(dbname,
                       ingest_type='named_images',
                       fmtkey=FMT_KEYS.snails_fmt,
-                      species=const.Species.SNAILS,
+                      species=const.Species.SNAIL,
                       #img_dir='/raid/raw/snails_drop1_59MB',
                       adjust_percent=.20)
 
