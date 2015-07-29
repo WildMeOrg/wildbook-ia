@@ -27,7 +27,8 @@ def run_tests():
     # Build module list and run tests
     import sys
     ensure_testing_data()
-    ut.change_term_title('RUN IBEIS TESTS')
+    if False:
+        ut.change_term_title('RUN IBEIS TESTS')
     exclude_doctests_fnames = set([
         'template_definitions.py',
         'autogen_test_script.py',
@@ -55,10 +56,16 @@ def run_tests():
     else:
         doctest_modname_list = doctest_modname_list_
 
+    doctest_modname_list2 = []
     for modname in doctest_modname_list:
-        exec('import ' + modname, globals(), locals())
+        try:
+            exec('import ' + modname, globals(), locals())
+        except ImportError as ex:
+            ut.printex(ex, iswarning=True)
+        else:
+            doctest_modname_list2.append(modname)
 
-    module_list = [sys.modules[name] for name in doctest_modname_list]
+    module_list = [sys.modules[name] for name in doctest_modname_list2]
 
     nPass, nTotal, failed_cmd_list = ut.doctest_module_list(module_list)
     if nPass != nTotal:

@@ -38,6 +38,13 @@ def run_ibeis():
     #main_locals = ibeis.main()
     #ibeis.main_loop(main_locals)
     multiprocessing.freeze_support()  # for win32
+
+    if ut.get_argflag('--run-tests'):
+        from ibeis.tests import run_tests
+        import sys
+        retcode = run_tests.run_tests()
+        sys.exit(retcode)
+
     #ut.set_process_title('IBEIS_main')
     main_locals = ibeis.main()
     execstr = ibeis.main_loop(main_locals)

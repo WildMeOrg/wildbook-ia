@@ -264,6 +264,6 @@ def embed(back):
     ibs = back.ibs
     front = back.front
     ibswgt = front
-    import IPython
-    IPython.embed()
-    #utool.embed()
+    #import IPython
+    #IPython.embed()
+    utool.embed()
