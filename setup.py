@@ -92,6 +92,14 @@ INSTALL_OPTIONAL_DEV = [
     'pyfiglet',
 ]
 
+"""
+# Uninstall unimportant modules:
+
+    pip uninstall pylru
+    pip uninstall sphinx
+    pip uninstall pygments
+"""
+
 if six.PY2:
     INSTALL_REQUIRES.append('requests >= 0.8.2')
 

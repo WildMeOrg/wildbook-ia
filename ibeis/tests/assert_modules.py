@@ -31,7 +31,10 @@ def checkinfo(target=None):
         @functools.wraps(func)
         def wrapper2(*args, **kwargs):
             funcname = get_funcname(func)
-            infodict = func(*args, **kwargs)
+            try:
+                infodict = func(*args, **kwargs)
+            except ImportError:
+                pass
             current_version = infodict['__version__']
             msg = utool.dict_str(infodict) + '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
             statustext = ut.msgblock(infodict['__name__'], msg)
@@ -192,9 +195,10 @@ if __name__ == '__main__':
     """
     CommandLine:
         python -c "import utool, ibeis.tests.assert_modules; utool.doctest_funcs(ibeis.tests.assert_modules, allexamples=True)"
-        python -m ibeis.tests.assert_modules
         python -m ibeis.tests.assert_modules --allexamples
         python ~/code/ibeis/ibeis/tests/assert_modules.py
+
+        python -m ibeis.tests.assert_modules
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

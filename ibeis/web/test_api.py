@@ -77,7 +77,7 @@ def run_test_api():
         python -m ibeis.web.test_api --test-run_test_api
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # WEB_DOCTEST
         >>> from ibeis.web.test_api import *  # NOQA
         >>> response = run_test_api()
         >>> print('Server response: %r' % (response, ))

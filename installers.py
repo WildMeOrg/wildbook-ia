@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 r"""
 References:
     https://groups.google.com/forum/#!topic/pyinstaller/178I9ANuk14
@@ -52,6 +53,7 @@ def use_development_pyinstaller():
     export PATH=$PATH:/opt/local/Library/Frameworks/Python.framework/Versions/2.7/bin
 
     had to uninstall sphinx
+    sudo pip uninstall sphinx
     sudo pip uninstall sphinx
     """
 
@@ -321,8 +323,16 @@ def fix_importlib_hook():
 def test_app():
     print('[installer] +--- TEST_APP ---')
     app_fpath = ut.unixpath('dist/ibeis/IBEISApp')
-    app_ext = '.exe' if ut.WIN32 else ''
-    ut.cmd(app_fpath + app_ext)
+    if ut.DARWIN:
+        app_fpath = ut.unixpath('dist/IBEIS.app/Contents/MacOS/IBEISApp')
+    if ut.WIN32:
+        app_fpath += '.exe'
+    ut.assert_exists(app_fpath, 'app fpath must exist', info=True, verbose=True)
+    ut.cmd(app_fpath)
+    if ut.DARWIN:
+        ut.cmd('open ' + ut.unixpath('dist/IBEIS.app'))
+        ut.cmd(app_fpath)
+
     print('[installer] L___ FINISH TEST_APP ___')
     #ut.cmd(ut.unixpath('dist/ibeis/ibeis-win32-setup.exe'))
 
