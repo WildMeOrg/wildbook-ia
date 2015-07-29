@@ -45,8 +45,11 @@ def use_development_pyinstaller():
     git clone https://github.com/pyinstaller/pyinstaller.git
     cd pyinstaller
     sudo python setup.py develop
+    sudo python setup.py install
     ib
     which pyinstaller
+
+    export PATH=$PATH:/opt/local/Library/Frameworks/Python.framework/Versions/2.7/bin
 
     had to uninstall sphinx
     sudo pip uninstall sphinx
