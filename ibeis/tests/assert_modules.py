@@ -34,8 +34,7 @@ def checkinfo(target=None):
             try:
                 infodict = func(*args, **kwargs)
             except ImportError:
-                return False, None, None, None, None, 'need to install'
-                pass
+                infodict = module_stdinfo_dict(None)
             current_version = infodict['__version__']
             msg = utool.dict_str(infodict) + '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
             statustext = ut.msgblock(infodict['__name__'], msg)
@@ -54,8 +53,8 @@ def checkinfo(target=None):
 def module_stdinfo_dict(module, versionattr='__version__', **kwargs):
     infodict = {
         '__version__': getattr(module, versionattr, None),
-        '__name__': getattr(module, '__name__'),
-        '__file__': getattr(module, '__file__'),
+        '__name__': getattr(module, '__name__', None),
+        '__file__': getattr(module, '__file__', None),
     }
     infodict.update(kwargs)
     return infodict
