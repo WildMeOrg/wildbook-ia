@@ -6,6 +6,11 @@ CommandLine:
     python -m ibeis.tests.assert_modules
 
 
+MacFix:
+    # Remove the copy of pyrf
+    /opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/
+    sudo rm -rf pyrf-1.0.0.dev1-py2.7.egg/
+
 Updater For Linux:
     sudo pip install matplotlib --upgrade
     sudo pip install Pillow --upgrade
@@ -56,11 +61,12 @@ def checkinfo(target=None):
         @functools.wraps(func)
         def wrapper2(*args, **kwargs):
             funcname = get_funcname(func)
+            packagename = funcname.replace('__version__')
             try:
                 infodict = func(*args, **kwargs)
             except ImportError as ex:
                 infodict = module_stdinfo_dict(None)
-                return False, 'None', target, infodict, ut.formatex(ex), 'need to install'
+                return False, 'None', target, infodict, ut.formatex(ex), 'need to install ' + packagename
             current_version = infodict['__version__']
             msg = utool.dict_str(infodict, strvals=True)
             msg += '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
