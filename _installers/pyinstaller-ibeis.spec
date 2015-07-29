@@ -2,7 +2,7 @@
 import os
 import sys
 from os.path import join, exists, realpath, abspath
-import utool
+import utool as ut
 # import utool
 
 # Pyinstaller Variables (enumerated for readability, not needed)
@@ -10,30 +10,36 @@ import utool
 
 
 def join_SITE_PACKAGES(*args):
-    import site
+    def get_site_package_directories():
+        import site
+        import sys
+        import six
+        sitepackages = site.getsitepackages()
+        if sys.platform.startswith('darwin'):
+            if six.PY2:
+                macports_site = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages'
+            else:
+                macports_site = '/opt/local/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages'
+                assert six.PY2, 'fix this for python 3'
+            sitepackages = [macports_site] + sitepackages
+        return sitepackages
     from os.path import join
-    import sys
-    import six
-    import utool
-    sitepackages = site.getsitepackages()
-    if sys.platform.startswith('darwin'):
-        assert six.PY2, 'fix this for python 3'
-        macports_site = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages'
-        sitepackages = [macports_site] + sitepackages
+    import utool as ut
     fname = join(*args)
-    path, tried_list = utool.search_in_dirs(fname, sitepackages, return_tried=True, strict=True)
+    sitepackages = get_site_package_directories()
+    path, tried_list = ut.search_in_dirs(fname, sitepackages, return_tried=True, strict=True)
     return path
 
 
 def add_data(a, dst, src):
     global LIB_EXT
     from os.path import dirname, exists
-    import utool
+    import utool as ut
     if dst == '':
         raise ValueError('dst path cannot be the empty string')
     if src == '':
         raise ValueError('src path cannot be the empty string')
-    src_ = utool.platform_path(src)
+    src_ = ut.platform_path(src)
     if not os.path.exists(dirname(dst)) and dirname(dst) != "":
         os.makedirs(dirname(dst))
     _pretty_path = lambda str_: str_.replace('\\', '/')
@@ -44,7 +50,7 @@ def add_data(a, dst, src):
     #if extension == LIB_EXT.lower():
     if LIB_EXT[1:] in dst.split('.'):
         dtype = 'BINARY'
-    print(utool.codeblock('''
+    print(ut.codeblock('''
     [installer] a.add_data(
     [installer]    dst=%r,
     [installer]    src=%r,
@@ -130,21 +136,30 @@ DATATUP_LIST.append((libpyrf_dst, libpyrf_src))
 
 # FLANN
 libflann_fname = 'libflann' + LIB_EXT
-if WIN32 or LINUX:
-    # FLANN
-    libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
-    libflann_dst = join(ibsbuild, libflann_fname)
-elif APPLE:
-    # libflann_src = '/pyflann/lib/libflann.dylib'
-    # libflann_dst = join(ibsbuild, libflann_fname)
-    libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
-    libflann_dst = join(ibsbuild, libflann_fname)
+#try:
+#    #import pyflann
+#    #pyflann.__file__
+#    #join(dirname(dirname(pyflann.__file__)), 'build')
+#except ImportError as ex:
+#    print('PYFLANN IS NOT IMPORTABLE')
+#    raise
+#if WIN32 or LINUX:
+# FLANN
+#libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
+libflann_src = realpath(join(root_dir, '..', 'flann', 'build', 'lib', libflann_fname))
+libflann_dst = join(ibsbuild, libflann_fname)
+#elif APPLE:
+#    # libflann_src = '/pyflann/lib/libflann.dylib'
+#    # libflann_dst = join(ibsbuild, libflann_fname)
+#    libflann_src = join_SITE_PACKAGES('pyflann', 'lib', libflann_fname)
+#    libflann_dst = join(ibsbuild, libflann_fname)
 DATATUP_LIST.append((libflann_dst, libflann_src))
 
 
 linux_lib_dpaths = [
     '/usr/lib/x86_64-linux-gnu',
     '/usr/lib',
+    '/usr/local/lib'
 ]
 
 # OpenMP
@@ -159,12 +174,12 @@ if APPLE:
     libgomp_src = '/Users/bluemellophone/code/libomp_oss/exports/mac_32e/lib.thin/libiomp5.dylib'
     BINARYTUP_LIST.append(('libiomp5.dylib', libgomp_src, 'BINARY'))
 if LINUX:
-    libgomp_src = utool.search_in_dirs('libgomp.so.1', linux_lib_dpaths)
+    libgomp_src = ut.search_in_dirs('libgomp.so.1', linux_lib_dpaths)
     #libgomp_src = join('/usr', 'lib',  'libgomp.so.1')
-    #assert utool.checkpath(libgomp_src):
-    utool.assertpath(libgomp_src)
+    #assert ut.checkpath(libgomp_src):
+    ut.assertpath(libgomp_src)
     #libgomp_src = join('/usr', 'lib',  'libgomp.so.1')
-    # utool.assertpath(libgomp_src)
+    # ut.assertpath(libgomp_src)
     BINARYTUP_LIST.append(('libgomp.so.1', libgomp_src, 'BINARY'))
 
 
@@ -178,19 +193,26 @@ if WIN32:
         DATATUP_LIST.append((lib_dst, lib_src))
 
 # We need to add these 4 opencv libraries because pyinstaller does not find them.
-OPENCV_EXT = {'win32': '248.dll',
-              'darwin': '.2.4.dylib',
-              'linux2': '.so.2.4'}[PLATFORM]
+#OPENCV_EXT = {'win32': '248.dll',
+#              'darwin': '.2.4.dylib',
+#              'linux2': '.so.2.4'}[PLATFORM]
+
+target_cv_version = '3.0.0'
+
+OPENCV_EXT = {'win32': target_cv_version.replace('.', '') + '.dll',
+              'darwin': '.' + target_cv_version + '.dylib',
+              'linux2': '.so.' + target_cv_version}[PLATFORM]
 
 missing_cv_name_list = [
     'libopencv_videostab',
     'libopencv_superres',
     'libopencv_stitching',
-    'libopencv_gpu',
+    #'libopencv_gpu',
     'libopencv_core',
     'libopencv_highgui',
     'libopencv_imgproc',
 ]
+# Hack to find the appropriate opencv libs
 for name in missing_cv_name_list:
     fname = name + OPENCV_EXT
     src = ''
@@ -199,7 +221,7 @@ for name in missing_cv_name_list:
         src = join('/opt/local/lib', fname)
     elif LINUX:
         #src = join('/usr/lib', fname)
-        src = utool.search_in_dirs(fname, linux_lib_dpaths)
+        src, tried = ut.search_in_dirs(fname, linux_lib_dpaths, strict=True, return_tried=True)
     elif WIN32:
         import utool as ut
         if ut.get_computer_name() == 'Ooo':
@@ -207,7 +229,7 @@ for name in missing_cv_name_list:
         else:
             src = join(root_dir, '../opencv/build/bin', fname)
     dst = join(ibsbuild, fname)
-    # utool.assertpath(src)
+    # ut.assertpath(src)
     DATATUP_LIST.append((dst, src))
 
 
@@ -269,11 +291,15 @@ exe_name = {'win32':  'build/IBEISApp.exe',
             'linux2': 'build/IBEISApp'}[PLATFORM]
 
 print('[installer] Checking Data')
-for (dst, src) in DATATUP_LIST:
-    assert utool.checkpath(src, verbose=True), 'checkpath for src=%r failed' % (src,)
+try:
+    for (dst, src) in DATATUP_LIST:
+        assert ut.checkpath(src, verbose=True), 'checkpath for src=%r failed' % (src,)
+except Exception as ex:
+    ut.printex(ex, 'Checking data failed DATATUP_LIST=%s' + ut.list_str(DATATUP_LIST))
+    raise
 # print('[installer] Checking Data')
 # for (dst, src) in DATATUP_LIST:
-#     assert utool.checkpath(src, verbose=True), 'checkpath failed'
+#     assert ut.checkpath(src, verbose=True), 'checkpath failed'
 
 #import sys
 #print('exiting')
