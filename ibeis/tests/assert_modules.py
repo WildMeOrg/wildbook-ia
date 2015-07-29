@@ -61,7 +61,7 @@ def checkinfo(target=None):
         @functools.wraps(func)
         def wrapper2(*args, **kwargs):
             funcname = get_funcname(func)
-            packagename = funcname.replace('__version__')
+            packagename = funcname.replace('__version__', '')
             try:
                 infodict = func(*args, **kwargs)
             except ImportError as ex:
