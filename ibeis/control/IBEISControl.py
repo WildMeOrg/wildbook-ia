@@ -374,7 +374,7 @@ class IBEISController(object):
     def _init_sqldbcore(ibs):
         """
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> import ibeis  # NOQA
             >>> #ibs = ibeis.opendb('PZ_MTEST')
@@ -1103,7 +1103,7 @@ class IBEISController(object):
             python -m ibeis.control.IBEISControl --test-query_chips_simple_dict:1
 
         Example:
-            >>> # SLOW_DOCTEST
+            >>> # WEB_DOCTEST
             >>> from ibeis.control.IBEISControl import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')

@@ -266,7 +266,7 @@ icon_dst = join(ibsbuild, iconfile)
 DATATUP_LIST.append((icon_dst, icon_src))
 
 # Web Assets
-INSTALL_WEB = False
+INSTALL_WEB = True
 if INSTALL_WEB:
     web_root = join('ibeis', 'web/')
     walk_path = join(web_root, 'static')
