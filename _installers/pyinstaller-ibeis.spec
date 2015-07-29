@@ -99,6 +99,7 @@ module_repos = [
     'guitool.__PYQT__',
     'plottool',
     'pyrf',
+    'pyflann',
     #'pygist',
     'ibeis',
     'hesaff',
