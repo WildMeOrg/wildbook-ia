@@ -35,6 +35,7 @@ def dependencies_for_myprogram():
     # Workaround for mpl_toolkits
     import importlib
     import pyflann  # NOQA
+    import gflags  # NOQA
     importlib.import_module('mpl_toolkits').__path__
 
 if __name__ == '__main__':

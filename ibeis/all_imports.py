@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # flake8: noqa
 """
 This file contains most every module I've ever used.
@@ -11,7 +12,7 @@ from os.path import (dirname, realpath, join, exists, normpath, splitext,
                      expanduser, relpath, isabs, commonprefix, basename)
 from itertools import chain, cycle
 import six
-from six.moves import zip, map, zip_longest, builtins, cPickle
+from six.moves import range, zip, map, zip_longest, builtins, cPickle
 from itertools import product as iprod
 import argparse
 import atexit
@@ -73,7 +74,7 @@ from PIL import Image
 from PIL.ExifTags import TAGS
 from scipy.cluster.hierarchy import fclusterdata
 from sklearn.cluster import MeanShift, estimate_bandwidth
-import statsmodels
+#import statsmodels
 #import pandas as pd
 #import networkx as netx
 #try:

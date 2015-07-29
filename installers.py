@@ -294,7 +294,10 @@ def package_installer():
         ut.cmd('./_installers/mac_dmg_builder.sh', sudo=True)
         pass
     elif sys.platform.startswith('linux'):
-        raise NotImplementedError('no linux packager (rpm or deb) supported. try running with --build')
+        try:
+            raise NotImplementedError('no linux packager (rpm or deb) supported. try running with --build')
+        except Exception as ex:
+            ut.printex(ex)
         pass
     print('[installer] L___ FINISH PACKAGE_INSTALLER ___')
 
@@ -328,9 +331,35 @@ def test_app():
     if ut.WIN32:
         app_fpath += '.exe'
     ut.assert_exists(app_fpath, 'app fpath must exist', info=True, verbose=True)
-    ut.cmd(app_fpath)
     if ut.DARWIN:
-        ut.cmd('open ' + ut.unixpath('dist/IBEIS.app'))
+        #ut.cmd('open ' + ut.unixpath('dist/IBEIS.app'))
+        """
+        rm -rf ~/Desktop/IBEIS.app
+        rm -rf /Applications/IBEIS.app
+        ls /Applications/IBEIS.app
+        cd /Volumes/IBEIS
+
+        ib
+        cd dist
+
+        # Install to /Applications
+        hdiutil attach ~/code/ibeis/dist/IBEIS.dmg
+        cp -R /Volumes/IBEIS/IBEIS.app /Applications/IBEIS.app
+        hdiutil unmount /Volumes/IBEIS
+        open -a /Applications/IBEIS.app
+
+        chmod +x  /Applications/IBEIS.app/Contents/MacOS/IBEISApp
+
+        cp -R /Volumes/IBEIS/IBEIS.app ~/Desktop
+        open -a ~/Desktop/IBEIS.app
+        chmod +x  ~/code/ibeis/dist/IBEIS.app/Contents/MacOS/IBEISApp
+        open -a ~/code/ibeis/dist/IBEIS.app
+        open ~/code/ibeis/dist/IBEIS.app/Contents/MacOS/IBEISApp
+
+        open ~/Desktop/IBEIS.app
+        """
+        ut.cmd(app_fpath)
+    else:
         ut.cmd(app_fpath)
 
     print('[installer] L___ FINISH TEST_APP ___')
@@ -354,14 +383,15 @@ def main():
     print('For a full run use: python installers.py --all')
     print('[installer] +--- MAIN ---')
     BUILD_APP       = ut.get_argflag(('--build'))
-    BUILD_INSTALLER = ut.get_argflag(('--inno', '--package', '--pkg')) and not ut.LINUX
+    BUILD_INSTALLER = ut.get_argflag(('--inno', '--package', '--pkg'))
     TEST_APP        = ut.get_argflag(('--test'))
     CLEAN_BUILD     = ut.get_argflag(('--clean'))
     ALL             = ut.get_argflag('--all')
 
     fix_importlib_hook()
     # default behavior is full build
-    BUILD_ALL = ALL or not (CLEAN_BUILD or BUILD_APP or BUILD_INSTALLER or TEST_APP)
+    BUILD_ALL = ALL or len(sys.argv) == 1
+    #or not (CLEAN_BUILD or BUILD_APP or BUILD_INSTALLER or TEST_APP)
 
     # 1) SETUP: CLEAN UP
     if CLEAN_BUILD or BUILD_ALL:

@@ -15,6 +15,7 @@ from ibeis.viz import viz_name
 from ibeis.viz import viz_nearest_descriptors
 from ibeis.viz import viz_qres
 from ibeis.viz import viz_sver
+from ibeis.viz import viz_graph
 
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz.viz_helpers import draw, kp_info, show_keypoint_gradient_orientations

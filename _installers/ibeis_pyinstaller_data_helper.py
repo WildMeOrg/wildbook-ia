@@ -1,4 +1,5 @@
 # -*- mode: python -*-
+from __future__ import absolute_import, division, print_function
 import os
 import sys
 from os.path import join, exists, realpath, abspath, dirname
@@ -106,7 +107,33 @@ def get_path_extensions():
 ##################################
 
 
+def get_hidden_imports():
+    hiddenimports = [
+        'guitool.__PYQT__',
+        'sklearn.utils.sparsetools._graph_validation',
+        'sklearn.utils.sparsetools._graph_tools',
+        'scipy.special._ufuncs_cxx',
+        'sklearn.utils.lgamma',
+        'sklearn.utils.weight_vector',
+        'sklearn.neighbors.typedefs',
+        'mpl_toolkits.axes_grid1',
+        'pandas',
+        'pandas.hashtable',
+        'statsmodels',
+    ]
+    return hiddenimports
+
+
 def get_data_list():
+    r"""
+    CommandLine:
+        python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --test-get_data_list
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis_pyinstaller_data_helper import *  # NOQA
+        >>> result = get_data_list()
+    """
     # Build data before running analysis for quick debugging
     DATATUP_LIST = []
     BINARYTUP_LIST = []
@@ -217,7 +244,6 @@ def get_data_list():
             #src = join('/usr/lib', fname)
             src, tried = ut.search_in_dirs(fname, linux_lib_dpaths, strict=True, return_tried=True)
         elif WIN32:
-            import utool as ut
             if ut.get_computer_name() == 'Ooo':
                 src = join(r'C:/Program Files (x86)/OpenCV/x86/mingw/bin', fname)
             else:
@@ -255,7 +281,7 @@ def get_data_list():
     DATATUP_LIST.append((icon_dst, icon_src))
 
     # Web Assets
-    INSTALL_WEB = True
+    INSTALL_WEB = True and not ut.get_argflag('--noweb')
     if INSTALL_WEB:
         web_root = join('ibeis', 'web/')
         walk_path = join(web_root, 'static')
@@ -276,6 +302,16 @@ def get_data_list():
                     toc_src = join(abspath(root), icon_fname)
                     toc_dst = join(root2, icon_fname)
                     DATATUP_LIST.append((toc_dst, toc_src))
+
+    print('[installer] Checking Data')
+    try:
+        for (dst, src) in DATATUP_LIST:
+            assert ut.checkpath(src, verbose=True), 'checkpath for src=%r failed' % (src,)
+    except Exception as ex:
+        ut.printex(ex, 'Checking data failed DATATUP_LIST=%s' + ut.list_str(DATATUP_LIST))
+        raise
+
+    return DATATUP_LIST, BINARYTUP_LIST, iconfile
 
 
 if __name__ == '__main__':

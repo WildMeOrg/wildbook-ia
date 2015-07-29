@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 This module controls the GUI backend.  It is the layer between the GUI frontend
 (newgui.py) and the IBEIS controller.  All the functionality of the nonvisual
