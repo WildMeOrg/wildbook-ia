@@ -1,4 +1,4 @@
-
+#/bin/sh
 # IMPORTANT: Make sure that "Enable access for assistive devices" is checked in System Preferences>>Universal Access. It is required for the AppleScript to work. You may have to reboot after this change (it doesn't work otherwise on Mac OS X Server 10.4).
 
 cd ~/code/ibeis/build

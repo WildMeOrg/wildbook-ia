@@ -284,6 +284,7 @@ def build_pyinstaller():
             src = join(srcdir, srcname)
             dst = join(dstdir, dstname)
             ut.copy(src, dst)
+        # TODO: make this take arguments instead of defaulting to ~/code/ibeis/build
         print("RUN: sudo ./_installers/mac_dmg_builder.sh")
     print('[installer] L___ FINISH BUILD_PYINSTALLER ___')
     # ut.cmd('./_scripts/mac_dmg_builder.sh')
