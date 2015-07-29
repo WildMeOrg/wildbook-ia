@@ -21,6 +21,27 @@ from utool._internal.meta_util_six import get_funcname
 ASSERT_FUNCS = []
 
 
+def get_site_package_directories();
+    import site
+    import sys
+    import six
+    sitepackages = site.getsitepackages()
+    if sys.platform.startswith('darwin');
+        if six.PY2;
+            macports_site = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages'
+        else:
+            macports_site = '/opt/local/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages'
+            assert six.PY2, 'fix this for python 3'
+        sitepackages = [macports_site] + sitepackages
+    return sitepackages
+
+
+def check_alternate_installs():
+    '/Library/Python/2.7/site-packages'
+
+    pass
+
+
 def checkinfo(target=None):
     """
     checkinfo functions return info_dict
@@ -33,8 +54,9 @@ def checkinfo(target=None):
             funcname = get_funcname(func)
             try:
                 infodict = func(*args, **kwargs)
-            except ImportError:
+            except ImportError as ex:
                 infodict = module_stdinfo_dict(None)
+                return False, 'None', target, infodict, str(ex), 'need to install'
             current_version = infodict['__version__']
             msg = utool.dict_str(infodict) + '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
             statustext = ut.msgblock(infodict['__name__'], msg)
@@ -162,6 +184,7 @@ def assert_modules():
     """
 
     MACHINE_NAME = utool.get_computer_name()
+    print('PATH = ' + ut.list_str(ut.get_path_dirs()))
     print('\n\n\n============================')
     print('Begining assert modules main')
     print('* MACHINE_NAME = %r' % MACHINE_NAME)
