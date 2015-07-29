@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Interface into SQL for the IBEIS Controller
 """
