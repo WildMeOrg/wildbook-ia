@@ -6,7 +6,7 @@ from os.path import exists, join
 # from six.moves import zip, map, range
 from ibeis.model.detect import grabmodels
 # from vtool import image as gtool
-from detecttools.directory import Directory
+#from detecttools.directory import Directory
 import utool as ut
 import vtool as vt
 from six.moves import zip
@@ -100,8 +100,9 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True, tea
                 cv2.imwrite(img_path, img)
                 train_neg_cpath_list.append(img_path)
     else:
-        direct = Directory(negatives_cache, include_extensions=['JPEG'])
-        train_neg_cpath_list = direct.files()
+        train_neg_cpath_list = ut.ls(negatives_cache, '*.JPEG')
+        #direct = Directory(negatives_cache, include_extensions=['JPEG'])
+        #train_neg_cpath_list = direct.files()
 
     # Train trees
     train_gpath_list(ibs, train_pos_cpath_list, train_neg_cpath_list,
@@ -291,6 +292,33 @@ def _valid_candidate(candidate, annot_bbox_list, overlap=0.0, tries=10):
 
 
 def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VERBOSE_RF):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        species (?):
+        modeldir (str): (default = 'default')
+        cfg_override (bool): (default = True)
+        verbose (bool):  verbosity flag(default = False)
+
+    Returns:
+        ?: fpath_list
+
+    CommandLine:
+        python -m ibeis.model.detect.randomforest --test-_get_models
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.model.detect.randomforest import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> species = ibeis.const.Species.ZEB_PLAIN
+        >>> modeldir = 'default'
+        >>> cfg_override = True
+        >>> verbose = False
+        >>> fpath_list = _get_models(ibs, species, modeldir, cfg_override, verbose)
+        >>> result = ('fpath_list = %s' % (str(fpath_list),))
+        >>> print(result)
+    """
     #with ut.embed_on_exception_context:
     if cfg_override and len(ibs.cfg.detect_cfg.trees_path) > 0:
         trees_path = ibs.cfg.detect_cfg.trees_path
@@ -301,15 +329,16 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
         trees_path = grabmodels.get_species_trees_paths(species, modeldir=modeldir)
     # Load tree paths
     if ut.checkpath(trees_path, verbose=verbose):
-        direct = Directory(trees_path, include_extensions=['txt'])
-        files = direct.files()
+        fpath_list = ut.ls(trees_path, '*.txt')
+        #direct = Directory(trees_path, include_extensions=['txt'])
+        #files = direct.files()
     else:
         # If the models do not exist, return None
-        files = None
-    if not (files is not None and len(files) > 0):
+        fpath_list = None
+    if not (fpath_list is not None and len(fpath_list) > 0):
         msg = ut.codeblock(
             '''
-            [_get_models] Error loading trees, either directory or files not found
+            [_get_models] Error loading trees, either directory or fpath_list not found
               * trees_path = %r
               * species = %r
               * model_dir = %r
@@ -317,4 +346,4 @@ def _get_models(ibs, species, modeldir='default', cfg_override=True, verbose=VER
             '''
         ) % (trees_path, species, modeldir, cfg_override)
         raise AssertionError(msg)
-    return files
+    return fpath_list
