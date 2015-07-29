@@ -2,6 +2,10 @@
 """
 Very useful script to ensure you have all the modules you need
 
+CommandLine:
+    python -m ibeis.tests.assert_modules
+
+
 Updater For Linux:
     sudo pip install matplotlib --upgrade
     sudo pip install Pillow --upgrade
@@ -21,13 +25,13 @@ from utool._internal.meta_util_six import get_funcname
 ASSERT_FUNCS = []
 
 
-def get_site_package_directories();
+def get_site_package_directories():
     import site
     import sys
     import six
     sitepackages = site.getsitepackages()
-    if sys.platform.startswith('darwin');
-        if six.PY2;
+    if sys.platform.startswith('darwin'):
+        if six.PY2:
             macports_site = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages'
         else:
             macports_site = '/opt/local/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages'
@@ -56,9 +60,10 @@ def checkinfo(target=None):
                 infodict = func(*args, **kwargs)
             except ImportError as ex:
                 infodict = module_stdinfo_dict(None)
-                return False, 'None', target, infodict, str(ex), 'need to install'
+                return False, 'None', target, infodict, ut.formatex(ex), 'need to install'
             current_version = infodict['__version__']
-            msg = utool.dict_str(infodict) + '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
+            msg = utool.dict_str(infodict, strvals=True)
+            msg += '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
             statustext = ut.msgblock(infodict['__name__'], msg)
             passed = current_version is not None and parse_version(current_version.replace('.dev1', '')) >= parse_version(target)
             suggested_fix = ''
@@ -78,7 +83,8 @@ def module_stdinfo_dict(module, versionattr='__version__', **kwargs):
         '__name__': getattr(module, '__name__', None),
         '__file__': getattr(module, '__file__', None),
     }
-    infodict.update(kwargs)
+    if ut.VERBOSE:
+        infodict.update(kwargs)
     return infodict
 
 
@@ -217,6 +223,8 @@ def assert_modules():
 if __name__ == '__main__':
     """
     CommandLine:
+        python -m ibeis.tests.assert_modules
+
         python -c "import utool, ibeis.tests.assert_modules; utool.doctest_funcs(ibeis.tests.assert_modules, allexamples=True)"
         python -m ibeis.tests.assert_modules --allexamples
         python ~/code/ibeis/ibeis/tests/assert_modules.py
