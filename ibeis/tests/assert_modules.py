@@ -67,6 +67,9 @@ def checkinfo(target=None):
             except ImportError as ex:
                 infodict = module_stdinfo_dict(None)
                 return False, 'None', target, infodict, ut.formatex(ex), 'need to install ' + packagename
+            except Exception as ex:
+                infodict = module_stdinfo_dict(None)
+                return False, 'None', target, infodict, ut.formatex(ex), 'Some unknown error in ' + packagename
             current_version = infodict['__version__']
             msg = utool.dict_str(infodict, strvals=True)
             msg += '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
@@ -179,6 +182,9 @@ def check_modules_exists():
             locals_ = {}
             exec('import ' + modname, globals_, locals_)
         except ImportError:
+            failed_list.append(modname)
+        except Exception as ex:
+            ut.printex(ex, 'Some othere error happened when importing %r ' % (modname,), iswarning=True)
             failed_list.append(modname)
     if len(failed_list) > 0:
         print('The following modules are not installed')

@@ -354,7 +354,7 @@ def main():
     print('For a full run use: python installers.py --all')
     print('[installer] +--- MAIN ---')
     BUILD_APP       = ut.get_argflag(('--build'))
-    BUILD_INSTALLER = ut.get_argflag(('--inno', '--package', '--pkg'))
+    BUILD_INSTALLER = ut.get_argflag(('--inno', '--package', '--pkg')) and not ut.LINUX
     TEST_APP        = ut.get_argflag(('--test'))
     CLEAN_BUILD     = ut.get_argflag(('--clean'))
     ALL             = ut.get_argflag('--all')
