@@ -34,6 +34,7 @@ def get_site_package_directories():
         if six.PY2:
             macports_site = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages'
         else:
+            #version_str = '.'.join(sys.version.split('.')[0:2])
             macports_site = '/opt/local/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages'
             assert six.PY2, 'fix this for python 3'
         sitepackages = [macports_site] + sitepackages
