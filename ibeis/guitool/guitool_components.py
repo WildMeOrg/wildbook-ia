@@ -119,20 +119,34 @@ def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
 SHOW_TEXT = ut.get_argflag('--progtext')
 
 
-class ProgressHooks(object):
+class ProgressHooks(QtCore.QObject):
     """
     hooks into utool.ProgressIterator
+
+    TODO:
+        use signals and slots to connect to the progress bar
+        still doesn't work correctly even with signals and slots, probably
+          need to do task function in another thread
+
+    References:
+        http://stackoverflow.com/questions/19442443/busy-indication-with-pyqt-progress-bar
     """
+    set_progress_signal = QtCore.pyqtSignal(int, int)
+    show_indefinite_progress_signal = QtCore.pyqtSignal()
+
     def __init__(proghook, progressBar, substep_min=0, substep_size=1, level=0):
+        super(ProgressHooks, proghook).__init__()
         proghook.progressBarRef = weakref.ref(progressBar)
         proghook.substep_min = substep_min
         proghook.substep_size = substep_size
         proghook.count = 0
         proghook.nTotal = None
         proghook.progiter = None
-        proghook.lbl = None
+        proghook.lbl = ''
         proghook.level = level
         proghook.child_hook_gen = None
+        proghook.set_progress_signal.connect(proghook.set_progress_slot)
+        proghook.show_indefinite_progress_signal.connect(proghook.show_indefinite_progress_slot)
 
     def initialize_subhooks(proghook, num_child_subhooks):
         proghook.child_hook_gen = iter(proghook.make_substep_hooks(num_child_subhooks))
@@ -172,7 +186,34 @@ class ProgressHooks(object):
                         for substep_min in substep_min_list]
         return subhook_list
 
-    def __call__(proghook, count, nTotal=None):
+    @QtCore.pyqtSlot()
+    def show_indefinite_progress_slot(proghook):
+        progbar = proghook.progressBarRef()
+        progbar.reset()
+        progbar.setMaximum(0)
+        progbar.setProperty('value', 0)
+        proghook.force_event_update()
+
+    def show_indefinite_progress(proghook):
+        proghook.show_indefinite_progress_signal.emit()
+
+    def force_event_update(proghook):
+        # major hack
+        import guitool
+        qtapp = guitool.get_qtapp()
+        qtapp.processEvents()
+
+    def set_progress(proghook, count, nTotal=None):
+        if nTotal is None:
+            nTotal = proghook.nTotal
+        else:
+            proghook.nTotal = nTotal
+        if nTotal is None:
+            nTotal = 100
+        proghook.set_progress_signal.emit(count, nTotal)
+
+    @QtCore.pyqtSlot(int, int)
+    def set_progress_slot(proghook, count, nTotal=None):
         if nTotal is None:
             nTotal = proghook.nTotal
         else:
@@ -202,12 +243,22 @@ class ProgressHooks(object):
         #assert local_fraction <= 1.0
         #assert global_fraction <= 1.0
         progbar = proghook.progressBarRef()
+        progbar.setRange(0, 10000)
+        progbar.setMinimum(0)
+        progbar.setMaximum(10000)
+        value = int(round(progbar.maximum() * global_fraction))
         progbar.setFormat(proghook.lbl + ' %p%')
-        progbar.setProperty('value', int(round(progbar.maximum() * global_fraction)))
+        progbar.setValue(value)
+        #progbar.setProperty('value', value)
         # major hack
-        import guitool
-        qtapp = guitool.get_qtapp()
-        qtapp.processEvents()
+        proghook.force_event_update()
+        #import guitool
+        #qtapp = guitool.get_qtapp()
+        #qtapp.processEvents()
+
+    def __call__(proghook, count, nTotal=None):
+        proghook.set_progress(count, nTotal)
+        #proghook.set_progress_slot(count, nTotal)
 
 
 def newProgressBar(parent, visible=True, verticalStretch=1):
@@ -221,6 +272,7 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         QProgressBar: progressBar
 
     CommandLine:
+        python -m guitool.guitool_components --test-newProgressBar:0
         python -m guitool.guitool_components --test-newProgressBar:0 --show
         python -m guitool.guitool_components --test-newProgressBar:1 --progtext
 
@@ -236,6 +288,12 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         >>> # hook into utool progress iter
         >>> progressBar = newProgressBar(parent, visible, verticalStretch)
         >>> progressBar.show()
+        >>> progressBar.utool_prog_hook.show_indefinite_progress()
+        >>> #progressBar.utool_prog_hook.set_progress(0)
+        >>> #import time
+        >>> qtapp = guitool.get_qtapp()
+        >>> [(qtapp.processEvents(), ut.get_nth_prime_bruteforce(300)) for x in range(100)]
+        >>> #time.sleep(5)
         >>> progiter = ut.ProgressIter(range(100), freq=1, autoadjust=False, prog_hook=progressBar.utool_prog_hook)
         >>> results1 = [ut.get_nth_prime_bruteforce(300) for x in progiter]
         >>> # verify results
@@ -274,6 +332,14 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         >>> # verify results
         >>> ut.quit_if_noshow()
         >>> guitool.qtapp_loop(freq=10)
+
+
+    Ignore:
+        from guitool.guitool_components import *  # NOQA
+        # build test data
+        import guitool
+        guitool.ensure_qtapp()
+
     """
     progressBar = QtGui.QProgressBar(parent)
     sizePolicy = newSizePolicy(progressBar,
