@@ -370,10 +370,11 @@ def learn_score_normalization(tp_support, tn_support,
         total = 8
     if verbose:
         print('[scorenorm] %d/%d estimating true negative pdf' % (next_(), total))
-    score_tp_pdf = ut.estimate_pdf(tp_support, gridsize=gridsize, adjust=adjust)
+    import vtool as vt
+    score_tp_pdf = vt.estimate_pdf(tp_support, gridsize=gridsize, adjust=adjust)
     if verbose:
         print('[scorenorm] %d/%d estimating true negative pdf' % (next_(), total))
-    score_tn_pdf = ut.estimate_pdf(tn_support, gridsize=gridsize, adjust=adjust)
+    score_tn_pdf = vt.estimate_pdf(tn_support, gridsize=gridsize, adjust=adjust)
     if verbose:
         print('[scorenorm] %d/%d estimating score domain' % (next_(), total))
     # Find good score domain range

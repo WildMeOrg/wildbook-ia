@@ -282,7 +282,8 @@ if DOELSE:
                                 OrderedDict, TEMP_VEC_DTYPE, VALID_DISTS, 
                                 bar_L2_sift, bar_cos_sift, compute_distances, 
                                 cos_sift, det_distance, emd, hist_isect, 
-                                nearest_point, ori_distance, testdata_hist,) 
+                                nearest_point, ori_distance, testdata_hist, 
+                                understanding_pseudomax_props,) 
     from vtool.other import (and_3lists, and_lists, argsort_multiarray, 
                              axiswise_operation2, check_sift_validity, 
                              clipnorm, colwise_operation, 
@@ -290,7 +291,7 @@ if DOELSE:
                              componentwise_dot, compute_unique_data_ids, 
                              compute_unique_data_ids_, 
                              compute_unique_integer_data_ids, crop_out_imgfill, 
-                             find_best_undirected_edge_indexes, 
+                             estimate_pdf, find_best_undirected_edge_indexes, 
                              flag_intersection, get_consec_endpoint, 
                              get_covered_mask, get_crop_slices, 
                              get_uncovered_mask, grab_webcam_image, 
