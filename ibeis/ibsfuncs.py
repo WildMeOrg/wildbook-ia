@@ -4550,7 +4550,7 @@ def add_next_encounter(ibs):
 
 
 @__injectable
-def create_new_encounter_from_images(ibs, gid_list, eid_list=None):
+def create_new_encounter_from_images(ibs, gid_list, new_eid=None):
     r"""
     Args:
         gid_list (list):
@@ -4570,12 +4570,21 @@ def create_new_encounter_from_images(ibs, gid_list, eid_list=None):
         >>> result = new_eid
         >>> print(result)
     """
-    new_eid = None
-    if eid_list is None:
+    if new_eid is None:
         new_eid = ibs.add_next_encounter()
-        eid_list = [new_eid] * len(gid_list)
+    eid_list = [new_eid] * len(gid_list)
     ibs.set_image_eids(gid_list, eid_list)
     return new_eid
+
+
+@__injectable
+def new_encounters_from_images(ibs, gids_list):
+    r"""
+    Args:
+        gids_list (list):
+    """
+    eid_list = [ibs.create_new_encounter_from_images(gids) for gids in gids_list]
+    return eid_list
 
 
 @__injectable

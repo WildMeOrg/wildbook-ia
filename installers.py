@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
+On mac need to run with sudo
+
 SeeAlso:
     _installers/ibeis_pyinstaller_data_helper.py
     _installers/pyinstaller-ibeis.spec

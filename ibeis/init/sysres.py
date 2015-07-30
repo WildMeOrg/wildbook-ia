@@ -392,6 +392,7 @@ def ensure_pz_mtest_batchworkflow_test():
     CommandLine:
         python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test
         python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
+        python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
 
     Example:
         >>> # SCRIPT
@@ -401,6 +402,7 @@ def ensure_pz_mtest_batchworkflow_test():
     import ibeis
     ibeis.ensure_pz_mtest()
     workdir = ibeis.sysres.get_workdir()
+    mtest_dbpath = join(workdir, 'PZ_MTEST')
 
     source_dbdir = mtest_dbpath
     dest_dbdir = join(workdir, 'PZ_BATCH_WORKFLOW_MTEST')
@@ -410,6 +412,86 @@ def ensure_pz_mtest_batchworkflow_test():
 
     if ut.checkpath(dest_dbdir):
         return
+    else:
+        copy_ibeisdb(source_dbdir, dest_dbdir)
+
+    ibs = ibeis.opendb('PZ_BATCH_WORKFLOW_MTEST')
+    assert len(ibs.get_valid_aids()) == 119
+    assert len(ibs.get_valid_nids()) == 41
+
+    ibs.delete_all_encounters()
+
+    aid_list = ibs.get_valid_aids()
+
+    unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
+    untimed_aids = ut.list_compress(aid_list, [t == -1 for t in unixtime_list])
+
+    ibs.get_annot_groundtruth(untimed_aids, aid_list)
+
+    aids_list, nid_list = ibs.group_annots_by_name(aid_list)
+
+    hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
+
+    encounter_aids_list = [[] for _ in range(4)]
+
+    encounter_idx = 0
+
+    for hourdiffs, aids in zip(hourdiffs_list, aids_list):
+        #import scipy.spatial.distance as spdist
+        if len(aids) == 1:
+            encounter_aids_list[encounter_idx].extend(aids)
+            encounter_idx = (encounter_idx + 1) % len(encounter_aids_list)
+        else:
+            for chunk in list(ut.ichunks(aids, 2)):
+                encounter_aids_list[encounter_idx].extend(chunk)
+                encounter_idx = (encounter_idx + 1) % len(encounter_aids_list)
+
+            #import vtool as vt
+            #import networkx as netx
+            #nodes = list(range(len(aids)))
+            #edges_pairs = vt.pdist_argsort(hourdiffs)
+            #edge_weights = -hourdiffs[hourdiffs.argsort()]
+            #netx_graph = make_netx_graph(edges_pairs, nodes, edge_weights)
+            #cut_edges = netx.minimum_edge_cut(netx_graph)
+            #netx_graph.remove_edges_from(cut_edges)
+            #components = list(netx.connected_components(netx_graph))
+            #components = ut.sortedby(components, list(map(len, components)), reverse=True)
+            #print(components)
+            #encounter_aids_list[0].extend(components[0])
+            #for compoment in components:
+
+            # TODO do max-nway cut
+        #day_diffs = spdist.squareform(hourdiffs) / 24.0
+        #print(ut.numpy_str(day_diffs, precision=2, suppress_small=True))
+        #import itertools
+        #compare_idxs = [(r, c) for r, c in itertools.product(range(len(aids)), range(len(aids))) if (c > r)]
+        #print(len(aids))
+    #def make_netx_graph(edges_pairs, nodes=None, edge_weights=None):
+    #    import networkx as netx
+    #    node_lbls = [('id_', 'int')]
+
+    #    edge_lbls = [('weight', 'float')]
+    #    edges = [(pair[0], pair[1], weight) for pair, weight in zip(edges_pairs, edge_weights)]
+
+    #    print('make_netx_graph')
+    #    # Make a graph between the chips
+    #    netx_nodes = [(ntup[0], {key[0]: val for (key, val) in zip(node_lbls, ntup[1:])})
+    #                  for ntup in iter(zip(nodes))]
+
+    #    netx_edges = [(etup[0], etup[1], {key[0]: val for (key, val) in zip(edge_lbls, etup[2:])})
+    #                  for etup in iter(edges)]
+    #    netx_graph = netx.Graph()
+    #    netx_graph.add_nodes_from(netx_nodes)
+    #    netx_graph.add_edges_from(netx_edges)
+    #    return netx_graph
+
+    # Group into encounters based on old names
+    gids_list = ibs.unflat_map(ibs.get_annot_image_rowids, encounter_aids_list)
+    eid_list = ibs.new_encounters_from_images(gids_list)  # NOQA
+
+    # Remove all names
+    ibs.delete_annot_nids(aid_list)
+    ut.embed()
 
 
 def ensure_pz_mtest_mergesplit_test():
