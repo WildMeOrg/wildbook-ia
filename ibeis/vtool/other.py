@@ -61,13 +61,40 @@ def pdist_argsort(x):
     Sorts 2d indicies by their distnace matrix output from scipy.spatial.distance
 
     x = np.array([  3.05555556e-03,   1.47619797e+04,   1.47619828e+04])
+
+    Args:
+        x (?):
+
+    Returns:
+        ?: sortx_2d
+
+    CommandLine:
+        python -m vtool.other --test-pdist_argsort
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> x = np.array([ 21695.78, 10943.76, 10941.44, 25867.64, 10752.03, 10754.35, 4171.86, 2.32, 14923.89, 14926.2 ], dtype=np.float64)
+        >>> #[ 21025.45583333,    670.60055556,  54936.59111111,  21696.05638889, 33911.13527778,  55607.19166667]
+        >>> sortx_2d = pdist_argsort(x)
+        >>> result = ('sortx_2d = %s' % (str(sortx_2d),))
+        >>> print(result)
+        sortx_2d = [(2, 3), (1, 4), (1, 2), (1, 3), (0, 3), (0, 2), (2, 4), (3, 4), (0, 1), (0, 4)]
     """
-    import scipy.spatial.distance as spdist
-    mat = spdist.squareform(x)
-    matu = np.triu(mat)
-    sortx_row, sortx_col = np.unravel_index(matu.ravel().argsort(), matu.shape)
-    # only take where col is larger than row due to upper triu
-    sortx_2d = [(r, c) for r, c in zip(sortx_row, sortx_col) if (c > r)]
+    OLD = True
+    #compare_idxs = [(r, c) for r, c in itertools.product(range(len(x) / 2), range(len(x) / 2)) if (c > r)]
+    if OLD:
+        import scipy.spatial.distance as spdist
+        mat = spdist.squareform(x)
+        matu = np.triu(mat)
+        sortx_row, sortx_col = np.unravel_index(matu.ravel().argsort(), matu.shape)
+        # only take where col is larger than row due to upper triu
+        sortx_2d = [(r, c) for r, c in zip(sortx_row, sortx_col) if (c > r)]
+    else:
+        num_rows = len(x) // 2
+        compare_idxs = ut.flatten([[(r, c)  for c in range(r + 1, num_rows)] for r in range(num_rows)])
+        sortx = x.argsort()
+        sortx_2d = ut.list_take(compare_idxs, sortx)
     return sortx_2d
 
 
