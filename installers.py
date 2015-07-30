@@ -297,8 +297,9 @@ def package_installer():
     if sys.platform.startswith('win32'):
         build_win32_inno_installer()
     elif sys.platform.startswith('darwin'):
+        # outputs dmg to
         ut.cmd('./_installers/mac_dmg_builder.sh', sudo=True)
-        pass
+        mac_installer_postprocess()
     elif sys.platform.startswith('linux'):
         try:
             raise NotImplementedError('no linux packager (rpm or deb) supported. try running with --build')
@@ -306,6 +307,19 @@ def package_installer():
             ut.printex(ex)
         pass
     print('[installer] L___ FINISH PACKAGE_INSTALLER ___')
+
+
+def mac_installer_postprocess():
+    """ Move the built installer into a more reasonable directory """
+    try:
+        cwd = get_setup_dpath()
+        installer_src = join(cwd, 'dist', 'IBEIS.dmg')
+        # Make a timestamped version
+        timestamped_fname = 'IBEIS-{timestamp}.dmg'.format(timestamp=ut.get_timestamp())
+        installer_dst = join(cwd, 'dist', timestamped_fname)
+        ut.move(installer_src, installer_dst)
+    except Exception as ex:
+        ut.printex(ex, 'error moving setups', iswarning=True)
 
 
 def fix_importlib_hook():

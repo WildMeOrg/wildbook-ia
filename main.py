@@ -45,10 +45,4 @@ def dependencies_for_myprogram():
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
-
-    if ut.get_argflag('--devcmd'):
-        #import utool.tests.run_tests
-        #utool.tests.run_tests.run_tests()
-        ut.embed()
-    else:
-        run_ibeis()
+    run_ibeis()
