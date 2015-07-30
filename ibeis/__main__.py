@@ -64,6 +64,8 @@ def run_ibeis():
         """
         python -m ibeis --tmod utool.util_str --test-align:0
         python -m ibeis --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show
+        ./dist/ibeis/IBEISApp --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show
+        ./dist/ibeis/IBEISApp --tmod utool.util_str --test-align:0
         """
         module = ut.import_modname(doctest_modname)
         (nPass, nTotal, failed_list) = ut.doctest_funcs(module=module)
