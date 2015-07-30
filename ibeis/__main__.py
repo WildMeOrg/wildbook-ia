@@ -59,6 +59,18 @@ def run_ibeis():
         retcode = run_tests.run_tests()
         sys.exit(retcode)
 
+    doctest_modname = ut.get_argval(('--doctest-module', '--tmod'), type_=str, default=None, help_='specify a module to doctest')
+    if doctest_modname is not None:
+        """
+        python -m ibeis --tmod utool.util_str --test-align:0
+        python -m ibeis --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show
+        """
+        module = ut.import_modname(doctest_modname)
+        (nPass, nTotal, failed_list) = ut.doctest_funcs(module=module)
+        retcode = 1 - (len(failed_list) == 0)
+        #print(module)
+        sys.exit(retcode)
+
     main_locals = ibeis.main()
     execstr = ibeis.main_loop(main_locals)
     # <DEBUG CODE>

@@ -224,6 +224,7 @@ def assert_modules():
 
     machine_info_lines = []
 
+    machine_info_lines.append('sys.version = %r ' % (sys.version))
     machine_info_lines.append('PATH = ' + ut.list_str(ut.get_path_dirs()))
     machine_info_lines.append('\n\n\n============================')
     machine_info_lines.append('Begining assert modules main')

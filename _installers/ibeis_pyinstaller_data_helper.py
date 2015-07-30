@@ -207,15 +207,14 @@ def get_data_list():
         #libgomp_src = '/opt/local/lib/libgomp.dylib'
         libgomp_src = '/opt/local/lib/gcc48/libgomp.dylib'
         BINARYTUP_LIST.append(('libgomp.1.dylib', libgomp_src, 'BINARY'))
-        libgomp_src = '/Users/bluemellophone/code/libomp_oss/exports/mac_32e/lib.thin/libiomp5.dylib'
-        BINARYTUP_LIST.append(('libiomp5.dylib', libgomp_src, 'BINARY'))
+
+        # very hack
+        libiomp_src = '/Users/bluemellophone/code/libomp_oss/exports/mac_32e/lib.thin/libiomp5.dylib'
+        BINARYTUP_LIST.append(('libiomp5.dylib', libiomp_src, 'BINARY'))
+
     if LINUX:
         libgomp_src = ut.search_in_dirs('libgomp.so.1', linux_lib_dpaths)
-        #libgomp_src = join('/usr', 'lib',  'libgomp.so.1')
-        #assert ut.checkpath(libgomp_src):
         ut.assertpath(libgomp_src)
-        #libgomp_src = join('/usr', 'lib',  'libgomp.so.1')
-        # ut.assertpath(libgomp_src)
         BINARYTUP_LIST.append(('libgomp.so.1', libgomp_src, 'BINARY'))
 
     # MinGW
@@ -307,7 +306,6 @@ def get_data_list():
                     toc_dst = join(root2, icon_fname)
                     DATATUP_LIST.append((toc_dst, toc_src))
 
-        web_root = join('ibeis', 'web/')
         walk_path = join(web_root, 'templates')
         for root, dirs, files in os.walk(walk_path):
             root2 = root.replace(web_root, '')

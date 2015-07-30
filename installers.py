@@ -414,17 +414,17 @@ def main():
 
     fix_importlib_hook()
     # default behavior is full build
-    BUILD_ALL = ALL or len(sys.argv) == 1
+    DEFAULT_RUN = len(sys.argv) == 1
     #or not (CLEAN_BUILD or BUILD_APP or BUILD_INSTALLER or TEST_APP)
 
     # 1) SETUP: CLEAN UP
-    if CLEAN_BUILD or BUILD_ALL:
+    if CLEAN_BUILD or ALL:
         clean_pyinstaller()
-    if BUILD_APP or BUILD_ALL:
+    if BUILD_APP or ALL or DEFAULT_RUN:
         build_pyinstaller()
-    if BUILD_INSTALLER or BUILD_ALL:
+    if BUILD_INSTALLER or ALL or DEFAULT_RUN:
         package_installer()
-    if TEST_APP or BUILD_ALL:
+    if TEST_APP or ALL:
         test_app()
     print('[installer] L___ FINISH MAIN ___')
 
