@@ -845,8 +845,8 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024,
         92
     """
     # Estimate true positive density
-    score_tp_pdf = ut.estimate_pdf(tp_support, gridsize=gridsize, adjust=adjust)
-    score_tn_pdf = ut.estimate_pdf(tn_support, gridsize=gridsize, adjust=adjust)
+    score_tp_pdf = vt.estimate_pdf(tp_support, gridsize=gridsize, adjust=adjust)
+    score_tn_pdf = vt.estimate_pdf(tn_support, gridsize=gridsize, adjust=adjust)
     # Find good maximum score (for domain not learning)
     #clip_score = 2000
     clip_score = find_score_maxclip(tp_support, tn_support, clip_factor)

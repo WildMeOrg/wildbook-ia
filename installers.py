@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
+SeeAlso:
+    _installers/ibeis_pyinstaller_data_helper.py
+    _installers/pyinstaller-ibeis.spec
+
 References:
     https://groups.google.com/forum/#!topic/pyinstaller/178I9ANuk14
 

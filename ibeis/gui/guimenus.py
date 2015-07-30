@@ -360,14 +360,25 @@ def setup_developer_menu(mainwin, back):
         text='Developer IPython',
         shortcut='Ctrl+Shift+I',
         slot_fn=back.dev_mode)
-    menu.newAction(
+    # TESTS
+    mainwin.menuTests = guitool.newMenu(mainwin, menu, 'menuTests', 'Tests')
+    mainwin.menuTests.newAction(
         name='actionDevRunTests',
-        text='Run Developer Tests',
+        text='Run IBEIS Tests',
         slot_fn=back.run_tests)
-    menu.newAction(
+    mainwin.menuTests.newAction(
+        name='actionDevUtoolRunTests',
+        text='Run Utool Tests',
+        slot_fn=back.run_utool_tests)
+    mainwin.menuTests.newAction(
+        name='actionDevVtoolRunTests',
+        text='Run Vtool Tests',
+        slot_fn=back.run_vtool_tests)
+    mainwin.menuTests.newAction(
         name='actionAssertModules',
         text='Assert Modules',
         slot_fn=back.assert_modules)
+    # --- TESTS --
     menu.addSeparator()
     menu.newAction(
         name='actionDeveloper_DumpDB',

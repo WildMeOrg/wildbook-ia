@@ -1,15 +1,17 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
+# flake8: noqa
 """
 Runs IBIES gui
 
-DEPRICATED
+Pyinstaller entry point
+When running from non-pyinstaller source use
 
-use ibeis.__main__.py instead
+    python ibeis.__main__.py
 
-or more desirably
+instead, or more desirably
 
-python -m ibeis
+    python -m ibeis
 
 """
 from __future__ import absolute_import, division, print_function
@@ -23,19 +25,20 @@ def dependencies_for_myprogram():
     References:
         http://stackoverflow.com/questions/18596410/importerror-no-module-named-mpl-toolkits-with-maptlotlib-1-3-0-and-py2exe
     """
-    import PyQt4  # NOQA
-    from PyQt4 import QtCore, QtGui  # NOQA
-    from guitool.__PYQT__ import QtCore, QtGui  # Pyinstaller hacks  # NOQA
-    #from PyQt4 import QtCore, QtGui  # NOQA
-    from scipy.sparse.csgraph import _validation  # NOQA
-    from scipy.special import _ufuncs_cxx  # NOQA
-    import mpl_toolkits.axes_grid1  # NOQA
-    from mpl_toolkits.axes_grid1 import make_axes_locatable  # NOQA
+    import PyQt4
+    from PyQt4 import QtCore, QtGui
+    from guitool.__PYQT__ import QtCore, QtGui  # Pyinstaller hacks
+    from scipy.sparse.csgraph import _validation
+    from scipy.special import _ufuncs_cxx
+    import mpl_toolkits.axes_grid1
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
     #import lru  # NOQA
     # Workaround for mpl_toolkits
     import importlib
-    import pyflann  # NOQA
-    import gflags  # NOQA
+    import pyflann
+    import gflags
+    import statsmodels
+    import statsmodels.nonparametric.kde
     importlib.import_module('mpl_toolkits').__path__
 
 if __name__ == '__main__':

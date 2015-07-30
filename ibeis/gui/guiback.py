@@ -1865,6 +1865,16 @@ class MainWindowBackend(GUIBACK_BASE):
         run_tests.run_tests()
 
     @slot_()
+    def run_utool_tests(back):
+        import utool.tests.run_tests
+        utool.tests.run_tests.run_tests()
+
+    @slot_()
+    def run_vtool_tests(back):
+        import vtool.tests.run_tests
+        vtool.tests.run_tests.run_tests()
+
+    @slot_()
     def assert_modules(back):
         from ibeis.tests import assert_modules
         detailed_msg = assert_modules.assert_modules()

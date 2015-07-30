@@ -86,13 +86,13 @@ def checkinfo(target=None):
     return wrapper1
 
 
-def module_stdinfo_dict(module, versionattr='__version__', **kwargs):
+def module_stdinfo_dict(module, versionattr='__version__', version=None, **kwargs):
     infodict = {
-        '__version__': getattr(module, versionattr, None),
+        '__version__': version if version is not None else getattr(module, versionattr, None),
         '__name__': getattr(module, '__name__', None),
         '__file__': getattr(module, '__file__', None),
     }
-    if ut.VERBOSE:
+    if not ut.QUIET:
         infodict.update(kwargs)
     return infodict
 
@@ -162,6 +162,20 @@ def numpy_version():
 def PyQt4_version():
     from PyQt4 import QtCore
     return module_stdinfo_dict(QtCore, 'PYQT_VERSION_STR')
+
+
+@checkinfo('0.15.1')
+def pandas_version():
+    import pandas
+    version = pandas.version.version
+    return module_stdinfo_dict(pandas, version=version)
+
+
+@checkinfo('0.6.1')
+def statsmodels_version():
+    import statsmodels
+    version = statsmodels.version.version
+    return module_stdinfo_dict(statsmodels, version=version)
 
 
 def check_modules_exists():
