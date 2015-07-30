@@ -62,10 +62,15 @@ def run_ibeis():
     doctest_modname = ut.get_argval(('--doctest-module', '--tmod'), type_=str, default=None, help_='specify a module to doctest')
     if doctest_modname is not None:
         """
+        Allow any doctest to be run the main ibeis script
+
         python -m ibeis --tmod utool.util_str --test-align:0
         python -m ibeis --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show
         ./dist/ibeis/IBEISApp --tmod ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show
         ./dist/ibeis/IBEISApp --tmod utool.util_str --test-align:0
+        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --tmod utool.util_str --test-align:0
+        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-utool-tests
+        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-vtool-tests
         """
         module = ut.import_modname(doctest_modname)
         (nPass, nTotal, failed_list) = ut.doctest_funcs(module=module)
