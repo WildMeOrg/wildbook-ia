@@ -8,7 +8,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{47BE3DA2-261D-4672-9849-18BB2EB382FC}
 AppName=IBEIS
-AppVersion=1
+AppVersion=1.4.4
 ;AppVerName=IBEIS 1
 AppPublisher=Rensselaer Polytechnic Institute
 AppPublisherURL=ibeis.org ;www.rpi.edu/~crallj/
