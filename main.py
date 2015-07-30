@@ -16,6 +16,8 @@ instead, or more desirably
 """
 from __future__ import absolute_import, division, print_function
 import multiprocessing
+import utool as ut
+import ibeis
 from ibeis.__main__ import run_ibeis
 
 
@@ -43,4 +45,10 @@ def dependencies_for_myprogram():
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
-    run_ibeis()
+
+    if ut.get_argflag('--devcmd'):
+        #import utool.tests.run_tests
+        #utool.tests.run_tests.run_tests()
+        ut.embed()
+    else:
+        run_ibeis()

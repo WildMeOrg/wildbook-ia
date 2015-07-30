@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function
 import multiprocessing
 import utool as ut
 import ibeis
+import sys
 
 CMD = ut.get_argflag('--cmd')
 
@@ -37,15 +38,27 @@ def run_ibeis():
     #ut.set_process_title('IBEIS_main')
     #main_locals = ibeis.main()
     #ibeis.main_loop(main_locals)
-    multiprocessing.freeze_support()  # for win32
+    #ut.set_process_title('IBEIS_main')
 
-    if ut.get_argflag('--run-tests'):
+    if ut.get_argflag('--devcmd'):
+        # Hack to let devs mess around when using an installer version
+        # TODO: add more hacks
+        #import utool.tests.run_tests
+        #utool.tests.run_tests.run_tests()
+        ut.embed()
+    elif ut.get_argflag('--run-utool-tests'):
+        import utool.tests.run_tests
+        retcode = utool.tests.run_tests.run_tests()
+        sys.exit(retcode)
+    elif ut.get_argflag('--run-vtool-tests'):
+        import vtool.tests.run_tests
+        retcode = vtool.tests.run_tests.run_tests()
+        sys.exit(retcode)
+    elif ut.get_argflag(('--run-ibeis-tests', '--run-tests')):
         from ibeis.tests import run_tests
-        import sys
         retcode = run_tests.run_tests()
         sys.exit(retcode)
 
-    #ut.set_process_title('IBEIS_main')
     main_locals = ibeis.main()
     execstr = ibeis.main_loop(main_locals)
     # <DEBUG CODE>

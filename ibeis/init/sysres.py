@@ -367,48 +367,75 @@ def ensure_pz_mtest():
         ibs.set_name_texts([nid], ['lostname'])
 
 
+def copy_ibeisdb(source_dbdir, dest_dbdir):
+    # TODO; rectify with rsycn script
+    from os.path import normpath
+    import ibeis
+    exclude_dirs = [ut.ensure_unixslash(normpath(rel)) for rel in ibeis.const.EXCLUDE_COPY_REL_DIRS + ['_hsdb', '.hs_internals']]
+
+    rel_tocopy = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs, recursive=True, with_files=True, with_dirs=False, fullpath=False)
+    rel_tocopy_dirs = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs, recursive=True, with_files=False, with_dirs=True, fullpath=False)
+
+    src_list = [join(source_dbdir, relpath) for relpath in rel_tocopy]
+    dst_list = [join(dest_dbdir, relpath) for relpath in rel_tocopy]
+
+    # ensure directories exist
+    rel_tocopy_dirs = [dest_dbdir] + [join(dest_dbdir, dpath_) for dpath_ in rel_tocopy_dirs]
+    for dpath in rel_tocopy_dirs:
+        ut.ensuredir(dpath)
+    # copy files
+    ut.copy(src_list, dst_list)
+
+
+def ensure_pz_mtest_batchworkflow_test():
+    r"""
+    CommandLine:
+        python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test
+        python -m ibeis.init.sysres --test-ensure_pz_mtest_batchworkflow_test --reset
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.init.sysres import *  # NOQA
+        >>> ensure_pz_mtest_batchworkflow_test()
+    """
+    import ibeis
+    ibeis.ensure_pz_mtest()
+    workdir = ibeis.sysres.get_workdir()
+
+    source_dbdir = mtest_dbpath
+    dest_dbdir = join(workdir, 'PZ_BATCH_WORKFLOW_MTEST')
+
+    if ut.get_argflag('--reset'):
+        ut.delete(dest_dbdir)
+
+    if ut.checkpath(dest_dbdir):
+        return
+
+
 def ensure_pz_mtest_mergesplit_test():
     r"""
+    Make a test database for MERGE and SPLIT cases
 
     CommandLine:
         python -m ibeis.init.sysres --test-ensure_pz_mtest_mergesplit_test
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # SCRIPT
         >>> from ibeis.init.sysres import *  # NOQA
         >>> ensure_pz_mtest_mergesplit_test()
     """
     import ibeis
     ibeis.ensure_pz_mtest()
     workdir = ibeis.sysres.get_workdir()
-    dbpath = join(workdir, 'PZ_MERGESPLIT_MTEST')
     mtest_dbpath = join(workdir, 'PZ_MTEST')
-    if ut.checkpath(dbpath):
-        return
 
     source_dbdir = mtest_dbpath
     dest_dbdir = join(workdir, 'PZ_MERGESPLIT_MTEST')
 
-    if False:
+    if ut.get_argflag('--reset'):
         ut.delete(dest_dbdir)
-
-    def copy_ibeisdb(source_dbdir, dest_dbdir):
-        # TODO; rectify with rsycn script
-        from os.path import normpath
-        exclude_dirs = [ut.ensure_unixslash(normpath(rel)) for rel in ibeis.const.EXCLUDE_COPY_REL_DIRS + ['_hsdb', '.hs_internals']]
-
-        rel_tocopy = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs, recursive=True, with_files=True, with_dirs=False, fullpath=False)
-        rel_tocopy_dirs = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs, recursive=True, with_files=False, with_dirs=True, fullpath=False)
-
-        src_list = [join(source_dbdir, relpath) for relpath in rel_tocopy]
-        dst_list = [join(dest_dbdir, relpath) for relpath in rel_tocopy]
-
-        # ensure directories exist
-        rel_tocopy_dirs = [dest_dbdir] + [join(dest_dbdir, dpath_) for dpath_ in rel_tocopy_dirs]
-        for dpath in rel_tocopy_dirs:
-            ut.ensuredir(dpath)
-        # copy files
-        ut.copy(src_list, dst_list)
+    if ut.checkpath(dest_dbdir):
+        return
 
     copy_ibeisdb(source_dbdir, dest_dbdir)
 
