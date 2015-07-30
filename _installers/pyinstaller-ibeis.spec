@@ -129,6 +129,7 @@ if WIN32:
     exe_kwargs['icon'] = join(root_dir, iconfile)
     #exe_kwargs['version'] = 1.5
 if APPLE:
+    # Console must be False for osx
     exe_kwargs['console'] = False
 
 # Pyinstaller will gather .pyos

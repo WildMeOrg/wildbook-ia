@@ -359,6 +359,8 @@ def test_app():
         open ~/code/ibeis/dist/IBEIS.app/Contents/MacOS/IBEISApp
 
         open ~/Desktop/IBEIS.app
+
+        ./dist/IBEIS.app/Contents/MacOS/IBEISApp --run-tests
         """
         ut.cmd(app_fpath)
     else:
