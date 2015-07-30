@@ -43,7 +43,15 @@ CLUTTER_DIRS = [
     'ibeis/io',
     'ibeis/dev',
     'testsuite',
+    'testdb_dst',
     '__pycache__/',
+    'vtool',
+    'utool',
+    'plottool',
+    'pyrf',
+    'pyhesaff',
+    'pyflann',
+    'webapps',
 ]
 
 INSTALL_REQUIRES = [

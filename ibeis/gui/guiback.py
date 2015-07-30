@@ -262,7 +262,12 @@ class MainWindowBackend(GUIBACK_BASE):
         ibs = back.ibs
 
         def finished_review_callback():
-            back.ibs.wildbook_signal_annot_name_changes()
+            try:
+                # TODO: only call this if connected to wildbook
+                # TODO: probably need to remove verboseity as well
+                back.ibs.wildbook_signal_annot_name_changes()
+            except Exception as ex:
+                ut.printex(ex, 'Wildbook call did not work. Maybe not connected?')
             back.front.update_tables()
 
         kwargs['ranks_lt'] = kwargs.get('ranks_lt', ibs.cfg.other_cfg.ranks_lt)
@@ -1239,6 +1244,10 @@ class MainWindowBackend(GUIBACK_BASE):
         #else:
         progbar = guitool.newProgressBar(None)  # back.front)
         progbar.setWindowTitle('querying')
+        progbar.utool_prog_hook.set_progress(0)
+        # Doesn't seem to work correctly
+        #progbar.utool_prog_hook.show_indefinite_progress()
+        progbar.utool_prog_hook.force_event_update()
         qres_list = back.ibs.query_chips(qreq_=qreq_, prog_hook=progbar.utool_prog_hook)
         progbar.close()
         del progbar

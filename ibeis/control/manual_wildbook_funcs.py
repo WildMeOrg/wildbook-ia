@@ -514,7 +514,7 @@ def get_wildbook_base_url(ibs, wb_target=None):
     return wildbook_base_url
 
 
-def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False):
+def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False, timeout=2):
     """
     mirroring the one in IBEISController.py, but with changed functionality
     """
@@ -523,13 +523,14 @@ def submit_wildbook_url(url, payload=None, browse_on_error=True, dryrun=False):
         response = None
         status = True
     else:
-        print('[submit] URL=%r' % (url, ))
+        if ut.VERBOSE:
+            print('[submit] URL=%r' % (url, ))
         try:
             if payload is None:
-                response = requests.get(url)
-                response = requests.get(url, auth=('tomcat', 'tomcat123'))
+                response = requests.get(url, timeout=timeout)
+                #response = requests.get(url, auth=('tomcat', 'tomcat123'))
             else:
-                response = requests.post(url, data=payload)
+                response = requests.post(url, data=payload, timeout=timeout)
                 #r = requests.post(url, data=None, auth=('tomcat', 'tomcat123'))
         except requests.ConnectionError as ex:
             ut.printex(ex, 'Could not connect to Wildbook server at url=%r' % url)
@@ -705,18 +706,26 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
 
     # Submit each URL
     status_list = []
-    for url in submit_url_list:
+    print('Submitting URL list')
+    print(ut.indentjoin(submit_url_list))
+    message_list = []
+    for url in ut.ProgressIter(submit_url_list, lbl='submitting URL', freq=1):
+        print(url)
         status, response = submit_wildbook_url(url, payload, dryrun=dryrun)
         #print(ut.dict_str(response.__dict__, truncate=0))
         status_list.append(status)
         try:
             response_json = response.json()
             # encounter in this message is a wb-encounter not our ia-encounter
+            #if ut.VERBOSE:
             print(response_json['message'])
+            message_list.append(str(response_json['message']))
         except Exception as ex:
+            print(ut.indentjoin(message_list))
             ut.printex(ex, 'Failed getting json from responce. This probably means there is an authentication issue')
             raise
         assert response_json['success']
+    print(ut.indentjoin(message_list))
     return status_list
 
 

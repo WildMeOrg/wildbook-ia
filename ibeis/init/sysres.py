@@ -491,7 +491,6 @@ def ensure_pz_mtest_batchworkflow_test():
 
     # Remove all names
     ibs.delete_annot_nids(aid_list)
-    ut.embed()
 
 
 def ensure_pz_mtest_mergesplit_test():
