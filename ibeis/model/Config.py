@@ -999,8 +999,9 @@ class DetectionConfig(ConfigBase):
     """
     def __init__(detect_cfg, **kwargs):
         super(DetectionConfig, detect_cfg).__init__(name='detect_cfg')
-        detect_cfg.species_text     = const.Species.ZEB_GREVY
-        detect_cfg.detector    = 'rf'
+        #detect_cfg.species_text = const.Species.ZEB_GREVY
+        detect_cfg.species_text = const.Species.UNKNOWN
+        detect_cfg.detector = 'rf'
         # detect_cfg.scale_list  = '1.3, 1.2, 1.1, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1'
         # detect_cfg.scale_list  = '1.15, 1.0, 0.85, 0.7, 0.55, 0.4, 0.25, 0.10'
         detect_cfg.scale_list  = '1.25, 1.0, 0.80, 0.65, 0.50, 0.40, 0.30, 0.20, 0.10'
@@ -1218,6 +1219,8 @@ def load_named_config(cfgname, dpath, use_config_cache=False):
         # Totally new completely default preferences
         cfg = _default_config(cfg, cfgname)
     # Hack in cfgname
+    if ut.NOT_QUIET:
+        print('[Config] hack in z_cfgname=%r' % (cfgname,))
     cfg.z_cfgname = cfgname
     return cfg
 

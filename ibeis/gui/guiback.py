@@ -147,6 +147,7 @@ class MainWindowBackend(GUIBACK_BASE):
         back.mainwin = newgui.IBEISMainWindow(back=back, ibs=ibs)
         back.front = back.mainwin.ibswgt
         back.web_instance = None
+        back.wb_server_running = None
         back.ibswgt = back.front  # Alias
         # connect signals and other objects
         fig_presenter.register_qt4_win(back.mainwin)
@@ -265,7 +266,8 @@ class MainWindowBackend(GUIBACK_BASE):
             try:
                 # TODO: only call this if connected to wildbook
                 # TODO: probably need to remove verboseity as well
-                back.ibs.wildbook_signal_annot_name_changes()
+                if back.wb_server_running:
+                    back.ibs.wildbook_signal_annot_name_changes()
             except Exception as ex:
                 ut.printex(ex, 'Wildbook call did not work. Maybe not connected?')
             back.front.update_tables()
@@ -348,7 +350,10 @@ class MainWindowBackend(GUIBACK_BASE):
         """ selected image id """
         if len(back.sel_gids) == 0:
             if len(back.sel_aids) == 0:
-                gid = back.ibs.get_annot_gids(back.sel_aids)[0]
+                sel_gids = back.ibs.get_annot_gids(back.sel_aids)
+                if len(sel_gids) == 0:
+                    raise guiexcept.InvalidRequest('There are no selected images')
+                gid = sel_gids[0]
                 return gid
             raise guiexcept.InvalidRequest('There are no selected images')
         gid = back.sel_gids[0]
@@ -653,7 +658,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @blocking_slot()
     def toggle_thumbnails(back):
         ibswgt = back.front
-        tabwgt = ibswgt._tab_table_wgt
+        tabwgt = ibswgt._table_tab_wgt
         index = tabwgt.currentIndex()
         tblname = ibswgt.tblname_list[index]
         view = ibswgt.views[tblname]
@@ -671,15 +676,18 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] delete_image, gid_list = %r' % (gid_list, ))
         if gid_list is None or gid_list is False:
             gid_list = [back.get_selected_gid()]
-        if not back.are_you_sure():
+        gid_list = ut.ensure_iterable(gid_list)
+        if not back.are_you_sure(action='delete %d images!' % (len(gid_list))):
             return
+        # FIXME: The api cache seems to break here
         back.ibs.delete_images(gid_list)
+        back.ibs.reset_table_cache()
         back.front.update_tables()
 
     @blocking_slot()
     def delete_all_encounters(back):
         print('\n\n[back] delete all encounters')
-        if not back.are_you_sure():
+        if not back.are_you_sure(action='delete ALL encounters'):
             return
         back.ibs.delete_all_encounters()
         back.ibs.update_special_encounters()
@@ -696,7 +704,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if back.contains_special_encounters(eid_list):
             back.display_special_encounters_error()
             return
-        if not back.are_you_sure():
+        if not back.are_you_sure(action='delete this encounter AND ITS IMAGES!'):
             return
         gid_list = ut.flatten(back.ibs.get_encounter_gids(eid_list))
         back.ibs.delete_images(gid_list)
@@ -710,7 +718,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if back.contains_special_encounters(eid_list):
             back.display_special_encounters_error()
             return
-        if not back.are_you_sure():
+        if not back.are_you_sure(action='delete %d encounters' % (len(eid_list))):
             return
         back.ibs.delete_encounters(eid_list)
         back.ibs.update_special_encounters()
@@ -847,7 +855,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if back.edit_prefs_wgt:
             back.edit_prefs_wgt.close()
         if species_text == 'none':
-            cfgname = 'cfg'
+            cfgname = const.Species.UNKNOWN  # 'cfg'
         else:
             cfgname = species_text
         #
@@ -1226,9 +1234,9 @@ class MainWindowBackend(GUIBACK_BASE):
 
         daid_list = back.get_selected_daids(eid=eid, daids_mode=daids_mode)
         if len(qaid_list) == 0:
-            raise guiexcept.InvalidRequest('No query annotations')
+            raise guiexcept.InvalidRequest('No query annotations. Is the species correctly set?')
         if len(daid_list) == 0:
-            raise guiexcept.InvalidRequest('No database annotations')
+            raise guiexcept.InvalidRequest('No database annotations. Is the species correctly set?')
 
         # HACK
         #if daids_mode == const.INTRA_ENC_KEY:
@@ -1352,6 +1360,9 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def encounter_reviewed_all_images(back, refresh=True, all_image_bypass=False):
+        """
+        Sets all encounters as reviwed and ships them to wildbook
+        """
         eid = back.get_selected_eid()
         if eid is not None or all_image_bypass:
             # Set all images to be reviewed
@@ -1429,7 +1440,15 @@ class MainWindowBackend(GUIBACK_BASE):
     def view_log_dir(back):
         print('[back] view_model_dir')
         ut.view_directory(back.ibs.get_logdir())
-        pass
+
+    @slot_()
+    @backreport
+    def view_logs(back):
+        print('[back] view_model_dir')
+        log_fpath = ut.get_current_log_fpath()
+        log_text = back.ibs.get_current_log_text()
+        guitool.msgbox('Click show details to view logs from log_fpath=%r' % (log_fpath,), detailed_msg=log_text)
+        #ut.startfile(back.ibs.get_logdir())
 
     @slot_()
     @backreport
@@ -1619,8 +1638,10 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] open_database(dbdir=%r)' % dbdir)
         with ut.Indenter(lbl='    [opendb]'):
             try:
-                # should this use ibeis.opendb?
-                ibs = IBEISControl.IBEISController(dbdir=dbdir)
+                # should this use ibeis.opendb? probably. at least it should be
+                # be request IBEISControl
+                #ibs = IBEISControl.IBEISController(dbdir=dbdir)
+                ibs = IBEISControl.request_IBEISController(dbdir=dbdir)
                 back.connect_ibeis_control(ibs)
             except Exception as ex:
                 ut.printex(ex, 'caught Exception while opening database')
@@ -1820,9 +1841,13 @@ class MainWindowBackend(GUIBACK_BASE):
     def user_option(back, **kwargs):
         return guitool.user_option(parent=back.front, **kwargs)
 
-    def are_you_sure(back, use_msg=None, title='Confirmation', default=None):
+    def are_you_sure(back, use_msg=None, title='Confirmation', default=None, action=None):
         """ Prompt user for conformation before changing something """
-        msg = 'Are you sure?' if use_msg is None else use_msg
+        if action is None:
+            default_msg = 'Are you sure?'
+        else:
+            default_msg = 'Are you sure you want to %s?' % (action,)
+        msg = default_msg if use_msg is None else use_msg
         print('[back] Asking User if sure')
         print('[back] title = %s' % (title,))
         print('[back] msg =\n%s' % (msg,))
@@ -1831,6 +1856,7 @@ class MainWindowBackend(GUIBACK_BASE):
             return True
         ans = back.user_option(msg=msg, title=title, options=['No', 'Yes'],
                                use_cache=False, default=default)
+        print('[back] User answered: %r' % (ans,))
         return ans == 'Yes'
 
     def get_work_directory(back):
@@ -1853,6 +1879,20 @@ class MainWindowBackend(GUIBACK_BASE):
 
     def display_special_encounters_error(back):
         back.user_info(msg="Contains special encounters")
+
+    @slot_()
+    def override_all_annotation_species(back):
+        aid_list = back.ibs.get_valid_aids()
+        species_text = back.get_selected_species()
+        print('override_all_annotation_species. species_text = %r' % (species_text,))
+        species_rowid = back.ibs.get_species_rowids_from_text(species_text)
+        use_msg = ('Are you sure you want to change %d annotations species to %r?'
+                   % (len(aid_list), species_text))
+        if back.are_you_sure(use_msg=use_msg):
+            print('performing override')
+            back.ibs.set_annot_species_rowids(aid_list, [species_rowid] * len(aid_list))
+            # FIXME: api-cache is broken here too
+            back.ibs.reset_table_cache()
 
     @slot_()
     def set_exemplars_from_quality_and_viewpoint(back):
@@ -1946,12 +1986,14 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     def startup_wildbook(back):
         import ibeis
+        back.wb_server_running = True
         ibeis.control.manual_wildbook_funcs.startup_wildbook_server()
 
     @slot_()
     def shutdown_wildbook(back):
         import ibeis
         ibeis.control.manual_wildbook_funcs.shutdown_wildbook_server()
+        back.wb_server_running = False
 
     @slot_()
     def force_wildbook_namechange(back):

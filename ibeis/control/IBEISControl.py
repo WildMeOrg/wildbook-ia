@@ -158,7 +158,12 @@ def request_IBEISController(dbdir=None, ensure=True, wbaddr=None, verbose=ut.VER
             print('[request_IBEISController] returning cached controller')
         ibs = __IBEIS_CONTROLLER_CACHE__[dbdir]
     else:
-        ibs = IBEISController(dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose)
+        # Convert hold hotspotter dirs if necessary
+        from ibeis.dbio import ingest_hsdb
+        if ingest_hsdb.check_unconverted_hsdb(dbdir):
+            ibs = ingest_hsdb.convert_hsdb_to_ibeis(dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose)
+        else:
+            ibs = IBEISController(dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose)
         __IBEIS_CONTROLLER_CACHE__[dbdir] = ibs
     return ibs
 
@@ -206,8 +211,8 @@ class IBEISController(object):
 
     def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True):
         """ Creates a new IBEIS Controller associated with one database """
-        if verbose and ut.VERBOSE:
-            print('[ibs.__init__] new IBEISController')
+        #if verbose and ut.VERBOSE:
+        print('\n[ibs.__init__] new IBEISController')
         # an dict to hack in temporary state
         ibs.const = const
         ibs.allow_override = 'override+warn'
@@ -221,6 +226,7 @@ class IBEISController(object):
         ibs._send_wildbook_request(wbaddr)
         ibs._init_sql()
         ibs._init_config()
+        print('[ibs.__init__] END new IBEISController\n')
 
     def reset_table_cache(ibs):
         ibs.table_cache = accessor_decors.init_tablecache()

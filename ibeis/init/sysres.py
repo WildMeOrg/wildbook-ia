@@ -276,37 +276,6 @@ def is_ibeisdb(path):
     return exists(join(path, const.PATH_NAMES._ibsdb))
 
 
-def is_hsdb(dbdir):
-    return is_hsdbv4(dbdir) or is_hsdbv3(dbdir)
-
-
-def is_hsdbv4(dbdir):
-    has4 = (exists(join(dbdir, '_hsdb')) and
-            exists(join(dbdir, '_hsdb', 'name_table.csv')) and
-            exists(join(dbdir, '_hsdb', 'image_table.csv')) and
-            exists(join(dbdir, '_hsdb', 'chip_table.csv')))
-    return has4
-
-
-def is_hsdbv3(dbdir):
-    has3 = (exists(join(dbdir, '.hs_internals')) and
-            exists(join(dbdir, '.hs_internals', 'name_table.csv')) and
-            exists(join(dbdir, '.hs_internals', 'image_table.csv')) and
-            exists(join(dbdir, '.hs_internals', 'chip_table.csv')))
-    return has3
-
-
-def get_hsinternal(hsdb_dir):
-    internal_dir = join(hsdb_dir, '_hsdb')
-    if not is_hsdbv4(hsdb_dir):
-        internal_dir = join(hsdb_dir, '.hs_internals')
-    return internal_dir
-
-
-def is_hsinternal(dbdir):
-    return exists(join(dbdir, '.hs_internals'))
-
-
 def get_ibsdb_list(workdir=None):
     r"""
     Lists the available valid ibeis databases inside of a work directory

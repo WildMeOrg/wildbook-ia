@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python2.7
 """
 Converts a hotspostter database to IBEIS
@@ -5,41 +6,77 @@ Converts a hotspostter database to IBEIS
 # TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 from os.path import join, exists
-#import ibeis
-from ibeis import constants
-from ibeis import ibsfuncs
+from ibeis import constants as const
 from ibeis.init import sysres
 from six.moves import zip, map
-import utool
+import utool as ut
 import re
 import csv
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[ingest_hsbd]')
+print, print_, printDBG, rrr, profile = ut.inject(__name__, '[ingest_hsbd]')
 
 
 SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'
 
-FORCE_DELETE = utool.get_argflag('--force-delete')
+
+def is_hsdb(dbdir):
+    return is_hsdbv4(dbdir) or is_hsdbv3(dbdir)
+
+
+def is_hsdbv4(dbdir):
+    has4 = (exists(join(dbdir, '_hsdb')) and
+            exists(join(dbdir, '_hsdb', 'name_table.csv')) and
+            exists(join(dbdir, '_hsdb', 'image_table.csv')) and
+            exists(join(dbdir, '_hsdb', 'chip_table.csv')))
+    return has4
+
+
+def is_hsdbv3(dbdir):
+    has3 = (exists(join(dbdir, '.hs_internals')) and
+            exists(join(dbdir, '.hs_internals', 'name_table.csv')) and
+            exists(join(dbdir, '.hs_internals', 'image_table.csv')) and
+            exists(join(dbdir, '.hs_internals', 'chip_table.csv')))
+    return has3
+
+
+def get_hsinternal(hsdb_dir):
+    internal_dir = join(hsdb_dir, '_hsdb')
+    if not is_hsdbv4(hsdb_dir):
+        internal_dir = join(hsdb_dir, '.hs_internals')
+    return internal_dir
+
+
+def is_hsinternal(dbdir):
+    return exists(join(dbdir, '.hs_internals'))
 
 
 def is_succesful_convert(dbdir):
-    return exists(join(dbdir, constants.PATH_NAMES._ibsdb, SUCCESS_FLAG_FNAME))
+    """ the sucess flag is only written if the _ibsdb was properly generated """
+    return exists(join(dbdir, const.PATH_NAMES._ibsdb, SUCCESS_FLAG_FNAME))
 
 
 def get_unconverted_hsdbs(workdir=None):
+    r"""
+    Args:
+        workdir (None): (default = None)
+
+    CommandLine:
+        python -m ibeis.dbio.ingest_hsdb --test-get_unconverted_hsdbs
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.dbio.ingest_hsdb import *  # NOQA
+        >>> workdir = None
+        >>> result = get_unconverted_hsdbs(workdir)
+        >>> print(result)
+    """
     import os
     import numpy as np
-    import vtool as vt
     if workdir is None:
         workdir = sysres.get_workdir()
     dbname_list = os.listdir(workdir)
     dbpath_list = np.array([join(workdir, name) for name in dbname_list])
-    is_hsdb_list    = np.array(list(map(sysres.is_hsdb, dbpath_list)))
-    is_ibs_cvt_list = np.array(list(map(is_succesful_convert, dbpath_list)))
-    if FORCE_DELETE:
-        needs_convert = is_hsdb_list
-    else:
-        needs_convert =  vt.and_lists(is_hsdb_list, True - is_ibs_cvt_list)
-    needs_convert_hsdbs  = dbpath_list[needs_convert].tolist()
+    needs_convert = list(map(check_unconverted_hsdb, dbpath_list))
+    needs_convert_hsdbs  = ut.list_compress(dbpath_list, needs_convert)
     return needs_convert_hsdbs
 
 
@@ -48,30 +85,90 @@ def ingest_unconverted_hsdbs_in_workdir():
     needs_convert_hsdbs = get_unconverted_hsdbs(workdir)
     for hsdb in needs_convert_hsdbs:
         try:
-            convert_hsdb_to_ibeis(hsdb, force_delete=FORCE_DELETE)
+            convert_hsdb_to_ibeis(hsdb)
         except Exception as ex:
-            utool.printex(ex)
+            ut.printex(ex)
             raise
 
 
-@utool.indent_func
-def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
+def check_unconverted_hsdb(dbdir):
+    """
+    Returns if a directory is an unconverted hotspotter database
+    """
+    return is_hsdb(dbdir) and not is_succesful_convert(dbdir)
+
+
+def testdata_ensure_unconverted_hsdb():
+    r"""
+    Makes an unconverted test datapath
+
+    CommandLine:
+        python -m ibeis.dbio.ingest_hsdb --test-testdata_ensure_unconverted_hsdb
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.dbio.ingest_hsdb import *  # NOQA
+        >>> result = testdata_ensure_unconverted_hsdb()
+        >>> print(result)
+    """
+    import utool as ut
+    assert ut.is_developer(), 'dev function only'
+    # Make an unconverted test database
+    ut.ensurepath('/raid/tests/tmp')
+    ut.delete('/raid/tests/tmp/Frogs')
+    ut.copy('/raid/tests/Frogs', '/raid/tests/tmp/Frogs')
+    hsdb_dir = '/raid/tests/tmp/Frogs'
+    return hsdb_dir
+
+
+def test_open_to_convert():
+    r"""
+    CommandLine:
+        python -m ibeis.dbio.ingest_hsdb --test-test_open_to_convert
+
+    Example:
+        >>> # VERY_UNSTABLE_DOCTEST
+        >>> from ibeis.dbio.ingest_hsdb import *  # NOQA
+        >>> result = test_open_to_convert()
+        >>> print(result)
+    """
+    import ibeis
+    hsdb_dir = testdata_ensure_unconverted_hsdb()
+    ibs = ibeis.opendb(dbdir=hsdb_dir)
+    ibs.print_cachestats_str()
+
+
+def convert_hsdb_to_ibeis(hsdb_dir, **kwargs):
+    r"""
+    Args:
+        hsdb_dir (str):
+
+    CommandLine:
+        python -m ibeis.dbio.ingest_hsdb --test-convert_hsdb_to_ibeis:0 --db ~/work/Frogs
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.dbio.ingest_hsdb import *  # NOQA
+        >>> hsdb_dir = ut.get_argval('--dbdir', type_=str, default=None)
+        >>> result = convert_hsdb_to_ibeis(hsdb_dir)
+        >>> print(result)
+    """
     from ibeis.control import IBEISControl
     import utool as ut
-    assert(sysres.is_hsdb(hsdb_dir)), 'not a hotspotter database. cannot even force convert: hsdb_dir=%r' % (hsdb_dir,)
-    if force_delete:
-        print('FORCE DELETE: %r' % (hsdb_dir,))
-        ibsfuncs.delete_ibeis_database(hsdb_dir)
+    assert is_hsdb(hsdb_dir), 'not a hotspotter database. cannot even force convert: hsdb_dir=%r' % (hsdb_dir,)
+    assert not is_succesful_convert(hsdb_dir), 'hsdb_dir=%r is already converted' % (hsdb_dir,)
+    #print('FORCE DELETE: %r' % (hsdb_dir,))
+    #ibsfuncs.delete_ibeis_database(hsdb_dir)
     print('[ingest] Ingesting hsdb: %r' % hsdb_dir)
     imgdir = join(hsdb_dir, 'images')
 
-    ibs = IBEISControl.IBEISController(dbdir=hsdb_dir)
+    ibs = IBEISControl.IBEISController(dbdir=hsdb_dir, **kwargs)
 
     # READ NAME TABLE
     names_name_list = ['____']
     name_nid_list   = [0]
 
-    internal_dir = sysres.get_hsinternal(hsdb_dir)
+    internal_dir = get_hsinternal(hsdb_dir)
 
     with open(join(internal_dir, 'name_table.csv'), 'rb') as nametbl_file:
         name_reader = csv.reader(nametbl_file)
@@ -179,11 +276,23 @@ def convert_hsdb_to_ibeis(hsdb_dir, force_delete=False):
     with open(join(ibs.get_ibsdir(), SUCCESS_FLAG_FNAME), 'w') as file_:
         file_.write('Successfully converted hsdb_dir=%r' % (hsdb_dir,))
     print('finished ingest')
+    return ibs
 
 
+#if __name__ == '__main__':
+#    import multiprocessing
+#    multiprocessing.freeze_support()  # win32
+#    db = ut.get_argval('--db', type_=str, default=None)
+#    dbdir = sysres.db_to_dbdir(db, allow_newdir=False, use_sync=False)
+#    convert_hsdb_to_ibeis(dbdir)
 if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ibeis.dbio.ingest_hsdb
+        python -m ibeis.dbio.ingest_hsdb --allexamples
+        python -m ibeis.dbio.ingest_hsdb --allexamples --noface --nosrc
+    """
     import multiprocessing
-    multiprocessing.freeze_support()  # win32
-    db = utool.get_argval('--db', type_=str, default=None)
-    dbdir = sysres.db_to_dbdir(db, allow_newdir=False, use_sync=False)
-    convert_hsdb_to_ibeis(dbdir)
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

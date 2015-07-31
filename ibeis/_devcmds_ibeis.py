@@ -46,12 +46,13 @@ def test_openworkdirs():
     import os
     import utool as ut  # NOQA
     from os.path import join
+    from ibeis.dbio import ingest_hsdb
     import ibeis.other.dbinfo
     ibeis.other.dbinfo.rrr()
     workdir = sysres.get_workdir()
     dbname_list = os.listdir(workdir)
     dbpath_list = [join(workdir, name) for name in dbname_list]
-    is_hsdb_list    = list(map(sysres.is_hsdb, dbpath_list))
+    is_hsdb_list    = list(map(ingest_hsdb.is_hsdb, dbpath_list))
     hsdb_list = ut.filter_items(dbpath_list, is_hsdb_list)
     #is_ibs_cvt_list = np.array(list(map(is_succesful_convert, dbpath_list)))
     regen_cmds = []

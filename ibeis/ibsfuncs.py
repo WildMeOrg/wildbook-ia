@@ -1674,7 +1674,7 @@ def get_ungrouped_gids(ibs):
 
 
 @__injectable
-@ut.time_func
+#@ut.time_func
 #@profile
 def update_ungrouped_special_encounter(ibs):
     """
@@ -1696,15 +1696,20 @@ def update_ungrouped_special_encounter(ibs):
         >>> print(result)
     """
     # FIXME SLOW
-    print('[ibsfuncs] update_ungrouped_special_encounter.1')
+    if ut.VERBOSE:
+        print('[ibsfuncs] update_ungrouped_special_encounter.1')
     ungrouped_eid = ibs.get_encounter_eids_from_text(const.UNGROUPED_IMAGES_ENCTEXT)
-    print('[ibsfuncs] update_ungrouped_special_encounter.2')
+    if ut.VERBOSE:
+        print('[ibsfuncs] update_ungrouped_special_encounter.2')
     ibs.delete_egr_encounter_relations(ungrouped_eid)
-    print('[ibsfuncs] update_ungrouped_special_encounter.3')
+    if ut.VERBOSE:
+        print('[ibsfuncs] update_ungrouped_special_encounter.3')
     ungrouped_gids = ibs.get_ungrouped_gids()
-    print('[ibsfuncs] update_ungrouped_special_encounter.4')
+    if ut.VERBOSE:
+        print('[ibsfuncs] update_ungrouped_special_encounter.4')
     ibs.set_image_eids(ungrouped_gids, [ungrouped_eid] * len(ungrouped_gids))
-    print('[ibsfuncs] update_ungrouped_special_encounter.5')
+    if ut.VERBOSE:
+        print('[ibsfuncs] update_ungrouped_special_encounter.5')
 
 
 @__injectable

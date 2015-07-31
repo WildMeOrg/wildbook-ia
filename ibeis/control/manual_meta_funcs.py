@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 controller functions for contributors, versions, configs, and other metadata
 """
@@ -13,7 +14,7 @@ import utool as ut
 from ibeis.model import Config
 #from ibeis import ibsfuncs
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_meta]')
+print, print_, profile = ut.inject2(__name__, '[manual_meta]')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -983,6 +984,7 @@ def _init_config(ibs):
     except IOError:
         general_config = {}
     current_species = general_config.get('current_species', None)
+    print('[_init_config] general_config.current_species = %r' % (current_species,))
     # </GENERAL CONFIG>
     #####
     species_list = ibs.get_database_species()

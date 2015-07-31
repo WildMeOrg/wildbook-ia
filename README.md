@@ -385,7 +385,11 @@ python dev.py --cmd --allgt -t inspect
 python ibeis/ingest/ingest_database.py --db JAG_Kieryn
 
 # Ingest an hsdb
-python ibeis/ingest/ingest_hsdb.py --db JAG_Kelly --force-delete
+# OLD WAY: python ibeis/ingest/ingest_hsdb.py --db JAG_Kelly --force-delete
+# New Way:
+python -m ibeis --db JAG_KELLY
+# OR 
+python -m ibeis.dbio.ingest_hsdb --test-convert_hsdb_to_ibeis:0 --db JAG_KELLY
 
 
 #---------

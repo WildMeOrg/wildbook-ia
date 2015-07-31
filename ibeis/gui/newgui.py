@@ -461,7 +461,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # when a controller is attached to the gui
         detection_combo_box_options = [
             # Text              # Value
-            ('Select Species',  'none'),
+            #('Select Species',  'none'),
+            ('Select Species',  const.Species.UNKNOWN),
+            #'none'),
         ] + species.get_working_species_set()
 
         ibswgt.species_combo = _COMBO(detection_combo_box_options,
