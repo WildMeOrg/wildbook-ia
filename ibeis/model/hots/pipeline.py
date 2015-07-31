@@ -17,7 +17,7 @@ Module Concepts::
      * qfx    - query feature index wrt the query chip
      * dfx    - query feature index wrt the database chip
      * dist   - the distance to a corresponding feature
-     * fm     - a list of featur match pairs (qfx, dfx)
+     * fm     - a list of feature match pairs / correspondences (qfx, dfx)
      * fsv    - a score vector of a corresponding feature
      * valid  - a valid bit for a corresponding feature
 
