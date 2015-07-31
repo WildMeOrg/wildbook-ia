@@ -32,7 +32,7 @@ try:
 except Exception as ex:
     HAS_FLASK_CORS = False
     ut.printex(ex, 'Missing flask.ext.cors', iswarning=True)
-    if ut.STRICT:
+    if ut.SUPER_STRICT:
         raise
 # </flask>
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[controller_inject]')

@@ -8,7 +8,7 @@ CommandLine:
 from __future__ import absolute_import, division, print_function
 import os
 import sys
-from os.path import join, exists, realpath, abspath, dirname
+from os.path import join, exists, realpath, abspath, dirname, relpath  # NOQA
 import utool as ut
 
 
@@ -125,7 +125,7 @@ def get_hidden_imports():
         'sklearn.neighbors.typedefs',
         'mpl_toolkits.axes_grid1',
         'flask',
-        'flask.ext.cors'
+        #'flask.ext.cors'  # seems not to work?
         'pandas',
         'pandas.hashtable',
         'statsmodels',
@@ -142,6 +142,13 @@ def get_data_list():
         >>> # ENABLE_DOCTEST
         >>> from ibeis_pyinstaller_data_helper import *  # NOQA
         >>> result = get_data_list()
+        >>> DATATUP_LIST, BINARYTUP_LIST, iconfile = result
+        >>> print('DATATUP_LIST = ' + ut.list_str(DATATUP_LIST))
+        >>> print('BINARYTUP_LIST = ' + ut.list_str(BINARYTUP_LIST))
+        >>> print(len(DATATUP_LIST))
+        >>> print(len(BINARYTUP_LIST))
+        >>> print(iconfile)
+
     """
     # Build data before running analysis for quick debugging
     DATATUP_LIST = []
@@ -296,32 +303,51 @@ def get_data_list():
     icon_dst = join(ibsbuild, iconfile)
     DATATUP_LIST.append((icon_dst, icon_src))
 
+    print('[installer] Checking Data (preweb)')
+    try:
+        for (dst, src) in DATATUP_LIST:
+            assert ut.checkpath(src, verbose=True), 'checkpath for src=%r failed' % (src,)
+    except Exception as ex:
+        ut.printex(ex, 'Checking data failed DATATUP_LIST=' + ut.list_str(DATATUP_LIST))
+        raise
+
     # Web Assets
     INSTALL_WEB = True and not ut.get_argflag('--noweb')
     if INSTALL_WEB:
         web_root = join('ibeis', 'web/')
-        walk_path = join(web_root, 'static')
-        for root, dirs, files in os.walk(walk_path):
-            root2 = root.replace(web_root, '')
-            for icon_fname in files:
-                if '.DS_Store' not in icon_fname:
-                    toc_src = join(abspath(root), icon_fname)
-                    toc_dst = join(root2, icon_fname)
-                    DATATUP_LIST.append((toc_dst, toc_src))
+        #walk_path = join(web_root, 'static')
+        #static_data = []
+        #for root, dirs, files in os.walk(walk_path):
+        #    root2 = root.replace(web_root, '')
+        #    for icon_fname in files:
+        #        if '.DS_Store' not in icon_fname:
+        #            toc_src = join(abspath(root), icon_fname)
+        #            toc_dst = join(root2, icon_fname)
+        #            static_data.append((toc_dst, toc_src))
+        #ut.get_list_column(static_data, 1) == ut.glob(walk_path, '*', recursive=True, with_dirs=False, exclude_dirs=['.DS_Store'])
+        static_src_list = ut.glob(join(web_root, 'static'), '*', recursive=True, with_dirs=False, exclude_dirs=['.DS_Store'])
+        static_dst_list = [relpath(src, join(root_dir, 'ibeis')) for src in static_src_list]
+        static_data = zip(static_dst_list, static_src_list)
+        DATATUP_LIST.extend(static_data)
 
-        walk_path = join(web_root, 'templates')
-        for root, dirs, files in os.walk(walk_path):
-            root2 = root.replace(web_root, '')
-            for icon_fname in files:
-                if '.DS_Store' not in icon_fname:
-                    toc_src = join(abspath(root), icon_fname)
-                    toc_dst = join(root2, icon_fname)
-                    DATATUP_LIST.append((toc_dst, toc_src))
+        #walk_path = join(web_root, 'templates')
+        #template_data = []
+        #for root, dirs, files in os.walk(walk_path):
+        #    root2 = root.replace(web_root, '')
+        #    for icon_fname in files:
+        #        if '.DS_Store' not in icon_fname:
+        #            toc_src = join(abspath(root), icon_fname)
+        #            toc_dst = join(root2, icon_fname)
+        #            template_data.append((toc_dst, toc_src))
+        template_src_list = ut.glob(join(web_root, 'templates'), '*', recursive=True, with_dirs=False, exclude_dirs=['.DS_Store'])
+        template_dst_list = [relpath(src, join(root_dir, 'ibeis')) for src in template_src_list]
+        template_data = zip(template_dst_list, template_src_list)
+        DATATUP_LIST.extend(template_data)
 
-    print('[installer] Checking Data')
+    print('[installer] Checking Data (postweb)')
     try:
         for (dst, src) in DATATUP_LIST:
-            assert ut.checkpath(src, verbose=True), 'checkpath for src=%r failed' % (src,)
+            assert ut.checkpath(src, verbose=False), 'checkpath for src=%r failed' % (src,)
     except Exception as ex:
         ut.printex(ex, 'Checking data failed DATATUP_LIST=' + ut.list_str(DATATUP_LIST))
         raise
@@ -332,6 +358,7 @@ def get_data_list():
 if __name__ == '__main__':
     """
     CommandLine:
+        python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --test-get_data_list
         python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py
         python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --allexamples
         python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --allexamples --noface --nosrc

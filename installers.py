@@ -414,11 +414,13 @@ def main():
     """
     print('For a full run use: python installers.py --all')
     print('[installer] +--- MAIN ---')
-    BUILD_APP       = ut.get_argflag(('--build'))
-    BUILD_INSTALLER = ut.get_argflag(('--inno', '--package', '--pkg'))
-    TEST_APP        = ut.get_argflag(('--test'))
-    CLEAN_BUILD     = ut.get_argflag(('--clean'))
-    ALL             = ut.get_argflag('--all')
+    import functools
+    get_argflag = functools.partial(ut.get_argflag, need_prefix=False)
+    BUILD_APP       = get_argflag(('--build'))
+    BUILD_INSTALLER = get_argflag(('--inno', '--package', '--pkg'))
+    TEST_APP        = get_argflag(('--test'))
+    CLEAN_BUILD     = get_argflag(('--clean'))
+    ALL             = get_argflag('--all')
 
     fix_importlib_hook()
     # default behavior is full build

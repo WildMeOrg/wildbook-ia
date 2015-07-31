@@ -119,9 +119,12 @@ def template(template_directory=None, template_filename=None, **kwargs):
     template_ = join(template_directory, template_filename + '.html')
     #print('template_ = %r' % (template_,))
     # Update global args with the template's args
+    #from ibeis.control import controller_inject
+    #app = controller_inject.get_flask_app()
     _global_args = dict(global_args)
     _global_args.update(kwargs)
     print('[appfuncs] template()')
+    #print('[appfuncs.template] * app.template_folder = %r' % (app.template_folder,))
     print('[appfuncs.template] * template_directory = %r' % (template_directory,))
     print('[appfuncs.template] * template_filename = %r' % (template_filename,))
     return flask.render_template(template_, **_global_args)
