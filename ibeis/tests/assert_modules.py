@@ -4,6 +4,8 @@ Very useful script to ensure you have all the modules you need
 
 CommandLine:
     python -m ibeis.tests.assert_modules
+    python -m ibeis.tests.assert_modules --test-assert_modules --nolibdep
+    python -m ibeis.tests.assert_modules --test-assert_modules
 
 
 MacFix:
@@ -24,7 +26,6 @@ import sys
 import functools
 import utool as ut
 from pkg_resources import parse_version
-import utool
 from utool._internal.meta_util_six import get_funcname
 
 ASSERT_FUNCS = []
@@ -51,47 +52,63 @@ def check_alternate_installs():
     pass
 
 
-def checkinfo(target=None):
+def checkinfo(target=None, pipname=None):
     """
     checkinfo functions return info_dict
     """
     def wrapper1(func):
+        """
+        Returns;
+            tuple : passed, current_version, target, infodict, statustext, suggested_fix
+        """
+
         # Decorator which adds funcs to ASSERT_FUNCS
         global ASSERT_FUNCS
         @functools.wraps(func)
-        def wrapper2(*args, **kwargs):
+        def checkinfo_wrapper(*args, **kwargs):
+            suggested_fix = ''
             funcname = get_funcname(func)
             packagename = funcname.replace('_version', '')
+            pipname_ = pipname if pipname is not None else packagename
             try:
                 infodict = func(*args, **kwargs)
             except ImportError as ex:
-                infodict = module_stdinfo_dict(None)
-                return False, 'None', target, infodict, ut.formatex(ex), 'need to install ' + packagename
+                infodict = module_stdinfo_dict(None, name=pipname_)
+                suggested_fix = 'pip install ' + pipname_ + ' --upgrade'
+                if not sys.platform.startswith('win32'):
+                    suggested_fix = 'sudo ' + suggested_fix
+                raise
+                return False, 'None', target, infodict, ut.formatex(ex), suggested_fix
             except Exception as ex:
-                infodict = module_stdinfo_dict(None)
+                infodict = module_stdinfo_dict(None, name=pipname_)
+                raise
                 return False, 'None', target, infodict, ut.formatex(ex), 'Some unknown error in ' + packagename
             current_version = infodict['__version__']
-            msg = utool.dict_str(infodict, strvals=True)
+            msg = ut.dict_str(infodict, strvals=True)
             msg += '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
             statustext = ut.msgblock(infodict['__name__'], msg)
             passed = current_version is not None and parse_version(current_version.replace('.dev1', '')) >= parse_version(target)
-            suggested_fix = ''
+
             if not passed:
                 suggested_fix = 'pip install ' + infodict['__name__'] + ' --upgrade'
                 if not sys.platform.startswith('win32'):
                     suggested_fix = 'sudo ' + suggested_fix
             return passed, current_version, target, infodict, statustext, suggested_fix
-        ASSERT_FUNCS.append(wrapper2)
-        return wrapper2
+        ASSERT_FUNCS.append(checkinfo_wrapper)
+        return checkinfo_wrapper
     return wrapper1
 
 
-def module_stdinfo_dict(module, versionattr='__version__', version=None, **kwargs):
+def module_stdinfo_dict(module, versionattr='__version__', version=None, libdep=None, name=None, **kwargs):
+    #if module is None:
+    #    module = object
     infodict = {
-        '__version__': version if version is not None else getattr(module, versionattr, None),
-        '__name__': getattr(module, '__name__', None),
-        '__file__': getattr(module, '__file__', None),
+        '__version__': version if module is None or version is not None else getattr(module, versionattr, None),
+        '__name__': name if module is None else getattr(module, '__name__', name),
+        '__file__': 'None' if module is None else getattr(module, '__file__', None),
     }
+    if libdep is not None:
+        infodict['libdep'] = libdep
     if not ut.QUIET:
         infodict.update(kwargs)
     return infodict
@@ -103,7 +120,7 @@ def pip_version():
     return module_stdinfo_dict(pip)
 
 
-@checkinfo('1.0.0')
+@checkinfo('1.1.1')
 def pyhesaff_version():
     import pyhesaff
     return module_stdinfo_dict(pyhesaff)
@@ -115,7 +132,7 @@ def pyrf_version():
     return module_stdinfo_dict(pyrf)
 
 
-@checkinfo('1.0.0')
+@checkinfo('1.1.1')
 def utool_version():
     import utool
     return module_stdinfo_dict(utool)
@@ -143,7 +160,11 @@ def matplotlib_version():
 def opencv_version():
     import cv2
     #print(cv2.getBuildInformation())
-    return module_stdinfo_dict(cv2, libdep=utool.get_dynlib_dependencies(cv2.__file__))
+    if ut.get_argflag('--nolibdep'):
+        libdep = None
+    else:
+        libdep = ut.get_dynlib_dependencies(cv2.__file__)
+    return module_stdinfo_dict(cv2, libdep=libdep)
 
 
 @checkinfo('0.13.2')
@@ -185,7 +206,7 @@ def flask_version():
 
 
 @checkinfo('2.0.1')
-def flask_ext_cors_version():
+def flask_cors_version():
     import flask.ext.cors
     return module_stdinfo_dict(flask.ext.cors)
 
@@ -238,7 +259,7 @@ def assert_modules():
         >>> print(detailed_msg)
     """
 
-    MACHINE_NAME = utool.get_computer_name()
+    MACHINE_NAME = ut.get_computer_name()
 
     machine_info_lines = []
 
@@ -257,11 +278,11 @@ def assert_modules():
         passed, current_version, target, infodict, statustext, suggested_fix = func()
         line_list.append(statustext)
         try:
-            assert passed
+            assert passed, infodict['__name__'] + ' did not pass'
         except AssertionError as ex:
             failed_list.append(get_funcname(func) + ' FAILED!!!')
             fix_list.append(suggested_fix)
-            line_list.append(get_funcname(func) + ' FAILED!!!')
+            #line_list.append(get_funcname(func) + ' FAILED!!!')
             line_list.append(ut.formatex(ex))
         else:
             line_list.append(get_funcname(func) + ' passed')

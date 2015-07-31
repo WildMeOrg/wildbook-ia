@@ -181,6 +181,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'ipython',
         'tornado',
         'flask',
+        'flask-cors',
         'matplotlib',
         'scikit-learn',
         'parse',
