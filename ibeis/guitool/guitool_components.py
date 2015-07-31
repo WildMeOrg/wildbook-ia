@@ -88,6 +88,12 @@ def newMenu(widget, menubar, name, text):
 
 def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
                   tooltip=None, slot_fn=None, enabled=True):
+    """
+    Added as a helper function to menus
+    """
+    if name is None:
+        # it is usually better to specify the name explicitly
+        name = ut.convert_text_to_varname('action' + text)
     assert name is not None, 'menuAction name cannot be None'
     # Dynamically add new menu actions programatically
     action_name = name
