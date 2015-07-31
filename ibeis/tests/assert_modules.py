@@ -74,7 +74,7 @@ def checkinfo(target=None, pipname=None):
                 infodict = func(*args, **kwargs)
             except ImportError as ex:
                 infodict = module_stdinfo_dict(None, name=pipname_)
-                suggested_fix = 'pip install ' + pipname_ + ' --upgrade'
+                suggested_fix = 'pip install ' + pipname_
                 if not sys.platform.startswith('win32'):
                     suggested_fix = 'sudo ' + suggested_fix
                 return False, 'None', target, infodict, ut.formatex(ex), suggested_fix
@@ -85,7 +85,7 @@ def checkinfo(target=None, pipname=None):
             msg = ut.dict_str(infodict, strvals=True)
             msg += '\n' + '%s: %r >= (target=%r)?' % (funcname, current_version, target)
             statustext = ut.msgblock(infodict['__name__'], msg)
-            passed = current_version is not None and parse_version(current_version.replace('.dev1', '')) >= parse_version(target)
+            passed = target is None or (current_version is not None and parse_version(current_version.replace('.dev1', '')) >= parse_version(target))
 
             if not passed:
                 suggested_fix = 'pip install ' + infodict['__name__'] + ' --upgrade'
@@ -118,22 +118,54 @@ def pip_version():
     return module_stdinfo_dict(pip)
 
 
+@checkinfo(None)
+def pyflann_version():
+    import pyflann
+    if ut.get_argflag('--nolibdep'):
+        libdep = None
+    else:
+        libdep = ut.get_dynlib_dependencies(pyflann.flannlib._name)
+    return module_stdinfo_dict(pyflann, libdep=libdep)
+
+
 @checkinfo('1.1.1')
 def pyhesaff_version():
     import pyhesaff
-    return module_stdinfo_dict(pyhesaff)
+    if ut.get_argflag('--nolibdep'):
+        libdep = None
+    else:
+        libdep = ut.get_dynlib_dependencies(pyhesaff.__LIB_FPATH__)
+    return module_stdinfo_dict(pyhesaff, libdep=libdep)
 
 
 @checkinfo('1.0.0')
 def pyrf_version():
     import pyrf
-    return module_stdinfo_dict(pyrf)
+    if ut.get_argflag('--nolibdep'):
+        libdep = None
+    else:
+        libdep = ut.get_dynlib_dependencies(pyrf.RF_CLIB._name)
+    return module_stdinfo_dict(pyrf, libdep=libdep)
 
 
 @checkinfo('1.1.1')
 def utool_version():
     import utool
     return module_stdinfo_dict(utool)
+
+
+@checkinfo('1.0.1')
+def vtool_version():
+    import vtool
+    libdep = None
+    if ut.get_argflag('--nolibdep'):
+        libdep = None
+    else:
+        try:
+            libdep = ut.get_dynlib_dependencies(vtool.sver_c_wrapper.lib_fname)
+        except Exception:
+            pass
+    return module_stdinfo_dict(vtool, libdep=libdep)
 
 
 #@checkinfo('1.1.7')
@@ -283,7 +315,7 @@ def assert_modules():
             #line_list.append(get_funcname(func) + ' FAILED!!!')
             line_list.append(ut.formatex(ex))
         else:
-            line_list.append(get_funcname(func) + ' passed')
+            line_list.append(get_funcname(func) + ' passed\n')
             line_list.append('')
     output_text = '\n'.join(line_list)
     failed_text = '\n'.join(failed_list)
