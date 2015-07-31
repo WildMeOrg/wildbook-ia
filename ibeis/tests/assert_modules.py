@@ -77,11 +77,9 @@ def checkinfo(target=None, pipname=None):
                 suggested_fix = 'pip install ' + pipname_ + ' --upgrade'
                 if not sys.platform.startswith('win32'):
                     suggested_fix = 'sudo ' + suggested_fix
-                raise
                 return False, 'None', target, infodict, ut.formatex(ex), suggested_fix
             except Exception as ex:
                 infodict = module_stdinfo_dict(None, name=pipname_)
-                raise
                 return False, 'None', target, infodict, ut.formatex(ex), 'Some unknown error in ' + packagename
             current_version = infodict['__version__']
             msg = ut.dict_str(infodict, strvals=True)
