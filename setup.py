@@ -32,6 +32,9 @@ CLUTTER_PATTERNS = [
     '_test_times.txt',
     'test_times.txt',
     'Tgen.sh',
+    'IBEISApp.pkg',
+    'tempfile1.txt',
+    'tempfile2.txt',
 ]
 
 CLUTTER_DIRS = [
@@ -45,6 +48,7 @@ CLUTTER_DIRS = [
     'testsuite',
     'testdb_dst',
     '__pycache__/',
+    # From pyinstaller
     'vtool',
     'utool',
     'plottool',
@@ -52,6 +56,10 @@ CLUTTER_DIRS = [
     'pyhesaff',
     'pyflann',
     'webapps',
+    'static',
+    'templates',
+    'web',
+    'qt_menu.nib',
 ]
 
 INSTALL_REQUIRES = [
