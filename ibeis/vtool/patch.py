@@ -590,6 +590,7 @@ def intern_warp_single_patch(img, x, y, ori, V,
                              borderMode=cv2.BORDER_REPLICATE):
     """
     Sympy:
+        # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
         from vtool.patch import *  # NOQA
         import sympy
         from sympy.abc import theta
@@ -615,7 +616,26 @@ def intern_warp_single_patch(img, x, y, ori, V,
         R = sympy_rotation_mat3x3(-ori)  # Rotate the centered unit circle patch
         S = sympy.Matrix(ltool.scale_mat3x3(ss, dtype=None))  # scale from unit circle to the patch size
         X = sympy.Matrix(ltool.translation_mat3x3(half_patch_size, half_patch_size, None))  # Translate back to patch-image coordinates
-        M = X.multiply(S).multiply(R).multiply(V).multiply(T)
+
+        sympy.MatMul(X, S, hold=True)
+
+        def add_matmul_hold_prop(mat):
+            #import functools
+            def matmul_hold(other, hold=True):
+                new = sympy.MatMul(mat, other, hold=hold)
+                add_matmul_hold_prop(new)
+                return new
+            #matmul_hold = functools.partial(sympy.MatMul, mat, hold=True)
+            setattr(mat, 'matmul_hold', matmul_hold)
+        add_matmul_hold_prop(X)
+        add_matmul_hold_prop(S)
+        add_matmul_hold_prop(R)
+        add_matmul_hold_prop(V)
+        add_matmul_hold_prop(T)
+
+        M = X.matmul_hold(S).matmul_hold(R).matmul_hold(V).matmul_hold(T)
+        #M = X.multiply(S).multiply(R).multiply(V).multiply(T)
+
 
         V_full = R.multiply(V).multiply(T)
         sympy.latex(V_full)
