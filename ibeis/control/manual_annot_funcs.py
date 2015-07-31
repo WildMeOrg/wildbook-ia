@@ -2531,7 +2531,7 @@ def set_annot_yaw_texts(ibs, aid_list, yaw_text_list):
         aid_list = [aid_list]
     if isinstance(yaw_text_list, six.string_types):
         yaw_text_list = [yaw_text_list]
-    yaw_list = ut.dict_take(const.VIEWTEXT_TO_YAW_RADIANS, yaw_text_list)
+    yaw_list = ut.dict_take(const.VIEWTEXT_TO_YAW_RADIANS, yaw_text_list, None)
     ibs.set_annot_yaws(aid_list, yaw_list)
 
 

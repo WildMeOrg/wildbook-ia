@@ -178,6 +178,24 @@ def statsmodels_version():
     return module_stdinfo_dict(statsmodels, version=version)
 
 
+@checkinfo('0.10.1')
+def flask_version():
+    import flask
+    return module_stdinfo_dict(flask)
+
+
+@checkinfo('2.0.1')
+def flask_ext_cors_version():
+    import flask.ext.cors
+    return module_stdinfo_dict(flask.ext.cors)
+
+
+@checkinfo('4.0.2')
+def tornado_version():
+    import tornado
+    return module_stdinfo_dict(tornado, 'version')
+
+
 def check_modules_exists():
     # Modules in this list don't really need to be inspected
     # just make sure they are there

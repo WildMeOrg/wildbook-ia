@@ -162,7 +162,10 @@ def build_pyinstaller():
             dst = join(dstdir, dstname)
             ut.copy(src, dst)
         # TODO: make this take arguments instead of defaulting to ~/code/ibeis/build
-        print("RUN: sudo ./_installers/mac_dmg_builder.sh")
+        #print("RUN: sudo ./_installers/mac_dmg_builder.sh")
+    app_fpath = get_dist_app_fpath()
+    print('[installer] app_fpath = %s' % (app_fpath,))
+
     print('[installer] L___ FINISH BUILD_PYINSTALLER ___')
     # ut.cmd('./_scripts/mac_dmg_builder.sh')
 
@@ -345,13 +348,18 @@ def fix_importlib_hook():
         ut.printex(ex, 'pip install mpl_toolkits?')
 
 
-def test_app():
-    print('[installer] +--- TEST_APP ---')
+def get_dist_app_fpath():
     app_fpath = ut.unixpath('dist/ibeis/IBEISApp')
     if ut.DARWIN:
         app_fpath = ut.unixpath('dist/IBEIS.app/Contents/MacOS/IBEISApp')
     if ut.WIN32:
         app_fpath += '.exe'
+    return app_fpath
+
+
+def test_app():
+    print('[installer] +--- TEST_APP ---')
+    app_fpath = get_dist_app_fpath()
     ut.assert_exists(app_fpath, 'app fpath must exist', info=True, verbose=True)
     if ut.DARWIN:
         #ut.cmd('open ' + ut.unixpath('dist/IBEIS.app'))

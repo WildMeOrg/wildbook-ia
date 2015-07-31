@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # -*- mode: python -*-
 """
 CommandLine:
@@ -123,6 +124,8 @@ def get_hidden_imports():
         'sklearn.utils.weight_vector',
         'sklearn.neighbors.typedefs',
         'mpl_toolkits.axes_grid1',
+        'flask',
+        'flask.ext.cors'
         'pandas',
         'pandas.hashtable',
         'statsmodels',

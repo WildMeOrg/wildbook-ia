@@ -1,9 +1,9 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from PIL import Image
 import numpy as np
 import cStringIO as StringIO
-from flask import request, render_template, make_response
-# Others
+import flask
 from os.path import join, dirname, abspath  # NOQA
 from datetime import date
 import base64
@@ -20,7 +20,7 @@ class NavbarClass(object):
         ]
 
     def __iter__(nav):
-        _link = request.path.strip('/').split('/')
+        _link = flask.request.path.strip('/').split('/')
         for link, nice in nav.item_list:
             yield link == _link[0], link, nice
 
@@ -101,12 +101,12 @@ def template(template_directory=None, template_filename=None, **kwargs):
     global_args = {
         'NAVBAR': NavbarClass(),
         'YEAR':   date.today().year,
-        'URL':    request.url,
-        'REFER_SRC_STR':  request.url.replace(request.url_root, ''),
+        'URL':    flask.request.url,
+        'REFER_SRC_STR':  flask.request.url.replace(flask.request.url_root, ''),
     }
     global_args['REFER_SRC_ENCODED'] = encode_refer_url(global_args['REFER_SRC_STR'])
-    if 'refer' in request.args.keys():
-        refer = request.args['refer']
+    if 'refer' in flask.request.args.keys():
+        refer = flask.request.args['refer']
         print('[web] REFER: %r' % (refer, ))
         global_args['REFER_DST_ENCODED'] = refer
         global_args['REFER_DST_STR'] = decode_refer_url(refer)
@@ -121,11 +121,14 @@ def template(template_directory=None, template_filename=None, **kwargs):
     # Update global args with the template's args
     _global_args = dict(global_args)
     _global_args.update(kwargs)
-    return render_template(template_, **_global_args)
+    print('[appfuncs] template()')
+    print('[appfuncs.template] * template_directory = %r' % (template_directory,))
+    print('[appfuncs.template] * template_filename = %r' % (template_filename,))
+    return flask.render_template(template_, **_global_args)
 
 
 def send_file(string, filename):
-    response = make_response(str(string))
+    response = flask.make_response(str(string))
     response.headers['Content-Description'] = 'File Transfer'
     response.headers['Cache-Control'] = 'no-cache'
     response.headers['Content-Type'] = 'text/csv'

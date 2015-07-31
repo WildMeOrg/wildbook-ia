@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
-#import sys
+import sys
 from datetime import timedelta
 from functools import update_wrapper
 from functools import wraps
@@ -19,12 +19,21 @@ import random
 # TODO: allow optional flask import
 try:
     import flask
-    from flask import current_app, request, make_response
-    from flask.ext.cors import CORS
     HAS_FLASK = True
 except Exception as ex:
     HAS_FLASK = False
-    ut.printex(ex, 'Missing flask modules', iswarning=True)
+    ut.printex(ex, 'Missing flask', iswarning=True)
+    if ut.STRICT:
+        raise
+
+try:
+    from flask.ext.cors import CORS
+    HAS_FLASK_CORS = True
+except Exception as ex:
+    HAS_FLASK_CORS = False
+    ut.printex(ex, 'Missing flask.ext.cors', iswarning=True)
+    if ut.STRICT:
+        raise
 # </flask>
 print, print_, printDBG, rrr, profile = ut.inject(__name__, '[controller_inject]')
 
@@ -42,17 +51,24 @@ JSON_PYTHON_OBJECT_TAG = '__PYTHON_OBJECT__'
 
 
 def get_flask_app():
+    # TODO this should be initialized explicity in main_module.py only if needed
     global GLOBAL_APP
     global GLOBAL_CORS
     if not HAS_FLASK:
         print('flask is not installed')
         return None
     if GLOBAL_APP is None:
-        root_dpath = abspath(dirname(dirname(__file__)))
+        if hasattr(sys, '_MEIPASS'):
+            # hack for pyinstaller directory
+            root_dpath = sys._MEIPASS
+        else:
+            root_dpath = abspath(dirname(dirname(__file__)))
+        print('[get_flask_app] root_dpath = %r' % (root_dpath,))
         tempalte_dpath = join(root_dpath, 'web', 'templates')
         static_dpath = join(root_dpath, 'web', 'static')
         GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME, template_folder=tempalte_dpath, static_folder=static_dpath)
-        GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA
+        if HAS_FLASK_CORS:
+            GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA
     return GLOBAL_APP
 
 
@@ -172,14 +188,14 @@ def translate_ibeis_webcall(func, *args, **kwargs):
                 converted = type_(temp_list)
             kwargs[arg] = converted
     # Pipe web input into Python web call
-    _process_input(request.args)
-    _process_input(request.form)
+    _process_input(flask.request.args)
+    _process_input(flask.request.form)
     jQuery_callback = None
     if 'callback' in kwargs and 'jQuery' in kwargs['callback']:
         jQuery_callback = str(kwargs.pop('callback', None))
         kwargs.pop('_', None)
     print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
-    ibs = current_app.ibs
+    ibs = flask.current_app.ibs
     try:
         output = func(*args, **kwargs)
     except TypeError:
@@ -197,7 +213,7 @@ def authentication_challenge():
     message = 'Could not verify your authentication, login with proper credentials.'
     jQuery_callback = None
     webreturn = translate_ibeis_webreturn(rawreturn, success, code, message, jQuery_callback)
-    response = make_response(webreturn, code)
+    response = flask.make_response(webreturn, code)
     response.headers['WWW-Authenticate'] = 'Basic realm="Login Required"'
     return response
 
@@ -207,7 +223,7 @@ def authentication_user_validate():
     This function is called to check if a username /
     password combination is valid.
     """
-    auth = request.authorization
+    auth = flask.request.authorization
     if auth is None:
         return False
     username = auth.username
@@ -252,12 +268,12 @@ def authentication_hash_validate():
             return string
         return string[:index] + string[index + 1:]
 
-    hash_response = str(request.headers.get('Authorization', ''))
+    hash_response = str(flask.request.headers.get('Authorization', ''))
     if len(hash_response) == 0:
         return False
     hash_challenge_list = []
     # Check normal url
-    url = str(request.url)
+    url = str(flask.request.url)
     hash_challenge = get_url_authorization(url)
     hash_challenge_list.append(hash_challenge)
     # If hash at the end of the url, try alternate hash as well
@@ -306,19 +322,19 @@ def crossdomain(origin=None, methods=None, headers=None,
         if methods is not None:
             return methods
 
-        options_resp = current_app.make_default_options_response()
+        options_resp = flask.current_app.make_default_options_response()
         return options_resp.headers['allow']
 
     def decorator(f):
         def wrapped_function(*args, **kwargs):
             print(origin)
-            print(request.method)
+            print(flask.request.method)
 
-            if automatic_options and request.method == 'OPTIONS':
-                resp = current_app.make_default_options_response()
+            if automatic_options and flask.request.method == 'OPTIONS':
+                resp = flask.current_app.make_default_options_response()
             else:
-                resp = make_response(f(*args, **kwargs))
-            if not attach_to_all and request.method != 'OPTIONS':
+                resp = flask.make_response(f(*args, **kwargs))
+            if not attach_to_all and flask.request.method != 'OPTIONS':
                 return resp
 
             h = resp.headers
