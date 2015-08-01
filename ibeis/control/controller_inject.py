@@ -63,9 +63,12 @@ def get_flask_app():
             root_dpath = sys._MEIPASS
         else:
             root_dpath = abspath(dirname(dirname(__file__)))
-        print('[get_flask_app] root_dpath = %r' % (root_dpath,))
         tempalte_dpath = join(root_dpath, 'web', 'templates')
         static_dpath = join(root_dpath, 'web', 'static')
+        print('[get_flask_app] root_dpath = %r' % (root_dpath,))
+        print('[get_flask_app] tempalte_dpath = %r' % (tempalte_dpath,))
+        print('[get_flask_app] static_dpath = %r' % (static_dpath,))
+        print('[get_flask_app] GLOBAL_APP_NAME = %r' % (GLOBAL_APP_NAME,))
         GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME, template_folder=tempalte_dpath, static_folder=static_dpath)
         if HAS_FLASK_CORS:
             GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA
