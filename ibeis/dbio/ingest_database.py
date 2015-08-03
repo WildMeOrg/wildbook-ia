@@ -351,6 +351,87 @@ def ingest_Elephants_drop1(dbname):
                       adjust_percent=0.00)
 
 
+def ingest_serengeti_mamal_cameratrap():
+    """
+    References:
+        http://datadryad.org/resource/doi:10.5061/dryad.5pt92
+        Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015) Snapshot Serengeti, high-frequency annotated camera trap images of 40 mammalian species in an African savanna. Scientific Data 2: 150026. http://dx.doi.org/10.1038/sdata.2015.26
+        Swanson AB, Kosmala M, Lintott CJ, Simpson RJ, Smith A, Packer C (2015) Data from: Snapshot Serengeti, high-frequency annotated camera trap images of 40 mammalian species in an African savanna. Dryad Digital Repository. http://dx.doi.org/10.5061/dryad.5pt92
+
+
+    """
+    'https://snapshotserengeti.s3.msi.umn.edu/'
+    import ibeis
+    dbdir = ut.ensuredir(join(ibeis.sysres.get_workdir(), 'MAMALS'))
+    image_dir = ut.ensuredir(join(dbdir, 'images'))
+
+    base_url = 'http://datadryad.org/bitstream/handle/10255'
+    all_images_url         = base_url + '/dryad.86392/all_images.csv',
+    consensus_metadata_url = base_url + '/dryad.86348/consensus_data.csv',
+    search_effort_url      = base_url + '/dryad.86347/search_effort.csv',
+    gold_standard_url      = base_url + '/dryad.76010/gold_standard_data.csv',
+
+    all_images_fpath         = ut.grab_file_url(all_images_url, download_dir=dbdir)
+    consensus_metadata_fpath = ut.grab_file_url(consensus_metadata_url, download_dir=dbdir)
+    search_effort_fpath      = ut.grab_file_url(search_effort_url, download_dir=dbdir)
+    gold_standard_fpath      = ut.grab_file_url(gold_standard_url, download_dir=dbdir)
+
+    print('all_images_fpath = %r' % (all_images_fpath,))
+    print('consensus_metadata_fpath = %r' % (consensus_metadata_fpath,))
+    print('search_effort_fpath = %r' % (search_effort_fpath,))
+    print('gold_standard_fpath = %r' % (gold_standard_fpath,))
+
+    def read_csv(csv_fpath):
+        csv_text = ut.read_from(csv_fpath)
+        csv_lines = csv_text.split('\n')
+        print(csv_lines[0:2])
+        csv_data = [[field.strip('"').strip('\r') for field in line.split(',')]
+                    for line in csv_lines if len(line) > 0]
+        return csv_data
+
+    def download_image_urls(image_url_info_list):
+        imgurl_prefix = 'https://snapshotserengeti.s3.msi.umn.edu/'
+        image_url_list = [imgurl_prefix + suffix for suffix in image_url_info_list]
+        for img_url in ut.ProgressIter(image_url_list, lbl='Downloading Image'):
+            ut.grab_file_url(img_url, download_dir=image_dir)
+
+    # Data contains information about which events have which animals
+    gold_standard_csv_data = read_csv(gold_standard_fpath)[1:]
+    gold_eventid_list            = ut.get_list_column(gold_standard_csv_data, 0)
+    #gold_num_species_annots_list = ut.get_list_column(gold_standard_csv_data, 2)
+    gold_species_list            = ut.get_list_column(gold_standard_csv_data, 2)
+    #gold_count_list              = ut.get_list_column(gold_standard_csv_data, 3)
+
+    # Read info about which events have which images
+    images_csv_data = read_csv(all_images_fpath)[1:]
+    capture_event_id_list = ut.get_list_column(images_csv_data, 0)
+    image_url_info_list = ut.get_list_column(images_csv_data, 1)
+    # Group photos by eventid
+    eventid_to_photos = ut.group_items(image_url_info_list, capture_event_id_list)
+
+    # Find the zebra events
+    set(gold_species_list)
+    gold_zebra_idx_list = ut.list_where([species == 'zebra' for species in gold_species_list])
+    zebra_eventid_list = ut.list_take(gold_eventid_list, gold_zebra_idx_list)
+    gold_standard_csv_data[1]
+
+    # Filter to only zebras
+    unflat_zebra_url_infos = ut.dict_take(eventid_to_photos, zebra_eventid_list)
+    zebra_url_infos = ut.flatten(unflat_zebra_url_infos)
+    download_image_urls(zebra_url_infos)
+
+    if False:
+        # remove non-zebra photos
+        from os.path import basename
+        base_gname_list = list(map(basename, zebra_url_infos))
+        all_gname_list = ut.list_images(image_dir)
+        nonzebra_gname_list = ut.setdiff_ordered(all_gname_list, base_gname_list)
+        nonzebra_gpath_list = ut.fnames_to_fpaths(nonzebra_gname_list, image_dir)
+        ut.remove_fpaths(nonzebra_gpath_list)
+
+    gold_standard_fpath = 'http://datadryad.org/bitstream/handle/10255/dryad.76010/gold_standard_data.csv?sequence=1'
+
+
 def get_standard_ingestable(dbname):
     if dbname in STANDARD_INGEST_FUNCS:
         return STANDARD_INGEST_FUNCS[dbname](dbname)
