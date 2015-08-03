@@ -256,8 +256,8 @@ def ingest_testdb1(dbname):
         unname_aids = ut.filter_items(aid_list, flag_list)
         ibs.delete_annot_nids(unname_aids)
         # Add all annotations with names as exemplars
-        from ibeis.control.IBEISControl import IBEISController
-        assert isinstance(ibs, IBEISController)
+        #from ibeis.control.IBEISControl import IBEISController
+        #assert isinstance(ibs, IBEISController)
         unflagged_aids = ut.get_dirty_items(aid_list, flag_list)
         exemplar_flags = [True] * len(unflagged_aids)
         ibs.set_annot_exemplar_flags(unflagged_aids, exemplar_flags)
@@ -390,10 +390,19 @@ def ingest_serengeti_mamal_cameratrap():
         return csv_data
 
     def download_image_urls(image_url_info_list):
+        # Find ones that we already have
+        print('Requested %d downloaded images' % (len(image_url_info_list)))
+        full_gpath_list = [join(image_dir, basename(gpath)) for gpath in image_url_info_list]
+        exists_list = [ut.checkpath(gpath) for gpath in full_gpath_list]
+        image_url_info_list_ = ut.list_compress(image_url_info_list, ut.not_list(exists_list))
+        print('Already have %d/%d downloaded images' % (len(image_url_info_list) - len(image_url_info_list_), len(image_url_info_list)))
+        print('Need to download %d images' % (len(image_url_info_list_)))
+        # Download the rest
         imgurl_prefix = 'https://snapshotserengeti.s3.msi.umn.edu/'
-        image_url_list = [imgurl_prefix + suffix for suffix in image_url_info_list]
+        image_url_list = [imgurl_prefix + suffix for suffix in image_url_info_list_]
         for img_url in ut.ProgressIter(image_url_list, lbl='Downloading Image'):
             ut.grab_file_url(img_url, download_dir=image_dir)
+        return full_gpath_list
 
     # Data contains information about which events have which animals
     gold_standard_csv_data = read_csv(gold_standard_fpath)[1:]
@@ -410,15 +419,21 @@ def ingest_serengeti_mamal_cameratrap():
     eventid_to_photos = ut.group_items(image_url_info_list, capture_event_id_list)
 
     # Find the zebra events
-    set(gold_species_list)
+    print('Species List: ' % (set(gold_species_list),))
     gold_zebra_idx_list = ut.list_where([species == 'zebra' for species in gold_species_list])
     zebra_eventid_list = ut.list_take(gold_eventid_list, gold_zebra_idx_list)
-    gold_standard_csv_data[1]
 
     # Filter to only zebras
     unflat_zebra_url_infos = ut.dict_take(eventid_to_photos, zebra_eventid_list)
     zebra_url_infos = ut.flatten(unflat_zebra_url_infos)
-    download_image_urls(zebra_url_infos)
+    image_url_info_list = zebra_url_infos
+    zebra_path_list = download_image_urls(zebra_url_infos)
+
+    import ibeis
+    ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=True)
+    gid_list_ = ibs.add_images(zebra_path_list, auto_localize=False)
+    aids_list = ibs.detect_random_forest(gid_list_, ibs.const.Species.ZEB_PLAIN)
+    aids_list
 
     if False:
         # remove non-zebra photos
@@ -428,8 +443,6 @@ def ingest_serengeti_mamal_cameratrap():
         nonzebra_gname_list = ut.setdiff_ordered(all_gname_list, base_gname_list)
         nonzebra_gpath_list = ut.fnames_to_fpaths(nonzebra_gname_list, image_dir)
         ut.remove_fpaths(nonzebra_gpath_list)
-
-    gold_standard_fpath = 'http://datadryad.org/bitstream/handle/10255/dryad.76010/gold_standard_data.csv?sequence=1'
 
 
 def get_standard_ingestable(dbname):
@@ -461,7 +474,7 @@ def ingest_standard_database(dbname, force_delete=False):
     ut.ensuredir(dbdir, verbose=True)
     if force_delete:
         ibsfuncs.delete_ibeis_database(dbdir)
-    ibs = IBEISControl.IBEISController(dbdir)
+    ibs = IBEISControl.request_IBEISController(dbdir)
     ingest_rawdata(ibs, ingestable)
 
 ### </STANDARD DATABASES> ###

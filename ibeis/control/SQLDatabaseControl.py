@@ -6,7 +6,6 @@ from __future__ import absolute_import, division, print_function
 import six
 from six.moves import map, zip
 from os.path import join, exists
-import utool
 import utool as ut
 #import cStringIO
 from six.moves import cStringIO
@@ -14,12 +13,12 @@ from ibeis import constants as const
 from ibeis.control._sql_helpers import (_unpacker, sanitize_sql,
                                         SQLExecutionContext, VERBOSE_SQL, NOT_QUIET)
 from ibeis.control import __SQLITE3__ as lite
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[sql]')
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[sql]')
 
-VERBOSE        = utool.VERBOSE
-VERYVERBOSE    = utool.VERYVERBOSE
-#AUTODUMP       = utool.get_argflag('--auto-dump')
-COPY_TO_MEMORY = utool.get_argflag(('--copy-db-to-memory'))
+VERBOSE        = ut.VERBOSE
+VERYVERBOSE    = ut.VERYVERBOSE
+#AUTODUMP       = ut.get_argflag('--auto-dump')
+COPY_TO_MEMORY = ut.get_argflag(('--copy-db-to-memory'))
 
 import collections
 SQLColumnRichInfo = collections.namedtuple('SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk'))
@@ -106,7 +105,7 @@ class SQLDatabaseController(object):
             'dependsmap',
             'primary_superkey',
         ]
-        #with utool.Timer('New SQLDatabaseController'):
+        #with ut.Timer('New SQLDatabaseController'):
         #db.stack = []
         #db.cache = {}  # key \in [tblname][colnames][rowid]
         # Get SQL file path
@@ -182,7 +181,7 @@ class SQLDatabaseController(object):
         db.connection.commit()
         db.connection.row_factory = lite.Row
 
-    #@utool.memprof
+    #@ut.memprof
     def reboot(db):
         print('[sql] reboot')
         db.cur.close()
@@ -338,7 +337,7 @@ class SQLDatabaseController(object):
         #and not any(ut.flag_None_items(params))
         isvalid_list = [params is not None for params in params_list]
         # Check for duplicate inputs
-        isunique_list = utool.flag_unique_items(list(zip(*superkey_lists)))
+        isunique_list = ut.flag_unique_items(list(zip(*superkey_lists)))
         # Check to see if this already exists in the database
         #superkey_params_iter = list(zip(*superkey_lists))
         # get_rowid_from_superkey functions take each list separately here
@@ -352,15 +351,15 @@ class SQLDatabaseController(object):
         if not any(needsadd_list):
             return rowid_list_  # There is nothing to add. Return the rowids
         # ADD_CLEANLY_3.2: PERFORM DIRTY ADDITIONS
-        dirty_params = utool.filter_items(params_list, needsadd_list)
-        if utool.VERBOSE:
+        dirty_params = ut.filter_items(params_list, needsadd_list)
+        if ut.VERBOSE:
             print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
         # Add any unadded parameters to the database
         try:
             db._add(tblname, colnames, dirty_params)
         except Exception as ex:
             nInput = len(params_list)  # NOQA
-            utool.printex(ex, key_list=[
+            ut.printex(ex, key_list=[
                 'dirty_params',
                 'needsadd_list',
                 'superkey_lists',
@@ -475,7 +474,7 @@ class SQLDatabaseController(object):
         id_list = list(id_iter)  # eager evaluation
 
         if VERBOSE_SQL or (NOT_QUIET and VERYVERBOSE):
-            print('[sql] SETTER: ' + utool.get_caller_name())
+            print('[sql] SETTER: ' + ut.get_caller_name())
             print('[sql] * tblname=%r' % (tblname,))
             print('[sql] * val_list=%r' % (val_list,))
             print('[sql] * id_list=%r' % (id_list,))
@@ -486,13 +485,13 @@ class SQLDatabaseController(object):
                 assert not ut.duplicates_exist(id_list), "Passing a not-unique list of ids"
             except Exception as ex:
                 ut.debug_duplicate_items(id_list)
-                utool.printex(ex, 'len(id_list) = %r, len(set(id_list)) = %r' % (len(id_list), len(set(id_list))))
+                ut.printex(ex, 'len(id_list) = %r, len(set(id_list)) = %r' % (len(id_list), len(set(id_list))))
                 raise
         elif duplicate_behavior == 'filter':
             # Keep only the first setting of every row
-            isunique_list = utool.flag_unique_items(id_list)
-            id_list  = utool.filter_items(id_list, isunique_list)
-            val_list = utool.filter_items(val_list, isunique_list)
+            isunique_list = ut.flag_unique_items(id_list)
+            id_list  = ut.filter_items(id_list, isunique_list)
+            val_list = ut.filter_items(val_list, isunique_list)
         else:
             raise AssertionError('unknown duplicate_behavior=%r. known behaviors are: error and filter' % (duplicate_behavior,))
 
@@ -501,7 +500,7 @@ class SQLDatabaseController(object):
             num_id = len(id_list)
             assert num_val == num_id, 'list inputs have different lengths'
         except AssertionError as ex:
-            utool.printex(ex, key_list=['num_val', 'num_id'])
+            ut.printex(ex, key_list=['num_val', 'num_id'])
             raise
         fmtdict = {
             'tblname_str'  : tblname,
@@ -515,7 +514,7 @@ class SQLDatabaseController(object):
             '''
 
         # TODO: The flattenize can be removed if we pass in val_lists instead
-        params_iter = utool.flattenize(list(zip(val_list, id_list)))
+        params_iter = ut.flattenize(list(zip(val_list, id_list)))
         #params_iter = list(zip(val_list, id_list))
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
                                              params_iter=params_iter, **kwargs)
@@ -584,12 +583,12 @@ class SQLDatabaseController(object):
                 result_iter = context.execute_and_generate_results(params)
                 result_list = list(result_iter)
             except Exception as ex:
-                utool.printex(ex, key_list=[(str, 'operation'), 'params'])
-                # utool.sys.exit(1)
+                ut.printex(ex, key_list=[(str, 'operation'), 'params'])
+                # ut.sys.exit(1)
                 raise
         return result_list
 
-    #@utool.memprof
+    #@ut.memprof
     @default_decor
     def executemany(db, operation, params_iter, auto_commit=True,
                     verbose=VERBOSE_SQL, unpack_scalars=True, nInput=None,
@@ -624,7 +623,7 @@ class SQLDatabaseController(object):
         with SQLExecutionContext(db, operation, **contextkw) as context:
             #try:
             if eager:
-                #if utool.DEBUG2:
+                #if ut.DEBUG2:
                 #    print('--------------')
                 #    print('+++ eager eval')
                 #    print(operation)
@@ -647,7 +646,7 @@ class SQLDatabaseController(object):
                     #    raise
                 results_list = list(results_iter)  # Eager evaluation
             else:
-                #if utool.DEBUG2:
+                #if ut.DEBUG2:
                 #    print('--------------')
                 #    print(' +++ lazy eval')
                 #    print(operation)
@@ -663,7 +662,7 @@ class SQLDatabaseController(object):
                             yield results
                 results_list = tmpgen(context)
             #except Exception as ex:
-            #    utool.printex(ex)
+            #    ut.printex(ex)
             #    raise
         return results_list
 
@@ -801,12 +800,12 @@ class SQLDatabaseController(object):
         assert len(bad_kwargs) == 0, 'keyword args specified that are not metadata keys=%r' % (bad_kwargs,)
         assert tablename is not None, 'tablename must be given'
         assert coldef_list is not None, 'tablename must be given'
-        if utool.DEBUG2:
+        if ut.DEBUG2:
             print('[sql] schema ensuring tablename=%r' % tablename)
-        if utool.VERBOSE:
+        if ut.VERBOSE:
             print('')
             _args = [tablename, coldef_list]
-            print(utool.func_str(db.add_table, _args, metadata_keyval))
+            print(ut.func_str(db.add_table, _args, metadata_keyval))
             print('')
         # Technically insecure call, but all entries are statically inputted by
         # the database's owner, who could delete or alter the entire database
@@ -831,7 +830,7 @@ class SQLDatabaseController(object):
                     constraint_list.append(unique_constraint)
                 constraint_list = ut.unique_keep_order2(constraint_list)
         except Exception as ex:
-            utool.printex(ex, keys=locals().keys())
+            ut.printex(ex, keys=locals().keys())
             raise
 
         # ASSERT VALID TYPES
@@ -981,7 +980,7 @@ class SQLDatabaseController(object):
 
         coldef_list = list(zip(colname_list, coltype_list))
         tablename_orig = tablename
-        tablename_temp = tablename_orig + '_temp' + utool.random_nonce(length=8)
+        tablename_temp = tablename_orig + '_temp' + ut.random_nonce(length=8)
         metadata_keyval2 = metadata_keyval.copy()
         for suffix in db.table_metadata_keys:
             if suffix not in metadata_keyval2 or metadata_keyval2[suffix] is None:
@@ -1036,7 +1035,7 @@ class SQLDatabaseController(object):
         # Reorder column definitions
         combined = sorted(list(zip(order_list, colname_list, coltype_list)))
         coldef_list = [ (name, type_) for i, name, type_ in combined ]
-        tablename_temp = tablename + '_temp' + utool.random_nonce(length=8)
+        tablename_temp = tablename + '_temp' + ut.random_nonce(length=8)
         docstr = db.get_table_docstr(tablename)
         #constraint = db.get_table_constraints(tablename)
 
@@ -1167,7 +1166,7 @@ class SQLDatabaseController(object):
     def dump_tables_to_csv(db):
         """ Convenience: Dumps all csv database files to disk """
         dump_dir = join(db.dir_, 'CSV_DUMP')
-        utool.ensuredir(dump_dir)
+        ut.ensuredir(dump_dir)
         for tablename in db.get_table_names():
             table_fname = tablename + '.csv'
             table_csv = db.get_table_csv(tablename)
@@ -1193,7 +1192,7 @@ class SQLDatabaseController(object):
         #autogen_cmd = 'python -m ibeis.control.DB_SCHEMA --test-test_dbschema --force-incremental-db-update --dump-autogen-schema'
         # File Header
         line_list.append(ut.TRIPLE_DOUBLE_QUOTE)
-        line_list.append('AUTOGENERATED ON ' + utool.timestamp('printable'))
+        line_list.append('AUTOGENERATED ON ' + ut.timestamp('printable'))
         line_list.append('AutogenCommandLine:')
         # TODO: Fix autogen command
         line_list.append(ut.indent(autogen_cmd, tab1))
@@ -1283,7 +1282,7 @@ class SQLDatabaseController(object):
             representation.
         """
 
-        app_resource_dir = utool.get_app_resource_dir('ibeis')
+        app_resource_dir = ut.get_app_resource_dir('ibeis')
         dump_fpath = join(app_resource_dir, 'schema.txt')
         with open(dump_fpath, 'w') as file_:
             for tablename in sorted(db.get_table_names()):
@@ -1297,7 +1296,7 @@ class SQLDatabaseController(object):
                     col_key = str(('KEY' if column[5] == 1 else ''))
                     col = (col_name, col_type, col_null, col_default, col_key)
                     file_.write('\t%s%s%s%s%s\n' % col)
-        utool.view_directory(app_resource_dir)
+        ut.view_directory(app_resource_dir)
 
     @default_decor
     def get_table_names(db):
@@ -1879,7 +1878,7 @@ class SQLDatabaseController(object):
         # remove column prefix for more compact csvs
         column_lbls = [name.replace(tablename[:-1] + '_', '') for name in column_names]
         header = db.get_table_csv_header(tablename)
-        csv_table = utool.make_csv_table(column_list, column_lbls, header)
+        csv_table = ut.make_csv_table(column_list, column_lbls, header)
         return csv_table
 
     @default_decor
@@ -1891,8 +1890,8 @@ class SQLDatabaseController(object):
         column_nametypes = zip(db.get_column_names(tablename), db.get_column_types(tablename))
         header_constraints = '# CONSTRAINTS: %r' % db.get_table_constraints(tablename)
         header_name  = '# TABLENAME: %r' % tablename
-        header_types = utool.indentjoin(column_nametypes, '\n# ')
-        header_doc = utool.indentjoin(utool.unindent(db.get_table_docstr(tablename)).split('\n'), '\n# ')
+        header_types = ut.indentjoin(column_nametypes, '\n# ')
+        header_doc = ut.indentjoin(ut.unindent(db.get_table_docstr(tablename)).split('\n'), '\n# ')
         header = header_doc + '\n' + header_name + header_types + '\n' + header_constraints
         return header
 
