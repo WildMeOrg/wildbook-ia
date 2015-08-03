@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 developer convenience functions for ibs
 

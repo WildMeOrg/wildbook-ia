@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 special pipeline for vsone specific functions
 

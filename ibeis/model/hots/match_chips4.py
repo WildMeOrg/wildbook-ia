@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Runs functions in pipeline to get query reuslts and does some caching.
 """
