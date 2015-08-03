@@ -141,6 +141,9 @@ def postload_commands(ibs, back):
     if ut.get_argflag('--inc-query'):
         back.incremental_query()
 
+    if ut.get_argflag('--start-web'):
+        back.start_web_server_parallel()
+
     #screengrab_fpath = ut.get_argval('--screengrab')
     #if screengrab_fpath:
     #    from guitool.__PYQT__.QtGui import QPixmap

@@ -1545,12 +1545,14 @@ class MainWindowBackend(GUIBACK_BASE):
         import ibeis
         ibs = back.ibs
         if back.web_instance is None:
+            print('[guiback] Starting web service')
             back.web_instance = ibeis.opendb_in_background(dbdir=ibs.get_dbdir(), web=True, browser=True)
         else:
             print('[guiback] CANNOT START WEB SERVER: WEB INSTANCE ALREADY RUNNING')
 
     def kill_web_server_parallel(back):
         if back.web_instance is not None:
+            print('[guiback] Stopping web service')
             back.web_instance.terminate()
             back.web_instance = None
         else:

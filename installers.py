@@ -3,9 +3,21 @@
 r"""
 On mac need to run with sudo
 
+
+Testing:
+    python %HOME%/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --test-get_data_list
+    python ~/code/ibeis/_installers/ibeis_pyinstaller_data_helper.py --test-get_data_list
+
+
+
 SeeAlso:
     _installers/ibeis_pyinstaller_data_helper.py
     _installers/pyinstaller-ibeis.spec
+
+WindowsNew:
+    python installers --build
+    python installers --inno
+    python installers --test
 
 References:
     https://groups.google.com/forum/#!topic/pyinstaller/178I9ANuk14
@@ -357,7 +369,18 @@ def get_dist_app_fpath():
     return app_fpath
 
 
-def test_app():
+def test_suite():
+    app_fpath = get_dist_app_fpath()
+    ut.assert_exists(app_fpath, 'app fpath must exist', info=True, verbose=True)
+    ut.cmd(app_fpath + ' --run-utool-tests')
+    #ut.cmd(app_fpath + ' --run-vtool-tests')
+    #ut.cmd(app_fpath + ' --run-ibeis-tests')
+
+
+def test_run_app():
+    """
+    Execute the installed app
+    """
     print('[installer] +--- TEST_APP ---')
     app_fpath = get_dist_app_fpath()
     ut.assert_exists(app_fpath, 'app fpath must exist', info=True, verbose=True)
@@ -398,6 +421,7 @@ def test_app():
     #ut.cmd(ut.unixpath('dist/ibeis/ibeis-win32-setup.exe'))
 
 
+
 def main():
     """
     CommandLine:
@@ -418,7 +442,8 @@ def main():
     get_argflag = functools.partial(ut.get_argflag, need_prefix=False)
     BUILD_APP       = get_argflag(('--build'))
     BUILD_INSTALLER = get_argflag(('--inno', '--package', '--pkg'))
-    TEST_APP        = get_argflag(('--test'))
+    TEST_RUN        = get_argflag(('--run'))
+    TEST_CODE        = get_argflag(('--test'))
     CLEAN_BUILD     = get_argflag(('--clean'))
     ALL             = get_argflag('--all')
 
@@ -432,10 +457,12 @@ def main():
         clean_pyinstaller()
     if BUILD_APP or ALL or DEFAULT_RUN:
         build_pyinstaller()
-    if BUILD_INSTALLER or ALL or DEFAULT_RUN:
+    if BUILD_INSTALLER or ALL:
         package_installer()
-    if TEST_APP or ALL:
-        test_app()
+    if TEST_CODE or ALL:
+        test_suite()
+    if TEST_RUN or ALL:
+        test_run_app()
     print('[installer] L___ FINISH MAIN ___')
 
 

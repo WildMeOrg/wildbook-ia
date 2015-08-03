@@ -7,6 +7,8 @@ import flask
 from os.path import join, dirname, abspath  # NOQA
 from datetime import date
 import base64
+import jinja2
+import utool as ut
 
 
 class NavbarClass(object):
@@ -117,17 +119,32 @@ def template(template_directory=None, template_filename=None, **kwargs):
     if template_filename is None:
         template_filename = 'index'
     template_ = join(template_directory, template_filename + '.html')
-    #print('template_ = %r' % (template_,))
     # Update global args with the template's args
-    #from ibeis.control import controller_inject
-    #app = controller_inject.get_flask_app()
     _global_args = dict(global_args)
     _global_args.update(kwargs)
     print('[appfuncs] template()')
-    #print('[appfuncs.template] * app.template_folder = %r' % (app.template_folder,))
+    from ibeis.control import controller_inject
+    app = controller_inject.get_flask_app()
+    # flask hates windows apparently
+    template_ = template_.replace('\\', '/')
+    print('[appfuncs.template] * app.template_folder = %r' % (app.template_folder,))
     print('[appfuncs.template] * template_directory = %r' % (template_directory,))
     print('[appfuncs.template] * template_filename = %r' % (template_filename,))
-    return flask.render_template(template_, **_global_args)
+    print('[appfuncs.template] * template_ = %r' % (template_,))
+    try:
+        ret = flask.render_template(template_, **_global_args)
+        #ret = flask.render_template(full_template_fpath, **_global_args)
+    except jinja2.exceptions.TemplateNotFound as ex:
+        print('Error template not found')
+        full_template_fpath = join(app.template_folder, template_)
+        print('[appfuncs.template] * full_template_fpath = %r' % (full_template_fpath,))
+        ut.checkpath(full_template_fpath, verbose=True)
+        ut.printex(ex, 'Template error in appfuncs', tb=True)
+        raise
+    except Exception as ex:
+        ut.printex(ex, 'Error in appfuncs', tb=True)
+        raise
+    return ret
 
 
 def send_file(string, filename):
