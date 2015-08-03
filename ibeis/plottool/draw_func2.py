@@ -1994,7 +1994,7 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True):
         set_title(title)
 
 
-def show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=None, fs=None,
+def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
                     fm_norm=None, title=None,
                     vert=None, fnum=None, pnum=None, heatmap=False,
                     draw_fmatch=True, darken=DARKEN, H1=None, H2=None,

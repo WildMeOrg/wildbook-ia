@@ -135,6 +135,41 @@ def show_sv(chip1, chip2, kpts1, kpts2, fm, homog_tup=None, aff_tup=None,
     df2.adjust_subplots_safe(left=.01, right=.99, wspace=.01, hspace=.1, bottom=.01)
 
 
+def show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx=None, fnum=1, **kwargs):
+    """
+
+    CommandLine:
+        python -m plottool.draw_sv --test-show_sv_simple --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_sv import *  # NOQA
+        >>> import vtool as vt
+        >>> kpts1, kpts2, fm, aff_inliers, chip1, chip2, xy_thresh_sqrd = vt.testdata_matching_affine_inliers()
+        >>> inliers = aff_inliers
+        >>> mx = None
+        >>> fnum = 1
+        >>> result = show_sv_simple(chip1, chip2, kpts1, kpts2, fm, inliers, mx, fnum)
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    import plottool as pt
+    colors = df2.distinct_colors(2, brightness=.95)
+    color1, color2 = colors[0:2]
+    # Begin the drawing
+    fnum = pt.ensure_fnum(fnum)
+    df2.figure(fnum=fnum, pnum=(1, 1, 1), docla=True, doclf=True)
+    #dmkwargs = dict(fs=None, title='Inconsistent Matches', all_kpts=False, draw_lines=True,
+    #                docla=True, draw_border=True, fnum=fnum, pnum=(1, 1, 1), colors=df2.ORANGE)
+    inlier_mask = vt.index_to_boolmask(inliers, maxval=len(fm))
+    fm_inliers = fm.compress(inlier_mask, axis=0)
+    fm_outliers = fm.compress(np.logical_not(inlier_mask), axis=0)
+    ax, xywh1, xywh2 = df2.show_chipmatch2(chip1, chip2)
+    fmatch_kw = dict(ell_linewidth=2, ell_alpha=.7, line_alpha=.7)
+    df2.plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm_inliers, colors=color1, **fmatch_kw)
+    df2.plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm_outliers, colors=color2, **fmatch_kw)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
