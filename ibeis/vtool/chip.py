@@ -14,26 +14,70 @@ import cv2
 
 @profile
 def _get_image_to_chip_transform(bbox, chipsz, theta):
-    """ transforms image space into chipspace
+    """
+    transforms image space into chipspace
+
+    Args:
         bbox   - bounding box of chip in image space
         chipsz - size of the chip
         theta  - rotation of the bounding box
+
+    Sympy:
+        # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
+        from vtool.patch import *  # NOQA
+        import sympy
+        import sympy.abc
+        theta = sympy.abc.theta
+
+        x, y, w, h, target_area  = sympy.symbols('x y w h, a')
+        gx, gy  = sympy.symbols('gx, gy')
+
+        round = sympy.floor  # hack
+
+        ht = sympy.sqrt(target_area * h / w)
+        wt = w * ht / h
+        cw_, ch_ = round(wt), round(ht)
+
+        from vtool import ltool
+        T1 = ltool.translation_mat3x3(tx1, ty1, dtype=None)
+        S  = ltool.scale_mat3x3(sx, sy, dtype=None)
+        R  = ltool.rotation_mat3x3(-theta, sympy.sin, sympy.cos)
+        T2 = ltool.translation_mat3x3(tx2, ty2, dtype=None)
+
+        def add_matmul_hold_prop(mat):
+            #import functools
+            mat = sympy.Matrix(mat)
+            def matmul_hold(other, hold=False):
+                new = sympy.MatMul(mat, other, hold=hold)
+                add_matmul_hold_prop(new)
+                return new
+            setattr(mat, 'matmul_hold', matmul_hold)
+            return mat
+
+        T1 = add_matmul_hold_prop(T1)
+        T2 = add_matmul_hold_prop(T2)
+        R = add_matmul_hold_prop(R)
+        S = add_matmul_hold_prop(S)
+
+        C = T2.multiply(R.multiply(S.multiply(T1)))
+        sympy.simplify(C)
+
     """
     (x, y, w, h) = bbox
-    (cw_, ch_)     = chipsz
-    # Translate from bbox center to (0, 0)
+    (cw_, ch_) = chipsz
     tx1 = -(x + (w / 2.0))
     ty1 = -(y + (h / 2.0))
-    T1 = ltool.translation_mat3x3(tx1, ty1)
-    # Scale to chip height
     sx = (cw_ / w)
     sy = (ch_ / h)
+    tx2 = (cw_ / 2.0)
+    ty2 = (ch_ / 2.0)
+    # Translate from bbox center to (0, 0)
+    T1 = ltool.translation_mat3x3(tx1, ty1)
+    # Scale to chip height
     S  = ltool.scale_mat3x3(sx, sy)
     # Rotate to chip orientation
     R  = ltool.rotation_mat3x3(-theta)
     # Translate from (0, 0) to chip center
-    tx2 = (cw_ / 2.0)
-    ty2 = (ch_ / 2.0)
     T2 = ltool.translation_mat3x3(tx2, ty2)
     # Merge into single transformation (operate left-to-right aka data on left)
     C = T2.dot(R.dot(S.dot(T1)))

@@ -114,10 +114,10 @@ def gauss2d_pdf(x_, y_, sigma=None, mu=None):
     return result
 
 
-def rotation_mat3x3(radians):
+def rotation_mat3x3(radians, sin=np.sin, cos=np.cos):
     # TODO: handle array impouts
-    sin_ = np.sin(radians)
-    cos_ = np.cos(radians)
+    sin_ = sin(radians)
+    cos_ = cos(radians)
     R = np.array(((cos_, -sin_,  0),
                   (sin_,  cos_,  0),
                   (   0,     0,  1),))
