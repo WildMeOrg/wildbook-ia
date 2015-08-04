@@ -88,8 +88,12 @@ def test_featweight_worker(ibs, qreq_):
             pt.figure(fnum=fnum, doclf=True)
             ###
             pt.imshow(ibs.get_annot_chips(aid, config2_=qreq_.qparams), pnum=pnum_(0), fnum=fnum)
+            if ut.get_argflag('--numlbl'):
+                pt.gca().set_xlabel('(1)')
             ###
             pt.imshow(probchip, pnum=pnum_(2), fnum=fnum)
+            if ut.get_argflag('--numlbl'):
+                pt.gca().set_xlabel('(2)')
             #pt.draw_kpts2(kpts_, ell_alpha=.4, color_list=pt.ORANGE)
             ###
             #pt.imshow(probchip, pnum=pnum_(3), fnum=fnum)
@@ -101,6 +105,8 @@ def test_featweight_worker(ibs, qreq_):
             color_list = pt.draw_kpts2(kpts, weights=weights, ell_alpha=.3, cmap_='jet')
             cb = pt.colorbar(weights, color_list)
             cb.set_label('featweights')
+            if ut.get_argflag('--numlbl'):
+                pt.gca().set_xlabel('(3)')
             #pt.draw_kpts2(kpts, ell_alpha=.4)
             pt.show_if_requested()
 
