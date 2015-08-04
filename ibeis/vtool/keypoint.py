@@ -30,6 +30,32 @@ Representation:
          same as invV but it is rotated before warping a unit circle
          into an ellipse.
 
+Sympy:
+    # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
+    from vtool.patch import *  # NOQA
+    import sympy
+    from sympy.abc import theta
+    ori = theta
+    x, y, iv11, iv21, iv22, patch_size = sympy.symbols('x y iv11 iv21 iv22 S')
+    kpts = np.array([[x, y, iv11, iv21, iv22, ori]])
+    kp = ktool.get_invV_mats(kpts, with_trans=True)[0]
+    invV = sympy.Matrix(kp)
+    V = invV.inv()
+
+    print(ut.hz_str('invV = ', repr(invV)))
+    invV = Matrix([
+           [iv11,  0.0,   x],
+           [iv21, iv22,   y],
+           [ 0.0,  0.0, 1.0]])
+
+    print(ut.hz_str('V = ', repr(V)))
+    V = Matrix([
+        [           1/iv11,      0,                 -1.0*x/iv11],
+        [-iv21/(iv11*iv22), 1/iv22, -1.0*(y - iv21*x/iv11)/iv22],
+        [                0,      0,                         1.0]])
+
+
+
 Efficiency Notes:
     single index indexing is very fast
 
