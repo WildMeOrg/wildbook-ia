@@ -365,6 +365,7 @@ def build_internal_structure(model):
     """
     #from guitool.api_item_model import *
     ider_list = model.iders  # an ider for each level
+    ider_list = model.get_iders()
     num_levels = len(ider_list)
     #USE_RECURSIVE = True
     USE_RECURSIVE = False

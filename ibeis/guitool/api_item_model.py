@@ -173,9 +173,28 @@ class APIItemModel(API_MODEL_BASE):
         #model._about_to_change()
         model.headers = headers  # save the headers
 
+        model.ider_filters = None
+
         model.lazy_updater = None
         if headers is not None:
             model._update_headers(**headers)
+
+    def set_ider_filters(model, ider_filters):
+        """  Used to induce a filter on the rows, needs call of udpate rows after """
+        model.ider_filters = ider_filters
+
+    def get_iders(model):
+        #def filtfun_test(x_list):
+        #    return [x for x in x_list if x % 2 == 0]
+        #model.name == 'annotations'
+        #if len(model.iders) == 1:
+        #    model.ider_filters = [filtfun_test]
+
+        if model.ider_filters is None:
+            ider_list = model.iders
+        else:
+            ider_list =  [lambda: filtfn(ider()) for filtfn, ider in zip(model.ider_filters, model.iders)]
+        return ider_list
 
     #@profile
     @updater
