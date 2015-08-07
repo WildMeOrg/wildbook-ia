@@ -35,10 +35,13 @@ def learn_visual_words(annots_df, qreq_, use_cache=USE_CACHE_WORDS, memtrack=Non
     Computes and caches visual words
 
     Args:
-        annots_df ():
-        qreq_ ():
-        use_cache ():
-        memtrack ():
+        annots_df (?):
+        qreq_ (QueryRequest):  query request object with hyper-parameters
+        use_cache (bool):  turns on disk based caching(default = True)
+        memtrack (None): (default = None)
+
+    Returns:
+        ndarray[uint8_t, ndim=2]: words -  aggregate descriptor cluster centers
 
     Returns:
         words

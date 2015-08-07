@@ -93,6 +93,9 @@ class IBEISItemModel(IBEISITEMMODEL_BASE):
         model.original_ider = None
 
     def _update_headers(model, **headers):
+        """
+        filter the iders
+        """
         def _null_ider(**kwargs):
             return []
         model.original_iders = headers.get('iders', [_null_ider])
@@ -103,7 +106,10 @@ class IBEISItemModel(IBEISITEMMODEL_BASE):
         return IBEISITEMMODEL_BASE._update_headers(model, **headers)
 
     def _ider(model):
-        """ Overrides the API model ider to give only selected encounter ids """
+        """
+        Overrides the API model ider to give filtered output,
+        ie: only selected encounter ids
+        """
         return model.original_iders[0](eid=model.eid)
 
     def _change_enc(model, eid):

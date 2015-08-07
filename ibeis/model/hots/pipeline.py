@@ -110,6 +110,10 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --show
         python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:1 --show
 
+        python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --db testdb3 --qaid 325
+        # background match
+        python -m ibeis.model.hots.pipeline --test-request_ibeis_query_L0:0 --db NNP_Master3 --qaid 12838
+
     Example1:
         >>> # one-vs-many:
         >>> # ENABLE_DOCTEST

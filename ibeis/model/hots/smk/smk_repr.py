@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 #import six
-import utool
+import utool as ut
 #import weakref
 import numpy as np
 import six
@@ -10,15 +11,15 @@ from ibeis.model.hots import hstypes
 from ibeis.model.hots.smk import smk_scoring
 from ibeis.model.hots.smk import smk_index
 from collections import namedtuple
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_repr]')
+(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[smk_repr]')
 
 
-DEBUG_SMK = utool.DEBUG2 or utool.get_argflag('--debug-smk')
+DEBUG_SMK = ut.DEBUG2 or ut.get_argflag('--debug-smk')
 
 
-@six.add_metaclass(utool.ReloadingMetaclass)
+@six.add_metaclass(ut.ReloadingMetaclass)
 class InvertedIndex(object):
-    """
+    r"""
     Stores inverted index state information
     (mapping from words to database aids and fxs_list)
 
@@ -69,11 +70,11 @@ class InvertedIndex(object):
 
         # Inject debug function
         from ibeis.model.hots.smk import smk_debug
-        utool.make_class_method_decorator(InvertedIndex)(smk_debug.invindex_dbgstr)
-        utool.inject_instance(invindex)
+        ut.make_class_method_decorator(InvertedIndex)(smk_debug.invindex_dbgstr)
+        ut.inject_instance(invindex)
 
 
-@utool.make_class_method_decorator(InvertedIndex)
+@ut.make_class_method_decorator(InvertedIndex)
 def report_memory(obj, objname='obj'):
     """
     obj = invindex
@@ -85,11 +86,11 @@ def report_memory(obj, objname='obj'):
     for key, val in six.iteritems(obj.__dict__):
         fmtstr = 'memusage({0}.{1}){2} = '
         lbl = fmtstr.format(objname, key, ' ' * (maxlen - len(key)))
-        sizestr = utool.get_object_size_str(val, lbl=lbl, unit='MB')
+        sizestr = ut.get_object_size_str(val, lbl=lbl, unit='MB')
         print(sizestr)
 
 
-report_memsize = utool.make_class_method_decorator(InvertedIndex)(utool.report_memsize)
+report_memsize = ut.make_class_method_decorator(InvertedIndex)(ut.report_memsize)
 
 
 QueryIndex = namedtuple(
@@ -104,6 +105,9 @@ QueryIndex = namedtuple(
 
 
 class LazyGetter(object):
+    """
+    DEPRICATE
+    """
 
     def __init__(self, getter_func):
         self.getter_func = getter_func
@@ -117,25 +121,60 @@ class LazyGetter(object):
 
 class DataFrameProxy(object):
     """
+    DEPRICATE
+
     pandas is actually really slow. This class emulates it so
     I don't have to change my function calls, but without all the slowness.
     """
 
-    def __init__(self, ibs):
-        self.ibs = ibs
+    def __init__(annots_df, ibs):
+        annots_df.ibs = ibs
 
-    def __getitem__(self, key):
+    def __getitem__(annots_df, key):
         if key == 'kpts':
-            return LazyGetter(self.ibs.get_annot_kpts)
+            return LazyGetter(annots_df.ibs.get_annot_kpts)
         elif key == 'vecs':
-            return LazyGetter(self.ibs.get_annot_vecs)
+            return LazyGetter(annots_df.ibs.get_annot_vecs)
         elif key == 'labels':
-            return LazyGetter(self.ibs.get_annot_class_labels)
+            return LazyGetter(annots_df.ibs.get_annot_class_labels)
+
+
+@profile
+def make_annot_df(ibs):
+    """
+    Creates a pandas like DataFrame interface to an IBEISController
+
+    Args:
+        ibs ():
+
+    Returns:
+        annots_df
+
+    Example:
+        >>> from ibeis.model.hots.smk.smk_repr import *  # NOQA
+        >>> from ibeis.model.hots.smk import smk_debug
+        >>> ibs = smk_debug.testdata_ibeis()
+        >>> annots_df = make_annot_df(ibs)
+        >>> print(ut.hashstr(repr(annots_df.values)))
+        j12n+x93m4c!4un3
+
+    #>>> from ibeis.model.hots.smk import smk_debug
+    #>>> smk_debug.rrr()
+    #>>> smk_debug.check_dtype(annots_df)
+
+    Auto:
+        from ibeis.model.hots.smk import smk_repr
+        import utool as ut
+        argdoc = ut.make_default_docstr(smk_repr.make_annot_df)
+        print(argdoc)
+    """
+    annots_df = DataFrameProxy(ibs)
+    return annots_df
 
 
 @profile
 def new_qindex(annots_df, qaid, invindex, qparams):
-    """
+    r"""
     Gets query read for computations
 
     Args:
@@ -147,18 +186,18 @@ def new_qindex(annots_df, qaid, invindex, qparams):
     Returns:
         qindex: named tuple containing query information
 
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_repr --test-new_qindex
+
     Example:
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.smk.smk_repr import *  # NOQA
         >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs, annots_df, qaid, invindex = smk_debug.testdata_query_repr(db='PZ_Mothers', nWords=128000)
-        >>> qparams = ibs.cfg.query_cfg.smk_cfg
+        >>> ibs, annots_df, qaid, invindex, qparams = smk_debug.testdata_query_repr(db='PZ_Mothers', nWords=128000)
         >>> qindex = new_qindex(annots_df, qaid, invindex, qparams)
-        >>> (wx2_qrvecs, wx2_qmaws, wx2_qaids, wx2_qfxs, query_sccw) = qindex
-        >>> assert smk_debug.check_wx2_rvecs(wx2_qrvecs), 'has nan'
+        >>> assert smk_debug.check_wx2_rvecs(qindex.wx2_qrvecs), 'has nan'
         >>> smk_debug.invindex_dbgstr(invindex)
-    """
-    pass
-    """
+
     Ignore::
         idx2_vec = qfx2_vec
         idx2_aid = qfx2_aid
@@ -166,12 +205,12 @@ def new_qindex(annots_df, qaid, invindex, qparams):
         wx2_idxs = _wx2_qfxs
         wx2_maws = _wx2_maws
         from ibeis.model.hots.smk import smk_repr
-        import utool
-        utool.rrrr()
-        print(utool.make_default_docstr(smk_repr.new_qindex))
+        import utool as ut
+        ut.rrrr()
+        print(ut.make_default_docstr(smk_repr.new_qindex))
     """
     # TODO: Precompute and lookup residuals and assignments
-    if not utool.QUIET:
+    if not ut.QUIET:
         print('[smk_repr] Query Repr qaid=%r' % (qaid,))
     #
     nAssign               = qparams.nAssign
@@ -186,7 +225,9 @@ def new_qindex(annots_df, qaid, invindex, qparams):
     wx2_idf   = invindex.wx2_idf
     words     = invindex.words
     wordflann = invindex.wordflann
-    qfx2_vec  = annots_df['vecs'][qaid]
+    #qfx2_vec  = annots_df['vecs'][qaid]
+    # TODO: remove all mention of annot_df and ensure that qparams is passed corectly to config2_
+    qfx2_vec  = annots_df.ibs.get_annot_vecs(qaid, config2_=qparams)
     #-------------------
     # Assign query to (multiple) words
     #-------------------
@@ -202,7 +243,7 @@ def new_qindex(annots_df, qaid, invindex, qparams):
     wx2_qrvecs, wx2_qaids, wx2_qfxs, wx2_maws, wx2_qflags = smk_index.compute_residuals_(
         words, _wx2_qfxs, _wx2_maws, qfx2_vec, qfx2_aid, qfx2_qfx, aggregate)
     # each value in wx2_ dicts is a list with len equal to the number of rvecs
-    if utool.VERBOSE:
+    if ut.VERBOSE:
         print('[smk_repr] Query SCCW smk_alpha=%r, smk_thresh=%r' % (smk_alpha, smk_thresh))
     #-------------------
     # Compute query sccw
@@ -216,7 +257,7 @@ def new_qindex(annots_df, qaid, invindex, qparams):
     try:
         assert query_sccw > 0, 'query_sccw=%r is not positive!' % (query_sccw,)
     except Exception as ex:
-        utool.printex(ex)
+        ut.printex(ex)
         raise
     #-------------------
     # Build query representationm class/tuple
@@ -258,16 +299,16 @@ def index_data_annots(annots_df, daids, words, qparams, with_internals=True,
         >>> invindex = index_data_annots(annots_df, daids, words, qparams, with_internals)
 
     Ignore:
-        #>>> print(utool.hashstr(repr(list(invindex.__dict__.values()))))
+        #>>> print(ut.hashstr(repr(list(invindex.__dict__.values()))))
         #v8+i5i8+55j0swio
 
     Auto:
         from ibeis.model.hots.smk import smk_repr
-        import utool
-        utool.rrrr()
-        print(utool.make_default_docstr(smk_repr.index_data_annots))
+        import utool as ut
+        ut.rrrr()
+        print(ut.make_default_docstr(smk_repr.index_data_annots))
     """
-    if not utool.QUIET:
+    if not ut.QUIET:
         print('[smk_repr] index_data_annots')
     flann_params = {}
     # Compute fast lookup index for the words
@@ -324,7 +365,7 @@ def compute_data_internals_(invindex, qparams, memtrack=None,
     """
     # Get information
     #if memtrack is None:
-    #    memtrack = utool.MemoryTracker('[DATA INTERNALS ENTRY]')
+    #    memtrack = ut.MemoryTracker('[DATA INTERNALS ENTRY]')
 
     #memtrack.report('[DATA INTERNALS1]')
 
@@ -350,9 +391,9 @@ def compute_data_internals_(invindex, qparams, memtrack=None,
     daid2_label = invindex.daid2_label
     wx_series = np.arange(len(words))
     #memtrack.track_obj(idx2_vec, 'idx2_vec')
-    if not utool.QUIET:
+    if not ut.QUIET:
         print('[smk_repr] compute_data_internals_')
-    if utool.VERBOSE:
+    if ut.VERBOSE:
         print('[smk_repr] * len(daids) = %r' % (len(daids),))
         print('[smk_repr] * len(words) = %r' % (len(words),))
         print('[smk_repr] * len(idx2_vec) = %r' % (len(idx2_vec),))
@@ -361,12 +402,12 @@ def compute_data_internals_(invindex, qparams, memtrack=None,
         print('[smk_repr] * smk_thresh = %r' % (smk_thresh,))
 
     # Try to use the cache
-    #cfgstr = utool.hashstr_arr(words, 'words') + qparams.feat_cfgstr
+    #cfgstr = ut.hashstr_arr(words, 'words') + qparams.feat_cfgstr
     #cachekw = dict(
         #cfgstr=cfgstr,
         #appname='smk_test'
     #)
-    #invindex_cache = utool.Cacher('inverted_index', **cachekw)
+    #invindex_cache = ut.Cacher('inverted_index', **cachekw)
     #try:
     #    raise IOError('cache is off')
     #    #cachetup = invindex_cache.load()
@@ -377,25 +418,25 @@ def compute_data_internals_(invindex, qparams, memtrack=None,
     wx2_idxs, _wx2_maws, idx2_wxs = smk_index.assign_to_words_(
         wordflann, words, idx2_vec, nAssign, massign_alpha, massign_sigma,
         massign_equal_weights)
-    if utool.DEBUG2:
+    if ut.DEBUG2:
         assert len(idx2_wxs) == len(idx2_vec)
         assert len(wx2_idxs.keys()) == len(_wx2_maws.keys())
         assert len(wx2_idxs.keys()) <= len(words)
         try:
             assert len(wx2_idxs.keys()) == len(words)
         except AssertionError as ex:
-            utool.printex(ex, iswarning=True)
+            ut.printex(ex, iswarning=True)
     # Database word inverse-document-frequency (idf weights)
     wx2_idf = smk_index.compute_word_idf_(
         wx_series, wx2_idxs, idx2_daid, daids, daid2_label, vocab_weighting,
         verbose=True)
-    if utool.DEBUG2:
+    if ut.DEBUG2:
         assert len(wx2_idf) == len(wx2_idf.keys())
     # Compute (normalized) residual vectors and inverse mappings
     wx2_drvecs, wx2_aids, wx2_fxs, wx2_dmaws, wx2_dflags = smk_index.compute_residuals_(
         words, wx2_idxs, _wx2_maws, idx2_vec, idx2_daid, idx2_dfx,
         aggregate, verbose=True)
-    if not utool.QUIET:
+    if not ut.QUIET:
         print('[smk_repr] unloading idx2_vec')
     if delete_rawvecs:
         # Try to save some memory
@@ -422,39 +463,19 @@ def compute_data_internals_(invindex, qparams, memtrack=None,
     invindex.daid2_sccw  = daid2_sccw
     #memtrack.report('[DATA INTERNALS3]')
 
-    if utool.DEBUG2:
+    if ut.DEBUG2:
         from ibeis.model.hots.smk import smk_debug
         smk_debug.check_invindex_wx2(invindex)
 
 
-@profile
-def make_annot_df(ibs):
+if __name__ == '__main__':
     """
-    Creates a pandas like DataFrame interface to an IBEISController
-
-    Args:
-        ibs ():
-
-    Returns:
-        annots_df
-
-    Example:
-        >>> from ibeis.model.hots.smk.smk_repr import *  # NOQA
-        >>> from ibeis.model.hots.smk import smk_debug
-        >>> ibs = smk_debug.testdata_ibeis()
-        >>> annots_df = make_annot_df(ibs)
-        >>> print(utool.hashstr(repr(annots_df.values)))
-        j12n+x93m4c!4un3
-
-    #>>> from ibeis.model.hots.smk import smk_debug
-    #>>> smk_debug.rrr()
-    #>>> smk_debug.check_dtype(annots_df)
-
-    Auto:
-        from ibeis.model.hots.smk import smk_repr
-        import utool
-        argdoc = utool.make_default_docstr(smk_repr.make_annot_df)
-        print(argdoc)
+    CommandLine:
+        python -m ibeis.model.hots.smk.smk_repr
+        python -m ibeis.model.hots.smk.smk_repr --allexamples
+        python -m ibeis.model.hots.smk.smk_repr --allexamples --noface --nosrc
     """
-    annots_df = DataFrameProxy(ibs)
-    return annots_df
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

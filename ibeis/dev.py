@@ -65,7 +65,7 @@ print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
 # and then go in _devcmds_ibeis.py
 
 
-@devcmd('scores', 'score')
+@devcmd('scores', 'score', 'namescore_roc')
 def annotationmatch_scores(ibs, qaid_list, daid_list=None):
     """
     TODO: plot the difference between the top true score and the next best false score

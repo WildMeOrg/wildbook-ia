@@ -50,7 +50,6 @@ def testdata_chipmatch():
     return cm
 
 
-@profile
 def compute_nsum_score(cm, qreq_=None):
     r"""
     nsum
@@ -62,7 +61,7 @@ def compute_nsum_score(cm, qreq_=None):
         tuple: (unique_nids, nsum_score_list)
 
     CommandLine:
-        python -m ibeis.model.hots.name_scoring --test-compute_nsum_score
+        python -m ibeis.model.hots.name_scoring --test-compute_nsum_score:0
         python -m ibeis.model.hots.name_scoring --test-compute_nsum_score:2
 
     Example0:
@@ -72,12 +71,10 @@ def compute_nsum_score(cm, qreq_=None):
         >>> cm = testdata_chipmatch()
         >>> # execute function
         >>> (unique_nids, nsum_score_list) = compute_nsum_score(cm)
-        >>> result = ut.list_str((unique_nids, nsum_score_list))
+        >>> result = ut.list_str((unique_nids, nsum_score_list), label_list=['unique_nids', 'nsum_score_list'])
         >>> print(result)
-        (
-            np.array([1, 2, 3], dtype=np.int32),
-            np.array([ 4.,  7.,  5.], dtype=np.float32),
-        )
+        unique_nids = np.array([1, 2, 3], dtype=np.int32)
+        nsum_score_list = np.array([ 4.,  7.,  5.], dtype=np.float32)
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -170,9 +167,8 @@ def compute_nsum_score(cm, qreq_=None):
     return nsum_nid_list, nsum_score_list
 
 
-@profile
 def compute_nsum_score2(cm, qreq_=None):
-    """
+    r"""
     Example3:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.model.hots.name_scoring import *  # NOQA
@@ -193,7 +189,6 @@ def compute_nsum_score2(cm, qreq_=None):
     return nsum_nid_list, nsum_score_list, featflag_list
 
 
-@profile
 def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
     HACK_SINGLE_ORI =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
     # The core for each feature match
@@ -207,9 +202,8 @@ def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
     return featflag_list
 
 
-@profile
 def get_namescore_nonvoting_feature_flags(fm_list, fs_list, dnid_list, name_groupxs, kpts1=None):
-    """
+    r"""
     fm_list = [fm[:min(len(fm), 10)] for fm in fm_list]
     fs_list = [fs[:min(len(fs), 10)] for fs in fs_list]
     """
@@ -262,9 +256,8 @@ def get_namescore_nonvoting_feature_flags(fm_list, fs_list, dnid_list, name_grou
     return featflag_list
 
 
-@profile
 def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list):
-    """
+    r"""
     takes name scores and gives them to the best annotation
 
     Returns:
@@ -377,9 +370,8 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
 #    annot_idx_list = np.add(baseindex_list, offset_list)
 
 
-@profile
 def group_scores_by_name(ibs, aid_list, score_list):
-    """
+    r"""
     Converts annotation scores to name scores.
     Over multiple annotations finds keypoints best match and uses that score.
 
@@ -406,26 +398,27 @@ def group_scores_by_name(ibs, aid_list, score_list):
         >>> (sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscoretup
         >>> ut.assert_eq(sorted_nids[0], 1)
 
-    # TODO: this code needs a really good test case
-    #>>> result = np.array_repr(sorted_nids[0:2])
-    #>>> print(result)
-    #array([1, 5])
+    TODO:
+        # TODO: this code needs a really good test case
+        #>>> result = np.array_repr(sorted_nids[0:2])
+        #>>> print(result)
+        #array([1, 5])
 
-    Ignore::
-        # hack in dict of Nones prob for testing
-        import six
-        qres.aid2_prob = {aid:None for aid in six.iterkeys(qres.aid2_score)}
+        Ignore::
+            # hack in dict of Nones prob for testing
+            import six
+            qres.aid2_prob = {aid:None for aid in six.iterkeys(qres.aid2_score)}
 
-    array([ 1,  5, 26])
-    [2 6 5]
+        array([ 1,  5, 26])
+        [2 6 5]
 
-    Timeit::
-        import ibeis
-        ibs = ibeis.opendb('PZ_MTEST')
-        aid_list = ibs.get_valid_aids()
-        aid_arr = np.array(aid_list)
-        %timeit ibs.get_annot_name_rowids(aid_list)
-        %timeit ibs.get_annot_name_rowids(aid_arr)
+        Timeit::
+            import ibeis
+            ibs = ibeis.opendb('PZ_MTEST')
+            aid_list = ibs.get_valid_aids()
+            aid_arr = np.array(aid_list)
+            %timeit ibs.get_annot_name_rowids(aid_list)
+            %timeit ibs.get_annot_name_rowids(aid_arr)
 
 
     """
