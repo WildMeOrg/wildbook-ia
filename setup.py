@@ -93,7 +93,7 @@ if NUMPY_VERSION_BUG:
 
 else:
     INSTALL_REQUIRES += [
-        #'numpy >= 1.8.0',
+        'numpy >= 1.9.0',
         'matplotlib >= 1.3.1',
     ]
 
