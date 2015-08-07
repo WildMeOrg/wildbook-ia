@@ -48,6 +48,17 @@ Sympy:
            [iv21, iv22,   y],
            [ 0.0,  0.0, 1.0]])
 
+    invV2 = sympy.Matrix([
+           [iv11,  0.0,   0],
+           [iv21, iv22,   0],
+           [ 0.0,  0.0, 1.0]])
+
+    trans = sympy.Matrix([
+           [   1,  0.0,   x],
+           [   0,    1,   y],
+           [ 0.0,  0.0, 1.0]])
+
+
     print(ut.hz_str('V = ', repr(V)))
     V = Matrix([
         [           1/iv11,      0,                 -1.0*x/iv11],

@@ -2,6 +2,61 @@
 """
 TODO: Look at this file
     http://www.lfd.uci.edu/~gohlke/code/transformations.py.html
+
+Sympy:
+    >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
+    >>> import vtool as vt
+    >>> import sympy
+    >>> from sympy.abc import theta
+    >>> x, y, a, c, d, sx, sy  = sympy.symbols('x y a c d, sx, sy')
+    >>> #
+    >>> def add_matmul_hold_prop(mat):
+    >>>     def matmul(other, hold=True):
+    >>>         if hold:
+    >>>             new = sympy.MatMul(mat, other)
+    >>>         else:
+    >>>             new = mat.multiply(other)
+    >>>         add_matmul_hold_prop(new)
+    >>>         return new
+    >>>     setattr(mat, 'matmul', matmul)
+    >>>     return mat
+    >>> #
+    >>> def sympy_mat(arr):
+    >>>     mat = sympy.Matrix(arr)
+    >>>     return add_matmul_hold_prop(mat)
+    >>> #
+    >>> def evalprint(str_):
+    >>>     import six
+    >>>     if isinstance(str_, six.string_types):
+    >>>         var = eval(str_, globals(), locals())
+    >>>     else:
+    >>>         var = str_
+    >>>         str_ = ut.get_varname_from_stack(R, N=1)
+    >>>     print(ut.hz_str(str_ + ' = ', repr(var)))
+    >>> print('-------')
+    >>> R = sympy_mat(vt.rotation_mat3x3(theta, sin=sympy.sin, cos=sympy.cos))
+    >>> evalprint('R')
+    >>> #evalprint('R.inv()')
+    >>> evalprint('sympy.simplify(R.inv())')
+    >>> #evalprint('sympy.simplify(R.inv().subs(theta, 4))')
+    >>> #print('-------')
+    >>> #invR = sympy_mat(vt.rotation_mat3x3(-theta, sin=sympy.sin, cos=sympy.cos))
+    >>> #evalprint('invR')
+    >>> #evalprint('invR.inv()')
+    >>> #evalprint('sympy.simplify(invR)')
+    >>> #evalprint('sympy.simplify(invR.subs(theta, 4))')
+    >>> print('-------')
+    >>> T = sympy_mat(vt.translation_mat3x3(x, y, None))
+    >>> evalprint('T')
+    >>> evalprint('T.inv()')
+    >>> print('-------')
+    >>> S = sympy_mat(vt.scale_mat3x3(sx, sy, dtype=None))
+    >>> evalprint('S')
+    >>> evalprint('S.inv()')
+    >>> print('-------')
+    >>> print('LaTeX')
+    >>> print(ut.align('\\\\\n'.join(sympy.latex(R).split(r'\\')).replace('{matrix}', '{matrix}\n'), '&')
+
 """
 from __future__ import absolute_import, division, print_function
 #import sys
@@ -115,6 +170,10 @@ def gauss2d_pdf(x_, y_, sigma=None, mu=None):
 
 
 def rotation_mat3x3(radians, sin=np.sin, cos=np.cos):
+    """
+    References:
+        https://en.wikipedia.org/wiki/Rotation_matrix
+    """
     # TODO: handle array impouts
     sin_ = sin(radians)
     cos_ = cos(radians)
