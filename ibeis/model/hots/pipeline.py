@@ -843,7 +843,9 @@ def spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
         >>> maplen = lambda list_: np.array(list(map(len, list_)))
         >>> assert len(gt_daids) > 0, 'ground truth did not survive'
         >>> ut.assert_lessthan(maplen(fmSV_list), maplen(fm_list)), 'feature matches were not filtered'
+        >>> ut.quit_if_noshow()
         >>> cmSV.show_daids_matches(qreq_, gt_daids)
+        >>> ut.show_if_requested()
         """
     if not qreq_.qparams.sv_on or qreq_.qparams.xy_thresh is None:
         if verbose:
