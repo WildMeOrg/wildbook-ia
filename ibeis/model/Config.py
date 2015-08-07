@@ -989,13 +989,16 @@ class ChipConfig(ConfigBase):
 @six.add_metaclass(ConfigMetaclass)
 class DetectionConfig(ConfigBase):
     """
+    CommandLine:
+        python -m ibeis.model.Config --test-DetectionConfig
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.model.Config import *  # NOQA
         >>> detect_cfg = DetectionConfig()
         >>> result = (detect_cfg.get_cfgstr())
         >>> print(result)
-        _DETECT(rf,zebra_grevys,sz=800)
+        _DETECT(rf,____,sz=800)
     """
     def __init__(detect_cfg, **kwargs):
         super(DetectionConfig, detect_cfg).__init__(name='detect_cfg')
