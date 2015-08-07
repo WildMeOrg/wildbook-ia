@@ -1,4 +1,23 @@
 # HELPS GENERATE CROSS PLATFORM INSTALL SCRIPTS
+# -*- coding: utf-8 -*-
+"""
+TODO:
+    needs a big cleanup.
+    Remove global variables, use functions instead.
+    Make an easy, versionable, and overrideable set of aliases.
+
+CommandLine:
+    ib
+    python ./_scripts/util_cplat_packages.py
+    python ./_scripts/util_cplat_packages.py --os darwin
+    python ./_scripts/util_cplat_packages.py --os linux --distro Ubuntu --distro_version 15.04
+
+    python ./_scripts/bootstrap.py --os darwin
+    python ./_scripts/bootstrap.py --os centos
+    python ./_scripts/bootstrap.py --os win32
+    python ./_scripts/bootstrap.py --os ubuntu --distro_version 15.04
+
+"""
 import sys
 import platform
 import textwrap
@@ -8,6 +27,106 @@ import textwrap
 UPGRADE_PIP     = '--upgrade' in sys.argv
 CHECK_INSTALLED = '--exhaustive' in sys.argv
 CRASH_ON_FAIL   = True
+
+
+def parse_args():
+    arg_dict = {}
+    key = None
+    for arg in sys.argv:
+        if arg.startswith('--'):
+            key = arg.replace('--', '').lower().replace('-', '_')
+            arg_dict[key] = []
+        elif key is not None:
+            arg_dict[key].append(arg)
+    return arg_dict
+
+ARG_DICT = parse_args()
+
+
+# GET SYSTEM CONFIGURATION (OR DESIRED CONFIGURATION)
+
+if 'os' in ARG_DICT:
+    __OS__ = ''.join(ARG_DICT['os'])
+    distro         = ''.join(ARG_DICT.get('distro', []))
+    distro_version = ''.join(ARG_DICT.get('distro_version', []))
+    WIN32         = False
+    MACPORTS, APPLE = False, False
+    LINUX, DEBIAN_FAMILY, FEDORA_FAMILY, ARCH = False, False, False, False
+    if __OS__.lower() in ['apple', 'darwin', 'mac']:
+        MACPORTS = True
+        APPLE    = True
+    elif __OS__.lower() in ['debian', 'ubuntu', 'linuxmint']:
+        if distro == '':
+            distro = 'Ubuntu'
+        LINUX         = True
+        DEBIAN_FAMILY = True
+    elif __OS__.lower() in ['centos']:
+        if distro == '':
+            distro = 'Centos'
+        LINUX    = True
+        FEDORA_FAMILY   = True
+    elif __OS__.lower() in ['arch']:
+        LINUX    = True
+        ARCH     = True
+    elif __OS__.lower() in ['win', 'win32']:
+        WIN32    = True
+else:
+    __OS__ = sys.platform
+    # References: https://docs.python.org/2/library/platform.html#platform.linux_distribution
+
+    APPLE = __OS__.startswith('darwin')
+    WIN32 = __OS__.startswith('win32')
+    LINUX = __OS__.startswith('linux')
+
+    # FIXME: platform.dist is depricated
+    if LINUX:
+        KNOWN_LINUX_DISTS = ('SuSE', 'debian', 'fedora', 'redhat', 'centos',
+                             'mandrake', 'mandriva', 'rocks', 'slackware',
+                             'yellowdog', 'gentoo', 'UnitedLinux', 'turbolinux',
+                             'Ubuntu')
+        (distro, distro_version, distro_tag) = platform.dist()
+        #(distro, distro_version, distro_tag) = platform.linux_distribution()
+    elif WIN32:
+        (distro, distro_version, distro_tag) = platform.dist()
+        #(release, version, csd, ptype) = platform.win32_ver()
+    elif APPLE:
+        (distro, distro_version, distro_tag) = platform.dist()
+        #release, versioninfo, machine = platform.mac_ver()
+    #platform.dist()
+
+    DEBIAN_FAMILY = (distro.lower() in ['ubuntu', 'debian', 'linuxmint'])
+    FEDORA_FAMILY = (distro.lower() in ['centos', 'fedora', 'redhat', 'yellowdog', 'turbolinux'])
+    ARCH = (distro == 'arch')
+    if FEDORA_FAMILY:
+        WIN32 = False
+        LINUX = True
+        APPLE = False
+    MACPORTS = APPLE  # We force macports right now
+
+
+def version_ge(version1, version2):
+    """
+    >>> from util_cplat_packages import *
+    >>> version1 = distro_version
+    >>> version2 = '15.03'
+    """
+    import distutils.version
+    flag = distutils.version.LooseVersion(version1) >= distutils.version.LooseVersion(version2)
+    return flag
+
+
+# PRINT WHAT WE ARE WORKING WITH
+def print_sysinfo():
+    """
+    >>> from util_cplat_packages import *
+    """
+    print('# sysinfo: (%s, %s, %s) ' % (__OS__, distro, distro_version,))
+
+
+# TARGET PYTHON PLATFORM
+TARGET_PY_VERSION = '2.7.6'
+MACPORTS_PY_SUFFIX = TARGET_PY_VERSION.replace('.', '')[0:2]
+MACPORTS_PY_PREFIX = 'py' + MACPORTS_PY_SUFFIX + '-'
 
 
 def get_pip_installed():
@@ -93,6 +212,11 @@ PACMAN_PKGMAP = {
     'fftw3'     : 'fftw',
     'atlas'     : '$AUR atlas-lapack'  # atlas isn't in the main repositories, $AUR will be interpreted to tell the user to install the package from AUR
 }
+
+
+# Additional hacks to the package maps
+if distro == 'Ubuntu' and version_ge(distro_version, '15.04'):
+    APT_GET_PKGMAP['littlecms'] = 'liblcms2-dev'
 
 
 def _fix_yum_repos():
@@ -292,92 +416,6 @@ def shell(*args, **kwargs):
     if verbose:
         print('[cplat] PROCESS FINISHED')
     return out, err, ret
-
-
-def parse_args():
-    arg_dict = {}
-    key = None
-    for arg in sys.argv:
-        if arg.startswith('--'):
-            key = arg.replace('--', '').lower().replace('-', '_')
-            arg_dict[key] = []
-        elif key is not None:
-            arg_dict[key].append(arg)
-    return arg_dict
-
-ARG_DICT = parse_args()
-
-# GET SYSTEM CONFIGURATION (OR DESIRED CONFIGURATION)
-
-if 'os' in ARG_DICT:
-    __OS__ = ''.join(ARG_DICT['os'])
-    distro         = ''
-    distro_version = ''
-    os             = ''
-    MACPORTS = False
-    APPLE    = False
-    DEBIAN_FAMILY   = False
-    FEDORA_FAMILY   = False
-    ARCH     = False
-    WIN32    = False
-    LINUX    = False
-    if __OS__.lower() in ['apple', 'darwin', 'mac']:
-        MACPORTS = True
-        APPLE    = True
-    elif __OS__.lower() in ['debian', 'ubuntu', 'linuxmint']:
-        LINUX         = True
-        DEBIAN_FAMILY = True
-    elif __OS__.lower() in ['centos']:
-        LINUX    = True
-        FEDORA_FAMILY   = True
-    elif __OS__.lower() in ['arch']:
-        LINUX    = True
-        ARCH     = True
-    elif __OS__.lower() in ['win', 'win32']:
-        WIN32    = True
-else:
-    __OS__ = sys.platform
-    # References: https://docs.python.org/2/library/platform.html#platform.linux_distribution
-
-    APPLE = __OS__.startswith('darwin')
-    WIN32 = __OS__.startswith('win32')
-    LINUX = __OS__.startswith('linux')
-
-    # FIXME: platform.dist is depricated
-    if LINUX:
-        known_dists = ('SuSE', 'debian', 'fedora', 'redhat', 'centos',
-                       'mandrake', 'mandriva', 'rocks', 'slackware',
-                       'yellowdog', 'gentoo', 'UnitedLinux', 'turbolinux',
-                       'Ubuntu')
-        (distro, distro_version, distro_tag) = platform.dist()
-        #(distro, distro_version, distro_tag) = platform.linux_distribution()
-    elif WIN32:
-        (distro, distro_version, distro_tag) = platform.dist()
-        #(release, version, csd, ptype) = platform.win32_ver()
-    elif APPLE:
-        (distro, distro_version, distro_tag) = platform.dist()
-        #release, versioninfo, machine = platform.mac_ver()
-    #platform.dist()
-
-    DEBIAN_FAMILY = (distro.lower() in ['ubuntu', 'debian', 'linuxmint'])
-    FEDORA_FAMILY = (distro.lower() in ['centos', 'fedora', 'redhat', 'yellowdog', 'turbolinux'])
-    ARCH = (distro == 'arch')
-    if FEDORA_FAMILY:
-        WIN32 = False
-        LINUX = True
-        APPLE = False
-    MACPORTS = APPLE  # We force macports right now
-
-
-# PRINT WHAT WE ARE WORKING WITH
-def print_sysinfo():
-    print('# sysinfo: (%s, %s, %s) ' % (__OS__, distro, distro_version,))
-
-
-# TARGET PYTHON PLATFORM
-TARGET_PY_VERSION = '2.7.6'
-MACPORTS_PY_SUFFIX = TARGET_PY_VERSION.replace('.', '')[0:2]
-MACPORTS_PY_PREFIX = 'py' + MACPORTS_PY_SUFFIX + '-'
 
 
 # MACPORTS COMMANDS
@@ -727,3 +765,7 @@ def make_prereq_script(pkg_list, pypkg_list, with_sysfix=True, with_syspkg=True,
         output_list.extend(apply_postinstall_fixes())
     output = ''.join(output_list)
     return output
+
+
+if __name__ == '__main__':
+    print_sysinfo()

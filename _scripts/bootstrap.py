@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
 """
 git config --global push.default current
 export CODE_DIR=~/code
@@ -97,12 +98,6 @@ except ImportError as ex:
     module_fpath = os.path.abspath(join(dirname(__file__), 'util_cplat_packages.py'))
     util_cplat_packages = import_module_from_fpath(module_fpath)
 
-make_prereq_script = util_cplat_packages.make_prereq_script
-APPLE = util_cplat_packages.APPLE
-FEDORA_FAMILY = util_cplat_packages.FEDORA_FAMILY
-DEBIAN_FAMILY = util_cplat_packages.DEBIAN_FAMILY
-print_sysinfo = util_cplat_packages.print_sysinfo
-
 
 def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
     PREREQ_PKG_LIST = [
@@ -130,7 +125,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         #libgeos-dev
     ]
 
-    if APPLE:
+    if util_cplat_packages.APPLE:
         PREREQ_PKG_LIST.extend([
             'opencv',
             'libpng',
@@ -138,7 +133,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
             'freetype',
         ])
 
-    if DEBIAN_FAMILY:
+    if util_cplat_packages.DEBIAN_FAMILY:
         PREREQ_PKG_LIST.extend([
             'libfftw3-dev',
             #'libeigen3-dev',
@@ -153,7 +148,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
             'python-opencv',  # Do we really need these~these?
         ])
 
-    if FEDORA_FAMILY:
+    if util_cplat_packages.FEDORA_FAMILY:
         PREREQ_PKG_LIST.extend([
             'python-dev',
         ])
@@ -233,13 +228,14 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
     # Need to do a distribute upgrade before matplotlib on Ubuntu?
     # not sure if that will work yet
 
-    print_sysinfo()
+    util_cplat_packages.print_sysinfo()
     #upgrade()
     with_sysfix = True
     with_syspkg = WITH_SYSPKG
     with_pypkg  = True
-    output = make_prereq_script(PREREQ_PKG_LIST, PREREQ_PYPKG_LIST, with_sysfix,
-                                with_syspkg, with_pypkg, upgrade=UPGRADE)
+    output = util_cplat_packages.make_prereq_script(
+        PREREQ_PKG_LIST, PREREQ_PYPKG_LIST, with_sysfix,
+        with_syspkg, with_pypkg, upgrade=UPGRADE)
     if output == '':
         print('System has all prerequisites!')
     elif not DRYRUN:
