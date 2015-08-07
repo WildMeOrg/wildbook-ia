@@ -296,6 +296,10 @@ def understanding_pseudomax_props(mode=2):
     print('dist_01       = %s' % (ut.numpy_str(dist_01, precision=2),))
     print('dist_256      = %s' % (ut.numpy_str(dist_256, precision=2),))
 
+    print('--')
+    print('sqrt(2)       = %f' % (np.sqrt(2)))
+    print('--')
+
     assert np.all(dist_01 == vt.L2(p1_01, p2_01))
     assert np.all(dist_256 == vt.L2(p1_256, p2_256))
 
@@ -317,7 +321,7 @@ def understanding_pseudomax_props(mode=2):
     assert np.all(dist_sqrd_256 / const_sqrd == dist_sqrd_01)
     print('Conversions work')
 
-    print('Maximal L2 distance between any two L2-NORMALIZED vectors should always be sqrt(2)')
+    print('Maximal L2 distance between any two NON-NEGATIVE L2-NORMALIZED vectors should always be sqrt(2)')
 
 
 def L2(hist1, hist2):

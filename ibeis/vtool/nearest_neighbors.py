@@ -109,6 +109,7 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> # Test upper bounds on sift descriptors
+        >>> # SeeAlso distance.understanding_pseudomax_props
         >>> from vtool.nearest_neighbors import *  # NOQA
         >>> import vtool as vt
         >>> import numpy as np
@@ -364,7 +365,7 @@ def get_kdtree_flann_params():
     return flann_params
 
 
-def get_flann_params(algorithm='kdtree'):
+def get_flann_params(algorithm='kdtree', **kwargs):
     """
     Returns flann params that are relvant tothe algorithm
 
@@ -441,6 +442,7 @@ def get_flann_params(algorithm='kdtree'):
             'multi_probe_level_': 2,
         })
 
+    flann_params = ut.update_existing(flann_params, kwargs, allow_new=False)
     return flann_params
 
 
@@ -577,6 +579,96 @@ def tune_flann(dpts,
         print('all_tuned_params=')
         print(ut.dict_str(tuned_params, sorted_=True, newlines=True))
     return tuned_params
+
+
+def flann_index_time_experiment():
+    r"""
+
+    Shows a plot of how long it takes to build a flann index for a given number of KD-trees
+
+    CommandLine:
+        python -m vtool.nearest_neighbors --test-flann_index_time_experiment
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.nearest_neighbors import *  # NOQA
+        >>> result = flann_index_time_experiment()
+        >>> print(result)
+    """
+    import vtool as vt
+    import pyflann
+    import itertools
+
+    class TestDataPool(object):
+        """
+        Perform only a few allocations of test data
+        """
+        def __init__(self):
+            self.num = 10000
+            self.data_pool = None
+            self.alloc_pool(1000000)
+
+        def alloc_pool(self, num):
+            print('[alloc] num = %r' % (num,))
+            self.num = num
+            self.data_pool = vt.tests.dummy.testdata_dummy_sift(num)
+            print('[alloc] object size ' + ut.get_object_size_str(self.data_pool, 'data_pool'))
+
+        def get_testdata(self, num):
+            if len(self.data_pool) < num:
+                self.alloc_pool(2 * self.num)
+            return self.data_pool[0:num]
+
+    pool = TestDataPool()
+
+    def get_buildtime_data(**kwargs):
+        flann_params = vt.get_flann_params(**kwargs)
+        print('flann_params = %r' % (ut.dict_str(flann_params),))
+        data_list = []
+        num = 1000
+        print('-----')
+        for count in ut.ProgressIter(itertools.count(), nTotal=-1, freq=1, autoadjust=False):
+            num = int(num * 1.2)
+            print('num = %r' % (num,))
+            #if num > 1E6:
+            #    break
+            data = pool.get_testdata(num)
+            print('object size ' + ut.get_object_size_str(data, 'data'))
+            flann = pyflann.FLANN(**flann_params)
+            with ut.Timer(verbose=False) as t:
+                flann.build_index(data)
+            print('t.ellapsed = %r' % (t.ellapsed,))
+            if t.ellapsed > 5 or count > 1000:
+                break
+            data_list.append((count, num, t.ellapsed))
+            print('-----')
+        return data_list, flann_params
+
+    data_list1, params1 = get_buildtime_data(trees=1)
+
+    data_list2, params2 = get_buildtime_data(trees=2)
+
+    data_list4, params4 = get_buildtime_data(trees=4)
+
+    data_list8, params8 = get_buildtime_data(trees=8)
+
+    data_list16, params16 = get_buildtime_data(trees=16)
+
+    import plottool as pt
+
+    def plotdata(data_list):
+        count_arr = ut.get_list_column(data_list, 1)
+        time_arr  = ut.get_list_column(data_list, 2)
+        pt.plot2(count_arr, time_arr, marker='-o', equal_aspect=False,
+                 x_label='num_vectors', y_label='FLANN build time')
+
+    plotdata(data_list1)
+    plotdata(data_list2)
+    plotdata(data_list4)
+    plotdata(data_list8)
+    plotdata(data_list16)
+
+    pt.iup()
 
 
 def invertible_stack(vecs_list, label_list):

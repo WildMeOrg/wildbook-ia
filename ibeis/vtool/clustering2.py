@@ -928,6 +928,58 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     return fig
 
 
+def uniform_sample_hypersphere(num, ndim=2, only_quadrent_1=False):
+    r"""
+    Not quite done yet
+
+    References:
+        https://en.wikipedia.org/wiki/Regular_polytope
+        https://en.wikipedia.org/wiki/Platonic_solid#Higher_dimensions
+        https://en.wikipedia.org/wiki/Cross-polytope
+
+    Args:
+        num (?):
+        ndim (int): (default = 2)
+
+    CommandLine:
+        python -m vtool.clustering2 --test-uniform_sampe_hypersphere
+
+    Ignore:
+        #pip install polytope
+        sudo pip install cvxopt  --no-deps
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> num = 100
+        >>> ndim = 3
+        >>> pts = uniform_sampe_hypersphere(num, ndim)
+        >>> print(pts)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> if ndim == 2:
+        >>>     pt.plot(pts.T[0], pts.T[1], 'gx')
+        >>> elif ndim == 3:
+        >>>     #pt.plot_surface3d(pts.T[0], pts.T[1], pts.T[2])
+        >>>     from mpl_toolkits.mplot3d import Axes3D  # NOQA
+        >>>     fig = pt.figure(1, doclf=True, docla=True)
+        >>>     ax = fig.add_subplot(111, projection='3d')
+        >>>     ax.scatter(pts.T[0], pts.T[1], pts.T[2], s=20, marker='o', alpha=1)
+        >>>     ax.autoscale(enable=False)
+        >>>     ax.set_aspect('equal')
+        >>>     df2.dark_background(ax)
+        >>> pt.dark_background()
+        >>> ut.show_if_requested()
+    """
+    import vtool as vt
+    pts = np.random.rand(num, ndim)
+    if not only_quadrent_1:
+        pts =  pts * 2 - 1
+        pass
+    pts = vt.normalize_rows(pts)
+    return pts
+
+
 if __name__ == '__main__':
     """
     CommandLine:
