@@ -9,35 +9,10 @@ Sympy:
     >>> import sympy
     >>> from sympy.abc import theta
     >>> x, y, a, c, d, sx, sy  = sympy.symbols('x y a c d, sx, sy')
-    >>> #
-    >>> def add_matmul_hold_prop(mat):
-    >>>     def matmul(other, hold=True):
-    >>>         if hold:
-    >>>             new = sympy.MatMul(mat, other)
-    >>>         else:
-    >>>             new = mat.multiply(other)
-    >>>         add_matmul_hold_prop(new)
-    >>>         return new
-    >>>     setattr(mat, 'matmul', matmul)
-    >>>     return mat
-    >>> #
-    >>> def sympy_mat(arr):
-    >>>     mat = sympy.Matrix(arr)
-    >>>     return add_matmul_hold_prop(mat)
-    >>> #
-    >>> def evalprint(str_):
-    >>>     import six
-    >>>     if isinstance(str_, six.string_types):
-    >>>         var = eval(str_, globals(), locals())
-    >>>     else:
-    >>>         var = str_
-    >>>         str_ = ut.get_varname_from_stack(R, N=1)
-    >>>     print(ut.hz_str(str_ + ' = ', repr(var)))
-    >>> print('-------')
-    >>> R = sympy_mat(vt.rotation_mat3x3(theta, sin=sympy.sin, cos=sympy.cos))
-    >>> evalprint('R')
+    >>> R = vt.sympy_mat(vt.rotation_mat3x3(theta, sin=sympy.sin, cos=sympy.cos))
+    >>> vt.evalprint('R')
     >>> #evalprint('R.inv()')
-    >>> evalprint('sympy.simplify(R.inv())')
+    >>> vt.evalprint('sympy.simplify(R.inv())')
     >>> #evalprint('sympy.simplify(R.inv().subs(theta, 4))')
     >>> #print('-------')
     >>> #invR = sympy_mat(vt.rotation_mat3x3(-theta, sin=sympy.sin, cos=sympy.cos))
@@ -46,13 +21,13 @@ Sympy:
     >>> #evalprint('sympy.simplify(invR)')
     >>> #evalprint('sympy.simplify(invR.subs(theta, 4))')
     >>> print('-------')
-    >>> T = sympy_mat(vt.translation_mat3x3(x, y, None))
-    >>> evalprint('T')
-    >>> evalprint('T.inv()')
+    >>> T = vt.sympy_mat(vt.translation_mat3x3(x, y, None))
+    >>> vt.evalprint('T')
+    >>> vt.evalprint('T.inv()')
     >>> print('-------')
-    >>> S = sympy_mat(vt.scale_mat3x3(sx, sy, dtype=None))
-    >>> evalprint('S')
-    >>> evalprint('S.inv()')
+    >>> S = vt.sympy_mat(vt.scale_mat3x3(sx, sy, dtype=None))
+    >>> vt.evalprint('S')
+    >>> vt.evalprint('S.inv()')
     >>> print('-------')
     >>> print('LaTeX')
     >>> print(ut.align('\\\\\n'.join(sympy.latex(R).split(r'\\')).replace('{matrix}', '{matrix}\n'), '&')

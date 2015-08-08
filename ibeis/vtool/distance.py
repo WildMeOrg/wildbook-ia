@@ -50,8 +50,12 @@ def nearest_point(x, y, pts, conflict_mode='next', __next_counter=[0]):
 
 
 @profile
-def ori_distance(ori1, ori2):
-    r""" Returns how far off determinants are from one another
+def ori_distance(ori1, ori2, out=None):
+    r"""
+    Returns the unsigned distance between two angles
+
+    References:
+        http://stackoverflow.com/questions/1878907/the-smallest-difference-between-2-angles
 
     Cyth:
         #if CYTH
@@ -97,9 +101,9 @@ def ori_distance(ori1, ori2):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.distance import *  # NOQA
-        >>> np.random.seed(0)
-        >>> ori1 = (np.random.rand(10) * TAU) - np.pi
-        >>> ori2 = (np.random.rand(10) * TAU) - np.pi
+        >>> rng = np.random.RandomState(0)
+        >>> ori1 = (rng.rand(10) * TAU) - np.pi
+        >>> ori2 = (rng.rand(10) * TAU) - np.pi
         >>> dist_ = ori_distance(ori1, ori2)
         >>> result = ut.numpy_str(ori1, precision=1)
         >>> result += '\n' + ut.numpy_str(ori2, precision=1)
@@ -115,15 +119,23 @@ def ori_distance(ori1, ori2):
         >>> ori1 = np.array([ 0.3,  7.0,  0.0,  3.1], dtype=np.float64)
         >>> ori2 = np.array([ 6.8, -1.0,  0.0, -3.1], dtype=np.float64)
         >>> dist_ = ori_distance(ori1, ori2)
-        >>> result = ut.numpy_str(dist_, precision=1)
+        >>> result = ut.numpy_str(dist_, precision=2)
         >>> print(result)
-        np.array([ 0.2,  1.7,  0. ,  0.1], dtype=np.float64)
+        np.array([ 0.22,  1.72,  0.  ,  0.08], dtype=np.float64)
+
+    Ignore:
+        # This also works
+        ori_dist = np.abs(np.arctan2(np.sin(ori1 - ori2), np.cos(ori1 - ori2)))
+        %timeit np.abs(np.arctan2(np.sin(ori1 - ori2), np.cos(ori1 - ori2)))
     """
     # TODO: Cython
-    # TODO: Outvariable
-    ori_dist = np.abs(ori1 - ori2)
-    np.mod(ori_dist, TAU, out=ori_dist)
-    np.minimum(ori_dist, np.subtract(TAU, ori_dist), out=ori_dist)
+    if out is None:
+        out = np.empty(ori1.shape, dtype=np.float64)
+    ori_diff  = np.subtract(ori1, ori2, out=out)
+    abs_diff  = np.abs(ori_diff, out=out)
+    mod_diff1 = np.mod(abs_diff, TAU, out=out)
+    mod_diff2 = np.subtract(TAU, mod_diff1)
+    ori_dist  = np.minimum(mod_diff1, mod_diff2, out=out)
     return ori_dist
 
 

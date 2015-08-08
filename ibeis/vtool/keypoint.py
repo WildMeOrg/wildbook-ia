@@ -31,39 +31,91 @@ Representation:
          into an ellipse.
 
 Sympy:
-    # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
-    from vtool.patch import *  # NOQA
-    import sympy
-    from sympy.abc import theta
-    ori = theta
-    x, y, iv11, iv21, iv22, patch_size = sympy.symbols('x y iv11 iv21 iv22 S')
-    kpts = np.array([[x, y, iv11, iv21, iv22, ori]])
-    kp = ktool.get_invV_mats(kpts, with_trans=True)[0]
-    invV = sympy.Matrix(kp)
-    V = invV.inv()
+    >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
+    >>> from vtool.patch import *  # NOQA
+    >>> import sympy
+    >>> from sympy.abc import theta
+    >>> ori = theta
+    >>> x, y, iv11, iv21, iv22, patch_size = sympy.symbols('x y iv11 iv21 iv22 S')
+    >>> sx, sy, w1, w2, tx, ty = sympy.symbols('sx, sy, w1, w2, tx, ty')
+    >>> kpts = np.array([[x, y, iv11, iv21, iv22, ori]])
+    >>> kp = ktool.get_invV_mats(kpts, with_trans=True)[0]
+    >>> invV = sympy.Matrix(kp)
+    >>> V = invV.inv()
+    >>> #
+    >>> print(ut.hz_str('invV = ', repr(invV)))
+    >>> invV = sympy.Matrix([
+    >>>        [iv11,  0.0,   x],
+    >>>        [iv21, iv22,   y],
+    >>>        [ 0.0,  0.0, 1.0]])
+    >>> R = vt.sympy_mat(vt.rotation_mat3x3(theta, sin=sympy.sin, cos=sympy.cos))
+    >>> invVR = invV.multiply(R)
+    >>> trans = sympy.Matrix([
+    >>>        [   1,  0.0,   x],
+    >>>        [   0,    1,   y],
+    >>>        [ 0.0,  0.0, 1.0]])
+    >>> #
+    >>> Hypoth = sympy.Matrix([
+    >>>        [     sx,    w1,   tx],
+    >>>        [     w2,    sy,   ty],
+    >>>        [      0,     0,    1],
+    >>>        ])
+    >>> #
+    >>> xyz = sympy.Matrix([[x], [y], [1]])
+    >>> #
+    >>> invV_2x2 = invV[0:2, 0:2]
+    >>> Hypoth_2x2 = Hypoth[0:2, 0:2]
+    >>> #
+    >>> invV_t = sympy.simplify(Hypoth.multiply(invV))
+    >>> xyz_t = sympy.simplify(Hypoth.multiply(xyz))
+    >>> invV_2x2_t = Hypoth_2x2.multiply(invV_2x2)
+    >>> print('\n----')
+    >>> vt.evalprint('invV_t')
+    >>> vt.evalprint('xyz_t')
+    >>> vt.evalprint('invV_2x2_t')
+    >>> print('-----')
+    >>> #
+    >>> print('\n--- CHECKING 3x3 ---')
+    >>> vt.check_expr_eq(invV_t[:, 2], xyz_t)
+    >>> print('\n--- CHECKING 2x2 ---')
+    >>> vt.check_expr_eq(invV_t[0:2, 0:2], invV_2x2_t)
+    >>> #
+    >>> # CHeck with rotation component as well (probably ok)
+    >>> invVR_2x2 = invVR[0:2, 0:2]
+    >>> invVR_t = sympy.simplify(Hypoth.multiply(invVR))
+    >>> invVR_2x2_t = sympy.simplify(Hypoth_2x2.multiply(invVR_2x2))
+    >>> print('\n----')
+    >>> vt.evalprint('invVR_t')
+    >>> print('\n----')
+    >>> vt.evalprint('invVR_2x2_t')
+    >>> print('-----')
+    >>> #
+    >>> print('\n--- CHECKING ROTATION + TRANSLATION 3x3 ---')
+    >>> vt.check_expr_eq(invVR_t[:, 2], xyz_t)
+    >>> print('\n--- CHECKING ROTATION 2x2 ---')
+    >>> vt.check_expr_eq(invVR_t[0:2, 0:2], invVR_2x2_t)
+    >>> ####
+    >>> ####
+    >>> ####
+    >>> # Checking orientation property
+    >>> [[ivr11, ivr12, ivr13], [ivr21, ivr22, ivr23], [ivr31, ivr32, ivr33],] = invVR.tolist()
+    >>> ori = sympy.atan2(ivr12, ivr11)  # outputs from -TAU/2 to TAU/2
+    >>> z = ori.subs(dict(iv11=1, theta=1))
+    >>> sympy.trigsimp(sympy.simplify(sympy.trigsimp(z)))
 
-    print(ut.hz_str('invV = ', repr(invV)))
-    invV = Matrix([
-           [iv11,  0.0,   x],
-           [iv21, iv22,   y],
-           [ 0.0,  0.0, 1.0]])
-
-    invV2 = sympy.Matrix([
-           [iv11,  0.0,   0],
-           [iv21, iv22,   0],
-           [ 0.0,  0.0, 1.0]])
-
-    trans = sympy.Matrix([
-           [   1,  0.0,   x],
-           [   0,    1,   y],
-           [ 0.0,  0.0, 1.0]])
-
-
-    print(ut.hz_str('V = ', repr(V)))
+    #_oris = np.arctan2(_iv12s, _iv11s)  # outputs from -TAU/2 to TAU/2
+    >>> # OLD STUFF
+    >>> #
+    >>> print(ut.hz_str('V = ', repr(V)))
     V = Matrix([
         [           1/iv11,      0,                 -1.0*x/iv11],
         [-iv21/(iv11*iv22), 1/iv22, -1.0*(y - iv21*x/iv11)/iv22],
         [                0,      0,                         1.0]])
+    >>> print(ut.hz_str('V = ', repr(sympy.simplify(invV.inv()))))
+    V = Matrix([
+        [           1/iv11,      0,                        -1.0*x/iv11],
+        [-iv21/(iv11*iv22), 1/iv22, 1.0*(-iv11*y + iv21*x)/(iv11*iv22)],
+        [                0,      0,                                1.0]])
 
 
 
@@ -286,13 +338,15 @@ def get_invVR_mats2x2(kpts):
     # This is because we are dealing with \emph{inv}(V).
     # numpy operates with data on the right (operate right-to-left)
     R_mats2x2  = get_ori_mats(kpts)
-    with ut.EmbedOnException():
-        invVR_mats2x2 = matrix_multiply(invV_mats2x2, R_mats2x2)
+    #with ut.EmbedOnException():
+    invVR_mats2x2 = matrix_multiply(invV_mats2x2, R_mats2x2)
     return invVR_mats2x2
 
 
 def augment_2x2_with_translation(kpts, _mat2x2):
-    """ helper function to augment shape matrix with a translation component """
+    """
+    helper function to augment shape matrix with a translation component.
+    """
     nKpts = len(kpts)
     # Unpack shape components
     _11s = _mat2x2.T[0, 0]
@@ -937,7 +991,7 @@ def get_invVR_mats_shape(invVR_mats):
 def get_invVR_mats_xys(invVR_mats):
     r"""
     extracts locations
-    extracts xys from matrix encoding
+    extracts xys from matrix encoding, Its just the (0, 2), and (1, 2) components
 
     Args:
         invVR_mats (ndarray) : list of matrices mapping ucircles to ellipses
@@ -987,7 +1041,8 @@ def get_invVR_mats_xys(invVR_mats):
 
 #@profile
 def get_invVR_mats_oris(invVR_mats):
-    r""" extracts orientation from matrix encoding
+    r""" extracts orientation from matrix encoding, this is a bit tricker
+    can use -arctan2 or (0, 0) and (0, 1), but then have to normalize
 
     CommandLine:
         python -m vtool.keypoint --test-get_invVR_mats_oris
@@ -1019,6 +1074,57 @@ def get_invVR_mats_oris(invVR_mats):
         _oris = (-_oris) % TAU
         return _oris
         #else
+
+    Sympy:
+        >>> import sympy
+        >>> theta = sympy.abc.theta
+        >>> x, y, iv11, iv21, iv22 = sympy.symbols('x y iv11 iv21 iv22')
+        >>> # First orient a unit circle
+        >>> R = sympy.Matrix([
+        >>>         [sympy.cos(theta), -sympy.sin(theta), 0],
+        >>>         [sympy.sin(theta),  sympy.cos(theta), 0],
+        >>>         [               0,           0,       1]])
+        >>> # Warps a unit circle at (0, 0) onto an ellipse at (x, y)
+        >>> invV = sympy.Matrix([
+        >>>         [iv11,  0.0,   x],
+        >>>         [iv21, iv22,   y],
+        >>>         [ 0.0,  0.0, 1.0]])
+        >>> invVR = invV.multiply(R)
+        >>> print(invVR)
+        >>> print(repr(invVR))
+        >>> vt.rrrr()
+        >>> print(vt.sympy_latex_repr(invVR))
+        Matrix([
+        [                  iv11*cos(theta),                   -iv11*sin(theta),   x],
+        [iv21*cos(theta) + iv22*sin(theta), -iv21*sin(theta) + iv22*cos(theta),   y],
+        [                                0,                                  0, 1.0]])
+        >>> print(sympy.latex(invVR))
+        >>> # Now extract the orientation from any invVR formated matrix
+        >>> [[ivr11, ivr12, ivr13], [ivr21, ivr22, ivr23], [ivr31, ivr32, ivr33],] = invVR.tolist()
+        >>> # tan = sin / cos
+        >>> symtau = 2 * sympy.pi
+        >>> #ivr11 must be positive for this to work
+        >>> ori = (-sympy.atan2(ivr12, ivr11)) % (symtau)  # outputs from -TAU/2 to TAU/2
+        >>> # Check Equality with a domain
+        >>> expr1 = ori
+        >>> expr2 = theta
+        >>> domain = {theta: (0, 2 * np.pi)}
+        >>> truth_list, results_list, input_list = vt.symbolic_randcheck(ori, theta, domain, n=7)
+        >>> print(ut.list_str(truth_list, precision=2))
+        >>> print(ut.list_str(results_list, precision=2))
+        >>> print(ut.list_str(input_list, precision=2))
+        >>> difference = results_list.T[1] - results_list.T[0]
+        >>> print('diff = ' + ut.list_str(difference))
+        >>> print('ori diff = ' + ut.list_str(vt.ori_distance(results_list.T[1], results_list.T[0])))
+
+        truth_list, results_list, input_list =
+        check_random_points(sympy.sin(theta) / sympy.cos(theta),
+        sympy.tan(theta))
+        _oris = (-trig.atan2(_iv12s, _iv11s)) % TAU
+        ori.evalf(subs=dict(iv11=1, theta=3), verbose=True)
+        sympy.trigsimp(sympy.simplify(sympy.trigsimp(z)))
+        ori = np.arctan2(_iv12s, _iv11s)
+        z = ori.subs(dict(iv11=1, theta=1))
 
     Timeit:
         >>> import utool as ut
