@@ -1071,29 +1071,88 @@ def get_invVR_mats_oris(invVR_mats):
         _iv12s = invVR_mats[:, 0, 1]
         _oris = np.arctan2(_iv12s, _iv11s)  # outputs from -TAU/2 to TAU/2
         _oris[_oris < 0] = _oris[_oris < 0] + TAU  # map to 0 to TAU (keep coords)
-        _oris = (-_oris) % TAU
+        _oris = (-_oris) % TAexpr1_reprexpr1_reprU
         return _oris
         #else
 
     Sympy:
+        # Construct V
+        >>> x, y, iv21 = sympy.symbols('x y g', real=True, finite=True)
+        >>> vx, vy, v21 = sympy.symbols('vx, vy, c', real=True, finite=True)
+        >>> v11, v22 = sympy.symbols('a d', positive=True, real=True, finite=True)
+        >>> V = vt.sympy_mat([
+        >>>         [v11,  0.0,   0],
+        >>>         [v21,  v22,   0],
+        >>>         [0.0,  0.0, 1.0]])
+        >>> R = vt.sympy_mat([
+        >>>         [ sympy.cos(theta), sympy.sin(theta), 0],
+        >>>         [-sympy.sin(theta), sympy.cos(theta), 0],
+        >>>         [               0,           0,       1]])
+        >>> T = sympy.Matrix([
+        >>>        [   1,  0.0,   -x],
+        >>>        [   0,    1,   -y],
+        >>>        [ 0.0,  0.0, 1.0]])
+        >>> RVT_full = R.matmul(V, hold=False).matmul(T, hold=False)
+
+        >>> invT = vt.add_matmul_hold_prop(T.inv())
+        >>> invR = vt.add_matmul_hold_prop(sympy.simplify(R.inv()))
+        >>> invR = vt.sympy_mat([
+        >>>         [sympy.cos(-theta), sympy.sin(-theta), 0],
+        >>>         [-sympy.sin(-theta), sympy.cos(-theta), 0],
+        >>>         [               0,           0,       1]])
+        >>> invV = vt.add_matmul_hold_prop(V.inv())
+
+        >>> invTVR_full = invT.matmul(invV, hold=True).matmul(invR, hold=True)
+        >>> invTVR_full = invT.matmul(invV, hold=False).matmul(invR, hold=False)
+        >>> #invTVR = sympy.simplify(RVT_full.inv())
+        >>> expr1_repr = vt.sympy_latex_repr(invTVR_full)
+        >>> print(expr1_repr)
+        >>> ut.copy_text_to_clipboard(expr1_repr)
+
+
+    Sympy:
         >>> import sympy
         >>> theta = sympy.abc.theta
-        >>> x, y, iv11, iv21, iv22 = sympy.symbols('x y iv11 iv21 iv22')
         >>> # First orient a unit circle
-        >>> R = sympy.Matrix([
+        >>> x, y, iv21 = sympy.symbols('x y g', real=True, finite=True)
+        >>> vx, vy, v21 = sympy.symbols('vx, vy, c', real=True, finite=True)
+        >>> iv11, iv22 = sympy.symbols('e h', real=True, finite=True, positive=True)
+        >>> v11, v22 = sympy.symbols('a d', positive=True, real=True, finite=True)
+        >>> R = vt.sympy_mat([
         >>>         [sympy.cos(theta), -sympy.sin(theta), 0],
         >>>         [sympy.sin(theta),  sympy.cos(theta), 0],
         >>>         [               0,           0,       1]])
         >>> # Warps a unit circle at (0, 0) onto an ellipse at (x, y)
-        >>> invV = sympy.Matrix([
+        >>> invV = vt.sympy_mat([
         >>>         [iv11,  0.0,   x],
         >>>         [iv21, iv22,   y],
         >>>         [ 0.0,  0.0, 1.0]])
+        >>> V = vt.sympy_mat([
+        >>>         [v11,  0.0,  vx],
+        >>>         [v21,  v22,  vy],
+        >>>         [0.0,  0.0, 1.0]])
+        veq = sympy.Eq(invVR, VR.inv())
+        print('iv11 = ' + str(sympy.solve(veq, iv11)))
+        print('iv21 = ' + str(sympy.solve(veq, iv21)))
+        print('iv22 = ' + str(sympy.solve(veq, iv22)))
+        print('x = ' + str(sympy.solve(veq, x)))
+        print('y = ' + str(sympy.solve(veq, y)))
+        inveq = sympy.Eq(V, invV.inv())
+        print('v11 = ' + str(sympy.solve(inveq, v11)))
+        print('v12 = ' + str(sympy.solve(inveq, v21)))
+        print('v22 = ' + str(sympy.solve(inveq, v22)))
         >>> invVR = invV.multiply(R)
+        >>> invV.matmul(R, hold=True)
+        >>> ut.eval
         >>> print(invVR)
         >>> print(repr(invVR))
         >>> vt.rrrr()
-        >>> print(vt.sympy_latex_repr(invVR))
+        >>> other_repr = vt.sympy_latex_repr(invV.matmul(R, hold=True))
+        >>> print(other_repr)
+        >>> ut.copy_text_to_clipboard(other_repr)
+        >>> expr1_repr = vt.sympy_latex_repr(invVR)
+        >>> print(expr1_repr)
+        >>> ut.copy_text_to_clipboard(expr1_repr)
         Matrix([
         [                  iv11*cos(theta),                   -iv11*sin(theta),   x],
         [iv21*cos(theta) + iv22*sin(theta), -iv21*sin(theta) + iv22*cos(theta),   y],
