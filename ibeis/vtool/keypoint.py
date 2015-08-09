@@ -138,7 +138,7 @@ from vtool import chip as ctool
 from vtool import distance as dtool
 from vtool import trig
 import utool as ut
-#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[kpts]')
+(print, rrr, profile) = ut.inject2(__name__, '[kpts]')
 
 
 """
@@ -1076,49 +1076,327 @@ def get_invVR_mats_oris(invVR_mats):
         #else
 
     Sympy:
-        # Construct V
-        >>> x, y, iv21 = sympy.symbols('x y g', real=True, finite=True)
-        >>> vx, vy, v21 = sympy.symbols('vx, vy, c', real=True, finite=True)
-        >>> v11, v22 = sympy.symbols('a d', positive=True, real=True, finite=True)
+        >>> # BEST PROOF SO FAR OF EXTRACTION FROM ARBITRARY COMPOMENTS
+        >>> from vtool.keypoint import *
+        >>> import vtool as vt
+        >>> import sympy
+        >>> symkw = dict(real=True, finite=True)
+        >>> #x, y, v21  = sympy.symbols('x, y, v21', **symkw)
+        >>> #v11, v22    = sympy.symbols('v11, v22', positive=True, **symkw)
+        >>> x, y, v21  = sympy.symbols('x, y, c', **symkw)
+        >>> v11, v22    = sympy.symbols('a, d', positive=True, **symkw)
+        >>> theta       = sympy.symbols('theta', **symkw)
+        >>> symtau = 2 * sympy.pi
+        >>> # Forward rotation
+        >>> keypoint_terms = [x, y, v11, v21, v22, theta]
+        >>> # Ell to ucircle
         >>> V = vt.sympy_mat([
         >>>         [v11,  0.0,   0],
         >>>         [v21,  v22,   0],
         >>>         [0.0,  0.0, 1.0]])
+        >>> # Backwards rotation
         >>> R = vt.sympy_mat([
-        >>>         [ sympy.cos(theta), sympy.sin(theta), 0],
-        >>>         [-sympy.sin(theta), sympy.cos(theta), 0],
-        >>>         [               0,           0,       1]])
-        >>> T = sympy.Matrix([
+        >>>         [sympy.cos(-theta), -sympy.sin(-theta), 0],
+        >>>         [sympy.sin(-theta),  sympy.cos(-theta), 0],
+        >>>         [                0,                  0, 1]])
+        >>> # Backwards translation
+        >>> T = vt.sympy_mat([
         >>>        [   1,  0.0,   -x],
         >>>        [   0,    1,   -y],
         >>>        [ 0.0,  0.0, 1.0]])
-        >>> RVT_full = R.matmul(V, hold=False).matmul(T, hold=False)
+        >>> # Scale is the inverse square root determinant of the shape matrix.
+        >>> scale = 1 / sympy.sqrt(sympy.det(V))
+        >>> # Inverse of components
+        >>> invT = T.inv_()
+        >>> invR = vt.sympy_mat(sympy.simplify(R.inv_()))
+        >>> invV = V.inv_()  # TODO: figure out how to make -theta say inside sin and cos
+        >>> # -----------
+        >>> # Build the B matrix
+        >>> RVT_held_full = R.matmul(V, hold=True).matmul(T, hold=True)
+        >>> RVT_full = RVT_held_full.as_mutable()
+        >>> # Build the inv(B) matrix
+        >>> invTVR_held_full = invT.matmul(invV, hold=True).matmul(invR, hold=True)
+        >>> invTVR_full = invTVR_held_full.as_mutable()
+        >>> # ------------------------
+        >>> # Build the invTVR_full in arbitrary terms
+        >>> iv11, iv12, iv13, iv21, iv22, iv23 = sympy.symbols('iv11, iv12, iv13, iv21, iv22, iv23', **symkw)
+        >>> arb_symbols = [iv11, iv12, iv13, iv21, iv22, iv23]
+        >>> invVR_arb = vt.sympy_mat([
+        >>>        [   iv11, iv12, iv13],
+        >>>        [   iv21, iv22, iv23],
+        >>>        [    0.0,  0.0, 1.0]])
+        >>> # Set set terms equal to the construction from the inverse
+        >>> arb_expr1 = sympy.Eq(invVR_arb, invTVR_full)
+        >>> arb_assign = sympy.solve(arb_expr1, arb_symbols)
+        >>> # Solve for keypoint varibles in terms of the arbitrary invVR_arb mat
+        >>> solutions = sympy.solve(arb_expr1, x, y)
+        >>> solutions[theta] = sympy.solve(arb_expr1, theta)
+        >>> # Solutions for scale is not well defined, but can be taken through the determ
+        >>> #solutions_ad = sympy.solve(arb_expr1, v11, v22)
+        >>> #solutions_scale = sympy.solve(arb_expr1, scale)
+        >>> #solutions = sympy.solve(arb_expr1, *keypoint_terms)
+        >>> # ------------------------
+        >>> # Print review info (ell to ucirc)
+        >>> print('Keypoint review (RVT):')
+        >>> indenter = ut.Indenter('[RVT] ')
+        >>> print = indenter.start()
+        >>> print('Translate keypoint to origin')
+        >>> vt.evalprint('T')
+        >>> print('Warp from ellipse to unit circle shape:')
+        >>> vt.evalprint('V')
+        >>> print('Orientation normalize by -theta radians')
+        >>> vt.evalprint('R')
+        >>> print('These can be combined as such:')
+        >>> vt.evalprint('RVT_held_full')
+        >>> print('This simplifies to a matrix which tranlates, scales, skews, and rotates an ellipse into a unit circle')
+        >>> print('(B) = RVT')
+        >>> vt.evalprint('RVT_full')
+        >>> print = indenter.stop()
+        >>> # ------------------------
+        >>> # Print review info (ucirc to ell)
+        >>> print('\nNow backwards:')
+        >>> print('Unorient')
+        >>> indenter = ut.Indenter('[invTVR] ')
+        >>> print = indenter.start()
+        >>> vt.evalprint('invR')
+        >>> print('Warp from unit circle to ellipse')
+        >>> vt.evalprint('invV')
+        >>> print('Translate to point in annot space')
+        >>> vt.evalprint('invT')
+        >>> print('These can be combined as such:')
+        >>> vt.evalprint('invTVR_held_full')
+        >>> print('This simplifies to a matrix which rotates, skews, scales, and translates a unit circle into an ellipse')
+        >>> print('inv(B) = inv(T) inv(V) inv(R)')
+        >>> vt.evalprint('invTVR_full')
+        >>> print = indenter.stop()
+        >>> # ------------------------
+        >>> # Now we will solve for keypoint componts given an arbitrary shape matrix
+        >>> print('\n')
+        >>> print('Given an arbitrary invVRT shape matrix')
+        >>> vt.evalprint('invVR_arb')
+        >>> print('The keypoint compoments can be extracte as such')
+        >>> print('The position is easy')
+        >>> print('Scale is not found through symbolic manipulation but can be taken through linear algebra properites')
+        >>> print('Orientation is a bit more involved')
+        >>> print(ut.dict_str(solutions, sorted_=True))
+        >>> # PROOVE ORIENTATION EQUATION IS CORRECT
+        >>> #ivr11 must be positive for this to work
+        >>> ori_arb = (-sympy.atan2(iv12, iv11)) % (symtau)
+        >>> ori_arb_nomod = sympy.atan2(iv12, iv11)  # outputs from -TAU/2 to TAU/2
+        >>> scale_arb = sympy.sqrt(sympy.det(invVR_arb))
+        >>> print('\n CLAIM:')
+        >>> print('Scale is be computed as:')
+        >>> vt.evalprint('scale_arb')
+        >>> vt.evalprint('scale_arb.subs(arb_assign)')
+        >>> vt.evalprint('scale_arb.subs(arb_assign)', simplify=True)
+        >>> print('\n CLAIM:')
+        >>> print('Orientation is be computed as:')
+        >>> vt.evalprint('ori_arb')
+        >>> vt.evalprint('ori_arb.subs(arb_assign)')
+        >>> vt.evalprint('ori_arb.subs(arb_assign)', simplify=True)
+        >>> ori_subs = ori_arb.subs(arb_assign)
+        >>> print('Consider only the arctan2 part')
+        >>> # hack aroung resolve atan2
+        >>> ori_arb_nomod = sympy.atan2(iv12, iv11)
+        >>> from sympy.assumptions.refine import refine_atan2
+        >>> # There are 3 cases we need to wory about for atan2(y, x)
+        >>> # Case where x is positive
+        >>> atan2_case1 = refine_atan2(ori_arb_nomod,
+        >>>      sympy.Q.real(iv12) & sympy.Q.positive(iv11))
+        >>> # Case where x is negative and y is non-negative
+        >>> atan2_case2 = refine_atan2(ori_arb_nomod,
+        >>>     sympy.Q.negative(iv11) & sympy.Q.positive(iv12))
+        >>> # Case where x is negative and y is negative
+        >>> atan2_case3 = refine_atan2(ori_arb_nomod,
+        >>>     sympy.Q.negative(iv11) & sympy.Q.negative(iv12))
+        >>> atan2_case_strs = ['QI, QIV', 'QII', 'QIII']
+        >>> theta_ranges = [(-TAU / 4, TAU / 4, False, False), (TAU / 4, TAU / 2, True, True), (TAU / 2, 3 * TAU / 4, False, True)]
+        >>> atan2_case_list = [atan2_case1, atan2_case2, atan2_case3]
+        >>> for caseno, atan2_case in enumerate(atan2_case_list):
+        >>>     print('\n----\ncaseno = %r' % (caseno,))
+        >>>     print('Quadrent: %r'  % (atan2_case_strs[caseno]))
+        >>>     print('theta_ranges: %r'  % (theta_ranges[caseno],))
+        >>>     atan2_case_subs = atan2_case.subs(arb_assign)
+        >>>     vt.evalprint('atan2_case_subs')
+        >>>     atan2_case_subs = sympy.simplify(atan2_case_subs)
+        >>>     atan2_case_subs = sympy.trigsimp(atan2_case_subs)
+        >>>     vt.evalprint('atan2_case_subs')
+        >>>     ori_arb_case = (-atan2_case) % (symtau)
+        >>>     ori_arb_case_subs = ori_arb_case.subs(arb_assign)
+        >>>     ori_arb_case_subs = sympy.simplify(ori_arb_case_subs)
+        >>>     ori_arb_case_subs = sympy.trigsimp(ori_arb_case_subs)
+        >>>     vt.evalprint('ori_arb_case_subs')
+        >>> #
 
-        >>> invT = vt.add_matmul_hold_prop(T.inv())
-        >>> invR = vt.add_matmul_hold_prop(sympy.simplify(R.inv()))
-        >>> invR = vt.sympy_mat([
-        >>>         [sympy.cos(-theta), sympy.sin(-theta), 0],
-        >>>         [-sympy.sin(-theta), sympy.cos(-theta), 0],
-        >>>         [               0,           0,       1]])
-        >>> invV = vt.add_matmul_hold_prop(V.inv())
+        nptheta = np.linspace(0, 2 * np.pi, 32, endpoint=False)
 
-        >>> invTVR_full = invT.matmul(invV, hold=True).matmul(invR, hold=True)
-        >>> invTVR_full = invT.matmul(invV, hold=False).matmul(invR, hold=False)
-        >>> #invTVR = sympy.simplify(RVT_full.inv())
+        mapping = np.arctan(np.tan(nptheta))
+        print(ut.list_str(zip(nptheta / (2 * np.pi), nptheta, mapping, nptheta == mapping), precision=3))
+        print(ut.list_str(zip(nptheta / (2 * np.pi), nptheta, mapping  % (np.pi * 2), nptheta == mapping % (np.pi * 2)), precision=3))
+
+        >>> # NUMPY CHECKS
+
+        >>> nptheta_special = [ np.arccos(0), -np.arccos(0), -np.arcsin(0),  np.arcsin(0) ]
+        >>> nptheta = np.array(np.linspace(0, 2 * np.pi, 64, endpoint=False).tolist() + nptheta_special)
+        >>> # Case 1
+        >>> #\modfn{\paren{-\atan{\tan{(-\theta)}}} }{\TAU}           &\text{if } \cos{(-\theta )} > 0 \\
+        >>> flags = np.cos(-nptheta) > 0
+        >>> case1_theta  = nptheta.compress(flags)
+        >>> case1_result = (-np.arctan(np.tan(-case1_theta)) % TAU)
+        >>> case1_theta == case1_result
+
+        >>> print(ut.list_str(zip(case1_theta, case1_result, vt.ori_distance(case1_theta, case1_result) ), precision=3))
+        >>> #
+        >>> # Case 2
+        >>> #\modfn{\paren{-\atan{\tan{(-\theta)}} - \pi }}{\TAU}     &\text{if } \cos{(-\theta )} < 0 \AND \sin{(-\theta )} \ge 0 \\
+        >>> flags = (np.cos(-nptheta) < 0) * (np.sin(-nptheta) >= 0)
+        >>> case2_theta =  nptheta.compress(flags)
+        >>> case2_result = (-np.arctan(np.tan(-case2_theta)) - np.pi) % TAU
+        >>> print(ut.list_str(zip(case2_theta, case2_result, vt.ori_distance(case2_theta, case2_result) ), precision=3))
+        >>> # Case 3
+        >>> #\modfn{\paren{-\atan{\tan{(-\theta)}} + \pi }}{\TAU} &\text{if } \cos{(-\theta )} < 0 \AND \sin{(-\theta )} < 0 \\
+        >>> flags = (np.cos(-nptheta) < 0) * (np.sin(-nptheta) < 0)
+        >>> case3_theta =  nptheta.compress(flags)
+        >>> case3_result = (-np.arctan(np.tan(-case3_theta)) + np.pi) % TAU
+        >>> print(ut.list_str(zip(case3_theta, case3_result, vt.ori_distance(case3_theta, case3_result)), precision=3))
+        >>> # Case 4
+        >>> #\modfn{\paren{-\frac{\pi}{2} }}{\TAU}                &\text{if } \cos{(-\theta )} = 0 \AND \sin{(-\theta )} > 0 \\
+        >>> # There are 2 locations with cos(-theta) = 0 and sing(-theta) > 0
+        >>> # case4_theta = [ 3 * TAU / 4,    -TAU / 4]
+        >>> cosine0_theta = np.array([TAU / 4, TAU * 3 / 4, -TAU / 4, -TAU * 3 / 4]) # positions with cosine = 0
+        >>> flags = (np.isclose(np.cos(-cosine0_theta), 0) * (np.sin(-cosine0_theta) > 0))
+        >>> case4_theta =  cosine0_theta.compress(flags)
+        >>> print('case4_theta = %r =? %r' % (case4_theta, (-TAU / 4) % TAU))
+        >>> # Case 5
+        >>> # There are 2 locations with cos(-theta) = 0 and sing(-theta) < 0
+        >>> # case4_theta = [ -3 * TAU / 4,    TAU / 4]
+        >>> #\modfn{\paren{\frac{\pi}{2} }}{\TAU}                &\text{if } \cos{(-\theta )} = 0 \AND \sin{(-\theta )} < 0 \\
+        >>> flags = (np.isclose(np.cos(-cosine0_theta), 0) * (np.sin(-cosine0_theta) < 0))
+        >>> case5_theta =  cosine0_theta.compress(flags)
+        >>> print('case5_theta = %r =? %r' % (case5_theta, (TAU / 4) % TAU))
+
+        # numpy check
+
+
+        >>> # LATEX PART
+        >>> expr1_repr = vt.sympy_latex_repr(invTVR_held_full)
+        >>> print(expr1_repr)
+        >>> ut.copy_text_to_clipboard(expr1_repr)
+        >>>
         >>> expr1_repr = vt.sympy_latex_repr(invTVR_full)
         >>> print(expr1_repr)
         >>> ut.copy_text_to_clipboard(expr1_repr)
 
 
+        >>> from sympy import Symbol, Q, refine, atan2
+        >>> from sympy.assumptions.refine import refine_atan2
+        >>> from sympy.abc import x, y
+        >>> print(refine_atan2(atan2(y,x), Q.real(y) & Q.positive(x)))
+        >>> print(refine_atan2(atan2(y,x), Q.negative(y) & Q.negative(x)))
+        >>> print(refine_atan2(atan2(y,x), Q.positive(y) & Q.negative(x)))
+        atan(y/x)
+        atan(y/x) - pi
+        atan(y/x) + pi
+
+        >>> negtheta = sympy.symbols('negtheta', **symkw)
+        >>> ori_subs2 = sympy.simplify(sympy.trigsimp(ori_subs))
+
+        >>> ori_subs3 = ori_subs2.subs({theta:-negtheta})
+        >>> ori_subs4 = sympy.simplify(ori_subs3)
+        Out[45]: Mod(-atan2(sin(negtheta)/a, cos(negtheta)/a), 2*pi)
+
+        SimpleError:
+            import sympy
+            from sympy.assumptions.refine import refine_atan2
+            symkw = dict(real=True, finite=True)
+            a = sympy.symbols('a', positive=True, **symkw)
+            theta  = sympy.symbols('theta', **symkw)
+
+            iv11, iv12  = sympy.symbols('iv11, iv12', **symkw)
+            arb_assign = {
+                 iv12: -sympy.sin(theta)/a,
+                 iv11: sympy.cos(theta)/a,
+            }
+
+            ori_subs_nomod = sympy.atan2(-sympy.sin(theta)/a, sympy.cos(theta)/a)
+            atan2_case1 = refine_atan2(ori_subs_nomod,
+                sympy.Q.real(arb_assign[iv12]) & sympy.Q.positive(arb_assign[iv11])
+            )
+
+
+
+        >>> ori_subs3 = ori_subs2.subs({theta:0})
+        >>> ori_subs3 = ori_subs2.subs(dict(theta=0), simultanious=True)
+        for sym in ori_subs2.free_symbols:
+            print('%r.assumptions0 = %s' % (sym, ut.dict_str(sym.assumptions0),))
+
+
+
+        >>> #invTVR = sympy.simplify(RVT_full.inv())
+        >>> expr1_repr = vt.sympy_latex_repr(invTVR_full)
+        >>> print(expr1_repr)
+        >>> ut.copy_text_to_clipboard(expr1_repr)
+
     Sympy:
         >>> import sympy
-        >>> theta = sympy.abc.theta
+        >>> import vtool as vt
         >>> # First orient a unit circle
+        >>> symkw = dict(real=True, finite=True)
+        >>> theta       = sympy.symbols('theta', **symkw)
+        >>> x, y, iv21  = sympy.symbols('x y iv21', **symkw)
+        >>> vx, vy, v21 = sympy.symbols('vx, vy, v21', **symkw)
+        >>> iv11, iv22  = sympy.symbols('iv11 iv12', positive=True, **symkw)
+        >>> v11, v22    = sympy.symbols('v11 v22', positive=True, **symkw)
+        >>> # Forward rotation
+        >>> invR = vt.sympy_mat([
+        >>>         [sympy.cos(theta), -sympy.sin(theta), 0],
+        >>>         [sympy.sin(theta),  sympy.cos(theta), 0],
+        >>>         [               0,           0,       1]])
+        >>> # Warps a unit circle at (0, 0) onto an ellipse at (x, y)
+        >>> invV = vt.sympy_mat([
+        >>>         [iv11,  0.0,   x],
+        >>>         [iv21, iv22,   y],
+        >>>         [ 0.0,  0.0, 1.0]])
+        >>> V = vt.sympy_mat([
+        >>>         [v11,  0.0,  vx],
+        >>>         [v21,  v22,  vy],
+        >>>         [0.0,  0.0, 1.0]])
+        veq = sympy.Eq(invVR, VR.inv())
+        print('iv11 = ' + str(sympy.solve(veq, iv11)))
+        print('iv21 = ' + str(sympy.solve(veq, iv21)))
+        print('iv22 = ' + str(sympy.solve(veq, iv22)))
+        print('x = ' + str(sympy.solve(veq, x)))
+        print('y = ' + str(sympy.solve(veq, y)))
+        inveq = sympy.Eq(V, invV.inv())
+        print('v11 = ' + str(sympy.solve(inveq, v11)))
+        print('v12 = ' + str(sympy.solve(inveq, v21)))
+        print('v22 = ' + str(sympy.solve(inveq, v22)))
+        >>> invVR = invV.multiply(R)
+        >>> invV.matmul(R, hold=True)
+        >>> ut.eval
+        >>> print(invVR)
+        >>> print(repr(invVR))
+        >>> vt.rrrr()
+        >>> other_repr = vt.sympy_latex_repr(invV.matmul(R, hold=True))
+        >>> print(other_repr)
+        >>> ut.copy_text_to_clipboard(other_repr)
+        >>> expr1_repr = vt.sympy_latex_repr(invVR)
+        >>> print(expr1_repr)
+        >>> ut.copy_text_to_clipboard(expr1_repr)
+
+
+    Sympy:
+        >>> # Show orientation property
+        >>> import sympy
+        >>> import vtool as vt
+        >>> # First orient a unit circle
+        >>> theta = sympy.symbols('theta', real=True)
         >>> x, y, iv21 = sympy.symbols('x y g', real=True, finite=True)
         >>> vx, vy, v21 = sympy.symbols('vx, vy, c', real=True, finite=True)
         >>> iv11, iv22 = sympy.symbols('e h', real=True, finite=True, positive=True)
         >>> v11, v22 = sympy.symbols('a d', positive=True, real=True, finite=True)
-        >>> R = vt.sympy_mat([
+        >>> # Forward rotation
+        >>> invR = vt.sympy_mat([
         >>>         [sympy.cos(theta), -sympy.sin(theta), 0],
         >>>         [sympy.sin(theta),  sympy.cos(theta), 0],
         >>>         [               0,           0,       1]])

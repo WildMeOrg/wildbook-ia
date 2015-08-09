@@ -11,26 +11,33 @@ except ImportError:
 import numpy as np
 import six
 import utool as ut
+(print, rrr, profile) = ut.inject2(__name__, '[symb]')
 
 
-def add_matmul_hold_prop(mat):
+def custom_sympy_attrs(mat):
     def matmul(other, hold=True):
         if hold:
             new = sympy.MatMul(mat, other)
         else:
             new = mat.multiply(other)
-        add_matmul_hold_prop(new)
+        custom_sympy_attrs(new)
+        return new
+    def inv_():
+        new = mat.inv()
+        custom_sympy_attrs(new)
         return new
     setattr(mat, 'matmul', matmul)
+    setattr(mat, 'inv_', inv_)
     return mat
 
 
 def sympy_mat(arr):
     mat = sympy.Matrix(arr)
-    return add_matmul_hold_prop(mat)
+    mat = custom_sympy_attrs(mat)
+    return mat
 
 
-def evalprint(str_, globals_=None, locals_=None):
+def evalprint(str_, globals_=None, locals_=None, simplify=False):
     if globals_ is None:
         globals_ = ut.get_parent_globals()
     if locals_ is None:
@@ -40,6 +47,8 @@ def evalprint(str_, globals_=None, locals_=None):
     else:
         var = str_
         str_ = ut.get_varname_from_stack(var, N=1)
+    if simplify is True:
+        var = sympy.simplify(var)
     print(ut.hz_str(str_ + ' = ', repr(var)))
 
 
@@ -101,6 +110,8 @@ def sympy_latex_repr(expr1):
     expr1_repr = expr1_repr.replace('\\\\', '\\\\\n')
     expr1_repr = expr1_repr.replace(r'\left[\begin{smallmatrix}{}', '\\MAT{\n')
     expr1_repr = expr1_repr.replace(r'\end{smallmatrix}\right]', '\n}')
+    expr1_repr = expr1_repr.replace(r'\left[\begin{matrix}', '\\BIGMAT{\n')
+    expr1_repr = expr1_repr.replace(r'\end{matrix}\right]', '\n}')
     expr1_repr = expr1_repr.replace(r'\left (', '(')
     expr1_repr = expr1_repr.replace(r'\right )', ')')
     # hack of align
