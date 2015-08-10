@@ -268,21 +268,6 @@ def ensure_inno_script():
     return iss_script_fpath
 
 
-def inno_installer_postprocess():
-    """ Move the built installer into a more reasonable directory """
-    try:
-        cwd = get_setup_dpath()
-        installer_src = join(cwd, '_installers', 'Output', 'ibeis-win32-setup.exe')
-        installer_dst = join(cwd, 'dist', 'ibeis-win32-setup.exe')
-        # Make a timestamped version
-        timestamped_fname = 'ibeis-win32-setup-{timestamp}.exe'.format(timestamp=ut.get_timestamp())
-        installer_dst2 = join(cwd, 'dist', timestamped_fname)
-        ut.move(installer_src, installer_dst)
-        ut.copy(installer_dst, installer_dst2)
-    except Exception as ex:
-        ut.printex(ex, 'error moving setups', iswarning=True)
-
-
 def build_win32_inno_installer():
     """ win32 self-executable package """
     print('[installer] +--- BUILD_WIN32_INNO_INSTALLER ---')
@@ -299,10 +284,27 @@ def build_win32_inno_installer():
         ut.printex(ex, 'error running script')
         raise
     # Move the installer into dist and make a timestamped version
-    inno_installer_postprocess()
     # Uninstall exe in case we need to cleanup
     #uninstall_ibeis_exe = 'unins000.exe'
+    cwd = get_setup_dpath()
+    installer_fpath = join(cwd, '_installers', 'Output', 'ibeis-win32-setup.exe')
     print('[installer] L___ BUILD_WIN32_INNO_INSTALLER ___')
+    return installer_fpath
+
+
+def build_osx_dmg_installer():
+    # outputs dmg to
+    ut.cmd('./_installers/mac_dmg_builder.sh', sudo=True)
+    cwd = get_setup_dpath()
+    installer_fpath = join(cwd, 'dist', 'IBEIS.dmg')
+    return installer_fpath
+
+
+def build_linux_zip_binaries():
+    fpath_list = ut.ls('dist/ibeis')
+    archive_fpath = 'dist/ibeis-linux-binary.zip'
+    ut.archive_files(archive_fpath, fpath_list)
+    return archive_fpath
 
 
 def package_installer():
@@ -311,32 +313,30 @@ def package_installer():
     """
     print('[installer] +--- PACKAGE_INSTALLER ---')
     #build_win32_inno_installer()
+    cwd = get_setup_dpath()
+    # Build the os-appropriate package
     if sys.platform.startswith('win32'):
-        build_win32_inno_installer()
+        installer_src = build_win32_inno_installer()
+        installer_fname_fmt = 'ibeis-win32-install-{timestamp}.exe'
     elif sys.platform.startswith('darwin'):
-        # outputs dmg to
-        ut.cmd('./_installers/mac_dmg_builder.sh', sudo=True)
-        mac_installer_postprocess()
+        installer_src = build_osx_dmg_installer()
+        installer_fname_fmt = 'ibeis-osx-install-{timestamp}.dmg'
     elif sys.platform.startswith('linux'):
-        try:
-            raise NotImplementedError('no linux packager (rpm or deb) supported. try running with --build')
-        except Exception as ex:
-            ut.printex(ex)
-        pass
-    print('[installer] L___ FINISH PACKAGE_INSTALLER ___')
-
-
-def mac_installer_postprocess():
-    """ Move the built installer into a more reasonable directory """
+        installer_src = build_linux_zip_binaries()
+        installer_fname_fmt = 'ibeis-linux-binary-{timestamp}.zip'
+        #try:
+        #    raise NotImplementedError('no linux packager (rpm or deb) supported. try running with --build')
+        #except Exception as ex:
+        #    ut.printex(ex)
+        #pass
+    # timestamp the installer name
+    installer_fname = installer_fname_fmt.format(timestamp=ut.get_timestamp())
+    installer_dst = join(cwd, 'dist', installer_fname)
     try:
-        cwd = get_setup_dpath()
-        installer_src = join(cwd, 'dist', 'IBEIS.dmg')
-        # Make a timestamped version
-        timestamped_fname = 'IBEIS-{timestamp}.dmg'.format(timestamp=ut.get_timestamp())
-        installer_dst = join(cwd, 'dist', timestamped_fname)
         ut.move(installer_src, installer_dst)
     except Exception as ex:
         ut.printex(ex, 'error moving setups', iswarning=True)
+    print('[installer] L___ FINISH PACKAGE_INSTALLER ___')
 
 
 def fix_importlib_hook():

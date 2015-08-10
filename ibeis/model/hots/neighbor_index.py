@@ -1033,14 +1033,38 @@ class NeighborIndex(object):
         return nnindexer.prefix1
 
     #@profile
-    def get_cfgstr(nnindexer):
-        """ returns string which uniquely identified configuration and support data """
+    def get_cfgstr(nnindexer, noquery=False):
+        """ returns string which uniquely identified configuration and support data
+
+        Args:
+            noquery (bool): if True cfgstr is only relevant to building the
+                index. No search params are returned (default = False)
+
+        Returns:
+            str: flann_cfgstr
+
+        CommandLine:
+            python -m ibeis.model.hots.neighbor_index --test-get_cfgstr
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.model.hots.neighbor_index import *  # NOQA
+            >>> ibs, qreq_ = plh.get_pipeline_testdata(defaultdb='testdb1', preload=True)
+            >>> nnindexer = qreq_.indexer
+            >>> noquery = True
+            >>> flann_cfgstr = nnindexer.get_cfgstr(noquery)
+            >>> result = ('flann_cfgstr = %s' % (str(flann_cfgstr),))
+            >>> print(result)
+            flann_cfgstr = _FLANN((algo=kdtree,seed=42,t=8,))_VECS((5232,128)4mu3cl+!se1x13je)
+        """
         flann_cfgstr_list = []
         use_params_hash = True
         if use_params_hash:
             flann_defaults = vt.get_flann_params(nnindexer.flann_params['algorithm'])
             flann_params_clean = flann_defaults.copy()
             ut.updateif_haskey(flann_params_clean, nnindexer.flann_params)
+            if noquery:
+                del flann_params_clean['checks']
             shortnames = dict(algorithm='algo', checks='chks', random_seed='seed', trees='t')
             short_params = dict([(shortnames.get(key, key), str(val)[0:7])
                                  for key, val in six.iteritems(flann_params_clean)])
@@ -1064,7 +1088,7 @@ class NeighborIndex(object):
         _args2_fpath = ut.util_cache._args2_fpath
         dpath  = cachedir
         prefix = nnindexer.get_prefix()
-        cfgstr = nnindexer.get_cfgstr()
+        cfgstr = nnindexer.get_cfgstr(noquery=True)
         ext    = nnindexer.ext
         fpath  = _args2_fpath(dpath, prefix, cfgstr, ext, write_hashtbl=False)
         print('flann fpath = %r' % (fpath,))

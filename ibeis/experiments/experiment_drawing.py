@@ -364,11 +364,12 @@ def draw_results(ibs, test_result):
     def draw_rank_cdf():
         cdf_list, edges = test_result.get_rank_cumhist(bins='dense')
         lbl_list = test_result.get_short_cfglbls()
-        figtitle = 'Cumulative Histogram of GT-Ranks'
+        figtitle = 'Cumulative Histogram of GT-Ranks for db=' + (ibs.get_dbname())
         #cdf_list = config_cdfs
-        if ut.get_argflag('--zoom50'):
-            cdf_list = cdf_list[:, 0:min(len(cdf_list.T), 50)]
-            edges = edges[0:min(len(edges), 51)]
+        maxrank = ut.get_argval('--maxrank', type_=int, default=None)
+        if maxrank is not None:
+            cdf_list = cdf_list[:, 0:min(len(cdf_list.T), maxrank)]
+            edges = edges[0:min(len(edges), maxrank + 1)]
         fig = pt.plot_rank_cumhist(cdf_list, lbl_list, edges=edges, figtitle=figtitle)  # NOQA
         ut.show_if_requested()
         #rank_cdf_fpath = ph.dump_figure(aggregate_results_figdir, reset=not SHOW, subdir=None, **dumpkw)

@@ -559,12 +559,12 @@ def run_devcmds(ibs, qaid_list, daid_list):
     This function runs tests passed in with the -t flag
     """
     print('\n')
-    print('[dev] run_devcmds')
+    #print('[dev] run_devcmds')
     print('==========================')
-    print('RUN EXPERIMENTS %s' % ibs.get_dbname())
+    print('[DEV] RUN EXPERIMENTS %s' % ibs.get_dbname())
     print('==========================')
     input_test_list = params.args.tests[:]
-    print('input_test_list = %r' % (input_test_list,))
+    print('input_test_list = %s' % (ut.list_str(input_test_list),))
     # fnum = 1
 
     valid_test_list = []  # build list for printing in case of failure
@@ -585,8 +585,9 @@ def run_devcmds(ibs, qaid_list, daid_list):
                     mark_test_handled(testname)
                 else:
                     ret = ret2
-                print('+===================')
-                print('| running testname = %s' % (args,))
+                print('\n+===================')
+                print(' [dev] running testname = %s' % (args,))
+                print('+-------------------\n')
                 return ret
         return False
 
@@ -885,7 +886,8 @@ def run_dev(main_locals):
         print('[run_def] Test Annotations:')
         #print('[run_dev] * qaid_list = %s' % ut.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
         verbose_info = True
-        ibeis.other.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=verbose_info)
+        if ut.NOT_QUIET and not ut.get_argflag('--nodbinfo'):
+            ibeis.other.dbinfo.print_qd_info(ibs, qaid_list, daid_list, verbose=verbose_info)
         # Warn on no test cases
         try:
             assert len(qaid_list) > 0, 'assert!'
@@ -996,7 +998,8 @@ def devmain():
 
     EXAMPLE_STR = ut.msgblock('dev.py Examples', ut.codeblock(EXAMPLE_TEXT))
 
-    print(INTRO_STR)
+    if ut.NOT_QUIET:
+        print(INTRO_STR)
     if ut.get_argflag(('--help', '--verbose')):
         print(EXAMPLE_STR)
 

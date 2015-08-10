@@ -197,27 +197,40 @@ def get_cfg_list_helper(test_cfg_name_list):
         # TODO: Move this unique finding code to its own function
         # and then move it up one function level so even the custom
         # configs can be uniquified
+        #cfg = Config.QueryConfig(**dict_)
+        #
+        # FIXME: There are tuned query configs for specific species.
+        # Maybe those should be hacked in here? maybe not though.
         cfg = Config.QueryConfig(**dict_)
         if cfg not in cfg_set:
             cfgx2_lbl.append(lbl)
             cfg_list.append(cfg)
             cfg_set.add(cfg)
     if not QUIET:
-        print('[harn] return %d / %d unique configs' % (len(cfg_list), len(varied_params_list)))
+        print('[harn.help] return %d / %d unique configs' % (len(cfg_list), len(varied_params_list)))
     return cfg_list, cfgx2_lbl
 
 
-def get_cfg_list(test_cfg_name_list, ibs=None):
+def get_cfg_list_and_lbls(test_cfg_name_list, ibs=None):
     r"""
+    Driver function
+
+    Returns a list of varied query configurations. Only custom configs depend on
+    IBEIS. The order of the output is not gaurenteed to aggree with input order.
+
     Args:
         test_cfg_name_list (list):
         ibs (IBEISController):  ibeis controller object
 
     Returns:
-        tuple: (cfg_list, cfgx2_lbl)
+        tuple: (cfg_list, cfgx2_lbl) -
+            cfg_list (list): list of config objects
+            cfgx2_lbl (list): denotes which parameters are being varied.
+                If there is just one config then nothing is varied
 
     CommandLine:
-        python -m ibeis.experiments.experiment_helpers --test-get_cfg_list
+        python -m ibeis.experiments.experiment_helpers --test-get_cfg_list_and_lbls
+        python -m ibeis.experiments.experiment_helpers --test-get_cfg_list_and_lbls:1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -226,14 +239,26 @@ def get_cfg_list(test_cfg_name_list, ibs=None):
         >>> ibs = ibeis.opendb('testdb1')
         >>> test_cfg_name_list = ['best', 'custom', 'custom:sv_on=False']
         >>> # execute function
-        >>> (cfg_list, cfgx2_lbl) = get_cfg_list(test_cfg_name_list, ibs)
+        >>> (cfg_list, cfgx2_lbl) = get_cfg_list_and_lbls(test_cfg_name_list, ibs)
         >>> # verify results
         >>> query_cfg0 = cfg_list[0]
         >>> query_cfg1 = cfg_list[1]
         >>> assert query_cfg0.sv_cfg.sv_on is True
         >>> assert query_cfg1.sv_cfg.sv_on is False
+        >>> print('cfg_list = '+ ut.list_str(cfg_list))
+        >>> print('cfgx2_lbl = '+ ut.list_str(cfgx2_lbl))
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
+        >>> test_cfg_name_list = ['lnbnn2']
+        >>> ibs = None
+        >>> (cfg_list, cfgx2_lbl) = get_cfg_list_and_lbls(test_cfg_name_list, ibs)
+        >>> print('cfg_list = '+ ut.list_str(cfg_list))
+        >>> print('cfgx2_lbl = '+ ut.list_str(cfgx2_lbl))
+
     """
-    print('[harn] building cfg_list: %s' % test_cfg_name_list)
+    print('[harn.help] building cfg_list using: %s' % test_cfg_name_list)
     if 'custom' == test_cfg_name_list:
         # Use the ibeis config as a custom config
         # this can be modified with the --cfg command line option
@@ -274,33 +299,6 @@ def get_cfg_list(test_cfg_name_list, ibs=None):
             cfg_list2, cfgx2_lbl2 = get_cfg_list_helper(test_cfg_name_list2)
             cfg_list.extend(cfg_list2)
             cfgx2_lbl.extend(cfgx2_lbl2)
-    return (cfg_list, cfgx2_lbl)
-
-
-def get_cfg_list_and_lbls(test_cfg_name_list, ibs=None):
-    """
-    Driver function
-
-    Returns a list of varied query configurations. Only custom configs depend on
-    IBEIS
-
-    Args:
-        test_cfg_name_list (list):
-        ibs (IBEISController): optional for custom configs
-
-    Returns:
-        tuple : (cfg_list, cfgx2_lbl)
-
-    Example:
-        >>> from ibeis.experiments.experiment_helpers import *  # NOQA
-        >>> from ibeis.experiments import experiment_helpers as eh
-        >>> test_cfg_name_list = ['lnbnn2']
-        >>> ibs = None
-    """
-    cfg_list, cfgx2_lbl = get_cfg_list(test_cfg_name_list, ibs=ibs)
-    #print(cfgx2_lbl)
-    # cfgx2_lbl denotes which parameters are being varied.
-    # If there is just one config then nothing is varied
     return (cfg_list, cfgx2_lbl)
 
 

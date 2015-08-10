@@ -542,11 +542,43 @@ def assert_singleton_relationship(ibs, alrids_list):
 
 @__injectable
 def assert_valid_aids(ibs, aid_list, verbose=False, veryverbose=False):
-    if ut.NO_ASSERTS:
-        return
-    valid_aids = set(ibs.get_valid_aids())
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (int):  list of annotation ids
+        verbose (bool):  verbosity flag(default = False)
+        veryverbose (bool): (default = False)
+
+    Returns:
+        ?:
+
+    CommandLine:
+        python -m ibeis.ibsfuncs --test-assert_valid_aids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> verbose = False
+        >>> veryverbose = False
+        >>> result = assert_valid_aids(ibs, aid_list, verbose, veryverbose)
+        >>> try:
+        >>>    result = assert_valid_aids(ibs, aid_list + [0], verbose, veryverbose)
+        >>> except AssertionError:
+        >>>    print('Correctly got assertion')
+        >>> else:
+        >>>    assert False, 'should have failed'
+        >>> print(result)
+    """
+    #if ut.NO_ASSERTS and not force:
+    #    return
+    #valid_aids = set(ibs.get_valid_aids())
     #invalid_aids = [aid for aid in aid_list if aid not in valid_aids]
-    isinvalid_list = [aid not in valid_aids for aid in aid_list]
+    #isinvalid_list = [aid not in valid_aids for aid in aid_list]
+    isinvalid_list = [aid is None for aid in ibs.get_annot_aid(aid_list)]
+    #isinvalid_list = [aid not in valid_aids for aid in aid_list]
     try:
         assert not any(isinvalid_list), 'invalid aids: %r' % (ut.filter_items(aid_list, isinvalid_list),)
         isinvalid_list = [not isinstance(aid, ut.VALID_INT_TYPES) for aid in aid_list]

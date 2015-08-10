@@ -619,6 +619,7 @@ def get_chip_uris(ibs, cid_list):
 @register_api('/api/chip/fpath/', methods=['GET'])
 def get_chip_fpath(ibs, cid_list):
     r"""
+    Combines the uri with the expected chip directory
 
     Returns:
         chip_fpath_list (list): a list of chip paths by their aid

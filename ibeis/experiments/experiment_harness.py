@@ -8,7 +8,7 @@ import numpy as np
 #import six
 import utool
 import utool as ut
-from ibeis.experiments import experiment_helpers as eh
+from ibeis.experiments import experiment_helpers as expt_helpers
 from ibeis.experiments import experiment_printres
 from ibeis.experiments import experiment_drawing
 from ibeis.experiments import experiment_storage
@@ -199,10 +199,9 @@ def test_configurations(ibs, qaids, daids, test_cfg_name_list):
 @profile
 def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
     # Grab list of algorithm configurations to test
-    testnameid = ibs.get_dbname() + ' ' + str(test_cfg_name_list)
-    cfg_list, cfgx2_lbl = eh.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
-    lbl = '[harn] TEST_CFG ' + str(test_cfg_name_list)
     # Test Each configuration
+    cfg_list, cfgx2_lbl = expt_helpers.get_cfg_list_and_lbls(test_cfg_name_list, ibs=ibs)
+
     if not utool.QUIET:
         ut.colorprint(textwrap.dedent("""
 
@@ -210,18 +209,35 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
         [harn] experiment_harness.test_configurations()""").strip(), 'white')
 
     orig_query_cfg = ibs.cfg.query_cfg  # Remember original query config
+
+    # Parse cfgstr list
+    cfgstr_list = [query_cfg.get_cfgstr() for query_cfg in cfg_list]
+    for cfgstr in cfgstr_list:
+        cfgstr_terms = cfgstr.split(')_')
+        cfgstr_terms = [x + ')_' for x in cfgstr_terms[1:-1]] + [cfgstr_terms[-1]]  # NOQA
+
+    #ut.embed()
+    print('cfgx2_lbl = ' + ut.list_str(cfgx2_lbl))
+    print('cfgstr_list = ' + ut.list_str(cfgstr_list))
+
     cfgx2_lbl = np.array(cfgx2_lbl)
     if not utool.QUIET:
-        ut.colorprint('[harn] Testing %d different parameters' % len(cfg_list), 'white')
-        ut.colorprint('[harn]         %d query annotations' % len(qaids), 'white')
+        ut.colorprint('[harn] Testing %d parameter configurations' % len(cfg_list), 'white')
+        ut.colorprint('[harn]    with %d query annotations' % len(qaids), 'white')
+
+    testnameid = ibs.get_dbname() + ' ' + str(test_cfg_name_list)
+    lbl = '[harn] TEST_CFG ' + str(test_cfg_name_list)
 
     nCfg     = len(cfg_list)   # number of configurations (cols)
     dbname = ibs.get_dbname()
     cfgx2_cfgresinfo = []
     cfgx2_qreq_      = []
+
+    DRY_RUN =  ut.get_argflag('--dryrun')  # dont actually query. Just print labels and stuff
+
     with utool.Timer('experiment_harness'):
         cfgiter = ut.ProgressIter(enumerate(cfg_list), nTotal=nCfg, lbl=lbl,
-                                  freq=1, time_thresh=4)
+                                  freq=1, autoadjust=False)
         # Run each test configuration
         # Query Config / Col Loop
         #for cfgx, query_cfg in enumerate(cfg_list):
@@ -229,8 +245,10 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
             #print('+--- REQUESTING TEST CONFIG ---')
             #print(query_cfg.get_cfgstr())
             ut.colorprint(query_cfg.get_cfgstr(), 'turquoise')
+            if DRY_RUN:
+                continue
             # Set data to the current config
-            ibs.set_query_cfg(query_cfg)
+            ibs.set_query_cfg(query_cfg)  # TODO: make this not even matter
             # Run the test / read cache
             with utool.Indenter('[%s cfg %d/%d]' % (dbname, cfgx + 1, nCfg)):
                 cfgres_info, qreq_ = get_config_result_info(ibs, qaids, daids)
@@ -243,6 +261,9 @@ def run_test_configurations(ibs, qaids, daids, test_cfg_name_list):
     if not utool.QUIET:
         ut.colorprint('[harn] Completed running test configurations', 'white')
         #print(msg)
+    if DRY_RUN:
+        print('ran tests dryrun mode. Cannot Print. exiting')
+        return
     if NOMEMORY:
         print('ran tests in memory savings mode. Cannot Print. exiting')
         return

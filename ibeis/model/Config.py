@@ -1256,10 +1256,9 @@ def _default_named_config(cfg, cfgname):
     list default parameters per species
 
     """
-    Species = const.Species
     if cfgname == 'cfg':
         cfg.detect_cfg.species_text = 'none'
-    elif cfgname == Species.ZEB_PLAIN:
+    elif cfgname == const.Species.ZEB_PLAIN:
         cfg.detect_cfg.species_text = cfgname
         #speedup': 46.90769958496094,
         cfg.query_cfg.flann_cfg.algorithm = 'kdtree'
@@ -1280,13 +1279,13 @@ def _default_named_config(cfg, cfgname):
         #'speedup': 65.54280090332031,
         #'target_precision': 0.9800000190734863,
 
-    elif cfgname == Species.ZEB_GREVY:
+    elif cfgname == const.Species.ZEB_GREVY:
         cfg.detect_cfg.species_text = cfgname
         #speedup': 224.7425994873047,
         cfg.query_cfg.flann_cfg.algorithm = 'kdtree'
         cfg.query_cfg.flann_cfg.trees = 4
         cfg.query_cfg.nn_cfg.checks = 896
-    elif cfgname == Species.GIRAFFE:
+    elif cfgname == const.Species.GIRAFFE:
         cfg.detect_cfg.species_text = cfgname
         cfg.query_cfg.flann_cfg.algorithm = 'kdtree'
         cfg.query_cfg.flann_cfg.trees = 8

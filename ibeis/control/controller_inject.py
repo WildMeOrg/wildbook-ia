@@ -41,6 +41,8 @@ print, print_, printDBG, rrr, profile = ut.inject(__name__, '[controller_inject]
 #INJECTED_MODULES = []
 UTOOL_AUTOGEN_SPHINX_RUNNING = not (os.environ.get('UTOOL_AUTOGEN_SPHINX_RUNNING', 'OFF') == 'OFF')
 
+
+
 GLOBAL_APP_ENABLED = not UTOOL_AUTOGEN_SPHINX_RUNNING and not ut.get_argflag('--no-flask') and HAS_FLASK
 GLOBAL_APP_NAME = 'IBEIS'
 GLOBAL_APP_SECRET = 'CB73808F-A6F6-094B-5FCD-385EBAFF8FC0'
@@ -65,10 +67,11 @@ def get_flask_app():
             root_dpath = abspath(dirname(dirname(__file__)))
         tempalte_dpath = join(root_dpath, 'web', 'templates')
         static_dpath = join(root_dpath, 'web', 'static')
-        print('[get_flask_app] root_dpath = %r' % (root_dpath,))
-        print('[get_flask_app] tempalte_dpath = %r' % (tempalte_dpath,))
-        print('[get_flask_app] static_dpath = %r' % (static_dpath,))
-        print('[get_flask_app] GLOBAL_APP_NAME = %r' % (GLOBAL_APP_NAME,))
+        if ut.VERBOSE:
+            print('[get_flask_app] root_dpath = %r' % (root_dpath,))
+            print('[get_flask_app] tempalte_dpath = %r' % (tempalte_dpath,))
+            print('[get_flask_app] static_dpath = %r' % (static_dpath,))
+            print('[get_flask_app] GLOBAL_APP_NAME = %r' % (GLOBAL_APP_NAME,))
         GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME, template_folder=tempalte_dpath, static_folder=static_dpath)
         if HAS_FLASK_CORS:
             GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA

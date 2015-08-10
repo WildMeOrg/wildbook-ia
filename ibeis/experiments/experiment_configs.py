@@ -30,6 +30,15 @@ pyrscale = {
 }
 
 
+candidacy = [
+    {},
+    {'fg_on': [True]},
+    {'sv_on': [False]},
+    {'rotation_invariance': [True], 'affine_invariance': [False]},
+    {'augment_queryside_hack': [True]},
+]
+
+
 small_best = {
     'pipeline_root':   ['vsmany'],
     'checks':          [1024],  # , 8192],

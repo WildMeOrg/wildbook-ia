@@ -152,6 +152,9 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         print('\n\n[hs] +--- STARTING HOTSPOTTER PIPELINE ---')
         print(ut.indent(qreq_.get_infostr(), '[hs] '))
 
+    ibs.assert_valid_aids(qreq_.get_internal_qaids())
+    ibs.assert_valid_aids(qreq_.get_internal_daids())
+
     if qreq_.qparams.pipeline_root == 'smk':
         from ibeis.model.hots.smk import smk_match
         # Alternative to naive bayes matching:

@@ -538,7 +538,7 @@ def dbstats(ibs):
         >>> tabular_str = dbstats(ibs)
         >>> print(ut.latex_newcommand(ut.latex_sanatize_command_name(ibs.get_dbname() + 'Info'), tabular_str))
         >>> ut.quit_if_noshow()
-        >>> ut.render_latex_text(tabular_str)
+        >>> ut.render_latex_text('\\noindent \n' + tabular_str)
     """
     # Chip / Name / Image stats
     dbinfo_locals = get_dbinfo(ibs, with_contrib=False)

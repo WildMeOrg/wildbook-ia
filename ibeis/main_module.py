@@ -10,6 +10,7 @@ import multiprocessing
 
 PREINIT_MULTIPROCESSING_POOLS = '--preinit' in sys.argv
 QUIET = '--quiet' in sys.argv
+NOT_QUIET = not QUIET
 USE_GUI = '--gui' in sys.argv or '--nogui' not in sys.argv
 
 try:
@@ -57,8 +58,7 @@ def _init_matplotlib():
 #@profile
 def _init_gui():
     import guitool
-    import utool as ut
-    if not ut.QUIET:
+    if NOT_QUIET:
         print('[main] _init_gui()')
     guitool.ensure_qtapp()
     #USE_OLD_BACKEND = '--old-backend' in sys.argv
@@ -79,7 +79,7 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=False, **kwargs):
     from ibeis.control import IBEISControl
     if verbose is None:
         verbose = ut.VERBOSE
-    if verbose and not ut.QUIET:
+    if verbose and NOT_QUIET:
         print('[main] _init_ibeis()')
     # Use command line dbdir unless user specifies it
     if dbdir is None:
@@ -154,7 +154,6 @@ def _init_numpy():
 
 def _guitool_loop(main_locals, ipy=False):
     import guitool
-    import utool as ut
     from ibeis import params
     print('[main] guitool loop')
     back = main_locals.get('back', None)
@@ -165,7 +164,7 @@ def _guitool_loop(main_locals, ipy=False):
         if ipy:  # If we're in IPython, the qtapp loop won't block, so we need to refresh
             back.refresh_state()
     else:
-        if not ut.QUIET:
+        if NOT_QUIET:
             print('WARNING: back was not expected to be None')
 
 
@@ -243,14 +242,15 @@ def main(gui=True, dbdir=None, defaultdb='cache',
       |   |_____] |______   |   |______
     __|__ |_____] |______ __|__ ______|
     '''
-    print(msg2 if '--myway' not in sys.argv else msg1)
+    if NOT_QUIET:
+        print(msg2 if '--myway' not in sys.argv else msg1)
     # Init the only two main system api handles
     ibs = None
     back = None
-    if not QUIET:
+    if NOT_QUIET:
         print('[main] ibeis.main_module.main()')
     _preload()
-    DIAGNOSTICS = True
+    DIAGNOSTICS = NOT_QUIET
     if DIAGNOSTICS:
         import os
         import utool as ut
